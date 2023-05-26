@@ -91,7 +91,7 @@ checks:
   Binary-Artifacts:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, GitLab, local
     short: Determines if the project has generated executable (binary) artifacts in the source repository.
     description: |
       Risk: `High` (non-reviewable code)
@@ -142,7 +142,7 @@ checks:
   Branch-Protection:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)
@@ -213,6 +213,9 @@ checks:
         - For administrators: Dismiss stale reviews
         - For administrators: Require CODEOWNER review
 
+      GitLab Integration Status:
+        - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
+
     remediation:
       - >-
         Enable branch protection settings in your source hosting provider to
@@ -222,7 +225,7 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the project runs tests before pull requests are merged.
     description: |
       Risk: `Low` (possible unknown vulnerabilities)
