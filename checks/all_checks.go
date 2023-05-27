@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/checks/internal"
 )
 
 // allChecks is the list of all registered security checks.
@@ -68,7 +69,7 @@ func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []chec
 	return nil
 }
 
-func registerCheckInterface(name string, check Check, supportedRequestTypes []checker.RequestType) error {
+func registerCheckInterface(name string, check internal.Check, supportedRequestTypes []checker.RequestType) error {
 	if name == "" {
 		return errInternalNameCannotBeEmpty
 	}
