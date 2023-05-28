@@ -96,8 +96,34 @@ type nugetIndexResults struct {
 	Resources []nugetIndexResult `json:"resources"`
 }
 
-type nugetpackageIndexResults struct {
-	Versions []string `json:"versions"`
+type nugetPackageRegistrationCatalogRoot struct {
+	Pages []nugetPackageRegistrationCatalogPage `json:"items"`
+}
+
+type nugetPackageRegistrationCatalogPage struct {
+	ID       string                            `json:"@id"`
+	Packages []nugetPackageRegistrationPackage `json:"items"`
+}
+
+type nugetPackageRegistrationPackage struct {
+	Entry nugetPackageRegistrationCatalogEntry `json:"catalogEntry"`
+}
+
+type nugetPackageRegistrationCatalogEntry struct {
+	Version string `json:"version"`
+	Listed  bool   `json:"listed"`
+}
+
+func (entry *nugetPackageRegistrationCatalogEntry) UnmarshalJSON(text []byte) error {
+	type Alias nugetPackageRegistrationCatalogEntry
+	aux := Alias{
+		Listed: true, // set the default value before parsing JSON
+	}
+	if err := json.Unmarshal(text, &aux); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to unmarshal json: %v", err))
+	}
+	*entry = nugetPackageRegistrationCatalogEntry(aux)
+	return nil
 }
 
 type nugetNuspec struct {
@@ -189,33 +215,31 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 	err = json.NewDecoder(respIndex.Body).Decode(nugetIndexResults)
 
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget index json: %v", err))
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to parse nuget index json: %v", err))
 	}
-	packageBaseAddressIndex := slices.IndexFunc(nugetIndexResults.Resources,
-		func(n nugetIndexResult) bool { return n.Type == "PackageBaseAddress/3.0.0" })
-	if packageBaseAddressIndex == -1 {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, "failed to find package base URI at nuget index json")
-	}
-
-	nugetPackageBaseURL := nugetIndexResults.Resources[packageBaseAddressIndex].ID
-
-	respPackageIndex, err := manager.Get(nugetPackageBaseURL+"%s/index.json", packageName)
+	nugetPackageBaseURL, err := getFieldFromIndexResults(nugetIndexResults.Resources,
+		"PackageBaseAddress/3.0.0")
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get nuget package index json: %v", err))
+		return "", err
 	}
-	defer respPackageIndex.Body.Close()
-	packageIndexResults := &nugetpackageIndexResults{}
-	err = json.NewDecoder(respPackageIndex.Body).Decode(packageIndexResults)
-
+	nugetRegistrationBaseURL, err := getFieldFromIndexResults(nugetIndexResults.Resources,
+		"RegistrationsBaseUrl/3.4.0")
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget package index json: %v", err))
+		return "", err
 	}
 
-	lastVersion := packageIndexResults.Versions[len(packageIndexResults.Versions)-1]
-
-	respPackageSpec, err := manager.Get(nugetPackageBaseURL+"%[1]v/"+lastVersion+"/%[1]v.nuspec", packageName)
+	lastPackageVersion, err := getLatestListedVersion(nugetRegistrationBaseURL,
+		packageName, manager)
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get nuget package spec json: %v", err))
+		return "", err
+	}
+
+	respPackageSpec, err := manager.Get(
+		nugetPackageBaseURL+"%[1]v/"+lastPackageVersion+"/%[1]v.nuspec", packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to get nuget package spec json: %v", err))
 	}
 	defer respPackageSpec.Body.Close()
 
@@ -223,7 +247,8 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 	err = xml.NewDecoder(respPackageSpec.Body).Decode(packageSpecResults)
 
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse nuget nuspec xml: %v", err))
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to parse nuget nuspec xml: %v", err))
 	}
 	if packageSpecResults.Metadata == (nuspecMetadata{}) ||
 		packageSpecResults.Metadata.Repository == (nuspecRepository{}) ||
@@ -232,4 +257,60 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 			fmt.Sprintf("source repo is not defined for nuget package %v", packageName))
 	}
 	return packageSpecResults.Metadata.Repository.URL, nil
+}
+
+func getLatestListedVersion(baseURL, packageName string, manager packageManagerClient) (string, error) {
+	resPackageRegistrationIndex, err := manager.Get(baseURL+"%s/index.json", packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to get nuget package registration index json: %v", err))
+	}
+	defer resPackageRegistrationIndex.Body.Close()
+	packageRegistrationCatalogRoot := &nugetPackageRegistrationCatalogRoot{}
+	err = json.NewDecoder(resPackageRegistrationIndex.Body).Decode(packageRegistrationCatalogRoot)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to parse package registration index json: %v", err))
+	}
+	return getLatestListedVersionFromPackageRegistrationPages(packageRegistrationCatalogRoot.Pages, manager)
+}
+
+func getLatestListedVersionFromPackageRegistrationPages(pages []nugetPackageRegistrationCatalogPage,
+	manager packageManagerClient,
+) (string, error) {
+	for pageIndex := len(pages) - 1; pageIndex >= 0; pageIndex-- {
+		page := pages[pageIndex]
+		if page.Packages == nil {
+			respPage, err := manager.GetURI(page.ID)
+			if err != nil {
+				return "", sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("failed to get nuget package registration page: %v", err))
+			}
+			defer respPage.Body.Close()
+			err = json.NewDecoder(respPage.Body).Decode(&page)
+
+			if err != nil {
+				return "", sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("failed to parse nuget package registration page: %v", err))
+			}
+		}
+		for packageIndex := len(page.Packages) - 1; packageIndex >= 0; packageIndex-- {
+			if page.Packages[packageIndex].Entry.Listed {
+				return page.Packages[packageIndex].Entry.Version, nil
+			}
+		}
+	}
+	return "", sce.WithMessage(sce.ErrScorecardInternal,
+		"failed to get a listed version for package")
+}
+
+func getFieldFromIndexResults(resources []nugetIndexResult, resultType string) (string, error) {
+	packageBaseAddressIndex := slices.IndexFunc(resources,
+		func(n nugetIndexResult) bool { return n.Type == resultType })
+	if packageBaseAddressIndex == -1 {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to find %v URI at nuget index json", resultType))
+	}
+
+	return resources[packageBaseAddressIndex].ID, nil
 }
