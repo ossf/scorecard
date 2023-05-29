@@ -2158,14 +2158,15 @@ func nugetIndexOrPageTestResults(url string, test *nugetTest) (*http.Response, e
 			//nolint
 			return nil, errors.New("error")
 		}
-		if test.wantErr && (test.args.resultPackageRegistrationPages[urlResponseIndex].response == "") {
+		page := test.args.resultPackageRegistrationPages[urlResponseIndex]
+		if test.wantErr && (page.response == "") {
 			//nolint
 			return nil, errors.New("error")
 		}
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       io.NopCloser(bytes.NewBufferString(test.args.resultPackageRegistrationPages[urlResponseIndex].response)),
+			Body:       io.NopCloser(bytes.NewBufferString(page.response)),
 		}, nil
 	}
 }
