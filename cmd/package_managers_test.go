@@ -1584,6 +1584,10 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 						url:      "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
 						response: "",
 					},
+					{
+						url:      "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/2",
+						response: "",
+					},
 				},
 				resultPackageSpec: "",
 			},
@@ -1632,6 +1636,10 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				resultPackageRegistrationPages: []resultPackagePage{
 					{
 						url:      "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+						response: "foo",
+					},
+					{
+						url:      "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/2",
 						response: "foo",
 					},
 				},
@@ -1884,6 +1892,35 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
 		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: "",
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec:              "",
+				version:                        "4.0.1",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_error_no_package_base_url",
+			args: nugetTestArgs{
+				packageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.1.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.4.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
