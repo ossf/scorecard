@@ -26,22 +26,22 @@ import (
 func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		input_url string
+		inputURL string
 	}
 	tests := []struct {
-		name          string
-		args          args
-		want_uri      string
-		want_response string
+		name         string
+		args         args
+		wantURL      string
+		wantResponse string
 	}{
 		{
 			name: "GetURI_input_is_the_same_as_get_uri",
 
 			args: args{
-				input_url: "test",
+				inputURL: "test",
 			},
-			want_uri:      "/test",
-			want_response: "test",
+			wantURL:      "/test",
+			wantResponse: "test",
 		},
 	}
 	for _, tt := range tests {
@@ -49,15 +49,17 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path != tt.want_uri {
-					t.Errorf("Expected to request '%s', got: %s", tt.want_uri, r.URL.Path)
+				if r.URL.Path != tt.wantURL {
+					t.Errorf("Expected to request '%s', got: %s", tt.wantURL, r.URL.Path)
 				}
+				// nolint
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(tt.want_response))
+				// nolint
+				w.Write([]byte(tt.wantResponse))
 			}))
 			defer server.Close()
 			client := packageManager{}
-			got, err := client.GetURI(server.URL + "/" + tt.args.input_url)
+			got, err := client.GetURI(server.URL + "/" + tt.args.inputURL)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -65,8 +67,8 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			if string(body) != tt.want_response {
-				t.Errorf("GetURI() = %v, want %v", got, tt.want_response)
+			if string(body) != tt.wantResponse {
+				t.Errorf("GetURI() = %v, want %v", got, tt.wantResponse)
 			}
 		})
 	}
@@ -75,24 +77,24 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 func Test_Get_calls_client_get_with_input(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		input_url    string
-		package_name string
+		inputURL    string
+		packageName string
 	}
 	tests := []struct {
-		name          string
-		args          args
-		want_uri      string
-		want_response string
+		name         string
+		args         args
+		wantURL      string
+		wantResponse string
 	}{
 		{
 			name: "Get_input_adds_package_name_for_get_uri",
 
 			args: args{
-				input_url:    "test-%s-test",
-				package_name: "test_package",
+				inputURL:    "test-%s-test",
+				packageName: "test_package",
 			},
-			want_uri:      "/test-test_package-test",
-			want_response: "test",
+			wantURL:      "/test-test_package-test",
+			wantResponse: "test",
 		},
 	}
 	for _, tt := range tests {
@@ -100,15 +102,17 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				if r.URL.Path != tt.want_uri {
-					t.Errorf("Expected to request '%s', got: %s", tt.want_uri, r.URL.Path)
+				if r.URL.Path != tt.wantURL {
+					t.Errorf("Expected to request '%s', got: %s", tt.wantURL, r.URL.Path)
 				}
+				// nolint
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(tt.want_response))
+				// nolint
+				w.Write([]byte(tt.wantResponse))
 			}))
 			defer server.Close()
 			client := packageManager{}
-			got, err := client.Get(server.URL+"/"+tt.args.input_url, tt.args.package_name)
+			got, err := client.Get(server.URL+"/"+tt.args.inputURL, tt.args.packageName)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -116,8 +120,8 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 			if err != nil {
 				log.Fatalln(err)
 			}
-			if string(body) != tt.want_response {
-				t.Errorf("GetURI() = %v, want %v", got, tt.want_response)
+			if string(body) != tt.wantResponse {
+				t.Errorf("GetURI() = %v, want %v", got, tt.wantResponse)
 			}
 		})
 	}
