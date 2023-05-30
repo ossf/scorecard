@@ -65,7 +65,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -95,7 +95,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -125,7 +125,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -155,7 +155,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -185,7 +185,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -215,7 +215,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -245,7 +245,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@4b3578161eece2eb20a9dfd84bb8ed105e684dba # v1.2.0
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
