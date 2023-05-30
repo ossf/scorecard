@@ -305,12 +305,12 @@ func getLatestListedVersionFromPackageRegistrationPages(pages []nugetPackageRegi
 }
 
 func getFieldFromIndexResults(resources []nugetIndexResult, resultType string) (string, error) {
-	packageBaseAddressIndex := slices.IndexFunc(resources,
+	resourceIndex := slices.IndexFunc(resources,
 		func(n nugetIndexResult) bool { return n.Type == resultType })
-	if packageBaseAddressIndex == -1 {
+	if resourceIndex == -1 {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("failed to find %v URI at nuget index json", resultType))
 	}
 
-	return resources[packageBaseAddressIndex].ID, nil
+	return resources[resourceIndex].ID, nil
 }
