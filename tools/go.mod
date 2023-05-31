@@ -9,7 +9,7 @@ require (
 	github.com/google/ko v0.13.0
 	github.com/goreleaser/goreleaser v1.18.2
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
-	github.com/onsi/ginkgo/v2 v2.9.5
+	github.com/onsi/ginkgo/v2 v2.9.7
 	google.golang.org/protobuf v1.30.0
 )
 
