@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
@@ -163,17 +165,23 @@ func runScorecardChecksV5(ctx context.Context,
 		ret.Checks = append(ret.Checks, result)
 	}
 
-	// Run the probes.
-	var findings []finding.Finding
-	// TODO(#3049): only run the probes for checks.
-	// NOTE: We will need separate functions to support:
-	// - `--probes X,Y`
-	// - `--check-definitions-file path/to/config.yml
-	// NOTE: we discard the returned error because the errors are
-	// already cotained in the findings and we want to return the findings
-	// to users.
-	// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
-	findings, _ = zrunner.Run(&ret.RawResults, probes.All)
-	ret.Findings = findings
+	if value, _ := os.LookupEnv(options.EnvVarScorecardExperimental); value == "1" {
+		// Run the probes.
+		var findings []finding.Finding
+		// TODO(#3049): only run the probes for checks.
+		// NOTE: We will need separate functions to support:
+		// - `--probes X,Y`
+		// - `--check-definitions-file path/to/config.yml
+		// NOTE: we discard the returned error because the errors are
+		// already cotained in the findings and we want to return the findings
+		// to users.
+		// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
+		// Note: we discard the error because each probe's error is reported within
+		// the probe and we don't want the entire scorecard run to fail if a single error
+		// is encountered.
+		//nolint:errcheck
+		findings, _ = zrunner.Run(&ret.RawResults, probes.All)
+		ret.Findings = findings
+	}
 	return ret, nil
 }

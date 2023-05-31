@@ -31,7 +31,7 @@ type JSONScorecardProbeResult struct {
 	Repo      jsonRepoV2        `json:"repo"`
 	Scorecard jsonScorecardV2   `json:"scorecard"`
 	Findings  []finding.Finding `json:"findings"`
-	Metadata  map[string]string `json:"metadata"`
+	Metadata  map[string]any    `json:"metadata"`
 }
 
 // TODO: finsinds should enventually be part of the scorecard structure.
@@ -48,7 +48,6 @@ func (r *ScorecardResult) AsPJSON(writer io.Writer) error {
 		},
 		Date:     r.Date.Format("2006-01-02"),
 		Findings: r.Findings,
-		Metadata: r.RawResults.Metadata,
 	}
 
 	if err := encoder.Encode(out); err != nil {
