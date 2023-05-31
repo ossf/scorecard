@@ -18,6 +18,7 @@ package cmd
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -30,8 +31,8 @@ import (
 func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		packageName string
-		result      string
+		inputPackageName string
+		result           string
 	}
 	tests := []struct {
 		name    string
@@ -43,7 +44,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM",
 
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				result: `
 {
   "objects": [
@@ -97,8 +98,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "",
+				inputPackageName: "npm-package",
+				result:           "",
 			},
 			want:    "",
 			wantErr: true,
@@ -107,8 +108,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "foo",
+				inputPackageName: "npm-package",
+				result:           "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -117,7 +118,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				result: `
 {
   "objects": [],
@@ -136,8 +137,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
-				DoAndReturn(func(url, packageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
+				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -148,7 +149,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromNPM(tt.args.packageName, p)
+			got, err := fetchGitRepositoryFromNPM(tt.args.inputPackageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromNPM() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -163,8 +164,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		packageName string
-		result      string
+		inputPackageName string
+		result           string
 	}
 	tests := []struct {
 		name    string
@@ -176,7 +177,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			//nolint
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -285,8 +286,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "",
+				inputPackageName: "npm-package",
+				result:           "",
 			},
 			want:    "",
 			wantErr: true,
@@ -295,8 +296,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "foo",
+				inputPackageName: "npm-package",
+				result:           "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -305,7 +306,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "empty project url",
 			//nolint
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -416,8 +417,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
-				DoAndReturn(func(url, packageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
+				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -428,7 +429,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromPYPI(tt.args.packageName, p)
+			got, err := fetchGitRepositoryFromPYPI(tt.args.inputPackageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromPYPI() error = %v, wantErr %v testcase name %v", err, tt.wantErr, tt.name)
 				return
@@ -443,8 +444,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		packageName string
-		result      string
+		inputPackageName string
+		result           string
 	}
 	tests := []struct {
 		name    string
@@ -456,7 +457,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			//nolint
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -559,8 +560,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "",
+				inputPackageName: "npm-package",
+				result:           "",
 			},
 			want:    "",
 			wantErr: true,
@@ -569,8 +570,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "foo",
+				inputPackageName: "npm-package",
+				result:           "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -579,7 +580,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "empty project url",
 			//nolint
 			args: args{
-				packageName: "npm-package",
+				inputPackageName: "npm-package",
 				//nolint
 				result: `
 				{
@@ -685,8 +686,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
-				DoAndReturn(func(url, packageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
+				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -697,7 +698,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromRubyGems(tt.args.packageName, p)
+			got, err := fetchGitRepositoryFromRubyGems(tt.args.inputPackageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromRubyGems() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -714,7 +715,8 @@ type resultPackagePage struct {
 	response string
 }
 type nugetTestArgs struct {
-	packageName                    string
+	inputPackageName               string
+	expectedPackageName            string
 	resultIndex                    string
 	resultPackageRegistrationIndex string
 	resultPackageSpec              string
@@ -736,7 +738,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_in_single_page",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -748,7 +750,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -806,10 +808,11 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_first_of_multiple_pages",
+			name: "fetchGitRepositoryFromNuget_find_latest_version_with_lowercase",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName:    "Nuget-Package",
+				expectedPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -821,7 +824,518 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_semver_metadataa",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1+metadata"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_pre_release",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1-beta"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_pre_release_and_metadata",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1+metadata"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1-beta+meta"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_get_github_project_url_if_repository_url_missing",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <projectUrl>https://github.com/foo/foo.net</projectUrl>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_get_gitlab_project_url_if_repository_url_missing",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <projectUrl>https://gitlab.com/foo/foo.net</projectUrl>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://gitlab.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_error_if_project_url_is_not_gitXXb",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <projectUrl>https://myserver.com/foo/foo.net</projectUrl>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_in_first_of_multiple_pages",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -909,7 +1423,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_in_first_of_multiple_remote_pages",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -921,7 +1435,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1030,7 +1544,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_in_last_of_multiple_pages",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1042,7 +1556,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1130,7 +1644,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_in_last_of_remote_multiple_pages",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1142,7 +1656,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1251,7 +1765,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_with_default_listed_value_true",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1263,7 +1777,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info is stored in GZIP format."
 		        }
 		        ]
@@ -1323,7 +1837,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_find_latest_version_with_skip_not_listed",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1335,7 +1849,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info is stored in GZIP format."
 		        }
 		        ]
@@ -1396,7 +1910,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_no_listed_version",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1408,7 +1922,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info is stored in GZIP format."
 		        }
 		        ]
@@ -1460,7 +1974,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_error_index",
 
 			args: nugetTestArgs{
-				packageName:                    "nuget-package",
+				inputPackageName:               "nuget-package",
 				resultIndex:                    "",
 				resultPackageRegistrationIndex: "",
 				resultPackageRegistrationPages: []resultPackagePage{},
@@ -1473,7 +1987,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_bad_index",
 
 			args: nugetTestArgs{
-				packageName:                    "nuget-package",
+				inputPackageName:               "nuget-package",
 				resultIndex:                    "foo",
 				resultPackageRegistrationIndex: "",
 				resultPackageRegistrationPages: []resultPackagePage{},
@@ -1486,7 +2000,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_error_package_registration_index",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1498,7 +2012,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1515,7 +2029,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_bad_package_index",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1527,7 +2041,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1543,7 +2057,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_error_package_registration_page",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1555,7 +2069,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1597,7 +2111,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_bad_package_registration_page",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1609,7 +2123,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1651,7 +2165,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_error_package_spec",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1663,7 +2177,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1715,7 +2229,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_bad_package_spec",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1727,7 +2241,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1765,7 +2279,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_error_package_spec",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1777,7 +2291,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1829,7 +2343,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			name: "fetchGitRepositoryFromNuget_missing_repo",
 
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1841,7 +2355,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -1879,7 +2393,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_error_no_registration_url",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1887,6 +2401,35 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        {
 		          "@id": "https://api.nuget.org/v3-flatcontainer/",
 		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.2.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: "",
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec:              "",
+				version:                        "4.0.1",
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_error_no_package_base_url",
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.1.0",
 		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
 		        },
 		        {
@@ -1906,38 +2449,9 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_no_package_base_url",
+			name: "fetchGitRepositoryFromNuget_error_marhsal_entry",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
-				resultIndex: `
-		    {
-		      "version": "3.0.0",
-		      "resources": [
-		        {
-		          "@id": "https://api.nuget.org/v3-flatcontainer/",
-		          "@type": "PackageBaseAddress/3.1.0",
-		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
-		        },
-		        {
-		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
-		          "comment": "Base URL of Azure storage where NuGet package registration info."
-		        }
-		        ]
-		    }
-		    `,
-				resultPackageRegistrationIndex: "",
-				resultPackageRegistrationPages: []resultPackagePage{},
-				resultPackageSpec:              "",
-				version:                        "4.0.1",
-			},
-			want:    "",
-			wantErr: true,
-		},
-		{
-			name: "fetchGitRepositoryFromNuget_error_marhsal entry",
-			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -1949,7 +2463,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -2008,7 +2522,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		{
 			name: "fetchGitRepositoryFromNuget_error_package_spec",
 			args: nugetTestArgs{
-				packageName: "nuget-package",
+				inputPackageName: "nuget-package",
 				resultIndex: `
 		    {
 		      "version": "3.0.0",
@@ -2020,7 +2534,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		        },
 		        {
 		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
-		          "@type": "RegistrationsBaseUrl/3.4.0",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
 		          "comment": "Base URL of Azure storage where NuGet package registration info."
 		        }
 		        ]
@@ -2088,12 +2602,16 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				DoAndReturn(func(url string) (*http.Response, error) {
 					return nugetIndexOrPageTestResults(url, &tt)
 				}).AnyTimes()
+			expectedPackageName := tt.args.expectedPackageName
+			if len(strings.TrimSpace(expectedPackageName)) == 0 {
+				expectedPackageName = tt.args.inputPackageName
+			}
 
-			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
-				DoAndReturn(func(url, packageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), expectedPackageName).
+				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
 					return nugetPackageIndexAndSpecResponse(t, url, &tt)
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromNuget(tt.args.packageName, p)
+			got, err := fetchGitRepositoryFromNuget(tt.args.inputPackageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromNuget() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -2152,7 +2670,7 @@ func nugetPackageIndexAndSpecResponse(t *testing.T, url string, test *nugetTest)
 			//nolint
 			return nil, errors.New("error")
 		}
-		if strings.Contains(url, test.args.version) {
+		if strings.Contains(url, fmt.Sprintf("/%v/", test.args.version)) {
 			return &http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString(test.args.resultPackageSpec)),
@@ -2160,5 +2678,6 @@ func nugetPackageIndexAndSpecResponse(t *testing.T, url string, test *nugetTest)
 		}
 		t.Errorf("fetchGitRepositoryFromNuget() version = %v, expected version = %v", url, test.args.version)
 	}
-	return nil, nil
+	//nolint
+	return nil, errors.New("error")
 }

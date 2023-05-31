@@ -19,7 +19,10 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"regexp"
+	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"golang.org/x/exp/slices"
 
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -133,6 +136,7 @@ type nugetNuspec struct {
 
 type nuspecMetadata struct {
 	XMLName    xml.Name         `xml:"metadata"`
+	ProjectURL string           `xml:"projectUrl"`
 	Repository nuspecRepository `xml:"repository"`
 }
 
@@ -224,19 +228,20 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 		return "", err
 	}
 	nugetRegistrationBaseURL, err := getFieldFromIndexResults(nugetIndexResults.Resources,
-		"RegistrationsBaseUrl/3.4.0")
+		"RegistrationsBaseUrl/3.6.0")
 	if err != nil {
 		return "", err
 	}
 
+	lowerCasePackageName := strings.ToLower(packageName)
 	lastPackageVersion, err := getLatestListedVersion(nugetRegistrationBaseURL,
-		packageName, manager)
+		lowerCasePackageName, manager)
 	if err != nil {
 		return "", err
 	}
 
 	respPackageSpec, err := manager.Get(
-		nugetPackageBaseURL+"%[1]v/"+lastPackageVersion+"/%[1]v.nuspec", packageName)
+		nugetPackageBaseURL+"%[1]v/"+lastPackageVersion+"/%[1]v.nuspec", lowerCasePackageName)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("failed to get nuget package spec json: %v", err))
@@ -246,19 +251,31 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 	packageSpecResults := &nugetNuspec{}
 	err = xml.NewDecoder(respPackageSpec.Body).Decode(packageSpecResults)
 
-	if err != nil {
+	if err != nil || packageSpecResults.Metadata == (nuspecMetadata{}) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("failed to parse nuget nuspec xml: %v", err))
 	}
-	if packageSpecResults.Metadata == (nuspecMetadata{}) ||
-		packageSpecResults.Metadata.Repository == (nuspecRepository{}) ||
-		packageSpecResults.Metadata.Repository.URL == "" {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("source repo is not defined for nuget package %v", packageName))
+
+	if packageSpecResults.Metadata.Repository != (nuspecRepository{}) &&
+		len(strings.TrimSpace(packageSpecResults.Metadata.Repository.URL)) != 0 {
+		return packageSpecResults.Metadata.Repository.URL, nil
 	}
-	return packageSpecResults.Metadata.Repository.URL, nil
+	if len(strings.TrimSpace(packageSpecResults.Metadata.ProjectURL)) != 0 &&
+		isSupportedProjectURL(packageSpecResults.Metadata.ProjectURL) {
+		return packageSpecResults.Metadata.ProjectURL, nil
+	}
+	return "", sce.WithMessage(sce.ErrScorecardInternal,
+		fmt.Sprintf("source repo is not defined for nuget package %v", packageName))
 }
 
+func isSupportedProjectURL(projectURL string) bool {
+	pattern := `^(?:https?://)?(?:www\.)?(?:github|gitlab)\.com/([A-Za-z0-9_\.-]+)/([A-Za-z0-9_\.-]+)$`
+	regex := regexp.MustCompile(pattern)
+	return regex.MatchString(projectURL)
+}
+
+// Gets the latest listed nuget version of a package, based on the protocol defined at
+// https://learn.microsoft.com/en-us/nuget/api/package-base-address-resource#enumerate-package-versions
 func getLatestListedVersion(baseURL, packageName string, manager packageManagerClient) (string, error) {
 	resPackageRegistrationIndex, err := manager.Get(baseURL+"%s/index.json", packageName)
 	if err != nil {
@@ -295,8 +312,14 @@ func getLatestListedVersionFromPackageRegistrationPages(pages []nugetPackageRegi
 			}
 		}
 		for packageIndex := len(page.Packages) - 1; packageIndex >= 0; packageIndex-- {
-			if page.Packages[packageIndex].Entry.Listed {
-				return page.Packages[packageIndex].Entry.Version, nil
+			semVersion, err := semver.NewVersion(page.Packages[packageIndex].Entry.Version)
+			if err != nil {
+				return "", sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("failed to parse nuget version as semver: %v", err))
+			}
+			// skipping non listed and pre-releases
+			if page.Packages[packageIndex].Entry.Listed && len(strings.TrimSpace(semVersion.Prerelease())) == 0 {
+				return fmt.Sprintf("%[1]d.%[2]d.%[3]d", semVersion.Major(), semVersion.Minor(), semVersion.Patch()), nil
 			}
 		}
 	}
