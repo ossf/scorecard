@@ -58,20 +58,20 @@ var (
 	gitlabDisabledChecks = []string{
 		// "Binary-Artifacts",
 		"Branch-Protection",
-		"CII-Best-Practices",
+		// "CII-Best-Practices",
 		"CI-Tests", // globally disabled
 		// "Code-Review",
 		"Contributors",           // globally disabled
 		"Dangerous-Workflow",     // not supported on gitlab
 		"Dependency-Update-Tool", // globally disabled, not supported on gitlab
-		"Fuzzing",
+		// "Fuzzing",
 		// "License",
-		"Maintained",
-		"Packaging",
-		"Pinned-Dependencies",
+		// "Maintained",
+		// "Packaging",
+		// "Pinned-Dependencies",
 		"SAST", // not supported on gitlab
 		// "Security-Policy",
-		"Signed-Releases",
+		// "Signed-Releases",
 		"Token-Permissions", /// not supported on gitlab
 		// "Vulnerabilities",
 		"Webhooks", // globally disabled
