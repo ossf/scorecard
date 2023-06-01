@@ -22,7 +22,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Masterminds/semver/v3"
 	"golang.org/x/exp/slices"
 
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -255,21 +254,23 @@ func fetchGitRepositoryFromNuget(packageName string, manager packageManagerClien
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("failed to parse nuget nuspec xml: %v", err))
 	}
-
+	projectURL := ""
 	if packageSpecResults.Metadata.Repository != (nuspecRepository{}) &&
 		len(strings.TrimSpace(packageSpecResults.Metadata.Repository.URL)) != 0 {
-		return packageSpecResults.Metadata.Repository.URL, nil
+		projectURL = packageSpecResults.Metadata.Repository.URL
 	}
-	if len(strings.TrimSpace(packageSpecResults.Metadata.ProjectURL)) != 0 &&
-		isSupportedProjectURL(packageSpecResults.Metadata.ProjectURL) {
-		return packageSpecResults.Metadata.ProjectURL, nil
+	if len(strings.TrimSpace(packageSpecResults.Metadata.ProjectURL)) != 0 {
+		projectURL = packageSpecResults.Metadata.ProjectURL
+	}
+	if isSupportedProjectURL(projectURL) {
+		return strings.TrimSuffix(projectURL, ".git"), nil
 	}
 	return "", sce.WithMessage(sce.ErrScorecardInternal,
 		fmt.Sprintf("source repo is not defined for nuget package %v", packageName))
 }
 
 func isSupportedProjectURL(projectURL string) bool {
-	pattern := `^(?:https?://)?(?:www\.)?(?:github|gitlab)\.com/([A-Za-z0-9_\.-]+)/([A-Za-z0-9_\.-]+)$`
+	pattern := `^(?:https?://)?(?:www\.)?(?:github|gitlab)\.com/([A-Za-z0-9_\.-]+)/([A-Za-z0-9_\./-]+)$`
 	regex := regexp.MustCompile(pattern)
 	return regex.MatchString(projectURL)
 }
@@ -312,19 +313,28 @@ func getLatestListedVersionFromPackageRegistrationPages(pages []nugetPackageRegi
 			}
 		}
 		for packageIndex := len(page.Packages) - 1; packageIndex >= 0; packageIndex-- {
-			semVersion, err := semver.NewVersion(page.Packages[packageIndex].Entry.Version)
-			if err != nil {
-				return "", sce.WithMessage(sce.ErrScorecardInternal,
-					fmt.Sprintf("failed to parse nuget version as semver: %v", err))
-			}
+			semVerString, preRelease := getNugetSemVer(page.Packages[packageIndex].Entry.Version)
 			// skipping non listed and pre-releases
-			if page.Packages[packageIndex].Entry.Listed && len(strings.TrimSpace(semVersion.Prerelease())) == 0 {
-				return fmt.Sprintf("%[1]d.%[2]d.%[3]d", semVersion.Major(), semVersion.Minor(), semVersion.Patch()), nil
+			if page.Packages[packageIndex].Entry.Listed && len(strings.TrimSpace(preRelease)) == 0 {
+				return semVerString, nil
 			}
 		}
 	}
 	return "", sce.WithMessage(sce.ErrScorecardInternal,
 		"failed to get a listed version for package")
+}
+
+// Nuget semver diverges from Semantic Versioning.
+// This method returns the Nuget represntation of version and pre release strings.
+// nolint
+// more info: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#where-nugetversion-diverges-from-semantic-versioning
+func getNugetSemVer(versionString string) (string, string) {
+	metadataAndVersion := strings.Split(versionString, "+")
+	prereleaseAndVersions := strings.Split(metadataAndVersion[0], "-")
+	if len(prereleaseAndVersions) == 1 {
+		return prereleaseAndVersions[0], ""
+	}
+	return prereleaseAndVersions[0], prereleaseAndVersions[1]
 }
 
 func getFieldFromIndexResults(resources []nugetIndexResult, resultType string) (string, error) {

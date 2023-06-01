@@ -882,6 +882,226 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_with_trailing_slash",
+
+			args: nugetTestArgs{
+				inputPackageName:    "Nuget-Package",
+				expectedPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net/" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net/",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_without_git_ending",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net.git" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_handle_four_digit_version",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/1.60.0.2981.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022/Foo.NET.1.60.0.2981.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "1.60.0.2981+metadata"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>1.60.0.2981+metadata</version>
+		      <title>Foo.NET</title>
+		      <repository type="git" url="https://github.com/foo/foo.net.git" commit="123"/>
+		  </metadata>
+		      </package>
+		    `,
+				version: "1.60.0.2981",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
 			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_semver_metadataa",
 
 			args: nugetTestArgs{
@@ -1165,6 +1385,79 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		      <version>4.0.1</version>
 		      <title>Foo.NET</title>
 		      <projectUrl>https://github.com/foo/foo.net</projectUrl>
+		  </metadata>
+		      </package>
+		    `,
+				version: "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNuget_find_latest_version_get_github_project_url_without_git_ending",
+
+			args: nugetTestArgs{
+				inputPackageName: "nuget-package",
+				resultIndex: `
+		    {
+		      "version": "3.0.0",
+		      "resources": [
+		        {
+		          "@id": "https://api.nuget.org/v3-flatcontainer/",
+		          "@type": "PackageBaseAddress/3.0.0",
+		          "comment": "Base URL of where NuGet packages are stored, in the format ..."
+		        },
+		        {
+		          "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+		          "@type": "RegistrationsBaseUrl/3.6.0",
+		          "comment": "Base URL of Azure storage where NuGet package registration info."
+		        }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationIndex: `
+		    {
+		        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+		        "count": 1,
+		        "items": [
+		            {
+		                "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/1",
+		                "@type": "catalog:CatalogPage",
+		                "count": 2,
+		                "items": [
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "3.5.8"
+		                        }
+		                    },
+		                    {
+		                        "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+		                        "@type": "Package",
+		                        "catalogEntry": {
+		                            "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+		                            "@type": "PackageDetails",
+		                            "listed": true,
+		                            "version": "4.0.1"
+		                        }
+		                    }
+		                ]
+		            }
+		        ]
+		    }
+		    `,
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec: `
+		    <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+		<metadata minClientVersion="2.12">
+		      <id>Foo</id>
+		      <version>4.0.1</version>
+		      <title>Foo.NET</title>
+		      <projectUrl>https://github.com/foo/foo.net.git</projectUrl>
 		  </metadata>
 		      </package>
 		    `,
