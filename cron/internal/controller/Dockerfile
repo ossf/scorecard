@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # golang:1.19
-FROM golang@sha256:685a22e459f9516f27d975c5cc6accc11223ee81fdfbbae60e39cc3b87357306 AS base
+FROM golang@sha256:690e4135bf2a4571a572bfd5ddfa806b1cb9c3dea0446ebadaf32bc2ea09d4f9 AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -33,6 +33,7 @@ RUN CGO_ENABLED=0 make build-controller
 
 FROM gcr.io/distroless/base:nonroot@sha256:99133cb0878bb1f84d1753957c6fd4b84f006f2798535de22ebf7ba170bbf434
 COPY ./cron/internal/data/projects*csv cron/internal/data/
+COPY ./cron/internal/data/gitlab-projects-selected.csv cron/internal/data/
 COPY --from=shuffle /src/cron/internal/data/projects.release.csv cron/internal/data/projects.release.csv
 COPY --from=controller /src/cron/internal/controller/controller cron/internal/controller/controller
 ENTRYPOINT ["cron/internal/controller/controller"]
