@@ -31,10 +31,8 @@ type JSONScorecardProbeResult struct {
 	Repo      jsonRepoV2        `json:"repo"`
 	Scorecard jsonScorecardV2   `json:"scorecard"`
 	Findings  []finding.Finding `json:"findings"`
-	Metadata  map[string]any    `json:"metadata"`
 }
 
-// TODO: finsinds should enventually be part of the scorecard structure.
 func (r *ScorecardResult) AsPJSON(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{

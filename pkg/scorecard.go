@@ -97,21 +97,6 @@ func RunScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 ) (ScorecardResult, error) {
-	return runScorecardChecksV5(ctx, repo, commitSHA, commitDepth,
-		checksToRun, repoClient, ossFuzzRepoClient,
-		ciiClient, vulnsClient)
-}
-
-func runScorecardChecksV5(ctx context.Context,
-	repo clients.Repo,
-	commitSHA string,
-	commitDepth int,
-	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
@@ -121,16 +106,14 @@ func runScorecardChecksV5(ctx context.Context,
 
 	commitSHA, err := getRepoCommitHash(repoClient)
 	if err != nil || commitSHA == "" {
-		//nolint:wrapcheck
 		return ScorecardResult{}, err
 	}
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			//nolint:wrapcheck
-			return ScorecardResult{}, err
+			return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
 		}
-		defaultBranch = "<unknown>"
+		defaultBranch = "unknown"
 	}
 
 	versionInfo := version.GetVersionInfo()
@@ -149,7 +132,7 @@ func runScorecardChecksV5(ctx context.Context,
 
 	// Set metadata for all checks to use. This is necessary
 	// to create remediations from the probe yaml files.
-	ret.RawResults.Metadata = map[string]string{
+	ret.RawResults.Metadata.Metadata = map[string]string{
 		"repository.host":          repo.Host(),
 		"repository.name":          strings.TrimPrefix(repo.URI(), repo.Host()+"/"),
 		"repository.uri":           repo.URI(),
