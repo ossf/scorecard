@@ -567,7 +567,7 @@ We meet every other Thursday - 4p ET on this [zoom link](https://zoom.us/j/98835
 
 #### Agenda
 
-You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#). 
+You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing). 
 
 
 ## Stargazers over time
