@@ -56,25 +56,25 @@ var (
 	// TODO, should probably be its own config/env var, as the checks we want to run
 	// per-platform will differ based on API cost/efficiency/implementation.
 	gitlabDisabledChecks = []string{
-		"Binary-Artifacts",
+		// "Binary-Artifacts",
 		"Branch-Protection",
-		"CII-Best-Practices",
-		"CI-Tests",
-		"Code-Review",
-		"Contributors",
-		"Dangerous-Workflow",
-		"Dependency-Update-Tool",
-		"Fuzzing",
-		"License",
-		"Maintained",
-		"Packaging",
-		"Pinned-Dependencies",
-		"SAST",
+		// "CII-Best-Practices",
+		"CI-Tests", // globally disabled
+		// "Code-Review",
+		"Contributors",           // globally disabled
+		"Dangerous-Workflow",     // not supported on gitlab
+		"Dependency-Update-Tool", // globally disabled, not supported on gitlab
+		// "Fuzzing",
+		// "License",
+		// "Maintained",
+		// "Packaging",
+		// "Pinned-Dependencies",
+		"SAST", // not supported on gitlab
 		// "Security-Policy",
-		"Signed-Releases",
-		"Token-Permissions",
-		"Vulnerabilities",
-		"Webhooks",
+		// "Signed-Releases",
+		"Token-Permissions", /// not supported on gitlab
+		// "Vulnerabilities",
+		"Webhooks", // globally disabled
 	}
 )
 
