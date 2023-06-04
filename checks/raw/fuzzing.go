@@ -28,11 +28,13 @@ import (
 )
 
 const (
-	fuzzerOSSFuzz              = "OSSFuzz"
-	fuzzerClusterFuzzLite      = "ClusterFuzzLite"
-	oneFuzz                    = "OneFuzz"
-	fuzzerBuiltInGo            = "GoBuiltInFuzzer"
-	fuzzerPropertyBasedHaskell = "HaskellPropertyBasedTesting"
+	fuzzerOSSFuzz                 = "OSSFuzz"
+	fuzzerClusterFuzzLite         = "ClusterFuzzLite"
+	oneFuzz                       = "OneFuzz"
+	fuzzerBuiltInGo               = "GoBuiltInFuzzer"
+	fuzzerPropertyBasedHaskell    = "HaskellPropertyBasedTesting"
+	fuzzerPropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
+	fuzzerPropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -85,6 +87,30 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Name:        fuzzerPropertyBasedHaskell,
 		Desc: asPointer(
 			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
+				"and test that specific properties are satisfied."),
+	},
+	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
+	//
+	// Based on the import of one of these packages:
+	// * https://fast-check.dev/
+	//
+	// This is not an exhaustive list.
+	clients.JavaScript: {
+		filePattern: "*.js",
+		// Look for direct imports of fast-check.
+		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
+		Name:        fuzzerPropertyBasedJavaScript,
+		Desc: asPointer(
+			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
+				"and test that specific properties are satisfied."),
+	},
+	clients.TypeScript: {
+		filePattern: "*.ts",
+		// Look for direct imports of fast-check.
+		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
+		Name:        fuzzerPropertyBasedTypeScript,
+		Desc: asPointer(
+			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.

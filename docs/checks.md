@@ -338,7 +338,9 @@ This check tries to determine if the project uses
 1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
 2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
 3. if there are user-defined language-specified fuzzing functions in the repository.
-   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/) and a limited set of property-based testing libraries for Haskell.
+   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
+   - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
+   - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
 4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
