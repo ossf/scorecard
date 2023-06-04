@@ -413,6 +413,80 @@ func Test_checkFuzzFunc(t *testing.T) {
 			},
 			fileContent: "import Test.Hspec",
 		},
+		{
+			name:     "JavaScript fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.js"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "JavaScript fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.js"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "JavaScript with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.js"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
+		{
+			name:     "TypeScript fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.ts"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "TypeScript fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.ts"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "TypeScript with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.ts"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
