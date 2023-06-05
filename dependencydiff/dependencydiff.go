@@ -50,10 +50,10 @@ type dependencydiffContext struct {
 	results                         []pkg.DependencyCheckResult
 }
 
+// Deprecated: This is going to be removed in the future.
 // GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set. See https://github.com/ossf/scorecard#authentication.
-// Deprecated: This is going to be removed in the future.
 func GetDependencyDiffResults(
 	ctx context.Context,
 	repoURI string, /* Use the format "ownerName/repoName" as the repo URI, such as "ossf/scorecard". */
