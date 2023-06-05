@@ -12,6 +12,8 @@ ignore:
   - "docs/**/*"
   # this is the runner
   - "main.go"
+  # this package is deprecated and going to be removed.
+  - "dependencydiff/**/*"
 
 coverage:
   precision: 2

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Deprecated: This is going to be removed in the future.
 package dependencydiff
 
 import (
@@ -29,7 +30,9 @@ import (
 )
 
 // Depdiff is the exported name for dependency-diff.
-const Depdiff = "Dependency-diff"
+const (
+	Depdiff = "Dependency-diff"
+)
 
 // A private context struct used for GetDependencyCheckResults.
 type dependencydiffContext struct {
@@ -50,6 +53,7 @@ type dependencydiffContext struct {
 // GetDependencyDiffResults gets dependency changes between two given code commits BASE and HEAD
 // along with the Scorecard check results of the dependencies, and returns a slice of DependencyCheckResult.
 // TO use this API, an access token must be set. See https://github.com/ossf/scorecard#authentication.
+// Deprecated: This is going to be removed in the future.
 func GetDependencyDiffResults(
 	ctx context.Context,
 	repoURI string, /* Use the format "ownerName/repoName" as the repo URI, such as "ossf/scorecard". */
