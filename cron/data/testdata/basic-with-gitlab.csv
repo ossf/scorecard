@@ -1,0 +1,6 @@
+repo,metadata
+github.com/owner1/repo1,
+github.com/owner2/repo2,
+github.com/owner3/repo3,meta
+gitlab.com/owner1/repo1,
+gitlab.com/owner3/path1/repo2,meta

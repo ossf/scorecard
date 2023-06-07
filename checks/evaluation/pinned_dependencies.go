@@ -121,14 +121,21 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
+	// Pip installs.
+	pipScore, err := createReturnForIsPipInstallPinned(pr, dl)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
 	// Scores may be inconclusive.
 	actionScore = maxScore(0, actionScore)
 	dockerFromScore = maxScore(0, dockerFromScore)
 	dockerDownloadScore = maxScore(0, dockerDownloadScore)
 	scriptScore = maxScore(0, scriptScore)
+	pipScore = maxScore(0, pipScore)
 
 	score := checker.AggregateScores(actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore)
+		dockerDownloadScore, scriptScore, pipScore)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -241,6 +248,15 @@ func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.Dependenc
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
+		dl)
+}
+
+// Create the result for pip install commands.
+func createReturnForIsPipInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
+	dl checker.DetailLogger,
+) (int, error) {
+	return createReturnValues(pr, checker.DependencyUseTypePipCommand,
+		"Pip installs are pinned",
 		dl)
 }
 

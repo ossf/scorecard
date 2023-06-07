@@ -32,7 +32,7 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -41,7 +41,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
        with:
          go-version-file: go.mod # use version from go.mod so it stays in sync
          check-latest: true
@@ -58,7 +58,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@204a51a57a74d190b284a0ce69b44bc37201f343
+       uses: sigstore/cosign-installer@dd6b2e2b610a11fd73dd187a43d57cc1394e35f9
      - name: Sign image
        run: |
           cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}

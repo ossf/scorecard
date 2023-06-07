@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+id: gitHubWorkflowPermissionsStepsNoWrite
 short: Checks that GitHub workflows do not have steps with dangerous write permissions
-desc: This rule checks that GitHub workflows do not have steps with dangerous write permissions
 motivation: >
   Even with permissions default set to read, some scopes having write permissions in their steps brings incurs a risk to the project.
   By giving write permission to the Actions you call in jobs, an external Action you call could abuse them. Depending on the permissions,
@@ -21,10 +21,9 @@ motivation: >
   For more information about the scopes and the vulnerabilities involved, see https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions.
 
 implementation: >
-  The rule is implemented by checking whether the `permissions` keyword is given non-write permissions for the following
+  The probe is implemented by checking whether the `permissions` keyword is given non-write permissions for the following
   scopes: `statuses`, `checks`, `security-events`, `deployments`, `contents`, `packages`, `actions`.
   Write permissions given to recognized packaging actions or commands are allowed and are considered an acceptable risk.
-risk: Medium
 remediation:
   effort: High
   text:

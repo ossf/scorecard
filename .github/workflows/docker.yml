@@ -24,7 +24,8 @@ on:
 
 env:
   PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.19
+  GO_VERSION_FILE: go.mod # no good way of getting a mutual version between go.mod and tools/go.mod
+  CACHE_DEPENDENCY_PATH: "**/go.sum" # include both go.sum and tools/go.sum
 
 jobs:
   docs_only_check:
@@ -38,10 +39,10 @@ jobs:
     - name: Check out code
       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab #v3.5.2
       with:
-        fetch-depth: 2
+        fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
-      uses: tj-actions/changed-files@ce810b29b28abf274afebdcd8fe47b8fba0f28bd #v35.9.0
+      uses: tj-actions/changed-files@5d2fcdb4cbef720a52f49fd05d8c7edd18a64758 #v36.0.15
       with:
         files_ignore: '**.md'
     - id: docs_only_check
@@ -59,42 +60,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make scorecard-docker
   cron-controller:
@@ -107,42 +90,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-controller-docker
   cron-worker:
@@ -155,42 +120,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-worker-docker
   cron-cii-worker:
@@ -203,42 +150,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-cii-worker-docker
   cron-bq-transfer:
@@ -251,42 +180,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-bq-transfer-docker
   cron-webhook:
@@ -299,42 +210,24 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
+         cache-dependency-path: ${{ env.CACHE_DEPENDENCY_PATH }}
      - name: docker build
        run: make cron-webhook-docker
   cron-github-server:
@@ -347,40 +240,21 @@ jobs:
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v2.4.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
-       with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-       with:
-          fetch-depth: 0
+       uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3.5.2
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
-         go-version: ${{ env.GO_VERSION }}
+         go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: true
      - name: docker build

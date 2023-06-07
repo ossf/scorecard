@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -120,5 +121,62 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
+	})
+	// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
+	// the transfer from github so this returns a different value than the above GitHub test.
+	It("Should return use of code reviews at commit - GitLab", func() {
+		skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+
+		dl := scut.TestDetailLogger{}
+		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/fdroid/fdroidclient")
+		Expect(err).Should(BeNil())
+		repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
+		Expect(err).Should(BeNil())
+		err = repoClient.InitRepo(repo, "1f7ed43c120047102862d9d1d644f5b2de7a47f2", 0)
+		Expect(err).Should(BeNil())
+
+		req := checker.CheckRequest{
+			Ctx:        context.Background(),
+			RepoClient: repoClient,
+			Repo:       repo,
+			Dlogger:    &dl,
+		}
+		expected := scut.TestReturn{
+			Error:         nil,
+			Score:         0,
+			NumberOfDebug: 1,
+		}
+		result := checks.CodeReview(&req)
+		Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+		Expect(repoClient.Close()).Should(BeNil())
+	})
+	// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
+	// the transfer from github so this returns a different value than the above GitHub test.
+	It("Should return use of code reviews at HEAD - GitLab", func() {
+		skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+
+		dl := scut.TestDetailLogger{}
+		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+		Expect(err).Should(BeNil())
+		repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
+		Expect(err).Should(BeNil())
+		err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+		// err = repoClient.InitRepo(repo, "0b5ba5049f3e5b8e945305acfa45c44d63df21b1", 0)
+		Expect(err).Should(BeNil())
+
+		req := checker.CheckRequest{
+			Ctx:        context.Background(),
+			RepoClient: repoClient,
+			Repo:       repo,
+			Dlogger:    &dl,
+		}
+		expected := scut.TestReturn{
+			Error:         nil,
+			Score:         checker.MinResultScore,
+			NumberOfDebug: 1,
+		}
+		result := checks.CodeReview(&req)
+		Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+		Expect(repoClient.Close()).Should(BeNil())
 	})
 })

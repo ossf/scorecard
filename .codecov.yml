@@ -5,9 +5,16 @@ codecov:
     require_ci_to_pass: yes
 
 ignore:
+  - "**/*.pb.go"
   - "cron/**/*"
   - "clients/mockclients/**/*"
-  - "attestor/command/**/*"
+  # ignoring them as these are internal tools for generating docs.
+  - "docs/**/*"
+  # this is the runner
+  - "main.go"
+  # this package is deprecated and going to be removed.
+  - "dependencydiff/**/*"
+
 coverage:
   precision: 2
   round: down

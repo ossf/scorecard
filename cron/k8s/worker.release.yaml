@@ -52,17 +52,15 @@ spec:
                 secretKeyRef:
                   name: github
                   key: installation_id
+            - name: GITLAB_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab
+                  key: auth_token
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
-            - name: "SCORECARD_BLACKLISTED_CHECKS"
-              value: "CI-Tests,Contributors,Dependency-Update-Tool,SAST"
-          resources:
-            requests:
-              memory: 5Gi
-              ephemeral-storage: 100Gi
-            limits:
-              memory: 12Gi
-              ephemeral-storage: 500Gi
+            - name: "SCORECARD_EXPERIMENTAL"
+              value: "true"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard

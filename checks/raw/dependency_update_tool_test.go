@@ -26,115 +26,84 @@ import (
 
 func Test_checkDependencyFileExists(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		name string
-		data *[]checker.Tool
-	}
+
 	//nolint
 	tests := []struct {
 		name    string
-		args    args
+		path    string
 		want    bool
 		wantErr bool
 	}{
 		{
-			name: "check dependency file exists",
-			args: args{
-				name: ".github/dependabot.yml",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
-			wantErr: false,
-		},
-		{
-			name: ".other",
-			args: args{
-				name: ".other",
-				data: &[]checker.Tool{},
-			},
+			name:    ".github/dependabot.yml",
+			path:    ".github/dependabot.yml",
 			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".github/renovate.json",
-			args: args{
-				name: ".github/renovate.json",
-				data: &[]checker.Tool{},
-			},
+			name:    ".github/dependabot.yaml",
+			path:    ".github/dependabot.yaml",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    ".other",
+			path:    ".other",
 			want:    false,
 			wantErr: false,
 		},
 		{
-			name: ".github/renovate.json5",
-			args: args{
-				name: ".github/renovate.json5",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".github/renovate.json",
+			path:    ".github/renovate.json",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".renovaterc.json",
-			args: args{
-				name: ".renovaterc.json",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".github/renovate.json5",
+			path:    ".github/renovate.json5",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "renovate.json",
-			args: args{
-				name: "renovate.json",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".renovaterc.json",
+			path:    ".renovaterc.json",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: "renovate.json5",
-			args: args{
-				name: "renovate.json5",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    "renovate.json",
+			path:    "renovate.json",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".renovaterc",
-			args: args{
-				name: ".renovaterc",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    "renovate.json5",
+			path:    "renovate.json5",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".pyup.yml",
-			args: args{
-				name: ".pyup.yml",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".renovaterc",
+			path:    ".renovaterc",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".lift.toml",
-			args: args{
-				name: ".lift.toml",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".pyup.yml",
+			path:    ".pyup.yml",
+			want:    true,
 			wantErr: false,
 		},
 		{
-			name: ".lift/config.toml",
-			args: args{
-				name: ".lift/config.toml",
-				data: &[]checker.Tool{},
-			},
-			want:    false,
+			name:    ".lift.toml",
+			path:    ".lift.toml",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    ".lift/config.toml",
+			path:    ".lift/config.toml",
+			want:    true,
 			wantErr: false,
 		},
 	}
@@ -142,13 +111,17 @@ func Test_checkDependencyFileExists(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := checkDependencyFileExists(tt.args.name, tt.args.data)
+			results := []checker.Tool{}
+			cont, err := checkDependencyFileExists(tt.path, &results)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("checkDependencyFileExists() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("checkDependencyFileExists() = %v, want %v for test %v", got, tt.want, tt.name)
+			if !cont {
+				t.Errorf("continue is false for %v", tt.name)
+			}
+			if tt.want != (len(results) == 1) {
+				t.Errorf("checkDependencyFileExists() = %v, want %v for test %v", len(results), tt.want, tt.name)
 			}
 		})
 	}

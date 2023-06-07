@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -58,7 +58,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -66,9 +66,25 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2 # 2.1.0
+       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
        with:
          files: ./unit-coverage.out
+         verbose: true
+     - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
+       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+       env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: make e2e-pat
+     - name: codecov
+       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+       if: ${{ github.event_name != 'pull_request' }}
+       with:
+         files: "*e2e-coverage.out"
          verbose: true
   generate-mocks:
     name: generate-mocks
@@ -77,12 +93,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -103,7 +119,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -125,12 +141,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -151,7 +167,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -172,12 +188,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -186,7 +202,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -208,12 +224,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -234,7 +250,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -256,12 +272,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -282,7 +298,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -304,12 +320,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -330,7 +346,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -352,12 +368,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -378,7 +394,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -400,12 +416,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -426,7 +442,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -448,12 +464,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -474,7 +490,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -496,12 +512,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -522,7 +538,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -544,12 +560,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -570,7 +586,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -592,12 +608,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -618,7 +634,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -640,12 +656,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -666,7 +682,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -688,12 +704,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -714,7 +730,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -735,12 +751,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -749,7 +765,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -765,7 +781,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -786,7 +802,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -808,11 +824,11 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -833,7 +849,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -854,12 +870,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+       uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@64c0c85d18e984422218383b81c52f8b077404d3 # v1.1.2
+       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -868,7 +884,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -889,12 +905,12 @@ jobs:
       contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@6b3083af2869dc3314a0257a42f4af696cc79ba3 # v1
+        uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
-      - uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v2.2.0
+      - uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true

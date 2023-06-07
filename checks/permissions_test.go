@@ -280,6 +280,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
+			name:      "release workflow contents write semantic-release",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-semantic-release.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
+			},
+		},
+		{
 			name:      "package workflow write",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-packages-writes.yaml"},
 			expected: scut.TestReturn{
@@ -319,8 +330,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,  // This is constant.
-				NumberOfDebug: 8,  // This is 4 + (number of actions)
+				NumberOfInfo:  2, // This is constant.
+				NumberOfDebug: 8, // This is 4 + (number of actions)
 			},
 		},
 		{
@@ -488,7 +499,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 						logMessage.Finding.Location != nil &&
 						logMessage.Finding.Location.LineStart != nil &&
 						*logMessage.Finding.Location.LineStart == expectedLog.lineNumber &&
-						logMessage.Finding.Location.Value == p &&
+						logMessage.Finding.Location.Path == p &&
 						logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {
