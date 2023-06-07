@@ -111,7 +111,8 @@ func RunScorecard(ctx context.Context,
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			return ScorecardResult{}, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
+			return ScorecardResult{},
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
 		}
 		defaultBranch = "unknown"
 	}
