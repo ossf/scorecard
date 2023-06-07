@@ -95,7 +95,7 @@ func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogg
 
 	plat := changeset.ReviewPlatform
 	if plat == "" {
-		plat = "committed directly"
+		plat = checker.ReviewPlatformUnknown
 	}
 	dl.Debug(
 		&checker.LogMessage{
