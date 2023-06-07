@@ -70,7 +70,6 @@ func runEnabledChecks(ctx context.Context,
 	close(resultsCh)
 }
 
-
 func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	commits, err := r.ListCommits()
 	if err != nil {
