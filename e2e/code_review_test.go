@@ -48,10 +48,10 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         9,
+				Score:         10,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 2,
+				NumberOfDebug: 0,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())

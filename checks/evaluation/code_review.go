@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -43,36 +44,41 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateInconclusiveResult(name, "no commits found")
 	}
 
-	nUnreviewedHumanChanges := 0
-	nHumanChangesTotal := 0
+	nUnreviewedChanges := 0
+	nChanges := 0
+	foundHumanActivity := false
 
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
-		if cs.Author.IsBot {
-			continue // ignore bot commits
+		if isReviewed && cs.Author.IsBot {
+			continue // ignore reviewed bot commits
 		}
 
-		nHumanChangesTotal += 1
+		nChanges += 1
+
+		if !cs.Author.IsBot {
+			foundHumanActivity = true
+		}
 
 		if !isReviewed {
-			nUnreviewedHumanChanges += 1
+			nUnreviewedChanges += 1
 		}
 	}
 
 	switch {
-	case nHumanChangesTotal == 0:
+	case !foundHumanActivity:
 		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
 		return checker.CreateInconclusiveResult(name, reason)
-	case nUnreviewedHumanChanges > 0:
+	case nUnreviewedChanges > 0:
 		return checker.CreateProportionalScoreResult(
 			name,
 			fmt.Sprintf(
-				"found %d unreviewed changesets out of %d", nUnreviewedHumanChanges,
-				nHumanChangesTotal,
+				"found %d unreviewed changesets out of %d", nUnreviewedChanges,
+				nChanges,
 			),
-			nHumanChangesTotal-nUnreviewedHumanChanges,
-			nHumanChangesTotal,
+			int(math.Max(float64(nChanges-nUnreviewedChanges), 0)),
+			nChanges,
 		)
 	}
 
