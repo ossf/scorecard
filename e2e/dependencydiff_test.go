@@ -21,6 +21,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/checks"
+	//nolint:staticcheck // we know it's deprecated and the tests will be removed when the package is
 	"github.com/ossf/scorecard/v4/dependencydiff"
 )
 
@@ -40,6 +41,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			changeTypesToCheck := []string{
 				"removed", // Only checking those removed ones will make this test faster.
 			}
+			//nolint:staticcheck // we know it's deprecated and the tests will be removed when the package is
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
@@ -58,6 +60,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			changeTypesToCheck := []string{
 				"removed",
 			}
+			//nolint:staticcheck // we know it's deprecated and the tests will be removed when the package is
 			results, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
@@ -76,6 +79,7 @@ var _ = Describe("E2E TEST:"+dependencydiff.Depdiff, func() {
 			changeTypesToCheck := []string{
 				"removed",
 			}
+			//nolint:staticcheck // we know it's deprecated and the tests will be removed when the package is
 			_, err := dependencydiff.GetDependencyDiffResults(
 				ctx,
 				repoURI,
