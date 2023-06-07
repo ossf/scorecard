@@ -84,7 +84,7 @@ func TestCodeReview(t *testing.T) {
 		{
 			name: "all human changesets reviewed, missing review on bot changeset",
 			expected: scut.TestReturn{
-				Score:         7,
+				Score:         10,
 				NumberOfDebug: 1,
 			},
 			rawData: &checker.CodeReviewData{

@@ -45,20 +45,17 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 
 	nUnreviewedHumanChanges := 0
 	nHumanChangesTotal := 0
-	unreviewedBotChanges := false
 
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
-		isBotCommit := cs.Author.IsBot
-		if !isBotCommit {
-			nHumanChangesTotal += 1
+		if cs.Author.IsBot {
+			continue // ignore bot commits
 		}
 
-		switch {
-		case !isReviewed && isBotCommit:
-			unreviewedBotChanges = true
-		case !isReviewed && !isBotCommit:
+		nHumanChangesTotal += 1
+
+		if !isReviewed {
 			nUnreviewedHumanChanges += 1
 		}
 	}
@@ -67,12 +64,6 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	case nHumanChangesTotal == 0:
 		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
 		return checker.CreateInconclusiveResult(name, reason)
-	case nUnreviewedHumanChanges == 0 && unreviewedBotChanges:
-		return checker.CreateResultWithScore(
-			name,
-			"all human changesets reviewed, found unreviewed bot changesets",
-			7,
-		)
 	case nUnreviewedHumanChanges > 0:
 		return checker.CreateProportionalScoreResult(
 			name,

@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/checks/raw"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v4/utests"
@@ -47,10 +48,10 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         10,
+				Score:         9,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 2,
 			}
 			result := checks.CodeReview(&req)
 			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
