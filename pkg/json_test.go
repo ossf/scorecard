@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -486,6 +487,102 @@ func TestJSONOutput(t *testing.T) {
 					s += fmt.Sprintf("- %s\n", desc)
 				}
 				t.Fatalf("%s: invalid format: %s", tt.name, s)
+			}
+		})
+	}
+}
+
+func TestScorecardResult_AsJSON(t *testing.T) {
+	t.Parallel()
+	type fields struct {
+		Repo       RepoInfo
+		Date       time.Time
+		Scorecard  ScorecardInfo
+		Checks     []checker.CheckResult
+		RawResults checker.RawResults
+		Metadata   []string
+	}
+	type args struct { //nolint:govet
+		showDetails bool
+		logLevel    log.Level
+	}
+	tests := []struct { //nolint:govet
+		name       string
+		fields     fields
+		args       args
+		wantWriter string
+		wantErr    bool
+	}{
+		{
+			name: "default",
+			fields: fields{
+				Repo: RepoInfo{
+					Name:      "repo",
+					CommitSHA: "123456789012345678",
+				},
+			},
+			wantWriter: `{"Repo":"repo","Date":"0001-01-01","Checks":null,"Metadata":null}`,
+		},
+		{
+			name: "detailed",
+			args: args{
+				showDetails: true,
+				logLevel:    log.WarnLevel,
+			},
+			fields: fields{
+				Repo: RepoInfo{
+					Name:      "repo",
+					CommitSHA: "123456789012345678",
+				},
+				Checks: []checker.CheckResult{
+					{
+						Name: "check-name",
+						Details: []checker.CheckDetail{
+							{
+								Type: checker.DetailInfo,
+								Msg: checker.LogMessage{
+									Text:    "info message",
+									Path:    "some/path.js",
+									Type:    finding.FileTypeSource,
+									Offset:  3,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+					},
+				},
+			},
+			wantWriter: `{"Repo":"repo","Date":"0001-01-01","Checks":[{"Name":"check-name","Details":["Info: info message: some/path.js:3"],"Confidence":0,"Pass":false}],"Metadata":null}`, //nolint:lll
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			r := &ScorecardResult{
+				Repo:       tt.fields.Repo,
+				Date:       tt.fields.Date,
+				Scorecard:  tt.fields.Scorecard,
+				Checks:     tt.fields.Checks,
+				RawResults: tt.fields.RawResults,
+				Metadata:   tt.fields.Metadata,
+			}
+			writer := &bytes.Buffer{}
+			err := r.AsJSON(tt.args.showDetails, tt.args.logLevel, writer)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AsJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			var v1, v2 interface{}
+			if err := json.Unmarshal(writer.Bytes(), &v1); err != nil {
+				t.Errorf("json.Unmarshal: %s", err)
+			}
+			if err := json.Unmarshal([]byte(tt.wantWriter), &v2); err != nil {
+				t.Errorf("json.Unmarshal: %s", err)
+			}
+			if cmp.Diff(v1, v2) != "" {
+				t.Logf("%s", writer.String())
+				t.Errorf(" mismatch (-want +got):\n%s", cmp.Diff(v1, v2))
 			}
 		})
 	}
