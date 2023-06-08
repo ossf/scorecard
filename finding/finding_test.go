@@ -201,18 +201,19 @@ func Test_FromBytes(t *testing.T) {
 }
 
 func TestOutcome_UnmarshalYAML(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		n *yaml.Node
 	}
 	tests := []struct { //nolint:govet
-		name    string
-		o       Outcome
-		args    args
-		wantErr bool
+		name        string
+		wantOutcome Outcome
+		args        args
+		wantErr     bool
 	}{
 		{
-			name: "positive outcome",
-			o:    OutcomePositive,
+			name:        "positive outcome",
+			wantOutcome: OutcomePositive,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
@@ -222,8 +223,8 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "negative outcome",
-			o:    OutcomeNegative,
+			name:        "negative outcome",
+			wantOutcome: OutcomeNegative,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
@@ -233,8 +234,8 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "NotAvailable outcome",
-			o:    OutcomeNotAvailable,
+			name:        "NotAvailable outcome",
+			wantOutcome: OutcomeNotAvailable,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
@@ -244,8 +245,8 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "NotSupported outcome",
-			o:    OutcomeNotSupported,
+			name:        "NotSupported outcome",
+			wantOutcome: OutcomeNotSupported,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
@@ -255,8 +256,8 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Unknown error",
-			o:    OutcomeError,
+			name:        "Unknown error",
+			wantOutcome: OutcomeError,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
@@ -277,9 +278,15 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.o.UnmarshalYAML(tt.args.n); (err != nil) != tt.wantErr {
-				t.Errorf("UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+			t.Parallel()
+			var v Outcome
+			if err := v.UnmarshalYAML(tt.args.n); (err != nil) != tt.wantErr {
+				t.Errorf("Outcome.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.wantOutcome, v); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
