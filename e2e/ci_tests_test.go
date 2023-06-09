@@ -79,7 +79,6 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return absence of CI tests in a repo with unsquashed merges", func() {
-			Skip("TODO(https://github.com/ossf/scorecard/issues/3129) temporarily skipping")
 			dl := scut.TestDetailLogger{}
 			repo, err := githubrepo.MakeGithubRepo("duo-labs/parliament")
 			Expect(err).Should(BeNil())
