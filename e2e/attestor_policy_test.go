@@ -126,10 +126,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test code reviews required but repo doesn't have code reviews",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 					},
 					expected: policy.Fail,
 				},
@@ -137,10 +134,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test code reviews required with min reviewers",
 					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers: 1,
 						},
@@ -151,10 +145,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test code reviews required with min reviewers and required reviewers",
 					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers:      1,
 							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
@@ -166,10 +157,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test code reviews required with too many min reviewers but matching required reviewers",
 					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers:      2,
 							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
