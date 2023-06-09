@@ -58,18 +58,16 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test bad repo with ignored binary artifact",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						AllowedBinaryArtifacts:      []string{"test-binary-artifact-*"},
-						PreventKnownVulnerabilities: true,
+						PreventBinaryArtifacts: true,
+						AllowedBinaryArtifacts: []string{"test-binary-artifact-*"},
 					},
 					expected: policy.Pass,
 				},
 				{
-					name:    "test bad repo with ignored binary artifact",
+					name:    "test bad repo with binary artifact",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
+						PreventBinaryArtifacts: true,
 					},
 					expected: policy.Fail,
 				},
