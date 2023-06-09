@@ -111,78 +111,72 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					},
 					expected: policy.Pass,
 				},
-				// TODO(https://github.com/ossf/scorecard/issues/3129) temporarily skipping code review tests
-				//
-				// {
-				// 	name:    "test repo with simple code review requirements",
-				// 	repoURL: "https://github.com/ossf/scorecard",
-				// 	commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
-				// 	policy: policy.AttestationPolicy{
-				// 		EnsureCodeReviewed: true,
-				// 		CodeReviewRequirements: policy.CodeReviewRequirements{
-				// 			MinReviewers: 1,
-				// 		},
-				// 	},
-				// 	expected: policy.Pass,
-				// },
-				// {
-				// 	name:    "test code reviews required but repo doesn't have code reviews",
-				// 	repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
-				// 	policy: policy.AttestationPolicy{
-				// 		PreventBinaryArtifacts:      true,
-				// 		PreventKnownVulnerabilities: true,
-				// 		PreventUnpinnedDependencies: true,
-				// 		EnsureCodeReviewed:          true,
-				// 	},
-				// 	expected: policy.Fail,
-				// },
-				// {
-				// 	name:    "test code reviews required with min reviewers",
-				// 	repoURL: "https://github.com/ossf/scorecard",
-				// 	commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
-				// 	policy: policy.AttestationPolicy{
-				// 		PreventBinaryArtifacts:      true,
-				// 		PreventKnownVulnerabilities: false,
-				// 		PreventUnpinnedDependencies: true,
-				// 		EnsureCodeReviewed:          true,
-				// 		CodeReviewRequirements: policy.CodeReviewRequirements{
-				// 			MinReviewers: 1,
-				// 		},
-				// 	},
-				// 	expected: policy.Pass,
-				// },
-				// {
-				// 	name:    "test code reviews required with min reviewers and required reviewers",
-				// 	repoURL: "https://github.com/ossf/scorecard",
-				// 	commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
-				// 	policy: policy.AttestationPolicy{
-				// 		PreventBinaryArtifacts:      true,
-				// 		PreventKnownVulnerabilities: false,
-				// 		PreventUnpinnedDependencies: true,
-				// 		EnsureCodeReviewed:          true,
-				// 		CodeReviewRequirements: policy.CodeReviewRequirements{
-				// 			MinReviewers:      1,
-				// 			RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
-				// 		},
-				// 	},
-				// 	expected: policy.Pass,
-				// },
-				// {
-				// 	name:    "test code reviews required with too many min reviewers but matching required reviewers",
-				// 	repoURL: "https://github.com/ossf/scorecard",
-				// 	commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
-				// 	policy: policy.AttestationPolicy{
-				// 		PreventBinaryArtifacts:      true,
-				// 		PreventKnownVulnerabilities: false,
-				// 		PreventUnpinnedDependencies: true,
-				// 		EnsureCodeReviewed:          true,
-				// 		CodeReviewRequirements: policy.CodeReviewRequirements{
-				// 			MinReviewers:      2,
-				// 			RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
-				// 		},
-				// 	},
-				// 	expected: policy.Fail,
-				// },
+				{
+					name:    "test repo with simple code review requirements",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
+					policy: policy.AttestationPolicy{
+						EnsureCodeReviewed: true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers: 1,
+						},
+					},
+					expected: policy.Pass,
+				},
+				{
+					name:    "test code reviews required but repo doesn't have code reviews",
+					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: true,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+					},
+					expected: policy.Fail,
+				},
+				{
+					name:    "test code reviews required with min reviewers",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: false,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers: 1,
+						},
+					},
+					expected: policy.Pass,
+				},
+				{
+					name:    "test code reviews required with min reviewers and required reviewers",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: false,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers:      1,
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
+						},
+					},
+					expected: policy.Pass,
+				},
+				{
+					name:    "test code reviews required with too many min reviewers but matching required reviewers",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
+					policy: policy.AttestationPolicy{
+						PreventBinaryArtifacts:      true,
+						PreventKnownVulnerabilities: false,
+						PreventUnpinnedDependencies: true,
+						EnsureCodeReviewed:          true,
+						CodeReviewRequirements: policy.CodeReviewRequirements{
+							MinReviewers:      2,
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
+						},
+					},
+					expected: policy.Fail,
+				},
 			}
 
 			for _, tc := range tt {
