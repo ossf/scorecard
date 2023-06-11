@@ -31,8 +31,8 @@ import (
 func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		inputPackageName string
-		result           string
+		packageName string
+		result      string
 	}
 	tests := []struct {
 		name    string
@@ -44,7 +44,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM",
 
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				result: `
 {
   "objects": [
@@ -98,8 +98,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "",
+				packageName: "npm-package",
+				result:      "",
 			},
 			want:    "",
 			wantErr: true,
@@ -108,8 +108,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "foo",
+				packageName: "npm-package",
+				result:      "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -118,7 +118,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				result: `
 {
   "objects": [],
@@ -137,8 +137,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
-				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
+				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -149,7 +149,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromNPM(tt.args.inputPackageName, p)
+			got, err := fetchGitRepositoryFromNPM(tt.args.packageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromNPM() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -164,8 +164,8 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		inputPackageName string
-		result           string
+		packageName string
+		result      string
 	}
 	tests := []struct {
 		name    string
@@ -177,7 +177,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			//nolint
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -286,8 +286,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "",
+				packageName: "npm-package",
+				result:      "",
 			},
 			want:    "",
 			wantErr: true,
@@ -296,8 +296,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "foo",
+				packageName: "npm-package",
+				result:      "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -306,7 +306,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "empty project url",
 			//nolint
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -417,8 +417,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
-				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
+				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -429,7 +429,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromPYPI(tt.args.inputPackageName, p)
+			got, err := fetchGitRepositoryFromPYPI(tt.args.packageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromPYPI() error = %v, wantErr %v testcase name %v", err, tt.wantErr, tt.name)
 				return
@@ -444,8 +444,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		inputPackageName string
-		result           string
+		packageName string
+		result      string
 	}
 	tests := []struct {
 		name    string
@@ -457,7 +457,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			//nolint
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				//nolint
 				result: `
 {
@@ -560,8 +560,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "",
+				packageName: "npm-package",
+				result:      "",
 			},
 			want:    "",
 			wantErr: true,
@@ -570,8 +570,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				inputPackageName: "npm-package",
-				result:           "foo",
+				packageName: "npm-package",
+				result:      "foo",
 			},
 			want:    "",
 			wantErr: true,
@@ -580,7 +580,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "empty project url",
 			//nolint
 			args: args{
-				inputPackageName: "npm-package",
+				packageName: "npm-package",
 				//nolint
 				result: `
 				{
@@ -686,8 +686,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			p := NewMockpackageManagerClient(ctrl)
-			p.EXPECT().Get(gomock.Any(), tt.args.inputPackageName).
-				DoAndReturn(func(url, inputPackageName string) (*http.Response, error) {
+			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
+				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
 						//nolint
 						return nil, errors.New("error")
@@ -698,7 +698,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
-			got, err := fetchGitRepositoryFromRubyGems(tt.args.inputPackageName, p)
+			got, err := fetchGitRepositoryFromRubyGems(tt.args.packageName, p)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fetchGitRepositoryFromRubyGems() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -735,7 +735,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 
 	tests := []nugetTest{
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_single_page",
+			name: "find latest version in single page",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -808,7 +808,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_with_lowercase",
+			name: "find latest version with lowercase",
 
 			args: nugetTestArgs{
 				inputPackageName:    "Nuget-Package",
@@ -882,7 +882,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_with_trailing_slash",
+			name: "find latest version with trailing slash",
 
 			args: nugetTestArgs{
 				inputPackageName:    "Nuget-Package",
@@ -956,7 +956,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_without_git_ending",
+			name: "find latest version without git ending",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1029,7 +1029,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_handle_four_digit_version",
+			name: "handles four digit version",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1102,7 +1102,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_semver_metadataa",
+			name: "skip semver metadata",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1175,7 +1175,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_pre_release",
+			name: "skip pre release",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1248,7 +1248,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_skip_pre_release_and_metadata",
+			name: "skip pre release and metadata",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1321,7 +1321,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_get_github_project_url_if_repository_url_missing",
+			name: "find in project url if repository missing",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1394,7 +1394,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_get_github_project_url_without_git_ending",
+			name: "get github project url without git ending",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1467,7 +1467,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_get_gitlab_project_url_if_repository_url_missing",
+			name: "get gitlab project url if repository url missing",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1540,7 +1540,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_error_if_project_url_is_not_gitXXb",
+			name: "error if project url is not gitlab or github",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1613,7 +1613,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_first_of_multiple_pages",
+			name: "find latest version in first of multiple pages",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1713,7 +1713,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_first_of_multiple_remote_pages",
+			name: "find latest version in first of multiple remote pages",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1834,7 +1834,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_last_of_multiple_pages",
+			name: "find latest version in last of multiple pages",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -1934,7 +1934,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_in_last_of_remote_multiple_pages",
+			name: "find latest version in last of remote multiple pages",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2055,7 +2055,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_with_default_listed_value_true",
+			name: "find latest version with default listed value true",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2127,7 +2127,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_find_latest_version_with_skip_not_listed",
+			name: "skip not listed versions",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2200,7 +2200,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_no_listed_version",
+			name: "error if no listed version",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2264,7 +2264,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_index",
+			name: "error no index",
 
 			args: nugetTestArgs{
 				inputPackageName:               "nuget-package",
@@ -2277,7 +2277,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_bad_index",
+			name: "error bad  index",
 
 			args: nugetTestArgs{
 				inputPackageName:               "nuget-package",
@@ -2290,7 +2290,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_package_registration_index",
+			name: "error package registration index",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2319,7 +2319,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_bad_package_index",
+			name: "error bad package index",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2348,7 +2348,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_package_registration_page",
+			name: "error package registration page",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2402,7 +2402,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_bad_package_registration_page",
+			name: "error bad package registration page",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2456,7 +2456,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_package_spec",
+			name: "error in package spec",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2519,7 +2519,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_bad_package_spec",
+			name: "error bad package spec",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2570,7 +2570,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_package_spec",
+			name: "error package spec",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2633,7 +2633,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_missing_repo",
+			name: "error missing repo",
 
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
@@ -2684,7 +2684,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_no_registration_url",
+			name: "error no registration url",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2713,7 +2713,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_no_package_base_url",
+			name: "error no package base url",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2742,7 +2742,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_marhsal_entry",
+			name: "error marhsal entry",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2813,7 +2813,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "fetchGitRepositoryFromNuget_error_package_spec",
+			name: "error package spec",
 			args: nugetTestArgs{
 				inputPackageName: "nuget-package",
 				resultIndex: `
@@ -2927,24 +2927,23 @@ func nugetIndexOrPageTestResults(url string, test *nugetTest) (*http.Response, e
 			StatusCode: 200,
 			Body:       io.NopCloser(bytes.NewBufferString(test.args.resultIndex)),
 		}, nil
-	} else {
-		urlResponseIndex := slices.IndexFunc(test.args.resultPackageRegistrationPages,
-			func(page resultPackagePage) bool { return page.url == url })
-		if urlResponseIndex == -1 {
-			//nolint
-			return nil, errors.New("error")
-		}
-		page := test.args.resultPackageRegistrationPages[urlResponseIndex]
-		if test.wantErr && (page.response == "") {
-			//nolint
-			return nil, errors.New("error")
-		}
-
-		return &http.Response{
-			StatusCode: 200,
-			Body:       io.NopCloser(bytes.NewBufferString(page.response)),
-		}, nil
 	}
+	urlResponseIndex := slices.IndexFunc(test.args.resultPackageRegistrationPages,
+		func(page resultPackagePage) bool { return page.url == url })
+	if urlResponseIndex == -1 {
+		//nolint
+		return nil, errors.New("error")
+	}
+	page := test.args.resultPackageRegistrationPages[urlResponseIndex]
+	if test.wantErr && (page.response == "") {
+		//nolint
+		return nil, errors.New("error")
+	}
+
+	return &http.Response{
+		StatusCode: 200,
+		Body:       io.NopCloser(bytes.NewBufferString(page.response)),
+	}, nil
 }
 
 func nugetPackageIndexAndSpecResponse(t *testing.T, url string, test *nugetTest) (*http.Response, error) {

@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -61,11 +60,13 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 			client := packageManager{}
 			got, err := client.GetURI(server.URL + "/" + tt.args.inputURL)
 			if err != nil {
-				log.Fatalln(err)
+				t.Errorf("Test_GetURI_calls_client_get_with_input() error in Get= %v", err)
+				return
 			}
 			body, err := io.ReadAll(got.Body)
 			if err != nil {
-				log.Fatalln(err)
+				t.Errorf("Test_GetURI_calls_client_get_with_input() error in ReadAll= %v", err)
+				return
 			}
 			if string(body) != tt.wantResponse {
 				t.Errorf("GetURI() = %v, want %v", got, tt.wantResponse)
@@ -114,11 +115,13 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 			client := packageManager{}
 			got, err := client.Get(server.URL+"/"+tt.args.inputURL, tt.args.packageName)
 			if err != nil {
-				log.Fatalln(err)
+				t.Errorf("Test_Get_calls_client_get_with_input() error in Get = %v", err)
+				return
 			}
 			body, err := io.ReadAll(got.Body)
 			if err != nil {
-				log.Fatalln(err)
+				t.Errorf("Test_Get_calls_client_get_with_input() error in ReadAll = %v", err)
+				return
 			}
 			if string(body) != tt.wantResponse {
 				t.Errorf("GetURI() = %v, want %v", got, tt.wantResponse)
