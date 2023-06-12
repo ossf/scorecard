@@ -100,9 +100,6 @@ func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogg
 	}
 
 	plat := changeset.ReviewPlatform
-	if plat == "" {
-		plat = checker.ReviewPlatformUnknown
-	}
 	dl.Debug(
 		&checker.LogMessage{
 			Text: fmt.Sprintf(
