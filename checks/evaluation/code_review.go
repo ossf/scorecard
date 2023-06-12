@@ -67,7 +67,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	}
 
 	switch {
-	case !foundHumanActivity:
+	case nChanges == 0 || !foundHumanActivity:
 		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
 		return checker.CreateInconclusiveResult(name, reason)
 	case nUnreviewedChanges > 0:
@@ -86,11 +86,13 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 }
 
 func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogger) (score reviewScore) {
-	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
+	plat := changeset.ReviewPlatform
+	if plat != checker.ReviewPlatformUnknown &&
+		plat != checker.ReviewPlatformGitHub {
 		return reviewedOutsideGithub
 	}
 
-	if changeset.ReviewPlatform == checker.ReviewPlatformGitHub {
+	if plat == checker.ReviewPlatformGitHub {
 		for i := range changeset.Reviews {
 			review := changeset.Reviews[i]
 			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
@@ -99,7 +101,6 @@ func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogg
 		}
 	}
 
-	plat := changeset.ReviewPlatform
 	dl.Debug(
 		&checker.LogMessage{
 			Text: fmt.Sprintf(

@@ -56,10 +56,12 @@ func TestCodeReview(t *testing.T) {
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
 					{
-						Commits: []clients.Commit{{SHA: "a"}},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						Commits:        []clients.Commit{{SHA: "a"}},
 					},
 					{
-						Commits: []clients.Commit{{SHA: "a"}},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						Commits:        []clients.Commit{{SHA: "a"}},
 					},
 				},
 			},
@@ -73,10 +75,12 @@ func TestCodeReview(t *testing.T) {
 			rawData: &checker.CodeReviewData{
 				DefaultBranchChangesets: []checker.Changeset{
 					{
-						Commits: []clients.Commit{{SHA: "a", Committer: clients.User{IsBot: true}}},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						Commits:        []clients.Commit{{SHA: "a", Committer: clients.User{IsBot: true}}},
 					},
 					{
-						Commits: []clients.Commit{{SHA: "b"}},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						Commits:        []clients.Commit{{SHA: "b"}},
 					},
 				},
 			},
@@ -107,8 +111,9 @@ func TestCodeReview(t *testing.T) {
 						},
 					},
 					{
-						Author:     clients.User{Login: "alice-the-bot[bot]", IsBot: true},
-						RevisionID: "b",
+						Author:         clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						RevisionID:     "b",
 						Commits: []clients.Commit{
 							{
 								Committer: clients.User{Login: "alice-the-bot[bot]", IsBot: true},
@@ -173,8 +178,9 @@ func TestCodeReview(t *testing.T) {
 						},
 					},
 					{
-						Author:     clients.User{Login: "alice-the-bot[bot]", IsBot: true},
-						RevisionID: "b",
+						Author:         clients.User{Login: "alice-the-bot[bot]", IsBot: true},
+						ReviewPlatform: checker.ReviewPlatformUnknown,
+						RevisionID:     "b",
 						Commits: []clients.Commit{
 							{
 								Committer: clients.User{Login: "alice-the-bot[bot]", IsBot: true},
