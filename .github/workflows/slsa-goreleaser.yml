@@ -29,7 +29,7 @@ jobs:
       contents: write
       actions: read
     needs: args
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.6.0 #7f4fdb871876c23e455853d694197440c5a91506
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.7.0 #7f4fdb871876c23e455853d694197440c5a91506
     with:
       go-version: 1.19
       evaluated-envs: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"

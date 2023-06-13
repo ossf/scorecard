@@ -72,7 +72,7 @@ jobs:
          verbose: true
      - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-       if: ${{ github.event_name != 'pull_request' }}
+       if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
        with:

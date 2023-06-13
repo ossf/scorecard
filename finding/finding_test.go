@@ -21,6 +21,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v4/finding/probe"
 )
@@ -193,6 +194,98 @@ func Test_FromBytes(t *testing.T) {
 				r = r.WithOutcome(*tt.outcome)
 			}
 			if diff := cmp.Diff(*tt.finding, *r); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestOutcome_UnmarshalYAML(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		n *yaml.Node
+	}
+	tests := []struct { //nolint:govet
+		name        string
+		wantOutcome Outcome
+		args        args
+		wantErr     bool
+	}{
+		{
+			name:        "positive outcome",
+			wantOutcome: OutcomePositive,
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "Positive",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:        "negative outcome",
+			wantOutcome: OutcomeNegative,
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "Negative",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:        "NotAvailable outcome",
+			wantOutcome: OutcomeNotAvailable,
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "NotAvailable",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:        "NotSupported outcome",
+			wantOutcome: OutcomeNotSupported,
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "NotSupported",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:        "Unknown error",
+			wantOutcome: OutcomeError,
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "Error",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Unknown outcome",
+			args: args{
+				n: &yaml.Node{
+					Kind:  yaml.ScalarNode,
+					Value: "Unknown",
+				},
+			},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var v Outcome
+			if err := v.UnmarshalYAML(tt.args.n); (err != nil) != tt.wantErr {
+				t.Errorf("Outcome.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if diff := cmp.Diff(tt.wantOutcome, v); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})
