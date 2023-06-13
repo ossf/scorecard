@@ -43,8 +43,8 @@ var _ = Describe("E2E TEST: githubrepo.webhookHandler", func() {
 		}
 	})
 	Context("listWebhooks()", func() {
-		skipIfTokenIsNot(patTokenType, "PAT only")
 		It("returns contributors for valid HEAD query", func() {
+			skipIfTokenIsNot(patTokenType, "PAT only")
 			repoURL := repoURL{
 				owner:     "ossf-tests",
 				repo:      "webhook-e2e",
