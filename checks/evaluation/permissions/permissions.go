@@ -325,21 +325,21 @@ func calculateScore(result map[string]permissions) int {
 		// status: https://docs.github.com/en/rest/reference/repos#statuses.
 		// May allow an attacker to change the result of pre-submit and get a PR merged.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "statuses") {
+		if permissionIsPresentInTopLevel(perms, "statuses") {
 			score -= 0.5
 		}
 
 		// checks.
 		// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "checks") {
+		if permissionIsPresentInTopLevel(perms, "checks") {
 			score -= 0.5
 		}
 
 		// secEvents.
 		// May allow attacker to read vuln reports before patch available.
 		// Low risk: -1
-		if permissionIsPresent(perms, "security-events") {
+		if permissionIsPresentInTopLevel(perms, "security-events") {
 			score--
 		}
 
@@ -348,7 +348,7 @@ func calculateScore(result map[string]permissions) int {
 		// and tiny chance an attacker can trigger a remote
 		// service with code they own if server accepts code/location var unsanitized.
 		// Low risk: -1
-		if permissionIsPresent(perms, "deployments") {
+		if permissionIsPresentInTopLevel(perms, "deployments") {
 			score--
 		}
 
