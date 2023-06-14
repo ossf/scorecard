@@ -613,13 +613,13 @@ Note: The check does not verify the signatures.
 
 Risk: `High` (vulnerable to malicious code additions)
 
-This check determines whether the project's automated workflows tokens are set
-to read-only by default. It is currently limited to repositories hosted on
-GitHub, and does not support other source hosting repositories (i.e., Forges).
+This check determines whether the project's automated workflows tokens follow the
+principle of least privilege. This is important because attackers may use a
+compromised token with write access to, for example, push malicious code into the
+project.
 
-Setting token permissions to read-only follows the principle of least privilege.
-This is important because attackers may use a compromised token with write
-access to push malicious code into the project.
+It is currently limited to repositories hosted on GitHub, and does not support
+other source hosting repositories (i.e., Forges).
 
 The highest score is awarded when the permissions definitions in each workflow's
 yaml file are set as read-only at the
@@ -632,23 +632,11 @@ left undefined because of human error.
 
 The check cannot detect if the "read-only" GitHub permission setting is
 enabled, as there is no API available.
-
-Additionally, points are reduced if certain write permissions are defined for a job.
-
-### Write permissions causing a small reduction
-* `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.
-* `checks` - May allow an attacker to remove pre-submit checks and introduce a bug.
-* `security-events` - May allow an attacker to read vulnerability reports before a patch is available. However, points are not reduced if the job utilizes a recognized action for uploading SARIF results.
-* `deployments` - May allow an attacker to charge repo owner by triggering VM runs, and tiny chance an attacker can trigger a remote service with code they own if server accepts code/location variables unsanitized.
-
-### Write permissions causing a large reduction
-* `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
-* `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
-* `actions` - May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
  
 
 **Remediation steps**
-- Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
+- Set top-level permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
+- Set any required write permissions at the job-level. Only set the permissions required for that job; do not set `permissions: write-all` at the job level.
 - To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found by the Pinned-dependencies check.
 
 ## Vulnerabilities 
