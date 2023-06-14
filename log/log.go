@@ -16,6 +16,7 @@ package log
 
 import (
 	"log"
+	"os"
 	"strings"
 
 	"github.com/bombsimon/logrusr/v2"
@@ -33,6 +34,23 @@ type Logger struct {
 // TODO(log): Consider adopting production config from zap.
 func NewLogger(logLevel Level) *Logger {
 	logrusLog := logrus.New()
+
+	// Set log level from logrus
+	logrusLevel := parseLogrusLevel(logLevel)
+	logrusLog.SetLevel(logrusLevel)
+
+	return NewLogrusLogger(logrusLog)
+}
+
+// NewCronLogger creates an instance of *Logger.
+func NewCronLogger(logLevel Level) *Logger {
+	logrusLog := logrus.New()
+
+	// Configure logger
+	// Don't log to stderr by default (stackdriver treats stderr as error severity)
+	logrusLog.SetOutput(os.Stdout)
+	// for stackdriver, see: https://cloud.google.com/stackdriver/docs/solutions/gke/managing-logs
+	logrusLog.SetFormatter(&logrus.JSONFormatter{})
 
 	// Set log level from logrus
 	logrusLevel := parseLogrusLevel(logLevel)
