@@ -302,7 +302,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:      "workflow jobs only",
+			name:      "penalize job-level read without top level permissions",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-jobs-only.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
