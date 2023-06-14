@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd implements Scorecard commandline.
-package cmd
+// Package packagemanager implements a packagemanager client
+package packagemanager
 
 import (
 	"io"
@@ -57,7 +57,7 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 				w.Write([]byte(tt.wantResponse))
 			}))
 			defer server.Close()
-			client := packageManager{}
+			client := PackageManagerClient{}
 			got, err := client.GetURI(server.URL + "/" + tt.args.inputURL)
 			if err != nil {
 				t.Errorf("Test_GetURI_calls_client_get_with_input() error in Get= %v", err)
@@ -112,7 +112,7 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 				w.Write([]byte(tt.wantResponse))
 			}))
 			defer server.Close()
-			client := packageManager{}
+			client := PackageManagerClient{}
 			got, err := client.Get(server.URL+"/"+tt.args.inputURL, tt.args.packageName)
 			if err != nil {
 				t.Errorf("Test_Get_calls_client_get_with_input() error in Get = %v", err)

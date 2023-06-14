@@ -139,7 +139,8 @@ generate-mocks: clients/mockclients/repo_client.go \
 	clients/mockclients/repo.go \
 	clients/mockclients/cii_client.go \
 	checks/mockclients/vulnerabilities.go \
-	cmd/packagemanager_mockclient.go
+	clients/packagemanager/packagemanager_mockclient.go \
+	clients/nuget/nuget_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go | $(MOCKGEN)
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -152,9 +153,12 @@ clients/mockclients/cii_client.go: clients/cii_client.go | $(MOCKGEN)
 checks/mockclients/vulnerabilities.go: clients/vulnerabilities.go | $(MOCKGEN)
 	# Generating MockCIIClient
 	$(MOCKGEN) -source=clients/vulnerabilities.go -destination=clients/mockclients/vulnerabilities.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
-cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go | $(MOCKGEN)
+clients/packagemanager/packagemanager_mockclient.go: clients/packagemanager/client.go | $(MOCKGEN)
 	# Generating MockPackageManagerClient
-	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=cmd/packagemanager_mockclient.go -package=cmd -copyright_file=clients/mockclients/license.txt
+	$(MOCKGEN) -source=clients/packagemanager/client.go -destination=clients/packagemanager/packagemanager_mockclient.go -package=packagemanager -copyright_file=clients/mockclients/license.txt
+clients/nuget/nuget_mockclient.go: clients/nuget/client.go | $(MOCKGEN)
+	# Generating MockNugetClient
+	$(MOCKGEN) -source=clients/nuget/client.go -destination=clients/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
 
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md

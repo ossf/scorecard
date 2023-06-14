@@ -27,6 +27,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	pmc "github.com/ossf/scorecard/v4/clients/packagemanager"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	sclog "github.com/ossf/scorecard/v4/log"
@@ -72,7 +73,7 @@ func New(o *options.Options) *cobra.Command {
 
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
-	p := &packageManager{}
+	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
 	if err != nil {
