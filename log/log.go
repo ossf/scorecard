@@ -49,8 +49,11 @@ func NewCronLogger(logLevel Level) *Logger {
 	// Configure logger
 	// Don't log to stderr by default (stackdriver treats stderr as error severity)
 	logrusLog.SetOutput(os.Stdout)
-	// for stackdriver, see: https://cloud.google.com/stackdriver/docs/solutions/gke/managing-logs
-	logrusLog.SetFormatter(&logrus.JSONFormatter{})
+	// for stackdriver, see: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
+	logrusLog.SetFormatter(&logrus.JSONFormatter{FieldMap: logrus.FieldMap{
+		logrus.FieldKeyLevel: "severity",
+		logrus.FieldKeyMsg:   "message",
+	}})
 
 	// Set log level from logrus
 	logrusLevel := parseLogrusLevel(logLevel)
