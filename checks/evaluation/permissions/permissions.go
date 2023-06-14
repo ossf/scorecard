@@ -386,11 +386,6 @@ func calculateScore(result map[string]permissions) int {
 	return int(score)
 }
 
-func permissionIsPresent(perms permissions, name string) bool {
-	return permissionIsPresentInTopLevel(perms, name) ||
-		permissionIsPresentInRunLevel(perms, name)
-}
-
 func permissionIsPresentInTopLevel(perms permissions, name string) bool {
 	_, ok := perms.topLevelWritePermissions[name]
 	return ok
