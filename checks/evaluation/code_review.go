@@ -52,7 +52,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		cs := &r.DefaultBranchChangesets[i]
 		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
 		if isReviewed && cs.Author.IsBot {
-			continue // ignore reviewed bot commits
+			continue // ignore reviewed bot commits (https://github.com/ossf/scorecard/issues/2450)
 		}
 
 		nChanges += 1
@@ -73,10 +73,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 	case nUnreviewedChanges > 0:
 		return checker.CreateProportionalScoreResult(
 			name,
-			fmt.Sprintf(
-				"found %d unreviewed changesets out of %d", nUnreviewedChanges,
-				nChanges,
-			),
+			fmt.Sprintf("found %d unreviewed changesets out of %d", nUnreviewedChanges, nChanges),
 			int(math.Max(float64(nChanges-nUnreviewedChanges), 0)),
 			nChanges,
 		)
