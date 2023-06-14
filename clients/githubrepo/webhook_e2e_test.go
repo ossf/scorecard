@@ -43,7 +43,7 @@ var _ = Describe("E2E TEST: githubrepo.webhookHandler", func() {
 		}
 	})
 	Context("listWebhooks()", func() {
-		It("returns contributors for valid HEAD query", func() {
+		It("returns list of webhooks", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 			repoURL := repoURL{
 				owner:     "ossf-tests",
@@ -52,7 +52,10 @@ var _ = Describe("E2E TEST: githubrepo.webhookHandler", func() {
 			}
 
 			handler.init(context.Background(), &repoURL)
-			Expect(handler.listWebhooks()).To(HaveLen(1))
+			resp, err := handler.listWebhooks()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp).NotTo(BeNil())
+			Expect(len(resp)).To(Equal(1))
 			Expect(handler.errSetup).Should(BeNil())
 		})
 	})
