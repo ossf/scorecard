@@ -186,7 +186,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 3,
+				Score: 5,
 			},
 		},
 		{
@@ -211,7 +211,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 3,
+				Score: 5,
 			},
 		},
 		{
