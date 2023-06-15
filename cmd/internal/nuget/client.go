@@ -26,7 +26,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	pmc "github.com/ossf/scorecard/v4/clients/packagemanager"
+	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 

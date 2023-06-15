@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	ngt "github.com/ossf/scorecard/v4/clients/nuget"
-	pmc "github.com/ossf/scorecard/v4/clients/packagemanager"
+	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
+	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
