@@ -420,7 +420,7 @@ scorecard --repo=org/repo
 
 ##### Using a Package manager
 
-For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the
+For projects in the `--npm`, `--pypi`, `--rubygems`, or `--nuget` ecosystems, you have the
 option to run Scorecard using a package manager. Provide the package name to
 run the checks on the corresponding GitHub source code.
 

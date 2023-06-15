@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
+	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -27,8 +29,8 @@ type packageMangerResponse struct {
 	exists         bool
 }
 
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
-	manager packageManagerClient,
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
+	manager pmc.Client,
 ) (packageMangerResponse, error) {
 	if npm != "" {
 		gitRepo, err := fetchGitRepositoryFromNPM(npm, manager)
@@ -46,6 +48,14 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems string,
 	}
 	if rubygems != "" {
 		gitRepo, err := fetchGitRepositoryFromRubyGems(rubygems, manager)
+		return packageMangerResponse{
+			exists:         true,
+			associatedRepo: gitRepo,
+		}, err
+	}
+	if nuget != "" {
+		nugetClient := ngt.NugetClient{Manager: manager}
+		gitRepo, err := fetchGitRepositoryFromNuget(nuget, nugetClient)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
@@ -78,7 +88,7 @@ type rubyGemsSearchResults struct {
 }
 
 // Gets the GitHub repository URL for the npm package.
-func fetchGitRepositoryFromNPM(packageName string, packageManager packageManagerClient) (string, error) {
+func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (string, error) {
 	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
 	resp, err := packageManager.Get(npmSearchURL, packageName)
 	if err != nil {
@@ -99,7 +109,7 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager packageManager
 }
 
 // Gets the GitHub repository URL for the pypi package.
-func fetchGitRepositoryFromPYPI(packageName string, manager packageManagerClient) (string, error) {
+func fetchGitRepositoryFromPYPI(packageName string, manager pmc.Client) (string, error) {
 	pypiSearchURL := "https://pypi.org/pypi/%s/json"
 	resp, err := manager.Get(pypiSearchURL, packageName)
 	if err != nil {
@@ -120,7 +130,7 @@ func fetchGitRepositoryFromPYPI(packageName string, manager packageManagerClient
 }
 
 // Gets the GitHub repository URL for the rubygems package.
-func fetchGitRepositoryFromRubyGems(packageName string, manager packageManagerClient) (string, error) {
+func fetchGitRepositoryFromRubyGems(packageName string, manager pmc.Client) (string, error) {
 	rubyGemsSearchURL := "https://rubygems.org/api/v1/gems/%s.json"
 	resp, err := manager.Get(rubyGemsSearchURL, packageName)
 	if err != nil {
@@ -137,4 +147,14 @@ func fetchGitRepositoryFromRubyGems(packageName string, manager packageManagerCl
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("could not find source repo for ruby gem: %v", err))
 	}
 	return v.SourceCodeURI, nil
+}
+
+// Gets the GitHub repository URL for the nuget package.
+func fetchGitRepositoryFromNuget(packageName string, nugetClient ngt.Client) (string, error) {
+	repositoryURI, err := nugetClient.GitRepositoryByPackageName(packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for nuget package: %v", err))
+	}
+	return repositoryURI, nil
 }
