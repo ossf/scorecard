@@ -538,7 +538,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := pmc.NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().GetURI(gomock.Any()).
 				DoAndReturn(func(url string) (*http.Response, error) {
 					return nugetIndexOrPageTestResults(url, &tt)

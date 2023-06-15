@@ -136,7 +136,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := pmc.NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
@@ -416,7 +416,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := pmc.NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
@@ -685,7 +685,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := pmc.NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
