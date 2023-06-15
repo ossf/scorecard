@@ -43,7 +43,6 @@ var _ = Describe("E2E TEST: githubrepo.releasesHandler", func() {
 		}
 	})
 	Context("getReleases()", func() {
-		skipIfTokenIsNot(patTokenType, "PAT only")
 		It("returns releases", func() {
 			repoURL := repoURL{
 				owner:     "ossf",
