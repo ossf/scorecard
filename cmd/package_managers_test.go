@@ -23,6 +23,9 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+
+	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
+	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 )
 
 func Test_fetchGitRepositoryFromNPM(t *testing.T) {
@@ -133,7 +136,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
@@ -413,7 +416,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
@@ -682,7 +685,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
-			p := NewMockpackageManagerClient(ctrl)
+			p := pmc.NewMockClient(ctrl)
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
@@ -702,6 +705,68 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("fetchGitRepositoryFromRubyGems() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_fetchGitRepositoryFromNuget(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		packageName string
+		result      string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "Return repository from nuget client",
+			//nolint
+			args: args{
+				packageName: "nuget-package",
+				//nolint
+				result: "nuget",
+			},
+			want:    "nuget",
+			wantErr: false,
+		},
+		{
+			name: "Error from nuget client",
+			//nolint
+			args: args{
+				packageName: "nuget-package",
+				//nolint
+				result: "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			n := ngt.NewMockClient(ctrl)
+			n.EXPECT().GitRepositoryByPackageName(tt.args.packageName).
+				DoAndReturn(func(packageName string) (string, error) {
+					if tt.wantErr && tt.args.result == "" {
+						//nolint
+						return "", errors.New("error")
+					}
+
+					return tt.args.result, nil
+				}).AnyTimes()
+			got, err := fetchGitRepositoryFromNuget(tt.args.packageName, n)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("fetchGitRepositoryFromNuget() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("fetchGitRepositoryFromNuget() = %v, want %v", got, tt.want)
 			}
 		})
 	}

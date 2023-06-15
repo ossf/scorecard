@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+// Package packagemanager implements a packagemanager client
+package packagemanager
 
 import (
 	"fmt"
@@ -20,18 +21,30 @@ import (
 	"time"
 )
 
-type packageManagerClient interface {
+type Client interface {
 	Get(URI string, packagename string) (*http.Response, error)
+
+	GetURI(URI string) (*http.Response, error)
 }
 
-type packageManager struct{}
+type PackageManagerClient struct{}
 
 // nolint: noctx
-func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
+func (c *PackageManagerClient) Get(url, packageName string) (*http.Response, error) {
+	return c.getRemoteURL(fmt.Sprintf(url, packageName))
+}
+
+// nolint: noctx
+func (c *PackageManagerClient) GetURI(url string) (*http.Response, error) {
+	return c.getRemoteURL(url)
+}
+
+// nolint: noctx
+func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) {
 	const timeout = 10
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}
 	//nolint
-	return client.Get(fmt.Sprintf(url, packageName))
+	return client.Get(url)
 }
