@@ -35,7 +35,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.29.0
 	golang.org/x/text v0.10.0
-	golang.org/x/tools v0.9.3
+	golang.org/x/tools v0.10.0
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -101,7 +101,7 @@ require (
 	github.com/spdx/gordf v0.0.0-20221230105357-b735bd5aac89 // indirect
 	github.com/spdx/tools-golang v0.5.1 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/term v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/vuln v0.0.0-20230303230808-d3042fecc4e3 // indirect
@@ -173,7 +173,7 @@ require (
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/net v0.11.0 // indirect
 	golang.org/x/oauth2 v0.9.0
-	golang.org/x/sync v0.2.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.124.0 // indirect
