@@ -1,0 +1,27 @@
+[
+    {
+      "type": "Repository",
+      "id": 12345678,
+      "name": "web",
+      "active": true,
+      "events": [
+        "push"
+      ],
+      "config": {
+        "content_type": "form",
+        "insecure_ssl": "1",
+        "url": "https://test.com/test"
+      },
+      "updated_at": "2023-06-14T12:52:12Z",
+      "created_at": "2023-06-12T13:46:50Z",
+      "url": "https://api.github.com/repos/ossf-tests/webhook-e2e/hooks/12345678",
+      "test_url": "https://api.github.com/repos/ossf-tests/webhook-e2e/hooks/12345678/test",
+      "ping_url": "https://api.github.com/repos/ossf-tests/webhook-e2e/hooks/12345678/pings",
+      "deliveries_url": "https://api.github.com/repos/ossf-tests/webhook-e2e/hooks/12345678/deliveries",
+      "last_response": {
+        "code": 502,
+        "status": "connection_error",
+        "message": "failed to connect to host"
+      }
+    }
+]
