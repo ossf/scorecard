@@ -64,6 +64,9 @@ const (
 	FlagFormat = "format"
 
 	FlagCommitDepth = "commit-depth"
+
+	// FlagResultsFile is the flag name for storing stdout and stderr output.
+	FlagResultsFile = "resultsfile"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -160,6 +163,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagChecks,
 		o.ChecksToRun,
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
+	)
+
+	cmd.Flags().StringVar(
+		&o.ResultsFile,
+		FlagResultsFile,
+		o.ResultsFile,
+		"Output results and errors to file",
 	)
 
 	// TODO(options): Extract logic

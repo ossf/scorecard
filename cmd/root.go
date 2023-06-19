@@ -16,6 +16,7 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -90,6 +91,21 @@ func rootCmd(o *options.Options) error {
 
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
+
+	var outFile *os.File
+
+	if o.ResultsFile != "" {
+		outFile, err = os.Create(o.ResultsFile)
+		if err != nil {
+			panic(err)
+		}
+		defer outFile.Close()
+		os.Stdout = outFile
+		os.Stderr = outFile
+
+		fmt.Fprintf(os.Stderr, "Repo Queried: %s\n\n", o.Repo)
+	}
+
 	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
 		ctx, o.Repo, o.Local, logger) // MODIFIED
 	if err != nil {
@@ -169,6 +185,11 @@ func rootCmd(o *options.Options) error {
 		if result.Error != nil {
 			return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
 		}
+	}
+
+	if outFile != nil {
+		writer := bufio.NewWriter(outFile)
+		defer writer.Flush()
 	}
 	return nil
 }

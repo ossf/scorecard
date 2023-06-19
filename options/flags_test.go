@@ -43,6 +43,7 @@ func TestOptions_AddFlags(t *testing.T) {
 				ChecksToRun: []string{"check1", "check2"},
 				PolicyFile:  "policy-file",
 				Format:      "json",
+				ResultsFile: "resultsFile.log",
 			},
 		},
 	}
@@ -87,6 +88,11 @@ func TestOptions_AddFlags(t *testing.T) {
 			// check FlagRubyGems
 			if cmd.Flag(FlagRubyGems).Value.String() != tt.opts.RubyGems {
 				t.Errorf("expected FlagRubyGems to be %q, but got %q", tt.opts.RubyGems, cmd.Flag(FlagRubyGems).Value.String())
+			}
+
+			// check ResultsFile
+			if cmd.Flag(FlagResultsFile).Value.String() != tt.opts.ResultsFile {
+				t.Errorf("expected ResultsFile to be %q, but got %q", tt.opts.ResultsFile, cmd.Flag(FlagResultsFile).Value.String())
 			}
 
 			var e1 []string
