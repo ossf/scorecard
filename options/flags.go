@@ -99,7 +99,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.LogLevel,
 		FlagLogLevel,
 		o.LogLevel,
-		"set the log level",
+		"Set the log level. Possible values are: 'info', 'debug', 'warn'. Add --show-details to see the results.",
 	)
 
 	cmd.Flags().StringVar(
