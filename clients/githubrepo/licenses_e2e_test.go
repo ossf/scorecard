@@ -55,6 +55,8 @@ var _ = Describe("E2E TEST: githubrepo.licensesHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(lh.errSetup).Should(BeNil())
 			Expect(len(licenses)).Should(Equal(1))
+			Expect(licenses[0].Name).Should(Equal("Apache License 2.0"))
+			Expect(licenses[0].Path).Should(Equal("LICENSE"))
 		})
 	})
 })
