@@ -133,7 +133,7 @@ require (
 	github.com/containerd/stargz-snapshotter/estargz v0.14.3 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/docker/cli v23.0.5+incompatible // indirect
-	github.com/docker/distribution v2.8.1+incompatible // indirect
+	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v23.0.5+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.7.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -190,8 +190,8 @@ replace (
 	// https://deps.dev/advisory/OSV/GO-2020-0017?from=%2Fgo%2Fk8s.io%252Fclient-go%2Fv0.0.0-20200207030105-473926661c44
 	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c => github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
-	// This replace is for GHSA-qq97-vm5h-rrhg
-	github.com/docker/distribution => github.com/docker/distribution v2.8.0+incompatible
+	// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
+	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
