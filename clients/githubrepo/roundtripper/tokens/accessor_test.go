@@ -42,35 +42,17 @@ func TestMakeTokenAccessor(t *testing.T) {
 			useServer: true,
 		},
 	}
+	t.Setenv("GITHUB_AUTH_TOKEN", "")
+	t.Setenv("GITHUB_TOKEN", "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch {
 			case tt.useGitHubToken:
-				token := "test"
-				t.Setenv("GITHUB_TOKEN", token)
-				got := MakeTokenAccessor()
-				if got == nil {
-					t.Errorf("MakeTokenAccessor() = nil, want not nil")
-				}
-				raccess, ok := got.(*roundRobinAccessor)
-				if !ok {
-					t.Errorf("MakeTokenAccessor() = %v, want *roundRobinAccessor", got)
-				}
-				if raccess.accessTokens[0] != token {
-					t.Errorf("accessTokens[0] = %v, want %v", raccess.accessTokens[0], token)
-				}
+				t.Helper()
+				testToken(t)
 			case tt.useServer:
-				t.Setenv("GITHUB_AUTH_SERVER", "localhost:8080")
-				server := startTestServer()
-				defer serverShutdown(server)
-				myRPCService := &MyRPCService{}
-				rpc.Register(myRPCService) //nolint:errcheck
-				server.Handler = nil
-				rpc.HandleHTTP()
-				got := MakeTokenAccessor()
-				if got == nil {
-					t.Errorf("MakeTokenAccessor() = nil, want not nil")
-				}
+				t.Helper()
+				testServer(t)
 			default:
 				got := MakeTokenAccessor()
 				if got != nil {
@@ -81,6 +63,40 @@ func TestMakeTokenAccessor(t *testing.T) {
 	}
 }
 
+func testToken(t *testing.T) {
+	t.Helper()
+	token := "test"
+	t.Setenv("GITHUB_AUTH_TOKEN", token)
+	got := MakeTokenAccessor()
+	if got == nil {
+		t.Errorf("MakeTokenAccessor() = nil, want not nil")
+	}
+	raccess, ok := got.(*roundRobinAccessor)
+	if !ok {
+		t.Errorf("MakeTokenAccessor() = %v, want *roundRobinAccessor", got)
+	}
+	if raccess.accessTokens[0] != token {
+		t.Errorf("accessTokens[0] = %v, want %v", raccess.accessTokens[0], token)
+	}
+}
+
+func testServer(t *testing.T) {
+	t.Helper()
+	t.Setenv("GITHUB_AUTH_SERVER", "localhost:8080")
+	server := startTestServer()
+	t.Cleanup(func() {
+		serverShutdown(server)
+	})
+	myRPCService := &MyRPCService{}
+	rpc.Register(myRPCService) //nolint:errcheck
+	server.Handler = nil
+	rpc.HandleHTTP()
+	got := MakeTokenAccessor()
+	if got == nil {
+		t.Errorf("MakeTokenAccessor() = nil, want not nil")
+	}
+}
+
 type MyRPCService struct {
 	// Define your RPC service methods here
 }
@@ -88,8 +104,8 @@ type MyRPCService struct {
 func startTestServer() *http.Server {
 	// Create a new server
 	server := &http.Server{ //nolint:gosec
-		Addr:    ":8080", // Use any available port
-		Handler: nil,     // Use the default handler
+		Addr:    ":8080",
+		Handler: nil, // Use the default handler
 	}
 
 	// Start the server in a separate goroutine
