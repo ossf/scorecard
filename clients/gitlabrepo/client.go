@@ -58,6 +58,20 @@ type Client struct {
 	commitDepth   int
 }
 
+var errRepoAccess = errors.New("repo inaccessible")
+
+// Raise an error if repository access level is private or disabled.
+func checkRepoInaccessible(repo *gitlab.Project) error {
+	if (repo.RepositoryAccessLevel == gitlab.PrivateAccessControl) ||
+		(repo.RepositoryAccessLevel == gitlab.DisabledAccessControl) {
+		return fmt.Errorf("%w: %s access level %s",
+			errRepoAccess, repo.PathWithNamespace, string(repo.RepositoryAccessLevel),
+		)
+	}
+
+	return nil
+}
+
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	glRepo, ok := inputRepo.(*repoURL)
@@ -71,6 +85,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
+
+	if err = checkRepoInaccessible(repo); err != nil {
+		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
+	}
+
 	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {

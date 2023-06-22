@@ -16,8 +16,58 @@ package gitlabrepo
 
 import (
 	"context"
+	"fmt"
 	"testing"
+
+	"github.com/xanzy/go-gitlab"
 )
+
+func Test_checkRepoInaccessible(t *testing.T) {
+	tcs := []struct {
+		desc    string
+		repourl string
+	}{
+		{
+			desc:    "private project",
+			repourl: "https://gitlab.com/ossf-test/private-project",
+		},
+	}
+
+	for _, tt := range tcs {
+		t.Run(tt.desc, func(t *testing.T) {
+			repo, err := MakeGitlabRepo(tt.repourl)
+			if err != nil {
+				t.Errorf(tt.repourl, err)
+			}
+
+			client, err := CreateGitlabClient(context.Background(), repo.Host())
+			if err != nil {
+				t.Errorf(tt.repourl, err)
+			}
+
+			glRepo, ok := repo.(*repoURL)
+			if !ok {
+				t.Errorf(tt.repourl, errInputRepoType)
+			}
+
+			// Sanity check.
+			glcl, ok := client.(*Client)
+			if !ok {
+				t.Error(tt.repourl, errInputRepoType)
+			}
+
+			path := fmt.Sprintf("%s/%s", glRepo.owner, glRepo.project)
+			proj, _, err := glcl.glClient.Projects.GetProject(path, &gitlab.GetProjectOptions{})
+			if err != nil {
+				t.Error(tt.repourl, err)
+			}
+
+			if err = checkRepoInaccessible(proj); err == nil {
+				t.Errorf(fmt.Sprintf("repo %v was supposed to be unreachable but was reachable", repo))
+			}
+		})
+	}
+}
 
 func Test_InitRepo(t *testing.T) {
 	t.Parallel()
