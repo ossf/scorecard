@@ -74,7 +74,7 @@ func (wl *WorkLoop) Run() error {
 		return fmt.Errorf("config.GetResultDataBucketURL: %w", err)
 	}
 
-	logger := log.NewLogger(log.InfoLevel)
+	logger := log.NewCronLogger(log.InfoLevel)
 
 	for {
 		req, err := subscriber.SynchronousPull()
