@@ -16,7 +16,6 @@ package log
 
 import (
 	"log"
-	"os"
 	"strings"
 
 	"github.com/bombsimon/logrusr/v2"
@@ -46,9 +45,6 @@ func NewLogger(logLevel Level) *Logger {
 func NewCronLogger(logLevel Level) *Logger {
 	logrusLog := logrus.New()
 
-	// Configure logger
-	// Don't log to stderr by default (stackdriver treats stderr as error severity)
-	logrusLog.SetOutput(os.Stdout)
 	// for stackdriver, see: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
 	logrusLog.SetFormatter(&logrus.JSONFormatter{FieldMap: logrus.FieldMap{
 		logrus.FieldKeyLevel: "severity",
