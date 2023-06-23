@@ -1,0 +1,15 @@
+{
+  "version": "3.0.0",
+  "resources": [
+    {
+      "@id": "https://api.nuget.org/v3-flatcontainer/",
+      "@type": "PackageBaseAddress/3.1.0",
+      "comment": "Base URL of where NuGet packages are stored, in the format ..."
+    },
+    {
+      "@id": "https://api.nuget.org/v3/registration5-gz-semver1/",
+      "@type": "RegistrationsBaseUrl/3.6.0",
+      "comment": "Base URL of Azure storage where NuGet package registration info."
+    }
+  ]
+}

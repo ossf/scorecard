@@ -27,8 +27,8 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-var _ = Describe("E2E TEST: githubrepo.webhookHandler", func() {
-	var handler *webhookHandler
+var _ = Describe("E2E TEST: githubrepo.releasesHandler", func() {
+	var releaseHandler *releasesHandler
 
 	BeforeEach(func() {
 		ctx := context.Background()
@@ -37,26 +37,24 @@ var _ = Describe("E2E TEST: githubrepo.webhookHandler", func() {
 			Transport: rt,
 		}
 		client := github.NewClient(httpClient)
-		handler = &webhookHandler{
-			ghClient: client,
-			ctx:      ctx,
+		releaseHandler = &releasesHandler{
+			client: client,
+			ctx:    ctx,
 		}
 	})
-	Context("listWebhooks()", func() {
-		It("returns list of webhooks", func() {
-			skipIfTokenIsNot(patTokenType, "PAT only")
+	Context("getReleases()", func() {
+		It("returns releases", func() {
 			repoURL := repoURL{
-				owner:     "ossf-tests",
-				repo:      "webhook-e2e",
+				owner:     "ossf",
+				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
 			}
 
-			handler.init(context.Background(), &repoURL)
-			resp, err := handler.listWebhooks()
+			releaseHandler.init(context.Background(), &repoURL)
+			resp, err := releaseHandler.getReleases()
 			Expect(err).NotTo(HaveOccurred())
-			Expect(resp).NotTo(BeNil())
-			Expect(len(resp)).To(Equal(1))
-			Expect(handler.errSetup).Should(BeNil())
+			Expect(len(resp)).ShouldNot(Equal(0))
+			Expect(releaseHandler.errSetup).Should(BeNil())
 		})
 	})
 })

@@ -45,6 +45,9 @@ const (
 	// FlagRubyGems is the flag name for specifying a RubyGems repository.
 	FlagRubyGems = "rubygems"
 
+	// FlagNuget is the flag name for specifying a Nuget repository.
+	FlagNuget = "nuget"
+
 	// FlagMetadata is the flag name for specifying metadata for the project.
 	FlagMetadata = "metadata"
 
@@ -96,7 +99,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.LogLevel,
 		FlagLogLevel,
 		o.LogLevel,
-		"set the log level",
+		"Set the log level. Possible values are: 'info', 'debug', 'warn'. Add --show-details to see the results.",
 	)
 
 	cmd.Flags().StringVar(
@@ -118,6 +121,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRubyGems,
 		o.RubyGems,
 		"rubygems package to check, given that the rubygems package has a GitHub repository",
+	)
+
+	cmd.Flags().StringVar(
+		&o.Nuget,
+		FlagNuget,
+		o.Nuget,
+		"nuget package to check, given that the nuget package has a GitHub repository",
 	)
 
 	cmd.Flags().StringSliceVar(
