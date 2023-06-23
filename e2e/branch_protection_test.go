@@ -46,10 +46,10 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         6,
-				NumberOfWarn:  2,
-				NumberOfInfo:  4,
-				NumberOfDebug: 4,
+				Score:         5,
+				NumberOfWarn:  3,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
@@ -104,10 +104,10 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
-				NumberOfWarn:  3,
-				NumberOfInfo:  3,
-				NumberOfDebug: 4,
+				Score:         2,
+				NumberOfWarn:  4,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
 			}
 			result := checks.BranchProtection(&req)
 
