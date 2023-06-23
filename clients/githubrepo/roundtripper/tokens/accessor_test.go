@@ -14,11 +14,9 @@
 package tokens
 
 import (
-	"errors"
-	"fmt"
-	"log"
-	"net/http"
+	"net/http/httptest"
 	"net/rpc"
+	"strings"
 	"testing"
 )
 
@@ -82,14 +80,12 @@ func testToken(t *testing.T) {
 
 func testServer(t *testing.T) {
 	t.Helper()
-	t.Setenv("GITHUB_AUTH_SERVER", "localhost:8080")
-	server := startTestServer()
-	t.Cleanup(func() {
-		serverShutdown(server)
-	})
+	server := httptest.NewServer(nil)
+	serverURL := strings.TrimPrefix(server.URL, "http://")
+	t.Setenv("GITHUB_AUTH_SERVER", serverURL)
+	t.Cleanup(server.Close)
 	myRPCService := &MyRPCService{}
 	rpc.Register(myRPCService) //nolint:errcheck
-	server.Handler = nil
 	rpc.HandleHTTP()
 	got := MakeTokenAccessor()
 	if got == nil {
@@ -99,31 +95,4 @@ func testServer(t *testing.T) {
 
 type MyRPCService struct {
 	// Define your RPC service methods here
-}
-
-func startTestServer() *http.Server {
-	// Create a new server
-	server := &http.Server{ //nolint:gosec
-		Addr:    ":8080",
-		Handler: nil, // Use the default handler
-	}
-
-	// Start the server in a separate goroutine
-	go func() {
-		fmt.Println("Starting server on http://localhost:8080")
-		if err := server.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
-			log.Fatal(err)
-		}
-	}()
-
-	return server
-}
-
-func serverShutdown(server *http.Server) {
-	err := server.Close()
-	if err != nil {
-		log.Fatalf("Error shutting down server: %s\n", err.Error())
-	}
-
-	fmt.Println("Server gracefully stopped")
 }
