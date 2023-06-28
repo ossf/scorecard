@@ -43,9 +43,10 @@ var _ = Describe("E2E TEST: gitlabrepo.commitsHandler", func() {
 	})
 })
 
-var _ = Describe("E2E TEST: githubrepo.client", func() {
+var _ = Describe("E2E TEST: gitlabrepo.client", func() {
 	Context("checkRepoInaccessible", func() {
-		It("returns that the repo is inaccessible", func() {
+		It("returns that the repo is inaccessible - GitLab", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/private-project")
 			Expect(err).Should(BeNil())
 
@@ -67,7 +68,7 @@ var _ = Describe("E2E TEST: githubrepo.client", func() {
 			Expect(err).ShouldNot(BeNil())
 		})
 
-		It("should initialize gitlab repos without error", func() {
+		It("should initialize repos without error - GitLab", func() {
 			repo, err := MakeGitlabRepo("https://gitlab.com/fdroid/fdroidclient")
 			Expect(err).Should(BeNil())
 
