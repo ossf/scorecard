@@ -1,4 +1,4 @@
-// Copyright 2021 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package evaluation
+package fuzzedWithPropertyBasedHaskell
 
 import (
+	"embed"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
-// Fuzzing applies the score policy for the Fuzzing check.
-func Fuzzing(name string,
-	findings []finding.Finding,
-) checker.CheckResult {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			return checker.CreateMaxScoreResult(name, "project is fuzzed")
-		}
-	}
-	return checker.CreateMinScoreResult(name, "project is not fuzzed")
+//go:embed *.yml
+var fs embed.FS
+var probe = "fuzzedWithPropertyBasedHaskell"
+
+func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	return utils.FuzzerRun(raw, fs, probe, "propertyBasedHaskell")
 }

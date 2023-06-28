@@ -25,6 +25,13 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -49,13 +56,26 @@ var (
 		toolPyUpInstalled.Run,
 		toolSonatypeLiftInstalled.Run,
 	}
+	Fuzzing = []ProbeImpl{
+		fuzzedWithOSSFuzz.Run,
+		fuzzedWithOneFuzz.Run,
+		fuzzedWithGoNative.Run,
+		fuzzedWithClusterFuzzLite.Run,
+		fuzzedWithPropertyBasedHaskell.Run,
+		fuzzedWithPropertyBasedTypescript.Run,
+		fuzzedWithPropertyBasedJavascript.Run,
+	}
 )
 
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
+<<<<<<< HEAD
 		SecurityPolicy,
+=======
+		Fuzzing,
+>>>>>>> 03800e1b (update)
 	})
 }
 
