@@ -28,6 +28,7 @@ type tokenType int
 const (
 	patTokenType tokenType = iota
 	githubWorkflowDefaultTokenType
+	gitlabPATTokenType
 )
 
 var tokType tokenType
@@ -45,26 +46,30 @@ var _ = BeforeSuite(func() {
 		tokType = patTokenType
 	case "GITHUB_TOKEN":
 		tokType = githubWorkflowDefaultTokenType
+	case "GITLAB_PAT":
+		tokType = gitlabPATTokenType
 	default:
 		panic(fmt.Sprintf("invalid TOKEN_TYPE: %s", tt))
 	}
 })
 
 var _ = Describe("E2E TEST: gitlabrepo.commitsHandler", func() {
-	Context("Test whether commits are listed - GitLab", func() {
-		skipIfTokenIsNot(patTokenType, "PAT only")
-		repo, err := MakeGitlabRepo("https://gitlab.com/fdroid/fdroidclient")
-		Expect(err).ShouldNot(BeNil())
+	Context("ListCommits", func() {
+		It("Checks whether commits are listed - GitLab", func() {
+			skipIfTokenIsNot(patTokenType, "PAT only")
+			repo, err := MakeGitlabRepo("https://gitlab.com/baserow/baserow")
+			Expect(err).Should(BeNil())
 
-		client, err := CreateGitlabClient(context.Background(), repo.Host())
-		Expect(err).ShouldNot(BeNil())
+			client, err := CreateGitlabClient(context.Background(), repo.Host())
+			Expect(err).Should(BeNil())
 
-		err = client.InitRepo(repo, "a4bbef5c70fd2ac7c15437a22ef0f9ef0b447d08", 20)
-		Expect(err).ShouldNot(BeNil())
+			err = client.InitRepo(repo, "8a38c9f724c19b5422e27864a108318d1f769b8a", 20)
+			Expect(err).Should(BeNil())
 
-		c, err := client.ListCommits()
-		Expect(err).ShouldNot(BeNil())
+			c, err := client.ListCommits()
+			Expect(err).Should(BeNil())
 
-		Expect(len(c)).Should(BeNumerically(">", 0))
+			Expect(len(c)).Should(BeNumerically(">", 0))
+		})
 	})
 })

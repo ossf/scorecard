@@ -59,14 +59,14 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 		})
 
 		It("Should return valid project contributors - GitLab", func() {
-			repo, err := gitlabrepo.MakeGitlabRepo("https://gitlab.com/fdroid/fdroidclient")
-			Expect(err).ShouldNot(BeNil())
+			repo, err := gitlabrepo.MakeGitlabRepo("https://gitlab.com/baserow/baserow")
+			Expect(err).Should(BeNil())
 
-			client, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(), "", repo.Host())
-			Expect(err).ShouldNot(BeNil())
+			client, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
+			Expect(err).Should(BeNil())
 
 			err = client.InitRepo(repo, "HEAD", 20)
-			Expect(err).ShouldNot(BeNil())
+			Expect(err).Should(BeNil())
 
 			c, err := client.ListContributors()
 			// Authentication is failing when querying users, not sure yet how to get around that
