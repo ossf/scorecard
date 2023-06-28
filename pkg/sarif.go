@@ -127,6 +127,7 @@ type tool struct {
 // nolint
 type result struct {
 	RuleID           string            `json:"ruleId"`
+	Kind             string            `json:"kind"`
 	Level            string            `json:"level,omitempty"` // Optional.
 	RuleIndex        int               `json:"ruleIndex"`
 	Message          text              `json:"message"`
@@ -501,17 +502,23 @@ func createSARIFRule(checkName, checkID, descURL, longDesc, shortDesc, risk stri
 	}
 }
 
-func createSARIFCheckResult(pos int, checkID, message string, loc *location) result {
+func createSARIFCheckResult(pos int, checkID, message string, loc *location, minScore int, checkScore int) result {
 	t := fmt.Sprintf("%s\nClick Remediation section below to solve this issue", message)
 	if loc.HasRemediation {
 		t = fmt.Sprintf("%s\nClick Remediation section below for further remediation help", message)
 	}
-
+	kind := "fail" //a result has of kind fail by default
+	if checkScore >= minScore {
+		kind = "pass"
+	} else if checkScore == checker.InconclusiveResultScore {
+		kind = "open"
+	}
 	return result{
 		RuleID: checkID,
 		// https://github.com/microsoft/sarif-tutorials/blob/main/docs/2-Basics.md#level
 		// Level:     scoreToLevel(minScore, score),
 		RuleIndex: pos,
+		Kind:      kind,
 		Message:   text{Text: t},
 		Locations: []location{*loc},
 	}
@@ -668,11 +675,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 			continue
 		}
 
-		// Skip check that do not violate the policy.
-		if check.Score >= minScore || check.Score == checker.InconclusiveResultScore {
-			continue
-		}
-
 		// Unclear what to use for PartialFingerprints.
 		// GitHub only uses `primaryLocationLineHash`, which is not properly defined
 		// and Appendix B of https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html
@@ -695,13 +697,13 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 			// See https://sarifweb.azurewebsites.net/Validation to test verification.
 			locs = addDefaultLocation(locs, "no file associated with this alert")
 			msg := createDefaultLocationMessage(&check, check.Score)
-			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0])
+			cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &locs[0], minScore, check.Score)
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
 				// Use the location's message (check's detail's message) as message.
 				msg := messageWithScore(loc.Message.Text, check.Score)
-				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc)
+				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc, minScore, check.Score)
 				run.Results = append(run.Results, cr)
 			}
 		}
