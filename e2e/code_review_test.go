@@ -126,6 +126,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 	// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
 	// the transfer from github so this returns a different value than the above GitHub test.
 	It("Should return use of code reviews at commit - GitLab", func() {
+		Skip("https://github.com/ossf/scorecard/issues/3193")
 		skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 		dl := scut.TestDetailLogger{}
@@ -154,6 +155,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 	// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
 	// the transfer from github so this returns a different value than the above GitHub test.
 	It("Should return use of code reviews at HEAD - GitLab", func() {
+		Skip("https://github.com/ossf/scorecard/issues/3193")
 		skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 		dl := scut.TestDetailLogger{}
