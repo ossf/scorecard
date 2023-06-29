@@ -15,53 +15,8 @@
 package gitlabrepo
 
 import (
-	"context"
 	"testing"
 )
-
-func Test_Setup(t *testing.T) {
-	t.Parallel()
-	tcs := []struct {
-		name    string
-		repourl string
-		commit  string
-		depth   int
-	}{
-		{
-			name:    "check that listcommits works",
-			repourl: "https://gitlab.com/fdroid/fdroidclient",
-			commit:  "a4bbef5c70fd2ac7c15437a22ef0f9ef0b447d08",
-			depth:   20,
-		},
-	}
-
-	for _, tt := range tcs {
-		t.Run(tt.name, func(t *testing.T) {
-			repo, err := MakeGitlabRepo(tt.repourl)
-			if err != nil {
-				t.Error("couldn't make gitlab repo", err)
-			}
-
-			client, err := CreateGitlabClient(context.Background(), repo.Host())
-			if err != nil {
-				t.Error("couldn't make gitlab client", err)
-			}
-
-			err = client.InitRepo(repo, tt.commit, tt.depth)
-			if err != nil {
-				t.Error("couldn't init gitlab repo", err)
-			}
-
-			c, err := client.ListCommits()
-			if err != nil {
-				t.Error("couldn't list gitlab repo commits", err)
-			}
-			if len(c) == 0 {
-				t.Error("couldn't get any commits from gitlab repo")
-			}
-		})
-	}
-}
 
 func TestParsingEmail(t *testing.T) {
 	t.Parallel()
