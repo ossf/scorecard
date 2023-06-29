@@ -59,6 +59,7 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 		})
 
 		It("Should return valid project contributors - GitLab", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "PAT only")
 			repo, err := gitlabrepo.MakeGitlabRepo("https://gitlab.com/baserow/baserow")
 			Expect(err).Should(BeNil())
 
