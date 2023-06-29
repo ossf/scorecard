@@ -32,7 +32,8 @@ RUN CGO_ENABLED=0 make build-controller
 
 FROM gcr.io/distroless/base:nonroot@sha256:99133cb0878bb1f84d1753957c6fd4b84f006f2798535de22ebf7ba170bbf434
 COPY ./cron/internal/data/projects*csv cron/internal/data/
-COPY ./cron/internal/data/gitlab-projects-selected.csv cron/internal/data/
+COPY ./cron/internal/data/gitlab-projects-releasetest.csv cron/internal/data/
+COPY ./cron/internal/data/gitlab-projects.csv cron/internal/data/
 COPY --from=shuffle /src/cron/internal/data/projects.release.csv cron/internal/data/projects.release.csv
 COPY --from=controller /src/cron/internal/controller/controller cron/internal/controller/controller
 ENTRYPOINT ["cron/internal/controller/controller"]
