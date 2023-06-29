@@ -59,8 +59,6 @@ spec:
                   key: auth_token
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
-            - name: "SCORECARD_EXPERIMENTAL"
-              value: "true"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard
