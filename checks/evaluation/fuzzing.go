@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
 
@@ -23,6 +24,11 @@ import (
 func Fuzzing(name string,
 	findings []finding.Finding,
 ) checker.CheckResult {
+	// The probes should always contain at least on finding.
+	if len(findings) == 0 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "no findings")
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {

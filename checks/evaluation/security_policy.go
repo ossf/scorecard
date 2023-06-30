@@ -38,6 +38,12 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	// The probes should always contain at least on finding.
+	if len(findings) == 0 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "no findings")
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
 	score := 0
 	m := make(map[string]bool)
 	for i := range findings {

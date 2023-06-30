@@ -149,19 +149,19 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-// NewWith create a negative finding with the desried location.
+// NewWith create a negative finding with the desired location.
 func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNegative)
 }
 
-// NewNotAvailable create a finding with a NotAvailable outcome and the desried location.
+// NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
 func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desried location.
+// NewPositive create a positive finding with the desired location.
 func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomePositive)
