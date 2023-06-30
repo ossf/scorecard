@@ -21,7 +21,7 @@ implementation: >
   The implementation looks for the presence of a security policy file in the repository '<org>/.github'. See https://github.com/ossf/scorecard/blob/main/checks/raw/security_policy.go#L139 for a detailed list of filenames.
 outcome:
   - If at least one security policy file is found, one finding with OutcomePositive (1) is returned.
-  - If no security files are found, one finding with OutcomeNegative (0).
+  - If no security files are found, one finding with OutcomeNegative (0) is returned.
 remediation:
   effort: Medium
   text:
