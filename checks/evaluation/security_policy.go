@@ -133,25 +133,30 @@ func DependencyUpdateTool(name string,
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
-	// Provbes should always contain findings.
-	if len(findings) == 0 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty findings")
+	uniques := finding.UniqueProbes(findings)
+	if len(uniques) != 5 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "missing probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+	score := 0
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
-			return checker.CreateMaxScoreResult(name, "update tool detected")
+			switch f.Probe {
+			case "securityPolicyContainsDisclosure":
+			case "securityPolicyContainsLinks":
+			case "securityPolicyContainsText":
+			case "securityPolicyPresentInOrg":
+			case "securityPolicyPresentInRepo":
+			default:
+				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
 		}
 	}
 
-	return checker.CreateMinScoreResult(name, "no update tool detected")
-
-	// Apply the policy evaluation.
-	if len(r.PolicyFiles) == 0 {
-		// If the file is unset, directly return as not detected.
-		return checker.CreateMinScoreResult(name, "security policy file not detected")
-	}
+	// return checker.CreateMaxScoreResult(name, "update tool detected")
+	return checker.CreateMinScoreResult(name, "no security file found")
 
 	// TODO: although this a loop, the raw checks will only return one security policy
 	// when more than one security policy file can be aggregated into a composite

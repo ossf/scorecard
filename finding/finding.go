@@ -18,6 +18,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -181,15 +182,22 @@ func (f *Finding) WithMessage(text string) *Finding {
 	return f
 }
 
-// UniqueProbes returns a map of unique probe names
-// in a list of findings.
-func UniqueProbes(findings []Finding) map[string]bool {
-	m := make(map[string]bool, 0)
+// UniqueProbesEqual checks the probe nams present in a list of findings
+// and compare them against an expected list.
+func UniqueProbesEqual(findings []Finding, probes []string) bool {
+	// Collect unique probes from findings.
+	fm := make(map[string]bool, 0)
 	for i := range findings {
 		f := &findings[i]
-		m[f.Probe] = true
+		fm[f.Probe] = true
 	}
-	return m
+	// Collect probes from list.
+	pm := make(map[string]bool, 0)
+	for i := range probes {
+		p := &probes[i]
+		pm[*p] = true
+	}
+	return reflect.DeepEqual(pm, fm)
 }
 
 // WithLocation adds a location to an existing finding.
