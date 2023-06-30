@@ -181,6 +181,17 @@ func (f *Finding) WithMessage(text string) *Finding {
 	return f
 }
 
+// UniqueProbes returns a map of unique probe names
+// in a list of findings.
+func UniqueProbes(findings []Finding) map[string]bool {
+	m := make(map[string]bool, 0)
+	for i := range findings {
+		f := &findings[i]
+		m[f.Probe] = true
+	}
+	return m
+}
+
 // WithLocation adds a location to an existing finding.
 // No copy is made.
 func (f *Finding) WithLocation(loc *Location) *Finding {
