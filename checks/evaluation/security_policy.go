@@ -34,36 +34,48 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 	}
 
 	score := 0
-	filePresent := false
+	m := make(map[string]bool, 0)
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case "securityPolicyContainsDisclosure":
-				score += 1
+				score += scoreUpdate(f.Probe, m, 1)
 			case "securityPolicyContainsLinks":
-				score += 6
+				score += scoreUpdate(f.Probe, m, 6)
 			case "securityPolicyContainsText":
-				score += 3
-			case "securityPolicyPresentInOrg":
-				filePresent = true
-			case "securityPolicyPresentInRepo":
-				filePresent = true
+				score += scoreUpdate(f.Probe, m, 3)
+			case "securityPolicyPresentInOrg", "securityPolicyPresentInRepo":
+				m[f.Probe] = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		}
 	}
-	if !filePresent {
+	_, inRepo := m["securityPolicyPresentInRepo"]
+	_, inOrg := m["securityPolicyPresentInOrg"]
+	if !inOrg && !inRepo {
 		if score > 0 {
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
 		return checker.CreateMinScoreResult(name, "no security file found")
 	}
-	// Presence of the file gives 1 point.
-	score += 1
 
-	return checker.CreateResultWithScore(name, "security policy file found", score)
+	var msg string
+	if inRepo {
+		msg = "security file found in repository"
+	} else if inOrg {
+		msg = "security file found in organization"
+	}
+	return checker.CreateResultWithScore(name, msg, score)
+}
+
+func scoreUpdate(probeID string, m map[string]bool, bump int) int {
+	if _, exists := m[probeID]; !exists {
+		m[probeID] = true
+		return bump
+	}
+	return 0
 }

@@ -38,6 +38,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
 	}
 	return utils.FilesRun(files, raw.Metadata.Metadata,
-		fs, probe, "security policy file",
+		fs, probe, "repository security policy file",
 		finding.OutcomePositive, finding.OutcomeNegative, matches)
 }

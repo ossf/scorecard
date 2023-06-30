@@ -49,7 +49,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  1,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  1,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
@@ -112,7 +112,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  1,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			}
@@ -143,7 +143,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         9,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			}
