@@ -25,7 +25,7 @@ outcome:
   - If Sonatype Lyft is installed, the probe returns OutcomePositive (1)
   - If Sonatype Lyft is not installed, the probe returns OutcomeNegative (0)
 remediation:
-  effort: Low
+  effort: Medium
   text:
     - Follow the instructions from https://help.sonatype.com/lift/getting-started.
   markdown:

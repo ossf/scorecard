@@ -17,6 +17,15 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+
+	// Security-Policy.
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsDisclosure"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyPresentInOrg"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyPresentInRepo"
+
+	// Dependency-Update-Tool.
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -29,6 +38,15 @@ type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 var (
 	// All represents all the probes.
 	All []ProbeImpl
+	// SecurityPolicy is all the probes for the
+	// SecurityPolicy check.
+	SecurityPolicy = []ProbeImpl{
+		securityPolicyPresentInRepo.Run,
+		securityPolicyPresentInOrg.Run,
+		securityPolicyContainsLinks.Run,
+		securityPolicyContainsDisclosure.Run,
+		securityPolicyContainsText.Run,
+	}
 	// DependencyToolUpdates is all the probes for the
 	// DpendencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
@@ -43,6 +61,7 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
+		SecurityPolicy,
 	})
 }
 

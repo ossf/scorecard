@@ -25,7 +25,7 @@ outcome:
   - If PyUp is installed, the probe returns OutcomePositive (1)
   - If PyUp is not installed, the probe returns OutcomeNegative (0)
 remediation:
-  effort: Low
+  effort: Medium
   text:
     - Follow the instructions from https://docs.pyup.io/docs.
   markdown:

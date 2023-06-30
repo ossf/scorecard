@@ -19,6 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
 )
 
 // CheckSecurityPolicy is the registred name for SecurityPolicy.
@@ -48,5 +49,13 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 		c.RawResults.SecurityPolicyResults = rawData
 	}
 
-	return evaluation.SecurityPolicy(CheckSecurityPolicy, c.Dlogger, &rawData)
+	// Evaluate the probes.
+	findings, err := evaluateProbes(c, CheckSecurityPolicy, probes.DependencyToolUpdates)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
+	}
+
+	// Return the score evaluation.
+	return evaluation.SecurityPolicy(CheckSecurityPolicy, findings)
 }

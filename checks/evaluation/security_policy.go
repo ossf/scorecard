@@ -118,12 +118,34 @@ func findSecInfo(secInfo []checker.SecurityPolicyInformation,
 	return secList
 }
 
+func DependencyUpdateTool(name string,
+	findings []finding.Finding,
+) checker.CheckResult {
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			return checker.CreateMaxScoreResult(name, "update tool detected")
+		}
+	}
+
+	return checker.CreateMinScoreResult(name, "no update tool detected")
+}
+
 // SecurityPolicy applies the score policy for the Security-Policy check.
-func SecurityPolicy(name string, dl checker.DetailLogger, r *checker.SecurityPolicyData) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
+	// Provbes should always contain findings.
+	if len(findings) == 0 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "empty findings")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			return checker.CreateMaxScoreResult(name, "update tool detected")
+		}
+	}
+
+	return checker.CreateMinScoreResult(name, "no update tool detected")
 
 	// Apply the policy evaluation.
 	if len(r.PolicyFiles) == 0 {
