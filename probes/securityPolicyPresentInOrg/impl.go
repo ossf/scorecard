@@ -37,6 +37,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range raw.SecurityPolicyResults.PolicyFiles {
 		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
 	}
+	//nolint:wrapcheck
 	return utils.FilesRun(files, raw.Metadata.Metadata,
 		fs, probe, "repository security policy file",
 		finding.OutcomePositive, finding.OutcomeNegative, matches)
