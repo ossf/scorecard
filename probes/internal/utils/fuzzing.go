@@ -56,7 +56,6 @@ func FuzzerRun(raw *checker.RawResults, fs embed.FS, probeID, fuzzerName string)
 			}
 			findings = append(findings, *f)
 		}
-
 	}
 
 	if len(findings) == 0 {
