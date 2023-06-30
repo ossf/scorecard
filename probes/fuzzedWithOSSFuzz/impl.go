@@ -28,5 +28,6 @@ var fs embed.FS
 var probe = "fuzzedWithOSSFuzz"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	//nolint:wrapcheck
 	return utils.FuzzerRun(raw, fs, probe, "OSSFuzz")
 }
