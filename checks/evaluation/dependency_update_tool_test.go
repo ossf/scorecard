@@ -123,6 +123,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolSonatypeLiftInstalled",
 					Outcome: finding.OutcomePositive,
 				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
 			want: checker.CheckResult{
 				Score: 10,
@@ -153,7 +157,22 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name: "empty tool list",
+			name: "missing probes renovate",
+			findings: []finding.Finding{
+				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolSonatypeInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			err: true,
 			want: checker.CheckResult{
 				Score: -1,
 			},

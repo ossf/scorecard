@@ -40,7 +40,31 @@ func TestFuzzing(t *testing.T) {
 				name: "Fuzzing",
 				findings: []finding.Finding{
 					{
-						Probe:   "probeID",
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
 						Outcome: finding.OutcomeNegative,
 					},
 				},
@@ -53,13 +77,37 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name: "Fuzzing - fuzzing",
+			name: "Fuzzing - fuzzing GoNative",
 			args: args{
 				name: "Fuzzing",
 				findings: []finding.Finding{
 					{
-						Probe:   "probeID",
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
 						Outcome: finding.OutcomePositive,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
 					},
 				},
 			},
@@ -71,15 +119,41 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name: "Fuzzing - fuzzing no finding",
+			name: "Fuzzing - fuzzing missing GoNative finding",
 			args: args{
 				name: "Fuzzing",
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
+					},
+				},
 			},
 			want: checker.CheckResult{
 				Score:   -1,
 				Name:    "Fuzzing",
 				Version: 2,
-				Reason:  "internal error: no findings",
+				Reason:  "internal error: missing probe results",
 			},
 		},
 	}

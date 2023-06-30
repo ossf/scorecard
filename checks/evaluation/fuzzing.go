@@ -24,11 +24,13 @@ import (
 func Fuzzing(name string,
 	findings []finding.Finding,
 ) checker.CheckResult {
-	// The probes should always contain at least on finding.
-	if len(findings) == 0 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "no findings")
+	// We have 7 unique probes, each should have a finding.
+	uniques := finding.UniqueProbes(findings)
+	if len(uniques) != 7 {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "missing probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+	// Compute the score.
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
