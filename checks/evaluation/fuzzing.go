@@ -25,9 +25,14 @@ func Fuzzing(name string,
 	findings []finding.Finding,
 ) checker.CheckResult {
 	// We have 7 unique probes, each should have a finding.
-	uniques := finding.UniqueProbes(findings)
-	if len(uniques) != 7 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "missing probe results")
+	expectedProbes := []string{
+		"fuzzedWithClusterFuzzLite", "fuzzedWithGoNative", "fuzzedWithOneFuzz",
+		"fuzzedWithOSSFuzz", "fuzzedWithPropertyBasedHaskell", "fuzzedWithPropertyBasedJavascript",
+		"fuzzedWithPropertyBasedTypescript",
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 	// Compute the score.

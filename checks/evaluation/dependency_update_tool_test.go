@@ -177,6 +177,35 @@ func TestDependencyUpdateTool(t *testing.T) {
 				Score: -1,
 			},
 		},
+		{
+			name: "invalid probe name",
+			findings: []finding.Finding{
+				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolSonatypeInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolInvalidProbeName",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			want: checker.CheckResult{
+				Score: -1,
+				Error: nil,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

@@ -153,7 +153,53 @@ func TestFuzzing(t *testing.T) {
 				Score:   -1,
 				Name:    "Fuzzing",
 				Version: 2,
-				Reason:  "internal error: missing probe results",
+				Reason:  "internal error: invalid probe results",
+			},
+		},
+		{
+			name: "Fuzzing - fuzzing invalid probe name",
+			args: args{
+				name: "Fuzzing",
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
+						Outcome: finding.OutcomePositive,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithInvalidProbeName",
+						Outcome: finding.OutcomePositive,
+					},
+				},
+			},
+			want: checker.CheckResult{
+				Score:   -1,
+				Name:    "Fuzzing",
+				Version: 2,
+				Reason:  "internal error: invalid probe results",
 			},
 		},
 	}
