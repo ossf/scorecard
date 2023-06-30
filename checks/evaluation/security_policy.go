@@ -20,164 +20,50 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func scoreSecurityCriteria(f checker.File,
-	info []checker.SecurityPolicyInformation,
-	dl checker.DetailLogger,
-) int {
-	var urls, emails, discvuls, linkedContentLen, score int
-
-	emails = countSecInfo(info, checker.SecurityPolicyInformationTypeEmail, true)
-	urls = countSecInfo(info, checker.SecurityPolicyInformationTypeLink, true)
-	discvuls = countSecInfo(info, checker.SecurityPolicyInformationTypeText, false)
-
-	for _, i := range findSecInfo(info, checker.SecurityPolicyInformationTypeEmail, true) {
-		linkedContentLen += len(i.InformationValue.Match)
-	}
-	for _, i := range findSecInfo(info, checker.SecurityPolicyInformationTypeLink, true) {
-		linkedContentLen += len(i.InformationValue.Match)
-	}
-
-	msg := checker.LogMessage{
-		Path: f.Path,
-		Type: f.Type,
-		Text: "",
-	}
-
-	// #1: linked content found (email/http): score += 6
-	if (urls + emails) > 0 {
-		score += 6
-		msg.Text = "Found linked content in security policy"
-		dl.Info(&msg)
-	} else {
-		msg.Text = "no email or URL found in security policy"
-		dl.Warn(&msg)
-	}
-
-	// #2: more bytes than the sum of the length of all the linked content found: score += 3
-	//     rationale: there appears to be information and context around those links
-	//     no credit if there is just a link to a site or an email address (those given above)
-	//     the test here is that each piece of linked content will likely contain a space
-	//     before and after the content (hence the two multiplier)
-	if f.FileSize > 1 && (f.FileSize > uint(linkedContentLen+((urls+emails)*2))) {
-		score += 3
-		msg.Text = "Found text in security policy"
-		dl.Info(&msg)
-	} else {
-		msg.Text = "No text (beyond any linked content) found in security policy"
-		dl.Warn(&msg)
-	}
-
-	// #3: found whole number(s) and or match(es) to "Disclos" and or "Vuln": score += 1
-	//     rationale: works towards the intent of the security policy file
-	//     regarding whom to contact about vuls and disclosures and timing
-	//     e.g., we'll disclose, report a vulnerability, 30 days, etc.
-	//     looking for at least 2 hits
-	if discvuls > 1 {
-		score += 1
-		msg.Text = "Found disclosure, vulnerability, and/or timelines in security policy"
-		dl.Info(&msg)
-	} else {
-		msg.Text = "One or no descriptive hints of disclosure, vulnerability, and/or timelines in security policy"
-		dl.Warn(&msg)
-	}
-
-	return score
-}
-
-func countSecInfo(secInfo []checker.SecurityPolicyInformation,
-	infoType checker.SecurityPolicyInformationType,
-	unique bool,
-) int {
-	keys := make(map[string]bool)
-	count := 0
-	for _, entry := range secInfo {
-		if _, present := keys[entry.InformationValue.Match]; !present && entry.InformationType == infoType {
-			keys[entry.InformationValue.Match] = true
-			count += 1
-		} else if !unique && entry.InformationType == infoType {
-			count += 1
-		}
-	}
-	return count
-}
-
-func findSecInfo(secInfo []checker.SecurityPolicyInformation,
-	infoType checker.SecurityPolicyInformationType,
-	unique bool,
-) []checker.SecurityPolicyInformation {
-	keys := make(map[string]bool)
-	var secList []checker.SecurityPolicyInformation
-	for _, entry := range secInfo {
-		if _, present := keys[entry.InformationValue.Match]; !present && entry.InformationType == infoType {
-			keys[entry.InformationValue.Match] = true
-			secList = append(secList, entry)
-		} else if !unique && entry.InformationType == infoType {
-			secList = append(secList, entry)
-		}
-	}
-	return secList
-}
-
-func DependencyUpdateTool(name string,
-	findings []finding.Finding,
-) checker.CheckResult {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			return checker.CreateMaxScoreResult(name, "update tool detected")
-		}
-	}
-
-	return checker.CreateMinScoreResult(name, "no update tool detected")
-}
-
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
-	uniques := finding.UniqueProbes(findings)
-	if len(uniques) != 5 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "missing probe results")
+	// We have 5 unique probes, each should have a finding.
+	expectedProbes := []string{
+		"securityPolicyContainsDisclosure", "securityPolicyContainsLinks",
+		"securityPolicyContainsText", "securityPolicyPresentInOrg",
+		"securityPolicyPresentInRepo",
+	}
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+
 	score := 0
+	filePresent := false
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case "securityPolicyContainsDisclosure":
+				score += 1
 			case "securityPolicyContainsLinks":
+				score += 6
 			case "securityPolicyContainsText":
+				score += 3
 			case "securityPolicyPresentInOrg":
+				filePresent = true
 			case "securityPolicyPresentInRepo":
+				filePresent = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		}
 	}
-
-	// return checker.CreateMaxScoreResult(name, "update tool detected")
-	return checker.CreateMinScoreResult(name, "no security file found")
-
-	// TODO: although this a loop, the raw checks will only return one security policy
-	// when more than one security policy file can be aggregated into a composite
-	// score, that logic can be comprehended here.
-	score := 0
-	for _, spd := range r.PolicyFiles {
-		score = scoreSecurityCriteria(spd.File,
-			spd.Information, dl)
-
-		msg := checker.LogMessage{
-			Path: spd.File.Path,
-			Type: spd.File.Type,
+	if !filePresent {
+		if score > 0 {
+			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
+			return checker.CreateRuntimeErrorResult(name, e)
 		}
-		if msg.Type == finding.FileTypeURL {
-			msg.Text = "security policy detected in org repo"
-		} else {
-			msg.Text = "security policy detected in current repo"
-		}
-
-		dl.Info(&msg)
+		return checker.CreateMinScoreResult(name, "no security file found")
 	}
+	// Presence of the file gives 1 point.
+	score += 1
 
-	return checker.CreateResultWithScore(name, "security policy file detected", score)
+	return checker.CreateResultWithScore(name, "security policy file found", score)
 }

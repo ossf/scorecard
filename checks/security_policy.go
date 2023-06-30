@@ -50,7 +50,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, CheckSecurityPolicy, probes.DependencyToolUpdates)
+	findings, err := evaluateProbes(c, CheckSecurityPolicy, probes.SecurityPolicy)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
