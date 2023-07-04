@@ -1,0 +1,20 @@
+# © 2023 Nokia
+# Licensed under the Apache License 2.0
+# SPDX-License-Identifier: Apache-2.0
+
+id: minTwoCodeReviewers
+short: Check that at least two people review a change before merging
+motivation: >
+  To ensure that the review process works, the proposed changes
+  should have a minimum number of approvals.
+implementation: >
+  The implementation looks for the number of reviewers for the last few pull requests.
+outcome:
+  - If the changes had at least two reviewers, the probe returns OutcomePositive (1)
+  - If the changes had fewer than two reviewers, the prove returns OutcomeNegative (0)
+remediation:
+  effort: Mid
+  text:
+    - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.
+  markdown:
+    - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.
