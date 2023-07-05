@@ -18,8 +18,8 @@ func CodeReviewRun(reviewData []checker.Changeset, fs embed.FS, probeID string,
 	var findings []finding.Finding
 	for i := range reviewData {
 		data := &reviewData[i]
-		fmt.Printf("ABACKMAN%v\n\n", data)
-		fmt.Printf("ABACKMAN%v", findings)
+		fmt.Printf("%dABACKMAN%v\n\n", i, data)
+		//fmt.Printf("ABACKMAN%v", findings)
 	}
 	return findings, probeID, nil
 }
