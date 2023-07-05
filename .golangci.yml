@@ -24,7 +24,6 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - depguard
     - dogsled
     - errcheck
     - errorlint
