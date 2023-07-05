@@ -15,28 +15,13 @@
 package app
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 )
 
-//nolint:gochecknoinits
-func init() {
-	rootCmd.AddCommand(generateCmd)
-}
-
-var rootCmd = &cobra.Command{
-	Use:   "scdiff",
-	Short: "Scorecard Diff",
-	Long:  `Scorecard result diffing command line interface tool`,
+var generateCmd = &cobra.Command{
+	Use:   "generate",
+	Short: "Generate Scorecard results for diffing",
+	Long:  `Generate Scorecard results for diffing`,
 	Run: func(cmd *cobra.Command, args []string) {
 	},
-}
-
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
 }
