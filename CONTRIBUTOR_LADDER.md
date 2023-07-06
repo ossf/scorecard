@@ -165,7 +165,9 @@ and there is no expectation they'll actively contribute forever.
 
 Any contributor at any level described above may write an issue (or PR, if CODEOWNER changes are necessary)
 asking to step down to a lighter-weight tier or to depart the project entirely.
-The change in responsibilities will be understood to take immediate effect,
+Such requests will hopefully come after thoughtful conversations with the rest of the team
+and with sufficient forewarning for the others to prepare. However, sometimes "life happens".
+Therefore, the change in responsibilities will be understood to take immediate effect,
 regardless of whether the issue/PR has been acknowledged or merged.
 
 However, should a Triager or above be deemed inactive for a significant period, any
