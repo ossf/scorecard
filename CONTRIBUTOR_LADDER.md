@@ -71,7 +71,7 @@ Members are expected to remain active contributors to the community.
   - Ensure your sponsors are `@mentioned`
   - Describe and/or link to all your relevant contributions to the project
     (or other OpenSSF projects)
-- Have your sponsoring reviewers reply confirmation of sponsorship: `+1`
+  - Sponsoring reviewers must comment on the issue/PR confirming their sponsorship
 
 ### Triagers
 
@@ -112,6 +112,7 @@ and software engineering principles.
   - With no objections from other maintainers
   - Done through issue or PR to update the CODEOWNERS file
 - May self-nominate or be nominated by a maintainer
+  - In case of self-nomination, sponsor must comment approval on the issue/PR
 
 ### Maintainers
 
@@ -155,6 +156,7 @@ approval is focused on holistic acceptance of a contribution including:
   - With no objections from other maintainers
   - Done through PR to update the CODEOWNERS file
 - May self-nominate or be nominated by a maintainer
+  - In case of self-nomination, sponsor must comment approval on the PR
 
 ## Inactive members
 A core principle in maintaining a healthy community is encouraging active participation.
@@ -169,7 +171,7 @@ regardless of whether the issue/PR has been acknowledged or merged.
 However, should a Triager or above be deemed inactive for a significant period, any
 Community Member or above may write an issue/PR requesting their removal from the ranks
 (and `@mentioning` the inactive contributor in the hopes of drawing their attention).
-The request must receive support (`+1`) from a majority of Maintainers to proceed.
+The request must receive support (in comments) from a majority of Maintainers to proceed.
 
 
 [OpenSSF Code of Conduct]: https://openssf.org/community/code-of-conduct/
