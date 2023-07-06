@@ -40,18 +40,21 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(err).Should(BeNil())
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
+
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfWarn:  6,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
@@ -68,18 +71,21 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(err).Should(BeNil())
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
+
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
+				NumberOfWarn:  6,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
@@ -96,17 +102,20 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(err).Should(BeNil())
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
+
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  6,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			}
@@ -124,12 +133,15 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(err).Should(BeNil())
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
+
+			r := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
+				RawResults:  &r,
 			}
 			rawData, err := raw.Fuzzing(&req)
 			Expect(err).Should(BeNil())
@@ -144,17 +156,20 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			Expect(err).Should(BeNil())
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
+
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  0,
+				NumberOfWarn:  7,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
