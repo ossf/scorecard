@@ -29,10 +29,6 @@ var fs embed.FS
 
 var probe = "securityPolicyContainsText"
 
-func matches(file checker.File) bool {
-	return file.Type != finding.FileTypeURL
-}
-
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	policies := raw.SecurityPolicyResults.PolicyFiles
@@ -63,7 +59,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			findings = append(findings, *f)
 		}
-
 	}
 
 	if len(findings) == 0 {

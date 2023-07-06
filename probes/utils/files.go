@@ -38,7 +38,6 @@ func FilesRun(files []checker.File, metadata map[string]string, fs embed.FS, pro
 		}
 		f = f.WithRemediationMetadata(metadata)
 		findings = append(findings, *f)
-
 	}
 
 	// No file found.
