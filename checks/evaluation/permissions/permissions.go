@@ -56,11 +56,11 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 
 	if score != checker.MaxResultScore {
 		return checker.CreateResultWithScore(name,
-			"non read-only tokens detected in GitHub workflows", score)
+			"detected GitHub workflow tokens with excessive permissions", score)
 	}
 
 	return checker.CreateMaxScoreResult(name,
-		"tokens are read-only in GitHub workflows")
+		"GitHub workflow tokens follow principle of least privilege")
 }
 
 func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckRequest) (int, error) {
