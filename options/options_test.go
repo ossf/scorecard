@@ -21,7 +21,7 @@ import (
 )
 
 // Cannot run parallel tests because of the ENV variables.
-//nolint
+// nolint
 func TestOptions_Validate(t *testing.T) {
 	type fields struct {
 		Repo              string
@@ -32,6 +32,7 @@ func TestOptions_Validate(t *testing.T) {
 		NPM               string
 		PyPI              string
 		RubyGems          string
+		Nuget             string
 		PolicyFile        string
 		ResultsFile       string
 		ChecksToRun       []string
@@ -99,6 +100,7 @@ func TestOptions_Validate(t *testing.T) {
 				NPM:               tt.fields.NPM,
 				PyPI:              tt.fields.PyPI,
 				RubyGems:          tt.fields.RubyGems,
+				Nuget:             tt.fields.Nuget,
 				PolicyFile:        tt.fields.PolicyFile,
 				ResultsFile:       tt.fields.ResultsFile,
 				ChecksToRun:       tt.fields.ChecksToRun,

@@ -1,4 +1,4 @@
-// Copyright 2021 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,26 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package githubrepo
 
 import (
-	"fmt"
-	"net/http"
-	"time"
+	"context"
+	"testing"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-type packageManagerClient interface {
-	Get(URI string, packagename string) (*http.Response, error)
-}
-
-type packageManager struct{}
-
-// nolint: noctx
-func (c *packageManager) Get(url, packageName string) (*http.Response, error) {
-	const timeout = 10
-	client := &http.Client{
-		Timeout: timeout * time.Second,
+func Test_init_clearsErr(t *testing.T) {
+	handler := &checkrunsHandler{errSetup: sce.ErrScorecardInternal}
+	handler.init(context.Background(), nil, 0)
+	if handler.errSetup != nil {
+		t.Errorf("expected nil error, got %v", handler.errSetup)
 	}
-	//nolint
-	return client.Get(fmt.Sprintf(url, packageName))
 }

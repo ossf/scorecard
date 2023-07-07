@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -31,6 +32,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
 
@@ -207,7 +209,7 @@ func generateDefaultConfig(risk string) string {
 func getPath(d *checker.CheckDetail) string {
 	f := d.Msg.Finding
 	if f != nil && f.Location != nil {
-		return f.Location.Value
+		return f.Location.Path
 	}
 	return d.Msg.Path
 }
@@ -606,9 +608,17 @@ func createDefaultLocationMessage(check *checker.CheckResult, score int) string 
 	return messageWithScore(check.Reason, score)
 }
 
+func toolName(opts *options.Options) string {
+	if opts.IsInternalGitHubIntegrationEnabled() {
+		return strings.TrimSpace(os.Getenv("SCORECARD_INTERNAL_GITHUB_SARIF_TOOL_NAME"))
+	}
+	return "scorecard"
+}
+
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
+	opts *options.Options,
 ) error {
 	//nolint
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -635,7 +645,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("computeCategory: %v: %s", err, check.Name))
 		}
-		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", "scorecard",
+		run := getOrCreateSARIFRun(runs, category, "https://github.com/ossf/scorecard", toolName(opts),
 			r.Scorecard.Version, r.Scorecard.CommitSHA, r.Date, "supply-chain")
 
 		// Always add rules to indicate which checks were run.

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang@sha256:ea3d912d500b1ae0a691b2e53eb8a6345b579d42d7e6a64acca83d274b949740 AS base
+FROM golang:1.19@sha256:6b3fa4b908676231b50acbbc00e84d8cee9c6ce072b1175c0ff352c57d8a612f AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -24,6 +24,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-github-server
 
-FROM gcr.io/distroless/base:nonroot@sha256:4b22ca3c68018333c56f8dddcf1f8b55f32889f2dd12d28ab60856eba1130d04
+FROM gcr.io/distroless/base:nonroot@sha256:c62385962234a3dae5c9e9777dedc863d99f676b7202cd073e90b06e46021994
 COPY --from=authserver /src/clients/githubrepo/roundtripper/tokens/server/github-auth-server clients/githubrepo/roundtripper/tokens/server/github-auth-server
 ENTRYPOINT ["clients/githubrepo/roundtripper/tokens/server/github-auth-server"]

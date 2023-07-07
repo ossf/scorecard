@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
@@ -50,6 +51,7 @@ type ScorecardResult struct {
 	Scorecard  ScorecardInfo
 	Checks     []checker.CheckResult
 	RawResults checker.RawResults
+	Findings   []finding.Finding
 	Metadata   []string
 }
 
@@ -114,11 +116,13 @@ func FormatResults(
 		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy)
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy, opts)
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
-	case options.FormatSJSON:
-		err = results.AsSJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatFJSON:
+		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatPJSON:
+		err = results.AsPJSON(os.Stdout)
 	case options.FormatRaw:
 		err = results.AsRawJSON(os.Stdout)
 	default:

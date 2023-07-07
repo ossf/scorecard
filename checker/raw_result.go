@@ -43,6 +43,11 @@ type RawResults struct {
 	LicenseResults              LicenseData
 	TokenPermissionsResults     TokenPermissionsData
 	CITestResults               CITestData
+	Metadata                    MetadataData
+}
+
+type MetadataData struct {
+	Metadata map[string]string
 }
 
 type RevisionCIInfo struct {
@@ -81,7 +86,7 @@ type Package struct {
 	Runs []Run
 }
 
-// DependencyUseType reprensets a type of dependency use.
+// DependencyUseType represents a type of dependency use.
 type DependencyUseType string
 
 const (
@@ -97,8 +102,10 @@ const (
 	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
 	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
-	// DependencyUseTypePipCommand is a pipp command.
+	// DependencyUseTypePipCommand is a pip command.
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
+	// DependencyUseTypeNugetCommand is a nuget command.
+	DependencyUseTypeNugetCommand DependencyUseType = "nugetCommand"
 )
 
 // PinningDependenciesData represents pinned dependency data.
@@ -169,6 +176,7 @@ const (
 	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
 	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
 	ReviewPlatformPiper       ReviewPlatform = "Piper"
+	ReviewPlatformUnknown     ReviewPlatform = "Unknown"
 )
 
 type Changeset struct {
@@ -240,7 +248,6 @@ type SignedReleasesData struct {
 // for the Dependency-Update-Tool check.
 type DependencyUpdateToolData struct {
 	// Tools contains a list of tools.
-	// Note: we only populate one entry at most.
 	Tools []Tool
 }
 
@@ -313,7 +320,8 @@ const (
 // DangerousWorkflowData contains raw results
 // for dangerous workflow check.
 type DangerousWorkflowData struct {
-	Workflows []DangerousWorkflow
+	Workflows    []DangerousWorkflow
+	NumWorkflows int
 }
 
 // DangerousWorkflow represents a dangerous workflow.
@@ -323,7 +331,7 @@ type DangerousWorkflow struct {
 	File File
 }
 
-// WorkflowJob reprresents a workflow job.
+// WorkflowJob represents a workflow job.
 type WorkflowJob struct {
 	Name *string
 	ID   *string
@@ -332,6 +340,7 @@ type WorkflowJob struct {
 // TokenPermissionsData represents data about a permission failure.
 type TokenPermissionsData struct {
 	TokenPermissions []TokenPermission
+	NumTokens        int
 }
 
 // PermissionLocation represents a declaration type.
@@ -348,7 +357,7 @@ const (
 type PermissionLevel string
 
 const (
-	// PermissionLevelUndeclared is an undecleared permission.
+	// PermissionLevelUndeclared is an undeclared permission.
 	PermissionLevelUndeclared PermissionLevel = "undeclared"
 	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
 	PermissionLevelWrite PermissionLevel = "write"
@@ -370,4 +379,25 @@ type TokenPermission struct {
 	File         *File
 	Msg          *string
 	Type         PermissionLevel
+}
+
+// Location generates location from a file.
+func (f *File) Location() *finding.Location {
+	// TODO(2626): merge location and path.
+	if f == nil {
+		return nil
+	}
+	loc := &finding.Location{
+		Type:      f.Type,
+		Path:      f.Path,
+		LineStart: &f.Offset,
+	}
+	if f.EndOffset != 0 {
+		loc.LineEnd = &f.EndOffset
+	}
+	if f.Snippet != "" {
+		loc.Snippet = &f.Snippet
+	}
+
+	return loc
 }

@@ -44,13 +44,11 @@ spec:
                 secretKeyRef:
                   name: github
                   key: installation_id
-          resources:
-            requests:
-              memory: 5Gi
-              ephemeral-storage: 100Gi
-            limits:
-              memory: 12Gi
-              ephemeral-storage: 500Gi
+            - name: GITLAB_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab
+                  key: auth_token
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard

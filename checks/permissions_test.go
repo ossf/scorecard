@@ -240,9 +240,9 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/script.sh"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -271,6 +271,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 		{
 			name:      "release workflow contents write",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-mvn-release.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:      "release workflow contents write semantic-release",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-semantic-release.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -310,6 +321,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:      "security-events write, known actions",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-secevent-known-actions.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2, // This is constant.
+				NumberOfDebug: 8, // This is 4 + (number of actions)
 			},
 		},
 		{
@@ -375,7 +397,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
+			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
@@ -477,7 +499,7 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 						logMessage.Finding.Location != nil &&
 						logMessage.Finding.Location.LineStart != nil &&
 						*logMessage.Finding.Location.LineStart == expectedLog.lineNumber &&
-						logMessage.Finding.Location.Value == p &&
+						logMessage.Finding.Location.Path == p &&
 						logType == checker.DetailWarn
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, &dl) {

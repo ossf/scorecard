@@ -141,7 +141,7 @@ func detectCommitRevisionInfo(c *clients.Commit) revisionInfo {
 		return revisionInfo{checker.ReviewPlatformPiper, revisionID}
 	}
 
-	return revisionInfo{}
+	return revisionInfo{checker.ReviewPlatformUnknown, ""}
 }
 
 // Group commits by the changeset they belong to
@@ -183,19 +183,7 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 
 	// Changesets are returned in map order (i.e. randomized)
 	for ri := range changesetsByRevInfo {
-		// Ungroup all commits that don't have revision info
-		cs := changesetsByRevInfo[ri]
-		missing := revisionInfo{}
-		if ri == missing {
-			for i := range cs.Commits {
-				c := cs.Commits[i]
-				changesets = append(changesets, checker.Changeset{
-					Commits: []clients.Commit{c},
-				})
-			}
-		} else {
-			changesets = append(changesets, cs)
-		}
+		changesets = append(changesets, changesetsByRevInfo[ri])
 	}
 
 	return changesets

@@ -331,6 +331,102 @@
         "mode": "REPEATED",
         "name": "defaultBranchCommits",
         "type": "RECORD"
+      },
+      {
+        "description": "",
+        "fields": [
+          {
+            "description": "",
+            "mode": "NULLABLE",
+            "name": "number",
+            "type": "STRING"
+          },
+          {
+            "description": "",
+            "mode": "NULLABLE",
+            "name": "platform",
+            "type": "STRING"
+          },
+          {
+            "description": "",
+            "mode": "REPEATED",
+            "name": "reviews",
+            "type": "RECORD",
+            "fields": [
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "reviewer",
+                "type": "RECORD",
+                "fields": [
+                  {
+                    "description": "",
+                    "mode": "NULLABLE",
+                    "name": "login",
+                    "type": "STRING"
+                  }
+                ]
+              },
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "state",
+                "type": "STRING"
+              }
+            ]
+          },
+          {
+            "description": "",
+            "mode": "REPEATED",
+            "name": "authors",
+            "type": "RECORD",
+            "fields": [
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "login",
+                "type": "STRING"
+              }
+            ]
+          },
+          {
+            "description": "",
+            "mode": "REPEATED",
+            "name": "commits",
+            "type": "RECORD",
+            "fields": [
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "committer",
+                "type": "RECORD",
+                "fields": [
+                  {
+                    "description": "",
+                    "mode": "NULLABLE",
+                    "name": "login",
+                    "type": "STRING"
+                  }
+                ]
+              },
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "message",
+                "type": "STRING"
+              },
+              {
+                "description": "",
+                "mode": "NULLABLE",
+                "name": "sha",
+                "type": "STRING"
+              }
+            ]
+          }
+        ],
+        "mode": "REPEATED",
+        "name": "defaultBranchChangesets",
+        "type": "RECORD"
       }
     ],
     "mode": "NULLABLE",

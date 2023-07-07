@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/xanzy/go-gitlab"
@@ -52,8 +53,23 @@ type Client struct {
 	languages     *languagesHandler
 	licenses      *licensesHandler
 	tarball       *tarballHandler
+	graphql       *graphqlHandler
 	ctx           context.Context
 	commitDepth   int
+}
+
+var errRepoAccess = errors.New("repo inaccessible")
+
+// Raise an error if repository access level is private or disabled.
+func checkRepoInaccessible(repo *gitlab.Project) error {
+	if (repo.RepositoryAccessLevel == gitlab.PrivateAccessControl) ||
+		(repo.RepositoryAccessLevel == gitlab.DisabledAccessControl) {
+		return fmt.Errorf("%w: %s access level %s",
+			errRepoAccess, repo.PathWithNamespace, string(repo.RepositoryAccessLevel),
+		)
+	}
+
+	return nil
 }
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
@@ -69,6 +85,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
+
+	if err = checkRepoInaccessible(repo); err != nil {
+		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
+	}
+
 	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {
@@ -78,7 +99,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.repourl = &repoURL{
 		scheme:        glRepo.scheme,
 		host:          glRepo.host,
-		project:       fmt.Sprint(repo.ID),
+		owner:         glRepo.owner,
+		project:       glRepo.project,
+		projectID:     fmt.Sprint(repo.ID),
 		defaultBranch: repo.DefaultBranch,
 		commitSHA:     commitSHA,
 	}
@@ -127,16 +150,19 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	client.languages.init(client.repourl)
 
 	// Init languagesHandler
-	client.licenses.init(client.repourl)
+	client.licenses.init(client.repourl, repo)
 
 	// Init tarballHandler
 	client.tarball.init(client.ctx, client.repourl, repo, commitSHA)
+
+	// Init graphqlHandler
+	client.graphql.init(client.ctx, client.repourl)
 
 	return nil
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.projectID)
 }
 
 func (client *Client) LocalPath() (string, error) {
@@ -152,7 +178,23 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
-	return client.commits.listCommits()
+	// Get commits from REST API
+	commitsRaw, err := client.commits.listRawCommits()
+	if err != nil {
+		return []clients.Commit{}, err
+	}
+
+	before := commitsRaw[0].CommittedDate
+	// Get merge request details from GraphQL
+	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
+	// are within them without making a REST call for each commit (~30 by default)
+	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
+	mrDetails, err := client.graphql.getMergeRequestsDetail(before)
+	if err != nil {
+		return []clients.Commit{}, err
+	}
+
+	return client.commits.zip(commitsRaw, mrDetails), nil
 }
 
 func (client *Client) ListIssues() ([]clients.Issue, error) {
@@ -228,8 +270,13 @@ func (client *Client) Close() error {
 	return nil
 }
 
-func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients.Repo) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(repo.Host()))
+func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, error) {
+	token := os.Getenv("GITLAB_AUTH_TOKEN")
+	return CreateGitlabClientWithToken(ctx, token, host)
+}
+
+func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
@@ -278,21 +325,11 @@ func CreateGitlabClientWithToken(ctx context.Context, token string, repo clients
 		},
 		licenses: &licensesHandler{},
 		tarball:  &tarballHandler{},
+		graphql:  &graphqlHandler{},
 	}, nil
 }
 
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
-}
-
-// DetectGitLab: check whether the repoURI is a GitLab URI
-// Makes HTTP request to GitLab API.
-func DetectGitLab(repoURI string) bool {
-	var repo repoURL
-	if err := repo.parse(repoURI); err != nil {
-		return false
-	}
-
-	return repo.IsValid() == nil
 }

@@ -44,7 +44,7 @@ func (handler *releasesHandler) setup() error {
 			handler.errSetup = fmt.Errorf("%w: ListReleases only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}
-		releases, _, err := handler.glClient.Releases.ListReleases(handler.repourl.project, &gitlab.ListReleasesOptions{})
+		releases, _, err := handler.glClient.Releases.ListReleases(handler.repourl.projectID, &gitlab.ListReleasesOptions{})
 		if err != nil {
 			handler.errSetup = fmt.Errorf("%w: ListReleases failed", err)
 			return
@@ -70,9 +70,12 @@ func releasesFrom(data []*gitlab.Release) []clients.Release {
 	for _, r := range data {
 		release := clients.Release{
 			TagName:         r.TagName,
-			URL:             r.Assets.Links[0].DirectAssetURL,
 			TargetCommitish: r.CommitPath,
 		}
+		if len(r.Assets.Links) > 0 {
+			release.URL = r.Assets.Links[0].DirectAssetURL
+		}
+
 		for _, a := range r.Assets.Sources {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{
 				Name: a.Format,

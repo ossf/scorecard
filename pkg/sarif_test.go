@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 	rules "github.com/ossf/scorecard/v4/rule"
 )
@@ -847,7 +848,7 @@ func TestSARIFOutput(t *testing.T) {
 
 			var result bytes.Buffer
 			err = tt.result.AsSARIF(tt.showDetails, tt.logLevel, &result,
-				checkDocs, &tt.policy)
+				checkDocs, &tt.policy, &options.Options{})
 			if err != nil {
 				t.Fatalf("%s: AsSARIF: %v", tt.name, err)
 			}

@@ -73,10 +73,15 @@ result to meet most user needs.
 
 Different types of branch protection protect against different risks:
 
-  - Require code review: requires at least one reviewer, which greatly
+  - Require code review: 
+    - requires at least one reviewer, which greatly
     reduces the risk that a compromised contributor can inject malicious code.
     Review also increases the likelihood that an unintentional vulnerability in
     a contribution will be detected and fixed before the change is accepted.
+
+    - requiring two or more reviewers protects even more from the insider risk 
+    whereby a compromised contributor can be used by an attacker to LGTM 
+    the attacker PR and inject a malicious code as if it was legitm.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -88,7 +93,7 @@ Different types of branch protection protect against different risks:
 Although requiring code review can greatly reduce the chance that
 unintentional or malicious code enters the "main" branch, it is not feasible for
 all projects, such as those that don't have many active participants. For more
-discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
+discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review).
 
 Additionally, in some cases these rules will need to be suspended. For example,
 if a past commit includes illegal content such as child pornography, it may be
@@ -102,7 +107,7 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Do not allow bypassing the above settings
+  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Required reviewers >=1
@@ -118,6 +123,9 @@ Tier 4 Requirements (9/10 points):
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews
   - For administrators: Require CODEOWNER review
+
+GitLab Integration Status:
+  - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
  
 
 **Remediation steps**
@@ -157,37 +165,21 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/),
-which indicates that the project uses a set of security-focused best development practices for open
+This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a
-significant achievement for many projects. Lower scores represent a project that
-is at least working to achieve a badge, with increasingly more points awarded as
-more criteria are met.
+full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
+Lower scores represent a project that has met the silver criteria, met the passing criteria, or is working to achieve the passing badge, with increasingly more points awarded as more criteria are met. Note that even meeting the passing criteria is a significant achievement.
 
-- [gold badge](https://bestpractices.coreinfrastructure.org/en/criteria/2): 10
-- [silver badge](https://bestpractices.coreinfrastructure.org/en/criteria/1): 7
-- [passing badge](https://bestpractices.coreinfrastructure.org/en/criteria/0): 5
+- [gold badge](https://bestpractices.coreinfrastructure.org/criteria/2): 10
+- [silver badge](https://bestpractices.coreinfrastructure.org/criteria/1): 7
+- [passing badge](https://bestpractices.coreinfrastructure.org/criteria/0): 5
 - in progress badge: 2
 
-To earn the passing badge, the project MUST:
-
-  - publish the process for reporting vulnerabilities on the project site
-  - provide a working build system that can automatically rebuild the software
-    from source code (where applicable)
-  - have a general policy that tests will be added to an automated test suite
-    when major new functionality is added
-  - meet various cryptography criteria where applicable
-  - have at least one primary developer who knows how to design secure software
-  - have at least one primary developer who knows of common kinds of errors
-    that lead to vulnerabilities in this kind of software (and at least one
-    method to counter or mitigate each of them)
-  - apply at least one static code analysis tool (beyond compiler warnings and
-    "safe" language modes) to any proposed major production release.
-
 Some of these criteria overlap with other Scorecard checks.
+However, note that in those overlapping cases, Scorecard can only report what it can automatically detect, while the OpenSSF Best Practices badge can report on claims and claim justifications from people (this counters false negatives and positives but has the challenge of requiring additional work from people).
  
 
 **Remediation steps**
@@ -198,8 +190,8 @@ Some of these criteria overlap with other Scorecard checks.
 Risk: `High` (unintentional vulnerabilities or possible injection of malicious
 code)
 
-This check determines whether the project requires code review before pull
-requests (merge requests) are merged.
+This check determines whether the project requires human code review
+before pull requests (merge requests) are merged.
 
 Reviews detect various unintentional problems, including vulnerabilities that
 can be fixed immediately before they are merged, which improves the quality of
@@ -214,13 +206,22 @@ or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
 "lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
-If recent changes are solely bot activity (e.g. dependabot, renovatebot, or custom bots),
+If recent changes are solely bot activity (e.g. Dependabot, Renovate bot, or custom bots),
 the check returns inconclusively.
 
 Scoring is leveled instead of proportional to make the check more predictable.
 If any bot-originated changes are unreviewed, 3 points are deducted. If any human
 changes are unreviewed, 7 points are deducted if a single change is unreviewed, and
 another 3 are deducted if multiple changes are unreviewed.
+
+Review by bots, including bots powered by
+artificial intelligence / machine learning (AI/ML),
+do not count as code review.
+Such reviews do not provide confidence that there will
+be a second person who understands the
+code change (e.g., if the originator suddenly becomes unavailable).
+However, analysis by bots
+may be able to meet (at least in part) the [SAST](#sast) criterion.
 
 Note: Requiring reviews for all changes is infeasible for some projects, such as
 those with only one active participant. Even a project with multiple active
@@ -259,7 +260,7 @@ those contributors must have had at least 5 commits in the last 30 commits.
 Note: Some projects cannot meet this requirement, such as small projects with
 only one active participant, or projects with a narrow scope that cannot attract
 the interest of multiple organizations. See
-[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)
+[Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review)
 for more information about evaluating projects with a small number of
 participants.
  
@@ -305,8 +306,8 @@ Risk: `High` (possibly vulnerable to attacks on known flaws)
 
 This check tries to determine if the project uses a dependency update tool,
 specifically one of:
-- [dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
-- [renovatebot](https://docs.renovatebot.com/configuration-options/)
+- [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
+- [Renovate bot](https://docs.renovatebot.com/configuration-options/)
 - [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
 - [PyUp](https://docs.pyup.io/docs) (Python)
 Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
@@ -326,7 +327,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike dependabot, renovatebot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
 
 ## Fuzzing 
 
@@ -336,7 +337,10 @@ This check tries to determine if the project uses
 [fuzzing](https://owasp.org/www-community/Fuzzing) by checking:
 1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
 2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
-3. if there are user-defined language-specified fuzzing functions (currently only supports [Go fuzzing](https://go.dev/doc/fuzz/)) in the repository.
+3. if there are user-defined language-specified fuzzing functions in the repository.
+   - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
+   - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
+   - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
 4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
@@ -502,10 +506,10 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
  
 
 **Remediation steps**
-- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
+- If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
-- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
+- For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
 ## SAST 
@@ -645,7 +649,7 @@ Additionally, points are reduced if certain write permissions are defined for a 
 
 **Remediation steps**
 - Set permissions as `read-all` or `contents: read` as described in GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
-- To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found by the Pinned-dependencies check.
+- To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found by the Pinned-dependencies check.
 
 ## Vulnerabilities 
 

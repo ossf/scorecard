@@ -60,7 +60,7 @@ func Contributors(name string, dl checker.DetailLogger,
 
 	sort.Strings(names)
 
-	if len(name) > 0 {
+	if len(names) > 0 {
 		dl.Info(&checker.LogMessage{
 			Text: fmt.Sprintf("contributors work for %v", strings.Join(names, ",")),
 		})

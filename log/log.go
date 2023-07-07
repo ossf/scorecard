@@ -41,6 +41,23 @@ func NewLogger(logLevel Level) *Logger {
 	return NewLogrusLogger(logrusLog)
 }
 
+// NewCronLogger creates an instance of *Logger.
+func NewCronLogger(logLevel Level) *Logger {
+	logrusLog := logrus.New()
+
+	// for stackdriver, see: https://cloud.google.com/logging/docs/structured-logging#special-payload-fields
+	logrusLog.SetFormatter(&logrus.JSONFormatter{FieldMap: logrus.FieldMap{
+		logrus.FieldKeyLevel: "severity",
+		logrus.FieldKeyMsg:   "message",
+	}})
+
+	// Set log level from logrus
+	logrusLevel := parseLogrusLevel(logLevel)
+	logrusLog.SetLevel(logrusLevel)
+
+	return NewLogrusLogger(logrusLog)
+}
+
 // NewLogrusLogger creates an instance of *Logger backed by the supplied
 // logrusLog instance.
 func NewLogrusLogger(logrusLog *logrus.Logger) *Logger {

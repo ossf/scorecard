@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/caarlos0/env/v6"
 
@@ -36,6 +37,7 @@ type Options struct {
 	NPM        string
 	PyPI       string
 	RubyGems   string
+	Nuget      string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
@@ -76,9 +78,13 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
-	// FormatSJSON specifies that results should be output in structured JSON format,
-	// i.e., with the structured results.
-	FormatSJSON = "structured-json"
+	// FormatFJSON specifies that results should be output in JSON format,
+	// but with structured findings.
+	FormatFJSON = "finding"
+	// FormatPJSON specifies that results should be output in probe JSON format.
+	FormatPJSON = "probe"
+	// FormatSJSON specifies that results should be output in structured JSON format.
+	FormatSJSON = "structured"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
 	// FormatDefault specifies that results should be output in default format.
@@ -108,7 +114,7 @@ var (
 	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet             = errors.New(
-		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
+		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
@@ -119,11 +125,12 @@ var (
 func (o *Options) Validate() error {
 	var errs []error
 
-	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.
+	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--nuget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
 		o.NPM != "",
 		o.PyPI != "",
 		o.RubyGems != "",
+		o.Nuget != "",
 		o.Local != "") != 1 {
 		errs = append(
 			errs,
@@ -158,7 +165,9 @@ func (o *Options) Validate() error {
 	}
 
 	if !o.isExperimentalEnabled() {
-		if o.Format == FormatSJSON {
+		if o.Format == FormatSJSON ||
+			o.Format == FormatFJSON ||
+			o.Format == FormatPJSON {
 			errs = append(
 				errs,
 				errFormatSupportedWithExperimental,
@@ -189,7 +198,6 @@ func (o *Options) Validate() error {
 			errs,
 		)
 	}
-
 	return nil
 }
 
@@ -204,6 +212,33 @@ func boolSum(bools ...bool) int {
 }
 
 // Feature flags.
+
+// GitHub integration support.
+// See https://github.com/ossf/scorecard-action/issues/1107.
+// NOTE: We don't add a field to to the Option structure to simplify
+// integration. If we did, the Action would also need to be aware
+// of the integration and pass the relevant values. This
+// would add redundancy and complicate maintenance.
+func (o *Options) IsInternalGitHubIntegrationEnabled() bool {
+	return (os.Getenv("CI") == "true") &&
+		(os.Getenv("SCORECARD_INTERNAL_GITHUB_INTEGRATION") == "1") &&
+		(os.Getenv("GITHUB_EVENT_NAME") == "dynamic")
+}
+
+// Checks returns the list of checks and honours the
+// GitHub integration.
+func (o *Options) Checks() []string {
+	if o.IsInternalGitHubIntegrationEnabled() {
+		// Overwrite the list of checks.
+		s := os.Getenv("SCORECARD_INTERNAL_GITHUB_CHECKS")
+		l := strings.Split(s, ",")
+		for i := range l {
+			l[i] = strings.TrimSpace(l[i])
+		}
+		return l
+	}
+	return o.ChecksToRun
+}
 
 // isExperimentalEnabled returns true if experimental features were enabled via
 // environment variable.
@@ -229,7 +264,8 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatSJSON, FormatFJSON,
+		FormatPJSON, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false

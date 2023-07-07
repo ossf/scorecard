@@ -105,7 +105,7 @@ func localFiles(filenames []string) (data.Iterator, error) {
 
 func main() {
 	ctx := context.Background()
-	t := time.Now()
+	t := time.Now().UTC()
 
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {
