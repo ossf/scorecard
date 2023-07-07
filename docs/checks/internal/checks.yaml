@@ -203,7 +203,7 @@ checks:
         - For administrators: Require branch to be up to date before merging
         - For administrators: Require approval of the most recent reviewable push
 
-      Tier 3 Requirements (7/10 points):
+      Tier 3 Requirements (8/10 points):
         - Require branch to pass at least 1 status check before merging
 
       Tier 4 Requirements (9/10 points):
