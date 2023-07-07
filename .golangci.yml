@@ -1,7 +1,7 @@
 ---
 run:
   concurrency: 6
-  deadline: 5m
+  timeout: 5m
 issues:
   # Maximum issues count per one linter.
   # Set to 0 to disable.
@@ -24,7 +24,6 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - depguard
     - dogsled
     - errcheck
     - errorlint
