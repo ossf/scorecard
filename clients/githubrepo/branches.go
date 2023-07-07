@@ -190,7 +190,13 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
-		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
+		// Workaround for GitHub GraphQL bug https://github.com/orgs/community/discussions/59471
+		// The setting RequiresStrictStatusChecks should tell if the branch is required
+		// to be up to date before merge, but it only returns the correct value if
+		// RequiresStatusChecks is true. If RequiresStatusChecks is false, RequiresStrictStatusChecks
+		// is wrongly retrieved as true.
+		upToDateBeforeMerge := *src.RequiresStatusChecks && *src.RequiresStrictStatusChecks
+		copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
 	}
 }
 
