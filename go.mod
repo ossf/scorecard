@@ -34,7 +34,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.30.0
-	golang.org/x/text v0.10.0
+	golang.org/x/text v0.11.0
 	golang.org/x/tools v0.10.0
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/protobuf v1.31.0
