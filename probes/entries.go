@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
+	"github.com/ossf/scorecard/v4/probes/uniqueCodeReviewers"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -37,12 +38,16 @@ var (
 		toolPyUpInstalled.Run,
 		toolSonatypeLiftInstalled.Run,
 	}
+	CodeReviewChecks = []ProbeImpl {
+		uniqueCodeReviewers.Run,
+	}
 )
 
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		DependencyToolUpdates,
+		/* Not our probes, not checked*/ //DependencyToolUpdates,
+		CodeReviewChecks,
 	})
 }
 
