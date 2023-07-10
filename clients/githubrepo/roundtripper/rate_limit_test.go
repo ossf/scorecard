@@ -22,6 +22,7 @@ import (
 )
 
 func TestRoundTrip(t *testing.T) {
+	t.Parallel()
 	var requestCount int
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Customize the response headers and body based on the test scenario
@@ -38,7 +39,7 @@ func TestRoundTrip(t *testing.T) {
 				w.Write([]byte("Success")) // nolint: errcheck
 			} else {
 				// First request: Return Retry-After header
-				w.Header().Set("Retry-After", "5")
+				w.Header().Set("Retry-After", "1")
 				w.WriteHeader(http.StatusTooManyRequests)
 				w.Write([]byte("Rate Limit Exceeded")) // nolint: errcheck
 			}
@@ -48,7 +49,9 @@ func TestRoundTrip(t *testing.T) {
 			w.Write([]byte("Success")) // nolint: errcheck
 		}
 	}))
-	defer ts.Close()
+	t.Cleanup(func() {
+		defer ts.Close()
+	})
 
 	// Create the rateLimitTransport with the test server as the inner transport and a default logger
 	transport := &rateLimitTransport{
