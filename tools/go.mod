@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.53.3
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.14.1
-	github.com/goreleaser/goreleaser v1.19.1
+	github.com/goreleaser/goreleaser v1.19.2
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.11.0
 	google.golang.org/protobuf v1.31.0
