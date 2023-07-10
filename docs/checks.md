@@ -630,6 +630,11 @@ One point is reduced from the score if all jobs have their permissions defined b
 This configuration is secure, but there is a chance that when a new job is added to the workflow, its job permissions could be
 left undefined because of human error.
 
+Though a project's score won't be penalized, the check's details will include
+warnings for all run-level permissions. This compromise makes it clear the
+maintainer has done what's possible to use those permissions safety, but allows
+users to identify that the permissions are used.
+
 The check cannot detect if the "read-only" GitHub permission setting is
 enabled, as there is no API available.
  
