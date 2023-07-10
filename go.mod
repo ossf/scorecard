@@ -35,7 +35,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.30.0
 	golang.org/x/text v0.11.0
-	golang.org/x/tools v0.10.0
+	golang.org/x/tools v0.11.0 // indirect
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -51,6 +51,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/otiai10/copy v1.12.0
+	golang.org/x/tools/go/vcs v0.1.0-deprecated
 	sigs.k8s.io/release-utils v0.6.0
 )
 
@@ -103,7 +104,7 @@ require (
 	github.com/spdx/gordf v0.0.0-20221230105357-b735bd5aac89 // indirect
 	github.com/spdx/tools-golang v0.5.2 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
-	golang.org/x/mod v0.11.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/term v0.10.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/vuln v0.0.0-20230303230808-d3042fecc4e3 // indirect
