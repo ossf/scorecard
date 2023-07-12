@@ -27,7 +27,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/google/go-github/v38/github"
-	"golang.org/x/tools/go/vcs"
+	"golang.org/x/tools/go/vcs" //nolint:staticcheck // TODO(https://github.com/ossf/scorecard/issues/3262)
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/cron/data"
