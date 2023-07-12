@@ -17,6 +17,7 @@
 package gitlabrepo
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -32,10 +33,13 @@ type repoURL struct {
 	host          string
 	owner         string
 	project       string
+	projectID     string
 	defaultBranch string
 	commitSHA     string
 	metadata      []string
 }
+
+var errInvalidGitlabRepoURL = errors.New("repo is not a gitlab repo")
 
 // Parses input string into repoURL struct
 /*
@@ -97,6 +101,10 @@ func (r *repoURL) IsValid() error {
 		return nil
 	}
 
+	if strings.EqualFold(r.host, "github.com") {
+		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
+	}
+
 	client, err := gitlab.NewClient("", gitlab.WithBaseURL(fmt.Sprintf("%s://%s", r.scheme, r.host)))
 	if err != nil {
 		return sce.WithMessage(err,
@@ -140,7 +148,7 @@ func MakeGitlabRepo(input string) (clients.Repo, error) {
 		return nil, fmt.Errorf("error during parse: %w", err)
 	}
 	if err := repo.IsValid(); err != nil {
-		return nil, fmt.Errorf("error n IsValid: %w", err)
+		return nil, fmt.Errorf("error in IsValid: %w", err)
 	}
 	return &repo, nil
 }

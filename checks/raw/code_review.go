@@ -141,7 +141,7 @@ func detectCommitRevisionInfo(c *clients.Commit) revisionInfo {
 		return revisionInfo{checker.ReviewPlatformPiper, revisionID}
 	}
 
-	return revisionInfo{}
+	return revisionInfo{checker.ReviewPlatformUnknown, ""}
 }
 
 // Group commits by the changeset they belong to

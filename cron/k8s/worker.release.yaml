@@ -52,6 +52,11 @@ spec:
                 secretKeyRef:
                   name: github
                   key: installation_id
+            - name: GITLAB_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: gitlab
+                  key: auth_token
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
           volumeMounts:

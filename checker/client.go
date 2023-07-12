@@ -57,29 +57,14 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	var repoClient clients.RepoClient
 
-	//nolint:nestif
-	if experimental && glrepo.DetectGitLab(repoURI) {
+	if experimental {
 		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
-		if makeRepoError != nil {
-			return repo,
-				nil,
-				nil,
-				nil,
-				nil,
-				fmt.Errorf("getting local directory client: %w", makeRepoError)
+		if repo != nil && makeRepoError == nil {
+			repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
 		}
+	}
 
-		var err error
-		repoClient, err = glrepo.CreateGitlabClientWithToken(ctx, os.Getenv("GITLAB_AUTH_TOKEN"), repo)
-		if err != nil {
-			return repo,
-				nil,
-				nil,
-				nil,
-				nil,
-				fmt.Errorf("error creating gitlab client: %w", err)
-		}
-	} else {
+	if makeRepoError != nil || repo == nil {
 		repo, makeRepoError = ghrepo.MakeGithubRepo(repoURI)
 		if makeRepoError != nil {
 			return repo,
@@ -87,7 +72,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 				nil,
 				nil,
 				nil,
-				fmt.Errorf("getting local directory client: %w", makeRepoError)
+				fmt.Errorf("error making github repo: %w", makeRepoError)
 		}
 		repoClient = ghrepo.CreateGithubRepoClient(ctx, logger)
 	}

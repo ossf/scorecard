@@ -352,7 +352,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 		}
 		if p.File == nil {
 			//nolint
-			return errors.New("File field is nil")
+			return errors.New("file field is nil")
 		}
 
 		jpk.File = &jsonFile{

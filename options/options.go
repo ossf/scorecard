@@ -37,6 +37,7 @@ type Options struct {
 	NPM        string
 	PyPI       string
 	RubyGems   string
+	Nuget      string
 	PolicyFile string
 	// TODO(action): Add logic for writing results to file
 	ResultsFile string
@@ -113,7 +114,7 @@ var (
 	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet             = errors.New(
-		"exactly one of `repo`, `npm`, `pypi`, `rubygems` or `local` must be set",
+		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
@@ -124,11 +125,12 @@ var (
 func (o *Options) Validate() error {
 	var errs []error
 
-	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--local` is enabled.
+	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--nuget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
 		o.NPM != "",
 		o.PyPI != "",
 		o.RubyGems != "",
+		o.Nuget != "",
 		o.Local != "") != 1 {
 		errs = append(
 			errs,

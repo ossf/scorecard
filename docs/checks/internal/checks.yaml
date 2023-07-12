@@ -91,7 +91,7 @@ checks:
   Binary-Artifacts:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, GitLab, local
     short: Determines if the project has generated executable (binary) artifacts in the source repository.
     description: |
       Risk: `High` (non-reviewable code)
@@ -142,7 +142,7 @@ checks:
   Branch-Protection:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)
@@ -154,7 +154,7 @@ checks:
       status checks before acceptance into a main branch, or preventing rewriting of
       public history.
 
-      Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, `StrictStatusCheck` and `RequireCodeownerReview`. If
+      Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmins`, `RequireLastPushApproval`, `RequiresStatusChecks` and `UpToDateBeforeMerge`. If
       the provided token does not have admin access, the check will query the branch
       settings accessible to non-admins and provide results based only on these settings.
       Even so, we recommend using a non-admin token, which provides a thorough enough
@@ -162,10 +162,15 @@ checks:
 
       Different types of branch protection protect against different risks:
 
-        - Require code review: requires at least one reviewer, which greatly
+        - Require code review: 
+          - requires at least one reviewer, which greatly
           reduces the risk that a compromised contributor can inject malicious code.
           Review also increases the likelihood that an unintentional vulnerability in
           a contribution will be detected and fixed before the change is accepted.
+
+          - requiring two or more reviewers protects even more from the insider risk 
+          whereby a compromised contributor can be used by an attacker to LGTM 
+          the attacker PR and inject a malicious code as if it was legitm.
 
         - Prevent force push: prevents use of the `--force` command on public
           branches, which overwrites code irrevocably. This protection prevents the
@@ -177,7 +182,7 @@ checks:
       Although requiring code review can greatly reduce the chance that
       unintentional or malicious code enters the "main" branch, it is not feasible for
       all projects, such as those that don't have many active participants. For more
-      discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews).
+      discussion, see [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review).
 
       Additionally, in some cases these rules will need to be suspended. For example,
       if a past commit includes illegal content such as child pornography, it may be
@@ -186,7 +191,7 @@ checks:
 
       This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
-      Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
+      Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
       Tier 1 Requirements (3/10 points):
         - Prevent force push
@@ -194,19 +199,22 @@ checks:
         - For administrators: Include administrator for review
 
       Tier 2 Requirements (6/10 points):
-        - Required reviewers >=1
-        - For administrators: Last push review
-        - For administrators: Strict status checks (require branches to be up-to-date before merging)
+        - Require at least 1 reviewer for approval before merging
+        - For administrators: Require branch to be up to date before merging
+        - For administrators: Require approval of the most recent reviewable push
 
       Tier 3 Requirements (8/10 points):
-        - Status checks defined
+        - Require branch to pass at least 1 status check before merging
 
       Tier 4 Requirements (9/10 points):
-        - Required reviewers >= 2
+        - Require at least 2 reviewers for approval before merging
+        - Require review from code owners
 
       Tier 5 Requirements (10/10 points):
-        - For administrators: Dismiss stale reviews
-        - For administrators: Require CODEOWNER review
+        - For administrators: Dismiss stale reviews and approvals when new commits are pushed
+
+      GitLab Integration Status:
+        - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
 
     remediation:
       - >-
@@ -217,7 +225,7 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the project runs tests before pull requests are merged.
     description: |
       Risk: `Low` (possible unknown vulnerabilities)
@@ -277,13 +285,13 @@ checks:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
     repos: GitHub
-    short: Determines if the project requires code review before pull requests (aka merge requests) are merged.
+    short: Determines if the project requires human code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
       code)
 
-      This check determines whether the project requires code review before pull
-      requests (merge requests) are merged.
+      This check determines whether the project requires human code review
+      before pull requests (merge requests) are merged.
 
       Reviews detect various unintentional problems, including vulnerabilities that
       can be fixed immediately before they are merged, which improves the quality of
@@ -305,6 +313,15 @@ checks:
       If any bot-originated changes are unreviewed, 3 points are deducted. If any human
       changes are unreviewed, 7 points are deducted if a single change is unreviewed, and
       another 3 are deducted if multiple changes are unreviewed.
+
+      Review by bots, including bots powered by
+      artificial intelligence / machine learning (AI/ML),
+      do not count as code review.
+      Such reviews do not provide confidence that there will
+      be a second person who understands the
+      code change (e.g., if the originator suddenly becomes unavailable).
+      However, analysis by bots
+      may be able to meet (at least in part) the [SAST](#sast) criterion.
 
       Note: Requiring reviews for all changes is infeasible for some projects, such as
       those with only one active participant. Even a project with multiple active
@@ -358,7 +375,7 @@ checks:
       Note: Some projects cannot meet this requirement, such as small projects with
       only one active participant, or projects with a narrow scope that cannot attract
       the interest of multiple organizations. See
-      [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-reviews)
+      [Code Reviews](https://github.com/ossf/scorecard/blob/main/docs/checks.md#code-review)
       for more information about evaluating projects with a small number of
       participants.
     remediation:
@@ -381,7 +398,9 @@ checks:
       1. if the repository name is included in the [OSS-Fuzz](https://github.com/google/oss-fuzz) project list;
       2. if [ClusterFuzzLite](https://google.github.io/clusterfuzzlite/) is deployed in the repository;
       3. if there are user-defined language-specified fuzzing functions in the repository.
-         - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/) and a limited set of property-based testing libraries for Haskell.
+         - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
+         - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
+         - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
       4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
       Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
@@ -502,7 +521,7 @@ checks:
         to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
       - >-
         For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example.
-        To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking
+        To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking
         the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found
         by the Token-Permissions check.
       - >-
@@ -672,7 +691,7 @@ checks:
         Set permissions as `read-all` or `contents: read` as described in
         GitHub's [documentation](https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#permissions).
       - >-
-        To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/) by ticking
+        To help determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking
         the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found
         by the Pinned-dependencies check.
   Vulnerabilities:
