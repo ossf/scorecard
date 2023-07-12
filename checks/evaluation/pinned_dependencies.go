@@ -272,7 +272,7 @@ func createReturnForIsNpmInstallPinned(pr map[checker.DependencyUseType]pinnedRe
 	dl checker.DetailLogger,
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeNpmCommand,
-		"Npm installs are pinned",
+		"npm installs are pinned",
 		dl)
 }
 
