@@ -671,9 +671,18 @@ checks:
       left undefined because of human error.
 
       Though a project's score won't be penalized, the check's details will include
-      warnings for all run-level permissions. This compromise makes it clear the
-      maintainer has done what's possible to use those permissions safety, but allows
-      users to identify that the permissions are used.
+      warnings for more sensitive run-level permissions, listed below:
+
+      * `actions` - May allow an attacker to steal GitHub secrets by approving to run an action that needs approval.
+      * `checks` - May allow an attacker to remove pre-submit checks and introduce a bug.
+      * `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
+      * `deployments` - May allow an attacker to charge repo owner by triggering VM runs, and tiny chance an attacker can trigger a remote service with code they own if server accepts code/location variables unsanitized.
+      * `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
+      * `security-events` - May allow an attacker to read vulnerability reports before a patch is available. However, points are not reduced if the job utilizes a recognized action for uploading SARIF results.
+      * `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.
+
+      This compromise makes it clear the maintainer has done what's possible to use those permissions safety,
+      but allows users to identify that the permissions are used.
 
       The check cannot detect if the "read-only" GitHub permission setting is
       enabled, as there is no API available.
