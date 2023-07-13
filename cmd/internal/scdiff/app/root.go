@@ -25,12 +25,9 @@ var rootCmd = &cobra.Command{
 	Use:   "scdiff",
 	Short: "Scorecard Diff",
 	Long:  `Scorecard result diffing command line interface tool`,
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 func Execute() {
-	rootCmd.AddCommand(generateCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

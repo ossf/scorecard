@@ -15,13 +15,39 @@
 package app
 
 import (
+	"bufio"
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
-var generateCmd = &cobra.Command{
-	Use:   "generate",
-	Short: "Generate Scorecard results for diffing",
-	Long:  `Generate Scorecard results for diffing`,
-	Run: func(cmd *cobra.Command, args []string) {
-	},
+//nolint:gochecknoinits // common for cobra apps
+func init() {
+	rootCmd.AddCommand(generateCmd)
+	generateCmd.PersistentFlags().StringVarP(&repoFile, "repos", "r", "", "path to newline-delimited repo file")
 }
+
+var (
+	repoFile string
+
+	generateCmd = &cobra.Command{
+		Use:   "generate [flags] repofile",
+		Short: "Generate Scorecard results for diffing",
+		Long:  `Generate Scorecard results for diffing`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			f, err := os.Open(repoFile)
+			if err != nil {
+				return fmt.Errorf("unable to open repo file: %w", err)
+			}
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				fmt.Fprintf(os.Stdout, "running for repo: %v\n", scanner.Text())
+			}
+			if err := scanner.Err(); err != nil {
+				return fmt.Errorf("reading repo file: %w", err)
+			}
+			return nil
+		},
+	}
+)
