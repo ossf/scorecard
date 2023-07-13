@@ -17,6 +17,7 @@ var fs embed.FS
 
 const probe = "minimumCodeReviewers"
 const minimumReviewers = 2
+const noReviewerFound = -1
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
@@ -31,7 +32,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 ** there are a number of unique reviewers for each changeset.
 */
 
-// reviewData *checker.CodeReviewData
 func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 	) ([]finding.Finding, string, error) {
@@ -40,17 +40,19 @@ func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	changesets := reviewData.DefaultBranchChangesets
 	for i := range changesets {
 		data := &changesets[i]
-		fmt.Printf("\n[DATA] %v", data.Author)
-		if data.ReviewPlatform == "Unknown" && data.Author.Login == "" {
-			continue
+		//fmt.Printf("\n[DATA] %v", data.Author)
+		if data.Author.Login == "" {
+			return utils.AuthorNotFound(findings, probeID, fs)
 		}
 		reviewersList := make([]string, len(data.Reviews))
 		for i := range data.Reviews {
 			reviewersList[i] = data.Reviews[i].Author.Login
-			fmt.Printf("\n\t[REVIEW] %v", reviewersList[i])
+			//fmt.Printf("\n\t[REVIEW] %v", reviewersList[i])
 		}
 		numReviewers := utils.UniqueReviewers(data.Author.Login, reviewersList)
-		if i == 0 || numReviewers < leastFoundReviewers {
+		if numReviewers == noReviewerFound {
+			return utils.ReviewerNotFound(findings, probeID, fs)
+		} else if i == 0 || numReviewers < leastFoundReviewers {
 			leastFoundReviewers = numReviewers
 		}
 	}
