@@ -139,7 +139,8 @@ generate-mocks: clients/mockclients/repo_client.go \
 	clients/mockclients/repo.go \
 	clients/mockclients/cii_client.go \
 	checks/mockclients/vulnerabilities.go \
-	cmd/packagemanager_mockclient.go
+	cmd/internal/packagemanager/packagemanager_mockclient.go \
+	cmd/internal/nuget/nuget_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go | $(MOCKGEN)
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -152,9 +153,12 @@ clients/mockclients/cii_client.go: clients/cii_client.go | $(MOCKGEN)
 checks/mockclients/vulnerabilities.go: clients/vulnerabilities.go | $(MOCKGEN)
 	# Generating MockCIIClient
 	$(MOCKGEN) -source=clients/vulnerabilities.go -destination=clients/mockclients/vulnerabilities.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
-cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go | $(MOCKGEN)
+cmd/internal/packagemanager/packagemanager_mockclient.go: cmd/internal/packagemanager/client.go | $(MOCKGEN)
 	# Generating MockPackageManagerClient
-	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=cmd/packagemanager_mockclient.go -package=cmd -copyright_file=clients/mockclients/license.txt
+	$(MOCKGEN) -source=cmd/internal/packagemanager/client.go -destination=cmd/internal/packagemanager/packagemanager_mockclient.go -package=packagemanager -copyright_file=clients/mockclients/license.txt
+cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN)
+	# Generating MockNugetClient
+	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
 
 generate-docs: ## Generates docs
 generate-docs: validate-docs docs/checks.md
@@ -337,7 +341,7 @@ e2e-pat: build-scorecard check-env | $(GINKGO)
 e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
-	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+	GITLAB_AUTH_TOKEN="" TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 
 e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
 e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)

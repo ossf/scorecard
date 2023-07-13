@@ -176,6 +176,7 @@ const (
 	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
 	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
 	ReviewPlatformPiper       ReviewPlatform = "Piper"
+	ReviewPlatformUnknown     ReviewPlatform = "Unknown"
 )
 
 type Changeset struct {

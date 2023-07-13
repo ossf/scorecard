@@ -1,0 +1,16 @@
+{
+  "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json",
+  "count": 2,
+  "items": [
+    {
+      "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/page1/index.json",
+      "@type": "catalog:CatalogPage",
+      "count": 2
+    },
+    {
+      "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/page2/index.json",
+      "@type": "catalog:CatalogPage",
+      "count": 2
+    }
+  ]
+}

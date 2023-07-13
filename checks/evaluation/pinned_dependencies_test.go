@@ -111,7 +111,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  6,
+				NumberOfInfo:  7,
 				NumberOfDebug: 1,
 			},
 		},
@@ -132,12 +132,12 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         6,
 				NumberOfWarn:  1,
-				NumberOfInfo:  4,
+				NumberOfInfo:  5,
 				NumberOfDebug: 1,
 			},
 		},
 		{
-			name: "various wanrings",
+			name: "various warnings",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -158,9 +158,9 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  3,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 1,
 			},
 		},
@@ -176,7 +176,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  1,
-				NumberOfInfo:  5,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			},
 		},
@@ -193,7 +193,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  6,
+				NumberOfInfo:  7,
 				NumberOfDebug: 1,
 			},
 		},
@@ -203,12 +203,12 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  6,
+				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
 		},
 		{
-			name: "Validate various wanrings and info",
+			name: "Validate various warnings and info",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -229,10 +229,26 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  3,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "unpinned npm install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
 			},
 		},
 	}
