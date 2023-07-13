@@ -62,7 +62,7 @@ Members are expected to remain active contributors to the community.
 
 #### Promotion process
 
-- Sponsored by 2 maintainers or triagers. **Note the following requirements for sponsors**:
+- Sponsored by 1 maintainer or 2 triagers. **Note the following requirements for sponsors**:
   - Sponsors must have close interactions with the prospective Member – e.g. 
     code/design/proposal review, coordinating on issues, etc.
   - Sponsors must be reviewers or approvers in at least one CODEOWNERS file.
