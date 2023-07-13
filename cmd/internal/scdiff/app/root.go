@@ -21,11 +21,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//nolint:gochecknoinits
-func init() {
-	rootCmd.AddCommand(generateCmd)
-}
-
 var rootCmd = &cobra.Command{
 	Use:   "scdiff",
 	Short: "Scorecard Diff",
@@ -35,6 +30,7 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
+	rootCmd.AddCommand(generateCmd)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
