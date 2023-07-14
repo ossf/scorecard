@@ -53,7 +53,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-run-no-codeql-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
@@ -302,11 +302,11 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:      "workflow jobs only",
+			name:      "penalize job-level read without top level permissions",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-jobs-only.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         9,
+				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  4,
 				NumberOfDebug: 4,
@@ -317,7 +317,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-run-write-codeql-comment.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
@@ -387,6 +387,19 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfWarn:  0,
 				NumberOfInfo:  2,
 				NumberOfDebug: 5,
+			},
+		},
+		{
+			name: "don't penalize job-level writes",
+			filenames: []string{
+				"./testdata/.github/workflows/github-workflow-permissions-run-multiple-writes.yaml",
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  7, // number of job-level write permissions
+				NumberOfInfo:  1, // read-only top-level permissions
+				NumberOfDebug: 4, // This is 4 + (number of actions = 0)
 			},
 		},
 	}

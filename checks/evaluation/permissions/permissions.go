@@ -56,11 +56,11 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 
 	if score != checker.MaxResultScore {
 		return checker.CreateResultWithScore(name,
-			"non read-only tokens detected in GitHub workflows", score)
+			"detected GitHub workflow tokens with excessive permissions", score)
 	}
 
 	return checker.CreateMaxScoreResult(name,
-		"tokens are read-only in GitHub workflows")
+		"GitHub workflow tokens follow principle of least privilege")
 }
 
 func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckRequest) (int, error) {
@@ -325,21 +325,21 @@ func calculateScore(result map[string]permissions) int {
 		// status: https://docs.github.com/en/rest/reference/repos#statuses.
 		// May allow an attacker to change the result of pre-submit and get a PR merged.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "statuses") {
+		if permissionIsPresentInTopLevel(perms, "statuses") {
 			score -= 0.5
 		}
 
 		// checks.
 		// May allow an attacker to edit checks to remove pre-submit and introduce a bug.
 		// Low risk: -0.5.
-		if permissionIsPresent(perms, "checks") {
+		if permissionIsPresentInTopLevel(perms, "checks") {
 			score -= 0.5
 		}
 
 		// secEvents.
 		// May allow attacker to read vuln reports before patch available.
 		// Low risk: -1
-		if permissionIsPresent(perms, "security-events") {
+		if permissionIsPresentInTopLevel(perms, "security-events") {
 			score--
 		}
 
@@ -348,7 +348,7 @@ func calculateScore(result map[string]permissions) int {
 		// and tiny chance an attacker can trigger a remote
 		// service with code they own if server accepts code/location var unsanitized.
 		// Low risk: -1
-		if permissionIsPresent(perms, "deployments") {
+		if permissionIsPresentInTopLevel(perms, "deployments") {
 			score--
 		}
 
@@ -384,11 +384,6 @@ func calculateScore(result map[string]permissions) int {
 	}
 
 	return int(score)
-}
-
-func permissionIsPresent(perms permissions, name string) bool {
-	return permissionIsPresentInTopLevel(perms, name) ||
-		permissionIsPresentInRunLevel(perms, name)
 }
 
 func permissionIsPresentInTopLevel(perms permissions, name string) bool {
