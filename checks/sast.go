@@ -100,7 +100,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 				Text: getNonCompliantPRMessage(nonCompliantPRs),
 			})
 			score := checker.AggregateScoresWithWeight(map[int]int{sastScore: sastWeight, codeQlScore: codeQlWeight})
-			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commmits", score)
+			return checker.CreateResultWithScore(CheckSAST, "SAST tool detected but not run on all commits", score)
 		default:
 			return checker.CreateRuntimeErrorResult(CheckSAST, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
 		}
