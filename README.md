@@ -154,7 +154,8 @@ in the Scorecard GitHub Action setting.
 
 Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecard GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
-hard work. This badge also auto-updates for every change made to the repository.
+hard work. This badge also auto-updates for every change made to the repository. See more details on [this OSSF blogpost](https://openssf.org/blog/2022/09/08/show-off-your-security-score-announcing-scorecards-badges/).
+
 To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
