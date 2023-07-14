@@ -122,7 +122,7 @@ While triage and code review is focused on code quality and correctness,
 approval is focused on holistic acceptance of a contribution including:
 
 - backwards/forwards compatibility
-- adherence to API and flag conventions
+- adherence to API and style conventions
 - subtle performance and correctness issues
 - interactions with other parts of the system
 - consistency between code and documentation
@@ -144,7 +144,7 @@ approval is focused on holistic acceptance of a contribution including:
 - Mentor contributors and triagers
 - Approve and merge code contributions as appropriate
 - Participate in OpenSSF or Scorecard-specific community meetings, if possible
-- Hosting Scorecard-specific community meetings, if possible and comfortable
+- Facilitating Scorecard-specific community meetings, if possible and comfortable
 
 #### Privileges
 
