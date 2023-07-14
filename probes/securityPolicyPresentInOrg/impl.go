@@ -20,7 +20,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils"
 )
 
 //go:embed *.yml
@@ -38,7 +38,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
 	}
 	//nolint:wrapcheck
-	return utils.FilesRun(files, raw.Metadata.Metadata,
+	return utils.FilesFound(files, raw.Metadata.Metadata,
 		fs, probe, "repository security policy file",
 		finding.OutcomePositive, finding.OutcomeNegative, matches)
 }

@@ -182,7 +182,7 @@ func (f *Finding) WithMessage(text string) *Finding {
 	return f
 }
 
-// UniqueProbesEqual checks the probe nams present in a list of findings
+// UniqueProbesEqual checks the probe names present in a list of findings
 // and compare them against an expected list.
 func UniqueProbesEqual(findings []Finding, probes []string) bool {
 	// Collect unique probes from findings.

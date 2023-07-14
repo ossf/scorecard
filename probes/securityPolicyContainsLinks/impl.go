@@ -21,7 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils"
 )
 
 //go:embed *.yml

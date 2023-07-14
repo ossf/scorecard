@@ -22,7 +22,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func FilesRun(files []checker.File, metadata map[string]string, fs embed.FS, probeID, filetype string,
+func FilesFound(files []checker.File, metadata map[string]string, fs embed.FS, probeID, filetype string,
 	foundOutcome, notFoundOutcome finding.Outcome, match func(file checker.File) bool,
 ) ([]finding.Finding, string, error) {
 	var findings []finding.Finding

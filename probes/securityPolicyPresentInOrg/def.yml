@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: securityPolicyPresentInOrg
-short: Check if a security policy is defined in the org repository.
+short: Check if a security policy is defined in the org's .github repository.
 motivation: >
   A security policy (typically a SECURITY.md file) can give users information about what constitutes a vulnerability and how to report one securely so that information about a bug is not publicly visible.
   If you have a large orgnization, having a unified security policy across all your repositories may simplify the vulnerability disclosure response.
