@@ -20,6 +20,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+
+	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/format"
+	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/runner"
 )
 
 //nolint:gochecknoinits // common for cobra apps
@@ -40,9 +43,17 @@ var (
 			if err != nil {
 				return fmt.Errorf("unable to open repo file: %w", err)
 			}
+			scorecardRunner := runner.New()
 			scanner := bufio.NewScanner(f)
 			for scanner.Scan() {
-				fmt.Fprintf(os.Stdout, "running for repo: %v\n", scanner.Text())
+				results, err := scorecardRunner.Run(scanner.Text())
+				if err != nil {
+					return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
+				}
+				err = format.JSON(&results)
+				if err != nil {
+					return fmt.Errorf("formatting results: %w", err)
+				}
 			}
 			if err := scanner.Err(); err != nil {
 				return fmt.Errorf("reading repo file: %w", err)
