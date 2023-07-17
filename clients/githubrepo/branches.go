@@ -196,8 +196,10 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 		// to be up to date before merge, but it only returns the correct value if
 		// RequiresStatusChecks is true. If RequiresStatusChecks is false, RequiresStrictStatusChecks
 		// is wrongly retrieved as true.
-		upToDateBeforeMerge := *src.RequiresStatusChecks && *src.RequiresStrictStatusChecks
-		copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
+		if src.RequiresStrictStatusChecks != nil {
+			upToDateBeforeMerge := *src.RequiresStatusChecks && *src.RequiresStrictStatusChecks
+			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
+		}
 	}
 }
 
