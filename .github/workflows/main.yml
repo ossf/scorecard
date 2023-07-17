@@ -82,7 +82,7 @@ jobs:
           command: make e2e-pat
      - name: codecov
        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
-       if: ${{ github.event_name != 'pull_request' }}
+       if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
          verbose: true
