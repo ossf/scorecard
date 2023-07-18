@@ -39,7 +39,7 @@ var (
 		toolSonatypeLiftInstalled.Run,
 	}
 	CodeReviewChecks = []ProbeImpl {
-		uniqueCodeReviewers.Run,
+		codeReviewTwoReviewers.Run,
 	}
 )
 
