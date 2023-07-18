@@ -1,6 +1,6 @@
 # OpenSSF Scorecard
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5621/badge)](https://bestpractices.coreinfrastructure.org/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
@@ -154,12 +154,12 @@ in the Scorecard GitHub Action setting.
 
 Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecard GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
-hard work. This badge also auto-updates for every change made to the repository.
+hard work. This badge also auto-updates for every change made to the repository. See more details on [this OSSF blogpost](https://openssf.org/blog/2022/09/08/show-off-your-security-score-announcing-scorecards-badges/).
+
 To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
-[![OpenSSF
-Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo})
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://securityscorecards.dev/viewer/?uri=github.com/{owner}/{repo})
 ```
 
 ### Scorecard Command Line Interface
