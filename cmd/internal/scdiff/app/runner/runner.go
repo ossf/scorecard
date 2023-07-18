@@ -16,8 +16,6 @@ package runner
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -36,6 +34,7 @@ const (
 // Runner holds the clients and configuration needed to run Scorecard on multiple repos.
 type Runner struct {
 	ctx           context.Context
+	logger        *log.Logger
 	enabledChecks checker.CheckNameToFnMap
 	repoClient    clients.RepoClient
 	ossFuzz       clients.RepoClient
@@ -48,6 +47,7 @@ func New() Runner {
 	logger := log.NewLogger(log.DefaultLevel)
 	return Runner{
 		ctx:           ctx,
+		logger:        logger,
 		repoClient:    githubrepo.CreateGithubRepoClient(ctx, logger),
 		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
 		cii:           clients.DefaultCIIBestPracticesClient(),
@@ -58,11 +58,18 @@ func New() Runner {
 
 //nolint:wrapcheck
 func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
-	fmt.Fprintf(os.Stdout, "running for repo: %v\n", repoURI)
+	r.log("processing repo: " + repoURI)
 	// TODO (gitlab?)
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
 	if err != nil {
 		return pkg.ScorecardResult{}, err
 	}
 	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, r.repoClient, r.ossFuzz, r.cii, r.vuln)
+}
+
+// logs only if logger is set
+func (r *Runner) log(msg string) {
+	if r.logger != nil {
+		r.logger.Info(msg)
+	}
 }
