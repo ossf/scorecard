@@ -120,7 +120,7 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 ## Build all cron-related targets
 build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
-	build-webhook build-add-script build-validate-script build-update-script
+	build-webhook build-add-script build-validate-script
 
 build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build $(build-targets)
@@ -294,12 +294,6 @@ build-validate-script: cron/internal/data/validate/validate
 cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/data/*.go cron/internal/data/projects.csv
 	# Run go build on the validate script
 	cd cron/internal/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
-
-build-update-script: ## Runs go build on the update script
-build-update-script: cron/internal/data/update/projects-update
-cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/data/*.go
-	# Run go build on the update script
-	cd cron/internal/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
 
 docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron-cii-worker-docker cron-bq-transfer-docker cron-webhook-docker cron-github-server-docker
 .PHONY: dockerbuild $(docker-targets)
