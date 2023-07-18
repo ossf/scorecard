@@ -2,11 +2,12 @@
 // Licensed under the Apache License 2.0
 // SPDX-License-Identifier: Apache-2.0
 
-package uniqueCodeReviewers
+package codeReviewTwoReviewers
 
 import (
 	"embed"
 	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/utils"
@@ -24,17 +25,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return CodeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-
 /*
 ** Looks through the data and validates author and reviewers of a changeset
 ** Scorecard currently only supports GitHub revisions and generates a positive
 ** score in the case of other platforms. This probe is created to ensure that
 ** there are a number of unique reviewers for each changeset.
-*/
+ */
 
 func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
-	) ([]finding.Finding, string, error) {
+) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	leastFoundReviewers := 0
 	changesets := reviewData.DefaultBranchChangesets
@@ -58,14 +58,14 @@ func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	}
 	if leastFoundReviewers >= minimumReviewers {
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
-		nil, positiveOutcome)
+			nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	} else {
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
-		nil, negativeOutcome)
+			nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

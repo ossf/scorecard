@@ -21,7 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
-	"github.com/ossf/scorecard/v4/probes/uniqueCodeReviewers"
+	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
 )
 
 // ProbeImpl is the implementation of a probe.
