@@ -7,7 +7,6 @@ package codeReviewTwoReviewers
 import (
 	"embed"
 	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/utils"
@@ -16,13 +15,13 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "minimumCodeReviewers"
+const probe = "codeReviewTwoReviewers"
 const minimumReviewers = 2
 const noReviewerFound = -1
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
-	return CodeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return codeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
 /*
@@ -32,7 +31,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 ** there are a number of unique reviewers for each changeset.
  */
 
-func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
+func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
@@ -40,14 +39,12 @@ func CodeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	changesets := reviewData.DefaultBranchChangesets
 	for i := range changesets {
 		data := &changesets[i]
-		//fmt.Printf("\n[DATA] %v", data.Author)
 		if data.Author.Login == "" {
 			return utils.AuthorNotFound(findings, probeID, fs)
 		}
 		reviewersList := make([]string, len(data.Reviews))
 		for i := range data.Reviews {
 			reviewersList[i] = data.Reviews[i].Author.Login
-			//fmt.Printf("\n\t[REVIEW] %v", reviewersList[i])
 		}
 		numReviewers := utils.UniqueReviewers(data.Author.Login, reviewersList)
 		if numReviewers == noReviewerFound {
