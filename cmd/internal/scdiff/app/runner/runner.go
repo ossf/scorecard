@@ -33,6 +33,7 @@ const (
 	commitDepth = 0 // default
 )
 
+// Runner holds the clients and configuration needed to run Scorecard on multiple repos.
 type Runner struct {
 	ctx           context.Context
 	enabledChecks checker.CheckNameToFnMap
