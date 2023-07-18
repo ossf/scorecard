@@ -15,13 +15,15 @@
 package probes
 
 import (
+	//codeApproved "command-line-argumentsC:\\Users\\abackman\\workspace\\opensource\\nokia_scorecard\\probes\\codeApproved\\impl.go"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/codeApproved"
+//	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
-	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -39,7 +41,8 @@ var (
 		toolSonatypeLiftInstalled.Run,
 	}
 	CodeReviewChecks = []ProbeImpl {
-		codeReviewTwoReviewers.Run,
+		//codeReviewTwoReviewers.Run,
+		codeApproved.Run,
 	}
 )
 
