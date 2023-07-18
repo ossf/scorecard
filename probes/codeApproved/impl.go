@@ -18,8 +18,6 @@ var fs embed.FS
 
 const probe = "codeApproved"
 
-const noReviewerFound = -1
-
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
 	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
@@ -33,7 +31,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
-	var unapprovedReviews = 0
+	var approvedReviews = 0
 	changesets := reviewData.DefaultBranchChangesets
 	var numChangesets = len(changesets)
 	for i := range changesets {
@@ -42,12 +40,13 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			return utils.AuthorNotFound(findings, probeID, fs)
 		}
 		for i := range data.Reviews {
-			if data.Reviews[i].State != "APPROVED" || data.Reviews[i].Author.Login == data.Author.Login {
-				unapprovedReviews += 1
+			if data.Reviews[i].State == "APPROVED" || data.Reviews[i].Author.Login == data.Author.Login {
+				approvedReviews += 1
+				continue
 			}
 		}
 	}
-	if unapprovedReviews == 0 {
+	if approvedReviews < numChangesets {
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %v changesets approved.", numChangesets),
 			nil, positiveOutcome)
 		if err != nil {
@@ -55,7 +54,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		}
 		findings = append(findings, *f)
 	} else {
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unapproved reviews found among %v changesets.", unapprovedReviews, numChangesets),
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("only %v approved reviews found among %v changesets.", approvedReviews, numChangesets),
 			nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
