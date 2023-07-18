@@ -67,7 +67,7 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, r.repoClient, r.ossFuzz, r.cii, r.vuln)
 }
 
-// logs only if logger is set
+// logs only if logger is set.
 func (r *Runner) log(msg string) {
 	if r.logger != nil {
 		r.logger.Info(msg)
