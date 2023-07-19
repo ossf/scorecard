@@ -36,6 +36,10 @@ func normalize(r *pkg.ScorecardResult) {
 	r.Scorecard = pkg.ScorecardInfo{}
 	r.Date = time.Time{}
 
+	sort.Slice(r.Checks, func(i, j int) bool {
+		return r.Checks[i].Name < r.Checks[j].Name
+	})
+
 	for i := range r.Checks {
 		check := &r.Checks[i]
 		sort.Slice(check.Details, func(i, j int) bool {
