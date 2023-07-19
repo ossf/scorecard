@@ -10,7 +10,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
 //go:embed *.yml
@@ -24,7 +23,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 }
 
 /*
-** Looks through the data and validates that the changesets have been approved
+** Looks through the data and validates that each changeset has been approved at least once.
 */
 
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
@@ -34,27 +33,24 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var approvedReviews = 0
 	changesets := reviewData.DefaultBranchChangesets
 	var numChangesets = len(changesets)
-	for i := range changesets {
-		data := &changesets[i]
-		if data.Author.Login == "" {
-			return utils.AuthorNotFound(findings, probeID, fs)
-		}
-		for i := range data.Reviews {
-			if data.Reviews[i].State == "APPROVED" || data.Reviews[i].Author.Login == data.Author.Login {
+	for x := range changesets {
+		data := &changesets[x]
+		for y := range data.Reviews {
+			if data.Reviews[y].State == "APPROVED" && data.Reviews[y].Author.Login != data.Author.Login {
 				approvedReviews += 1
-				continue
+				break
 			}
 		}
 	}
-	if approvedReviews < numChangesets {
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %v changesets approved.", numChangesets),
+	if approvedReviews >= numChangesets {
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets approved (%v out of %v).", approvedReviews, numChangesets),
 			nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	} else {
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("only %v approved reviews found among %v changesets.", approvedReviews, numChangesets),
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. Found %v approvals among %v changesets.", approvedReviews, numChangesets),
 			nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
