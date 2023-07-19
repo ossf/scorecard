@@ -1,0 +1,20 @@
+# © 2023 Nokia
+# Licensed under the Apache License 2.0
+# SPDX-License-Identifier: Apache-2.0
+
+id: codeReviewed
+short: Check that there is some review activity for each changeset.
+motivation: >
+  To ensure that the review process works, the proposed changes
+  should have a minimum number of reviews.
+implementation: >
+  The implementation looks for the reviews of a changeset.
+outcome:
+  - If all changesets have review activity, the probe returns OutcomePositive (1)
+  - If a changeset has no review activity, the prove returns OutcomeNegative (0)
+remediation:
+  effort: Low
+  text:
+    - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.
+  markdown:
+    - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.
