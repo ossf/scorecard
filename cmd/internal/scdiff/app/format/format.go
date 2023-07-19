@@ -56,6 +56,5 @@ func JSON(r *pkg.ScorecardResult, w io.Writer) error {
 		return err
 	}
 	normalize(r)
-	// TODO output it to a file
 	return r.AsJSON2(details, logLevel, docs, w)
 }
