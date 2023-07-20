@@ -64,8 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    needs:
-      - docs_only_check
+    needs: docs_only_check
     if: (needs.docs_only_check.outputs.docs_only != 'true')
     steps:
      - name: Harden Runner
