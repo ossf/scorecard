@@ -14,14 +14,45 @@
 
 package stats
 
-import "go.opencensus.io/stats"
+import (
+	"sync"
 
-var (
-	// CheckRuntimeInSec measures the CPU runtime in seconds per check.
-	CheckRuntimeInSec = stats.Int64("CheckRuntimeInSec", "Measures the CPU runtime in seconds for a check",
-		stats.UnitSeconds)
-	// CheckErrors measures the count of errors per check.
-	CheckErrors = stats.Int64("CheckErrors", "Measures the count of errors", stats.UnitDimensionless)
-	// HTTPRequests measures the count of HTTP requests.
-	HTTPRequests = stats.Int64("HTTPRequests", "Measures the count of HTTP requests", stats.UnitDimensionless)
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 )
+
+var Meter = otel.Meter("ossf-scorecard")
+
+var Metrics struct {
+	CheckRuntimeInSec metric.Int64Histogram
+	CheckErrors       metric.Int64Histogram
+	HTTPRequests      metric.Int64Histogram
+}
+var once sync.Once
+
+func InitMetrics() error {
+	var err error
+	once.Do(func() {
+		c, err := Meter.Int64Histogram("CheckRuntimeInSec",
+			metric.WithDescription("Measures the CPU runtime in seconds for a check"),
+			metric.WithUnit("s"))
+		if err != nil {
+			return
+		}
+		Metrics.CheckRuntimeInSec = c
+
+		c, err = Meter.Int64Histogram("CheckErrors", metric.WithDescription("Measures the count of errors"))
+		if err != nil {
+			return
+		}
+		Metrics.CheckErrors = c
+
+		c, err = Meter.Int64Histogram("HTTPRequests", metric.WithDescription("Measures the count of HTTP requests"))
+		if err != nil {
+			return
+		}
+		Metrics.HTTPRequests = c
+	})
+
+	return err
+}

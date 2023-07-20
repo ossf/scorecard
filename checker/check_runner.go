@@ -20,8 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
+	"go.opentelemetry.io/otel/metric"
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/stats"
@@ -74,20 +73,20 @@ type CheckNameToFnMap map[string]Check
 
 func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
-	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
+	attr := stats.CheckName.String(result.Name)
+	stats.Metrics.CheckRuntimeInSec.Record(ctx, runTimeInSecs, metric.WithAttributes(attr))
 
 	if result.Error != nil {
-		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, sce.GetName(result.Error)))
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
-		}
-		opencensusstats.Record(ctx, stats.CheckErrors.M(1))
+		attr = stats.ErrorName.String(sce.GetName(result.Error))
+		stats.Metrics.CheckErrors.Record(ctx, 1, metric.WithAttributes(attr))
 	}
 	return nil
 }
 
 // Run runs a given check.
 func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
+	l := NewLogger()
+
 	// Sanity check.
 	unsupported := ListUnsupported(r.CheckRequest.RequiredTypes, c.SupportedRequestTypes)
 	if len(unsupported) != 0 {
@@ -96,13 +95,16 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
 	}
 
-	l := NewLogger()
-	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
+	err := stats.InitMetrics()
+	if err != nil {
+		panic(err)
+	}
+
 	if err != nil {
 		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
 	}
 
-	ctx, err = tag.New(ctx, tag.Upsert(stats.RepoHost, r.CheckRequest.Repo.Host()))
+	ctx = context.WithValue(ctx, stats.RepoHost, r.CheckRequest.Repo.Host())
 	if err != nil {
 		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
 	}
@@ -110,7 +112,6 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	startTime := time.Now()
 
 	var res CheckResult
-	l = NewLogger()
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx

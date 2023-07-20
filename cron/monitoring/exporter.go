@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"time"
 
-	"contrib.go.opencensus.io/exporter/stackdriver"
-	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
-	"go.opencensus.io/stats/view"
+	mexporter "github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/metric"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 
 	"github.com/ossf/scorecard/v4/cron/config"
 )
@@ -38,51 +40,58 @@ const (
 	printer                    exporterType = "printer"
 )
 
-// Exporter interface is a custom wrapper to represent an opencensus exporter.
-type Exporter interface {
-	ExportView(viewData *view.Data)
-	StartMetricsExporter() error
-	StopMetricsExporter()
-	Flush()
-}
-
 // GetExporter defines a factory for returning opencensus Exporter.
 // Ensure config.ReadConfig() is called at some point before this function.
-func GetExporter() (Exporter, error) {
+func GetExporter() (metric.Exporter, error) {
 	exporter, err := config.GetMetricExporter()
 	if err != nil {
 		return nil, fmt.Errorf("error during GetMetricExporter: %w", err)
 	}
+
+	fmt.Printf("Using %s exporter for metrics\n", exporter)
+
 	switch exporterType(exporter) {
 	case stackDriver:
 		return newStackDriverExporter()
 	case printer:
-		return new(printerExporter), nil
+		return newStdoutExporter()
 	default:
 		return nil, fmt.Errorf("%w: %s", errorUndefinedExporter, exporter)
 	}
 }
 
-func newStackDriverExporter() (*stackdriver.Exporter, error) {
-	projectID, err := config.GetProjectID()
+func newStdoutExporter() (metric.Exporter, error) {
+	exp, err := stdoutmetric.New()
 	if err != nil {
-		return nil, fmt.Errorf("error getting ProjectID: %w", err)
+		return nil, fmt.Errorf("couldn't get stdoutexporter: %w", err)
 	}
-	prefix, err := config.GetMetricStackdriverPrefix()
+
+	return exp, nil
+}
+
+func newStackDriverExporter() (metric.Exporter, error) {
+	exp, err := mexporter.New()
 	if err != nil {
-		return nil, fmt.Errorf("error getting stackdriver prefix: %w", err)
+		return nil, fmt.Errorf("couldn't get cloudmetrics exporter: %w", err)
 	}
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID:         projectID,
-		MetricPrefix:      prefix,
-		MonitoredResource: gcp.Autodetect(),
-		Timeout:           stackdriverTimeoutMinutes * time.Minute,
-		// Stackdriver specific quotas based on https://cloud.google.com/monitoring/quotas
-		// `Time series included in a request`
-		BundleCountThreshold: stackdriverTimeSeriesQuota,
-	})
+
+	return exp, nil
+}
+
+func NewMeterProvider(exp metric.Exporter) (*metric.MeterProvider, error) {
+	res, err := resource.Merge(resource.Default(),
+		resource.NewWithAttributes(semconv.SchemaURL,
+			semconv.ServiceName("ossf-scorecard"),
+			semconv.ServiceVersion("0.1.0"),
+		))
 	if err != nil {
-		return nil, fmt.Errorf("error during stackdriver.NewExporter: %w", err)
+		return nil, fmt.Errorf("NewMeterProvider: %w", err)
 	}
-	return exporter, nil
+
+	meterProvider := metric.NewMeterProvider(
+		metric.WithResource(res),
+		metric.WithReader(metric.NewPeriodicReader(exp,
+			metric.WithInterval(1*time.Minute))),
+	)
+	return meterProvider, nil
 }

@@ -24,12 +24,11 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 
-	"go.opencensus.io/stats/view"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
-	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/ossfuzz"
 	"github.com/ossf/scorecard/v4/cron/config"
@@ -42,7 +41,6 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 	"github.com/ossf/scorecard/v4/policy"
-	"github.com/ossf/scorecard/v4/stats"
 )
 
 const (
@@ -82,7 +80,6 @@ type ScorecardWorker struct {
 	ctx               context.Context
 	logger            *log.Logger
 	checkDocs         docs.Doc
-	exporter          monitoring.Exporter
 	githubClient      clients.RepoClient
 	gitlabClient      clients.RepoClient
 	ciiClient         clients.CIIBestPracticesClient
@@ -131,7 +128,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
 
-	if sw.exporter, err = startMetricsExporter(); err != nil {
+	if err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}
 
@@ -145,7 +142,6 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 }
 
 func (sw *ScorecardWorker) Close() {
-	sw.exporter.StopMetricsExporter()
 	sw.ossFuzzRepoClient.Close()
 }
 
@@ -155,7 +151,6 @@ func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatch
 }
 
 func (sw *ScorecardWorker) PostProcess() {
-	sw.exporter.Flush()
 }
 
 //nolint:gocognit
@@ -284,23 +279,31 @@ func processRequest(ctx context.Context,
 	return nil
 }
 
-func startMetricsExporter() (monitoring.Exporter, error) {
+func startMetricsExporter() error {
 	exporter, err := monitoring.GetExporter()
 	if err != nil {
-		return nil, fmt.Errorf("error during monitoring.GetExporter: %w", err)
-	}
-	if err := exporter.StartMetricsExporter(); err != nil {
-		return nil, fmt.Errorf("error in StartMetricsExporter: %w", err)
+		return fmt.Errorf("monitoring.GetExporter: %w", err)
 	}
 
-	if err := view.Register(
-		&stats.CheckRuntime,
-		&stats.CheckErrorCount,
-		&stats.OutgoingHTTPRequests,
-		&githubstats.GithubTokens); err != nil {
-		return nil, fmt.Errorf("error during view.Register: %w", err)
+	meterProvider, err := monitoring.NewMeterProvider(exporter)
+	if err != nil {
+		return fmt.Errorf("startMetricsExporter: %w", err)
 	}
-	return exporter, nil
+
+	// Set the global meter provider.
+	otel.SetMeterProvider(meterProvider)
+
+	// Handle shutdown properly so nothing leaks.
+	defer func() {
+		if err := meterProvider.Shutdown(context.Background()); err != nil {
+			fmt.Printf("couldn't shutdown meterProvider: %v\n", err)
+		}
+	}()
+	if err != nil {
+		return fmt.Errorf("error during monitoring.GetExporter: %w", err)
+	}
+
+	return nil
 }
 
 func main() {

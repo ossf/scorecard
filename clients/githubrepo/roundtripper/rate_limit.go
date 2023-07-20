@@ -15,13 +15,11 @@
 package roundtripper
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
-
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 
 	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -51,7 +49,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 
 	retryValue := resp.Header.Get("Retry-After")
 	if retryAfter, err := strconv.Atoi(retryValue); err == nil { // if NO error
-		stats.Record(r.Context(), githubstats.RetryAfter.M(int64(retryAfter)))
+		githubstats.Metrics.RetryAfter.Record(r.Context(), int64(retryAfter))
 		duration := time.Duration(retryAfter) * time.Second
 		gh.logger.Info(fmt.Sprintf("Retry-After header set. Waiting %s to retry...", duration))
 		time.Sleep(duration)
@@ -59,16 +57,14 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		return gh.RoundTrip(r)
 	}
 
+	*r = *r.WithContext(context.WithValue(r.Context(), githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
+
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)
 	if err != nil {
 		return resp, nil
 	}
-	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
-	if err != nil {
-		return nil, fmt.Errorf("error updating context: %w", err)
-	}
-	stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
+	githubstats.Metrics.RemainingTokens.Record(r.Context(), int64(remaining))
 
 	if remaining <= 0 {
 		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))

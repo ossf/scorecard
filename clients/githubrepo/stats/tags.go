@@ -1,4 +1,4 @@
-// Copyright 2020 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,9 @@ package stats
 import "go.opentelemetry.io/otel/attribute"
 
 var (
-	// CheckName is the tag key for the check name.
-	CheckName attribute.Key = "checkName"
+	// TokenIndex is the tag key for specifying a unique token.
+	TokenIndex attribute.Key = "tokenIndex"
 
-	// ErrorName is the tag key for errors.
-	ErrorName attribute.Key = "errorName"
-
-	// RequestTag is the tag key for the request type.
-	RequestTag attribute.Key = "requestTag"
-
-	// RepoHost is the tag key for the host of the repository being scanned.
-	RepoHost attribute.Key = "repoHost"
+	// ResourceType specifies the type of GitHub resource.
+	ResourceType attribute.Key = "resourceType"
 )
