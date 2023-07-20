@@ -74,3 +74,10 @@ updates:
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
+- package-ecosystem: docker
+  directory: "/attestor"
+  schedule:
+    interval: weekly
+  rebase-strategy: disabled
+  commit-message:
+      prefix: ":seedling:"
