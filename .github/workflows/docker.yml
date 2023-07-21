@@ -65,19 +65,24 @@ jobs:
     permissions:
       contents: read
     needs: docs_only_check
-    if: (needs.docs_only_check.outputs.docs_only != 'true')
+    # ideally we put one "if" here, but due to how skipped matrix jobs work, we need one for each each step
+    # https://github.com/orgs/community/discussions/9141
     steps:
      - name: Harden Runner
+       if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v2.4.1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
+       if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
      - name: Setup Go # needed for some of the Makefile evaluations, even if building happens in Docker 
+       if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
        with:
          go-version-file: ${{ env.GO_VERSION_FILE }}
          check-latest: true
          cache: false # the building happens in Docker, so saving this cache would negatively impact other builds
      - name: docker build
+       if: (needs.docs_only_check.outputs.docs_only != 'true')
        run: make ${{ matrix.target }}
