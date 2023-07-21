@@ -47,6 +47,10 @@ jobs:
         uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v2.4.1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+      - name: Clone the code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Go
         uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
@@ -67,10 +71,6 @@ jobs:
           key: ${{ runner.os }}-go-tests-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-tests-
-      - name: Clone the code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Prepare test env
         run: |
