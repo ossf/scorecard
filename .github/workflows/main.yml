@@ -37,36 +37,35 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v1
+       uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v2.4.1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
+     - name: Setup Go
+       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
+       with:
+         go-version: ${{ env.GO_VERSION }}
+         check-latest: true
+         cache: false # we manually manage caches below
+     - id: go-cache-paths
+       run: |
+        echo "go-build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+        echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
        with:
          path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          ${{ steps.go-cache-paths.outputs.go-build }}
+          ${{ steps.go-cache-paths.outputs.go-mod }}
+         key: ${{ runner.os }}-go-unit-test-${{ hashFiles('**/go.sum') }}
          restore-keys: |
-           ${{ runner.os }}-go-
+           ${{ runner.os }}-go-unit-test-
      - name: Clone the code
-       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v2.3.4
-       with:
-          fetch-depth: 0
-     - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
-       with:
-         go-version: ${{ env.GO_VERSION }}
-         check-latest: true
-         cache: true
+       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
        with:
          files: ./unit-coverage.out
          verbose: true
