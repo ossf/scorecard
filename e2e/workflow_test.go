@@ -38,5 +38,29 @@ var _ = Describe("E2E TEST:WorkflowRun", func() {
 			Expect(err).Should(BeNil())
 			Expect(len(runs)).Should(BeNumerically(">", 0))
 		})
+		It("Should should fail because only head queries are supported", func() {
+			// using the scorecard repo as an example. The tests repo workflow won't have any runs in the future and
+			// that is why we are using the scorecard repo.
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, "123456789", 0)
+			Expect(err).Should(BeNil())
+			runs, err := repoClient.ListSuccessfulWorkflowRuns("scorecard-analysis.yml")
+			Expect(err).ShouldNot(BeNil())
+			Expect(len(runs)).Should(BeNumerically("==", 0))
+		})
+		It("Should should fail the workflow file doesn't exist", func() {
+			// using the scorecard repo as an example. The tests repo workflow won't have any runs in the future and
+			// that is why we are using the scorecard repo.
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			runs, err := repoClient.ListSuccessfulWorkflowRuns("non-existing.yml")
+			Expect(err).ShouldNot(BeNil())
+			Expect(len(runs)).Should(BeNumerically("==", 0))
+		})
 	})
 })
