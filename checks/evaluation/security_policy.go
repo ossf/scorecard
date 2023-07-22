@@ -18,15 +18,19 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsDisclosure"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
 	// We have 5 unique probes, each should have a finding.
 	expectedProbes := []string{
-		"securityPolicyContainsDisclosure", "securityPolicyContainsLinks",
-		"securityPolicyContainsText", "securityPolicyPresentInOrg",
-		"securityPolicyPresentInRepo",
+		securityPolicyContainsDisclosure.Probe, securityPolicyContainsLinks.Probe,
+		securityPolicyContainsText.Probe,
+		securityPolicyPresent.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -39,13 +43,13 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
-			case "securityPolicyContainsDisclosure":
-				score += scoreUpdate(f.Probe, m, 1)
-			case "securityPolicyContainsLinks":
-				score += scoreUpdate(f.Probe, m, 6)
-			case "securityPolicyContainsText":
-				score += scoreUpdate(f.Probe, m, 3)
-			case "securityPolicyPresentInOrg", "securityPolicyPresentInRepo":
+			case securityPolicyContainsDisclosure.Probe:
+				score += scoreProbeOnce(f.Probe, m, 1)
+			case securityPolicyContainsLinks.Probe:
+				score += scoreProbeOnce(f.Probe, m, 6)
+			case securityPolicyContainsText.Probe:
+				score += scoreProbeOnce(f.Probe, m, 3)
+			case securityPolicyPresent.Probe:
 				m[f.Probe] = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
@@ -53,26 +57,19 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 			}
 		}
 	}
-	_, inRepo := m["securityPolicyPresentInRepo"]
-	_, inOrg := m["securityPolicyPresentInOrg"]
-	if !inOrg && !inRepo {
+	_, defined := m[securityPolicyPresent.Probe]
+	if !defined {
 		if score > 0 {
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
-		return checker.CreateMinScoreResult(name, "no security file found")
+		return checker.CreateMinScoreResult(name, "no security policy file detected")
 	}
 
-	var msg string
-	if inRepo {
-		msg = "security file found in repository"
-	} else if inOrg {
-		msg = "security file found in organization"
-	}
-	return checker.CreateResultWithScore(name, msg, score)
+	return checker.CreateResultWithScore(name, "security file detected", score)
 }
 
-func scoreUpdate(probeID string, m map[string]bool, bump int) int {
+func scoreProbeOnce(probeID string, m map[string]bool, bump int) int {
 	if _, exists := m[probeID]; !exists {
 		m[probeID] = true
 		return bump

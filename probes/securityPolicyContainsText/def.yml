@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: securityPolicyContainsText
-short: Check that the security policy contains enough text.
+short: Check that the security policy contains enough text and not just links.
 motivation: >
   Telling security researchers how to privately dislose problems with your project is important. The more details available, the better.
 implementation: >

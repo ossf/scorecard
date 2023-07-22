@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package securityPolicyPresentInOrg
+package securityPolicyPresent
 
 import (
 	"embed"
@@ -26,10 +26,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-var probe = "securityPolicyPresentInOrg"
+const Probe = "securityPolicyPresent"
 
 func matches(file checker.File) bool {
-	return file.Type == finding.FileTypeURL
+	// Any files found is relevant.
+	return true
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -37,8 +38,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range raw.SecurityPolicyResults.PolicyFiles {
 		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
 	}
+
 	//nolint:wrapcheck
 	return utils.FilesFound(files, raw.Metadata.Metadata,
-		fs, probe, "repository security policy file",
+		fs, Probe, "security policy file",
 		finding.OutcomePositive, finding.OutcomeNegative, matches)
 }

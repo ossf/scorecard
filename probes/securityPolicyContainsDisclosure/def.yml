@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The implementation looks for strings "Disclos" and "Vuln".
 outcome:
-  - If information about the disclosure process is found in the security policy file, the probe one finding with OutcomePositive (1).
+  - If information about the disclosure process is found in the security policy file, the probe returns one finding with OutcomePositive (1).
   - If no information about the disclosure process is found, the probe returns one finding with OutcomeNegative (0).
   - if not file is present, one finding with OutcomeNegative (0).
 remediation:

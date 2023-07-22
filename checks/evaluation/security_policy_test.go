@@ -42,11 +42,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -55,7 +51,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "invalid findings",
+			name: "invalid probe name",
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsDisclosure",
@@ -70,11 +66,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -87,7 +79,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "file found",
+			name: "file found only",
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsDisclosure",
@@ -102,11 +94,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -130,11 +118,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -143,7 +127,7 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "file found with text",
+			name: "file found with no disclosure and text",
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsDisclosure",
@@ -158,11 +142,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -186,11 +166,7 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "securityPolicyPresentInOrg",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "securityPolicyPresentInRepo",
+					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomePositive,
 				},
 			},

@@ -20,8 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresentInOrg"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresentInRepo"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -37,8 +36,7 @@ var (
 	// SecurityPolicy is all the probes for the
 	// SecurityPolicy check.
 	SecurityPolicy = []ProbeImpl{
-		securityPolicyPresentInRepo.Run,
-		securityPolicyPresentInOrg.Run,
+		securityPolicyPresent.Run,
 		securityPolicyContainsLinks.Run,
 		securityPolicyContainsDisclosure.Run,
 		securityPolicyContainsText.Run,
