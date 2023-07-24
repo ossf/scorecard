@@ -353,4 +353,16 @@ func TestAllClientMethods(t *testing.T) {
 			t.Errorf("ListLicenses: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
 		}
 	}
+	{
+		_, err := c.GetCreatedAt()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetCreatedAt: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+	{
+		uri := c.URI()
+		if uri != "testURL" {
+			t.Errorf("URI: Expected %v, but got %v", "testURL", uri)
+		}
+	}
 }
