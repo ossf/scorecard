@@ -15,11 +15,11 @@
 package probes
 
 import (
-	//codeApproved "command-line-argumentsC:\\Users\\abackman\\workspace\\opensource\\nokia_scorecard\\probes\\codeApproved\\impl.go"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
-//	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
+	"github.com/ossf/scorecard/v4/probes/codeReviewed"
+	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -33,7 +33,7 @@ var (
 	// All represents all the probes.
 	All []ProbeImpl
 	// DependencyToolUpdates is all the probes for the
-	// DpendencyUpdateTool check.
+	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,
@@ -41,15 +41,16 @@ var (
 		toolSonatypeLiftInstalled.Run,
 	}
 	CodeReviewChecks = []ProbeImpl {
-		//codeReviewTwoReviewers.Run,
 		codeApproved.Run,
+		codeReviewed.Run,
+		codeReviewTwoReviewers.Run,
 	}
 )
 
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		/* Not our probes, not checked*/ //DependencyToolUpdates,
+		DependencyToolUpdates,
 		CodeReviewChecks,
 	})
 }
