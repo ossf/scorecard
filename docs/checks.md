@@ -65,7 +65,7 @@ certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
 public history.
 
-Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmin`, `StrictStatusCheck` and `RequireCodeownerReview`. If
+Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmins`, `RequireLastPushApproval`, `RequiresStatusChecks` and `UpToDateBeforeMerge`. If
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
 Even so, we recommend using a non-admin token, which provides a thorough enough
@@ -102,7 +102,7 @@ commit.
 
 This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
-Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” are ignored.
+Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
 Tier 1 Requirements (3/10 points):
   - Prevent force push
@@ -110,19 +110,19 @@ Tier 1 Requirements (3/10 points):
   - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
-  - Required reviewers >=1
-  - For administrators: Last push review
-  - For administrators: Strict status checks (require branches to be up-to-date before merging)
+  - Require at least 1 reviewer for approval before merging
+  - For administrators: Require branch to be up to date before merging
+  - For administrators: Require approval of the most recent reviewable push
 
 Tier 3 Requirements (8/10 points):
-  - Status checks defined
+  - Require branch to pass at least 1 status check before merging
 
 Tier 4 Requirements (9/10 points):
-  - Required reviewers >= 2
+  - Require at least 2 reviewers for approval before merging
+  - Require review from code owners
 
 Tier 5 Requirements (10/10 points):
-  - For administrators: Dismiss stale reviews
-  - For administrators: Require CODEOWNER review
+  - For administrators: Dismiss stale reviews and approvals when new commits are pushed
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
@@ -677,6 +677,6 @@ This check determines whether the webhook defined in the repository has a token 
 
 **Remediation steps**
 - Check whether your service supports token authentication.
-- If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook)
-- If there is no support for token authentication, consider implementing it by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
+- If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
+- If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
 
