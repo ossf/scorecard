@@ -1,6 +1,6 @@
 // © 2023 Nokia
-// Licensed under the Apache License 2.0
-// SPDX-License-Identifier: Apache-2.0
+// Licensed under the BSD 3 Clause license
+// SPDX-License-Identifier: BSD-3-Clause
 
 package codeReviewTwoReviewers
 
