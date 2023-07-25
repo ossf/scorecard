@@ -42,7 +42,7 @@ type rateLimitTransport struct {
 	innerTransport http.RoundTripper
 }
 
-// Roundtrip handles caching and ratelimiting of responses from GitHub.
+// RoundTrip handles caching and rate-limiting of responses from GitHub.
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {

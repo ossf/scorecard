@@ -1,6 +1,6 @@
 # OpenSSF Scorecard
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5621/badge)](https://bestpractices.coreinfrastructure.org/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
@@ -154,12 +154,12 @@ in the Scorecard GitHub Action setting.
 
 Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecard GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
-hard work. This badge also auto-updates for every change made to the repository.
+hard work. This badge also auto-updates for every change made to the repository. See more details on [this OSSF blogpost](https://openssf.org/blog/2022/09/08/show-off-your-security-score-announcing-scorecards-badges/).
+
 To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
-[![OpenSSF
-Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo})
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://securityscorecards.dev/viewer/?uri=github.com/{owner}/{repo})
 ```
 
 ### Scorecard Command Line Interface
@@ -467,7 +467,7 @@ Name        | Description                               | Risk Level | Token Req
 [Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                                           | High | PAT, GITHUB_TOKEN   | Validating |
 [Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   | Unsupported |
 [Vulnerabilities](docs/checks.md#vulnerabilities)               | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).                                                                                                                                                                                                                                      | High | PAT, GITHUB_TOKEN   | Validating |
-[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                                                                      | High | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
+[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                                                                      | Critical | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
 
 ### Detailed Checks Documentation
 

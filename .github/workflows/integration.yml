@@ -23,6 +23,9 @@ on:
 permissions:
   contents: read
 
+env:
+  GO_VERSION_FILE: go.mod # no good way of getting a mutual version between go.mod and tools/go.mod
+
 jobs:
   approve:
     runs-on: ubuntu-latest
@@ -41,41 +44,40 @@ jobs:
     needs: [approve]
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v1
+        uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845 # v2.4.1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-      - name: pull_request actions/checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v2.3.4
+      - name: Clone the code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: setup-go
-        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+      - name: Setup Go
+        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v4.0.1
         with:
-          go-version: '1.19'
+          go-version-file: ${{ env.GO_VERSION_FILE }}
           check-latest: true
+          cache: false # we manually manage caches below
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+      - name: Cache builds
+        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-tests-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tests-
 
       - name: Prepare test env
         run: |
             go mod download
 
-      - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-gitlab
-
-      - name: codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
-        with:
-         files: ./e2e-coverage.out
-         verbose: true
-
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # v2.8.3
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -85,7 +87,7 @@ jobs:
           command: make e2e-gh-token
 
       - name: codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
         with:
          files: "*e2e-coverage.out"
          verbose: true
