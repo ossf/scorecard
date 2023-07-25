@@ -16,6 +16,8 @@ package gitlabrepo
 
 import (
 	"context"
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -34,6 +36,16 @@ var _ = Describe("E2E TEST: gitlabrepo.ListProgrammingLanguages", func() {
 			programmingLang, err := client.ListProgrammingLanguages()
 			Expect(err).Should(BeNil())
 			Expect(programmingLang).ShouldNot(BeNil())
+			// Check for the presence of some languages
+			isPythonPresent := false
+			for _, lang := range programmingLang {
+				// compare case insensitive
+				if strings.EqualFold(string(lang.Name), "Python") {
+					isPythonPresent = true
+					break
+				}
+			}
+			Expect(isPythonPresent).Should(BeTrue())
 		})
 		It("Should return no programming languages repo with no code", func() {
 			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/scorecard-test-branches")
