@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
 //go:embed *.yml
@@ -40,15 +39,15 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	for i := range changesets {
 		data := &changesets[i]
 		if data.Author.Login == "" {
-			return utils.AuthorNotFound(findings, probeID, fs)
+			return authorNotFound(findings, probeID, fs)
 		}
 		reviewersList := make([]string, len(data.Reviews))
 		for i := range data.Reviews {
 			reviewersList[i] = data.Reviews[i].Author.Login
 		}
-		numReviewers := utils.UniqueReviewers(data.Author.Login, reviewersList)
+		numReviewers := uniqueReviewers(data.Author.Login, reviewersList)
 		if numReviewers == noReviewerFound {
-			return utils.ReviewerNotFound(findings, probeID, fs)
+			return reviewerNotFound(findings, probeID, fs)
 		} else if i == 0 || numReviewers < leastFoundReviewers {
 			leastFoundReviewers = numReviewers
 		}
@@ -70,3 +69,42 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	}
 	return findings, probeID, nil
 }
+
+func uniqueReviewers(authorLogin string, reviewers []string) int {
+	uniqueReviewers := 0
+	for i := range reviewers {
+		duplicateCount := 0
+		if (reviewers[i] == "") {
+			return -1
+		}
+		for j := range reviewers {
+			if reviewers[j] == reviewers[i] && j > i {
+				duplicateCount++
+			}
+		}
+		if reviewers[i] != authorLogin && duplicateCount == 0 {
+			uniqueReviewers++
+		}
+	}
+	return uniqueReviewers
+}
+
+func authorNotFound(findings []finding.Finding, probeID string,
+	fs embed.FS) ([]finding.Finding, string, error) {
+	f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the author of a changeset."), nil)
+	if err != nil {
+		return nil, probeID, fmt.Errorf("create finding: %w", err)
+	}
+	findings = append(findings, *f)
+	return findings, probeID, nil
+}
+
+func reviewerNotFound(findings []finding.Finding, probeID string,
+	fs embed.FS) ([]finding.Finding, string, error) {
+		f, err := finding.NewNegative(fs, probeID, fmt.Sprintf("Could not retrieve reviewers of a changeset."), nil)
+		if err != nil {
+			return nil, probeID, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, probeID, nil
+	}
