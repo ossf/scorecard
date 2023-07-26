@@ -7,10 +7,6 @@ require (
 	github.com/golangci/golangci-lint v1.53.3
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.14.1
-<<<<<<< HEAD
-=======
-
->>>>>>> c0cb1a766374dab5c5161f857db5aefc6b474f11
 	github.com/goreleaser/goreleaser v1.19.2
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.11.0
@@ -49,11 +45,7 @@ require (
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.0.0 // indirect
-<<<<<<< HEAD
 	github.com/BurntSushi/toml v1.3.2 // indirect
-=======
-  github.com/BurntSushi/toml v1.3.2 // indirect
->>>>>>> c0cb1a766374dab5c5161f857db5aefc6b474f11
 	github.com/Djarvur/go-err113 v0.0.0-20210108212216-aea10b59be24 // indirect
 	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.3.0 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
