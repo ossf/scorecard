@@ -100,6 +100,12 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	if err != nil {
 		panic(err)
 	}
+
+	ctx, err = tag.New(ctx, tag.Upsert(stats.RepoHost, r.CheckRequest.Repo.Host()))
+	if err != nil {
+		panic(err)
+	}
+
 	startTime := time.Now()
 
 	var res CheckResult
