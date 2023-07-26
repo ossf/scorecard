@@ -2,6 +2,7 @@
 # Licensed under the Apache License 2.0
 # SPDX-License-Identifier: Apache-2.0
 
+
 id: codeApproved
 short: Check that all recent changesets have been approved by someone who is not the author of the changeset.
 motivation: >
