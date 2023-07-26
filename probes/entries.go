@@ -40,7 +40,7 @@ var (
 		toolPyUpInstalled.Run,
 		toolSonatypeLiftInstalled.Run,
 	}
-	CodeReviewChecks = []ProbeImpl {
+	CodeReview = []ProbeImpl {
 		codeApproved.Run,
 		codeReviewed.Run,
 		codeReviewTwoReviewers.Run,
@@ -51,7 +51,7 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
-		CodeReviewChecks,
+		CodeReview,
 	})
 }
 
