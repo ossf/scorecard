@@ -23,6 +23,6 @@ var (
 	ErrorName = tag.MustNewKey("errorName")
 	// RequestTag is the tag key for the request type.
 	RequestTag = tag.MustNewKey("requestTag")
-	// RepoHost is the tag key for the host of the repository being scanned
+	// RepoHost is the tag key for the host of the repository being scanned.
 	RepoHost = tag.MustNewKey("repoHost")
 )
