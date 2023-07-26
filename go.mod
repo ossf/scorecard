@@ -10,7 +10,7 @@ require (
 require (
 	cloud.google.com/go/bigquery v1.52.0
 	cloud.google.com/go/monitoring v1.15.1 // indirect
-	cloud.google.com/go/pubsub v1.32.0
+	cloud.google.com/go/pubsub v1.33.0
 	cloud.google.com/go/trace v1.10.1 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
