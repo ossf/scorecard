@@ -98,12 +98,12 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 
 	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
-		panic(err)
+		r.CheckRequest.Dlogger.Debug(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
 	}
 
 	ctx, err = tag.New(ctx, tag.Upsert(stats.RepoHost, r.CheckRequest.Repo.Host()))
 	if err != nil {
-		panic(err)
+		r.CheckRequest.Dlogger.Debug(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
 	}
 
 	startTime := time.Now()
