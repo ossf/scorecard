@@ -107,4 +107,4 @@ func reviewerNotFound(findings []finding.Finding, probeID string,
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	}
+}
