@@ -178,6 +178,10 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
+	if client.repourl.commitSHA != clients.HeadSHA {
+		//nolint:lll
+		fmt.Fprintln(os.Stderr, "Scorecard may be missing merge requests when running on non-HEAD of a GitLab repo. Code-Review scores may be lower.")
+	}
 	// Get commits from REST API
 	commitsRaw, err := client.commits.listRawCommits()
 	if err != nil {
