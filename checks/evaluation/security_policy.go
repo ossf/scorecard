@@ -18,9 +18,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 )
 
@@ -28,7 +28,7 @@ import (
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
 	// We have 5 unique probes, each should have a finding.
 	expectedProbes := []string{
-		securityPolicyContainsDisclosure.Probe, securityPolicyContainsLinks.Probe,
+		securityPolicyContainsVulnerabilityDisclosure.Probe, securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
 		securityPolicyPresent.Probe,
 	}
@@ -43,7 +43,7 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
-			case securityPolicyContainsDisclosure.Probe:
+			case securityPolicyContainsVulnerabilityDisclosure.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
 			case securityPolicyContainsLinks.Probe:
 				score += scoreProbeOnce(f.Probe, m, 6)
