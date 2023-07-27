@@ -20,14 +20,15 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	"github.com/ossf/scorecard/v4/probes/utils/fuzzing"
 )
 
 //go:embed *.yml
 var fs embed.FS
-var probe = "fuzzedWithPropertyBasedJavascript"
+
+const Probe = "fuzzedWithPropertyBasedJavascript"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	//nolint:wrapcheck
-	return utils.FuzzerRun(raw, fs, probe, "propertyBasedJavascript")
+	return fuzzing.FuzzerRun(raw, fs, Probe, "propertyBasedJavascript")
 }

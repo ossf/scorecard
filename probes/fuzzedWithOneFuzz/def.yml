@@ -18,10 +18,10 @@ motivation: >
   Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data into a program to expose bugs.
   Regular fuzzing is important to detect vulnerabilities that may be exploited by others, especially since attackers can also use fuzzing to find the same flaws.
 implementation: >
- The implementation checks if the command 'onefuzz' is present in the source code files.
+ The implementation checks if the file '.onefuzz' is present in the source code files.
 outcome:
-  - If commands are found, each finding is returned with OutcomePositive (1).
-  - If no command is detected, one finding with OutcomeNegative (0) is returned.
+  - If the file is found, one finding is returned with OutcomePositive (1).
+  - If the file is not found, one finding with OutcomeNegative (0) is returned.
 remediation:
   effort: High
   text:

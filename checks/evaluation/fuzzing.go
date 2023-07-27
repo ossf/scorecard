@@ -18,6 +18,13 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
@@ -26,9 +33,9 @@ func Fuzzing(name string,
 ) checker.CheckResult {
 	// We have 7 unique probes, each should have a finding.
 	expectedProbes := []string{
-		"fuzzedWithClusterFuzzLite", "fuzzedWithGoNative", "fuzzedWithOneFuzz",
-		"fuzzedWithOSSFuzz", "fuzzedWithPropertyBasedHaskell", "fuzzedWithPropertyBasedJavascript",
-		"fuzzedWithPropertyBasedTypescript",
+		fuzzedWithClusterFuzzLite.Probe, fuzzedWithGoNative.Probe, fuzzedWithOneFuzz.Probe,
+		fuzzedWithOSSFuzz.Probe, fuzzedWithPropertyBasedHaskell.Probe, fuzzedWithPropertyBasedJavascript.Probe,
+		fuzzedWithPropertyBasedTypescript.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
