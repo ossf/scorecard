@@ -109,6 +109,8 @@ validate-projects: ## Validates ./cron/internal/data/projects.csv
 validate-projects: ./cron/internal/data/projects.csv | build-validate-script
 	# Validate ./cron/internal/data/projects.csv
 	./cron/internal/data/validate/validate ./cron/internal/data/projects.csv
+	./cron/internal/data/validate/validate ./cron/internal/data/gitlab-projects.csv
+	./cron/internal/data/validate/validate ./cron/internal/data/gitlab-projects-releasetest.csv
 
 tree-status: | all-targets-update-dependencies ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
