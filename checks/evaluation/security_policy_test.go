@@ -34,7 +34,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "missing findings links",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -54,7 +54,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "invalid probe name",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -82,7 +82,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "file found only",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -106,7 +106,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "file not found with positive probes",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomePositive,
 				},
 				{
@@ -130,7 +130,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "file found with no disclosure and text",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -154,7 +154,7 @@ func TestSecurityPolicy(t *testing.T) {
 			name: "file found all positive",
 			findings: []finding.Finding{
 				{
-					Probe:   "securityPolicyContainsDisclosure",
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
 					Outcome: finding.OutcomePositive,
 				},
 				{
