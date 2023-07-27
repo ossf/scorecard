@@ -178,10 +178,6 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {
-	if client.repourl.commitSHA != clients.HeadSHA {
-		//nolint:lll
-		fmt.Fprintln(os.Stderr, "Scorecard may be missing merge requests when running on non-HEAD of a GitLab repo. Code-Review scores may be lower.")
-	}
 	// Get commits from REST API
 	commitsRaw, err := client.commits.listRawCommits()
 	if err != nil {
@@ -193,6 +189,8 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
 	// are within them without making a REST call for each commit (~30 by default)
 	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
+	// TODO(#3193): Fix the way graphql retrieves merge details to more closely
+	// line up with commits from listRawCommits
 	mrDetails, err := client.graphql.getMergeRequestsDetail(before)
 	if err != nil {
 		return []clients.Commit{}, err
