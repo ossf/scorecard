@@ -208,7 +208,10 @@ func ExperimentalFromJSON2(r io.Reader) (ScorecardResult, error) {
 			Name:   check.Name,
 			Score:  check.Score,
 			Reason: check.Reason,
-			// TODO details
+		}
+		cr.Details = make([]checker.CheckDetail, 0, len(check.Details))
+		for _, detail := range check.Details {
+			cr.Details = append(cr.Details, stringToDetail(detail))
 		}
 		sr.Checks = append(sr.Checks, cr)
 	}
