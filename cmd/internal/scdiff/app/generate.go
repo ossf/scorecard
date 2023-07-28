@@ -17,6 +17,7 @@ package app
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,10 +30,13 @@ import (
 func init() {
 	rootCmd.AddCommand(generateCmd)
 	generateCmd.PersistentFlags().StringVarP(&repoFile, "repos", "r", "", "path to newline-delimited repo file")
+	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "", "write to file instead of stdout")
 }
 
 var (
-	repoFile string
+	repoFile   string
+	outputFile string
+	output     io.Writer = os.Stdout
 
 	generateCmd = &cobra.Command{
 		Use:   "generate [flags] repofile",
@@ -43,6 +47,13 @@ var (
 			if err != nil {
 				return fmt.Errorf("unable to open repo file: %w", err)
 			}
+			if outputFile != "" {
+				of, err := os.Create(outputFile)
+				if err != nil {
+					return fmt.Errorf("unable to create output file: %w", err)
+				}
+				output = of
+			}
 			scorecardRunner := runner.New()
 			scanner := bufio.NewScanner(f)
 			for scanner.Scan() {
@@ -50,8 +61,8 @@ var (
 				if err != nil {
 					return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
 				}
-				// TODO output it to a file, preferably in pretty printed json
-				err = format.JSON(&results, os.Stdout)
+				// TODO pretty print?
+				err = format.JSON(&results, output)
 				if err != nil {
 					return fmt.Errorf("formatting results: %w", err)
 				}
