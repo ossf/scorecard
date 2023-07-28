@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/pkg"
