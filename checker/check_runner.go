@@ -96,14 +96,21 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
 	}
 
+	l := NewLogger()
 	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
 	if err != nil {
-		panic(err)
+		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
 	}
+
+	ctx, err = tag.New(ctx, tag.Upsert(stats.RepoHost, r.CheckRequest.Repo.Host()))
+	if err != nil {
+		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
+	}
+
 	startTime := time.Now()
 
 	var res CheckResult
-	l := NewLogger()
+	l = NewLogger()
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
