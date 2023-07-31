@@ -50,7 +50,8 @@ var (
 				if err != nil {
 					return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
 				}
-				err = format.JSON(&results)
+				// TODO output it to a file, preferably in pretty printed json
+				err = format.JSON(&results, os.Stdout)
 				if err != nil {
 					return fmt.Errorf("formatting results: %w", err)
 				}
