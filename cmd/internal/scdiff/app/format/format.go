@@ -15,20 +15,46 @@
 package format
 
 import (
-	"os"
+	"io"
+	"sort"
+	"time"
 
 	"github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
+const logLevel = log.DefaultLevel
+
+func normalize(r *pkg.ScorecardResult) {
+	if r == nil {
+		return
+	}
+
+	// these fields will change run-to-run, and aren't indicative of behavior changes.
+	r.Repo.CommitSHA = ""
+	r.Scorecard = pkg.ScorecardInfo{}
+	r.Date = time.Time{}
+
+	sort.Slice(r.Checks, func(i, j int) bool {
+		return r.Checks[i].Name < r.Checks[j].Name
+	})
+
+	for i := range r.Checks {
+		check := &r.Checks[i]
+		sort.Slice(check.Details, func(i, j int) bool {
+			return pkg.DetailToString(&check.Details[i], logLevel) < pkg.DetailToString(&check.Details[j], logLevel)
+		})
+	}
+}
+
 //nolint:wrapcheck
-func JSON(r *pkg.ScorecardResult) error {
+func JSON(r *pkg.ScorecardResult, w io.Writer) error {
 	const details = true
 	docs, err := checks.Read()
 	if err != nil {
 		return err
 	}
-	// TODO standardize the input, and output it to a file
-	return r.AsJSON2(details, log.DefaultLevel, docs, os.Stdout)
+	normalize(r)
+	return r.AsJSON2(details, logLevel, docs, w)
 }
