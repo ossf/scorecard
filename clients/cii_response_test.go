@@ -55,7 +55,7 @@ func TestParseBadgeResponseFromJSON(t *testing.T) {
 			t.Parallel()
 			got, err := ParseBadgeResponseFromJSON(tt.args.data)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseBadgeResponseFromJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("ParseBadgeResponseFromJSON() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
@@ -66,6 +66,7 @@ func TestParseBadgeResponseFromJSON(t *testing.T) {
 }
 
 func TestBadgeResponse_AsJSON(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		BadgeLevel string
 	}
