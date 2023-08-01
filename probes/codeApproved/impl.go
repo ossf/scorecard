@@ -40,15 +40,19 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
+	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
 	var approvedReviews = 0
-	changesets := reviewData.DefaultBranchChangesets
+	var numBotAuthors = 0
 	var numChangesets = len(changesets)
 	if numChangesets == 0 {
-		return nil, probeID, utils.NoChangesetsErr
+		return nil, probeID, fmt.Errorf("%w", utils.NoChangesetsErr)
 	}
 	for x := range changesets {
 		data := &changesets[x]
+		if data.Author.IsBot == true {
+			numBotAuthors += 1
+		}
 		for y := range data.Reviews {
 			if data.Reviews[y].State == "APPROVED" && data.Reviews[y].Author.Login != data.Author.Login {
 				approvedReviews += 1
@@ -56,7 +60,16 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			}
 		}
 	}
-	if approvedReviews >= numChangesets {
+	if numBotAuthors == numChangesets {
+		// returns a NotAvailable outcome if all changesets were authored by bots
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("All changesets authored by bot(s)."), nil)
+		if err != nil {
+			return nil, probeID, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, probeID, nil
+	} else if approvedReviews >= numChangesets {
+		// returns PositiveOutcome if all changesets have been approved
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets approved (%v out of %v).", approvedReviews, numChangesets),
 			nil, positiveOutcome)
 		if err != nil {
@@ -64,6 +77,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		}
 		findings = append(findings, *f)
 	} else {
+		// returns NegativeOutcome if not all changesets were approved
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. Found %v approvals among %v changesets.", approvedReviews, numChangesets),
 			nil, negativeOutcome)
 		if err != nil {

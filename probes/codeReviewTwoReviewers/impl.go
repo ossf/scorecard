@@ -17,7 +17,9 @@ package codeReviewTwoReviewers
 import (
 	"embed"
 	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/utils"
 )
@@ -44,30 +46,50 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
-	var findings []finding.Finding
-	leastFoundReviewers := 0
 	changesets := reviewData.DefaultBranchChangesets
+	var findings []finding.Finding
+	var leastFoundReviewers = 0
 	var numChangesets = len(changesets)
+	var numBotAuthors = 0
 	if numChangesets == 0 {
-		return nil, probeID, utils.NoChangesetsErr
+		return nil, probeID, fmt.Errorf("%w", utils.NoChangesetsErr)
 	}
+	// Loops through all changesets, if an author login cannot be retrieved: returns OutcomeNotAvailabe.
+	// leastFoundReviewers will be the lowest number of unique reviewers found among the changesets.
 	for i := range changesets {
 		data := &changesets[i]
 		if data.Author.Login == "" {
-			return authorNotFound(findings, probeID, fs)
+			f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the author of a changeset."), nil)
+			if err != nil {
+				return nil, probeID, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
+			return findings, probeID, nil
+		} else if data.Author.IsBot == true {
+			numBotAuthors += 1
 		}
-		reviewersList := make([]string, len(data.Reviews))
-		for i := range data.Reviews {
-			reviewersList[i] = data.Reviews[i].Author.Login
-		}
-		numReviewers := uniqueReviewers(data.Author.Login, reviewersList)
-		if numReviewers == noReviewerFound {
-			return reviewerNotFound(findings, probeID, fs)
+		numReviewers, err := uniqueReviewers(data.Author.Login, data.Reviews)
+		if err != nil {
+			f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the reviewer of a changeset."), nil)
+			if err != nil {
+				return nil, probeID, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
+			return findings, probeID, nil
 		} else if i == 0 || numReviewers < leastFoundReviewers {
 			leastFoundReviewers = numReviewers
 		}
 	}
-	if leastFoundReviewers >= minimumReviewers {
+	if numBotAuthors == numChangesets {
+		// returns a NotAvailable outcome if all changesets were authored by bots
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("All changesets authored by bot(s)."), nil)
+		if err != nil {
+			return nil, probeID, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, probeID, nil
+	} else if leastFoundReviewers >= minimumReviewers {
+		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
 			nil, positiveOutcome)
 		if err != nil {
@@ -75,6 +97,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		}
 		findings = append(findings, *f)
 	} else {
+		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
 			nil, negativeOutcome)
 		if err != nil {
@@ -85,41 +108,27 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	return findings, probeID, nil
 }
 
-func uniqueReviewers(authorLogin string, reviewers []string) int {
+// Loops through the reviews of a changeset, counting how many unique user logins are present.
+// Reviews performed by the author don't count, and an error is returned if a reviewer login can't be retrieved.
+func uniqueReviewers(authorLogin string, reviews []clients.Review) (int, error) {
+	reviewersList := make([]string, len(reviews))
+	for i := range reviewersList {
+		reviewersList[i] = reviews[i].Author.Login
+	}
 	uniqueReviewers := 0
-	for i := range reviewers {
+	for i := range reviewersList {
 		duplicateCount := 0
-		if (reviewers[i] == "") {
-			return -1
+		if reviewersList[i] == "" {
+			return uniqueReviewers, fmt.Errorf("could not find the login of a reviewer")
 		}
-		for j := range reviewers {
-			if reviewers[j] == reviewers[i] && j > i {
+		for j := range reviewersList {
+			if reviewersList[j] == reviewersList[i] && j > i {
 				duplicateCount++
 			}
 		}
-		if reviewers[i] != authorLogin && duplicateCount == 0 {
+		if reviewersList[i] != authorLogin && duplicateCount == 0 {
 			uniqueReviewers++
 		}
 	}
-	return uniqueReviewers
-}
-
-func authorNotFound(findings []finding.Finding, probeID string,
-	fs embed.FS) ([]finding.Finding, string, error) {
-	f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the author of a changeset."), nil)
-	if err != nil {
-		return nil, probeID, fmt.Errorf("create finding: %w", err)
-	}
-	findings = append(findings, *f)
-	return findings, probeID, nil
-}
-
-func reviewerNotFound(findings []finding.Finding, probeID string,
-	fs embed.FS) ([]finding.Finding, string, error) {
-		f, err := finding.NewNegative(fs, probeID, fmt.Sprintf("Could not retrieve reviewers of a changeset."), nil)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, probeID, nil
+	return uniqueReviewers, nil
 }

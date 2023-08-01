@@ -35,25 +35,38 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 /*
 ** Looks through the data and validates that each changeset has been approved at least once.
-*/
+ */
 
 func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
+	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
 	var numReviews = 0
-	changesets := reviewData.DefaultBranchChangesets
+	var numBotAuthors = 0
 	var numChangesets = len(changesets)
 	if numChangesets == 0 {
-		return nil, probeID, utils.NoChangesetsErr
+		return nil, probeID, fmt.Errorf("%w", utils.NoChangesetsErr)
 	}
 	for x := range changesets {
 		data := &changesets[x]
+		if data.Author.IsBot == true {
+			numBotAuthors += 1
+		}
 		if len(data.Reviews) > 0 {
 			numReviews += 1
 		}
 	}
-	if numReviews >= numChangesets {
+	if numBotAuthors == numChangesets {
+		// returns a NotAvailable outcome if all changesets were authored by bots
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("All changesets authored by bot(s)."), nil)
+		if err != nil {
+			return nil, probeID, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, probeID, nil
+	} else if numReviews >= numChangesets {
+		// returns PositiveOutcome if all changesets had review activity
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity (%v out of %v).", numReviews, numChangesets),
 			nil, positiveOutcome)
 		if err != nil {
@@ -61,6 +74,7 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		}
 		findings = append(findings, *f)
 	} else {
+		// returns NegativeOutcome if some changesets did not have review activity
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. Found %v reviews among %v changesets.", numReviews, numChangesets),
 			nil, negativeOutcome)
 		if err != nil {
