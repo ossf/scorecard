@@ -20,6 +20,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
 //go:embed *.yml
@@ -34,7 +35,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 /*
 ** Looks through the data and validates that each changeset has been approved at least once.
-*/
+ */
 
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
@@ -43,6 +44,9 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var approvedReviews = 0
 	changesets := reviewData.DefaultBranchChangesets
 	var numChangesets = len(changesets)
+	if numChangesets == 0 {
+		return nil, probeID, utils.NoChangesetsErr
+	}
 	for x := range changesets {
 		data := &changesets[x]
 		for y := range data.Reviews {

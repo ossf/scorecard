@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
 //go:embed *.yml
@@ -46,6 +47,10 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	var findings []finding.Finding
 	leastFoundReviewers := 0
 	changesets := reviewData.DefaultBranchChangesets
+	var numChangesets = len(changesets)
+	if numChangesets == 0 {
+		return nil, probeID, utils.NoChangesetsErr
+	}
 	for i := range changesets {
 		data := &changesets[i]
 		if data.Author.Login == "" {
