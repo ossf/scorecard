@@ -16,6 +16,7 @@ package checks
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -24,6 +25,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -32,6 +36,7 @@ func TestCodereview(t *testing.T) {
 	t.Parallel()
 	//fieldalignment lint issue. Ignoring it as it is not important for this test.
 	//nolint
+
 	tests := []struct {
 		err       error
 		name      string
@@ -275,6 +280,195 @@ func TestCodereview(t *testing.T) {
 			},
 		},
 	}
+	probeTests := []struct {
+		name             string
+		rawResults       *checker.RawResults
+		err              error
+		expectedFindings []finding.Finding
+	}{
+		{
+			name: "no changesets",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{},
+				},
+			},
+			err:              fmt.Errorf("probe run failure"),
+			expectedFindings: nil,
+		},
+		{
+			name: "no reviews",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: "pedro"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "codeReviewed",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "codeReviewTwoReviewers",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+		},
+		{
+			name: "all authors are bots",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{
+										Login: "bot",
+										IsBot: true,
+									},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{
+								Login: "bot",
+								IsBot: true,
+							},
+						},
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha2",
+									Committer: clients.User{
+										Login: "bot",
+										IsBot: true,
+									},
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{
+								Login: "bot",
+								IsBot: true,
+							},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+				{
+					Probe:   "codeReviewed",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+				{
+					Probe:   "codeReviewTwoReviewers",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
+		},
+		{
+			name: "no approvals, reviewed once",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "codeReviewed",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "codeReviewTwoReviewers",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+		},
+		{
+			name: "reviewed and approved twice",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "APPROVED",
+								},
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "codeReviewed",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "codeReviewTwoReviewers",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+		},
+	}
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -302,6 +496,26 @@ func TestCodereview(t *testing.T) {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
 			}
 			ctrl.Finish()
+		})
+	}
+	for _, tt := range probeTests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			res, err := zrunner.Run(tt.rawResults, probes.CodeReview)
+			if err != nil && tt.err == nil {
+				t.Errorf("Uxpected error %v", err)
+			} else if tt.err != nil && err == nil {
+				t.Errorf("Expected error %v, got nil", tt.err)
+			} else if res == nil && err == nil {
+				t.Errorf("Probe(s) returned nil for both finding and error")
+			} else {
+				for i := range tt.expectedFindings {
+					if tt.expectedFindings[i].Outcome != res[i].Outcome {
+						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v", res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
+					}
+				}
+			}
 		})
 	}
 }
