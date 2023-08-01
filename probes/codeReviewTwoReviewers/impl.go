@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint:stylecheck
 package codeReviewTwoReviewers
 
 import (
@@ -29,7 +30,6 @@ var fs embed.FS
 
 const probe = "codeReviewTwoReviewers"
 const minimumReviewers = 2
-const noReviewerFound = -1
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
@@ -52,25 +52,25 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	var numChangesets = len(changesets)
 	var numBotAuthors = 0
 	if numChangesets == 0 {
-		return nil, probeID, fmt.Errorf("%w", utils.NoChangesetsErr)
+		return nil, probeID, utils.NoChangesetsErr
 	}
 	// Loops through all changesets, if an author login cannot be retrieved: returns OutcomeNotAvailabe.
 	// leastFoundReviewers will be the lowest number of unique reviewers found among the changesets.
 	for i := range changesets {
 		data := &changesets[i]
 		if data.Author.Login == "" {
-			f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the author of a changeset."), nil)
+			f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the author of a changeset.", nil)
 			if err != nil {
 				return nil, probeID, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
-		} else if data.Author.IsBot == true {
+		} else if data.Author.IsBot {
 			numBotAuthors += 1
 		}
 		numReviewers, err := uniqueReviewers(data.Author.Login, data.Reviews)
 		if err != nil {
-			f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Could not retrieve the reviewer of a changeset."), nil)
+			f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the reviewer of a changeset.", nil)
 			if err != nil {
 				return nil, probeID, fmt.Errorf("create finding: %w", err)
 			}
@@ -82,7 +82,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	}
 	if numBotAuthors == numChangesets {
 		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("All changesets authored by bot(s)."), nil)
+		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

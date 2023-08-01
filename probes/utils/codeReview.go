@@ -14,4 +14,6 @@
 
 package utils
 
-var NoChangesetsErr = "no changesets found"
+import "fmt"
+
+var NoChangesetsErr = fmt.Errorf("no changesets found")

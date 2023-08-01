@@ -31,6 +31,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
+var probeReturnedError = errors.New("probe run failure")
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
@@ -293,7 +294,7 @@ func TestCodereview(t *testing.T) {
 					DefaultBranchChangesets: []checker.Changeset{},
 				},
 			},
-			err:              fmt.Errorf("probe run failure"),
+			err:              probeReturnedError,
 			expectedFindings: nil,
 		},
 		{

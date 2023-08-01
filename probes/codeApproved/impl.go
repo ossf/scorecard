@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// nolint:stylecheck
 package codeApproved
 
 import (
@@ -46,11 +47,11 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var numBotAuthors = 0
 	var numChangesets = len(changesets)
 	if numChangesets == 0 {
-		return nil, probeID, fmt.Errorf("%w", utils.NoChangesetsErr)
+		return nil, probeID, utils.NoChangesetsErr
 	}
 	for x := range changesets {
 		data := &changesets[x]
-		if data.Author.IsBot == true {
+		if data.Author.IsBot {
 			numBotAuthors += 1
 		}
 		for y := range data.Reviews {
@@ -62,7 +63,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	}
 	if numBotAuthors == numChangesets {
 		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("All changesets authored by bot(s)."), nil)
+		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
