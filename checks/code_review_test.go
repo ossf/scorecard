@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint
+// nolint
 package checks
 
 import (
@@ -32,6 +32,7 @@ import (
 )
 
 var probeReturnedError = errors.New("probe run failure")
+
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
@@ -337,16 +338,16 @@ func TestCodereview(t *testing.T) {
 							ReviewPlatform: checker.ReviewPlatformGitHub,
 							Commits: []clients.Commit{
 								{
-									SHA:       "sha",
+									SHA: "sha",
 									Committer: clients.User{
 										Login: "bot",
 										IsBot: true,
 									},
-									Message:   "Title\nPiperOrigin-RevId: 444529962",
+									Message: "Title\nPiperOrigin-RevId: 444529962",
 								},
 							},
 							Reviews: []clients.Review{},
-							Author:  clients.User{
+							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
 							},
@@ -355,7 +356,7 @@ func TestCodereview(t *testing.T) {
 							ReviewPlatform: checker.ReviewPlatformGitHub,
 							Commits: []clients.Commit{
 								{
-									SHA:       "sha2",
+									SHA: "sha2",
 									Committer: clients.User{
 										Login: "bot",
 										IsBot: true,
@@ -363,7 +364,7 @@ func TestCodereview(t *testing.T) {
 								},
 							},
 							Reviews: []clients.Review{},
-							Author:  clients.User{
+							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
 							},
@@ -414,6 +415,58 @@ func TestCodereview(t *testing.T) {
 				{
 					Probe:   "codeApproved",
 					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "codeReviewed",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "codeReviewTwoReviewers",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+		},
+		{
+			name: "four reviewers, only one unique",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "APPROVED",
+								},
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "APPROVED",
+								},
+								{
+									Author: &clients.User{Login: "kratos"},
+									State:  "APPROVED",
+								},
+								{
+									Author: &clients.User{Login: "kratos"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomePositive,
 				},
 				{
 					Probe:   "codeReviewed",
@@ -514,7 +567,7 @@ func TestCodereview(t *testing.T) {
 				for i := range tt.expectedFindings {
 					if tt.expectedFindings[i].Outcome != res[i].Outcome {
 						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v",
-						res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
+							res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
 					}
 				}
 			}
