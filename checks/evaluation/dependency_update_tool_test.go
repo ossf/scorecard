@@ -39,6 +39,18 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolDependabotInstalled",
 					Outcome: finding.OutcomePositive,
 				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolSonatypeLiftInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
 			want: checker.CheckResult{
 				Score: 10,
@@ -48,8 +60,20 @@ func TestDependencyUpdateTool(t *testing.T) {
 			name: "renovate",
 			findings: []finding.Finding{
 				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "toolSonatypeLiftInstalled",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
 			want: checker.CheckResult{
@@ -60,8 +84,20 @@ func TestDependencyUpdateTool(t *testing.T) {
 			name: "pyup",
 			findings: []finding.Finding{
 				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
 					Probe:   "toolPyUpInstalled",
 					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolSonatypeLiftInstalled",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
 			want: checker.CheckResult{
@@ -72,7 +108,19 @@ func TestDependencyUpdateTool(t *testing.T) {
 			name: "sonatype",
 			findings: []finding.Finding{
 				{
-					Probe:   "toolSonatypeInstalled",
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolSonatypeLiftInstalled",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -107,8 +155,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 		{
 			name: "empty tool list",
 			want: checker.CheckResult{
-				Score: 0,
-				Error: nil,
+				Score: -1,
 			},
 		},
 	}

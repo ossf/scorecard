@@ -45,7 +45,7 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	pRawResults := rawResults(c)
+	pRawResults := getRawResults(c)
 	pRawResults.DependencyUpdateToolResults = rawData
 
 	// Evaluate the probes.

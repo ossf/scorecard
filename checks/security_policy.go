@@ -45,7 +45,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	pRawResults := rawResults(c)
+	pRawResults := getRawResults(c)
 	pRawResults.SecurityPolicyResults = rawData
 
 	// Evaluate the probes.

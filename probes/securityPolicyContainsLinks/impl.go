@@ -31,7 +31,7 @@ const Probe = "securityPolicyContainsLinks"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
 	}
 	var findings []finding.Finding
 	policies := raw.SecurityPolicyResults.PolicyFiles

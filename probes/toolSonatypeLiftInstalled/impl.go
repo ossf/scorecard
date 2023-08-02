@@ -41,7 +41,7 @@ func (t sonatypeLyft) Matches(tool *checker.Tool) bool {
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
 	}
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher sonatypeLyft

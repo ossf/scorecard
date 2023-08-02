@@ -18,4 +18,4 @@ import (
 	"errors"
 )
 
-var ErrorNil = errors.New("nil pointer")
+var ErrNil = errors.New("nil pointer")
