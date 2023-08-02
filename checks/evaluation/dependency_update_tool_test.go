@@ -144,7 +144,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "toolSonatypeInstalled",
+					Probe:   "toolSonatypeLiftInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 			},

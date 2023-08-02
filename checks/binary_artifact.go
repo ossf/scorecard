@@ -24,7 +24,7 @@ import (
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
-//nolint
+// nolint
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
