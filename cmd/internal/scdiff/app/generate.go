@@ -67,8 +67,9 @@ type scorecardRunner interface {
 	Run(repo string) (pkg.ScorecardResult, error)
 }
 
-func generate(scRunner scorecardRunner, input io.Reader, output io.Writer) error {
-	scanner := bufio.NewScanner(input)
+// Runs scorecard on each newline-delimited repo in repos, and writes the output
+func generate(scRunner scorecardRunner, repos io.Reader, output io.Writer) error {
+	scanner := bufio.NewScanner(repos)
 	for scanner.Scan() {
 		results, err := scRunner.Run(scanner.Text())
 		if err != nil {
