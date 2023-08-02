@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint
+//nolint
 package codeReviewTwoReviewers
 
 import (
@@ -123,4 +123,3 @@ func uniqueReviewers(changesetAuthor string, reviews []clients.Review) (int, err
 	}
 	return len(reviewersList), nil
 }
-
