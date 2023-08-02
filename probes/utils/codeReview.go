@@ -16,4 +16,5 @@ package utils
 
 import "fmt"
 
+// nolint:stylecheck
 var NoChangesetsErr = fmt.Errorf("no changesets found")
