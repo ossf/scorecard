@@ -37,15 +37,28 @@ func init() {
 var (
 	repoFile   string
 	outputFile string
-	output     io.Writer = os.Stdout
 
 	generateCmd = &cobra.Command{
 		Use:   "generate [flags] repofile",
 		Short: "Generate Scorecard results for diffing",
 		Long:  `Generate Scorecard results for diffing`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			input, err := os.Open(repoFile)
+			if err != nil {
+				return fmt.Errorf("unable to open repo file: %w", err)
+			}
+			defer input.Close()
+			var output io.Writer = os.Stdout
+			if outputFile != "" {
+				outputF, err := os.Create(outputFile)
+				if err != nil {
+					return fmt.Errorf("unable to create output file: %w", err)
+				}
+				defer outputF.Close()
+				output = outputF
+			}
 			r := runner.New()
-			return generate(&r)
+			return generate(&r, input, output)
 		},
 	}
 )
@@ -54,21 +67,10 @@ type scorecardRunner interface {
 	Run(repo string) (pkg.ScorecardResult, error)
 }
 
-func generate(scorecardRunner scorecardRunner) error {
-	f, err := os.Open(repoFile)
-	if err != nil {
-		return fmt.Errorf("unable to open repo file: %w", err)
-	}
-	if outputFile != "" {
-		of, err := os.Create(outputFile)
-		if err != nil {
-			return fmt.Errorf("unable to create output file: %w", err)
-		}
-		output = of
-	}
-	scanner := bufio.NewScanner(f)
+func generate(scRunner scorecardRunner, input io.Reader, output io.Writer) error {
+	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
-		results, err := scorecardRunner.Run(scanner.Text())
+		results, err := scRunner.Run(scanner.Text())
 		if err != nil {
 			return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
 		}

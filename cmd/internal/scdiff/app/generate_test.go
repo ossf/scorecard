@@ -17,7 +17,7 @@ package app
 import (
 	"bytes"
 	"errors"
-	"io"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -57,62 +57,45 @@ func (s stubRunner) Run(repo string) (pkg.ScorecardResult, error) {
 	}
 }
 
-func setInputFile(t *testing.T, file string) {
-	t.Helper()
-	old := repoFile
-	repoFile = file
-	t.Cleanup(func() { repoFile = old })
-}
-
-func setOutput(t *testing.T, w io.Writer) {
-	t.Helper()
-	old := output
-	output = w
-	t.Cleanup(func() { output = old })
-}
-
 func Test_generate(t *testing.T) {
 	var stubRunner stubRunner
 	tests := []struct {
-		name      string
-		inputFile string
-		nResults  int
-		wantErr   bool
+		name     string
+		input    string
+		nResults int
+		wantErr  bool
 	}{
 		{
-			name:      "iterates over repos",
-			inputFile: "testdata/twoRepos.txt",
-			nResults:  2,
-			wantErr:   false,
+			name: "iterates over repos",
+			input: `repoOne
+repoTwo`,
+			nResults: 2,
+			wantErr:  false,
 		},
 		{
-			name:      "repo will error",
-			inputFile: "testdata/willError.txt",
-			wantErr:   true,
+			name: "repo will error",
+			input: `validRepo
+errorRepo`,
+			wantErr: true,
 		},
 		{
-			name:      "non-existent input file",
-			inputFile: "testdata/doesNotExist.txt",
-			wantErr:   true,
-		},
-		{
-			name:      "output fails due to invalid check",
-			inputFile: "testdata/invalidCheck.txt",
-			wantErr:   true,
+			name: "output fails due to invalid check",
+			input: `validRepo
+badCheck`,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setInputFile(t, tt.inputFile)
-			var outputCounter resultCounter
-			setOutput(t, &outputCounter)
-			err := generate(stubRunner)
+			input := strings.NewReader(tt.input)
+			var output resultCounter
+			err := generate(stubRunner, input, &output)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("generate returned: %v, wanted err: %t", err, tt.wantErr)
 			}
 			if !tt.wantErr {
-				if outputCounter.lines != tt.nResults {
-					t.Errorf("got %d results, got %d", outputCounter.lines, tt.nResults)
+				if output.lines != tt.nResults {
+					t.Errorf("got %d results, got %d", output.lines, tt.nResults)
 				}
 			}
 		})

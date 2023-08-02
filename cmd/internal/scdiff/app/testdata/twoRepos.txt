@@ -1,2 +1,0 @@
-github.com/ossf/scorecard
-github.com/ossf/scorecard-action
