@@ -58,7 +58,7 @@ func (s stubRunner) Run(repo string) (pkg.ScorecardResult, error) {
 }
 
 func Test_generate(t *testing.T) {
-	var stubRunner stubRunner
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -85,8 +85,11 @@ badCheck`,
 			wantErr: true,
 		},
 	}
+	var stubRunner stubRunner
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			input := strings.NewReader(tt.input)
 			var output resultCounter
 			err := generate(stubRunner, input, &output)
