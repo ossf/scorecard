@@ -109,27 +109,18 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	return findings, probeID, nil
 }
 
-// Loops through the reviews of a changeset, counting how many unique user logins are present.
+// Loops through the reviews of a changeset, returning the number or unique user logins are present.
 // Reviews performed by the author don't count, and an error is returned if a reviewer login can't be retrieved.
-func uniqueReviewers(authorLogin string, reviews []clients.Review) (int, error) {
-	reviewersList := make([]string, len(reviews))
-	for i := range reviewersList {
-		reviewersList[i] = reviews[i].Author.Login
-	}
-	uniqueReviewers := 0
-	for i := range reviewersList {
-		duplicateCount := 0
-		if reviewersList[i] == "" {
-			return uniqueReviewers, reviewerLoginErr
+func uniqueReviewers(changesetAuthor string, reviews []clients.Review) (int, error) {
+	reviewersList := make(map[string]bool)
+	for i := range reviews {
+		if reviews[i].Author.Login == "" {
+			return 0, reviewerLoginErr
 		}
-		for j := range reviewersList {
-			if reviewersList[j] == reviewersList[i] && j > i {
-				duplicateCount++
-			}
-		}
-		if reviewersList[i] != authorLogin && duplicateCount == 0 {
-			uniqueReviewers++
+		if !reviewersList[reviews[i].Author.Login] && reviews[i].Author.Login != changesetAuthor {
+			reviewersList[reviews[i].Author.Login] = true
 		}
 	}
-	return uniqueReviewers, nil
+	return len(reviewersList), nil
 }
+
