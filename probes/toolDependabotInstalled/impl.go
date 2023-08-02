@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "toolDependabotInstalled"
+const Probe = "toolDependabotInstalled"
 
 type dependabot struct{}
 
@@ -48,7 +48,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	// Check whether Dependabot tool is installed on the repo,
 	// and create the corresponding findings.
 	//nolint:wrapcheck
-	return utils.ToolsRun(tools, fs, probe,
+	return utils.ToolsRun(tools, fs, Probe,
 		// Tool found will generate a positive result.
 		finding.OutcomePositive,
 		// Tool not found will generate a negative result.

@@ -28,8 +28,10 @@ import (
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
-		securityPolicyContainsVulnerabilityDisclosure.Probe, securityPolicyContainsLinks.Probe,
-		securityPolicyContainsText.Probe, securityPolicyPresent.Probe,
+		securityPolicyContainsVulnerabilityDisclosure.Probe,
+		securityPolicyContainsLinks.Probe,
+		securityPolicyContainsText.Probe,
+		securityPolicyPresent.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")

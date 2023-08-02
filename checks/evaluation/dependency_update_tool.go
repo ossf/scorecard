@@ -16,13 +16,30 @@ package evaluation
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
+	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
+	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
+	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
 // DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
 func DependencyUpdateTool(name string,
 	findings []finding.Finding,
 ) checker.CheckResult {
+	expectedProbes := []string{
+		toolDependabotInstalled.Probe,
+		toolPyUpInstalled.Probe,
+		toolRenovateInstalled.Probe,
+		toolSonatypeLiftInstalled.Probe,
+	}
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
+
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
