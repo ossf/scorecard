@@ -39,7 +39,7 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 	}
 
 	score := 0
-	m := make(map[string]bool
+	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
