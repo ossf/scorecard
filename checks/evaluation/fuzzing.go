@@ -33,8 +33,12 @@ func Fuzzing(name string,
 ) checker.CheckResult {
 	// We have 7 unique probes, each should have a finding.
 	expectedProbes := []string{
-		fuzzedWithClusterFuzzLite.Probe, fuzzedWithGoNative.Probe, fuzzedWithOneFuzz.Probe,
-		fuzzedWithOSSFuzz.Probe, fuzzedWithPropertyBasedHaskell.Probe, fuzzedWithPropertyBasedJavascript.Probe,
+		fuzzedWithClusterFuzzLite.Probe,
+		fuzzedWithGoNative.Probe,
+		fuzzedWithOneFuzz.Probe,
+		fuzzedWithOSSFuzz.Probe,
+		fuzzedWithPropertyBasedHaskell.Probe,
+		fuzzedWithPropertyBasedJavascript.Probe,
 		fuzzedWithPropertyBasedTypescript.Probe,
 	}
 

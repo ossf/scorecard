@@ -29,6 +29,9 @@ var fs embed.FS
 const Probe = "fuzzedWithPropertyBasedHaskell"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
+	}
 	//nolint:wrapcheck
-	return fuzzing.FuzzerRun(raw, fs, Probe, "propertyBasedHaskell")
+	return fuzzing.FuzzerRun(raw, fs, Probe, "HaskellPropertyBasedTesting")
 }

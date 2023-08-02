@@ -42,12 +42,11 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.FuzzingResults = rawData
-	}
+	pRawResults := rawResults(c)
+	c.RawResults.FuzzingResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, CheckFuzzing, probes.Fuzzing)
+	findings, err := evaluateProbes(c, pRawResults, CheckFuzzing, probes.Fuzzing)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
