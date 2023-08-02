@@ -40,7 +40,7 @@ func evaluateProbes(c *checker.CheckRequest, rawResults *checker.RawResults,
 	return findings, nil
 }
 
-// getRawResults returns a pointer to the raw reults in the CheckRequest
+// getRawResults returns a pointer to the raw results in the CheckRequest
 // if the pointer is not nil. Else, it creates a new raw result.
 func getRawResults(c *checker.CheckRequest) *checker.RawResults {
 	if c.RawResults != nil{
