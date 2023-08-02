@@ -40,7 +40,7 @@ func (t dependabot) Matches(tool *checker.Tool) bool {
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
-	if raw == nil{
+	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
 	}
 	tools := raw.DependencyUpdateToolResults.Tools

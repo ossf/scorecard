@@ -30,7 +30,7 @@ var fs embed.FS
 const Probe = "securityPolicyContainsText"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
-	if raw == nil{
+	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
 	}
 	var findings []finding.Finding

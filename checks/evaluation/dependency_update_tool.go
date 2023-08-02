@@ -39,7 +39,6 @@ func DependencyUpdateTool(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
