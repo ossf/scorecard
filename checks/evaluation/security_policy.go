@@ -26,11 +26,10 @@ import (
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
-	// We have 5 unique probes, each should have a finding.
+	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe, securityPolicyContainsLinks.Probe,
-		securityPolicyContainsText.Probe,
-		securityPolicyPresent.Probe,
+		securityPolicyContainsText.Probe, securityPolicyPresent.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")

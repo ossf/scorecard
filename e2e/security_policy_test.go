@@ -40,13 +40,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -68,13 +66,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			err = repoClient.InitRepo(repo, "46e9bc6538b2f788b6e3d18f8c8c174146565e93", 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -107,13 +103,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			err = x.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: x,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -139,13 +133,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			// TODO: update expected based on what is returned from gitlab project.
 			expected := scut.TestReturn{
@@ -173,13 +165,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			err = repoClient.InitRepo(repo, "28e6224b7d86f7b30bad6adb6b42f26a814c2f58", 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 
 			expected := scut.TestReturn{

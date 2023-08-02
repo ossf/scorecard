@@ -17,6 +17,7 @@ package toolRenovateInstalled
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -39,6 +40,9 @@ func (t renovate) Matches(tool *checker.Tool) bool {
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil{
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
+	}
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher renovate
 	// Check whether Renovate tool is installed on the repo,

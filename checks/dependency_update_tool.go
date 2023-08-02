@@ -44,13 +44,12 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
 	}
 
-	// Return raw results.
-	if c.RawResults != nil {
-		c.RawResults.DependencyUpdateToolResults = rawData
-	}
+	// Set the raw results.
+	pRawResults := rawResults(c)
+	pRawResults.DependencyUpdateToolResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, CheckDependencyUpdateTool, probes.DependencyToolUpdates)
+	findings, err := evaluateProbes(c, pRawResults, CheckDependencyUpdateTool, probes.DependencyToolUpdates)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
