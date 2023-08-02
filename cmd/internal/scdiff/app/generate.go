@@ -24,6 +24,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/format"
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/runner"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 //nolint:gochecknoinits // common for cobra apps
@@ -43,34 +44,42 @@ var (
 		Short: "Generate Scorecard results for diffing",
 		Long:  `Generate Scorecard results for diffing`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			f, err := os.Open(repoFile)
-			if err != nil {
-				return fmt.Errorf("unable to open repo file: %w", err)
-			}
-			if outputFile != "" {
-				of, err := os.Create(outputFile)
-				if err != nil {
-					return fmt.Errorf("unable to create output file: %w", err)
-				}
-				output = of
-			}
-			scorecardRunner := runner.New()
-			scanner := bufio.NewScanner(f)
-			for scanner.Scan() {
-				results, err := scorecardRunner.Run(scanner.Text())
-				if err != nil {
-					return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
-				}
-				// TODO pretty print?
-				err = format.JSON(&results, output)
-				if err != nil {
-					return fmt.Errorf("formatting results: %w", err)
-				}
-			}
-			if err := scanner.Err(); err != nil {
-				return fmt.Errorf("reading repo file: %w", err)
-			}
-			return nil
+			r := runner.New()
+			return generate(&r)
 		},
 	}
 )
+
+type scorecardRunner interface {
+	Run(repo string) (pkg.ScorecardResult, error)
+}
+
+func generate(scorecardRunner scorecardRunner) error {
+	f, err := os.Open(repoFile)
+	if err != nil {
+		return fmt.Errorf("unable to open repo file: %w", err)
+	}
+	if outputFile != "" {
+		of, err := os.Create(outputFile)
+		if err != nil {
+			return fmt.Errorf("unable to create output file: %w", err)
+		}
+		output = of
+	}
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		results, err := scorecardRunner.Run(scanner.Text())
+		if err != nil {
+			return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
+		}
+		// TODO pretty print?
+		err = format.JSON(&results, output)
+		if err != nil {
+			return fmt.Errorf("formatting results: %w", err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("reading repo file: %w", err)
+	}
+	return nil
+}
