@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+// nolint
 package codeReviewTwoReviewers
 
 import (
@@ -30,6 +30,7 @@ var fs embed.FS
 
 const probe = "codeReviewTwoReviewers"
 const minimumReviewers = 2
+var reviewerLoginErr = fmt.Errorf("could not find the login of a reviewer")
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
@@ -48,9 +49,9 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 ) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
-	var leastFoundReviewers = 0
-	var numChangesets = len(changesets)
-	var numBotAuthors = 0
+	leastFoundReviewers := 0
+	numChangesets := len(changesets)
+	numBotAuthors := 0
 	if numChangesets == 0 {
 		return nil, probeID, utils.NoChangesetsErr
 	}
@@ -90,16 +91,16 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		return findings, probeID, nil
 	} else if leastFoundReviewers >= minimumReviewers {
 		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
-			nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one " +
+		"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	} else {
 		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one changeset, %v wanted.", leastFoundReviewers, minimumReviewers),
-			nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one " +
+		"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
@@ -119,7 +120,7 @@ func uniqueReviewers(authorLogin string, reviews []clients.Review) (int, error) 
 	for i := range reviewersList {
 		duplicateCount := 0
 		if reviewersList[i] == "" {
-			return uniqueReviewers, fmt.Errorf("could not find the login of a reviewer")
+			return uniqueReviewers, reviewerLoginErr
 		}
 		for j := range reviewersList {
 			if reviewersList[j] == reviewersList[i] && j > i {

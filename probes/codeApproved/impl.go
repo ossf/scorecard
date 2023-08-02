@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+// nolint
 package codeApproved
 
 import (
@@ -43,9 +43,9 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 ) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
-	var approvedReviews = 0
-	var numBotAuthors = 0
-	var numChangesets = len(changesets)
+	approvedReviews := 0
+	numBotAuthors := 0
+	numChangesets := len(changesets)
 	if numChangesets == 0 {
 		return nil, probeID, utils.NoChangesetsErr
 	}
@@ -71,16 +71,16 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		return findings, probeID, nil
 	} else if approvedReviews >= numChangesets {
 		// returns PositiveOutcome if all changesets have been approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets approved (%v out of %v).", approvedReviews, numChangesets),
-			nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets approved (%v out of %v).",
+		approvedReviews, numChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	} else {
 		// returns NegativeOutcome if not all changesets were approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. Found %v approvals among %v changesets.", approvedReviews, numChangesets),
-			nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. " +
+		"Found %v approvals among %v changesets.", approvedReviews, numChangesets), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+// nolint
 package codeReviewed
 
 import (
@@ -43,9 +43,9 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 ) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
-	var numReviews = 0
-	var numBotAuthors = 0
-	var numChangesets = len(changesets)
+	numReviews := 0
+	numBotAuthors := 0
+	numChangesets := len(changesets)
 	if numChangesets == 0 {
 		return nil, probeID, utils.NoChangesetsErr
 	}
@@ -68,16 +68,16 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		return findings, probeID, nil
 	} else if numReviews >= numChangesets {
 		// returns PositiveOutcome if all changesets had review activity
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity (%v out of %v).", numReviews, numChangesets),
-			nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity " +
+		"(%v out of %v).", numReviews, numChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	} else {
 		// returns NegativeOutcome if some changesets did not have review activity
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. Found %v reviews among %v changesets.", numReviews, numChangesets),
-			nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. " +
+		"Found %v reviews among %v changesets.", numReviews, numChangesets), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

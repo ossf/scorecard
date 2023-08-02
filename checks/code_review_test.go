@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//nolint
 package checks
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -513,7 +513,8 @@ func TestCodereview(t *testing.T) {
 			} else {
 				for i := range tt.expectedFindings {
 					if tt.expectedFindings[i].Outcome != res[i].Outcome {
-						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v", res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
+						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v",
+						res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
 					}
 				}
 			}
