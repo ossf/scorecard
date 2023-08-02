@@ -39,7 +39,7 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 	}
 
 	score := 0
-	m := make(map[string]bool, 0)
+	m := make(map[string]bool
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
@@ -64,10 +64,10 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
-		return checker.CreateMinScoreResult(name, "no security policy file detected")
+		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
-	return checker.CreateResultWithScore(name, "security file detected", score)
+	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
 
 func scoreProbeOnce(probeID string, m map[string]bool, bump int) int {
