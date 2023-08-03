@@ -51,10 +51,10 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 ) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
+	foundHumanActivity := false
 	leastFoundReviewers := 0
-	numChangesets := len(changesets)
-	numBotAuthors := 0
-	if numChangesets == 0 {
+	nChangesets := len(changesets)
+	if nChangesets == 0 {
 		return nil, probeID, utils.NoChangesetsErr
 	}
 	// Loops through all changesets, if an author login cannot be retrieved: returns OutcomeNotAvailabe.
@@ -68,10 +68,10 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
-		} else if data.Author.IsBot {
-			numBotAuthors += 1
+		} else if !data.Author.IsBot {
+			foundHumanActivity = true
 		}
-		numReviewers, err := uniqueReviewers(data.Author.Login, data.Reviews)
+		nReviewers, err := uniqueReviewers(data.Author.Login, data.Reviews)
 		if err != nil {
 			f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the reviewer of a changeset.", nil)
 			if err != nil {
@@ -79,12 +79,12 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
-		} else if i == 0 || numReviewers < leastFoundReviewers {
-			leastFoundReviewers = numReviewers
+		} else if i == 0 || nReviewers < leastFoundReviewers {
+			leastFoundReviewers = nReviewers
 		}
 	}
 	switch {
-	case numBotAuthors == numChangesets:
+	case !foundHumanActivity:
 		// returns a NotAvailable outcome if all changesets were authored by bots
 		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
@@ -92,18 +92,18 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	case leastFoundReviewers >= minimumReviewers:
-		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one "+
-			"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, positiveOutcome)
+	case leastFoundReviewers < minimumReviewers:
+		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("some changesets had <%d reviewers",
+		minimumReviewers), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	default:
-		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one "+
-			"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, negativeOutcome)
+		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf(">%d reviewers found for all changesets",
+		minimumReviewers), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
