@@ -41,9 +41,9 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
 	foundHumanActivity := false
-	nReviewedChangesets := 0
+	nUnreviewedChangesets := 0
 	nChangesets := len(changesets)
-	nHumanChangesets := 0
+	nChanges := 0
 	if nChangesets == 0 {
 		return nil, probeID, utils.NoChangesetsErr
 	}
@@ -56,36 +56,36 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		if reviewedChangeset && data.Author.IsBot {
 			continue
 		}
+		nChanges += 1
 		if !data.Author.IsBot {
 			foundHumanActivity = true
-			nHumanChangesets += 1
 		}
-		if reviewedChangeset {
-			nReviewedChangesets += 1
+		if !reviewedChangeset {
+			nUnreviewedChangesets += 1
 		}
 	}
 	switch {
-	case nHumanChangesets == 0 || !foundHumanActivity:
+	case !foundHumanActivity:
 		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprint("found no human review activity " +
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprint("Found no human activity " +
 		"in the last %v changesets", nChangesets), nil)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	case nReviewedChangesets < nHumanChangesets:
+	case nUnreviewedChangesets > 0:
 		// returns NegativeOutcome if some changesets did not have review activity
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. "+
-		"Found %v reviews among %v changesets.", nReviewedChangesets, nChangesets), nil, negativeOutcome)
+		"Found %d unreviewed changesets of %d.", nUnreviewedChangesets, nChanges), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
 	default:
 		// returns PositiveOutcome if all changesets had review activity
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity "+
-			"(%v out of %v).", nReviewedChangesets, nChangesets), nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %d changesets have review activity.",
+		nChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
