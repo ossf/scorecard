@@ -16,7 +16,6 @@
 package toolPyUpInstalled
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -26,10 +25,6 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/internal/utils"
 )
-
-func errCmp(e1, e2 error) bool {
-	return errors.Is(e1, e2) || errors.Is(e2, e1)
-}
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
@@ -121,8 +116,8 @@ func Test_Run(t *testing.T) {
 			}
 			for i := range tt.outcomes {
 				outcome := &tt.outcomes[i]
-				finding := &findings[i]
-				if diff := cmp.Diff(*outcome, finding.Outcome); diff != "" {
+				f := &findings[i]
+				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
 				}
 			}
