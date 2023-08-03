@@ -18,19 +18,20 @@ import (
 	"errors"
 	"testing"
 	"time"
-	
+
 	"github.com/golang/mock/gomock"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 var (
-	errNew = errors.New("error")
+	errNew           = errors.New("error")
 	errProbeReturned = errors.New("probe run failure")
 )
 

@@ -34,7 +34,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return reviewedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-
 // Looks through the data and validates that each changeset has been approved at least once.
 func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
@@ -56,7 +55,8 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			numReviews += 1
 		}
 	}
-	if numBotAuthors == numChangesets {
+	switch {
+	case numBotAuthors == numChangesets:
 		// returns a NotAvailable outcome if all changesets were authored by bots
 		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
@@ -64,18 +64,18 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	} else if numReviews >= numChangesets {
+	case numReviews >= numChangesets:
 		// returns PositiveOutcome if all changesets had review activity
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity " +
-		"(%v out of %v).", numReviews, numChangesets), nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets have review activity "+
+			"(%v out of %v).", numReviews, numChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
-	} else {
+	default:
 		// returns NegativeOutcome if some changesets did not have review activity
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. " +
-		"Found %v reviews among %v changesets.", numReviews, numChangesets), nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. "+
+			"Found %v reviews among %v changesets.", numReviews, numChangesets), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

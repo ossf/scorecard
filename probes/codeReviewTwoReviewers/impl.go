@@ -25,24 +25,26 @@ import (
 	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
-//go:embed *.yml
-var fs embed.FS
+var (
+	//go:embed *.yml
+	fs               embed.FS
+	reviewerLoginErr = fmt.Errorf("could not find the login of a reviewer")
+)
 
-const probe = "codeReviewTwoReviewers"
-const minimumReviewers = 2
-var reviewerLoginErr = fmt.Errorf("could not find the login of a reviewer")
+const (
+	probe            = "codeReviewTwoReviewers"
+	minimumReviewers = 2
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
 	return codeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-
 // Looks through the data and validates author and reviewers of a changeset
 // Scorecard currently only supports GitHub revisions and generates a positive
 // score in the case of other platforms. This probe is created to ensure that
 // there are a number of unique reviewers for each changeset.
- 
 
 func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
@@ -81,7 +83,8 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 			leastFoundReviewers = numReviewers
 		}
 	}
-	if numBotAuthors == numChangesets {
+	switch {
+	case numBotAuthors == numChangesets:
 		// returns a NotAvailable outcome if all changesets were authored by bots
 		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
@@ -89,18 +92,18 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	} else if leastFoundReviewers >= minimumReviewers {
+	case leastFoundReviewers >= minimumReviewers:
 		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one " +
-		"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, positiveOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewers found for at least one "+
+			"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
-	} else {
+	default:
 		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one " +
-		"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("%v unique reviewer(s) found for at least one "+
+			"changeset, %v wanted.", leastFoundReviewers, minimumReviewers), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

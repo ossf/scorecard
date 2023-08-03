@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint // to prevent linter errors because of package names being camel case
+//nolint:stylecheck
 package probes
 
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
-	"github.com/ossf/scorecard/v4/probes/codeReviewed"
 	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
+	"github.com/ossf/scorecard/v4/probes/codeReviewed"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -41,7 +41,7 @@ var (
 		toolPyUpInstalled.Run,
 		toolSonatypeLiftInstalled.Run,
 	}
-	CodeReview = []ProbeImpl {
+	CodeReview = []ProbeImpl{
 		codeApproved.Run,
 		codeReviewed.Run,
 		codeReviewTwoReviewers.Run,

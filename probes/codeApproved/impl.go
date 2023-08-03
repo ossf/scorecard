@@ -34,7 +34,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-
 // Looks through the data and validates that each changeset has been approved at least once.
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
@@ -59,7 +58,8 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			}
 		}
 	}
-	if numBotAuthors == numChangesets {
+	switch {
+	case numBotAuthors == numChangesets:
 		// returns a NotAvailable outcome if all changesets were authored by bots
 		f, err := finding.NewNotAvailable(fs, probeID, "All changesets authored by bot(s).", nil)
 		if err != nil {
@@ -67,18 +67,18 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		}
 		findings = append(findings, *f)
 		return findings, probeID, nil
-	} else if approvedReviews >= numChangesets {
+	case approvedReviews >= numChangesets:
 		// returns PositiveOutcome if all changesets have been approved
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All changesets approved (%v out of %v).",
-		approvedReviews, numChangesets), nil, positiveOutcome)
+			approvedReviews, numChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
 		findings = append(findings, *f)
-	} else {
+	default:
 		// returns NegativeOutcome if not all changesets were approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. " +
-		"Found %v approvals among %v changesets.", approvedReviews, numChangesets), nil, negativeOutcome)
+		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. "+
+			"Found %v approvals among %v changesets.", approvedReviews, numChangesets), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
