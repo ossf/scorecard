@@ -12,26 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint
 package checks
 
 import (
 	"errors"
 	"testing"
 	"time"
-
+	
 	"github.com/golang/mock/gomock"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-var probeReturnedError = errors.New("probe run failure")
+var (
+	errNew = errors.New("error")
+	errProbeReturned = errors.New("probe run failure")
+)
 
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
@@ -54,22 +55,22 @@ func TestCodereview(t *testing.T) {
 		},
 		{
 			name:      "no commits with error",
-			commiterr: errors.New("error"),
+			commiterr: errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
 		},
 		{
 			name: "no PR's with error",
-			err:  errors.New("error"),
+			err:  errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
 		},
 		{
 			name:      "no PR's with error as well as commits",
-			err:       errors.New("error"),
-			commiterr: errors.New("error"),
+			err:       errNew,
+			commiterr: errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -282,6 +283,40 @@ func TestCodereview(t *testing.T) {
 			},
 		},
 	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below.
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepo,
+			}
+			req.Dlogger = &scut.TestDetailLogger{}
+			res := CodeReview(&req)
+
+			if tt.err != nil {
+				if res.Error == nil {
+					t.Errorf("Expected error %v, got nil", tt.err)
+				}
+				// return as we don't need to check the rest of the fields.
+				return
+			}
+
+			if res.Score != tt.expected.Score {
+				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
+			}
+			ctrl.Finish()
+		})
+	}
+}
+
+// TestProbesCodereview tests the probes associated with the Code-Review check.
+func TestProbesCodereview(t *testing.T) {
+	t.Parallel()
 	probeTests := []struct {
 		name             string
 		rawResults       *checker.RawResults
@@ -295,7 +330,7 @@ func TestCodereview(t *testing.T) {
 					DefaultBranchChangesets: []checker.Changeset{},
 				},
 			},
-			err:              probeReturnedError,
+			err:              errProbeReturned,
 			expectedFindings: nil,
 		},
 		{
@@ -524,46 +559,19 @@ func TestCodereview(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			ctrl := gomock.NewController(t)
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
-
-			req := checker.CheckRequest{
-				RepoClient: mockRepo,
-			}
-			req.Dlogger = &scut.TestDetailLogger{}
-			res := CodeReview(&req)
-
-			if tt.err != nil {
-				if res.Error == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
-				}
-				// return as we don't need to check the rest of the fields.
-				return
-			}
-
-			if res.Score != tt.expected.Score {
-				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			ctrl.Finish()
-		})
-	}
 	for _, tt := range probeTests {
-		tt := tt
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			res, err := zrunner.Run(tt.rawResults, probes.CodeReview)
-			if err != nil && tt.err == nil {
+			switch {
+			case err != nil && tt.err == nil:
 				t.Errorf("Uxpected error %v", err)
-			} else if tt.err != nil && err == nil {
+			case tt.err != nil && err == nil:
 				t.Errorf("Expected error %v, got nil", tt.err)
-			} else if res == nil && err == nil {
+			case res == nil && err == nil:
 				t.Errorf("Probe(s) returned nil for both finding and error")
-			} else {
+			default:
 				for i := range tt.expectedFindings {
 					if tt.expectedFindings[i].Outcome != res[i].Outcome {
 						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v",
