@@ -186,7 +186,7 @@ func (f *Finding) WithMessage(text string) *Finding {
 // and compare them against an expected list.
 func UniqueProbesEqual(findings []Finding, probes []string) bool {
 	// Collect unique probes from findings.
-	fm := make(map[string]bool, 0)
+	fm := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
 		fm[f.Probe] = true

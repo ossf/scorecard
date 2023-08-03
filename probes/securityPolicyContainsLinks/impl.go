@@ -42,14 +42,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		if (urls + emails) > 0 {
 			f, err := finding.NewPositive(fs, Probe,
-				"URL or email contacts found", policy.File.Location())
+				"Found linked content", policy.File.Location())
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 		} else {
 			f, err := finding.NewNegative(fs, Probe,
-				"no URL or email contacts found", nil)
+				"no linked content found", nil)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
