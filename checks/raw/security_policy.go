@@ -179,7 +179,7 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 
 	if pfiles != nil && (*pinfo) != nil {
 		pfiles.Offset = checker.OffsetDefault
-		pfiles.Size = uint(len(content))
+		pfiles.FileSize = uint(len(content))
 		policyHits := collectPolicyHits(content)
 		if len(policyHits) > 0 {
 			(*pinfo) = append((*pinfo), policyHits...)

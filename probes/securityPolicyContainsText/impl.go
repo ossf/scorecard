@@ -47,7 +47,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			linkedContentLen += len(i.InformationValue.Match)
 		}
 
-		if policy.File.Size > 1 && (policy.File.Size > uint(linkedContentLen+((urls+emails)*2))) {
+		if policy.File.FileSize > 1 && (policy.File.FileSize > uint(linkedContentLen+((urls+emails)*2))) {
 			f, err := finding.NewPositive(fs, Probe,
 				"Found text in security policy", policy.File.Location())
 			if err != nil {
