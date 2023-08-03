@@ -22,8 +22,8 @@ implementation: >
   If none of these files are found, Renovate is not installed.
   NOTE: the implementation does not ensure that Renovate is run or that Renovate's pull requests are merged.
 outcome:
-  - If Renovate is installed, the probe returns OutcomePositive (1)
-  - If Renovate is not installed, the probe returns OutcomeNegative (0)
+  - If Renovate is installed, the probe returns OutcomePositive (1) for each configuration.
+  - If Renovate is not installed, the probe returns OutcomeNegative (0).
 remediation:
   effort: Low
   text:

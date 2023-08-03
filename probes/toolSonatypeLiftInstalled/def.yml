@@ -22,8 +22,8 @@ implementation: >
   If none of these files are found, Sonatype Lyft is not installed.
   NOTE: the implementation does not ensure that Sonatype Lyft is run or that Sonatype Lyft's pull requests are merged.
 outcome:
-  - If Sonatype Lyft is installed, the probe returns OutcomePositive (1)
-  - If Sonatype Lyft is not installed, the probe returns OutcomeNegative (0)
+  - If Sonatype Lyft is installed, the probe returns OutcomePositive (1) for each configuration.
+  - If Sonatype Lyft is not installed, the probe returns OutcomeNegative (0).
 remediation:
   effort: Low
   text:

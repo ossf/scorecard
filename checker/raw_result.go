@@ -297,7 +297,7 @@ type File struct {
 	Snippet   string           // Snippet of code
 	Offset    uint             // Offset in the file of Path (line for source/text files).
 	EndOffset uint             // End of offset in the file, e.g. if the command spans multiple lines.
-	FileSize  uint             // Total size of file.
+	Size      uint             // Total size of file.
 	Type      finding.FileType // Type of file.
 	// TODO: add hash.
 }

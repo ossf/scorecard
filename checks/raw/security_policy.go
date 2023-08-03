@@ -122,10 +122,10 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		}
 		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
 			File: checker.File{
-				Path:     tempPath,
-				Type:     tempType,
-				Offset:   checker.OffsetDefault,
-				FileSize: checker.OffsetDefault,
+				Path:   tempPath,
+				Type:   tempType,
+				Offset: checker.OffsetDefault,
+				Size:   checker.OffsetDefault,
 			},
 			Information: make([]checker.SecurityPolicyInformation, 0),
 		})
@@ -179,7 +179,7 @@ var checkSecurityPolicyFileContent fileparser.DoWhileTrueOnFileContent = func(pa
 
 	if pfiles != nil && (*pinfo) != nil {
 		pfiles.Offset = checker.OffsetDefault
-		pfiles.FileSize = uint(len(content))
+		pfiles.Size = uint(len(content))
 		policyHits := collectPolicyHits(content)
 		if len(policyHits) > 0 {
 			(*pinfo) = append((*pinfo), policyHits...)
