@@ -122,10 +122,10 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 		}
 		pdata.files = append(pdata.files, checker.SecurityPolicyFile{
 			File: checker.File{
-				Path:   tempPath,
-				Type:   tempType,
-				Offset: checker.OffsetDefault,
-				Size:   checker.OffsetDefault,
+				Path:     tempPath,
+				Type:     tempType,
+				Offset:   checker.OffsetDefault,
+				FileSize: checker.OffsetDefault,
 			},
 			Information: make([]checker.SecurityPolicyInformation, 0),
 		})
