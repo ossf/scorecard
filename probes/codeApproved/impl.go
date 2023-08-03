@@ -70,8 +70,8 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	switch {
 	case !foundHumanActivity:
 		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprint("Found no human activity " +
-		"in the last %v changesets", nChangesets), nil)
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Found no human activity "+
+			"in the last %d changesets", nChangesets), nil)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
@@ -80,7 +80,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	case nUnapprovedChangesets > 0:
 		// returns NegativeOutcome if not all changesets were approved
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. "+
-		"Found %d unapproved changesets of %d.", nUnapprovedChangesets, nChanges), nil, negativeOutcome)
+			"Found %d unapproved changesets of %d.", nUnapprovedChangesets, nChanges), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

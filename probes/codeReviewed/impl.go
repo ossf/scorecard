@@ -67,8 +67,8 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	switch {
 	case !foundHumanActivity:
 		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprint("Found no human activity " +
-		"in the last %v changesets", nChangesets), nil)
+		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Found no human activity "+
+			"in the last %d changesets", nChangesets), nil)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
@@ -77,7 +77,7 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	case nUnreviewedChangesets > 0:
 		// returns NegativeOutcome if some changesets did not have review activity
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets have review activity. "+
-		"Found %d unreviewed changesets of %d.", nUnreviewedChangesets, nChanges), nil, negativeOutcome)
+			"Found %d unreviewed changesets of %d.", nUnreviewedChangesets, nChanges), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
@@ -85,7 +85,7 @@ func reviewedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	default:
 		// returns PositiveOutcome if all changesets had review activity
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %d changesets have review activity.",
-		nChangesets), nil, positiveOutcome)
+			nChangesets), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

@@ -95,7 +95,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	case leastFoundReviewers < minimumReviewers:
 		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("some changesets had <%d reviewers",
-		minimumReviewers), nil, negativeOutcome)
+			minimumReviewers), nil, negativeOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
@@ -103,7 +103,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	default:
 		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf(">%d reviewers found for all changesets",
-		minimumReviewers), nil, positiveOutcome)
+			minimumReviewers), nil, positiveOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
