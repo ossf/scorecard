@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint
+//nolint:stylecheck
 package codeApproved
 
 import (
@@ -34,10 +34,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-/*
-** Looks through the data and validates that each changeset has been approved at least once.
- */
 
+// Looks through the data and validates that each changeset has been approved at least once.
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {

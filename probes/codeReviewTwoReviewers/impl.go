@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint
+//nolint:stylecheck
 package codeReviewTwoReviewers
 
 import (
@@ -37,12 +37,12 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return codeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
-/*
-** Looks through the data and validates author and reviewers of a changeset
-** Scorecard currently only supports GitHub revisions and generates a positive
-** score in the case of other platforms. This probe is created to ensure that
-** there are a number of unique reviewers for each changeset.
- */
+
+// Looks through the data and validates author and reviewers of a changeset
+// Scorecard currently only supports GitHub revisions and generates a positive
+// score in the case of other platforms. This probe is created to ensure that
+// there are a number of unique reviewers for each changeset.
+ 
 
 func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
