@@ -22,8 +22,8 @@ import (
 )
 
 var _ = Describe("E2E TEST: gitlabrepo.ListIssues", func() {
-	Context("Test list issues - GitLab", func() {
-		It("returns branches for the repo", func() {
+	Context("Test list issues errors - GitLab", func() {
+		It("returns errors when listing for issues with normal token", func() {
 			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/e2e-issues")
 			Expect(err).Should(BeNil())
 
@@ -34,7 +34,7 @@ var _ = Describe("E2E TEST: gitlabrepo.ListIssues", func() {
 			Expect(err).Should(BeNil())
 			_, err = client.ListIssues()
 			// returns error as the code checks for ListAllProjectMembers which is not available
-			//TODO: this will be fixed when it is fixed in the code
+			// TODO: this will be fixed when it is fixed in the code
 			Expect(err).ShouldNot(BeNil())
 		})
 	})
