@@ -191,11 +191,9 @@ func TestSecurityPolicy(t *testing.T) {
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}
-			raw := checker.RawResults{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 
 			res := SecurityPolicy(c)

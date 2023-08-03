@@ -29,11 +29,6 @@ var fs embed.FS
 
 const Probe = "securityPolicyPresent"
 
-func matches(file checker.File) bool {
-	// Any files found is relevant.
-	return true
-}
-
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
@@ -43,8 +38,28 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
 	}
 
-	//nolint:wrapcheck
-	return utils.FilesFound(files, raw.Metadata.Metadata,
-		fs, Probe, "security policy file",
-		finding.OutcomePositive, finding.OutcomeNegative, matches)
+	var findings []finding.Finding
+	for i := range files {
+		file := &files[i]
+		f, err := finding.NewWith(fs, Probe, "security policy file detected",
+			file.Location(), finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithRemediationMetadata(raw.Metadata.Metadata)
+		findings = append(findings, *f)
+	}
+
+	// No file found.
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no security policy file detected",
+			nil, finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithRemediationMetadata(raw.Metadata.Metadata)
+		findings = append(findings, *f)
+	}
+
+	return findings, Probe, nil
 }

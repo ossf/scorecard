@@ -192,7 +192,7 @@ func UniqueProbesEqual(findings []Finding, probes []string) bool {
 		fm[f.Probe] = true
 	}
 	// Collect probes from list.
-	pm := make(map[string]bool, 0)
+	pm := make(map[string]bool)
 	for i := range probes {
 		p := &probes[i]
 		pm[*p] = true

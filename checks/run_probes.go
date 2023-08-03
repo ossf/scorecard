@@ -25,7 +25,7 @@ import (
 
 // evaluateProbes runs the probes in probesToRun and logs its findings.
 func evaluateProbes(c *checker.CheckRequest, rawResults *checker.RawResults,
-	checkName string, probesToRun []probes.ProbeImpl,
+	probesToRun []probes.ProbeImpl,
 ) ([]finding.Finding, error) {
 	// Run the probes.
 	findings, err := zrunner.Run(rawResults, probesToRun)
