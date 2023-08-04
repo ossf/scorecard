@@ -17,14 +17,6 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
-	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
@@ -32,6 +24,10 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -75,11 +71,8 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
-<<<<<<< HEAD
 		SecurityPolicy,
-=======
 		Fuzzing,
->>>>>>> 03800e1b (update)
 	})
 }
 

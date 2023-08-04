@@ -17,10 +17,11 @@ package fuzzedWithOneFuzz
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils/fuzzing"
+	"github.com/ossf/scorecard/v4/probes/internal/utils"
 )
 
 //go:embed *.yml
@@ -30,8 +31,8 @@ var Probe = "fuzzedWithOneFuzz"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrorNil)
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
 	}
 	//nolint:wrapcheck
-	return fuzzing.FuzzerRun(raw, fs, Probe, "OneFuzz")
+	return utils.FuzzerRun(raw, fs, Probe, "OneFuzz")
 }
