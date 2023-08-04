@@ -94,7 +94,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeText,
-								Size: 10,
+								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
@@ -127,7 +127,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeText,
-								Size: 50,
+								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
@@ -210,7 +210,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeURL,
-								Size: 10,
+								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
@@ -243,7 +243,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeURL,
-								Size: 50,
+								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
@@ -301,7 +301,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeURL,
-								Size: 10,
+								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
@@ -341,7 +341,7 @@ func Test_Run(t *testing.T) {
 							File: checker.File{
 								Path: "SECURITY.md",
 								Type: finding.FileTypeURL,
-								Size: 50,
+								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
 								{
