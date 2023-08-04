@@ -24,6 +24,7 @@ import (
 var _ = Describe("E2E TEST: gitlabrepo.ListWebHooks", func() {
 	Context("Test List webhooks- GitLab", func() {
 		It("returns list of webhooks", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/scorecard")
 			Expect(err).Should(BeNil())
 
