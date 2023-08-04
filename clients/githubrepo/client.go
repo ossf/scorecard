@@ -24,7 +24,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
