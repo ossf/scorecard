@@ -40,16 +40,17 @@ func TestMakeTokenAccessor(t *testing.T) {
 			useServer: true,
 		},
 	}
-	t.Setenv("GITHUB_AUTH_TOKEN", "")
-	t.Setenv("GITHUB_TOKEN", "")
+	// clear all env variables devs may have defined, or the test will fail locally
+	for _, envVar := range githubAuthTokenEnvVars {
+		t.Setenv(envVar, "")
+	}
+	t.Setenv(githubAuthServer, "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch {
 			case tt.useGitHubToken:
-				t.Helper()
 				testToken(t)
 			case tt.useServer:
-				t.Helper()
 				testServer(t)
 			default:
 				got := MakeTokenAccessor()
