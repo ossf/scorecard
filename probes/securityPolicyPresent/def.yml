@@ -1,0 +1,43 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: securityPolicyPresent
+short: Check if a security policy is defined in the repository or in the org's .github repository.
+motivation: >
+  A security policy (typically a SECURITY.md file) can give users information about what constitutes a vulnerability and how to report one securely so that information about a bug is not publicly visible.
+  If you have a large orgnization, having a unified security policy across all your repositories may simplify the vulnerability disclosure response.
+implementation: >
+  The implementation looks for the presence of security policy files in the repository or in '<org>/.github' repository. See https://github.com/ossf/scorecard/blob/main/checks/raw/security_policy.go#L139 for a detailed list of filenames.
+outcome:
+  - If a security policy file is found, one finding with OutcomePositive (1) is returned.
+  - If no security file is found, one finding with OutcomeNegative (0) is returned.
+remediation:
+  effort: Medium
+  text:
+    - 'On GitHub:'
+    - Enable private vulnerability disclosure in your repository settings https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
+    - Add a section in your SECURITY.md indicating you have enabled private reporting, and tell them to follow the steps in https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability to report vulnerabilities.
+    - 'On GitLab:'
+    - Add a section in your SECURITY.md indicating the process to disclose vulnerabilities for your project.
+    - 'Examples: https://github.com/ossf/scorecard/blob/main/SECURITY.md, https://github.com/slsa-framework/slsa-github-generator/blob/main/SECURITY.md, https://github.com/sigstore/.github/blob/main/SECURITY.md.'
+    - For additional information on vulnerability disclosure, see https://github.com/ossf/oss-vulnerability-guide/blob/main/maintainer-guide.md.
+  markdown:
+    - Write a short paragraph for your SECURITY.md to explain the process to disclose security vulnerability for your project.
+    - 'On GitHub:'
+    - Enable private vulnerability disclosure in your [repository settings](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository)
+    - Add a section in your SECURITY.md indicating you have enabled private reporting, and tell them to [follow these steps](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability to report vulnerabilities).
+    - 'On GitLab:'
+    - Provide a point of contact in your SECURITY.md.
+    - 'Examples: [OpenSSF Scorecard](https://github.com/ossf/scorecard/blob/main/SECURITY.md), [SLSA builders](https://github.com/slsa-framework/slsa-github-generator/blob/main/SECURITY.md), [Sigstore](https://github.com/sigstore/.github/blob/main/SECURITY.md).'
+    - For additional information on vulnerability disclosure, see [OpenSSF's maintainer's guide](https://github.com/ossf/oss-vulnerability-guide/blob/main/maintainer-guide.md).

@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -52,6 +53,12 @@ func (handler *commitsHandler) setup() error {
 			return
 		}
 		handler.commitsRaw = commits
+		if handler.repourl.commitSHA != clients.HeadSHA {
+			//nolint:lll
+			// TODO(#3193): Fix the way graphql retrieves merge details to more closely
+			// line up with commits from listRawCommits
+			fmt.Fprintln(os.Stderr, "Scorecard may be missing merge requests when running on non-HEAD of a GitLab repo. Code-Review scores may be lower.")
+		}
 	})
 
 	return handler.errSetup
