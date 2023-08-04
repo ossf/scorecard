@@ -43,7 +43,7 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 
 	// Set the raw results.
 	pRawResults := getRawResults(c)
-	c.RawResults.FuzzingResults = rawData
+	pRawResults.FuzzingResults = rawData
 
 	// Evaluate the probes.
 	findings, err := evaluateProbes(c, pRawResults, probes.Fuzzing)

@@ -41,14 +41,12 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
-				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -72,14 +70,12 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
-				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -103,14 +99,12 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
-				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
@@ -134,14 +128,12 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 
-			r := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
-				RawResults:  &r,
 			}
 			rawData, err := raw.Fuzzing(&req)
 			Expect(err).Should(BeNil())
@@ -157,14 +149,12 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			ossFuzzRepoClient, err := ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:         context.Background(),
 				RepoClient:  repoClient,
 				OssFuzzRepo: ossFuzzRepoClient,
 				Repo:        repo,
 				Dlogger:     &dl,
-				RawResults:  &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
