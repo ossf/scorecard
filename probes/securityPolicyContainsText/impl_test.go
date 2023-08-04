@@ -92,8 +92,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeText,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeText,
 								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
@@ -125,8 +125,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeText,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeText,
 								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
@@ -208,8 +208,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeURL,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeURL,
 								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
@@ -241,8 +241,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeURL,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeURL,
 								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
@@ -299,8 +299,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeURL,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeURL,
 								FileSize: 10,
 							},
 							Information: []checker.SecurityPolicyInformation{
@@ -339,8 +339,8 @@ func Test_Run(t *testing.T) {
 					PolicyFiles: []checker.SecurityPolicyFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
-								Type: finding.FileTypeURL,
+								Path:     "SECURITY.md",
+								Type:     finding.FileTypeURL,
 								FileSize: 50,
 							},
 							Information: []checker.SecurityPolicyInformation{
