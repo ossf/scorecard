@@ -103,7 +103,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "no tool",
+			name: "no fuzzer",
 			raw:  &checker.RawResults{},
 			outcomes: []finding.Outcome{
 				finding.OutcomeNegative,
