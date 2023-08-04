@@ -17,7 +17,6 @@ package checker
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/ossf/scorecard/v4/clients"
 	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
@@ -54,14 +53,11 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			retErr
 	}
 
-	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	var repoClient clients.RepoClient
 
-	if experimental {
-		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
-		if repo != nil && makeRepoError == nil {
-			repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
-		}
+	repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
+	if repo != nil && makeRepoError == nil {
+		repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
 	}
 
 	if makeRepoError != nil || repo == nil {
