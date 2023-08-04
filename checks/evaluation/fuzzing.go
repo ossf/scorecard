@@ -46,6 +46,7 @@ func Fuzzing(name string,
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+
 	// Compute the score.
 	for i := range findings {
 		f := &findings[i]

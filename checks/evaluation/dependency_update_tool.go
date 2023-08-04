@@ -39,12 +39,6 @@ func DependencyUpdateTool(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// The probes should always contain at least on finding.
-	if len(findings) == 0 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "no findings")
-		return checker.CreateRuntimeErrorResult(name, e)
-	}
-
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
