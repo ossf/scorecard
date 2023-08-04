@@ -17,16 +17,17 @@ package toolRenovateInstalled
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils"
 )
 
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "toolRenovateInstalled"
+const Probe = "toolRenovateInstalled"
 
 type renovate struct{}
 
@@ -39,12 +40,15 @@ func (t renovate) Matches(tool *checker.Tool) bool {
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
+	}
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher renovate
 	// Check whether Renovate tool is installed on the repo,
 	// and create the corresponding findings.
 	//nolint:wrapcheck
-	return utils.ToolsRun(tools, fs, probe,
+	return utils.ToolsRun(tools, fs, Probe,
 		// Tool found will generate a positive result.
 		finding.OutcomePositive,
 		// Tool not found will generate a negative result.

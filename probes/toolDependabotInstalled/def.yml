@@ -22,8 +22,8 @@ implementation: >
   the implementation checks whether commits are authored by Dependabot. If none of these succeed, Dependabot is not installed.
   NOTE: if the configuration files are found, the probe does not ensure that the Dependabot is run or that the Dependabot's pull requests are merged.
 outcome:
-  - If dependendabot is installed, the probe returns OutcomePositive (1)
-  - If dependendabot is not installed, the probe returns OutcomeNegative (0)
+  - If dependendabot is installed, the probe returns OutcomePositive (1) for each configuration.
+  - If dependendabot is not installed, the probe returns one OutcomeNegative (0).
 remediation:
   effort: Low
   text:

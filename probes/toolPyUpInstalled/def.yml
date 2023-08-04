@@ -22,8 +22,8 @@ implementation: >
   If the file is not found, PyUp is not installed.
   NOTE: the implementation does not ensure that PyUp is run or that PyUp's pull requests are merged.
 outcome:
-  - If PyUp is installed, the probe returns OutcomePositive (1)
-  - If PyUp is not installed, the probe returns OutcomeNegative (0)
+  - If PyUp is installed, the probe returns OutcomePositive (1) for each configuration.
+  - If PyUp is not installed, the probe returns OutcomeNegative (0).
 remediation:
   effort: Low
   text:

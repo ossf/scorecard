@@ -18,6 +18,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -179,6 +180,24 @@ func (f *Finding) Anonymize() *AnonymousFinding {
 func (f *Finding) WithMessage(text string) *Finding {
 	f.Message = text
 	return f
+}
+
+// UniqueProbesEqual checks the probe names present in a list of findings
+// and compare them against an expected list.
+func UniqueProbesEqual(findings []Finding, probes []string) bool {
+	// Collect unique probes from findings.
+	fm := make(map[string]bool)
+	for i := range findings {
+		f := &findings[i]
+		fm[f.Probe] = true
+	}
+	// Collect probes from list.
+	pm := make(map[string]bool)
+	for i := range probes {
+		p := &probes[i]
+		pm[*p] = true
+	}
+	return reflect.DeepEqual(pm, fm)
 }
 
 // WithLocation adds a location to an existing finding.
