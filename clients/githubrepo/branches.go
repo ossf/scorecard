@@ -24,6 +24,7 @@ import (
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -150,11 +151,12 @@ type pullRequestRules struct {
 		}
 	}
 }
+type ruleSetConditionRefs struct {
+	Include []string
+	Exclude []string
+}
 type ruleSetCondition struct {
-	RefName struct {
-		Include []string
-		Exclude []string
-	}
+	RefName ruleSetConditionRefs
 }
 
 type repoRuleSet struct {
@@ -173,9 +175,6 @@ type ruleSetData struct {
 			Nodes []*repoRuleSet
 		} `graphql:"rulesets(first: 100)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
-	RateLimit struct {
-		Cost *int
-	}
 }
 
 type branchData struct {
@@ -224,13 +223,20 @@ func (handler *branchesHandler) setup() error {
 		handler.ruleSets = rulesData.Repository.Rulesets.Nodes
 
 		handler.data = new(defaultBranchData)
-		// If the repository is using RuleSets, ignore permissions errors on branch protection as that requires admin.
-		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil && len(handler.ruleSets) > 0 && isPermissionsError(err) {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-			return
+		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
+			// If the repository is using RuleSets, ignore permissions errors on branch protection as that requires admin.
+			if len(handler.ruleSets) == 0 || !isPermissionsError(err) {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
 		}
 
-		rules := rulesMatchingBranch(handler.ruleSets, *handler.data.Repository.DefaultBranchRef.Name, true)
+		rules, err := rulesMatchingBranch(handler.ruleSets, *handler.data.Repository.DefaultBranchRef.Name, true)
+		if err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
+			return
+		}
+		fmt.Println(rules)
 		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef, rules)
 	})
 	return handler.errSetup
@@ -249,7 +255,11 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	rules := rulesMatchingBranch(handler.ruleSets, branchName, branchName == *handler.data.Repository.DefaultBranchRef.Name)
+	defaultBranch := branchName == *handler.data.Repository.DefaultBranchRef.Name
+	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, defaultBranch)
+	if err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
+	}
 	return getBranchRefFrom(queryData.Repository.Ref, rules), nil
 }
 
@@ -359,7 +369,12 @@ func isPermissionsError(err error) bool {
 	return strings.Contains(err.Error(), "Resource not accessible by personal access token")
 }
 
-func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) []*repoRuleSet {
+const (
+	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
+	ruleConditionAllBranches   = "~ALL"
+)
+
+func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
@@ -367,28 +382,37 @@ nextRule:
 			continue
 		}
 
+		// If there are no conditions, everything matches?
 		if rule.Conditions == nil {
-			// TODO: is this even possible?
 			ret = append(ret, rule)
 			continue
 		}
 
 		// TODO: confirm this behaviour:
 		for _, cond := range rule.Conditions.RefName.Exclude {
-			if cond == name {
-				continue nextRule
-			}
-			if cond == "~DEFAULT_BRANCH" && defaultRef {
+			if match, err := fnmatch.Match(cond, name); err != nil {
+				return nil, fmt.Errorf("exclude match error: %w", err)
+			} else if match {
 				continue nextRule
 			}
 		}
 
 		for _, cond := range rule.Conditions.RefName.Include {
-			if cond == name {
+			if cond == ruleConditionAllBranches {
 				ret = append(ret, rule)
+				break
+			}
+			if cond == ruleConditionDefaultBranch && defaultRef {
+				ret = append(ret, rule)
+				break
 			}
 
+			if match, err := fnmatch.Match(cond, name); err != nil {
+				return nil, fmt.Errorf("include match error: %w", err)
+			} else if match {
+				ret = append(ret, rule)
+			}
 		}
 	}
-	return ret
+	return ret, nil
 }
