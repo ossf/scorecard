@@ -136,6 +136,13 @@ type defaultBranchData struct {
 		Cost *int
 	}
 }
+type defaultBranchNameData struct {
+	Repository struct {
+		DefaultBranchRef struct {
+			Name *string
+		}
+	} `graphql:"repository(owner: $owner, name: $name)"`
+}
 
 type pullRequestRuleParameters struct {
 	DismissStaleReviewsOnPush      *bool
@@ -158,17 +165,14 @@ type ruleSetConditionRefs struct {
 type ruleSetCondition struct {
 	RefName ruleSetConditionRefs
 }
-
 type repoRuleSet struct {
 	Name             *string
 	Enforcement      *string
-	Target           *string
-	Conditions       *ruleSetCondition
+	Conditions       ruleSetCondition
 	PullRequestRules struct {
 		Edges []*pullRequestRules
 	} `graphql:"rules(first: 100, type: PULL_REQUEST)"`
 }
-
 type ruleSetData struct {
 	Repository struct {
 		Rulesets struct {
@@ -220,7 +224,13 @@ func (handler *branchesHandler) setup() error {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.ruleSets = rulesData.Repository.Rulesets.Nodes
+		handler.ruleSets = make([]*repoRuleSet, 0)
+		for _, rule := range rulesData.Repository.Rulesets.Nodes {
+			if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
+				continue
+			}
+			handler.ruleSets = append(handler.ruleSets, rule)
+		}
 
 		handler.data = new(defaultBranchData)
 		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
@@ -229,6 +239,22 @@ func (handler *branchesHandler) setup() error {
 				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 				return
 			}
+
+			// To recover, we still need to know the default branch name:
+			defaultBranchNameData := new(defaultBranchNameData)
+			if err := handler.graphClient.Query(handler.ctx, defaultBranchNameData, vars); err != nil {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
+			handler.data = &defaultBranchData{
+				Repository: struct {
+					DefaultBranchRef *branch
+				}{
+					DefaultBranchRef: &branch{
+						Name: defaultBranchNameData.Repository.DefaultBranchRef.Name,
+					},
+				},
+			}
 		}
 
 		rules, err := rulesMatchingBranch(handler.ruleSets, *handler.data.Repository.DefaultBranchRef.Name, true)
@@ -236,7 +262,6 @@ func (handler *branchesHandler) setup() error {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
 			return
 		}
-		fmt.Println(rules)
 		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef, rules)
 	})
 	return handler.errSetup
@@ -333,7 +358,8 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	// It says nothing about what protection is enabled at all.
 	branchRef.Protected = new(bool)
 	if data.RefUpdateRule == nil &&
-		data.BranchProtectionRule == nil {
+		data.BranchProtectionRule == nil &&
+		len(rules) == 0 {
 		// TODO: consider rules that match the branch here.
 		*branchRef.Protected = false
 		return branchRef
@@ -362,6 +388,8 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 		copyNonAdminSettings(rule, branchRule)
 	}
 
+	applyRepoRules(branchRef, rules)
+
 	return branchRef
 }
 
@@ -375,22 +403,12 @@ const (
 )
 
 func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
+	refName := fmt.Sprintf("refs/heads/%s", name)
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
-		if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
-			continue
-		}
-
-		// If there are no conditions, everything matches?
-		if rule.Conditions == nil {
-			ret = append(ret, rule)
-			continue
-		}
-
-		// TODO: confirm this behaviour:
 		for _, cond := range rule.Conditions.RefName.Exclude {
-			if match, err := fnmatch.Match(cond, name); err != nil {
+			if match, err := fnmatch.Match(cond, refName); err != nil {
 				return nil, fmt.Errorf("exclude match error: %w", err)
 			} else if match {
 				continue nextRule
@@ -407,7 +425,7 @@ nextRule:
 				break
 			}
 
-			if match, err := fnmatch.Match(cond, name); err != nil {
+			if match, err := fnmatch.Match(cond, refName); err != nil {
 				return nil, fmt.Errorf("include match error: %w", err)
 			} else if match {
 				ret = append(ret, rule)
@@ -415,4 +433,42 @@ nextRule:
 		}
 	}
 	return ret, nil
+}
+
+func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
+	for _, rule := range rules {
+		for _, prRule := range rule.PullRequestRules.Edges {
+			dismissStale := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.DismissStaleReviewsOnPush)
+			if dismissStale && !readBoolPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews) {
+				branchRef.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews = &dismissStale
+			}
+			codeOwner := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.RequireCodeOwnerReview)
+			if codeOwner && !readBoolPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews) {
+				branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews = &codeOwner
+			}
+			lastPush := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.RequireLastPushApproval)
+			if lastPush && !readBoolPtr(branchRef.BranchProtectionRule.RequireLastPushApproval) {
+				branchRef.BranchProtectionRule.RequireLastPushApproval = &lastPush
+			}
+			ruleReviewers := readIntPtr(prRule.Node.Parameters.PullRequestParameters.RequiredApprovingReviewCount)
+			branchReviewers := readIntPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+			if ruleReviewers > branchReviewers {
+				branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount = &ruleReviewers
+			}
+		}
+	}
+}
+
+func readBoolPtr(b *bool) bool {
+	if b == nil {
+		return false
+	}
+	return *b
+}
+
+func readIntPtr(i *int32) int32 {
+	if i == nil {
+		return 0
+	}
+	return *i
 }

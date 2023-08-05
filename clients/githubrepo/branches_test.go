@@ -49,7 +49,7 @@ func Test_rulesMatchingBranch(t *testing.T) {
 			name: "including branch by name",
 			condition: ruleSetCondition{
 				RefName: ruleSetConditionRefs{
-					Include: []string{"foo"},
+					Include: []string{"refs/heads/foo"},
 				},
 			},
 			defaultBranchNames: map[string]bool{
@@ -65,7 +65,7 @@ func Test_rulesMatchingBranch(t *testing.T) {
 			name: "including branch by fnmatch",
 			condition: ruleSetCondition{
 				RefName: ruleSetConditionRefs{
-					Include: []string{"foo/**"},
+					Include: []string{"refs/heads/foo/**"},
 				},
 			},
 			defaultBranchNames: map[string]bool{
@@ -84,8 +84,8 @@ func Test_rulesMatchingBranch(t *testing.T) {
 			name: "include+exclude branch by fnmatch",
 			condition: ruleSetCondition{
 				RefName: ruleSetConditionRefs{
-					Include: []string{"foo/**"},
-					Exclude: []string{"foo/bar"},
+					Include: []string{"refs/heads/foo/**"},
+					Exclude: []string{"refs/heads/foo/bar"},
 				},
 			},
 			defaultBranchNames: map[string]bool{
@@ -104,7 +104,7 @@ func Test_rulesMatchingBranch(t *testing.T) {
 		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			inputRules := []*repoRuleSet{{Enforcement: &active, Conditions: &testcase.condition}}
+			inputRules := []*repoRuleSet{{Enforcement: &active, Conditions: testcase.condition}}
 			for branchName, expected := range testcase.defaultBranchNames {
 				branchName := branchName
 				expected := expected
