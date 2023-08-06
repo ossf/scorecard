@@ -33,23 +33,23 @@ const (
 
 // See https://github.community/t/graphql-api-protected-branch/14380
 /* Example of query:
-	query {
+{
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
-		edges{
-			node{
-				allowsDeletions
-				allowsForcePushes
-				dismissesStaleReviews
-				isAdminEnforced
-				...
-				pattern
-				matchingRefs(first: 100) {
-				nodes {
-					name
-				}
-			}
-		}
+      edges {
+        node {
+          allowsDeletions
+          allowsForcePushes
+          dismissesStaleReviews
+          isAdminEnforced
+          pattern
+          matchingRefs(first: 100) {
+            nodes {
+              name
+            }
+          }
+        }
+      }
     }
     refs(first: 100, refPrefix: "refs/heads/") {
       nodes {
@@ -57,7 +57,36 @@ const (
         refUpdateRule {
           requiredApprovingReviewCount
           allowsForcePushes
-		  ...
+        }
+      }
+    }
+    rulesets(first: 100) {
+      edges {
+        node {
+          name
+          enforcement
+          target
+          conditions {
+            refName {
+              exclude
+              include
+            }
+          }
+          pullRequestRules: rules(first: 100, type: PULL_REQUEST) {
+            edges {
+              node {
+                parameters {
+                  ... on PullRequestParameters {
+                    dismissStaleReviewsOnPush
+                    requireCodeOwnerReview
+                    requireLastPushApproval
+                    requiredApprovingReviewCount
+                    requiredReviewThreadResolution
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -107,6 +136,48 @@ type defaultBranchData struct {
 	}
 }
 
+type pullRequestRuleParameters struct {
+	DismissStaleReviewsOnPush      *bool
+	RequireCodeOwnerReview         *bool
+	RequireLastPushApproval        *bool
+	RequiredApprovingReviewCount   *int32
+	RequiredReviewThreadResolution *bool
+}
+type pullRequestRules struct {
+	Node struct {
+		Parameters struct {
+			PullRequestParameters pullRequestRuleParameters `graphql:"... on PullRequestParameters"`
+		}
+	}
+}
+type ruleSetCondition struct {
+	RefName struct {
+		Include []string
+		Exclude []string
+	}
+}
+
+type repoRuleSet struct {
+	Name             *string
+	Enforcement      *string
+	Target           *string
+	Conditions       *ruleSetCondition
+	PullRequestRules struct {
+		Edges []*pullRequestRules
+	} `graphql:"rules(first: 100, type: PULL_REQUEST)"`
+}
+
+type ruleSetData struct {
+	Repository struct {
+		Rulesets struct {
+			Nodes []*repoRuleSet
+		} `graphql:"rulesets(first: 100)"`
+	} `graphql:"repository(owner: $owner, name: $name)"`
+	RateLimit struct {
+		Cost *int
+	}
+}
+
 type branchData struct {
 	Repository struct {
 		Ref *branch `graphql:"ref(qualifiedName: $branchRefName)"`
@@ -122,6 +193,7 @@ type branchesHandler struct {
 	errSetup         error
 	repourl          *repoURL
 	defaultBranchRef *clients.BranchRef
+	ruleSets         []*repoRuleSet
 }
 
 func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -143,12 +215,23 @@ func (handler *branchesHandler) setup() error {
 			"owner": githubv4.String(handler.repourl.owner),
 			"name":  githubv4.String(handler.repourl.repo),
 		}
-		handler.data = new(defaultBranchData)
-		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
+
+		rulesData := new(ruleSetData)
+		if err := handler.graphClient.Query(handler.ctx, rulesData, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef)
+		handler.ruleSets = rulesData.Repository.Rulesets.Nodes
+
+		handler.data = new(defaultBranchData)
+		// If the repository is using RuleSets, ignore permissions errors on branch protection as that requires admin.
+		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil && len(handler.ruleSets) > 0 && isPermissionsError(err) {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
+		}
+
+		rules := rulesMatchingBranch(handler.ruleSets, *handler.data.Repository.DefaultBranchRef.Name, true)
+		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef, rules)
 	})
 	return handler.errSetup
 }
@@ -166,7 +249,8 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	return getBranchRefFrom(queryData.Repository.Ref), nil
+	rules := rulesMatchingBranch(handler.ruleSets, branchName, branchName == *handler.data.Repository.DefaultBranchRef.Name)
+	return getBranchRefFrom(queryData.Repository.Ref, rules), nil
 }
 
 func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
@@ -177,6 +261,7 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 }
 
 func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
+	// TODO: has setup() been called yet? current implementation assumes yes.
 	branchRef, err := handler.query(branch)
 	if err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.query: %w", err)
@@ -224,7 +309,7 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 	}
 }
 
-func getBranchRefFrom(data *branch) *clients.BranchRef {
+func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	if data == nil {
 		return nil
 	}
@@ -239,6 +324,7 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 	branchRef.Protected = new(bool)
 	if data.RefUpdateRule == nil &&
 		data.BranchProtectionRule == nil {
+		// TODO: consider rules that match the branch here.
 		*branchRef.Protected = false
 		return branchRef
 	}
@@ -267,4 +353,42 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 	}
 
 	return branchRef
+}
+
+func isPermissionsError(err error) bool {
+	return strings.Contains(err.Error(), "Resource not accessible by personal access token")
+}
+
+func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) []*repoRuleSet {
+	ret := make([]*repoRuleSet, 0)
+nextRule:
+	for _, rule := range rules {
+		if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
+			continue
+		}
+
+		if rule.Conditions == nil {
+			// TODO: is this even possible?
+			ret = append(ret, rule)
+			continue
+		}
+
+		// TODO: confirm this behaviour:
+		for _, cond := range rule.Conditions.RefName.Exclude {
+			if cond == name {
+				continue nextRule
+			}
+			if cond == "~DEFAULT_BRANCH" && defaultRef {
+				continue nextRule
+			}
+		}
+
+		for _, cond := range rule.Conditions.RefName.Include {
+			if cond == name {
+				ret = append(ret, rule)
+			}
+
+		}
+	}
+	return ret
 }
