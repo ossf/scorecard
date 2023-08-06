@@ -73,17 +73,37 @@ const (
               include
             }
           }
-          pullRequestRules: rules(first: 100, type: PULL_REQUEST) {
-            edges {
-              node {
-                parameters {
-                  ... on PullRequestParameters {
-                    dismissStaleReviewsOnPush
-                    requireCodeOwnerReview
-                    requireLastPushApproval
-                    requiredApprovingReviewCount
-                    requiredReviewThreadResolution
+          bypassActors(first: 100) {
+            nodes {
+              actor {
+                __typename
+                ... on App {
+                  name
+                  databaseId
+                }
+              }
+              bypassMode
+              organizationAdmin
+              repositoryRoleName
+            }
+          }
+          rules(first: 100) {
+            nodes {
+              type
+              parameters {
+                ... on PullRequestParameters {
+                  dismissStaleReviewsOnPush
+                  requireCodeOwnerReview
+                  requireLastPushApproval
+                  requiredApprovingReviewCount
+                  requiredReviewThreadResolution
+                }
+                ... on RequiredStatusChecksParameters {
+                  requiredStatusChecks {
+                    context
+                    integrationId
                   }
+                  strictRequiredStatusChecksPolicy
                 }
               }
             }
@@ -151,11 +171,18 @@ type pullRequestRuleParameters struct {
 	RequiredApprovingReviewCount   *int32
 	RequiredReviewThreadResolution *bool
 }
-type pullRequestRules struct {
-	Node struct {
-		Parameters struct {
-			PullRequestParameters pullRequestRuleParameters `graphql:"... on PullRequestParameters"`
-		}
+type requiredStatusCheckParameters struct {
+	StrictRequiredStatusChecksPolicy *bool
+	RequiredStatusChecks             []struct {
+		Context       *string
+		IntegrationID *int64
+	}
+}
+type repoRule struct {
+	Type       string
+	Parameters struct {
+		PullRequestParameters pullRequestRuleParameters     `graphql:"... on PullRequestParameters"`
+		StatusCheckParameters requiredStatusCheckParameters `graphql:"... on RequiredStatusChecksParameters"`
 	}
 }
 type ruleSetConditionRefs struct {
@@ -165,13 +192,21 @@ type ruleSetConditionRefs struct {
 type ruleSetCondition struct {
 	RefName ruleSetConditionRefs
 }
+type ruleSetBypass struct {
+	BypassMode         *string
+	OrganizationAdmin  *bool
+	RepositoryRoleName *string
+}
 type repoRuleSet struct {
-	Name             *string
-	Enforcement      *string
-	Conditions       ruleSetCondition
-	PullRequestRules struct {
-		Edges []*pullRequestRules
-	} `graphql:"rules(first: 100, type: PULL_REQUEST)"`
+	Name         *string
+	Enforcement  *string
+	Conditions   ruleSetCondition
+	BypassActors struct {
+		Nodes []*ruleSetBypass
+	} `graphql:"bypassActors(first: 100)"`
+	Rules struct {
+		Nodes []*repoRule
+	} `graphql:"rules(first: 100)"`
 }
 type ruleSetData struct {
 	Repository struct {
@@ -360,7 +395,6 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	if data.RefUpdateRule == nil &&
 		data.BranchProtectionRule == nil &&
 		len(rules) == 0 {
-		// TODO: consider rules that match the branch here.
 		*branchRef.Protected = false
 		return branchRef
 	}
@@ -436,27 +470,106 @@ nextRule:
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
-	for _, rule := range rules {
-		for _, prRule := range rule.PullRequestRules.Edges {
-			dismissStale := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.DismissStaleReviewsOnPush)
-			if dismissStale && !readBoolPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews) {
-				branchRef.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews = &dismissStale
-			}
-			codeOwner := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.RequireCodeOwnerReview)
-			if codeOwner && !readBoolPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews) {
-				branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews = &codeOwner
-			}
-			lastPush := readBoolPtr(prRule.Node.Parameters.PullRequestParameters.RequireLastPushApproval)
-			if lastPush && !readBoolPtr(branchRef.BranchProtectionRule.RequireLastPushApproval) {
-				branchRef.BranchProtectionRule.RequireLastPushApproval = &lastPush
-			}
-			ruleReviewers := readIntPtr(prRule.Node.Parameters.PullRequestParameters.RequiredApprovingReviewCount)
-			branchReviewers := readIntPtr(branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-			if ruleReviewers > branchReviewers {
-				branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount = &ruleReviewers
+	for _, r := range rules {
+		var modded bool
+		for _, rule := range r.Rules.Nodes {
+			switch rule.Type {
+			case "DELETION":
+				if branchRef.BranchProtectionRule.AllowDeletions == nil || *branchRef.BranchProtectionRule.AllowDeletions {
+					branchRef.BranchProtectionRule.AllowDeletions = new(bool)
+					*branchRef.BranchProtectionRule.AllowDeletions = false
+					modded = true
+				}
+			case "NON_FAST_FORWARD":
+				if branchRef.BranchProtectionRule.AllowForcePushes == nil || *branchRef.BranchProtectionRule.AllowForcePushes {
+					branchRef.BranchProtectionRule.AllowForcePushes = new(bool)
+					*branchRef.BranchProtectionRule.AllowForcePushes = false
+					modded = true
+				}
+			case "PULL_REQUEST":
+				if applyPullRequestRepoRule(branchRef, rule) {
+					modded = true
+				}
+			case "REQUIRED_STATUS_CHECKS":
+				if applyRequiredStatusChecksRepoRule(branchRef, rule) {
+					modded = true
+				}
 			}
 		}
+		if modded {
+			adminEnforced := ruleAdminEnforced(r)
+			branchRef.BranchProtectionRule.EnforceAdmins = &adminEnforced
+		}
 	}
+}
+
+func applyPullRequestRepoRule(branchRef *clients.BranchRef, rule *repoRule) bool {
+	var modded bool
+	branchRules := branchRef.BranchProtectionRule.RequiredPullRequestReviews
+	dismissStale := readBoolPtr(rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush)
+	if dismissStale && !readBoolPtr(branchRules.DismissStaleReviews) {
+		branchRef.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews = &dismissStale
+		modded = true
+	}
+	codeOwner := readBoolPtr(rule.Parameters.PullRequestParameters.RequireCodeOwnerReview)
+	if codeOwner && !readBoolPtr(branchRules.RequireCodeOwnerReviews) {
+		branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews = &codeOwner
+		modded = true
+	}
+	lastPush := readBoolPtr(rule.Parameters.PullRequestParameters.RequireLastPushApproval)
+	if lastPush && !readBoolPtr(branchRef.BranchProtectionRule.RequireLastPushApproval) {
+		branchRef.BranchProtectionRule.RequireLastPushApproval = &lastPush
+		modded = true
+	}
+	ruleReviewers := readIntPtr(rule.Parameters.PullRequestParameters.RequiredApprovingReviewCount)
+	branchReviewers := readIntPtr(branchRules.RequiredApprovingReviewCount)
+	if ruleReviewers > branchReviewers {
+		branchRef.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount = &ruleReviewers
+		modded = true
+	}
+	return modded
+}
+
+func applyRequiredStatusChecksRepoRule(branchRef *clients.BranchRef, rule *repoRule) bool {
+	// If the branch already requires status checks, the rule does not matter.
+	branchRules := &branchRef.BranchProtectionRule.CheckRules
+	if readBoolPtr(branchRules.RequiresStatusChecks) {
+		return false
+	}
+
+	statusParams := rule.Parameters.StatusCheckParameters
+	if len(statusParams.RequiredStatusChecks) == 0 {
+		return false
+	}
+
+	enabled := true
+	branchRules.RequiresStatusChecks = &enabled
+	if branchRules.UpToDateBeforeMerge == nil && statusParams.StrictRequiredStatusChecksPolicy != nil {
+		copyBoolPtr(statusParams.StrictRequiredStatusChecksPolicy, &branchRules.UpToDateBeforeMerge)
+	}
+	for _, chk := range statusParams.RequiredStatusChecks {
+		if chk.Context == nil {
+			continue
+		}
+		branchRules.Contexts = append(branchRules.Contexts, *chk.Context)
+	}
+	return true
+}
+
+func ruleAdminEnforced(rule *repoRuleSet) bool {
+	if len(rule.BypassActors.Nodes) == 0 {
+		return true
+	}
+	for _, bypass := range rule.BypassActors.Nodes {
+		if readBoolPtr(bypass.OrganizationAdmin) {
+			return false
+		}
+		if bypass.RepositoryRoleName != nil {
+			// this may be "admin", "write", "maintainer" or a custom role - treat all as bad
+			return false
+		}
+	}
+	return true
 }
 
 func readBoolPtr(b *bool) bool {
