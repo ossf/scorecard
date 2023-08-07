@@ -17,49 +17,72 @@ package app
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/format"
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/runner"
+	"github.com/ossf/scorecard/v4/pkg"
 )
 
 //nolint:gochecknoinits // common for cobra apps
 func init() {
 	rootCmd.AddCommand(generateCmd)
 	generateCmd.PersistentFlags().StringVarP(&repoFile, "repos", "r", "", "path to newline-delimited repo file")
+	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "", "write to file instead of stdout")
 }
 
 var (
-	repoFile string
+	repoFile   string
+	outputFile string
 
 	generateCmd = &cobra.Command{
 		Use:   "generate [flags] repofile",
 		Short: "Generate Scorecard results for diffing",
 		Long:  `Generate Scorecard results for diffing`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			f, err := os.Open(repoFile)
+			input, err := os.Open(repoFile)
 			if err != nil {
 				return fmt.Errorf("unable to open repo file: %w", err)
 			}
-			scorecardRunner := runner.New()
-			scanner := bufio.NewScanner(f)
-			for scanner.Scan() {
-				results, err := scorecardRunner.Run(scanner.Text())
+			defer input.Close()
+			var output io.Writer = os.Stdout
+			if outputFile != "" {
+				outputF, err := os.Create(outputFile)
 				if err != nil {
-					return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
+					return fmt.Errorf("unable to create output file: %w", err)
 				}
-				// TODO output it to a file, preferably in pretty printed json
-				err = format.JSON(&results, os.Stdout)
-				if err != nil {
-					return fmt.Errorf("formatting results: %w", err)
-				}
+				defer outputF.Close()
+				output = outputF
 			}
-			if err := scanner.Err(); err != nil {
-				return fmt.Errorf("reading repo file: %w", err)
-			}
-			return nil
+			r := runner.New()
+			return generate(&r, input, output)
 		},
 	}
 )
+
+type scorecardRunner interface {
+	Run(repo string) (pkg.ScorecardResult, error)
+}
+
+// Runs scorecard on each newline-delimited repo in repos, and writes the output.
+func generate(scRunner scorecardRunner, repos io.Reader, output io.Writer) error {
+	scanner := bufio.NewScanner(repos)
+	for scanner.Scan() {
+		results, err := scRunner.Run(scanner.Text())
+		if err != nil {
+			return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
+		}
+		// TODO(https://github.com/ossf/scorecard/issues/3360) pretty print?
+		err = format.JSON(&results, output)
+		if err != nil {
+			return fmt.Errorf("formatting results: %w", err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("reading repo file: %w", err)
+	}
+	return nil
+}
