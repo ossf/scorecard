@@ -33,9 +33,7 @@ var _ = Describe("E2E TEST: gitlabrepo.ListIssues", func() {
 			err = client.InitRepo(repo, "HEAD", 0)
 			Expect(err).Should(BeNil())
 			_, err = client.ListIssues()
-			// returns error as the code checks for ListAllProjectMembers which is not available
-			// TODO: this will be fixed when it is fixed in the code
-			Expect(err).ShouldNot(BeNil())
+			Expect(err).Should(BeNil())
 		})
 	})
 })
