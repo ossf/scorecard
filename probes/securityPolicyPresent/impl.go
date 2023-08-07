@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package toolDependabotInstalled
+package securityPolicyPresent
 
 import (
 	"embed"
@@ -27,31 +27,39 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "toolDependabotInstalled"
-
-type dependabot struct{}
-
-func (t dependabot) Name() string {
-	return "Dependabot"
-}
-
-func (t dependabot) Matches(tool *checker.Tool) bool {
-	return t.Name() == tool.Name
-}
+const Probe = "securityPolicyPresent"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
 	}
-	tools := raw.DependencyUpdateToolResults.Tools
-	var matcher dependabot
-	// Check whether Dependabot tool is installed on the repo,
-	// and create the corresponding findings.
-	//nolint:wrapcheck
-	return utils.ToolsRun(tools, fs, Probe,
-		// Tool found will generate a positive result.
-		finding.OutcomePositive,
-		// Tool not found will generate a negative result.
-		finding.OutcomeNegative,
-		matcher)
+	var files []checker.File
+	for i := range raw.SecurityPolicyResults.PolicyFiles {
+		files = append(files, raw.SecurityPolicyResults.PolicyFiles[i].File)
+	}
+
+	var findings []finding.Finding
+	for i := range files {
+		file := &files[i]
+		f, err := finding.NewWith(fs, Probe, "security policy file detected",
+			file.Location(), finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithRemediationMetadata(raw.Metadata.Metadata)
+		findings = append(findings, *f)
+	}
+
+	// No file found.
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no security policy file detected",
+			nil, finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithRemediationMetadata(raw.Metadata.Metadata)
+		findings = append(findings, *f)
+	}
+
+	return findings, Probe, nil
 }

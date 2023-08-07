@@ -404,6 +404,24 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Using a GitLab Repository
+
+To run Scorecard on a GitLab repository, you must create a [GitLab Access Token](https://gitlab.com/-/profile/personal_access_tokens) with the following permissions:
+
+- `read_api`
+- `read_user`
+- `read_repository`
+
+You can run Scorecard on a GitLab repository by setting the `GITLAB_AUTH_TOKEN` environment variable:
+
+```bash
+export GITLAB_AUTH_TOKEN=glpat-xxxx
+
+scorecard --repo gitlab.com/<org>/<project>/<subproject>
+```
+
+For an example of using Scorecard in GitLab CI/CD, see [here](https://gitlab.com/ossf-test/scorecard-pipeline-example).
+
 ##### Using GitHub Enterprise Server (GHES) based Repository
 
 To use a GitHub Enterprise host `github.corp.com`, use the `GH_HOST` environment variable.

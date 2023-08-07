@@ -150,11 +150,9 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
 			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 			dl := scut.TestDetailLogger{}
-			raw := checker.RawResults{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			res := DependencyUpdateTool(c)
 

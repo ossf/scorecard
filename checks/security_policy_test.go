@@ -191,12 +191,12 @@ func TestSecurityPolicy(t *testing.T) {
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}
-			c := checker.CheckRequest{
+			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
 			}
 
-			res := SecurityPolicy(&c)
+			res := SecurityPolicy(c)
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl) {
 				t.Errorf("test failed: log message not present: %+v on %+v", tt.want, res)
