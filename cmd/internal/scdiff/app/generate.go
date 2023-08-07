@@ -75,7 +75,7 @@ func generate(scRunner scorecardRunner, repos io.Reader, output io.Writer) error
 		if err != nil {
 			return fmt.Errorf("running scorecard on %s: %w", scanner.Text(), err)
 		}
-		// TODO pretty print?
+		// TODO(https://github.com/ossf/scorecard/issues/3360) pretty print?
 		err = format.JSON(&results, output)
 		if err != nil {
 			return fmt.Errorf("formatting results: %w", err)
