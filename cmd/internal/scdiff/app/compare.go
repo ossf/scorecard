@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/compare"
@@ -54,12 +55,14 @@ var (
 				return fmt.Errorf("opening %q: %w", args[1], err)
 			}
 			defer f2.Close()
-			return compareReaders(f1, f2)
+			cmd.SilenceUsage = true  // disables printing Usage
+			cmd.SilenceErrors = true // disables the "Error: <err>" message
+			return compareReaders(f1, f2, os.Stderr)
 		},
 	}
 )
 
-func compareReaders(x, y io.Reader) error {
+func compareReaders(x, y io.Reader, output io.Writer) error {
 	xResult, err := pkg.ExperimentalFromJSON2(x)
 	if err != nil {
 		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
@@ -71,6 +74,9 @@ func compareReaders(x, y io.Reader) error {
 	format.Normalize(&xResult)
 	format.Normalize(&yResult)
 	if !compare.Results(&xResult, &yResult) {
+		// go-cmp says its not production ready. Is this a valid usage?
+		// it certainly helps with readability.
+		fmt.Fprintf(output, "%s\n", cmp.Diff(xResult, yResult))
 		return errMismatchedResults
 	}
 	return nil
