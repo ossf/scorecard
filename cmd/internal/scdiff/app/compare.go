@@ -17,6 +17,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ func init() {
 
 var (
 	errMissingInputFiles = errors.New("must provide at least two files")
+	errMismatchedResults = errors.New("results differ")
 
 	compareCmd = &cobra.Command{
 		Use:   "compare [flags] FILE1 FILE2",
@@ -52,18 +54,24 @@ var (
 				return fmt.Errorf("opening %q: %w", args[1], err)
 			}
 			defer f2.Close()
-			r1, err := pkg.ExperimentalFromJSON2(f1)
-			if err != nil {
-				return fmt.Errorf("parsing %q: %w", args[0], err)
-			}
-			r2, err := pkg.ExperimentalFromJSON2(f2)
-			if err != nil {
-				return fmt.Errorf("parsing %q: %w", args[1], err)
-			}
-			format.Normalize(&r1)
-			format.Normalize(&r2)
-			compare.Results(&r1, &r2)
-			return nil
+			return compareReaders(f1, f2)
 		},
 	}
 )
+
+func compareReaders(x, y io.Reader) error {
+	xResult, err := pkg.ExperimentalFromJSON2(x)
+	if err != nil {
+		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
+	}
+	yResult, err := pkg.ExperimentalFromJSON2(y)
+	if err != nil {
+		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
+	}
+	format.Normalize(&xResult)
+	format.Normalize(&yResult)
+	if !compare.Results(&xResult, &yResult) {
+		return errMismatchedResults
+	}
+	return nil
+}
