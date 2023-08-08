@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/compare"
+	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/format"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -59,6 +60,8 @@ var (
 			if err != nil {
 				return fmt.Errorf("parsing %q: %w", args[1], err)
 			}
+			format.Normalize(&r1)
+			format.Normalize(&r2)
 			compare.Results(&r1, &r2)
 			return nil
 		},
