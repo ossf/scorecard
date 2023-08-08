@@ -63,6 +63,7 @@ var (
 )
 
 func compareReaders(x, y io.Reader, output io.Writer) error {
+	// TODO: support more than 1 result per file
 	xResult, err := pkg.ExperimentalFromJSON2(x)
 	if err != nil {
 		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
