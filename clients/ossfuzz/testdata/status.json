@@ -23,6 +23,10 @@
     {
       "name": "go-cmp",
       "main_repo": "https://github.com/google/go-cmp/cmp"
+    },
+    {
+      "name": "fftw3",
+      "main_repo": "https://github.com/fftw/fftw3.git"
     }
   ]
 }
