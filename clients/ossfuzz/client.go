@@ -139,9 +139,10 @@ func normalize(rawURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("url.Parse: %w", err)
 	}
-	const splitLen = 2
+	const splitLen = 3 // corresponding to owner/repo/rest
+	const minLen = 2   // corresponds to owner/repo
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
+	if len(split) < minLen {
 		return "", fmt.Errorf("%s: %w", rawURL, errMalformedURL)
 	}
 	org := split[0]
