@@ -83,7 +83,8 @@ func (c *client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 	if c.err != nil {
 		return sr, c.err
 	}
-	if c.projects[request.Query] {
+	projectURI := strings.ToLower(request.Query)
+	if c.projects[projectURI] {
 		sr.Hits = 1
 	}
 	return sr, nil
@@ -135,13 +136,14 @@ func fetchStatusFile(uri string) ([]byte, error) {
 }
 
 func normalize(rawURL string) (string, error) {
-	u, err := url.Parse(rawURL)
+	u, err := url.Parse(strings.ToLower(rawURL))
 	if err != nil {
 		return "", fmt.Errorf("url.Parse: %w", err)
 	}
-	const splitLen = 2
+	const splitLen = 3 // corresponding to owner/repo/rest
+	const minLen = 2   // corresponds to owner/repo
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
+	if len(split) < minLen {
 		return "", fmt.Errorf("%s: %w", rawURL, errMalformedURL)
 	}
 	org := split[0]
