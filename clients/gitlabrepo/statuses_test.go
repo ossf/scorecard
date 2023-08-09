@@ -33,7 +33,7 @@ func Test_listStatuses(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name:         "valid webhook",
+			name:         "valid status",
 			responsePath: "./testdata/valid-status",
 			want: []clients.Status{
 				{
@@ -46,7 +46,7 @@ func Test_listStatuses(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:         "invalid webhook",
+			name:         "failure fetching the status",
 			responsePath: "./testdata/invalid-status",
 			want:         nil,
 			wantErr:      true,
