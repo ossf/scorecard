@@ -63,7 +63,7 @@ func Test_listWebhooks(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:         "invalid webhook",
+			name:         "failure fetching webhooks",
 			responsePath: "./testdata/invalid-webhook",
 			want:         nil,
 			wantErr:      true,
