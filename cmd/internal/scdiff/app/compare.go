@@ -15,10 +15,12 @@
 package app
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
@@ -36,6 +38,7 @@ func init() {
 var (
 	errMissingInputFiles = errors.New("must provide at least two files")
 	errMismatchedResults = errors.New("results differ")
+	errNumResults        = errors.New("number of results being compared differ")
 
 	compareCmd = &cobra.Command{
 		Use:   "compare [flags] FILE1 FILE2",
@@ -63,22 +66,47 @@ var (
 )
 
 func compareReaders(x, y io.Reader, output io.Writer) error {
-	// TODO: support more than 1 result per file
-	xResult, err := pkg.ExperimentalFromJSON2(x)
-	if err != nil {
-		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
+	// results are currently newline delimited
+	xScanner := bufio.NewScanner(x)
+	yScanner := bufio.NewScanner(y)
+	for {
+		xMore := xScanner.Scan()
+		yMore := yScanner.Scan()
+		if xMore != yMore {
+			return errNumResults
+		}
+		if !xMore && !yMore {
+			break
+		}
+		xResult, err := loadResult(xScanner.Text())
+		if err != nil {
+			return fmt.Errorf("parsing file1: %w", err)
+		}
+		yResult, err := loadResult(yScanner.Text())
+		if err != nil {
+			return fmt.Errorf("parsing file2: %w", err)
+		}
+		if !compare.Results(&xResult, &yResult) {
+			// go-cmp says its not production ready. Is this a valid usage?
+			// it certainly helps with readability.
+			fmt.Fprintf(output, "%s\n", cmp.Diff(xResult, yResult))
+			return errMismatchedResults
+		}
 	}
-	yResult, err := pkg.ExperimentalFromJSON2(y)
-	if err != nil {
-		return fmt.Errorf("ExperimentalFromJSON2: %w", err)
-	}
-	format.Normalize(&xResult)
-	format.Normalize(&yResult)
-	if !compare.Results(&xResult, &yResult) {
-		// go-cmp says its not production ready. Is this a valid usage?
-		// it certainly helps with readability.
-		fmt.Fprintf(output, "%s\n", cmp.Diff(xResult, yResult))
-		return errMismatchedResults
+	if err := xScanner.Err(); err != nil {
+		return fmt.Errorf("reading results: %w", err)
+	} else if err := yScanner.Err(); err != nil {
+		return fmt.Errorf("reading results: %w", err)
 	}
 	return nil
+}
+
+func loadResult(s string) (pkg.ScorecardResult, error) {
+	reader := strings.NewReader(s)
+	result, err := pkg.ExperimentalFromJSON2(reader)
+	if err != nil {
+		return pkg.ScorecardResult{}, fmt.Errorf("parsing result: %w", err)
+	}
+	format.Normalize(&result)
+	return result, nil
 }
