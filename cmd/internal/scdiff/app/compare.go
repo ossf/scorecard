@@ -37,7 +37,7 @@ func init() {
 
 var (
 	errMissingInputFiles = errors.New("must provide at least two files")
-	errMismatchedResults = errors.New("results differ")
+	errResultsDiffer     = errors.New("results differ")
 	errNumResults        = errors.New("number of results being compared differ")
 
 	compareCmd = &cobra.Command{
@@ -70,12 +70,11 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 	xScanner := bufio.NewScanner(x)
 	yScanner := bufio.NewScanner(y)
 	for {
-		xMore := xScanner.Scan()
-		yMore := yScanner.Scan()
-		if xMore != yMore {
-			return errNumResults
+		shouldContinue, err := advanceScanners(xScanner, yScanner)
+		if err != nil {
+			return err
 		}
-		if !xMore && !yMore {
+		if !shouldContinue {
 			break
 		}
 		xResult, err := loadResult(xScanner.Text())
@@ -90,13 +89,8 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 			// go-cmp says its not production ready. Is this a valid usage?
 			// it certainly helps with readability.
 			fmt.Fprintf(output, "%s\n", cmp.Diff(xResult, yResult))
-			return errMismatchedResults
+			return errResultsDiffer
 		}
-	}
-	if err := xScanner.Err(); err != nil {
-		return fmt.Errorf("reading results: %w", err)
-	} else if err := yScanner.Err(); err != nil {
-		return fmt.Errorf("reading results: %w", err)
 	}
 	return nil
 }
@@ -109,4 +103,19 @@ func loadResult(s string) (pkg.ScorecardResult, error) {
 	}
 	format.Normalize(&result)
 	return result, nil
+}
+
+func advanceScanners(x, y *bufio.Scanner) (shouldContinue bool, err error) {
+	xContinue := x.Scan()
+	yContinue := y.Scan()
+	if err := x.Err(); err != nil {
+		return false, fmt.Errorf("reading results: %w", err)
+	}
+	if err := y.Err(); err != nil {
+		return false, fmt.Errorf("reading results: %w", err)
+	}
+	if xContinue != yContinue {
+		return false, errNumResults
+	}
+	return xContinue, nil
 }
