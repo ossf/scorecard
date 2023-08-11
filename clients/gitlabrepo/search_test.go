@@ -16,7 +16,11 @@ package gitlabrepo
 
 import (
 	"errors"
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -121,6 +125,81 @@ func TestBuildQuery(t *testing.T) {
 				t.Fatalf("expectedErrType - %v, got -%v", testcase.expectedErrType, err)
 			} else if query != testcase.expectedQuery {
 				t.Fatalf("expectedQuery - %s, got - %s", testcase.expectedQuery, query)
+			}
+		})
+	}
+}
+
+func Test_search(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		responsePath string
+		want         clients.SearchResponse
+		wantErr      bool
+	}{
+		{
+			name:         "valid search",
+			responsePath: "./testdata/valid-search-result",
+			want: clients.SearchResponse{
+				Results: []clients.SearchResult{
+					{
+						Path: "README.md",
+					},
+				},
+				Hits: 1,
+			},
+
+			wantErr: false,
+		},
+		{
+			name:         "valid search with zero results",
+			responsePath: "./testdata/valid-search-result-1",
+			want: clients.SearchResponse{
+				Hits: 0,
+			},
+
+			wantErr: false,
+		},
+		{
+			name:         "failure fetching the search",
+			responsePath: "./testdata/invalid-search-result",
+			wantErr:      true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			httpClient := &http.Client{
+				Transport: stubTripper{
+					responsePath: tt.responsePath,
+				},
+			}
+			client, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
+			if err != nil {
+				t.Fatalf("gitlab.NewClient error: %v", err)
+			}
+			handler := &searchHandler{
+				glClient: client,
+			}
+
+			repoURL := repoURL{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
+			}
+			handler.init(&repoURL)
+			got, err := handler.search(clients.SearchRequest{
+				Query:    "testquery",
+				Filename: "filename1.txt",
+				Path:     "dir1/dir2",
+			})
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("search error: %v, wantedErr: %t", err, tt.wantErr)
+			}
+
+			if !cmp.Equal(got, tt.want) {
+				t.Errorf("search() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
