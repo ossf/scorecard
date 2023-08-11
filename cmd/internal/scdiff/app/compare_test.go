@@ -63,7 +63,7 @@ func Test_compare(t *testing.T) {
 `,
 			y: `{"date":"2023-08-11T10:22:43-07:00","repo":{"name":"github.com/foo/bar","commit":"f0840f7158c8044af2bd9b8aa661d7942b1f29d2"},"scorecard":{"version":"","commit":"unknown"},"score":7.0,"checks":[{"details":null,"score":7,"reason":"3 existing vulnerabilities detected","name":"Vulnerabilities","documentation":{"url":"https://github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities","short":"Determines if the project has open, known unfixed vulnerabilities."}}],"metadata":null}
 `,
-			wantErrSubstr: "parsing file1",
+			wantErrSubstr: "parsing first",
 		},
 		{
 			name: "y results fail to parse",
@@ -71,7 +71,7 @@ func Test_compare(t *testing.T) {
 `,
 			y: `not a scorecard result
 `,
-			wantErrSubstr: "parsing file2",
+			wantErrSubstr: "parsing second",
 		},
 	}
 	for _, tt := range tests {

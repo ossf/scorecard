@@ -67,23 +67,17 @@ var (
 
 func compareReaders(x, y io.Reader, output io.Writer) error {
 	// results are currently newline delimited
-	xScanner := bufio.NewScanner(x)
-	yScanner := bufio.NewScanner(y)
+	xs := bufio.NewScanner(x)
+	ys := bufio.NewScanner(y)
 	for {
-		shouldContinue, err := advanceScanners(xScanner, yScanner)
-		if err != nil {
+		if shouldContinue, err := advanceScanners(xs, ys); err != nil {
 			return err
-		}
-		if !shouldContinue {
+		} else if !shouldContinue {
 			break
 		}
-		xResult, err := loadResult(xScanner.Text())
+		xResult, yResult, err := loadResults(xs, ys)
 		if err != nil {
-			return fmt.Errorf("parsing file1: %w", err)
-		}
-		yResult, err := loadResult(yScanner.Text())
-		if err != nil {
-			return fmt.Errorf("parsing file2: %w", err)
+			return err
 		}
 		if !compare.Results(&xResult, &yResult) {
 			// go-cmp says its not production ready. Is this a valid usage?
@@ -95,14 +89,18 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 	return nil
 }
 
-func loadResult(s string) (pkg.ScorecardResult, error) {
-	reader := strings.NewReader(s)
-	result, err := pkg.ExperimentalFromJSON2(reader)
+func loadResults(x, y *bufio.Scanner) (pkg.ScorecardResult, pkg.ScorecardResult, error) {
+	xResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
 	if err != nil {
-		return pkg.ScorecardResult{}, fmt.Errorf("parsing result: %w", err)
+		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
 	}
-	format.Normalize(&result)
-	return result, nil
+	yResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
+	if err != nil {
+		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
+	}
+	format.Normalize(&xResult)
+	format.Normalize(&yResult)
+	return xResult, yResult, nil
 }
 
 func advanceScanners(x, y *bufio.Scanner) (shouldContinue bool, err error) {
