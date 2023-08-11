@@ -153,6 +153,15 @@ func Test_search(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:         "valid search with zero results",
+			responsePath: "./testdata/valid-search-result-1",
+			want: clients.SearchResponse{
+				Hits: 0,
+			},
+
+			wantErr: false,
+		},
+		{
 			name:         "failure fetching the search",
 			responsePath: "./testdata/invalid-search-result",
 			wantErr:      true,
