@@ -156,13 +156,6 @@ type defaultBranchData struct {
 		Cost *int
 	}
 }
-type defaultBranchNameData struct {
-	Repository struct {
-		DefaultBranchRef struct {
-			Name *string
-		}
-	} `graphql:"repository(owner: $owner, name: $name)"`
-}
 
 type pullRequestRuleParameters struct {
 	DismissStaleReviewsOnPush      *bool
@@ -210,6 +203,9 @@ type repoRuleSet struct {
 }
 type ruleSetData struct {
 	Repository struct {
+		DefaultBranchRef struct {
+			Name *string
+		}
 		Rulesets struct {
 			Nodes []*repoRuleSet
 		} `graphql:"rulesets(first: 100)"`
@@ -223,15 +219,16 @@ type branchData struct {
 }
 
 type branchesHandler struct {
-	ghClient         *github.Client
-	graphClient      *githubv4.Client
-	data             *defaultBranchData
-	once             *sync.Once
-	ctx              context.Context
-	errSetup         error
-	repourl          *repoURL
-	defaultBranchRef *clients.BranchRef
-	ruleSets         []*repoRuleSet
+	ghClient          *github.Client
+	graphClient       *githubv4.Client
+	data              *defaultBranchData
+	once              *sync.Once
+	ctx               context.Context
+	errSetup          error
+	repourl           *repoURL
+	defaultBranchRef  *clients.BranchRef
+	defaultBranchName string
+	ruleSets          []*repoRuleSet
 }
 
 func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -240,6 +237,8 @@ func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 	handler.defaultBranchRef = nil
+	handler.defaultBranchName = ""
+	handler.ruleSets = nil
 	handler.data = nil
 }
 
@@ -254,45 +253,25 @@ func (handler *branchesHandler) setup() error {
 			"name":  githubv4.String(handler.repourl.repo),
 		}
 
+		// Fetch default branch name and any repository rulesets, which are available with basic read permission.
 		rulesData := new(ruleSetData)
 		if err := handler.graphClient.Query(handler.ctx, rulesData, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.ruleSets = make([]*repoRuleSet, 0)
-		for _, rule := range rulesData.Repository.Rulesets.Nodes {
-			if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
-				continue
-			}
-			handler.ruleSets = append(handler.ruleSets, rule)
-		}
+		handler.defaultBranchName = getDefaultBranchNameFrom(rulesData)
+		handler.ruleSets = getActiveRuleSetsFrom(rulesData)
 
+		// Attempt to fetch branch protection rules, which require admin permission.
+		// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 		handler.data = new(defaultBranchData)
-		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
-			// If the repository is using RuleSets, ignore permissions errors on branch protection as that requires admin.
-			if len(handler.ruleSets) == 0 || !isPermissionsError(err) {
-				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-				return
-			}
-
-			// To recover, we still need to know the default branch name:
-			defaultBranchNameData := new(defaultBranchNameData)
-			if err := handler.graphClient.Query(handler.ctx, defaultBranchNameData, vars); err != nil {
-				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-				return
-			}
-			handler.data = &defaultBranchData{
-				Repository: struct {
-					DefaultBranchRef *branch
-				}{
-					DefaultBranchRef: &branch{
-						Name: defaultBranchNameData.Repository.DefaultBranchRef.Name,
-					},
-				},
-			}
+		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil &&
+			!isPermissionsError(err) || len(handler.ruleSets) == 0 {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
 		}
 
-		rules, err := rulesMatchingBranch(handler.ruleSets, *handler.data.Repository.DefaultBranchRef.Name, true)
+		rules, err := rulesMatchingBranch(handler.ruleSets, handler.defaultBranchName, true)
 		if err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
 			return
@@ -306,6 +285,10 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
+	// Call setup(), so we know if branchName == handler.defaultBranchName.
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
+	}
 	vars := map[string]interface{}{
 		"owner":         githubv4.String(handler.repourl.owner),
 		"name":          githubv4.String(handler.repourl.repo),
@@ -315,8 +298,7 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	defaultBranch := branchName == *handler.data.Repository.DefaultBranchRef.Name
-	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, defaultBranch)
+	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
 	}
@@ -331,7 +313,6 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 }
 
 func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
-	// TODO: has setup() been called yet? current implementation assumes yes.
 	branchRef, err := handler.query(branch)
 	if err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.query: %w", err)
@@ -377,6 +358,21 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 	}
+}
+
+func getDefaultBranchNameFrom(data *ruleSetData) string {
+	return *data.Repository.DefaultBranchRef.Name
+}
+
+func getActiveRuleSetsFrom(data *ruleSetData) []*repoRuleSet {
+	ret := make([]*repoRuleSet, 0)
+	for _, rule := range data.Repository.Rulesets.Nodes {
+		if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
+			continue
+		}
+		ret = append(ret, rule)
+	}
+	return ret
 }
 
 func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
