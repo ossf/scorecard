@@ -34,7 +34,7 @@ const (
 
 // See https://github.community/t/graphql-api-protected-branch/14380
 /* Example of query:
-{
+query {
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
       edges {
@@ -428,7 +428,7 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 }
 
 func isPermissionsError(err error) bool {
-	return strings.Contains(err.Error(), "Resource not accessible by personal access token")
+	return strings.Contains(err.Error(), "Resource not accessible")
 }
 
 const (
@@ -437,7 +437,7 @@ const (
 )
 
 func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
-	refName := fmt.Sprintf("refs/heads/%s", name)
+	refName := refPrefix + name
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
@@ -557,9 +557,6 @@ func applyRequiredStatusChecksRepoRule(branchRef *clients.BranchRef, rule *repoR
 }
 
 func ruleAdminEnforced(rule *repoRuleSet) bool {
-	if len(rule.BypassActors.Nodes) == 0 {
-		return true
-	}
 	for _, bypass := range rule.BypassActors.Nodes {
 		if readBoolPtr(bypass.OrganizationAdmin) {
 			return false
