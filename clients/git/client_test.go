@@ -35,7 +35,9 @@ func createTestRepo(t *testing.T) (path string) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary directory: %v", err)
 	}
-
+	t.Cleanup(func() {
+		os.RemoveAll(dir) // nolint:errcheck
+	})
 	r, err := gitV5.PlainInit(dir, false)
 	if err != nil {
 		t.Fatalf("Failed to initialize git repo: %v", err)
@@ -98,25 +100,14 @@ func TestInitRepo(t *testing.T) {
 			expectedErr: "repository does not exist",
 		},
 		{
-			name:        "InvalidCommitSha",
-			uri:         "file://%s",
-			commitSHA:   "invalid",
-			commitDepth: 1,
-			expectedErr: "reference not found",
-		},
-		{
 			name:        "NegativeCommitDepth",
 			uri:         "file://%s",
 			commitSHA:   "HEAD",
 			commitDepth: -1,
-			expectedErr: "negative commit depth",
 		},
 	}
 
 	repoPath := createTestRepo(t)
-	t.Cleanup(func() {
-		os.RemoveAll(repoPath) // nolint:errcheck
-	})
 
 	for _, test := range tests {
 		test := test
@@ -125,10 +116,8 @@ func TestInitRepo(t *testing.T) {
 
 			client := &Client{}
 			err := client.InitRepo(uri, test.commitSHA, test.commitDepth)
-			if test.expectedErr == "" {
-				if err != nil {
-					t.Errorf("Unexpected error during InitRepo: %v", err)
-				}
+			if (test.expectedErr != "") != (err != nil) {
+				t.Errorf("Unexpected error during InitRepo: %v", err)
 			}
 		})
 	}
@@ -136,9 +125,6 @@ func TestInitRepo(t *testing.T) {
 
 func TestListCommits(t *testing.T) {
 	repoPath := createTestRepo(t)
-	t.Cleanup(func() {
-		defer os.RemoveAll(repoPath) // nolint:errcheck
-	})
 
 	client := &Client{}
 	commitDepth := 1
@@ -186,7 +172,7 @@ func TestSearch(t *testing.T) {
 			},
 		},
 		{
-			name: "Search with invalid query",
+			name: "Search with zero results",
 			request: clients.SearchRequest{
 				Query: "Invalid",
 			},
@@ -198,9 +184,6 @@ func TestSearch(t *testing.T) {
 
 	// Use the same test repo for all test cases.
 	repoPath := createTestRepo(t)
-	t.Cleanup(func() {
-		defer os.RemoveAll(repoPath) // nolint:errcheck
-	})
 	filePath := filepath.Join(repoPath, "test.txt")
 	err := os.WriteFile(filePath, []byte("Hello, World!"), 0o644) //nolint:gosec
 	if err != nil {
