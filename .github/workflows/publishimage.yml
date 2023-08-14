@@ -21,6 +21,9 @@ on:
     branches:
       - main
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   publishimage:
     runs-on: ubuntu-latest
@@ -43,7 +46,7 @@ jobs:
      - name: Setup Go
        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe
        with:
-         go-version-file: go.mod # use version from go.mod so it stays in sync
+         go-version: ${{ env.GO_VERSION }}
          check-latest: true
      - name: install ko
        uses: ko-build/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa # v0.6
