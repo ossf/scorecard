@@ -1,0 +1,34 @@
+[
+  {
+    "access_level": 50,
+    "created_at": "2023-02-21T18:24:39.599Z",
+    "expires_at": null,
+    "id": 3332021,
+    "username": "owner1",
+    "name": "Alice",
+    "state": "active",
+    "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3332021/avatar.png",
+    "web_url": "https://gitlab.com/owner1",
+    "membership_state": "active"
+  },
+  {
+    "access_level": 40,
+    "created_at": "2023-02-28T20:36:17.805Z",
+    "created_by": {
+      "id": 3332021,
+      "username": "owner1",
+      "name": "Alice",
+      "state": "active",
+      "avatar_url": "https://gitlab.com/uploads/-/system/user/avatar/3332021/avatar.png",
+      "web_url": "https://gitlab.com/owner1"
+    },
+    "expires_at": null,
+    "id": 1355794,
+    "username": "maintainer1",
+    "name": "Bob",
+    "state": "active",
+    "avatar_url": "https://secure.gravatar.com/avatar/5eefb3063e3a44f456e4c1ca5740105b?s=80&d=identicon",
+    "web_url": "https://gitlab.com/maintainer1",
+    "membership_state": "active"
+  }
+]

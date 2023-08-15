@@ -23,7 +23,7 @@ import (
 
 var _ = Describe("E2E TEST: gitlabrepo.Branches", func() {
 	Context("Test Default branch- GitLab", func() {
-		It("returns branches for the repo", func() {
+		It("returns default branch for the repo", func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/scorecard")
 			Expect(err).Should(BeNil())
@@ -35,7 +35,7 @@ var _ = Describe("E2E TEST: gitlabrepo.Branches", func() {
 			Expect(err).Should(BeNil())
 			branch, err := client.GetDefaultBranch()
 			Expect(err).Should(BeNil())
-			Expect(branch.Name).Should(Equal("main"))
+			Expect(*branch.Name).Should(Equal("main"))
 		})
 	})
 })
