@@ -23,7 +23,7 @@ on:
   - main
 
 env:
-  GO_VERSION_FILE: go.mod # no good way of getting a mutual version between go.mod and tools/go.mod
+  GO_VERSION: 1.21
 
 jobs:
   docs_only_check:
@@ -80,7 +80,7 @@ jobs:
        if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
        with:
-         go-version-file: ${{ env.GO_VERSION_FILE }}
+         go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: false # the building happens in Docker, so saving this cache would negatively impact other builds
      - name: docker build
