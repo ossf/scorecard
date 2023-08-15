@@ -1,0 +1,64 @@
+[
+  {
+    "id": 131356518,
+    "iid": 1,
+    "project_id": 48033865,
+    "title": "test issue",
+    "description": "",
+    "state": "opened",
+    "created_at": "2023-07-26T14:22:52.000Z",
+    "updated_at": "2023-07-26T14:22:52.000Z",
+    "closed_at": null,
+    "closed_by": null,
+    "labels": [],
+    "milestone": null,
+    "assignees": [],
+    "author": {
+      "id": 1355794,
+      "username": "maintainer1",
+      "name": "Bob",
+      "state": "active",
+      "avatar_url": "https://secure.gravatar.com/avatar/5eefb3063e3a44f456e4c1ca5740105b?s=80&d=identicon",
+      "web_url": "https://gitlab.com/maintainer1"
+    },
+    "type": "ISSUE",
+    "assignee": null,
+    "user_notes_count": 0,
+    "merge_requests_count": 0,
+    "upvotes": 0,
+    "downvotes": 0,
+    "due_date": null,
+    "confidential": false,
+    "discussion_locked": null,
+    "issue_type": "issue",
+    "web_url": "https://gitlab.com/ossf-test/e2e-issues/-/issues/1",
+    "time_stats": {
+      "time_estimate": 0,
+      "total_time_spent": 0,
+      "human_time_estimate": null,
+      "human_total_time_spent": null
+    },
+    "task_completion_status": {
+      "count": 0,
+      "completed_count": 0
+    },
+    "blocking_issues_count": 0,
+    "has_tasks": true,
+    "task_status": "",
+    "_links": {
+      "self": "https://gitlab.com/api/v4/projects/48033865/issues/1",
+      "notes": "https://gitlab.com/api/v4/projects/48033865/issues/1/notes",
+      "award_emoji": "https://gitlab.com/api/v4/projects/48033865/issues/1/award_emoji",
+      "project": "https://gitlab.com/api/v4/projects/48033865",
+      "closed_as_duplicate_of": null
+    },
+    "references": {
+      "short": "#1",
+      "relative": "#1",
+      "full": "ossf-test/e2e-issues#1"
+    },
+    "severity": "UNKNOWN",
+    "moved_to_id": null,
+    "service_desk_reply_to": null
+  }
+]
