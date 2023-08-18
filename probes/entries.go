@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
-	"github.com/ossf/scorecard/v4/probes/codeReviewed"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -55,7 +54,6 @@ var (
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
-		codeReviewed.Run,
 		codeReviewTwoReviewers.Run,
 	}
 )
