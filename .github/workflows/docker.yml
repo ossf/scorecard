@@ -23,7 +23,7 @@ on:
   - main
 
 env:
-  GO_VERSION_FILE: go.mod # no good way of getting a mutual version between go.mod and tools/go.mod
+  GO_VERSION: 1.21
 
 jobs:
   docs_only_check:
@@ -40,7 +40,7 @@ jobs:
         fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
-      uses: tj-actions/changed-files@87697c0dca7dd44e37a2b79a79489332556ff1f3 #v37.6.0
+      uses: tj-actions/changed-files@a0585ff9904b77d046192a7846e59783d6ea287b #v37.6.1
       with:
         files_ignore: '**.md'
     - id: docs_only_check
@@ -80,7 +80,7 @@ jobs:
        if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
        with:
-         go-version-file: ${{ env.GO_VERSION_FILE }}
+         go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: false # the building happens in Docker, so saving this cache would negatively impact other builds
      - name: docker build

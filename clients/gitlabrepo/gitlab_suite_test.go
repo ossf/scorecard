@@ -15,27 +15,21 @@
 package gitlabrepo
 
 import (
-	"context"
+	"os"
+	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("E2E TEST: gitlabrepo.Branches", func() {
-	Context("Test Default branch- GitLab", func() {
-		It("returns default branch for the repo", func() {
-			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
-			repo, err := MakeGitlabRepo("https://gitlab.com/ossf-test/scorecard")
-			Expect(err).Should(BeNil())
-
-			client, err := CreateGitlabClient(context.Background(), repo.Host())
-			Expect(err).Should(BeNil())
-
-			err = client.InitRepo(repo, "HEAD", 0)
-			Expect(err).Should(BeNil())
-			branch, err := client.GetDefaultBranch()
-			Expect(err).Should(BeNil())
-			Expect(*branch.Name).Should(Equal("main"))
-		})
-	})
-})
+func TestGitlabRepoE2E(t *testing.T) {
+	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
+		t.Skip()
+	}
+	if val, exists := os.LookupEnv("TEST_GITLAB_EXTERNAL"); !exists || val != "1" {
+		t.Skip()
+	}
+	t.Parallel()
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "GitLab Repo Suite")
+}
