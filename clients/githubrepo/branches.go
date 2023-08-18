@@ -173,10 +173,11 @@ type requiredStatusCheckParameters struct {
 }
 type repoRule struct {
 	Type       string
-	Parameters struct {
-		PullRequestParameters pullRequestRuleParameters     `graphql:"... on PullRequestParameters"`
-		StatusCheckParameters requiredStatusCheckParameters `graphql:"... on RequiredStatusChecksParameters"`
-	}
+	Parameters repoRulesParameters
+}
+type repoRulesParameters struct {
+	PullRequestParameters pullRequestRuleParameters     `graphql:"... on PullRequestParameters"`
+	StatusCheckParameters requiredStatusCheckParameters `graphql:"... on RequiredStatusChecksParameters"`
 }
 type ruleSetConditionRefs struct {
 	Include []string
@@ -466,22 +467,34 @@ nextRule:
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
+	baseAdminEnforced := readBoolPtr(branchRef.BranchProtectionRule.EnforceAdmins)
+
 	for _, r := range rules {
+		adminEnforced := len(r.BypassActors.Nodes) == 0
+
 		var modded bool
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case "DELETION":
 				if branchRef.BranchProtectionRule.AllowDeletions == nil || *branchRef.BranchProtectionRule.AllowDeletions {
+					// The base may allow deletions, but this rule does not.
 					branchRef.BranchProtectionRule.AllowDeletions = new(bool)
 					*branchRef.BranchProtectionRule.AllowDeletions = false
-					modded = true
+					branchRef.BranchProtectionRule.EnforceAdmins = &adminEnforced
+				} else if branchRef.BranchProtectionRule.AllowDeletions != nil && adminEnforced && !baseAdminEnforced {
+					// The base blocks deletion without admin enforcement, this rule has admin enforcement.
+					branchRef.BranchProtectionRule.EnforceAdmins = &adminEnforced
 				}
+
 			case "NON_FAST_FORWARD":
 				if branchRef.BranchProtectionRule.AllowForcePushes == nil || *branchRef.BranchProtectionRule.AllowForcePushes {
 					branchRef.BranchProtectionRule.AllowForcePushes = new(bool)
 					*branchRef.BranchProtectionRule.AllowForcePushes = false
-					modded = true
+					branchRef.BranchProtectionRule.EnforceAdmins = &adminEnforced
+				} else if branchRef.BranchProtectionRule.AllowForcePushes != nil && adminEnforced && !baseAdminEnforced {
+					branchRef.BranchProtectionRule.AllowForcePushes = &adminEnforced
 				}
+
 			case "PULL_REQUEST":
 				if applyPullRequestRepoRule(branchRef, rule) {
 					modded = true
@@ -493,7 +506,6 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 			}
 		}
 		if modded {
-			adminEnforced := ruleAdminEnforced(r)
 			branchRef.BranchProtectionRule.EnforceAdmins = &adminEnforced
 		}
 	}
@@ -548,19 +560,6 @@ func applyRequiredStatusChecksRepoRule(branchRef *clients.BranchRef, rule *repoR
 			continue
 		}
 		branchRules.Contexts = append(branchRules.Contexts, *chk.Context)
-	}
-	return true
-}
-
-func ruleAdminEnforced(rule *repoRuleSet) bool {
-	for _, bypass := range rule.BypassActors.Nodes {
-		if readBoolPtr(bypass.OrganizationAdmin) {
-			return false
-		}
-		if bypass.RepositoryRoleName != nil {
-			// this may be "admin", "write", "maintainer" or a custom role - treat all as bad
-			return false
-		}
 	}
 	return true
 }

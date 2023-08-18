@@ -17,6 +17,10 @@ package githubrepo
 import (
 	"fmt"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 func Test_rulesMatchingBranch(t *testing.T) {
@@ -93,7 +97,6 @@ func Test_rulesMatchingBranch(t *testing.T) {
 				"foo/bar": true,
 			},
 		},
-
 		{
 			name: "include+exclude branch by fnmatch",
 			condition: ruleSetCondition{
@@ -146,6 +149,150 @@ func Test_rulesMatchingBranch(t *testing.T) {
 						t.Errorf("expected %v, got %v", expected, matched)
 					}
 				})
+			}
+		})
+	}
+}
+
+func Test_applyRepoRules(t *testing.T) {
+	t.Parallel()
+
+	main := "main"
+	trueVal := true
+	falseVal := false
+
+	twoVal := int32(2)
+
+	testcases := []struct {
+		base       *clients.BranchRef
+		rule       *repoRule
+		expected   *clients.BranchRef
+		ruleBypass *ruleSetBypass
+		name       string
+	}{
+		{
+			name:     "no repo rules",
+			base:     &clients.BranchRef{Name: &main, Protected: &trueVal},
+			expected: &clients.BranchRef{Name: &main, Protected: &trueVal},
+		},
+		{
+			name: "rule blocks deletion without bypass",
+			base: &clients.BranchRef{},
+			rule: &repoRule{Type: "DELETION"},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &trueVal,
+				},
+			},
+		},
+		{
+			name:       "rule blocks deletion with bypass",
+			base:       &clients.BranchRef{},
+			rule:       &repoRule{Type: "DELETION"},
+			ruleBypass: &ruleSetBypass{},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &falseVal,
+				},
+			},
+		},
+		{
+			name: "rule blocks deletion with bypass, but traditional branch protection blocks without bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &trueVal,
+				},
+			},
+			rule:       &repoRule{Type: "DELETION"},
+			ruleBypass: &ruleSetBypass{},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &trueVal,
+				},
+			},
+		},
+		{
+			name: "rule blocks deletion without bypass, while traditional branch protection blocks with bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &falseVal,
+				},
+			},
+			rule: &repoRule{Type: "DELETION"},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &trueVal,
+				},
+			},
+		},
+		{
+			name: "rule blocks force pushes without bypass",
+			base: &clients.BranchRef{},
+			rule: &repoRule{Type: "NON_FAST_FORWARD"},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal,
+				},
+			},
+		},
+		{
+			name: "rule requires pull request without bypass",
+			base: &clients.BranchRef{},
+			rule: &repoRule{
+				Type: "PULL_REQUEST",
+				Parameters: repoRulesParameters{
+					PullRequestParameters: pullRequestRuleParameters{
+						DismissStaleReviewsOnPush:      &trueVal,
+						RequireCodeOwnerReview:         &trueVal,
+						RequireLastPushApproval:        &trueVal,
+						RequiredApprovingReviewCount:   &twoVal,
+						RequiredReviewThreadResolution: &trueVal,
+					},
+				},
+			},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &trueVal,
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &trueVal,
+						RequireCodeOwnerReviews:      &trueVal,
+						RequiredApprovingReviewCount: &twoVal,
+					},
+				},
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var rules []*repoRuleSet
+			if testcase.rule != nil {
+				ruleSet := &repoRuleSet{
+					Rules: struct{ Nodes []*repoRule }{
+						Nodes: []*repoRule{testcase.rule},
+					},
+				}
+				if testcase.ruleBypass != nil {
+					ruleSet.BypassActors.Nodes = []*ruleSetBypass{testcase.ruleBypass}
+				}
+				rules = append(rules, ruleSet)
+			}
+			applyRepoRules(testcase.base, rules)
+
+			if !cmp.Equal(testcase.base, testcase.expected) {
+				diff := cmp.Diff(testcase.base, testcase.expected)
+				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.expected, testcase.base, diff)
 			}
 		})
 	}
