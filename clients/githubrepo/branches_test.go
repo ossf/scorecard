@@ -170,9 +170,9 @@ func withRules(rules ...*repoRule) ruleSetOpt {
 	}
 }
 
-func withBypass(bypass *ruleSetBypass) ruleSetOpt {
+func withBypass() ruleSetOpt {
 	return func(r *repoRuleSet) {
-		r.BypassActors.Nodes = append(r.BypassActors.Nodes, bypass)
+		r.BypassActors.Nodes = append(r.BypassActors.Nodes, &ruleSetBypass{})
 	}
 }
 
@@ -201,12 +201,9 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name: "block deletion with bypass",
-			base: &clients.BranchRef{},
-			ruleSet: ruleSet(
-				withRules(&repoRule{Type: "DELETION"}),
-				withBypass(&ruleSetBypass{}),
-			),
+			name:    "block deletion with bypass",
+			base:    &clients.BranchRef{},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"}), withBypass()),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions: &falseVal,
@@ -215,26 +212,23 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name: "block deletion with bypass, while deletion is blocked without bypass",
+			name: "block deletion with bypass when block deletion no bypass",
 			base: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions: &falseVal,
 					EnforceAdmins:  &trueVal,
 				},
 			},
-			ruleSet: ruleSet(
-				withRules(&repoRule{Type: "DELETION"}),
-				withBypass(&ruleSetBypass{}),
-			),
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"}), withBypass()),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions: &falseVal,
-					EnforceAdmins:  &trueVal,
+					EnforceAdmins:  &trueVal, // Maintain: base is more strict than rule
 				},
 			},
 		},
 		{
-			name: "block deletion no bypass, while deletion is blocked with bypass",
+			name: "block deletion no bypass when block deletion with bypass",
 			base: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions: &falseVal,
@@ -245,7 +239,92 @@ func Test_applyRepoRules(t *testing.T) {
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions: &falseVal,
-					EnforceAdmins:  &trueVal,
+					EnforceAdmins:  &trueVal, // Upgrade: rule is more strict than base
+				},
+			},
+		},
+		{
+			name: "block deletion no bypass when block force push no bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal,
+				},
+			},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &falseVal,
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal, // Maintain: base and rule are equal strictness
+				},
+			},
+		},
+		{
+			name: "block deletion and force push no bypass when block deletion with bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: &falseVal,
+					EnforceAdmins:  &falseVal,
+				},
+			},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"}, &repoRule{Type: "NON_FAST_FORWARD"})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &falseVal,
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal, // Upgrade: rule is more strict than base
+				},
+			},
+		},
+		{
+			name: "block deletion and force push with bypass when block force push no bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal,
+				},
+			},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"}, &repoRule{Type: "NON_FAST_FORWARD"}), withBypass()),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &falseVal,
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &falseVal, // Downgrade: deletion does not enforce admins
+				},
+			},
+		},
+		{
+			name: "block deletion no bypass while force push is blocked with bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &falseVal,
+				},
+			},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &falseVal,
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &falseVal, // Maintain: deletion enforces but forcepush does not
+				},
+			},
+		},
+		{
+			name: "block deletion no bypass while force push is blocked no bypass",
+			base: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal,
+				},
+			},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "DELETION"})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &falseVal,
+					AllowForcePushes: &falseVal,
+					EnforceAdmins:    &trueVal, // Maintain: base and rule are equal strictness
 				},
 			},
 		},
