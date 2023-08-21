@@ -55,7 +55,7 @@ spec:
               args: [
                 "--config=/etc/scorecard/config.yaml",
                 "cron/internal/data/projects.release.csv",
-                "cron/internal/data/gitlab-projects-selected.csv"
+                "cron/internal/data/gitlab-projects-releasetest.csv"
               ]
               imagePullPolicy: Always
               env:

@@ -109,6 +109,8 @@ validate-projects: ## Validates ./cron/internal/data/projects.csv
 validate-projects: ./cron/internal/data/projects.csv | build-validate-script
 	# Validate ./cron/internal/data/projects.csv
 	./cron/internal/data/validate/validate ./cron/internal/data/projects.csv
+	./cron/internal/data/validate/validate ./cron/internal/data/gitlab-projects.csv
+	./cron/internal/data/validate/validate ./cron/internal/data/gitlab-projects-releasetest.csv
 
 tree-status: | all-targets-update-dependencies ## Verify tree is clean and all changes are committed
 	# Verify the tree is clean and all changes are commited
@@ -120,7 +122,7 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 ## Build all cron-related targets
 build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
-	build-webhook build-add-script build-validate-script build-update-script
+	build-webhook build-add-script build-validate-script
 
 build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build $(build-targets)
@@ -139,7 +141,8 @@ generate-mocks: clients/mockclients/repo_client.go \
 	clients/mockclients/repo.go \
 	clients/mockclients/cii_client.go \
 	checks/mockclients/vulnerabilities.go \
-	cmd/packagemanager_mockclient.go
+	cmd/internal/packagemanager/packagemanager_mockclient.go \
+	cmd/internal/nuget/nuget_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go | $(MOCKGEN)
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -152,13 +155,15 @@ clients/mockclients/cii_client.go: clients/cii_client.go | $(MOCKGEN)
 checks/mockclients/vulnerabilities.go: clients/vulnerabilities.go | $(MOCKGEN)
 	# Generating MockCIIClient
 	$(MOCKGEN) -source=clients/vulnerabilities.go -destination=clients/mockclients/vulnerabilities.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
-cmd/packagemanager_mockclient.go: cmd/packagemanager_client.go | $(MOCKGEN)
+cmd/internal/packagemanager/packagemanager_mockclient.go: cmd/internal/packagemanager/client.go | $(MOCKGEN)
 	# Generating MockPackageManagerClient
-	$(MOCKGEN) -source=cmd/packagemanager_client.go -destination=cmd/packagemanager_mockclient.go -package=cmd -copyright_file=clients/mockclients/license.txt
+	$(MOCKGEN) -source=cmd/internal/packagemanager/client.go -destination=cmd/internal/packagemanager/packagemanager_mockclient.go -package=packagemanager -copyright_file=clients/mockclients/license.txt
+cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN)
+	# Generating MockNugetClient
+	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
 
 generate-docs: ## Generates docs
-generate-docs: validate-docs docs/checks.md
-docs/checks.md: docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
+generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
 
@@ -291,12 +296,6 @@ cron/internal/data/validate/validate: cron/internal/data/validate/*.go cron/data
 	# Run go build on the validate script
 	cd cron/internal/data/validate && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o validate
 
-build-update-script: ## Runs go build on the update script
-build-update-script: cron/internal/data/update/projects-update
-cron/internal/data/update/projects-update:  cron/internal/data/update/*.go cron/data/*.go
-	# Run go build on the update script
-	cd cron/internal/data/update && CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'  -o projects-update
-
 docker-targets = scorecard-docker cron-controller-docker cron-worker-docker cron-cii-worker-docker cron-bq-transfer-docker cron-webhook-docker cron-github-server-docker
 .PHONY: dockerbuild $(docker-targets)
 dockerbuild: $(docker-targets)
@@ -332,12 +331,12 @@ endif
 e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
-	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+	TOKEN_TYPE="PAT" $(GINKGO) --race -p -v  -coverprofile=e2e-coverage.out -coverpkg=./... -r ./... 
 
 e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
-	TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+	GITLAB_AUTH_TOKEN="" TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 
 e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
 e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)

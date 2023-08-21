@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
@@ -50,6 +51,7 @@ type ScorecardResult struct {
 	Scorecard  ScorecardInfo
 	Checks     []checker.CheckResult
 	RawResults checker.RawResults
+	Findings   []finding.Finding
 	Metadata   []string
 }
 
@@ -119,6 +121,8 @@ func FormatResults(
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
 	case options.FormatFJSON:
 		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+	case options.FormatPJSON:
+		err = results.AsPJSON(os.Stdout)
 	case options.FormatRaw:
 		err = results.AsRawJSON(os.Stdout)
 	default:

@@ -43,6 +43,11 @@ type RawResults struct {
 	LicenseResults              LicenseData
 	TokenPermissionsResults     TokenPermissionsData
 	CITestResults               CITestData
+	Metadata                    MetadataData
+}
+
+type MetadataData struct {
+	Metadata map[string]string
 }
 
 type RevisionCIInfo struct {
@@ -171,6 +176,7 @@ const (
 	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
 	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
 	ReviewPlatformPiper       ReviewPlatform = "Piper"
+	ReviewPlatformUnknown     ReviewPlatform = "Unknown"
 )
 
 type Changeset struct {

@@ -7,6 +7,9 @@ on:
 
 permissions: read-all
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   # Generate ldflags dynamically.
   args:
@@ -16,7 +19,7 @@ jobs:
       go-binary-name: ${{ steps.build.outputs.go-binary-name }}
     steps:
       - id: checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v2.3.4
         with:
           fetch-depth: 0
       - id: ldflags
@@ -29,9 +32,9 @@ jobs:
       contents: write
       actions: read
     needs: args
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.6.0 #7f4fdb871876c23e455853d694197440c5a91506
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.8.0 #7f4fdb871876c23e455853d694197440c5a91506
     with:
-      go-version: 1.19
+      go-version: ${{ env.GO_VERSION }}
       evaluated-envs: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"
 
   verification:

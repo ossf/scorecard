@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -190,7 +190,16 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
-		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
+		// TODO(#3255): Update when GitHub GraphQL bug is fixed
+		// Workaround for GitHub GraphQL bug https://github.com/orgs/community/discussions/59471
+		// The setting RequiresStrictStatusChecks should tell if the branch is required
+		// to be up to date before merge, but it only returns the correct value if
+		// RequiresStatusChecks is true. If RequiresStatusChecks is false, RequiresStrictStatusChecks
+		// is wrongly retrieved as true.
+		if src.RequiresStrictStatusChecks != nil {
+			upToDateBeforeMerge := *src.RequiresStatusChecks && *src.RequiresStrictStatusChecks
+			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
+		}
 	}
 }
 

@@ -24,11 +24,11 @@ import (
 )
 
 // evaluateProbes runs the probes in probesToRun and logs its findings.
-func evaluateProbes(c *checker.CheckRequest, checkName string,
+func evaluateProbes(c *checker.CheckRequest, rawResults *checker.RawResults,
 	probesToRun []probes.ProbeImpl,
 ) ([]finding.Finding, error) {
 	// Run the probes.
-	findings, err := zrunner.Run(c.RawResults, probesToRun)
+	findings, err := zrunner.Run(rawResults, probesToRun)
 	if err != nil {
 		return nil, fmt.Errorf("zrunner.Run: %w", err)
 	}
@@ -38,4 +38,13 @@ func evaluateProbes(c *checker.CheckRequest, checkName string,
 		return nil, fmt.Errorf("LogFindings: %w", err)
 	}
 	return findings, nil
+}
+
+// getRawResults returns a pointer to the raw results in the CheckRequest
+// if the pointer is not nil. Else, it creates a new raw result.
+func getRawResults(c *checker.CheckRequest) *checker.RawResults {
+	if c.RawResults != nil {
+		return c.RawResults
+	}
+	return &checker.RawResults{}
 }

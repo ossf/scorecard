@@ -16,7 +16,7 @@ package evaluation
 
 import (
 	"fmt"
-	"strings"
+	"math"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -39,89 +39,57 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.DefaultBranchChangesets) == 0 {
+	N := len(r.DefaultBranchChangesets)
+	if N == 0 {
 		return checker.CreateInconclusiveResult(name, "no commits found")
 	}
 
-	foundHumanReviewActivity := false
-	foundBotReviewActivity := false
-	nUnreviewedHumanChanges := 0
-	nUnreviewedBotChanges := 0
+	nUnreviewedChanges := 0
+	nChanges := 0
+	foundHumanActivity := false
 
-	var unreviewedHumanRevisionIDs, unreviewedBotRevisionIDs []string
 	for i := range r.DefaultBranchChangesets {
 		cs := &r.DefaultBranchChangesets[i]
-		isReviewed := reviewScoreForChangeset(cs) >= changesReviewed
-		isBotCommit := cs.Author.IsBot
-
-		switch {
-		case isReviewed && isBotCommit:
-			foundBotReviewActivity = true
-		case isReviewed && !isBotCommit:
-			foundHumanReviewActivity = true
-		case !isReviewed && isBotCommit:
-			nUnreviewedBotChanges += 1
-			unreviewedBotRevisionIDs = append(unreviewedBotRevisionIDs, cs.RevisionID)
-		case !isReviewed && !isBotCommit:
-			nUnreviewedHumanChanges += 1
-			unreviewedHumanRevisionIDs = append(unreviewedHumanRevisionIDs, cs.RevisionID)
+		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
+		if isReviewed && cs.Author.IsBot {
+			continue // ignore reviewed bot commits (https://github.com/ossf/scorecard/issues/2450)
 		}
-	}
 
-	// Let's include non-compliant revision IDs in details
-	if len(unreviewedHumanRevisionIDs) > 0 {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("List of revision IDs not reviewed by humans:%s", strings.Join(unreviewedHumanRevisionIDs, ",")),
-		})
-	}
+		nChanges += 1
 
-	if len(unreviewedBotRevisionIDs) > 0 {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("List of bot revision IDs not reviewed by humans:%s", strings.Join(unreviewedBotRevisionIDs, ",")),
-		})
-	}
+		if !cs.Author.IsBot {
+			foundHumanActivity = true
+		}
 
-	if foundBotReviewActivity && !foundHumanReviewActivity {
-		reason := fmt.Sprintf("found no human review activity in the last %v changesets", len(r.DefaultBranchChangesets))
-		return checker.CreateInconclusiveResult(name, reason)
+		if !isReviewed {
+			nUnreviewedChanges += 1
+		}
 	}
 
 	switch {
-	case nUnreviewedBotChanges > 0 && nUnreviewedHumanChanges > 0:
-		return checker.CreateMinScoreResult(
+	case nChanges == 0 || !foundHumanActivity:
+		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
+		return checker.CreateInconclusiveResult(name, reason)
+	case nUnreviewedChanges > 0:
+		return checker.CreateProportionalScoreResult(
 			name,
-			fmt.Sprintf("found unreviewed changesets (%v human %v bot)", nUnreviewedHumanChanges, nUnreviewedBotChanges),
-		)
-	case nUnreviewedBotChanges > 0:
-		return checker.CreateResultWithScore(
-			name,
-			fmt.Sprintf("all human changesets reviewed, found %v unreviewed bot changesets", nUnreviewedBotChanges),
-			7,
-		)
-	case nUnreviewedHumanChanges > 0:
-		score := 3
-		if len(r.DefaultBranchChangesets) == 1 || nUnreviewedHumanChanges > 1 {
-			score = 0
-		}
-		return checker.CreateResultWithScore(
-			name,
-			fmt.Sprintf(
-				"found %v unreviewed human changesets (%d total)",
-				nUnreviewedHumanChanges, len(r.DefaultBranchChangesets),
-			),
-			score,
+			fmt.Sprintf("found %d unreviewed changesets out of %d", nUnreviewedChanges, nChanges),
+			int(math.Max(float64(nChanges-nUnreviewedChanges), 0)),
+			nChanges,
 		)
 	}
 
 	return checker.CreateMaxScoreResult(name, "all changesets reviewed")
 }
 
-func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
-	if changeset.ReviewPlatform != "" && changeset.ReviewPlatform != checker.ReviewPlatformGitHub {
+func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogger) (score reviewScore) {
+	plat := changeset.ReviewPlatform
+	if plat != checker.ReviewPlatformUnknown &&
+		plat != checker.ReviewPlatformGitHub {
 		return reviewedOutsideGithub
 	}
 
-	if changeset.ReviewPlatform == checker.ReviewPlatformGitHub {
+	if plat == checker.ReviewPlatformGitHub {
 		for i := range changeset.Reviews {
 			review := changeset.Reviews[i]
 			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
@@ -130,5 +98,13 @@ func reviewScoreForChangeset(changeset *checker.Changeset) (score reviewScore) {
 		}
 	}
 
+	dl.Debug(
+		&checker.LogMessage{
+			Text: fmt.Sprintf(
+				"couldn't find approvals for revision: %s platform: %s",
+				changeset.RevisionID, plat,
+			),
+		},
+	)
 	return noReview
 }

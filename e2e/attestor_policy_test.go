@@ -58,18 +58,16 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test bad repo with ignored binary artifact",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						AllowedBinaryArtifacts:      []string{"test-binary-artifact-*"},
-						PreventKnownVulnerabilities: true,
+						PreventBinaryArtifacts: true,
+						AllowedBinaryArtifacts: []string{"test-binary-artifact-*"},
 					},
 					expected: policy.Pass,
 				},
 				{
-					name:    "test bad repo with ignored binary artifact",
+					name:    "test bad repo with binary artifact",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
+						PreventBinaryArtifacts: true,
 					},
 					expected: policy.Fail,
 				},
@@ -113,8 +111,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 				},
 				{
 					name:    "test repo with simple code review requirements",
-					repoURL: "https://github.com/ossf/scorecard",
-					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
 						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
@@ -127,22 +124,15 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 					name:    "test code reviews required but repo doesn't have code reviews",
 					repoURL: "https://github.com/ossf-tests/scorecard-binauthz-test-bad",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: true,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 					},
 					expected: policy.Fail,
 				},
 				{
 					name:    "test code reviews required with min reviewers",
-					repoURL: "https://github.com/ossf/scorecard",
-					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers: 1,
 						},
@@ -151,32 +141,24 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 				},
 				{
 					name:    "test code reviews required with min reviewers and required reviewers",
-					repoURL: "https://github.com/ossf/scorecard",
-					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers:      1,
-							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
 						},
 					},
 					expected: policy.Pass,
 				},
 				{
 					name:    "test code reviews required with too many min reviewers but matching required reviewers",
-					repoURL: "https://github.com/ossf/scorecard",
-					commit:  "fa0592fab28aa92560f04e1ae8649dfff566ae2b",
+					repoURL: "https://github.com/ossf-tests/scorecard-attestor-code-review-e2e",
 					policy: policy.AttestationPolicy{
-						PreventBinaryArtifacts:      true,
-						PreventKnownVulnerabilities: false,
-						PreventUnpinnedDependencies: true,
-						EnsureCodeReviewed:          true,
+						EnsureCodeReviewed: true,
 						CodeReviewRequirements: policy.CodeReviewRequirements{
 							MinReviewers:      2,
-							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38"},
+							RequiredApprovers: []string{"spencerschrock", "laurentsimon", "naveensrinivasan", "azeemshaikh38", "raghavkaul"},
 						},
 					},
 					expected: policy.Fail,

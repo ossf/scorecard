@@ -1,0 +1,27 @@
+{
+  "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/index.json#page/2",
+  "@type": "catalog:CatalogPage",
+  "count": 2,
+  "items": [
+    {
+      "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/3.5.8.json",
+      "@type": "Package",
+      "catalogEntry": {
+        "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.3.5.8.json",
+        "@type": "PackageDetails",
+        "listed": true,
+        "version": "3.5.8"
+      }
+    },
+    {
+      "@id": "https://api.nuget.org/v3/registration5-semver1/Foo.NET/4.0.1.json",
+      "@type": "Package",
+      "catalogEntry": {
+        "@id": "https://api.nuget.org/v3/catalog0/data/2022.12.08.16.43.03/Foo.NET.4.0.1.json",
+        "@type": "PackageDetails",
+        "listed": true,
+        "version": "4.0.1"
+      }
+    }
+  ]
+}

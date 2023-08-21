@@ -23,12 +23,15 @@ on:
 permissions:
   contents: read
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   approve:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -41,41 +44,40 @@ jobs:
     needs: [approve]
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@128a63446a954579617e875aaab7d2978154e969 # v1
+        uses: step-security/harden-runner@8ca2b8b2ece13480cda6dacd3511b49857a23c09 # v2.5.1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-      - name: pull_request actions/checkout
-        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v2.3.4
+      - name: Clone the code
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: setup-go
-        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753 # v2.2.0
+      - name: Setup Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
-          go-version: '1.19'
+          go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false # we manually manage caches below
+      - id: go-cache-paths
+        run: |
+          echo "go-build=$(go env GOCACHE)" >> "$GITHUB_OUTPUT"
+          echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
+      - name: Cache builds
+        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
+        with:
+          path: |
+            ${{ steps.go-cache-paths.outputs.go-build }}
+            ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-tests-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-tests-
 
       - name: Prepare test env
         run: |
             go mod download
 
-      - name: Run GitLab E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-gitlab
-
-      - name: codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
-        with:
-         files: ./e2e-coverage.out
-         verbose: true
-
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+        uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # v2.8.3
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -85,7 +87,7 @@ jobs:
           command: make e2e-gh-token
 
       - name: codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
         with:
          files: "*e2e-coverage.out"
          verbose: true

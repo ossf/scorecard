@@ -1,14 +1,14 @@
 # OpenSSF Scorecard
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/5621/badge)](https://bestpractices.coreinfrastructure.org/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ossf/scorecard/v4.svg)](https://pkg.go.dev/github.com/ossf/scorecard/v4)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
-[![Slack](https://slack.babeljs.io/badge.svg)](https://slack.openssf.org/#security_scorecards)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
+[![Slack](https://img.shields.io/badge/slack-openssf/security_scorecards-white.svg?logo=slack)](https://slack.openssf.org/#security_scorecards)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -156,12 +156,12 @@ Data provided by the REST API is licenced [CDLA Permissive 2.0](https://cdla.dev
 
 Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in Scorecard GitHub Actions also allows maintainers to display a Scorecard badge on their repository to show off their
-hard work. This badge also auto-updates for every change made to the repository.
+hard work. This badge also auto-updates for every change made to the repository. See more details on [this OSSF blogpost](https://openssf.org/blog/2022/09/08/show-off-your-security-score-announcing-scorecards-badges/).
+
 To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
-[![OpenSSF
-Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo})
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://securityscorecards.dev/viewer/?uri=github.com/{owner}/{repo})
 ```
 
 ### Scorecard Command Line Interface
@@ -406,6 +406,24 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Using a GitLab Repository
+
+To run Scorecard on a GitLab repository, you must create a [GitLab Access Token](https://gitlab.com/-/profile/personal_access_tokens) with the following permissions:
+
+- `read_api`
+- `read_user`
+- `read_repository`
+
+You can run Scorecard on a GitLab repository by setting the `GITLAB_AUTH_TOKEN` environment variable:
+
+```bash
+export GITLAB_AUTH_TOKEN=glpat-xxxx
+
+scorecard --repo gitlab.com/<org>/<project>/<subproject>
+```
+
+For an example of using Scorecard in GitLab CI/CD, see [here](https://gitlab.com/ossf-test/scorecard-pipeline-example).
+
 ##### Using GitHub Enterprise Server (GHES) based Repository
 
 To use a GitHub Enterprise host `github.corp.com`, use the `GH_HOST` environment variable.
@@ -422,7 +440,7 @@ scorecard --repo=org/repo
 
 ##### Using a Package manager
 
-For projects in the `--npm`, `--pypi`, or `--rubygems` ecosystems, you have the
+For projects in the `--npm`, `--pypi`, `--rubygems`, or `--nuget` ecosystems, you have the
 option to run Scorecard using a package manager. Provide the package name to
 run the checks on the corresponding GitHub source code.
 
@@ -459,7 +477,7 @@ Name        | Description                               | Risk Level | Token Req
 [Contributors](docs/checks.md#contributors)                     | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   | Validating |
 [Dangerous-Workflow](docs/checks.md#dangerous-workflow)         | Does the project avoid dangerous coding patterns in GitHub Action workflows?                                                                                                                                                                                                                                                 | Critical | PAT, GITHUB_TOKEN   | Unsupported |
 [Dependency-Update-Tool](docs/checks.md#dependency-update-tool) | Does the project use tools to help update its dependencies?                                                                                                                                                                                                                                                                  | High | PAT, GITHUB_TOKEN   | Unsupported |
-[Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz)?                                                                                                                                                                                                                                     | Medium | PAT, GITHUB_TOKEN   | Validating
+[Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz), [QuickCheck](https://hackage.haskell.org/package/QuickCheck) or [fast-check](https://fast-check.dev/)?                                                                                                                                                                                                                                     | Medium | PAT, GITHUB_TOKEN   | Validating
 [License](docs/checks.md#license)                               | Does the project declare a license?                                                                                                                                                                                                                                                                                          | Low | PAT, GITHUB_TOKEN   | Validating |
 [Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   | Validating |
 [Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                                                     | Medium | PAT, GITHUB_TOKEN   | Validating |
@@ -469,7 +487,7 @@ Name        | Description                               | Risk Level | Token Req
 [Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                                           | High | PAT, GITHUB_TOKEN   | Validating |
 [Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   | Unsupported |
 [Vulnerabilities](docs/checks.md#vulnerabilities)               | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).                                                                                                                                                                                                                                      | High | PAT, GITHUB_TOKEN   | Validating |
-[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                                                                      | High | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
+[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                                                                      | Critical | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
 
 ### Detailed Checks Documentation
 
@@ -569,7 +587,7 @@ We meet every other Thursday - 4p ET on this [zoom link](https://zoom.us/j/98835
 
 #### Agenda
 
-You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#). 
+You can see the [agenda and meeting notes here](https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing). 
 
 
 ## Stargazers over time

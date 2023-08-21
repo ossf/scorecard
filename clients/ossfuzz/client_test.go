@@ -15,6 +15,8 @@
 package ossfuzz
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -52,6 +54,20 @@ func TestClient(t *testing.T) {
 			project:    "github.com/ossf/score",
 			statusFile: "status.json",
 			wantHit:    false,
+			wantErr:    false,
+		},
+		{
+			name:       "project with main_repo link longer than owner/repo",
+			project:    "github.com/google/go-cmp",
+			statusFile: "status.json",
+			wantHit:    true,
+			wantErr:    false,
+		},
+		{
+			name:       "project case insensitive",
+			project:    "github.com/FFTW/fftw3",
+			statusFile: "status.json",
+			wantHit:    true,
 			wantErr:    false,
 		},
 		{
@@ -179,4 +195,188 @@ func setupServer(t *testing.T) string {
 	}))
 	t.Cleanup(server.Close)
 	return server.URL
+}
+
+func TestAllClientMethods(t *testing.T) {
+	c := CreateOSSFuzzClient("testURL")
+
+	// Test InitRepo
+	{
+		err := c.InitRepo(nil, "", 0)
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("InitRepo: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test IsArchived
+	{
+		_, err := c.IsArchived()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("IsArchived: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test LocalPath
+	{
+		_, err := c.LocalPath()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("LocalPath: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListFiles
+	{
+		_, err := c.ListFiles(nil)
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListFiles: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test GetFileContent
+	{
+		_, err := c.GetFileContent("")
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetFileContent: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test GetBranch
+	{
+		_, err := c.GetBranch("")
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetBranch: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test GetDefaultBranch
+	{
+		_, err := c.GetDefaultBranch()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetDefaultBranch: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test GetOrgRepoClient
+	{
+		_, err := c.GetOrgRepoClient(context.Background())
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetOrgRepoClient: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test GetDefaultBranchName
+	{
+		_, err := c.GetDefaultBranchName()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetDefaultBranchName: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListCommits
+	{
+		_, err := c.ListCommits()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListCommits: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListIssues
+	{
+		_, err := c.ListIssues()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListIssues: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListReleases
+	{
+		_, err := c.ListReleases()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListReleases: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListContributors
+	{
+		_, err := c.ListContributors()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListContributors: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListSuccessfulWorkflowRuns
+	{
+		_, err := c.ListSuccessfulWorkflowRuns("")
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListSuccessfulWorkflowRuns: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListCheckRunsForRef
+	{
+		_, err := c.ListCheckRunsForRef("")
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListCheckRunsForRef: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListStatuses
+	{
+		_, err := c.ListStatuses("")
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListStatuses: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListWebhooks
+	{
+		_, err := c.ListWebhooks()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListWebhooks: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test SearchCommits
+	{
+		_, err := c.SearchCommits(clients.SearchCommitsOptions{})
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("SearchCommits: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test Close
+	{
+		err := c.Close()
+		if err != nil {
+			t.Errorf("Close: Expected no error, but got %v", err)
+		}
+	}
+
+	// Test ListProgrammingLanguages
+	{
+		_, err := c.ListProgrammingLanguages()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListProgrammingLanguages: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
+	// Test ListLicenses
+	{
+		_, err := c.ListLicenses()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("ListLicenses: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+	{
+		_, err := c.GetCreatedAt()
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("GetCreatedAt: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+	{
+		uri := c.URI()
+		if uri != "testURL" {
+			t.Errorf("URI: Expected %v, but got %v", "testURL", uri)
+		}
+	}
 }
