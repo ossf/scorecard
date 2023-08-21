@@ -20,15 +20,14 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
 	type args struct { //nolint
-		name string
-		dl   checker.DetailLogger
-		r    *checker.FuzzingData
+		name     string
+		findings []finding.Finding
 	}
 	tests := []struct {
 		name string
@@ -39,8 +38,36 @@ func TestFuzzing(t *testing.T) {
 			name: "Fuzzing - no fuzzing",
 			args: args{
 				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.FuzzingData{},
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
+					},
+				},
 			},
 			want: checker.CheckResult{
 				Score:   0,
@@ -50,23 +77,37 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name: "Fuzzing - fuzzing",
+			name: "Fuzzing - fuzzing GoNative",
 			args: args{
 				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "Fuzzing",
-							Files: []checker.File{
-								{
-									Path:    "Fuzzing",
-									Type:    0,
-									Offset:  1,
-									Snippet: "Fuzzing",
-								},
-							},
-						},
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
+						Outcome: finding.OutcomePositive,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
 					},
 				},
 			},
@@ -74,21 +115,91 @@ func TestFuzzing(t *testing.T) {
 				Score:   10,
 				Name:    "Fuzzing",
 				Version: 2,
-				Reason:  "project is fuzzed with [Fuzzing]",
+				Reason:  "project is fuzzed",
 			},
 		},
 		{
-			name: "Fuzzing - fuzzing data nil",
+			name: "Fuzzing - fuzzing missing GoNative finding",
 			args: args{
 				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r:    nil,
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
+					},
+				},
 			},
 			want: checker.CheckResult{
 				Score:   -1,
 				Name:    "Fuzzing",
 				Version: 2,
-				Reason:  "internal error: empty raw data",
+				Reason:  "internal error: invalid probe results",
+			},
+		},
+		{
+			name: "Fuzzing - fuzzing invalid probe name",
+			args: args{
+				name: "Fuzzing",
+				findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithClusterFuzzLite",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithGoNative",
+						Outcome: finding.OutcomePositive,
+					},
+					{
+						Probe:   "fuzzedWithOneFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedHaskell",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedJavascript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithPropertyBasedTypescript",
+						Outcome: finding.OutcomeNegative,
+					},
+					{
+						Probe:   "fuzzedWithInvalidProbeName",
+						Outcome: finding.OutcomePositive,
+					},
+				},
+			},
+			want: checker.CheckResult{
+				Score:   -1,
+				Name:    "Fuzzing",
+				Version: 2,
+				Reason:  "internal error: invalid probe results",
 			},
 		},
 	}
@@ -96,7 +207,7 @@ func TestFuzzing(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Fuzzing(tt.args.name, tt.args.dl, tt.args.r); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
+			if got := Fuzzing(tt.args.name, tt.args.findings); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
 				t.Errorf("Fuzzing() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
 			}
 		})

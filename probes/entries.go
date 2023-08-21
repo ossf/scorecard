@@ -17,6 +17,13 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -49,6 +56,15 @@ var (
 		toolPyUpInstalled.Run,
 		toolSonatypeLiftInstalled.Run,
 	}
+	Fuzzing = []ProbeImpl{
+		fuzzedWithOSSFuzz.Run,
+		fuzzedWithOneFuzz.Run,
+		fuzzedWithGoNative.Run,
+		fuzzedWithClusterFuzzLite.Run,
+		fuzzedWithPropertyBasedHaskell.Run,
+		fuzzedWithPropertyBasedTypescript.Run,
+		fuzzedWithPropertyBasedJavascript.Run,
+	}
 )
 
 //nolint:gochecknoinits
@@ -56,6 +72,7 @@ func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
 		SecurityPolicy,
+		Fuzzing,
 	})
 }
 

@@ -33,7 +33,6 @@ func TestFuzzing(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name        string
-		want        checker.CheckResult
 		langs       []clients.Language
 		response    clients.SearchResponse
 		wantErr     bool
@@ -52,6 +51,13 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: false,
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  7,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 		{
 			name: "hits 1",
@@ -69,11 +75,10 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want:    checker.CheckResult{Score: 10},
 			expected: scut.TestReturn{
-				NumberOfWarn:  0,
+				NumberOfWarn:  6,
 				NumberOfDebug: 0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				Score:         10,
 			},
 		},
@@ -86,7 +91,6 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			want:    checker.CheckResult{Score: -1},
 			expected: scut.TestReturn{
 				Error:         sce.ErrScorecardInternal,
 				NumberOfWarn:  0,
@@ -104,12 +108,24 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantFuzzErr: false,
-			want:        checker.CheckResult{Score: 0},
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  7,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 		{
 			name:        "error",
 			wantFuzzErr: true,
-			want:        checker.CheckResult{},
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  7,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -138,11 +154,14 @@ func TestFuzzing(t *testing.T) {
 				return tt.fileContent, nil
 			}).AnyTimes()
 			dl := scut.TestDetailLogger{}
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				RepoClient:  mockFuzz,
 				OssFuzzRepo: mockFuzz,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
+
 			if tt.wantFuzzErr {
 				req.OssFuzzRepo = nil
 			}
