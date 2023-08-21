@@ -15,40 +15,44 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
-func Fuzzing(name string, dl checker.DetailLogger,
-	r *checker.FuzzingData,
+func Fuzzing(name string,
+	findings []finding.Finding,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	// We have 7 unique probes, each should have a finding.
+	expectedProbes := []string{
+		fuzzedWithClusterFuzzLite.Probe,
+		fuzzedWithGoNative.Probe,
+		fuzzedWithOneFuzz.Probe,
+		fuzzedWithOSSFuzz.Probe,
+		fuzzedWithPropertyBasedHaskell.Probe,
+		fuzzedWithPropertyBasedJavascript.Probe,
+		fuzzedWithPropertyBasedTypescript.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.Fuzzers) == 0 {
-		return checker.CreateMinScoreResult(name, "project is not fuzzed")
-	}
-	fuzzers := []string{}
-	for i := range r.Fuzzers {
-		fuzzer := r.Fuzzers[i]
-		for _, f := range fuzzer.Files {
-			msg := checker.LogMessage{
-				Path:   f.Path,
-				Type:   f.Type,
-				Offset: f.Offset,
-			}
-			if f.Snippet != "" {
-				msg.Text = f.Snippet
-			}
-			dl.Info(&msg)
+	// Compute the score.
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			return checker.CreateMaxScoreResult(name, "project is fuzzed")
 		}
-		fuzzers = append(fuzzers, fuzzer.Name)
 	}
-	return checker.CreateMaxScoreResult(name,
-		fmt.Sprintf("project is fuzzed with %v", fuzzers))
+	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }
