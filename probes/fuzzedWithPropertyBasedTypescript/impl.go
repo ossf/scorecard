@@ -21,7 +21,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/fuzzing"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
@@ -31,8 +32,8 @@ const Probe = "fuzzedWithPropertyBasedTypescript"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 	//nolint:wrapcheck
-	return utils.FuzzerRun(raw, fs, Probe, "TypeScriptPropertyBasedTesting")
+	return fuzzing.Run(raw, fs, Probe, "TypeScriptPropertyBasedTesting")
 }

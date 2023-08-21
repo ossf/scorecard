@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package fuzzing
 
 import (
 	"embed"
@@ -22,7 +22,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func FuzzerRun(raw *checker.RawResults, fs embed.FS, probeID, fuzzerName string) ([]finding.Finding, string, error) {
+func Run(raw *checker.RawResults, fs embed.FS, probeID, fuzzerName string) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	fuzzers := raw.FuzzingResults.Fuzzers
 

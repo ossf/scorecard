@@ -21,7 +21,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/secpolicy"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
@@ -31,19 +32,19 @@ const Probe = "securityPolicyContainsText"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 	var findings []finding.Finding
 	policies := raw.SecurityPolicyResults.PolicyFiles
 	for i := range policies {
 		policy := &policies[i]
 		linkedContentLen := 0
-		emails := utils.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true)
-		urls := utils.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
-		for _, i := range utils.FindSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true) {
+		emails := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true)
+		urls := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
+		for _, i := range secpolicy.FindSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true) {
 			linkedContentLen += len(i.InformationValue.Match)
 		}
-		for _, i := range utils.FindSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true) {
+		for _, i := range secpolicy.FindSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true) {
 			linkedContentLen += len(i.InformationValue.Match)
 		}
 
