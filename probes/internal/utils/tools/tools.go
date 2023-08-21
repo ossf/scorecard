@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package tools
 
 import (
 	"embed"
@@ -32,7 +32,7 @@ type toolMatcher interface {
 // The function uses 'matcher' to identify the tool of interest.
 // If a tool is used in the repository, it creates a finding with the 'foundOutcome'.
 // If not, it returns a finding with outcome 'notFoundOutcome'.
-func ToolsRun(tools []checker.Tool, fs embed.FS, probeID string,
+func Run(tools []checker.Tool, fs embed.FS, probeID string,
 	foundOutcome, notFoundOutcome finding.Outcome, matcher toolMatcher,
 ) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
