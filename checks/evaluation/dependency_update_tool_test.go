@@ -203,7 +203,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 			want: checker.CheckResult{
 				Score: -1,
-				Error: nil,
 			},
 		},
 	}

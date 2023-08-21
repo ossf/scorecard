@@ -27,7 +27,7 @@ func FuzzerRun(raw *checker.RawResults, fs embed.FS, probeID, fuzzerName string)
 	fuzzers := raw.FuzzingResults.Fuzzers
 
 	for i := range fuzzers {
-		fuzzer := fuzzers[i]
+		fuzzer := &fuzzers[i]
 		if fuzzer.Name != fuzzerName {
 			continue
 		}
