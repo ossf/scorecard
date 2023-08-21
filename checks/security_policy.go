@@ -49,12 +49,12 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults.SecurityPolicyResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, pRawResults, probes.SecurityPolicy)
+	findings, err := evaluateProbes(pRawResults, probes.SecurityPolicy)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
 	}
 
 	// Return the score evaluation.
-	return evaluation.SecurityPolicy(CheckSecurityPolicy, findings)
+	return evaluation.SecurityPolicy(CheckSecurityPolicy, findings, c.Dlogger)
 }

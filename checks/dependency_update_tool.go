@@ -49,12 +49,12 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults.DependencyUpdateToolResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, pRawResults, probes.DependencyToolUpdates)
+	findings, err := evaluateProbes(pRawResults, probes.DependencyToolUpdates)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
 	}
 
 	// Return the score evaluation.
-	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings)
+	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings, c.Dlogger)
 }

@@ -211,7 +211,9 @@ func TestDependencyUpdateTool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := DependencyUpdateTool(tt.name, tt.findings)
+			// TODO: verify dl results.
+			dl := scut.TestDetailLogger{}
+			got := DependencyUpdateTool(tt.name, tt.findings, &dl)
 			if tt.want.Score != got.Score {
 				t.Errorf("DependencyUpdateTool() got Score = %v, want %v for %v", got.Score, tt.want.Score, tt.name)
 			}

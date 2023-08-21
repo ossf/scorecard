@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"math"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -195,9 +197,14 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, dl DetailLogger) error {
+func LogFindings(findings []finding.Finding, findingTypesToLog, findingTypesToNotLog []finding.Outcome, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
+		// Only log finding types as indicated by findingTypesToLog or findingTypesToNotLog.
+		if (len(findingTypesToLog) > 0 && !slices.Contains(findingTypesToLog, f.Outcome)) ||
+			slices.Contains(findingTypesToNotLog, f.Outcome) {
+			continue
+		}
 		switch f.Outcome {
 		case finding.OutcomeNegative:
 			dl.Warn(&LogMessage{
@@ -213,6 +220,4 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 			})
 		}
 	}
-
-	return nil
 }

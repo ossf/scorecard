@@ -23,19 +23,14 @@ import (
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// evaluateProbes runs the probes in probesToRun and logs its findings.
-func evaluateProbes(c *checker.CheckRequest, rawResults *checker.RawResults,
+// evaluateProbes runs the probes in probesToRun.
+func evaluateProbes(rawResults *checker.RawResults,
 	probesToRun []probes.ProbeImpl,
 ) ([]finding.Finding, error) {
 	// Run the probes.
 	findings, err := zrunner.Run(rawResults, probesToRun)
 	if err != nil {
 		return nil, fmt.Errorf("zrunner.Run: %w", err)
-	}
-
-	// Log the findings.
-	if err := checker.LogFindings(findings, c.Dlogger); err != nil {
-		return nil, fmt.Errorf("LogFindings: %w", err)
 	}
 	return findings, nil
 }

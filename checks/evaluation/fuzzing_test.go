@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestFuzzing(t *testing.T) {
@@ -207,7 +208,8 @@ func TestFuzzing(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Fuzzing(tt.args.name, tt.args.findings); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
+			dl := scut.TestDetailLogger{}
+			if got := Fuzzing(tt.args.name, tt.args.findings, &dl); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
 				t.Errorf("Fuzzing() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
 			}
 		})

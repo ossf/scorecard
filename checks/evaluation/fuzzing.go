@@ -29,7 +29,7 @@ import (
 
 // Fuzzing applies the score policy for the Fuzzing check.
 func Fuzzing(name string,
-	findings []finding.Finding,
+	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	// We have 7 unique probes, each should have a finding.
 	expectedProbes := []string{
@@ -51,8 +51,12 @@ func Fuzzing(name string,
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
+			// Log all findings except the negative ones.
+			checker.LogFindings(findings, nil, []finding.Outcome{finding.OutcomeNegative}, dl)
 			return checker.CreateMaxScoreResult(name, "project is fuzzed")
 		}
 	}
+	// Log all findings.
+	checker.LogFindings(findings, nil, nil, dl)
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }

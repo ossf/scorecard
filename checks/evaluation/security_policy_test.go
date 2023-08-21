@@ -19,6 +19,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestSecurityPolicy(t *testing.T) {
@@ -181,7 +182,8 @@ func TestSecurityPolicy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := SecurityPolicy("SecurityPolicy", tt.findings)
+			dl := scut.TestDetailLogger{}
+			got := SecurityPolicy("SecurityPolicy", tt.findings, &dl)
 			if tt.err {
 				if got.Score != -1 {
 					t.Errorf("SecurityPolicy() = %v, want %v", got, tt.want)
