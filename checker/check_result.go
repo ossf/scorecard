@@ -197,7 +197,8 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, findingTypesToLog, findingTypesToNotLog []finding.Outcome, dl DetailLogger) {
+func LogFindings(findings []finding.Finding, findingTypesToLog, findingTypesToNotLog []finding.Outcome,
+	dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		// Only log finding types as indicated by findingTypesToLog or findingTypesToNotLog.
