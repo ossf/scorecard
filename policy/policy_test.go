@@ -217,7 +217,7 @@ func TestIsSupportedCheck(t *testing.T) {
 	result := isSupportedCheck(checkName, requiredRequestTypes)
 
 	// Assert the result
-	expectedResult := false
+	expectedResult := true
 	if result != expectedResult {
 		t.Errorf("Unexpected result: got %v, want %v", result, expectedResult)
 	}
@@ -308,49 +308,59 @@ func TestGetEnabled(t *testing.T) {
 
 	tests := []struct {
 		name                  string
-		sp                    *ScorecardPolicy
+		policyFile            string
 		argsChecks            []string
 		requiredRequestTypes  []checker.RequestType
 		expectedEnabledChecks int
 		expectedError         bool
 	}{
 		{
-			name:                  "With ScorecardPolicy and argsChecks",
-			sp:                    &ScorecardPolicy{},
+			name:                  "checks limited to those specified by checks arg",
 			argsChecks:            []string{"Binary-Artifacts"},
-			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 0,
-			expectedError:         true,
-		},
-		{
-			name:                  "With ScorecardPolicy and unsupported check",
-			sp:                    &ScorecardPolicy{},
-			argsChecks:            []string{"Binary-Artifacts", "UnsupportedCheck"},
-			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 0,
-			expectedError:         true,
-		},
-		{
-			name:                  "Without ScorecardPolicy and argsChecks",
-			sp:                    nil,
-			argsChecks:            []string{},
-			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 4, // All checks are enabled by default
+			requiredRequestTypes:  []checker.RequestType{checker.FileBased},
+			expectedEnabledChecks: 1,
 			expectedError:         false,
 		},
 		{
-			name:                  "With ScorecardPolicy and missing policy",
-			sp:                    &ScorecardPolicy{},
-			argsChecks:            []string{"Binary-Artifacts"},
+			name:                  "mix of supported and unsupported checks",
+			argsChecks:            []string{"Binary-Artifacts", "UnsupportedCheck"},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 0,
+			expectedEnabledChecks: 1,
 			expectedError:         true,
+		},
+		{
+			name:                  "request types limit enabled checks",
+			argsChecks:            []string{},
+			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
+			expectedEnabledChecks: 5, // All checks which are FileBased and CommitBased
+			expectedError:         false,
+		},
+		{
+			name:                  "all checks in policy file enabled",
+			policyFile:            "testdata/policy-ok.yaml",
+			argsChecks:            []string{},
+			requiredRequestTypes:  []checker.RequestType{},
+			expectedEnabledChecks: 3,
+			expectedError:         false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			enabledChecks, err := GetEnabled(tt.sp, tt.argsChecks, tt.requiredRequestTypes)
+			var sp *ScorecardPolicy
+			if tt.policyFile != "" {
+				policyBytes, err := os.ReadFile(tt.policyFile)
+				if err != nil {
+					t.Fatalf("reading policy file: %v", err)
+				}
+				pol, err := parseFromYAML(policyBytes)
+				if err != nil {
+					t.Fatalf("parsing policy file: %v", err)
+				}
+				sp = pol
+			}
+
+			enabledChecks, err := GetEnabled(sp, tt.argsChecks, tt.requiredRequestTypes)
 
 			if len(enabledChecks) != tt.expectedEnabledChecks {
 				t.Errorf("Unexpected number of enabled checks: got %v, want %v", len(enabledChecks), tt.expectedEnabledChecks)
