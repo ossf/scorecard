@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/golang/mock v1.6.0
-	github.com/golangci/golangci-lint v1.54.1
+	github.com/golangci/golangci-lint v1.54.2
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.14.1
 	github.com/goreleaser/goreleaser v1.20.0
@@ -27,8 +27,8 @@ require (
 	github.com/4meepo/tagalign v1.3.2 // indirect
 	github.com/Abirdcfly/dupword v0.0.12 // indirect
 	github.com/AlekSi/pointer v1.2.0 // indirect
-	github.com/Antonboom/errname v0.1.10 // indirect
-	github.com/Antonboom/nilnil v0.1.5 // indirect
+	github.com/Antonboom/errname v0.1.12 // indirect
+	github.com/Antonboom/nilnil v0.1.7 // indirect
 	github.com/Azure/azure-sdk-for-go v68.0.0+incompatible // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.0 // indirect
@@ -107,6 +107,7 @@ require (
 	github.com/caarlos0/go-version v0.1.1 // indirect
 	github.com/caarlos0/log v0.4.2 // indirect
 	github.com/cavaliergopher/cpio v1.0.1 // indirect
+	github.com/ccojocar/zxcvbn-go v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charithe/durationcheck v0.0.10 // indirect
@@ -265,10 +266,9 @@ require (
 	github.com/muesli/roff v0.1.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
-	github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 // indirect
 	github.com/nishanths/exhaustive v0.11.0 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
-	github.com/nunnatsa/ginkgolinter v0.13.3 // indirect
+	github.com/nunnatsa/ginkgolinter v0.13.5 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -279,7 +279,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/polyfloyd/go-errorlint v1.4.3 // indirect
+	github.com/polyfloyd/go-errorlint v1.4.4 // indirect
 	github.com/prometheus/client_golang v1.15.1 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
@@ -295,8 +295,8 @@ require (
 	github.com/sanposhiho/wastedassign/v2 v2.0.7 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20210812194225-61421b77c44b // indirect
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
-	github.com/sashamelentyev/usestdlibvars v1.23.0 // indirect
-	github.com/securego/gosec/v2 v2.16.0 // indirect
+	github.com/sashamelentyev/usestdlibvars v1.24.0 // indirect
+	github.com/securego/gosec/v2 v2.17.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -325,7 +325,7 @@ require (
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c // indirect
 	github.com/tdakkota/asciicheck v0.2.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
-	github.com/tetafro/godot v1.4.11 // indirect
+	github.com/tetafro/godot v1.4.14 // indirect
 	github.com/theupdateframework/go-tuf v0.5.2 // indirect
 	github.com/timakin/bodyclose v0.0.0-20230421092635-574207250966 // indirect
 	github.com/timonwong/loggercheck v0.9.4 // indirect
@@ -349,7 +349,7 @@ require (
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	go.tmz.dev/musttag v0.7.1 // indirect
+	go.tmz.dev/musttag v0.7.2 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/automaxprocs v1.5.3 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
@@ -382,7 +382,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.1.0 // indirect
-	honnef.co/go/tools v0.4.3 // indirect
+	honnef.co/go/tools v0.4.5 // indirect
 	k8s.io/apimachinery v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
