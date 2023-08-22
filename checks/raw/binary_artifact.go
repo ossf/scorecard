@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -209,6 +210,11 @@ func gradleWrapperValidated(c clients.RepoClient) (bool, error) {
 	// If validated, check that latest commit has a relevant successful run
 	runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
 	if err != nil {
+		// some clients, such as the local file client, don't support this feature
+		// claim unvalidated, so that other parts of the check can still be used.
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return false, nil
+		}
 		return false, fmt.Errorf("failure listing workflow runs: %w", err)
 	}
 	commits, err := c.ListCommits()
