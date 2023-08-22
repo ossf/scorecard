@@ -201,26 +201,30 @@ func gradleWrapperValidated(c clients.RepoClient) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
-	if gradleWrapperValidatingWorkflowFile != "" {
-		// If validated, check that latest commit has a relevant successful run
-		runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
-		if err != nil {
-			return false, fmt.Errorf("failure listing workflow runs: %w", err)
-		}
-		commits, err := c.ListCommits()
-		if err != nil {
-			return false, fmt.Errorf("failure listing commits: %w", err)
-		}
-		if len(commits) < 1 || len(runs) < 1 {
-			return false, nil
-		}
-		for _, r := range runs {
-			if *r.HeadSHA == commits[0].SHA {
-				// Commit has corresponding successful run!
-				return true, nil
-			}
+	// no matching files, validation failed
+	if gradleWrapperValidatingWorkflowFile == "" {
+		return false, nil
+	}
+
+	// If validated, check that latest commit has a relevant successful run
+	runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
+	if err != nil {
+		return false, fmt.Errorf("failure listing workflow runs: %w", err)
+	}
+	commits, err := c.ListCommits()
+	if err != nil {
+		return false, fmt.Errorf("failure listing commits: %w", err)
+	}
+	if len(commits) < 1 || len(runs) < 1 {
+		return false, nil
+	}
+	for _, r := range runs {
+		if *r.HeadSHA == commits[0].SHA {
+			// Commit has corresponding successful run!
+			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
