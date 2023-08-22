@@ -147,6 +147,34 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
+		It("Should return license check works - GitLab", func() {
+			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
+
+			dl := scut.TestDetailLogger{}
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/ossf-test/scorecard-check-license-e2e-unrecognized-license-type")
+			Expect(err).Should(BeNil())
+			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         9,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			}
+			result := checks.License(&req)
+
+			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+				&dl)).Should(BeTrue())
+		})
 		It("Should return license check works at commitSHA - GitLab", func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
@@ -166,8 +194,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         10,
-				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.License(&req)
