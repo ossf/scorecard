@@ -77,7 +77,7 @@ func createTestRepo(t *testing.T) (path string) {
 	return dir
 }
 
-//nolint:testparallel
+//nolint:paralleltest
 func TestInitRepo(t *testing.T) {
 	tests := []struct { //nolint:govet
 		name        string
@@ -147,7 +147,7 @@ func TestListCommits(t *testing.T) {
 	}
 }
 
-//nolint:testparallel
+//nolint:paralleltest
 func TestSearch(t *testing.T) {
 	testCases := []struct {
 		name     string

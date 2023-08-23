@@ -63,6 +63,16 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 		"GitHub workflow tokens follow principle of least privilege")
 }
 
+// avoid memory aliasing by returning a new copy.
+func newUint(u uint) *uint {
+	return &u
+}
+
+// avoid memory aliasing by returning a new copy.
+func newStr(s string) *string {
+	return &s
+}
+
 func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckRequest) (int, error) {
 	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
 	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
@@ -83,10 +93,10 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 			loc = &finding.Location{
 				Type:      r.File.Type,
 				Path:      r.File.Path,
-				LineStart: &r.File.Offset,
+				LineStart: newUint(r.File.Offset),
 			}
 			if r.File.Snippet != "" {
-				loc.Snippet = &r.File.Snippet
+				loc.Snippet = newStr(r.File.Snippet)
 			}
 		}
 

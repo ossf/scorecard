@@ -331,7 +331,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 				Offset: t.File.Offset,
 			}
 			if t.File.Snippet != "" {
-				p.File.Snippet = &t.File.Snippet
+				p.File.Snippet = asPointer(t.File.Snippet)
 			}
 		}
 
@@ -361,7 +361,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 		}
 
 		if p.File.Snippet != "" {
-			jpk.File.Snippet = &p.File.Snippet
+			jpk.File.Snippet = asPointer(p.File.Snippet)
 		}
 
 		for _, run := range p.Runs {
@@ -419,7 +419,7 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 			Type: string(e.Type),
 		}
 		if e.File.Snippet != "" {
-			v.File.Snippet = &e.File.Snippet
+			v.File.Snippet = asPointer(e.File.Snippet)
 		}
 		if e.Job != nil {
 			v.Job = &jsonWorkflowJob{
