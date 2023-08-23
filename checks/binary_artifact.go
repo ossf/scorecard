@@ -24,10 +24,11 @@ import (
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
-//nolint
+//nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckBinaryArtifacts, BinaryArtifacts, supportedRequestTypes); err != nil {
 		// this should never happen
