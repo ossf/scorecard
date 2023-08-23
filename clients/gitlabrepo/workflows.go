@@ -44,6 +44,11 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 	return workflowsRunsFrom(jobs, filename), nil
 }
 
+// avoid memory aliasing by returning a new copy.
+func strptr(s string) *string {
+	return &s
+}
+
 func workflowsRunsFrom(data []*gitlab.Job, filename string) []clients.WorkflowRun {
 	var workflowRuns []clients.WorkflowRun
 	for _, job := range data {
@@ -51,7 +56,7 @@ func workflowsRunsFrom(data []*gitlab.Job, filename string) []clients.WorkflowRu
 		for _, artifact := range job.Artifacts {
 			if strings.EqualFold(artifact.Filename, filename) {
 				workflowRuns = append(workflowRuns, clients.WorkflowRun{
-					HeadSHA: &job.Pipeline.Sha,
+					HeadSHA: strptr(job.Pipeline.Sha),
 					URL:     job.WebURL,
 				})
 				continue

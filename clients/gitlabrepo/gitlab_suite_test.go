@@ -12,10 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package gitlabrepo
 
 import (
-	"errors"
+	"os"
+	"testing"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
-var ErrNil = errors.New("nil pointer")
+func TestGitlabRepoE2E(t *testing.T) {
+	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
+		t.Skip()
+	}
+	if val, exists := os.LookupEnv("TEST_GITLAB_EXTERNAL"); !exists || val != "1" {
+		t.Skip()
+	}
+	t.Parallel()
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "GitLab Repo Suite")
+}
