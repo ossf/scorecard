@@ -50,10 +50,6 @@ func (s suffixStubTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	}, nil
 }
 
-func strptr(s string) *string {
-	return &s
-}
-
 func associationptr(r clients.RepoAssociation) *clients.RepoAssociation {
 	return &r
 }
