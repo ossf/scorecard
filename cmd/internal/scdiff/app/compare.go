@@ -103,6 +103,10 @@ func loadResults(x, y *bufio.Scanner) (pkg.ScorecardResult, pkg.ScorecardResult,
 	return xResult, yResult, nil
 }
 
+// advanceScanners is intended to expand the normal `for scanner.Scan()` semantics to two scanners,
+// it keeps the scanners in sync, and determines if iteration should continue.
+//
+// Iteration should continue until any scanner reaches EOF, or any scanner encounters a non-EOF error.
 func advanceScanners(x, y *bufio.Scanner) (shouldContinue bool, err error) {
 	xContinue := x.Scan()
 	yContinue := y.Scan()
