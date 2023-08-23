@@ -36,7 +36,7 @@ func init() {
 }
 
 var (
-	errMissingInputFiles = errors.New("must provide at least two files")
+	errMissingInputFiles = errors.New("must provide at least two files from scdiff generate")
 	errResultsDiffer     = errors.New("results differ")
 	errNumResults        = errors.New("number of results being compared differ")
 
