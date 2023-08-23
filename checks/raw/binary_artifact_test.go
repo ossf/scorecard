@@ -256,3 +256,35 @@ func TestBinaryArtifacts(t *testing.T) {
 		})
 	}
 }
+
+func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	const jarFile = "gradle-wrapper.jar"
+	const verifyWorkflow = ".github/workflows/verify.yaml"
+	files := []string{jarFile, verifyWorkflow}
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil).AnyTimes()
+	mockRepoClient.EXPECT().GetFileContent(jarFile).DoAndReturn(func(file string) ([]byte, error) {
+		content, err := os.ReadFile("../testdata/binaryartifacts/jars/gradle-wrapper.jar")
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		return content, nil
+	}).AnyTimes()
+	mockRepoClient.EXPECT().GetFileContent(verifyWorkflow).DoAndReturn(func(file string) ([]byte, error) {
+		content, err := os.ReadFile("../testdata/binaryartifacts/workflows/verify.yaml")
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		return content, nil
+	}).AnyTimes()
+
+	mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature).AnyTimes()
+	got, err := BinaryArtifacts(mockRepoClient)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got.Files) != 1 {
+		t.Errorf("expected 1 file, got %d", len(got.Files))
+	}
+}
