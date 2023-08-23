@@ -46,18 +46,18 @@ func (handler *licensesHandler) setup() error {
 	handler.once.Do(func() {
 		l := handler.glProject.License
 
-		ptn, err := regexp.Compile(fmt.Sprintf("%s/-/blob/(\\w+)/(.*)", handler.repourl.URI()))
+		ptn, err := regexp.Compile(fmt.Sprintf("%s/-/blob/(?:\\w+)/(.*)", handler.repourl.URI()))
 		if err != nil {
 			handler.errSetup = fmt.Errorf("couldn't parse license url: %w", err)
 			return
 		}
 
 		m := ptn.FindStringSubmatch(handler.glProject.LicenseURL)
-		if len(m) < 3 {
+		if len(m) < 2 {
 			handler.errSetup = fmt.Errorf("%w: %s", errLicenseURLParse, handler.glProject.LicenseURL)
 			return
 		}
-		path := m[2]
+		path := m[1]
 
 		handler.licenses = append(handler.licenses,
 			clients.License{

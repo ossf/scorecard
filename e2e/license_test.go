@@ -136,18 +136,16 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         10,
-				NumberOfWarn:  0,
-				NumberOfInfo:  2,
-				NumberOfDebug: 0,
+				Error:        nil,
+				Score:        10,
+				NumberOfInfo: 2,
 			}
 			result := checks.License(&req)
 
 			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
-		It("Should return license check works - GitLab", func() {
+		It("Should return license check works for unrecognized license type - GitLab", func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
@@ -166,8 +164,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         9,
-				NumberOfWarn:  0,
-				NumberOfInfo:  2,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.License(&req)
@@ -192,11 +190,9 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Error:         nil,
-				Score:         10,
-				NumberOfWarn:  1,
-				NumberOfInfo:  1,
-				NumberOfDebug: 0,
+				Error:        nil,
+				Score:        10,
+				NumberOfInfo: 2,
 			}
 			result := checks.License(&req)
 
