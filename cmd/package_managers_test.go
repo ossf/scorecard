@@ -176,7 +176,7 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
  {
   "info": {
     "platform": "UNKNOWN",
-    "not_a_project_url": "https://pypi.org/project/color/",
+    "not_a_project_url": "https://github.com/htaslan/color",
     "project_urls": {
       "Homepage": "http://git_NOT_VALID_hub.com/htaslan/color"
     }

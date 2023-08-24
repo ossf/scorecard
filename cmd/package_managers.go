@@ -113,21 +113,22 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	return v.Objects[0].Package.Links.Repository, nil
 }
 
-func addRepoIfValid(validURLs map[string]any, url string) {
+func repoIfValid(url string) string {
 	match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
 	if len(match) >= 3 {
-		validURLs[fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])] = nil
+		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
 	}
 
 	match = _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
 	if len(match) >= 3 {
-		validURLs[fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])] = nil
+		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
 	}
 
 	match = _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
 	if len(match) >= 3 {
-		validURLs[fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])] = nil
+		return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
 	}
+	return ""
 }
 
 func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
@@ -137,10 +138,12 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
 	}
 
+	v.Info.ProjectURLs["key_not_used"] = v.Info.ProjectURL
 	validURLs := make(map[string]any)
-	addRepoIfValid(validURLs, v.Info.ProjectURL)
 	for _, url := range v.Info.ProjectURLs {
-		addRepoIfValid(validURLs, url)
+		if repo := repoIfValid(url); repo != "" {
+			validURLs[repo] = nil
+		}
 	}
 
 	if len(validURLs) > 1 {
