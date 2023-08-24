@@ -251,6 +251,22 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "unpinned go install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
