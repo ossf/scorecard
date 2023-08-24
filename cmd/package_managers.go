@@ -28,9 +28,9 @@ import (
 )
 
 var (
-	GithubDomainRegexp    = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/]+)`)
-	GithubSubdomainRegexp = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/]+).*`)
-	GitlabDomainRegexp    = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/]+)`)
+	githubDomainRegexp    = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/]+)`)
+	githubSubdomainRegexp = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/]+).*`)
+	gitlabDomainRegexp    = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/]+)`)
 )
 
 func makeGithubRepo(urlAndPathParts []string) string {
@@ -45,17 +45,17 @@ func makeGithubRepo(urlAndPathParts []string) string {
 	return fmt.Sprintf("https://github.com/%s/%s", userOrOrg, repoName)
 }
 
-var PYPIMatchers = []func(string) string{
+var pypiMatchers = []func(string) string{
 	func(url string) string {
-		return makeGithubRepo(GithubDomainRegexp.FindStringSubmatch(url))
+		return makeGithubRepo(githubDomainRegexp.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
-		return makeGithubRepo(GithubSubdomainRegexp.FindStringSubmatch(url))
+		return makeGithubRepo(githubSubdomainRegexp.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
-		match := GitlabDomainRegexp.FindStringSubmatch(url)
+		match := gitlabDomainRegexp.FindStringSubmatch(url)
 		if len(match) >= 3 {
 			return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
 		}
@@ -156,7 +156,7 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
 	var validURL string
 	for _, url := range v.Info.ProjectURLs {
-		for _, matcher := range PYPIMatchers {
+		for _, matcher := range pypiMatchers {
 			repo := matcher(url)
 			if repo == "" {
 				continue
