@@ -26,9 +26,39 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var _GITHUB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://github.com/([^/]+)/([^/.]+)`)
-var _GITHUB_SUBDOMAIN_REGEXP = regexp.MustCompile(`^https?://([^.]+).github.io/([^/.]+).*`)
-var _GITLAB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://gitlab.com/([^/]+)/([^/.]+)`)
+var _GITHUB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/.]+)`)
+var _GITHUB_SUBDOMAIN_REGEXP = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/.]+).*`)
+var _GITLAB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/.]+)`)
+
+func makeGithubRepo(urlAndPathParts []string) string {
+	if len(urlAndPathParts) < 3 {
+		return ""
+	}
+	if urlAndPathParts[1] == "sponsors" {
+		return ""
+	}
+	return fmt.Sprintf("https://github.com/%s/%s", urlAndPathParts[1], urlAndPathParts[2])
+}
+
+var _PYPI_MATCHERS = []func(string) string{
+	func(url string) string {
+		match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
+		return makeGithubRepo(match)
+	},
+
+	func(url string) string {
+		match := _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
+		return makeGithubRepo(match)
+	},
+
+	func(url string) string {
+		match := _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
+		if len(match) >= 3 {
+			return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
+		}
+		return ""
+	},
+}
 
 type packageMangerResponse struct {
 	associatedRepo string
@@ -113,23 +143,23 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	return v.Objects[0].Package.Links.Repository, nil
 }
 
-func repoIfValid(url string) string {
-	match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
-	if len(match) >= 3 {
-		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
-	}
-
-	match = _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
-	if len(match) >= 3 {
-		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
-	}
-
-	match = _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
-	if len(match) >= 3 {
-		return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
-	}
-	return ""
-}
+// func repoIfValid(url string) string {
+// 	match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
+// 	if len(match) >= 3 {
+// 		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
+// 	}
+//
+// 	match = _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
+// 	if len(match) >= 3 {
+// 		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
+// 	}
+//
+// 	match = _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
+// 	if len(match) >= 3 {
+// 		return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
+// 	}
+// 	return ""
+// }
 
 func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
 	v := &pypiSearchResults{}
@@ -139,23 +169,26 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 	}
 
 	v.Info.ProjectURLs["key_not_used"] = v.Info.ProjectURL
-	validURLs := make(map[string]any)
+	validURL := ""
 	for _, url := range v.Info.ProjectURLs {
-		if repo := repoIfValid(url); repo != "" {
-			validURLs[repo] = nil
+		for _, matcher := range _PYPI_MATCHERS {
+			if repo := matcher(url); repo != "" {
+				if validURL == "" {
+					validURL = repo
+				} else if validURL != repo {
+					return "", sce.WithMessage(sce.ErrScorecardInternal,
+						fmt.Sprintf("found too many possible source repos for pypi package: %s", packageName))
+				}
+			}
 		}
 	}
 
-	if len(validURLs) > 1 {
+	if validURL == "" {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("found too many possible source repos for pypi package: %s", packageName))
+			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
+	} else {
+		return validURL, nil
 	}
-
-	for url, _ := range validURLs {
-		return url, nil
-	}
-	return "", sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
 }
 
 // Gets the GitHub repository URL for the pypi package.

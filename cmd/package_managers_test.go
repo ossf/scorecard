@@ -212,6 +212,7 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
     "project_url": "http://git_NOT_VALID_hub.com/htaslan/color",
     "project_urls": {
       "RandomKey": "https://github.com/htaslan/color/",
+      "SponsorsIgnored": "https://github.com/sponsors/htaslan",
       "AnotherRandomKey": "http://git_NOT_VALID_hub.com/htaslan/color"
     }
   }
