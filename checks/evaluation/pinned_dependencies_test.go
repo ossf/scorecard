@@ -130,7 +130,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         6,
+				Score:         7,
 				NumberOfWarn:  1,
 				NumberOfInfo:  6,
 				NumberOfDebug: 1,
