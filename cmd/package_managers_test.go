@@ -264,11 +264,15 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
 			t.Parallel()
 			got, err := findGitRepositoryInPYPIResponse("somePackage", strings.NewReader(tt.partialPYPIResponse))
 			if err != nil && (!strings.Contains(err.Error(), tt.wantErrStr) || tt.wantErrStr == "") {
-				t.Errorf("findGitRepositoryInPYPIResponse() error = \"%v\" did not contain wantErrStr = \"%v\" testcase name %v", err, tt.wantErrStr, tt.name)
+				t.Errorf("findGitRepositoryInPYPIResponse() error = \"%v\" did not contain "+
+					"wantErrStr = \"%v\" testcase name %v",
+					err, tt.wantErrStr, tt.name)
 				return
 			}
 			if err == nil && tt.wantErrStr != "" {
-				t.Errorf("findGitRepositoryInPYPIResponse() had nil error, but wanted wantErrStr = \"%v\" testcase name %v", tt.wantErrStr, tt.name)
+				t.Errorf("findGitRepositoryInPYPIResponse() had nil error, but wanted "+
+					"wantErrStr = \"%v\" testcase name %v",
+					tt.wantErrStr, tt.name)
 				return
 			}
 

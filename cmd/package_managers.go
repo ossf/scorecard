@@ -116,8 +116,8 @@ type npmSearchResults struct {
 
 type pypiSearchResults struct {
 	Info struct {
-		ProjectURL  string            `json:"project_url"`
 		ProjectURLs map[string]string `json:"project_urls"`
+		ProjectURL  string            `json:"project_url"`
 	} `json:"info"`
 }
 
@@ -154,7 +154,7 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 	}
 
 	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
-	validURL := ""
+	var validURL string
 	for _, url := range v.Info.ProjectURLs {
 		for _, matcher := range PYPIMatchers {
 			repo := matcher(url)
