@@ -20,37 +20,42 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 
 	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
 	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
-var _GITHUB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/.]+)`)
-var _GITHUB_SUBDOMAIN_REGEXP = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/.]+).*`)
-var _GITLAB_DOMAIN_REGEXP = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/.]+)`)
+var (
+	GithubDomainRegexp    = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/]+)`)
+	GithubSubdomainRegexp = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/]+).*`)
+	GitlabDomainRegexp    = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/]+)`)
+)
 
 func makeGithubRepo(urlAndPathParts []string) string {
 	if len(urlAndPathParts) < 3 {
 		return ""
 	}
-	if urlAndPathParts[1] == "sponsors" {
+	userOrOrg := strings.ToLower(urlAndPathParts[1])
+	repoName := strings.TrimSuffix(strings.ToLower(urlAndPathParts[2]), ".git")
+	if userOrOrg == "sponsors" {
 		return ""
 	}
-	return fmt.Sprintf("https://github.com/%s/%s", urlAndPathParts[1], urlAndPathParts[2])
+	return fmt.Sprintf("https://github.com/%s/%s", userOrOrg, repoName)
 }
 
-var _PYPI_MATCHERS = []func(string) string{
+var PYPIMatchers = []func(string) string{
 	func(url string) string {
-		return makeGithubRepo(_GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url))
+		return makeGithubRepo(GithubDomainRegexp.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
-		return makeGithubRepo(_GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url))
+		return makeGithubRepo(GithubSubdomainRegexp.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
-		match := _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
+		match := GitlabDomainRegexp.FindStringSubmatch(url)
 		if len(match) >= 3 {
 			return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
 		}
@@ -148,11 +153,12 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
 	}
 
-	v.Info.ProjectURLs["key_not_used"] = v.Info.ProjectURL
+	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
 	validURL := ""
 	for _, url := range v.Info.ProjectURLs {
-		for _, matcher := range _PYPI_MATCHERS {
-			if repo := matcher(url); repo == "" {
+		for _, matcher := range PYPIMatchers {
+			repo := matcher(url)
+			if repo == "" {
 				continue
 			}
 			if validURL == "" {
