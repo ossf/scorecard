@@ -152,13 +152,14 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 	validURL := ""
 	for _, url := range v.Info.ProjectURLs {
 		for _, matcher := range _PYPI_MATCHERS {
-			if repo := matcher(url); repo != "" {
-				if validURL == "" {
-					validURL = repo
-				} else if validURL != repo {
-					return "", sce.WithMessage(sce.ErrScorecardInternal,
-						fmt.Sprintf("found too many possible source repos for pypi package: %s", packageName))
-				}
+			if repo := matcher(url); repo == "" {
+				continue
+			}
+			if validURL == "" {
+				validURL = repo
+			} else if validURL != repo {
+				return "", sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("found too many possible source repos for pypi package: %s", packageName))
 			}
 		}
 	}
