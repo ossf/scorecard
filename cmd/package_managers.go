@@ -42,13 +42,11 @@ func makeGithubRepo(urlAndPathParts []string) string {
 
 var _PYPI_MATCHERS = []func(string) string{
 	func(url string) string {
-		match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
-		return makeGithubRepo(match)
+		return makeGithubRepo(_GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
-		match := _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
-		return makeGithubRepo(match)
+		return makeGithubRepo(_GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url))
 	},
 
 	func(url string) string {
@@ -142,24 +140,6 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	}
 	return v.Objects[0].Package.Links.Repository, nil
 }
-
-// func repoIfValid(url string) string {
-// 	match := _GITHUB_DOMAIN_REGEXP.FindStringSubmatch(url)
-// 	if len(match) >= 3 {
-// 		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
-// 	}
-//
-// 	match = _GITHUB_SUBDOMAIN_REGEXP.FindStringSubmatch(url)
-// 	if len(match) >= 3 {
-// 		return fmt.Sprintf("https://github.com/%s/%s", match[1], match[2])
-// 	}
-//
-// 	match = _GITLAB_DOMAIN_REGEXP.FindStringSubmatch(url)
-// 	if len(match) >= 3 {
-// 		return fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2])
-// 	}
-// 	return ""
-// }
 
 func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
 	v := &pypiSearchResults{}
