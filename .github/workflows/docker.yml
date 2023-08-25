@@ -35,7 +35,7 @@ jobs:
       docs_only: ${{ steps.docs_only_check.outputs.docs_only }}
     steps:
     - name: Check out code
-      uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 #v3.5.3
+      uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #v3.6.0
       with:
         fetch-depth: 2 # needed to diff changed files
     - id: files
@@ -75,7 +75,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+       uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
      - name: Setup Go # needed for some of the Makefile evaluations, even if building happens in Docker 
        if: (needs.docs_only_check.outputs.docs_only != 'true')
        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
