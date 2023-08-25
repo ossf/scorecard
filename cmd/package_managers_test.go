@@ -254,7 +254,7 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
   }
 }
 `,
-			want:       "https://github.com/htaslan/color",
+			want:       "https://gitlab.com/htaslan/color",
 			wantErrStr: "",
 		},
 		{
