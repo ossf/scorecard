@@ -35,8 +35,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// ErrorEmptyRepository indicates the repository is empty.
-var ErrorEmptyRepository = errors.New("repository empty")
+// errEmptyRepository indicates the repository is empty.
+var errEmptyRepository = errors.New("repository empty")
 
 func runEnabledChecks(ctx context.Context,
 	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
@@ -86,7 +86,7 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	if len(commits) > 0 {
 		return commits[0].SHA, nil
 	}
-	return "", ErrorEmptyRepository
+	return "", errEmptyRepository
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.
@@ -122,7 +122,7 @@ func RunScorecard(ctx context.Context,
 
 	commitSHA, err := getRepoCommitHash(repoClient)
 
-	if errors.Is(err, ErrorEmptyRepository) {
+	if errors.Is(err, errEmptyRepository) {
 		return ret, nil
 	} else if err != nil {
 		return ScorecardResult{}, err

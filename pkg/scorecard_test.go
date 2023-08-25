@@ -17,6 +17,7 @@ import (
 	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 
@@ -121,6 +122,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
+		uri	string
 		commitSHA string
 	}
 	tests := []struct {
@@ -130,11 +132,16 @@ func TestRunScorecard(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "empty commits repos should return empty result",
+			name: "empty commits repos should return repo details but no checks",
 			args: args{
+				uri: "github.com/ossf/scorecard",
 				commitSHA: "",
 			},
-			want:    ScorecardResult{},
+			want:    ScorecardResult{
+				Repo: RepoInfo{
+					Name:      "github.com/ossf/scorecard",
+				},
+				Date: time.Now()},
 			wantErr: false,
 		},
 	}
@@ -146,11 +153,15 @@ func TestRunScorecard(t *testing.T) {
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			repo := mockrepo.NewMockRepo(ctrl)
 
+			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 
 			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
 				return nil
 			})
+
+
 
 			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
 				if tt.args.commitSHA == "" {
