@@ -26,6 +26,8 @@ var (
 	ErrRepoUnreachable = errors.New("repo unreachable")
 	// ErrorUnsupportedHost indicates the repo's host is unsupported.
 	ErrorUnsupportedHost = errors.New("unsupported host")
+	// ErrorEmptyRepository indicates the repository is empty.
+	ErrorEmptyRepository = errors.New("repository empty")
 	// ErrorInvalidURL indicates the repo's full URL was not passed.
 	ErrorInvalidURL = errors.New("invalid repo flag")
 	// ErrorShellParsing indicates there was an error when parsing shell code.
@@ -54,6 +56,8 @@ func GetName(err error) string {
 		return "ErrScorecardInternal"
 	case errors.Is(err, ErrRepoUnreachable):
 		return "ErrRepoUnreachable"
+	case errors.Is(err, ErrorEmptyRepository):
+		return "ErrorEmptyRepository"
 	case errors.Is(err, ErrorShellParsing):
 		return "ErrorShellParsing"
 	default:

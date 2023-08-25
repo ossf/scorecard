@@ -83,7 +83,7 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	if len(commits) > 0 {
 		return commits[0].SHA, nil
 	}
-	return "", nil
+	return "", sce.ErrorEmptyRepository
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.
@@ -105,9 +105,25 @@ func RunScorecard(ctx context.Context,
 	defer repoClient.Close()
 
 	commitSHA, err := getRepoCommitHash(repoClient)
-	if err != nil || commitSHA == "" {
+
+	if errors.Is(err, sce.ErrorEmptyRepository) {
+		versionInfo := version.GetVersionInfo()
+		ret := ScorecardResult{
+			Repo: RepoInfo{
+				Name:      repo.URI(),
+				CommitSHA: commitSHA,
+			},
+			Scorecard: ScorecardInfo{
+				Version:   versionInfo.GitVersion,
+				CommitSHA: versionInfo.GitCommit,
+			},
+			Date: time.Now(),
+		}
+		return ret, nil
+	} else if err != nil || commitSHA == "" {
 		return ScorecardResult{}, err
-	}
+	} 
+
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
