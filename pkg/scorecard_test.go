@@ -41,7 +41,7 @@ func Test_getRepoCommitHash(t *testing.T) {
 		{
 			name:    "empty commit",
 			want:    "",
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
