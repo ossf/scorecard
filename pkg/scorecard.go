@@ -124,9 +124,9 @@ func RunScorecard(ctx context.Context,
 
 	if errors.Is(err, ErrorEmptyRepository) {
 		return ret, nil
-	} else if err != nil  {
+	} else if err != nil {
 		return ScorecardResult{}, err
-	} 
+	}
 
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
