@@ -241,6 +241,23 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
 			wantErrStr: "",
 		},
 		{
+			name: "findGitRepositoryInPYPIResponse_dedup_gitlab",
+			partialPYPIResponse: `
+ {
+  "info": {
+    "platform": "UNKNOWN",
+    "project_url": "foo",
+    "project_urls": {
+      "RandomKey": "https://gitlab.com/htaslan/color/",
+      "raNdoMkEY": "https://gitlab.com/hTASLan/color"
+    }
+  }
+}
+`,
+			want:       "https://github.com/htaslan/color",
+			wantErrStr: "",
+		},
+		{
 			name: "findGitRepositoryInPYPIResponse_toomany",
 			partialPYPIResponse: `
  {
