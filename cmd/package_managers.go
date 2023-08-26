@@ -18,11 +18,52 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"regexp"
+	"strings"
 
 	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
 	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
+
+var (
+	githubDomainRegexp    = regexp.MustCompile(`^https?://github[.]com/([^/]+)/([^/]+)`)
+	githubSubdomainRegexp = regexp.MustCompile(`^https?://([^.]+)[.]github[.]io/([^/]+).*`)
+	gitlabDomainRegexp    = regexp.MustCompile(`^https?://gitlab[.]com/([^/]+)/([^/]+)`)
+)
+
+func makeGithubRepo(urlAndPathParts []string) string {
+	if len(urlAndPathParts) < 3 {
+		return ""
+	}
+	userOrOrg := strings.ToLower(urlAndPathParts[1])
+	repoName := strings.TrimSuffix(strings.ToLower(urlAndPathParts[2]), ".git")
+	if userOrOrg == "sponsors" {
+		return ""
+	}
+	return fmt.Sprintf("https://github.com/%s/%s", userOrOrg, repoName)
+}
+
+// Both GitHub and GitLab are case insensitive (and thus we lowercase those URLS)
+// however generic URLs are indeed case sensitive!
+var pypiMatchers = []func(string) string{
+	func(url string) string {
+		return makeGithubRepo(githubDomainRegexp.FindStringSubmatch(url))
+	},
+
+	func(url string) string {
+		return makeGithubRepo(githubSubdomainRegexp.FindStringSubmatch(url))
+	},
+
+	func(url string) string {
+		match := gitlabDomainRegexp.FindStringSubmatch(url)
+		if len(match) >= 3 {
+			return strings.ToLower(fmt.Sprintf("https://gitlab.com/%s/%s", match[1], match[2]))
+		}
+		return ""
+	},
+}
 
 type packageMangerResponse struct {
 	associatedRepo string
@@ -77,9 +118,8 @@ type npmSearchResults struct {
 
 type pypiSearchResults struct {
 	Info struct {
-		ProjectUrls struct {
-			Source string `json:"Source"`
-		} `json:"project_urls"`
+		ProjectURLs map[string]string `json:"project_urls"`
+		ProjectURL  string            `json:"project_url"`
 	} `json:"info"`
 }
 
@@ -108,6 +148,38 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	return v.Objects[0].Package.Links.Repository, nil
 }
 
+func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
+	v := &pypiSearchResults{}
+	err := json.NewDecoder(response).Decode(v)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
+	}
+
+	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
+	var validURL string
+	for _, url := range v.Info.ProjectURLs {
+		for _, matcher := range pypiMatchers {
+			repo := matcher(url)
+			if repo == "" {
+				continue
+			}
+			if validURL == "" {
+				validURL = repo
+			} else if validURL != repo {
+				return "", sce.WithMessage(sce.ErrScorecardInternal,
+					fmt.Sprintf("found too many possible source repos for pypi package: %s", packageName))
+			}
+		}
+	}
+
+	if validURL == "" {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
+	} else {
+		return validURL, nil
+	}
+}
+
 // Gets the GitHub repository URL for the pypi package.
 func fetchGitRepositoryFromPYPI(packageName string, manager pmc.Client) (string, error) {
 	pypiSearchURL := "https://pypi.org/pypi/%s/json"
@@ -117,16 +189,7 @@ func fetchGitRepositoryFromPYPI(packageName string, manager pmc.Client) (string,
 	}
 
 	defer resp.Body.Close()
-	v := &pypiSearchResults{}
-	err = json.NewDecoder(resp.Body).Decode(v)
-	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
-	}
-	if v.Info.ProjectUrls.Source == "" {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
-			fmt.Sprintf("could not find source repo for pypi package: %s", packageName))
-	}
-	return v.Info.ProjectUrls.Source, nil
+	return findGitRepositoryInPYPIResponse(packageName, resp.Body)
 }
 
 // Gets the GitHub repository URL for the rubygems package.
