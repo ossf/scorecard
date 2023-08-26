@@ -26,7 +26,7 @@ import (
 
 const logLevel = log.DefaultLevel
 
-func normalize(r *pkg.ScorecardResult) {
+func Normalize(r *pkg.ScorecardResult) {
 	if r == nil {
 		return
 	}
@@ -55,6 +55,6 @@ func JSON(r *pkg.ScorecardResult, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	normalize(r)
+	Normalize(r)
 	return r.AsJSON2(details, logLevel, docs, w)
 }

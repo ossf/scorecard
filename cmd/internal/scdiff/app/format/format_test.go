@@ -167,8 +167,8 @@ func TestJSON(t *testing.T) {
 
 func Test_normalize_nil_safe(t *testing.T) {
 	var x, y *pkg.ScorecardResult
-	normalize(x)
-	normalize(y)
+	Normalize(x)
+	Normalize(y)
 	if !cmp.Equal(x, y) {
 		t.Errorf("normalized results differ: %v", cmp.Diff(x, y))
 	}
