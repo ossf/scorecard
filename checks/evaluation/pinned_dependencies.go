@@ -28,13 +28,10 @@ import (
 
 var errInvalidValue = errors.New("invalid value")
 
-type pinnedResult int
-
-const (
-	pinnedUndefined pinnedResult = iota
-	pinned
-	notPinned
-)
+type pinnedResult struct {
+	pinned int
+	total  int
+}
 
 // Structure to host information about pinned github
 // or third party dependencies.
@@ -80,7 +77,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Text:      *rr.Msg,
 				Snippet:   rr.Location.Snippet,
 			})
-		} else {
+		} else if !*rr.Pinned {
 			dl.Warn(&checker.LogMessage{
 				Path:        rr.Location.Path,
 				Type:        rr.Location.Type,
@@ -90,11 +87,11 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Snippet:     rr.Location.Snippet,
 				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
+		}
 
 			// Update the pinning status.
 			updatePinningResults(&rr, &wp, pr)
 		}
-	}
 
 	// Generate scores and Info results.
 	// GitHub actions.
@@ -177,13 +174,13 @@ func updatePinningResults(rr *checker.Dependency,
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
-		addWorkflowPinnedResult(wp, false, gitHubOwned)
+		addWorkflowPinnedResult(rr, wp, gitHubOwned)
 		return
 	}
 
 	// Update other result types.
-	var p pinnedResult
-	addPinnedResult(&p, false)
+	var p pinnedResult = pr[rr.Type]
+	addPinnedResult(rr, &p)
 	pr[rr.Type] = p
 }
 
@@ -213,28 +210,18 @@ func maxScore(s1, s2 int) int {
 	return s2
 }
 
-// For the 'to' param, true means the file is pinning dependencies (or there are no dependencies),
-// false means there are unpinned dependencies.
-func addPinnedResult(r *pinnedResult, to bool) {
-	// If the result is `notPinned`, we keep it.
-	// In other cases, we always update the result.
-	if *r == notPinned {
-		return
+func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
+	if *rr.Pinned {
+		r.pinned += 1
 	}
-
-	switch to {
-	case true:
-		*r = pinned
-	case false:
-		*r = notPinned
-	}
+	r.total += 1
 }
 
-func addWorkflowPinnedResult(w *worklowPinningResult, to, isGitHub bool) {
+func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, isGitHub bool) {
 	if isGitHub {
-		addPinnedResult(&w.gitHubOwned, to)
+		addPinnedResult(rr, &w.gitHubOwned)
 	} else {
-		addPinnedResult(&w.thirdParties, to)
+		addPinnedResult(rr, &w.thirdParties)
 	}
 }
 
