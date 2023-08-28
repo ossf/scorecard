@@ -23,7 +23,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.8.0
-	github.com/moby/buildkit v0.12.1
+	github.com/moby/buildkit v0.12.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.27.10
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
