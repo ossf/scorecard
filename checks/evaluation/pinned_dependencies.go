@@ -144,6 +144,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		}
 	}
 
+	if len(conclusiveScores) == 0 {
+		return checker.CreateInconclusiveResult(name, "no dependencies found")
+	}
+
 	score := checker.AggregateScores(conclusiveScores...)
 
 	if score == checker.MaxResultScore {
