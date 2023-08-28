@@ -133,17 +133,18 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
-	// Scores may be inconclusive.
-	actionScore = maxScore(0, actionScore)
-	dockerFromScore = maxScore(0, dockerFromScore)
-	dockerDownloadScore = maxScore(0, dockerDownloadScore)
-	scriptScore = maxScore(0, scriptScore)
-	pipScore = maxScore(0, pipScore)
-	npmScore = maxScore(0, npmScore)
-	goScore = maxScore(0, goScore)
+	// If no dependencies of an ecossystem are found, it results in an inconclusive score.
+	// We filter out inconclusive scores so only applicable ecossystems are considered in
+	// the final score.
+	scores := []int{actionScore, dockerFromScore, dockerDownloadScore, scriptScore, pipScore, npmScore, goScore}
+	conclusiveScores := []int{}
+	for i := range scores {
+		if scores[i] != checker.InconclusiveResultScore {
+			conclusiveScores = append(conclusiveScores, scores[i])
+		}
+	}
 
-	score := checker.AggregateScores(actionScore, dockerFromScore,
-		dockerDownloadScore, scriptScore, pipScore, npmScore, goScore)
+	score := checker.AggregateScores(conclusiveScores...)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -197,14 +198,6 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 		return "GitHub-owned"
 	}
 	return "third-party"
-}
-
-// TODO(laurent): need to support GCB pinning.
-func maxScore(s1, s2 int) int {
-	if s1 > s2 {
-		return s1
-	}
-	return s2
 }
 
 func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
