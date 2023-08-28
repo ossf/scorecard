@@ -35,8 +35,9 @@ import (
 )
 
 const (
-	repoDir      = "repo*"
-	repoFilename = "githubrepo*.tar.gz"
+	repoDir       = "repo*"
+	repoFilename  = "githubrepo*.tar.gz"
+	orgGithubRepo = ".github"
 )
 
 var (
@@ -94,6 +95,11 @@ func (handler *tarballHandler) setup() error {
 
 		// Setup temp dir/files and download repo tarball.
 		if err := handler.getTarball(); errors.Is(err, errTarballNotFound) {
+			// don't warn for "someorg/.github" repos
+			// https://github.com/ossf/scorecard/issues/3076
+			if handler.repo.GetName() == orgGithubRepo {
+				return
+			}
 			log.Printf("unable to get tarball %v. Skipping...", err)
 			return
 		} else if err != nil {
