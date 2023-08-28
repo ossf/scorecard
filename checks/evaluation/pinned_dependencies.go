@@ -15,7 +15,6 @@
 package evaluation
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -25,8 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/remediation"
 	"github.com/ossf/scorecard/v4/rule"
 )
-
-var errInvalidValue = errors.New("invalid value")
 
 type pinnedResult struct {
 	pinned int
@@ -89,9 +86,9 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 			})
 		}
 
-			// Update the pinning status.
-			updatePinningResults(&rr, &wp, pr)
-		}
+		// Update the pinning status.
+		updatePinningResults(&rr, &wp, pr)
+	}
 
 	// Generate scores and Info results.
 	// GitHub actions.
@@ -231,6 +228,7 @@ func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.Dependen
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
 		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
+		"no dependency downloads found in shell scripts",
 		dl)
 }
 
@@ -240,6 +238,7 @@ func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]pinnedRe
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDockerfileContainerImage,
 		"Dockerfile dependencies are pinned",
+		"no Dockerfile dependencies found",
 		dl)
 }
 
@@ -249,6 +248,7 @@ func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.Dependenc
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
 		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
+		"no dependency downloads found in Dockerfiles",
 		dl)
 }
 
@@ -257,7 +257,8 @@ func createReturnForIsPipInstallPinned(pr map[checker.DependencyUseType]pinnedRe
 	dl checker.DetailLogger,
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypePipCommand,
-		"Pip installs are pinned",
+		"pip installs are pinned",
+		"no pip installs found",
 		dl)
 }
 
@@ -267,6 +268,7 @@ func createReturnForIsNpmInstallPinned(pr map[checker.DependencyUseType]pinnedRe
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeNpmCommand,
 		"npm installs are pinned",
+		"no npm installs found",
 		dl)
 }
 
@@ -276,27 +278,32 @@ func createReturnForIsGoInstallPinned(pr map[checker.DependencyUseType]pinnedRes
 ) (int, error) {
 	return createReturnValues(pr, checker.DependencyUseTypeGoCommand,
 		"go installs are pinned",
+		"no go installs found",
 		dl)
 }
 
 func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
-	t checker.DependencyUseType, infoMsg string,
+	t checker.DependencyUseType, maxResultMsg string, inconclusiveResultMsg string,
 	dl checker.DetailLogger,
 ) (int, error) {
-	// Note: we don't check if the entry exists,
-	// as it will have the default value which is handled in the switch statement.
+	// If there are zero dependencies of this type, it will generate an inconclusive score,
+	// so we can disconsider it in the aggregated score.
+	// If all dependencies of this type are pinned, it will get a maximum score.
+	// If 1 or more dependencies of this type are unpinned, it will get a minimum score.
 	//nolint
-	r, _ := pr[t]
-	switch r {
-	default:
-		return checker.InconclusiveResultScore, fmt.Errorf("%w: %v", errInvalidValue, r)
-	case pinned, pinnedUndefined:
+	r := pr[t]
+
+	if r.total == 0 {
 		dl.Info(&checker.LogMessage{
-			Text: infoMsg,
+			Text: inconclusiveResultMsg,
+		})
+		return checker.InconclusiveResultScore, nil
+	} else if r.total == r.pinned {
+		dl.Info(&checker.LogMessage{
+			Text: maxResultMsg,
 		})
 		return checker.MaxResultScore, nil
-	case notPinned:
-		// No logging needed as it's done by the checks.
+	} else {
 		return checker.MinResultScore, nil
 	}
 }
@@ -305,29 +312,46 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 func createReturnForIsGitHubActionsWorkflowPinned(wp worklowPinningResult, dl checker.DetailLogger) (int, error) {
 	return createReturnValuesForGitHubActionsWorkflowPinned(wp,
 		fmt.Sprintf("%ss are pinned", checker.DependencyUseTypeGHAction),
+		fmt.Sprintf("%ss found", checker.DependencyUseTypeGHAction),
 		dl)
 }
 
-func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, infoMsg string,
-	dl checker.DetailLogger,
+func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, maxResultMsg string,
+	inconclusiveResultMsg string, dl checker.DetailLogger,
 ) (int, error) {
+	if r.gitHubOwned.total == 0 {
+		dl.Info(&checker.LogMessage{
+			Text: fmt.Sprintf("%s %s", "no GitHub-owned", inconclusiveResultMsg),
+		})
+	}
+
+	if r.thirdParties.total == 0 {
+		dl.Info(&checker.LogMessage{
+			Text: fmt.Sprintf("%s %s", "no Third-party", inconclusiveResultMsg),
+		})
+	}
+
+	if r.gitHubOwned.total == 0 && r.thirdParties.total == 0 {
+		return checker.InconclusiveResultScore, nil
+	}
+
 	score := checker.MinResultScore
 
-	if r.gitHubOwned != notPinned {
+	if r.gitHubOwned.total == r.gitHubOwned.pinned {
 		score += 2
 		dl.Info(&checker.LogMessage{
 			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "GitHub-owned", infoMsg),
+			Text:   fmt.Sprintf("%s %s", "GitHub-owned", maxResultMsg),
 		})
 	}
 
-	if r.thirdParties != notPinned {
+	if r.thirdParties.total == r.thirdParties.pinned {
 		score += 8
 		dl.Info(&checker.LogMessage{
 			Type:   finding.FileTypeSource,
 			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "Third-party", infoMsg),
+			Text:   fmt.Sprintf("%s %s", "Third-party", maxResultMsg),
 		})
 	}
 
