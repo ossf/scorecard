@@ -15,9 +15,14 @@
 package githubrepo
 
 import (
+	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"log"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"sync"
@@ -25,6 +30,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/go-github/v53/github"
+
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 type listfileTest struct {
@@ -171,6 +179,62 @@ func TestExtractTarball(t *testing.T) {
 			}
 			if len(handler.files) != 0 {
 				t.Error("client.files not cleaned up!")
+			}
+		})
+	}
+}
+
+// temporarily redirect default logger output somewhere else.
+func setLogOutput(t *testing.T, w io.Writer) {
+	t.Helper()
+	old := log.Writer()
+	log.SetOutput(w)
+	t.Cleanup(func() { log.SetOutput(old) })
+}
+
+//nolint:paralleltest // modifying log output
+func Test_setup_empty_repo(t *testing.T) {
+	tests := []struct {
+		name    string
+		repo    string
+		wantLog bool
+	}{
+		{
+			name:    "org .github has no log message",
+			repo:    ".github",
+			wantLog: false,
+		},
+		{
+			name:    "non .github repo has log message",
+			repo:    "foo",
+			wantLog: true,
+		},
+	}
+	// server always responds with bad request to trigger errTarballNotFound
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	t.Cleanup(ts.Close)
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			h := tarballHandler{
+				httpClient: http.DefaultClient,
+			}
+			archiveURL := ts.URL + "/{archive_format}"
+			r := github.Repository{
+				Name:       &tt.repo,
+				ArchiveURL: &archiveURL,
+			}
+			var buf bytes.Buffer
+			setLogOutput(t, &buf)
+			h.init(context.Background(), &r, clients.HeadSHA)
+			err := h.setup()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if (tt.wantLog) != (buf.Len() > 0) {
+				t.Errorf("wanted log: %t, log: %q", tt.wantLog, buf.String())
 			}
 		})
 	}
