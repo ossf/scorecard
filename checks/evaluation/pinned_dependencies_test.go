@@ -275,7 +275,7 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
-				},
+		},
 		{
 			name: "1 ecossystem partially pinned",
 			dependencies: []checker.Dependency{
@@ -378,7 +378,7 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfInfo:  7,
 				NumberOfDebug: 1,
 			},
-				},
+		},
 		{
 			name: "unpinned dependency shows warn message",
 			dependencies: []checker.Dependency{
@@ -642,7 +642,7 @@ func Test_createReturnValues(t *testing.T) {
 					checker.DependencyUseTypePipCommand: {
 						pinned: 1,
 						total:  1,
-				},
+					},
 				},
 			},
 			want: 10,
@@ -656,8 +656,8 @@ func Test_createReturnValues(t *testing.T) {
 					checker.DependencyUseTypePipCommand: {
 						pinned: 0,
 						total:  1,
+					},
 				},
-			},
 			},
 			want: 0,
 		},
@@ -670,7 +670,7 @@ func Test_createReturnValues(t *testing.T) {
 					checker.DependencyUseTypePipCommand: {
 						pinned: 1,
 						total:  2,
-				},
+					},
 				},
 			},
 			want: 0,
@@ -692,17 +692,17 @@ func Test_createReturnValues(t *testing.T) {
 			case -1:
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Text == "no dependencies found" && logType == checker.DetailInfo
-			}
+				}
 				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 					t.Errorf("test failed: log message not present: %+v", "no dependencies found")
 				}
 			case 0:
 				return
 			case 10:
-			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
 					return logMessage.Text == "all dependencies are pinned" && logType == checker.DetailInfo
-			}
-			if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 					t.Errorf("test failed: log message not present: %+v", "all dependencies are pinned")
 				}
 			}
@@ -742,50 +742,110 @@ func Test_generateOwnerToDisplay(t *testing.T) {
 func Test_addWorkflowPinnedResult(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		w        *worklowPinningResult
-		to       bool
-		isGitHub bool
+		dependency *checker.Dependency
+		w          *worklowPinningResult
+		isGitHub   bool
 	}
 	tests := []struct { //nolint:govet
 		name string
-		want pinnedResult
+		want *worklowPinningResult
 		args args
 	}{
 		{
-			name: "sets pinned to true if to is true",
+			name: "add pinned GitHub-owned action dependency",
 			args: args{
+				dependency: &checker.Dependency{
+					Pinned: asBoolPointer(true),
+				},
 				w:        &worklowPinningResult{},
-				to:       true,
 				isGitHub: true,
 			},
-			want: pinned,
+			want: &worklowPinningResult{
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
+				gitHubOwned: pinnedResult{
+					pinned: 1,
+					total:  1,
+				},
+			},
 		},
 		{
-			name: "sets pinned to false if to is false",
+			name: "add unpinned GitHub-owned action dependency",
 			args: args{
+				dependency: &checker.Dependency{
+					Pinned: asBoolPointer(false),
+				},
 				w:        &worklowPinningResult{},
-				to:       false,
 				isGitHub: true,
 			},
-			want: notPinned,
+			want: &worklowPinningResult{
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  1,
+				},
+			},
 		},
 		{
-			name: "sets pinned to undefined if to is false and isGitHub is false",
+			name: "add pinned Third-Party action dependency",
 			args: args{
+				dependency: &checker.Dependency{
+					Pinned: asBoolPointer(true),
+				},
 				w:        &worklowPinningResult{},
-				to:       false,
 				isGitHub: false,
 			},
-			want: pinnedUndefined,
+			want: &worklowPinningResult{
+				thirdParties: pinnedResult{
+					pinned: 1,
+					total:  1,
+				},
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
+			},
+		},
+		{
+			name: "add unpinned Third-Party action dependency",
+			args: args{
+				dependency: &checker.Dependency{
+					Pinned: asBoolPointer(false),
+				},
+				w:        &worklowPinningResult{},
+				isGitHub: false,
+			},
+			want: &worklowPinningResult{
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  1,
+				},
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			addWorkflowPinnedResult(tt.args.w, tt.args.to, tt.args.isGitHub)
-			if tt.args.w.gitHubOwned != tt.want {
-				t.Errorf("addWorkflowPinnedResult() = %v, want %v", tt.args.w.gitHubOwned, tt.want)
+			addWorkflowPinnedResult(tt.args.dependency, tt.args.w, tt.args.isGitHub)
+			if tt.want.thirdParties != tt.args.w.thirdParties {
+				t.Errorf("addWorkflowPinnedResult Third-party GitHub actions mismatch (-want +got):\nThird-party pinned: %s\nThird-party total: %s",
+					cmp.Diff(tt.want.thirdParties.pinned, tt.args.w.thirdParties.pinned),
+					cmp.Diff(tt.want.thirdParties.total, tt.args.w.thirdParties.total))
+			}
+			if tt.want.gitHubOwned != tt.args.w.gitHubOwned {
+				t.Errorf("addWorkflowPinnedResult GitHub-owned GitHub actions mismatch (-want +got):\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
+					cmp.Diff(tt.want.gitHubOwned.pinned, tt.args.w.gitHubOwned.pinned),
+					cmp.Diff(tt.want.gitHubOwned.total, tt.args.w.gitHubOwned.total))
 			}
 		})
 	}
