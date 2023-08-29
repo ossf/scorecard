@@ -313,7 +313,7 @@ test: $(test-targets)
 unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
-	SKIP_GINKGO=1 go test -covermode=atomic  -coverprofile=unit-coverage.out -coverpkg=./... ./...
+	SKIP_GINKGO=1 go test -coverprofile=unit-coverage.out -coverpkg=./... ./...
 
 unit-test-attestor: ## Runs unit tests on scorecard-attestor
 	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
