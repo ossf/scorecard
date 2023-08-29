@@ -1012,6 +1012,46 @@ func TestUpdatePinningResults(t *testing.T) {
 				pr: make(map[checker.DependencyUseType]pinnedResult),
 			},
 		},
+		{
+			name: "add pinned pip install",
+			args: args{
+				dependency: &checker.Dependency{
+					Type:   checker.DependencyUseTypePipCommand,
+					Pinned: asBoolPointer(true),
+				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
+			want: want{
+				w: &worklowPinningResult{},
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypePipCommand: {
+						pinned: 1,
+						total:  1,
+					},
+				},
+			},
+		},
+		{
+			name: "add unpinned pip install",
+			args: args{
+				dependency: &checker.Dependency{
+					Type:   checker.DependencyUseTypePipCommand,
+					Pinned: asBoolPointer(false),
+				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
+			want: want{
+				w: &worklowPinningResult{},
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypePipCommand: {
+						pinned: 0,
+						total:  1,
+					},
+				},
+			},
+		},
 	}
 	for _, tc := range tests {
 		tc := tc
@@ -1027,6 +1067,14 @@ func TestUpdatePinningResults(t *testing.T) {
 				t.Errorf("updatePinningResults GitHub-owned GitHub actions mismatch (-want +got):\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
 					cmp.Diff(tc.want.w.gitHubOwned.pinned, tc.args.w.gitHubOwned.pinned),
 					cmp.Diff(tc.want.w.gitHubOwned.total, tc.args.w.gitHubOwned.total))
+			}
+			for dependencyUseType := range tc.want.pr {
+				if tc.want.pr[dependencyUseType] != tc.args.pr[dependencyUseType] {
+					t.Errorf("updatePinningResults %s mismatch (-want +got):\npinned: %s\ntotal: %s",
+						dependencyUseType,
+						cmp.Diff(tc.want.pr[dependencyUseType].pinned, tc.args.pr[dependencyUseType].pinned),
+						cmp.Diff(tc.want.pr[dependencyUseType].total, tc.args.pr[dependencyUseType].total))
+				}
 			}
 		})
 	}
