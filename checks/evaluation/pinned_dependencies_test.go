@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
 	"github.com/ossf/scorecard/v4/checker"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -891,50 +890,143 @@ func TestGenerateText(t *testing.T) {
 
 func TestUpdatePinningResults(t *testing.T) {
 	t.Parallel()
+	type args struct {
+		dependency *checker.Dependency
+		w          *worklowPinningResult
+		pr         map[checker.DependencyUseType]pinnedResult
+	}
+	type want struct {
+		w  *worklowPinningResult
+		pr map[checker.DependencyUseType]pinnedResult
+	}
 	tests := []struct { //nolint:govet
-		name                  string
-		dependency            *checker.Dependency
-		expectedPinningResult *worklowPinningResult
-		expectedPinnedResult  map[checker.DependencyUseType]pinnedResult
+		name string
+		args args
+		want want
 	}{
 		{
-			name: "GitHub Action - GitHub-owned",
-			dependency: &checker.Dependency{
-				Type: checker.DependencyUseTypeGHAction,
-				Location: &checker.File{
-					Snippet: "actions/checkout@v2",
+			name: "add pinned GitHub-owned action",
+			args: args{
+				dependency: &checker.Dependency{
+					Type: checker.DependencyUseTypeGHAction,
+					Location: &checker.File{
+						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Pinned: asBoolPointer(true),
 				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
 			},
-			expectedPinningResult: &worklowPinningResult{
-				thirdParties: 0,
-				gitHubOwned:  2,
+			want: want{
+				w: &worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+				},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
 			},
-			expectedPinnedResult: map[checker.DependencyUseType]pinnedResult{},
 		},
 		{
-			name: "Third party owned.",
-			dependency: &checker.Dependency{
-				Type: checker.DependencyUseTypeGHAction,
-				Location: &checker.File{
-					Snippet: "other/checkout@v2",
+			name: "add unpinned GitHub-owned action",
+			args: args{
+				dependency: &checker.Dependency{
+					Type: checker.DependencyUseTypeGHAction,
+					Location: &checker.File{
+						Snippet: "actions/checkout@v2",
+					},
+					Pinned: asBoolPointer(false),
 				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
 			},
-			expectedPinningResult: &worklowPinningResult{
-				thirdParties: 2,
-				gitHubOwned:  0,
+			want: want{
+				w: &worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+				},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
 			},
-			expectedPinnedResult: map[checker.DependencyUseType]pinnedResult{},
+		},
+		{
+			name: "add pinned Third-party action",
+			args: args{
+				dependency: &checker.Dependency{
+					Type: checker.DependencyUseTypeGHAction,
+					Location: &checker.File{
+						Snippet: "other/checkout@ffa6706ff2127a749973072756f83c532e43ed02",
+					},
+					Pinned: asBoolPointer(true),
+				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
+			want: want{
+				w: &worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+				},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
+		},
+		{
+			name: "add unpinned Third-party action",
+			args: args{
+				dependency: &checker.Dependency{
+					Type: checker.DependencyUseTypeGHAction,
+					Location: &checker.File{
+						Snippet: "other/checkout@v2",
+					},
+					Pinned: asBoolPointer(false),
+				},
+				w:  &worklowPinningResult{},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
+			want: want{
+				w: &worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+				},
+				pr: make(map[checker.DependencyUseType]pinnedResult),
+			},
 		},
 	}
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			wp := &worklowPinningResult{}
-			pr := make(map[checker.DependencyUseType]pinnedResult)
-			updatePinningResults(tc.dependency, wp, pr)
-			if tc.expectedPinningResult.thirdParties != wp.thirdParties && tc.expectedPinningResult.gitHubOwned != wp.gitHubOwned { //nolint:lll
-				t.Errorf("updatePinningResults mismatch (-want +got):\n%s", cmp.Diff(tc.expectedPinningResult, wp))
+			updatePinningResults(tc.args.dependency, tc.args.w, tc.args.pr)
+			if tc.want.w.thirdParties != tc.args.w.thirdParties {
+				t.Errorf("updatePinningResults Third-party GitHub actions mismatch (-want +got):\nThird-party pinned: %s\nThird-party total: %s",
+					cmp.Diff(tc.want.w.thirdParties.pinned, tc.args.w.thirdParties.pinned),
+					cmp.Diff(tc.want.w.thirdParties.total, tc.args.w.thirdParties.total))
+			}
+			if tc.want.w.gitHubOwned != tc.args.w.gitHubOwned {
+				t.Errorf("updatePinningResults GitHub-owned GitHub actions mismatch (-want +got):\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
+					cmp.Diff(tc.want.w.gitHubOwned.pinned, tc.args.w.gitHubOwned.pinned),
+					cmp.Diff(tc.want.w.gitHubOwned.total, tc.args.w.gitHubOwned.total))
 			}
 		})
 	}
