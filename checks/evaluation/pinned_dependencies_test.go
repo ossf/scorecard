@@ -208,6 +208,10 @@ func asStringPointer(s string) *string {
 	return &s
 }
 
+func asBoolPointer(b bool) *bool {
+	return &b
+}
+
 func Test_PinningDependencies(t *testing.T) {
 	t.Parallel()
 
@@ -217,155 +221,261 @@ func Test_PinningDependencies(t *testing.T) {
 		expected     scut.TestReturn
 	}{
 		{
-			name: "download then run pinned debug",
+			name: "all dependencies pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
-					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(true),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  8,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "all dependencies unpinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "1 ecossystem pinned and 1 ecossystem unpinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         5,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+				},
+		{
+			name: "1 ecossystem partially pinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name:         "no dependencies found",
+			dependencies: []checker.Dependency{},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         -1,
+				NumberOfWarn:  0,
+				NumberOfInfo:  8,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "pinned dependency shows no warn message",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  8,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "pinned dependency with debug message",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Msg:      asStringPointer("some message"),
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
 				NumberOfWarn:  0,
 				NumberOfInfo:  8,
 				NumberOfDebug: 1,
 			},
 		},
 		{
-			name: "download then run pinned debug and warn",
+			name: "unpinned dependency shows warn message",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "unpinned dependency with debug message shows no warn message",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Msg:      asStringPointer("some message"),
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  0,
+				NumberOfInfo:  7,
+				NumberOfDebug: 1,
+			},
+				},
+		{
+			name: "unpinned dependency shows warn message",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
 					Msg:      asStringPointer("some message"),
 					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Pinned:   asBoolPointer(false),
 				},
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         7,
+				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  6,
 				NumberOfDebug: 1,
 			},
 		},
+		// TODO: choco installs should score for Pinned-Dependencies
+		// {
+		// 	name: "unpinned choco install",
+		// 	dependencies: []checker.Dependency{
+		// 		{
+		// 			Location: &checker.File{},
+		// 			Type:     checker.DependencyUseTypeChocoCommand,
+		// 			Pinned:   asBoolPointer(false),
+		// 		},
+		// 	},
+		// 	expected: scut.TestReturn{
+		// 		Error:         nil,
+		// 		Score:         0,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  7,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
 		{
-			name: "various warnings",
+			name: "unpinned Dockerfile container image",
 			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-				},
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-				},
-				{
-					Location: &checker.File{},
-					Msg:      asStringPointer("debug message"),
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         4,
-				NumberOfWarn:  3,
-				NumberOfInfo:  4,
-				NumberOfDebug: 1,
-			},
-		},
-		{
-			name: "unpinned pip install",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         8,
+				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
 		},
+		// TODO: Due to a bug download then run is score twice in shell scripts
+		// and Dockerfile, the NumberOfInfo should be 7
 		{
-			name: "undefined pip install",
+			name: "unpinned download then run in Dockerfile",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Msg:      asStringPointer("debug message"),
+					Location: &checker.File{
+						Path: "Dockerfile",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         10,
-				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 1,
-			},
-		},
-		{
-			name: "all dependencies pinned",
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         10,
-				NumberOfWarn:  0,
-				NumberOfInfo:  8,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			},
 		},
+		// TODO: Due to a bug download then run is score twice in shell scripts
+		// and Dockerfile, the NumberOfInfo should be 7
 		{
-			name: "Validate various warnings and info",
+			name: "unpinned download then run in shell scripts",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-				},
-				{
-					Location: &checker.File{},
-					Msg:      asStringPointer("debug message"),
+					Location: &checker.File{
+						Path: "bash.sh",
+					},
+					Type:   checker.DependencyUseTypeDownloadThenRun,
+					Pinned: asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         4,
-				NumberOfWarn:  3,
-				NumberOfInfo:  4,
-				NumberOfDebug: 1,
-			},
-		},
-		{
-			name: "unpinned npm install",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNpmCommand,
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         8,
+				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			},
 		},
@@ -375,13 +485,110 @@ func Test_PinningDependencies(t *testing.T) {
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         8,
+				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "unpinned npm install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		// TODO: nuget installs should score for Pinned-Dependencies
+		// {
+		// 	name: "unpinned nuget install",
+		// 	dependencies: []checker.Dependency{
+		// 		{
+		// 			Location: &checker.File{},
+		// 			Type:     checker.DependencyUseTypeNugetCommand,
+		// 			Pinned:   asBoolPointer(false),
+		// 		},
+		// 	},
+		// 	expected: scut.TestReturn{
+		// 		Error:         nil,
+		// 		Score:         0,
+		// 		NumberOfWarn:  1,
+		// 		NumberOfInfo:  7,
+		// 		NumberOfDebug: 0,
+		// 	},
+		// },
+		{
+			name: "unpinned pip install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "2 unpinned dependencies for 1 ecossystem shows 2 warn messages",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  2,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "2 unpinned dependencies for 2 ecossystems shows 2 warn messages",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  2,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			},
 		},
