@@ -337,20 +337,24 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, ma
 
 	if r.gitHubOwned.total == r.gitHubOwned.pinned {
 		score += 2
-		dl.Info(&checker.LogMessage{
-			Type:   finding.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "GitHub-owned", maxResultMsg),
-		})
+		if r.gitHubOwned.total != 0 {
+			dl.Info(&checker.LogMessage{
+				Type:   finding.FileTypeSource,
+				Offset: checker.OffsetDefault,
+				Text:   fmt.Sprintf("%s %s", "GitHub-owned", maxResultMsg),
+			})
+		}
 	}
 
 	if r.thirdParties.total == r.thirdParties.pinned {
 		score += 8
-		dl.Info(&checker.LogMessage{
-			Type:   finding.FileTypeSource,
-			Offset: checker.OffsetDefault,
-			Text:   fmt.Sprintf("%s %s", "Third-party", maxResultMsg),
-		})
+		if r.thirdParties.total != 0 {
+			dl.Info(&checker.LogMessage{
+				Type:   finding.FileTypeSource,
+				Offset: checker.OffsetDefault,
+				Text:   fmt.Sprintf("%s %s", "Third-party", maxResultMsg),
+			})
+		}
 	}
 
 	return score, nil
