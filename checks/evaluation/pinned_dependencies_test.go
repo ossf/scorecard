@@ -615,56 +615,63 @@ func Test_PinningDependencies(t *testing.T) {
 
 func Test_createReturnValues(t *testing.T) {
 	t.Parallel()
-
 	type args struct {
 		pr map[checker.DependencyUseType]pinnedResult
 		dl *scut.TestDetailLogger
 		t  checker.DependencyUseType
 	}
-
 	tests := []struct {
 		name string
 		args args
 		want int
 	}{
 		{
-			name: "returns 10 if no error and no pinnedResult",
+			name: "no dependencies",
 			args: args{
-				t:  checker.DependencyUseTypeDownloadThenRun,
+				t:  checker.DependencyUseTypePipCommand,
 				dl: &scut.TestDetailLogger{},
+			},
+			want: -1,
+		},
+		{
+			name: "all dependencies pinned",
+			args: args{
+				t:  checker.DependencyUseTypePipCommand,
+				dl: &scut.TestDetailLogger{},
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypePipCommand: {
+						pinned: 1,
+						total:  1,
+				},
+				},
 			},
 			want: 10,
 		},
 		{
-			name: "returns 10 if pinned undefined",
+			name: "all dependencies unpinned",
 			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
-				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: pinnedUndefined,
-				},
+				t:  checker.DependencyUseTypePipCommand,
 				dl: &scut.TestDetailLogger{},
+				pr: map[checker.DependencyUseType]pinnedResult{
+					checker.DependencyUseTypePipCommand: {
+						pinned: 0,
+						total:  1,
+				},
 			},
-			want: 10,
+			},
+			want: 0,
 		},
 		{
-			name: "returns 10 if pinned",
+			name: "1 or more dependencies unpinned",
 			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
-				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: pinned,
-				},
+				t:  checker.DependencyUseTypePipCommand,
 				dl: &scut.TestDetailLogger{},
-			},
-			want: 10,
-		},
-		{
-			name: "returns 0 if unpinned",
-			args: args{
-				t: checker.DependencyUseTypeDownloadThenRun,
 				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypeDownloadThenRun: notPinned,
+					checker.DependencyUseTypePipCommand: {
+						pinned: 1,
+						total:  2,
 				},
-				dl: &scut.TestDetailLogger{},
+				},
 			},
 			want: 0,
 		},
@@ -673,7 +680,7 @@ func Test_createReturnValues(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnValues(tt.args.pr, tt.args.t, "some message", tt.args.dl)
+			got, err := createReturnValues(tt.args.pr, tt.args.t, "all dependencies are pinned", "no dependencies found", tt.args.dl)
 			if err != nil {
 				t.Errorf("error during createReturnValues: %v", err)
 			}
@@ -681,15 +688,23 @@ func Test_createReturnValues(t *testing.T) {
 				t.Errorf("createReturnValues() = %v, want %v", got, tt.want)
 			}
 
-			if tt.want < 10 {
-				return
+			switch tt.want {
+			case -1:
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Text == "no dependencies found" && logType == checker.DetailInfo
 			}
-
+				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
+					t.Errorf("test failed: log message not present: %+v", "no dependencies found")
+				}
+			case 0:
+				return
+			case 10:
 			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return logMessage.Text == "some message" && logType == checker.DetailInfo
+					return logMessage.Text == "all dependencies are pinned" && logType == checker.DetailInfo
 			}
 			if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
-				t.Errorf("test failed: log message not present: %+v", "some message")
+					t.Errorf("test failed: log message not present: %+v", "all dependencies are pinned")
+				}
 			}
 		})
 	}
