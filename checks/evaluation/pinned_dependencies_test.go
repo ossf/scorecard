@@ -710,53 +710,6 @@ func Test_createReturnValues(t *testing.T) {
 	}
 }
 
-func Test_maxScore(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		s1 int
-		s2 int
-	}
-	tests := []struct {
-		name string
-		args args
-		want int
-	}{
-		{
-			name: "returns s1 if s1 is greater than s2",
-			args: args{
-				s1: 10,
-				s2: 5,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s2 if s2 is greater than s1",
-			args: args{
-				s1: 5,
-				s2: 10,
-			},
-			want: 10,
-		},
-		{
-			name: "returns s1 if s1 is equal to s2",
-			args: args{
-				s1: 10,
-				s2: 10,
-			},
-			want: 10,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := maxScore(tt.args.s1, tt.args.s2); got != tt.want {
-				t.Errorf("maxScore() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_generateOwnerToDisplay(t *testing.T) {
 	t.Parallel()
 	tests := []struct { //nolint:govet
