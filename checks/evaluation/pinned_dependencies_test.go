@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v4/checker"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -30,8 +31,8 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 		dl *scut.TestDetailLogger
 	}
 	type want struct {
-		score int
 		logs  []string
+		score int
 	}
 	//nolint
 	tests := []struct {
@@ -679,7 +680,8 @@ func Test_createReturnValues(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnValues(tt.args.pr, tt.args.t, "all dependencies are pinned", "no dependencies found", tt.args.dl)
+			got, err := createReturnValues(tt.args.pr, tt.args.t, "all dependencies are pinned",
+				"no dependencies found", tt.args.dl)
 			if err != nil {
 				t.Errorf("error during createReturnValues: %v", err)
 			}
@@ -837,12 +839,14 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 			t.Parallel()
 			addWorkflowPinnedResult(tt.args.dependency, tt.args.w, tt.args.isGitHub)
 			if tt.want.thirdParties != tt.args.w.thirdParties {
-				t.Errorf("addWorkflowPinnedResult Third-party GitHub actions mismatch (-want +got):\nThird-party pinned: %s\nThird-party total: %s",
+				t.Errorf("addWorkflowPinnedResult Third-party GitHub actions mismatch (-want +got):"+
+					"\nThird-party pinned: %s\nThird-party total: %s",
 					cmp.Diff(tt.want.thirdParties.pinned, tt.args.w.thirdParties.pinned),
 					cmp.Diff(tt.want.thirdParties.total, tt.args.w.thirdParties.total))
 			}
 			if tt.want.gitHubOwned != tt.args.w.gitHubOwned {
-				t.Errorf("addWorkflowPinnedResult GitHub-owned GitHub actions mismatch (-want +got):\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
+				t.Errorf("addWorkflowPinnedResult GitHub-owned GitHub actions mismatch (-want +got):"+
+					"\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
 					cmp.Diff(tt.want.gitHubOwned.pinned, tt.args.w.gitHubOwned.pinned),
 					cmp.Diff(tt.want.gitHubOwned.total, tt.args.w.gitHubOwned.total))
 			}
@@ -1059,12 +1063,14 @@ func TestUpdatePinningResults(t *testing.T) {
 			t.Parallel()
 			updatePinningResults(tc.args.dependency, tc.args.w, tc.args.pr)
 			if tc.want.w.thirdParties != tc.args.w.thirdParties {
-				t.Errorf("updatePinningResults Third-party GitHub actions mismatch (-want +got):\nThird-party pinned: %s\nThird-party total: %s",
+				t.Errorf("updatePinningResults Third-party GitHub actions mismatch (-want +got):"+
+					"\nThird-party pinned: %s\nThird-party total: %s",
 					cmp.Diff(tc.want.w.thirdParties.pinned, tc.args.w.thirdParties.pinned),
 					cmp.Diff(tc.want.w.thirdParties.total, tc.args.w.thirdParties.total))
 			}
 			if tc.want.w.gitHubOwned != tc.args.w.gitHubOwned {
-				t.Errorf("updatePinningResults GitHub-owned GitHub actions mismatch (-want +got):\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
+				t.Errorf("updatePinningResults GitHub-owned GitHub actions mismatch (-want +got):"+
+					"\nGitHub-owned pinned: %s\nGitHub-owned total: %s",
 					cmp.Diff(tc.want.w.gitHubOwned.pinned, tc.args.w.gitHubOwned.pinned),
 					cmp.Diff(tc.want.w.gitHubOwned.total, tc.args.w.gitHubOwned.total))
 			}

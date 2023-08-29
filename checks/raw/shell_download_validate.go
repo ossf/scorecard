@@ -725,7 +725,9 @@ func isDotNetCliInstall(cmd []string) bool {
 	}
 	// Search for dotnet add <PROJECT> package <PACKAGE_NAME>
 	// where package command can be either the second or the third word
-	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) && strings.EqualFold(cmd[1], "add") && (strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
+	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) &&
+		strings.EqualFold(cmd[1], "add") &&
+		(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
 }
 
 func isUnpinnedDotNetCliInstall(cmd []string) bool {
@@ -864,7 +866,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					Snippet:   cmd,
 				},
 				Pinned: asBoolPointer(!isNugetUnpinnedDownload(c)),
-				Type: checker.DependencyUseTypeNugetCommand,
+				Type:   checker.DependencyUseTypeNugetCommand,
 			},
 		)
 

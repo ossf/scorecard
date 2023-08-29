@@ -181,7 +181,7 @@ func updatePinningResults(rr *checker.Dependency,
 	}
 
 	// Update other result types.
-	var p pinnedResult = pr[rr.Type]
+	p := pr[rr.Type]
 	addPinnedResult(rr, &p)
 	pr[rr.Type] = p
 }
@@ -290,17 +290,18 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 	//nolint
 	r := pr[t]
 
-	if r.total == 0 {
+	switch r.total {
+	case 0:
 		dl.Info(&checker.LogMessage{
 			Text: inconclusiveResultMsg,
 		})
 		return checker.InconclusiveResultScore, nil
-	} else if r.total == r.pinned {
+	case r.pinned:
 		dl.Info(&checker.LogMessage{
 			Text: maxResultMsg,
 		})
 		return checker.MaxResultScore, nil
-	} else {
+	default:
 		return checker.MinResultScore, nil
 	}
 }
