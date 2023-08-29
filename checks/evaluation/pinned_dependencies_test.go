@@ -23,64 +23,182 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
+func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
-		r       worklowPinningResult
-		infoMsg string
-		dl      checker.DetailLogger
+		r  worklowPinningResult
+		dl *scut.TestDetailLogger
+	}
+	type want struct {
+		score int
+		logs  []string
 	}
 	//nolint
 	tests := []struct {
 		name string
 		args args
-		want int
+		want want
 	}{
 		{
-			name: "both actions workflow pinned",
+			name: "GitHub-owned and Third-Party actions pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 1,
-					gitHubOwned:  1,
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
-			want: 10,
+			want: want{
+				score: 10,
+				logs:  []string{"GitHub-owned GitHubActions are pinned", "Third-party GitHubActions are pinned"},
+			},
 		},
 		{
-			name: "github actions workflow pinned",
+			name: "only GitHub-owned actions pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
-			want: 0,
+			want: want{
+				score: 2,
+				logs:  []string{"GitHub-owned GitHubActions are pinned"},
+			},
 		},
 		{
-			name: "error in github actions workflow pinned",
+			name: "only Third-Party actions pinned",
 			args: args{
 				r: worklowPinningResult{
-					thirdParties: 2,
-					gitHubOwned:  2,
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
 				},
 				dl: &scut.TestDetailLogger{},
 			},
-			want: 0,
+			want: want{
+				score: 8,
+				logs:  []string{"Third-party GitHubActions are pinned"},
+			},
+		},
+		{
+			name: "no GitHub actions pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: 0,
+				logs:  []string{},
+			},
+		},
+		{
+			name: "no GitHub actions",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: -1,
+				logs:  []string{"no GitHub-owned GitHubActions found", "no Third-party GitHubActions found"},
+			},
+		},
+		{
+			name: "no GitHub-owned actions",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: 2,
+				logs:  []string{"no GitHub-owned GitHubActions found"},
+			},
+		},
+		{
+			name: "no Third-party actions",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  1,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: 8,
+				logs:  []string{"no Third-party GitHubActions found"},
+			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnValuesForGitHubActionsWorkflowPinned(tt.args.r, tt.args.infoMsg, tt.args.dl)
+			got, err := createReturnForIsGitHubActionsWorkflowPinned(tt.args.r, tt.args.dl)
 			if err != nil {
-				t.Errorf("error during createReturnValuesForGitHubActionsWorkflowPinned: %v", err)
+				t.Errorf("error during createReturnForIsGitHubActionsWorkflowPinned: %v", err)
 			}
-			if got != tt.want {
-				t.Errorf("createReturnValuesForGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want)
+			if got != tt.want.score {
+				t.Errorf("createReturnForIsGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want.score)
+			}
+			for _, log := range tt.want.logs {
+				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+					return logMessage.Text == log && logType == checker.DetailInfo
+				}
+				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
+					t.Errorf("test failed: log message not present: %+v", log)
+				}
 			}
 		})
 	}
