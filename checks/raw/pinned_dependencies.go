@@ -274,7 +274,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 					},
 					Name:     asPointer(name),
 					PinnedAt: asPointer(asName),
-					Pinned:   asBoolPointer(pinned || regex.MatchString(name)),
+					Pinned:   asBoolPointer(pinnedAsNames[asName]),
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
