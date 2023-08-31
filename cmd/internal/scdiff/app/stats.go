@@ -20,9 +20,11 @@ import (
 	"io"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
+	"github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -49,14 +51,19 @@ var statsCmd = &cobra.Command{
 }
 
 func calcStats(input io.Reader, output io.Writer) error {
+	checkDocs, err := checks.Read()
+	if err != nil {
+		return fmt.Errorf("cannot read yaml file: %w", err)
+	}
 	var counts [12]int // [-1, 10] inclusive
 	scanner := bufio.NewScanner(input)
+	scanner.Buffer(nil, 1024*1024)
 	for scanner.Scan() {
 		result, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
 		if err != nil {
 			return fmt.Errorf("parsing result: %w", err)
 		}
-		score, err := result.GetAggregateScore(nil) // todo, read from the file?
+		score, err := result.GetAggregateScore(checkDocs) // todo, read from the file?
 		if score < -1 || score > 10 {
 			return fmt.Errorf("invalid score") // todo sentinel
 		}
@@ -71,9 +78,18 @@ func calcStats(input io.Reader, output io.Writer) error {
 }
 
 func summary(counts *[12]int, output io.Writer) {
-	fmt.Fprintln(output, "Score Distribution:")
+	const (
+		minWidth = 5
+		tabWidth = 4
+		padding  = 5
+		padchar  = ' '
+		flags    = tabwriter.AlignRight
+	)
+	w := tabwriter.NewWriter(output, minWidth, tabWidth, padding, padchar, flags)
+	fmt.Fprintln(output, "Score\tCount\t")
 	for i, c := range counts {
 		scoreBucket := i - 1
-		fmt.Fprintf(output, "%d: %d", scoreBucket, c)
+		fmt.Fprintf(w, "%d\t%d\t\n", scoreBucket, c)
 	}
+	w.Flush()
 }
