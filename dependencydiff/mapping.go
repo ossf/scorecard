@@ -22,7 +22,7 @@ import (
 type ecosystem string
 
 // OSV ecosystem naming data source: https://ossf.github.io/osv-schema/#affectedpackage-field
-// nolint
+//nolint
 const (
 	// The Go ecosystem.
 	ecosystemGo ecosystem = "Go"
@@ -101,7 +101,7 @@ func mapDependencyEcosystemNaming(deps []dependency) error {
 			// Iff. the ecosystem is not empty and the mapping entry is not found, we will return an error.
 			return fmt.Errorf("error mapping dependency ecosystem: %w", err)
 		}
-		deps[i].Ecosystem = asStringPointer(string(mappedEcosys))
+		deps[i].Ecosystem = asPointer(string(mappedEcosys))
 	}
 	return nil
 }
@@ -116,6 +116,6 @@ func toEcosystem(e string) (ecosystem, error) {
 	return "", fmt.Errorf("%w for github entry %s", errMappingNotFound, e)
 }
 
-func asStringPointer(s string) *string {
+func asPointer(s string) *string {
 	return &s
 }

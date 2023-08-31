@@ -379,7 +379,7 @@ func TestCheckCodeReviewed(t *testing.T) {
 	}
 }
 
-func asStringPointer(s string) *string {
+func asPointer(s string) *string {
 	return &s
 }
 
@@ -399,7 +399,7 @@ func TestNoUnpinnedDependencies(t *testing.T) {
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					Dependencies: []checker.Dependency{
-						{Name: asStringPointer("foo"), PinnedAt: asStringPointer("abcdef")},
+						{Name: asPointer("foo"), PinnedAt: asPointer("abcdef")},
 					},
 				},
 			},
@@ -413,7 +413,7 @@ func TestNoUnpinnedDependencies(t *testing.T) {
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					Dependencies: []checker.Dependency{
-						{Name: asStringPointer("foo"), PinnedAt: nil},
+						{Name: asPointer("foo"), PinnedAt: nil},
 					},
 				},
 			},
@@ -427,7 +427,7 @@ func TestNoUnpinnedDependencies(t *testing.T) {
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					Dependencies: []checker.Dependency{
-						{Name: asStringPointer("foo"), PinnedAt: nil},
+						{Name: asPointer("foo"), PinnedAt: nil},
 					},
 				},
 			},
@@ -439,7 +439,7 @@ func TestNoUnpinnedDependencies(t *testing.T) {
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					Dependencies: []checker.Dependency{
-						{Name: asStringPointer("second-pkg"), Location: &checker.File{Path: "bar"}, PinnedAt: nil},
+						{Name: asPointer("second-pkg"), Location: &checker.File{Path: "bar"}, PinnedAt: nil},
 					},
 				},
 			},
@@ -651,7 +651,7 @@ func TestAttestationPolicy_EvaluateResults(t *testing.T) {
 				raw: &checker.RawResults{
 					PinningDependenciesResults: checker.PinningDependenciesData{
 						Dependencies: []checker.Dependency{
-							{Name: asStringPointer("foo"), PinnedAt: asStringPointer("abcdef")},
+							{Name: asPointer("foo"), PinnedAt: asPointer("abcdef")},
 						},
 					},
 				},

@@ -52,7 +52,7 @@ func TestRepeatedSetup(t *testing.T) {
 	}
 }
 
-func asStringPointer(s string) *string {
+func asPointer(s string) *string {
 	return &s
 }
 
@@ -89,7 +89,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 		{
 			name: "image name no tag",
 			dep: checker.Dependency{
-				Name: asStringPointer("foo"),
+				Name: asPointer("foo"),
 				Type: checker.DependencyUseTypeDockerfileContainerImage,
 			},
 			expected: &rule.Remediation{
@@ -101,8 +101,8 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 			// github.com/ossf/scorecard/issues/2581
 			name: "image name with tag",
 			dep: checker.Dependency{
-				Name:     asStringPointer("amazoncorretto"),
-				PinnedAt: asStringPointer("11"),
+				Name:     asPointer("amazoncorretto"),
+				PinnedAt: asPointer("11"),
 				Type:     checker.DependencyUseTypeDockerfileContainerImage,
 			},
 			expected: &rule.Remediation{
@@ -113,7 +113,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 		{
 			name: "unknown image",
 			dep: checker.Dependency{
-				Name: asStringPointer("not-found"),
+				Name: asPointer("not-found"),
 				Type: checker.DependencyUseTypeDockerfileContainerImage,
 			},
 			expected: nil,
@@ -121,8 +121,8 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 		{
 			name: "unknown tag",
 			dep: checker.Dependency{
-				Name:     asStringPointer("foo"),
-				PinnedAt: asStringPointer("not-found"),
+				Name:     asPointer("foo"),
+				PinnedAt: asPointer("not-found"),
 				Type:     checker.DependencyUseTypeDockerfileContainerImage,
 			},
 			expected: nil,

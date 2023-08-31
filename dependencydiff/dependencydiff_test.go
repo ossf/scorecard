@@ -126,11 +126,11 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			deps: []dependency{
 				{
 					Name:      "dependency_1",
-					Ecosystem: asStringPointer("not_supported"),
+					Ecosystem: asPointer("not_supported"),
 				},
 				{
 					Name:      "dependency_2",
-					Ecosystem: asStringPointer("gomod"),
+					Ecosystem: asPointer("gomod"),
 				},
 			},
 			errWanted: errInvalid,
@@ -140,7 +140,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			deps: []dependency{
 				{
 					Name:      "dependency_3",
-					Ecosystem: asStringPointer("foobar"),
+					Ecosystem: asPointer("foobar"),
 				},
 			},
 			errWanted: errMappingNotFound,
@@ -150,19 +150,19 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 			deps: []dependency{
 				{
 					Name:      "dependency_4",
-					Ecosystem: asStringPointer("gomod"),
+					Ecosystem: asPointer("gomod"),
 				},
 				{
 					Name:      "dependency_5",
-					Ecosystem: asStringPointer("pip"),
+					Ecosystem: asPointer("pip"),
 				},
 				{
 					Name:      "dependency_6",
-					Ecosystem: asStringPointer("cargo"),
+					Ecosystem: asPointer("cargo"),
 				},
 				{
 					Name:      "dependency_7",
-					Ecosystem: asStringPointer("actions"),
+					Ecosystem: asPointer("actions"),
 				},
 			},
 		},

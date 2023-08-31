@@ -62,8 +62,8 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		filePattern: "*_test.go",
 		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
 		Name:        fuzzerBuiltInGo,
-		URL:         asStringPointer("https://go.dev/doc/fuzz/"),
-		Desc: asStringPointer(
+		URL:         asPointer("https://go.dev/doc/fuzz/"),
+		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
 	// Fuzz patterns for Haskell based on property-based testing.
@@ -85,7 +85,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
 		Name:        fuzzerPropertyBasedHaskell,
-		Desc: asStringPointer(
+		Desc: asPointer(
 			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
@@ -100,7 +100,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedJavaScript,
-		Desc: asStringPointer(
+		Desc: asPointer(
 			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
@@ -109,7 +109,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedTypeScript,
-		Desc: asStringPointer(
+		Desc: asPointer(
 			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
@@ -127,8 +127,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: fuzzerClusterFuzzLite,
-				URL:  asStringPointer("https://github.com/google/clusterfuzzlite"),
-				Desc: asStringPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
+				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
+				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
 				// TODO: File.
 			},
 		)
@@ -142,10 +142,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: oneFuzz,
-				URL:  asStringPointer("https://github.com/microsoft/onefuzz"),
-				Desc: asStringPointer(
-					"Enables continuous developer-driven fuzzing to proactively harden software prior to release.",
-				),
+				URL:  asPointer("https://github.com/microsoft/onefuzz"),
+				Desc: asPointer("Enables continuous developer-driven fuzzing to proactively harden software prior to release."),
 				// TODO: File.
 			},
 		)
@@ -159,8 +157,8 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		fuzzers = append(fuzzers,
 			checker.Tool{
 				Name: fuzzerOSSFuzz,
-				URL:  asStringPointer("https://github.com/google/oss-fuzz"),
-				Desc: asStringPointer("Continuous Fuzzing for Open Source Software"),
+				URL:  asPointer("https://github.com/google/oss-fuzz"),
+				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
 				// TODO: File.
 			},
 		)

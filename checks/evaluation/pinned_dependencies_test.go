@@ -204,7 +204,7 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 	}
 }
 
-func asStringPointer(s string) *string {
+func asPointer(s string) *string {
 	return &s
 }
 
@@ -331,7 +331,7 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
+					Msg:      asPointer("some message"),
 					Type:     checker.DependencyUseTypePipCommand,
 					Pinned:   asBoolPointer(true),
 				},
@@ -366,7 +366,7 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
+					Msg:      asPointer("some message"),
 					Type:     checker.DependencyUseTypePipCommand,
 					Pinned:   asBoolPointer(false),
 				},
@@ -384,7 +384,7 @@ func Test_PinningDependencies(t *testing.T) {
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
-					Msg:      asStringPointer("some message"),
+					Msg:      asPointer("some message"),
 					Type:     checker.DependencyUseTypeDownloadThenRun,
 					Pinned:   asBoolPointer(false),
 				},
