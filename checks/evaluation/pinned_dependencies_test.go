@@ -20,6 +20,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -368,6 +369,30 @@ func Test_PinningDependencies(t *testing.T) {
 					Type:     checker.DependencyUseTypePipCommand,
 				},
 			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         -1,
+				NumberOfWarn:  0,
+				NumberOfInfo:  8,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name:         "dependency missing Location info and no error message throws error",
+			dependencies: []checker.Dependency{{}},
+			expected: scut.TestReturn{
+				Error:         sce.ErrScorecardInternal,
+				Score:         -1,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "dependency missing Location info with error message shows debug message",
+			dependencies: []checker.Dependency{{
+				Msg: asPointer("some message"),
+			}},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         -1,
