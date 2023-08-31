@@ -51,8 +51,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 2,
 			}
 			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
@@ -76,8 +76,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 2,
 			}
 			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
@@ -112,8 +112,8 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 2,
 			}
 			result := checks.PinningDependencies(&req)
 			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())

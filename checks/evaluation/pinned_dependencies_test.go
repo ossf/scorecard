@@ -31,8 +31,12 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 		r  worklowPinningResult
 		dl *scut.TestDetailLogger
 	}
+	type log struct {
+		text       string
+		detailType checker.DetailType
+	}
 	type want struct {
-		logs  []string
+		logs  []log
 		score int
 	}
 	//nolint
@@ -58,7 +62,16 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 10,
-				logs:  []string{"GitHub-owned GitHubActions are pinned", "Third-party GitHubActions are pinned"},
+				logs: []log{
+					{
+						text:       "GitHub-owned GitHubActions are pinned",
+						detailType: checker.DetailInfo,
+					},
+					{
+						text:       "Third-party GitHubActions are pinned",
+						detailType: checker.DetailInfo,
+					},
+				},
 			},
 		},
 		{
@@ -78,7 +91,12 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 2,
-				logs:  []string{"GitHub-owned GitHubActions are pinned"},
+				logs: []log{
+					{
+						text:       "GitHub-owned GitHubActions are pinned",
+						detailType: checker.DetailInfo,
+					},
+				},
 			},
 		},
 		{
@@ -98,7 +116,12 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 8,
-				logs:  []string{"Third-party GitHubActions are pinned"},
+				logs: []log{
+					{
+						text:       "Third-party GitHubActions are pinned",
+						detailType: checker.DetailInfo,
+					},
+				},
 			},
 		},
 		{
@@ -118,7 +141,7 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 0,
-				logs:  []string{},
+				logs:  []log{},
 			},
 		},
 		{
@@ -138,7 +161,16 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: -1,
-				logs:  []string{"no GitHub-owned GitHubActions found", "no Third-party GitHubActions found"},
+				logs: []log{
+					{
+						text:       "no GitHub-owned GitHubActions found",
+						detailType: checker.DetailDebug,
+					},
+					{
+						text:       "no Third-party GitHubActions found",
+						detailType: checker.DetailDebug,
+					},
+				},
 			},
 		},
 		{
@@ -158,7 +190,12 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 2,
-				logs:  []string{"no GitHub-owned GitHubActions found"},
+				logs: []log{
+					{
+						text:       "no GitHub-owned GitHubActions found",
+						detailType: checker.DetailDebug,
+					},
+				},
 			},
 		},
 		{
@@ -178,7 +215,12 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 8,
-				logs:  []string{"no Third-party GitHubActions found"},
+				logs: []log{
+					{
+						text:       "no Third-party GitHubActions found",
+						detailType: checker.DetailDebug,
+					},
+				},
 			},
 		},
 	}
@@ -195,7 +237,7 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			}
 			for _, log := range tt.want.logs {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == log && logType == checker.DetailInfo
+					return logMessage.Text == log.text && logType == log.detailType
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 					t.Errorf("test failed: log message not present: %+v", log)
@@ -759,7 +801,7 @@ func Test_createReturnValues(t *testing.T) {
 			switch tt.want {
 			case -1:
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == "no dependencies found" && logType == checker.DetailInfo
+					return logMessage.Text == "no dependencies found" && logType == checker.DetailDebug
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 					t.Errorf("test failed: log message not present: %+v", "no dependencies found")
