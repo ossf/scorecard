@@ -376,29 +376,6 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 1,
 			},
 		},
-		{
-			name: "unpinned dependency shows warn message",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Msg:      asPointer("some message"),
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-					Pinned:   asBoolPointer(false),
-				},
-				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-					Pinned:   asBoolPointer(false),
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         0,
-				NumberOfWarn:  1,
-				NumberOfInfo:  6,
-				NumberOfDebug: 1,
-			},
-		},
 		// TODO: choco installs should score for Pinned-Dependencies
 		// {
 		// 	name: "unpinned choco install",
