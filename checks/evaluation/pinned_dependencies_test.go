@@ -327,24 +327,6 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "pinned dependency with debug message",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{},
-					Msg:      asPointer("some message"),
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(true),
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         10,
-				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 1,
-			},
-		},
-		{
 			name: "unpinned dependency shows warn message",
 			dependencies: []checker.Dependency{
 				{
@@ -362,20 +344,35 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "unpinned dependency with debug message shows no warn message",
+			name: "dependency with parsing error does not count for score and shows debug message",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
 					Msg:      asPointer("some message"),
 					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         0,
+				Score:         -1,
 				NumberOfWarn:  0,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "dependency missing Pinned info does not count for score and shows debug message",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypePipCommand,
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         -1,
+				NumberOfWarn:  0,
+				NumberOfInfo:  8,
 				NumberOfDebug: 1,
 			},
 		},

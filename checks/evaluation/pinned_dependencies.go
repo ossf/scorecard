@@ -64,7 +64,6 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 			})
 			continue
 		}
-
 		if rr.Msg != nil {
 			dl.Debug(&checker.LogMessage{
 				Path:      rr.Location.Path,
@@ -74,7 +73,20 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Text:      *rr.Msg,
 				Snippet:   rr.Location.Snippet,
 			})
-		} else if !*rr.Pinned {
+			continue
+		}
+		if rr.Pinned == nil {
+			dl.Debug(&checker.LogMessage{
+				Path:      rr.Location.Path,
+				Type:      rr.Location.Type,
+				Offset:    rr.Location.Offset,
+				EndOffset: rr.Location.EndOffset,
+				Text:      fmt.Sprintf("%s has empty Pinned field", rr.Type),
+				Snippet:   rr.Location.Snippet,
+			})
+			continue
+		}
+		if !*rr.Pinned {
 			dl.Warn(&checker.LogMessage{
 				Path:        rr.Location.Path,
 				Type:        rr.Location.Type,
@@ -85,7 +97,6 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
 		}
-
 		// Update the pinning status.
 		updatePinningResults(&rr, &wp, pr)
 	}
