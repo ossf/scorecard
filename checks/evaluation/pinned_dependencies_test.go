@@ -24,19 +24,15 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
+func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
 		r  worklowPinningResult
 		dl *scut.TestDetailLogger
 	}
-	type log struct {
-		text       string
-		detailType checker.DetailType
-	}
 	type want struct {
-		logs  []log
+		logs  []string
 		score int
 	}
 	//nolint
@@ -62,15 +58,9 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 10,
-				logs: []log{
-					{
-						text:       "GitHub-owned GitHubActions are pinned",
-						detailType: checker.DetailInfo,
-					},
-					{
-						text:       "Third-party GitHubActions are pinned",
-						detailType: checker.DetailInfo,
-					},
+				logs: []string{
+					"all GitHub-owned GitHubActions are pinned",
+					"all third-party GitHubActions are pinned",
 				},
 			},
 		},
@@ -91,11 +81,8 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 2,
-				logs: []log{
-					{
-						text:       "GitHub-owned GitHubActions are pinned",
-						detailType: checker.DetailInfo,
-					},
+				logs: []string{
+					"all GitHub-owned GitHubActions are pinned",
 				},
 			},
 		},
@@ -116,11 +103,8 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 8,
-				logs: []log{
-					{
-						text:       "Third-party GitHubActions are pinned",
-						detailType: checker.DetailInfo,
-					},
+				logs: []string{
+					"all third-party GitHubActions are pinned",
 				},
 			},
 		},
@@ -141,40 +125,11 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 0,
-				logs:  []log{},
+				logs:  []string{},
 			},
 		},
 		{
-			name: "no GitHub actions",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
-				},
-				dl: &scut.TestDetailLogger{},
-			},
-			want: want{
-				score: -1,
-				logs: []log{
-					{
-						text:       "no GitHub-owned GitHubActions found",
-						detailType: checker.DetailDebug,
-					},
-					{
-						text:       "no Third-party GitHubActions found",
-						detailType: checker.DetailDebug,
-					},
-				},
-			},
-		},
-		{
-			name: "no GitHub-owned actions",
+			name: "no GitHub-owned actions and Third-party actions unpinned",
 			args: args{
 				r: worklowPinningResult{
 					thirdParties: pinnedResult{
@@ -190,16 +145,11 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 2,
-				logs: []log{
-					{
-						text:       "no GitHub-owned GitHubActions found",
-						detailType: checker.DetailDebug,
-					},
-				},
+				logs:  []string{},
 			},
 		},
 		{
-			name: "no Third-party actions",
+			name: "no Third-party actions and GitHub-owned actions unpinned",
 			args: args{
 				r: worklowPinningResult{
 					thirdParties: pinnedResult{
@@ -215,11 +165,50 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 			},
 			want: want{
 				score: 8,
-				logs: []log{
-					{
-						text:       "no Third-party GitHubActions found",
-						detailType: checker.DetailDebug,
+				logs:  []string{},
+			},
+		},
+		{
+			name: "no GitHub-owned actions and Third-party actions pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 1,
+						total:  1,
 					},
+					gitHubOwned: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: 10,
+				logs: []string{
+					"all third-party GitHubActions are pinned",
+				},
+			},
+		},
+		{
+			name: "no Third-party actions and GitHub-owned actions pinned",
+			args: args{
+				r: worklowPinningResult{
+					thirdParties: pinnedResult{
+						pinned: 0,
+						total:  0,
+					},
+					gitHubOwned: pinnedResult{
+						pinned: 1,
+						total:  1,
+					},
+				},
+				dl: &scut.TestDetailLogger{},
+			},
+			want: want{
+				score: 10,
+				logs: []string{
+					"all GitHub-owned GitHubActions are pinned",
 				},
 			},
 		},
@@ -228,16 +217,13 @@ func Test_createReturnForIsGitHubActionsWorkflowPinned(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnForIsGitHubActionsWorkflowPinned(tt.args.r, tt.args.dl)
-			if err != nil {
-				t.Errorf("error during createReturnForIsGitHubActionsWorkflowPinned: %v", err)
-			}
+			got := createReturnValuesForGitHubActionsWorkflowPinned(tt.args.r, tt.args.dl)
 			if got != tt.want.score {
 				t.Errorf("createReturnForIsGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want.score)
 			}
 			for _, log := range tt.want.logs {
 				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == log.text && logType == log.detailType
+					return logMessage.Text == log && logType == checker.DetailInfo
 				}
 				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
 					t.Errorf("test failed: log message not present: %+v", log)
@@ -310,7 +296,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
+				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
 		},
@@ -384,7 +370,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         5,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 6,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -406,7 +392,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -417,7 +403,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         -1,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 8,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -434,7 +420,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         10,
 				NumberOfWarn:  0,
 				NumberOfInfo:  1,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -451,7 +437,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -468,7 +454,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         -1,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 9,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -484,7 +470,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         -1,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 9,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -508,27 +494,26 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         -1,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 9,
+				NumberOfDebug: 1,
 			},
 		},
-		// TODO: choco installs should score for Pinned-Dependencies
-		// {
-		// 	name: "unpinned choco install",
-		// 	dependencies: []checker.Dependency{
-		// 		{
-		// 			Location: &checker.File{},
-		// 			Type:     checker.DependencyUseTypeChocoCommand,
-		// 			Pinned:   asBoolPointer(false),
-		// 		},
-		// 	},
-		// 	expected: scut.TestReturn{
-		// 		Error:         nil,
-		// 		Score:         0,
-		// 		NumberOfWarn:  1,
-		// 		NumberOfInfo:  7,
-		// 		NumberOfDebug: 0,
-		// 	},
-		// },
+		{
+			name: "unpinned choco install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeChocoCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 		{
 			name: "unpinned Dockerfile container image",
 			dependencies: []checker.Dependency{
@@ -543,20 +528,16 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
-		// TODO: Due to a bug download then run is score twice in shell scripts
-		// and Dockerfile, the NumberOfInfo should be 7
 		{
-			name: "unpinned download then run in Dockerfile",
+			name: "unpinned download then run",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{
-						Path: "Dockerfile",
-					},
-					Type:   checker.DependencyUseTypeDownloadThenRun,
-					Pinned: asBoolPointer(false),
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			expected: scut.TestReturn{
@@ -564,28 +545,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
-			},
-		},
-		// TODO: Due to a bug download then run is score twice in shell scripts
-		// and Dockerfile, the NumberOfInfo should be 7
-		{
-			name: "unpinned download then run in shell scripts",
-			dependencies: []checker.Dependency{
-				{
-					Location: &checker.File{
-						Path: "bash.sh",
-					},
-					Type:   checker.DependencyUseTypeDownloadThenRun,
-					Pinned: asBoolPointer(false),
-				},
-			},
-			expected: scut.TestReturn{
-				Error:         nil,
-				Score:         0,
-				NumberOfWarn:  1,
-				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -602,7 +562,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -619,27 +579,26 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
-		// TODO: nuget installs should score for Pinned-Dependencies
-		// {
-		// 	name: "unpinned nuget install",
-		// 	dependencies: []checker.Dependency{
-		// 		{
-		// 			Location: &checker.File{},
-		// 			Type:     checker.DependencyUseTypeNugetCommand,
-		// 			Pinned:   asBoolPointer(false),
-		// 		},
-		// 	},
-		// 	expected: scut.TestReturn{
-		// 		Error:         nil,
-		// 		Score:         0,
-		// 		NumberOfWarn:  1,
-		// 		NumberOfInfo:  7,
-		// 		NumberOfDebug: 0,
-		// 	},
-		// },
+		{
+			name: "unpinned nuget install",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNugetCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 		{
 			name: "unpinned pip install",
 			dependencies: []checker.Dependency{
@@ -654,7 +613,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -676,7 +635,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 7,
+				NumberOfDebug: 0,
 			},
 		},
 		{
@@ -698,7 +657,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 6,
+				NumberOfDebug: 0,
 			},
 		},
 	}
@@ -729,19 +688,15 @@ func Test_createReturnValues(t *testing.T) {
 		dl *scut.TestDetailLogger
 		t  checker.DependencyUseType
 	}
+	type want struct {
+		score int
+		log   string
+	}
 	tests := []struct {
 		name string
 		args args
-		want int
+		want want
 	}{
-		{
-			name: "no dependencies",
-			args: args{
-				t:  checker.DependencyUseTypePipCommand,
-				dl: &scut.TestDetailLogger{},
-			},
-			want: -1,
-		},
 		{
 			name: "all dependencies pinned",
 			args: args{
@@ -754,7 +709,10 @@ func Test_createReturnValues(t *testing.T) {
 					},
 				},
 			},
-			want: 10,
+			want: want{
+				score: 10,
+				log:   "all pipCommands are pinned",
+			},
 		},
 		{
 			name: "all dependencies unpinned",
@@ -768,7 +726,9 @@ func Test_createReturnValues(t *testing.T) {
 					},
 				},
 			},
-			want: 0,
+			want: want{
+				score: 0,
+			},
 		},
 		{
 			name: "1 or more dependencies unpinned",
@@ -782,39 +742,29 @@ func Test_createReturnValues(t *testing.T) {
 					},
 				},
 			},
-			want: 0,
+			want: want{
+				score: 0,
+			},
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, err := createReturnValues(tt.args.pr, tt.args.t, "all dependencies are pinned",
-				"no dependencies found", tt.args.dl)
-			if err != nil {
-				t.Errorf("error during createReturnValues: %v", err)
-			}
-			if got != tt.want {
+			got := createReturnValues(tt.args.pr, tt.args.t, tt.args.dl)
+			if got != tt.want.score {
 				t.Errorf("createReturnValues() = %v, want %v", got, tt.want)
 			}
 
-			switch tt.want {
-			case -1:
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == "no dependencies found" && logType == checker.DetailDebug
-				}
-				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
-					t.Errorf("test failed: log message not present: %+v", "no dependencies found")
-				}
-			case 0:
+			if tt.want.score != 10 {
 				return
-			case 10:
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == "all dependencies are pinned" && logType == checker.DetailInfo
-				}
-				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
-					t.Errorf("test failed: log message not present: %+v", "all dependencies are pinned")
-				}
+			}
+
+			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
+				return logMessage.Text == tt.want.log && logType == checker.DetailInfo
+			}
+			if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
+				t.Errorf("test failed: log message not present: %+v", tt.want.log)
 			}
 		})
 	}

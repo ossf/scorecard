@@ -102,64 +102,27 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	}
 
 	// Generate scores and Info results.
-	// GitHub actions.
-	actionScore, err := createReturnForIsGitHubActionsWorkflowPinned(wp, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+	var scores []int
+	// Go through all dependency types
+	// GitHub Actions need to be handled separately since they are not in pr
+	// We should not score GitHub Actions if there are no GitHub Actions
+	if wp.gitHubOwned.total != 0 || wp.thirdParties.total != 0 {
+		score := createReturnValuesForGitHubActionsWorkflowPinned(wp, dl)
+		scores = append(scores, score)
+	}
+	// Only exisiting dependencies will be found in pr
+	// We will only score the ecossystem if there are dependencies
+	// This results in only existing ecossystems being included in the final score
+	for t := range pr {
+		score := createReturnValues(pr, t, dl)
+		scores = append(scores, score)
 	}
 
-	// Docker files.
-	dockerFromScore, err := createReturnForIsDockerfilePinned(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// Docker downloads.
-	dockerDownloadScore, err := createReturnForIsDockerfileFreeOfInsecureDownloads(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// Script downloads.
-	scriptScore, err := createReturnForIsShellScriptFreeOfInsecureDownloads(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// Pip installs.
-	pipScore, err := createReturnForIsPipInstallPinned(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// Npm installs.
-	npmScore, err := createReturnForIsNpmInstallPinned(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// Go installs.
-	goScore, err := createReturnForIsGoInstallPinned(pr, dl)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
-
-	// If no dependencies of an ecossystem are found, it results in an inconclusive score.
-	// We filter out inconclusive scores so only applicable ecossystems are considered in
-	// the final score.
-	scores := []int{actionScore, dockerFromScore, dockerDownloadScore, scriptScore, pipScore, npmScore, goScore}
-	conclusiveScores := []int{}
-	for i := range scores {
-		if scores[i] != checker.InconclusiveResultScore {
-			conclusiveScores = append(conclusiveScores, scores[i])
-		}
-	}
-
-	if len(conclusiveScores) == 0 {
+	if len(scores) == 0 {
 		return checker.CreateInconclusiveResult(name, "no dependencies found")
 	}
 
-	score := checker.AggregateScores(conclusiveScores...)
+	score := checker.AggregateScores(scores...)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -230,120 +193,28 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
-// Create the result for scripts.
-func createReturnForIsShellScriptFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
-		"no insecure (not pinned by hash) dependency downloads found in shell scripts",
-		"no dependency downloads found in shell scripts",
-		dl)
-}
-
-// Create the result for docker containers.
-func createReturnForIsDockerfilePinned(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDockerfileContainerImage,
-		"Dockerfile dependencies are pinned",
-		"no Dockerfile dependencies found",
-		dl)
-}
-
-// Create the result for docker commands.
-func createReturnForIsDockerfileFreeOfInsecureDownloads(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeDownloadThenRun,
-		"no insecure (not pinned by hash) dependency downloads found in Dockerfiles",
-		"no dependency downloads found in Dockerfiles",
-		dl)
-}
-
-// Create the result for pip install commands.
-func createReturnForIsPipInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypePipCommand,
-		"pip installs are pinned",
-		"no pip installs found",
-		dl)
-}
-
-// Create the result for npm install commands.
-func createReturnForIsNpmInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeNpmCommand,
-		"npm installs are pinned",
-		"no npm installs found",
-		dl)
-}
-
-// Create the result for go install commands.
-func createReturnForIsGoInstallPinned(pr map[checker.DependencyUseType]pinnedResult,
-	dl checker.DetailLogger,
-) (int, error) {
-	return createReturnValues(pr, checker.DependencyUseTypeGoCommand,
-		"go installs are pinned",
-		"no go installs found",
-		dl)
-}
-
 func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
-	t checker.DependencyUseType, maxResultMsg string, inconclusiveResultMsg string,
-	dl checker.DetailLogger,
-) (int, error) {
-	// If there are zero dependencies of this type, it will generate an inconclusive score,
-	// so we can disconsider it in the aggregated score.
+	t checker.DependencyUseType, dl checker.DetailLogger,
+) int {
+	// If there are zero dependencies of this type, it will not reach this function,
+	// so its not gonna be included it in the aggregated score.
 	// If all dependencies of this type are pinned, it will get a maximum score.
 	// If 1 or more dependencies of this type are unpinned, it will get a minimum score.
 	//nolint
 	r := pr[t]
 
-	switch r.total {
-	case 0:
-		dl.Debug(&checker.LogMessage{
-			Text: inconclusiveResultMsg,
-		})
-		return checker.InconclusiveResultScore, nil
-	case r.pinned:
+	if r.total == r.pinned {
 		dl.Info(&checker.LogMessage{
-			Text: maxResultMsg,
+			Text: fmt.Sprintf("all %ss are pinned", t),
 		})
-		return checker.MaxResultScore, nil
-	default:
-		return checker.MinResultScore, nil
+		return checker.MaxResultScore
 	}
+
+	return checker.MinResultScore
 }
 
-// Create the result.
-func createReturnForIsGitHubActionsWorkflowPinned(wp worklowPinningResult, dl checker.DetailLogger) (int, error) {
-	return createReturnValuesForGitHubActionsWorkflowPinned(wp,
-		fmt.Sprintf("%ss are pinned", checker.DependencyUseTypeGHAction),
-		fmt.Sprintf("%ss found", checker.DependencyUseTypeGHAction),
-		dl)
-}
-
-func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, maxResultMsg string,
-	inconclusiveResultMsg string, dl checker.DetailLogger,
-) (int, error) {
-	if r.gitHubOwned.total == 0 {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("%s %s", "no GitHub-owned", inconclusiveResultMsg),
-		})
-	}
-
-	if r.thirdParties.total == 0 {
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("%s %s", "no Third-party", inconclusiveResultMsg),
-		})
-	}
-
-	if r.gitHubOwned.total == 0 && r.thirdParties.total == 0 {
-		return checker.InconclusiveResultScore, nil
-	}
-
+func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, dl checker.DetailLogger,
+) int {
 	score := checker.MinResultScore
 
 	if r.gitHubOwned.total == r.gitHubOwned.pinned {
@@ -352,7 +223,7 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, ma
 			dl.Info(&checker.LogMessage{
 				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("%s %s", "GitHub-owned", maxResultMsg),
+				Text:   fmt.Sprintf("all %s %ss are pinned", generateOwnerToDisplay(true), checker.DependencyUseTypeGHAction),
 			})
 		}
 	}
@@ -363,10 +234,10 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, ma
 			dl.Info(&checker.LogMessage{
 				Type:   finding.FileTypeSource,
 				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("%s %s", "Third-party", maxResultMsg),
+				Text:   fmt.Sprintf("all %s %ss are pinned", generateOwnerToDisplay(false), checker.DependencyUseTypeGHAction),
 			})
 		}
 	}
 
-	return score, nil
+	return score
 }
