@@ -225,6 +225,40 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "all dependencies pinned",
 			dependencies: []checker.Dependency{
 				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDockerfileContainerImage,
+					Pinned:   asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Pinned:   asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(true),
+				},
+				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypePipCommand,
 					Pinned:   asBoolPointer(true),
@@ -242,6 +276,40 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "all dependencies unpinned",
 			dependencies: []checker.Dependency{
 				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDockerfileContainerImage,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeDownloadThenRun,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeGoCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypePipCommand,
 					Pinned:   asBoolPointer(false),
@@ -250,8 +318,8 @@ func Test_PinningDependencies(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  1,
-				NumberOfInfo:  7,
+				NumberOfWarn:  7,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -273,8 +341,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         5,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -295,8 +363,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -306,8 +374,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         -1,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 8,
 			},
 		},
 		{
@@ -323,8 +391,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 0,
+				NumberOfInfo:  1,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -340,8 +408,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -357,8 +425,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         -1,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -373,8 +441,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         -1,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -397,8 +465,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         -1,
 				NumberOfWarn:  0,
-				NumberOfInfo:  8,
-				NumberOfDebug: 1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 9,
 			},
 		},
 		// TODO: choco installs should score for Pinned-Dependencies
@@ -432,8 +500,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		// TODO: Due to a bug download then run is score twice in shell scripts
@@ -453,8 +521,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 6,
 			},
 		},
 		// TODO: Due to a bug download then run is score twice in shell scripts
@@ -474,8 +542,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 6,
 			},
 		},
 		{
@@ -491,8 +559,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -508,8 +576,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		// TODO: nuget installs should score for Pinned-Dependencies
@@ -543,8 +611,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -565,8 +633,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  2,
-				NumberOfInfo:  7,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 7,
 			},
 		},
 		{
@@ -587,8 +655,8 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  2,
-				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 6,
 			},
 		},
 	}

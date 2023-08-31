@@ -303,7 +303,7 @@ func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
 
 	switch r.total {
 	case 0:
-		dl.Info(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: inconclusiveResultMsg,
 		})
 		return checker.InconclusiveResultScore, nil
@@ -329,13 +329,13 @@ func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, ma
 	inconclusiveResultMsg string, dl checker.DetailLogger,
 ) (int, error) {
 	if r.gitHubOwned.total == 0 {
-		dl.Info(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("%s %s", "no GitHub-owned", inconclusiveResultMsg),
 		})
 	}
 
 	if r.thirdParties.total == 0 {
-		dl.Info(&checker.LogMessage{
+		dl.Debug(&checker.LogMessage{
 			Text: fmt.Sprintf("%s %s", "no Third-party", inconclusiveResultMsg),
 		})
 	}
