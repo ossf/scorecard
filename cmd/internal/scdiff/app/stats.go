@@ -23,7 +23,9 @@ import (
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -31,24 +33,29 @@ import (
 //nolint:gochecknoinits // common for cobra apps
 func init() {
 	rootCmd.AddCommand(statsCmd)
+	statsCmd.PersistentFlags().StringVarP(&statsCheck, "check", "c", "", "Analyze breakdown of a single check")
 }
 
-var statsCmd = &cobra.Command{
-	Use:   "stats [flags] FILE",
-	Short: "Summarize stats for a golden file",
-	Long:  `Summarize stats for a golden file`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 1 {
-			return errMissingInputFiles // TODO: generalize this?
-		}
-		f1, err := os.Open(args[0])
-		if err != nil {
-			return fmt.Errorf("opening %q: %w", args[0], err)
-		}
-		defer f1.Close()
-		return calcStats(f1, os.Stdout)
-	},
-}
+var (
+	statsCheck string
+
+	statsCmd = &cobra.Command{
+		Use:   "stats [flags] FILE",
+		Short: "Summarize stats for a golden file",
+		Long:  `Summarize stats for a golden file`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return errMissingInputFiles // TODO: generalize this?
+			}
+			f1, err := os.Open(args[0])
+			if err != nil {
+				return fmt.Errorf("opening %q: %w", args[0], err)
+			}
+			defer f1.Close()
+			return calcStats(f1, os.Stdout)
+		},
+	}
+)
 
 func calcStats(input io.Reader, output io.Writer) error {
 	checkDocs, err := checks.Read()
@@ -63,30 +70,46 @@ func calcStats(input io.Reader, output io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("parsing result: %w", err)
 		}
-		score, err := result.GetAggregateScore(checkDocs) // todo, read from the file?
-		if score < -1 || score > 10 {
-			return fmt.Errorf("invalid score") // todo sentinel
+		var bucket int
+		if statsCheck == "" {
+			score, _ := result.GetAggregateScore(checkDocs) // todo, read from the file?
+			if score < -1 || score > 10 {
+				return fmt.Errorf("invalid score") // todo sentinel
+			}
+			bucket = int(score) + 1
+		} else {
+			i := slices.IndexFunc(result.Checks, func(c checker.CheckResult) bool {
+				return strings.EqualFold(c.Name, statsCheck)
+			})
+			if i == -1 {
+				return fmt.Errorf("requested check not present")
+			}
+			bucket = result.Checks[i].Score
 		}
-		bucket := int(score) + 1
+
 		counts[bucket]++
 	}
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("parsing golden file: %w", err)
 	}
-	summary(&counts, output)
+	name := statsCheck
+	if name == "" {
+		name = "Aggregate"
+	}
+	summary(name, &counts, output)
 	return nil
 }
 
-func summary(counts *[12]int, output io.Writer) {
+func summary(name string, counts *[12]int, output io.Writer) {
 	const (
-		minWidth = 5
+		minWidth = 0
 		tabWidth = 4
-		padding  = 5
+		padding  = 1
 		padchar  = ' '
 		flags    = tabwriter.AlignRight
 	)
 	w := tabwriter.NewWriter(output, minWidth, tabWidth, padding, padchar, flags)
-	fmt.Fprintln(output, "Score\tCount\t")
+	fmt.Fprintf(w, "%s Score\tCount\t\n", name)
 	for i, c := range counts {
 		scoreBucket := i - 1
 		fmt.Fprintf(w, "%d\t%d\t\n", scoreBucket, c)
