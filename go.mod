@@ -193,6 +193,4 @@ replace (
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
 	//https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
 	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	// This replace is for https://nvd.nist.gov/vuln/detail/CVE-2021-3538
-	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102
 )
