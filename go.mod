@@ -186,9 +186,5 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
 
-replace (
-	// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
-	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
-	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
-	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
-)
+// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
+replace github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
