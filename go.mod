@@ -191,6 +191,4 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
-	//https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
-	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
 )
