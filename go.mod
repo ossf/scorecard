@@ -191,8 +191,6 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
 	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
-	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
-	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
 	// https://github.com/miekg/dns/issues/1037
 	github.com/miekg/dns => github.com/miekg/dns v1.1.25-0.20191211073109-8ebf2e419df7
 	//https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
