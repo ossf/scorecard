@@ -185,6 +185,3 @@ require (
 	google.golang.org/grpc v1.57.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
-replace github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
