@@ -187,8 +187,6 @@ require (
 )
 
 replace (
-	// https://deps.dev/advisory/OSV/GO-2021-0057?from=%2Fgo%2Fgithub.com%252Fbuger%252Fjsonparser%2Fv1.0.0
-	github.com/buger/jsonparser => github.com/buger/jsonparser v1.1.1
 	// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
 	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
 	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
