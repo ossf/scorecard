@@ -24,191 +24,191 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
+func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	t.Parallel()
 	//nolint
-	type args struct {
-		r  worklowPinningResult
-		dl *scut.TestDetailLogger
-	}
-	type want struct {
-		logs  []string
-		score int
-	}
-	//nolint
 	tests := []struct {
-		name string
-		args args
-		want want
+		name   string
+		r      worklowPinningResult
+		scores []*checker.ProportionalScoreWithWeight
 	}{
 		{
 			name: "GitHub-owned and Third-Party actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 1,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 1,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 10,
-				logs: []string{
-					"all GitHub-owned GitHubActions are pinned",
-					"all third-party GitHubActions are pinned",
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  2,
+				},
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  8,
 				},
 			},
 		},
 		{
 			name: "only GitHub-owned actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 1,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 2,
-				logs: []string{
-					"all GitHub-owned GitHubActions are pinned",
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  2,
+				},
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  8,
 				},
 			},
 		},
 		{
 			name: "only Third-Party actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 1,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 8,
-				logs: []string{
-					"all third-party GitHubActions are pinned",
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  2,
+				},
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  8,
 				},
 			},
 		},
 		{
 			name: "no GitHub actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 0,
-				logs:  []string{},
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  2,
+				},
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  8,
+				},
 			},
 		},
 		{
 			name: "no GitHub-owned actions and Third-party actions unpinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  0,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 2,
-				logs:  []string{},
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  10,
+				},
 			},
 		},
 		{
 			name: "no Third-party actions and GitHub-owned actions unpinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
 			},
-			want: want{
-				score: 8,
-				logs:  []string{},
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  10,
+				},
 			},
 		},
 		{
 			name: "no GitHub-owned actions and Third-party actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 0,
+					total:  0,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 1,
+					total:  1,
+				},
 			},
-			want: want{
-				score: 10,
-				logs: []string{
-					"all third-party GitHubActions are pinned",
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  10,
 				},
 			},
 		},
 		{
 			name: "no Third-party actions and GitHub-owned actions pinned",
-			args: args{
-				r: worklowPinningResult{
-					thirdParties: pinnedResult{
-						pinned: 0,
-						total:  0,
-					},
-					gitHubOwned: pinnedResult{
-						pinned: 1,
-						total:  1,
-					},
+			r: worklowPinningResult{
+				gitHubOwned: pinnedResult{
+					pinned: 1,
+					total:  1,
 				},
-				dl: &scut.TestDetailLogger{},
+				thirdParties: pinnedResult{
+					pinned: 0,
+					total:  0,
+				},
 			},
-			want: want{
-				score: 10,
-				logs: []string{
-					"all GitHub-owned GitHubActions are pinned",
+			scores: []*checker.ProportionalScoreWithWeight{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  10,
 				},
 			},
 		},
@@ -217,17 +217,10 @@ func Test_createReturnValuesForGitHubActionsWorkflowPinned(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := createReturnValuesForGitHubActionsWorkflowPinned(tt.args.r, tt.args.dl)
-			if got != tt.want.score {
-				t.Errorf("createReturnForIsGitHubActionsWorkflowPinned() = %v, want %v", got, tt.want.score)
-			}
-			for _, log := range tt.want.logs {
-				isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-					return logMessage.Text == log && logType == checker.DetailInfo
-				}
-				if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
-					t.Errorf("test failed: log message not present: %+v", log)
-				}
+			actual := createScoreForGitHubActionsWorkflow(&tt.r)
+			diff := cmp.Diff(tt.scores, actual)
+			if diff != "" {
+				t.Errorf("createScoreForGitHubActionsWorkflow (-want,+got) %+v", diff)
 			}
 		})
 	}
@@ -296,7 +289,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  7,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -369,7 +362,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         5,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -389,7 +382,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         0,
+				Score:         5,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
@@ -419,7 +412,7 @@ func Test_PinningDependencies(t *testing.T) {
 				Error:         nil,
 				Score:         10,
 				NumberOfWarn:  0,
-				NumberOfInfo:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			},
 		},
@@ -660,6 +653,148 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "GitHub Actions ecossystem with GitHub-owned pinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "GitHub Actions ecossystem with third-party pinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "GitHub Actions ecossystem with GitHub-owned and third-party pinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         10,
+				NumberOfWarn:  0,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "GitHub Actions ecossystem with GitHub-owned and third-party unpinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  2,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "GitHub Actions ecossystem with GitHub-owned pinned and third-party unpinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         2,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
+		{
+			name: "GitHub Actions ecossystem with GitHub-owned unpinned and third-party pinned",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{
+						Snippet: "actions/checkout@v2",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{
+						Snippet: "other/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+					},
+					Type:   checker.DependencyUseTypeGHAction,
+					Pinned: asBoolPointer(true),
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -676,95 +811,6 @@ func Test_PinningDependencies(t *testing.T) {
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
 				t.Fail()
-			}
-		})
-	}
-}
-
-func Test_createReturnValues(t *testing.T) {
-	t.Parallel()
-	type args struct {
-		pr map[checker.DependencyUseType]pinnedResult
-		dl *scut.TestDetailLogger
-		t  checker.DependencyUseType
-	}
-	type want struct {
-		score int
-		log   string
-	}
-	tests := []struct {
-		name string
-		args args
-		want want
-	}{
-		{
-			name: "all dependencies pinned",
-			args: args{
-				t:  checker.DependencyUseTypePipCommand,
-				dl: &scut.TestDetailLogger{},
-				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypePipCommand: {
-						pinned: 1,
-						total:  1,
-					},
-				},
-			},
-			want: want{
-				score: 10,
-				log:   "all pipCommands are pinned",
-			},
-		},
-		{
-			name: "all dependencies unpinned",
-			args: args{
-				t:  checker.DependencyUseTypePipCommand,
-				dl: &scut.TestDetailLogger{},
-				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypePipCommand: {
-						pinned: 0,
-						total:  1,
-					},
-				},
-			},
-			want: want{
-				score: 0,
-			},
-		},
-		{
-			name: "1 or more dependencies unpinned",
-			args: args{
-				t:  checker.DependencyUseTypePipCommand,
-				dl: &scut.TestDetailLogger{},
-				pr: map[checker.DependencyUseType]pinnedResult{
-					checker.DependencyUseTypePipCommand: {
-						pinned: 1,
-						total:  2,
-					},
-				},
-			},
-			want: want{
-				score: 0,
-			},
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got := createReturnValues(tt.args.pr, tt.args.t, tt.args.dl)
-			if got != tt.want.score {
-				t.Errorf("createReturnValues() = %v, want %v", got, tt.want)
-			}
-
-			if tt.want.score != 10 {
-				return
-			}
-
-			isExpectedLog := func(logMessage checker.LogMessage, logType checker.DetailType) bool {
-				return logMessage.Text == tt.want.log && logType == checker.DetailInfo
-			}
-			if !scut.ValidateLogMessage(isExpectedLog, tt.args.dl) {
-				t.Errorf("test failed: log message not present: %+v", tt.want.log)
 			}
 		})
 	}
