@@ -28,7 +28,7 @@ type toolMatcher interface {
 }
 
 // ToolsRun runs the probe for a tool.
-// The function iterates thru the raw results and searches for a tool of interest that is used on a repository.
+// The function iterates through the raw results and searches for a tool of interest that is used on a repository.
 // The function uses 'matcher' to identify the tool of interest.
 // If a tool is used in the repository, it creates a finding with the 'foundOutcome'.
 // If not, it returns a finding with outcome 'notFoundOutcome'.

@@ -190,7 +190,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Version: 2,
 		Error:   e,
 		Score:   InconclusiveResultScore,
-		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
+		Reason:  e.Error(), // Note: message already accessible by caller through `Error`.
 	}
 }
 

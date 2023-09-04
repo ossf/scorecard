@@ -81,7 +81,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// We assume the CodeQl config uses a cron and is not enabled as pre-submit.
 	// TODO: verify the above comment in code.
 	// We encourage developers to have sast check run on every pre-submit rather
-	// than as cron jobs thru the score computation below.
+	// than as cron jobs through the score computation below.
 	// Warning: there is a hidden assumption that *any* sast tool is equally good.
 	if sastScore != checker.InconclusiveResultScore &&
 		codeQlScore != checker.InconclusiveResultScore {
