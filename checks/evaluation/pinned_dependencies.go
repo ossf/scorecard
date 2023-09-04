@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -102,27 +101,26 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	}
 
 	// Generate scores and Info results.
-	var scores []int
+	var scores []*checker.ProportionalScoreWithWeight
 	// Go through all dependency types
 	// GitHub Actions need to be handled separately since they are not in pr
-	// We should not score GitHub Actions if there are no GitHub Actions
-	if wp.gitHubOwned.total != 0 || wp.thirdParties.total != 0 {
-		score := createReturnValuesForGitHubActionsWorkflowPinned(wp, dl)
-		scores = append(scores, score)
-	}
+	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp)...)
 	// Only exisiting dependencies will be found in pr
 	// We will only score the ecossystem if there are dependencies
 	// This results in only existing ecossystems being included in the final score
 	for t := range pr {
-		score := createReturnValues(pr, t, dl)
-		scores = append(scores, score)
+		scores = append(scores, &checker.ProportionalScoreWithWeight{
+			Success: pr[t].pinned,
+			Total:   pr[t].total,
+			Weight:  10,
+		})
 	}
 
 	if len(scores) == 0 {
 		return checker.CreateInconclusiveResult(name, "no dependencies found")
 	}
 
-	score := checker.AggregateScores(scores...)
+	score := checker.CreateProportionalScoreWithWeight(scores...)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -193,51 +191,38 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
-func createReturnValues(pr map[checker.DependencyUseType]pinnedResult,
-	t checker.DependencyUseType, dl checker.DetailLogger,
-) int {
-	// If there are zero dependencies of this type, it will not reach this function,
-	// so its not gonna be included it in the aggregated score.
-	// If all dependencies of this type are pinned, it will get a maximum score.
-	// If 1 or more dependencies of this type are unpinned, it will get a minimum score.
-	//nolint
-	r := pr[t]
-
-	if r.total == r.pinned {
-		dl.Info(&checker.LogMessage{
-			Text: fmt.Sprintf("all %ss are pinned", t),
-		})
-		return checker.MaxResultScore
+func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.ProportionalScoreWithWeight {
+	if wp.gitHubOwned.total == 0 && wp.thirdParties.total == 0 {
+		return []*checker.ProportionalScoreWithWeight{}
 	}
-
-	return checker.MinResultScore
-}
-
-func createReturnValuesForGitHubActionsWorkflowPinned(r worklowPinningResult, dl checker.DetailLogger,
-) int {
-	score := checker.MinResultScore
-
-	if r.gitHubOwned.total == r.gitHubOwned.pinned {
-		score += 2
-		if r.gitHubOwned.total != 0 {
-			dl.Info(&checker.LogMessage{
-				Type:   finding.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("all %s %ss are pinned", generateOwnerToDisplay(true), checker.DependencyUseTypeGHAction),
-			})
+	if wp.gitHubOwned.total != 0 && wp.thirdParties.total != 0 {
+		return []*checker.ProportionalScoreWithWeight{
+			{
+				Success: wp.gitHubOwned.pinned,
+				Total:   wp.gitHubOwned.total,
+				Weight:  8,
+			},
+			{
+				Success: wp.thirdParties.pinned,
+				Total:   wp.thirdParties.total,
+				Weight:  2,
+			},
 		}
 	}
-
-	if r.thirdParties.total == r.thirdParties.pinned {
-		score += 8
-		if r.thirdParties.total != 0 {
-			dl.Info(&checker.LogMessage{
-				Type:   finding.FileTypeSource,
-				Offset: checker.OffsetDefault,
-				Text:   fmt.Sprintf("all %s %ss are pinned", generateOwnerToDisplay(false), checker.DependencyUseTypeGHAction),
-			})
+	if wp.gitHubOwned.total != 0 {
+		return []*checker.ProportionalScoreWithWeight{
+			{
+				Success: wp.gitHubOwned.pinned,
+				Total:   wp.gitHubOwned.total,
+				Weight:  10,
+			},
 		}
 	}
-
-	return score
+	return []*checker.ProportionalScoreWithWeight{
+		{
+			Success: wp.thirdParties.pinned,
+			Total:   wp.thirdParties.total,
+			Weight:  10,
+		},
+	}
 }

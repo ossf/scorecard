@@ -88,6 +88,14 @@ type LogMessage struct {
 	Remediation *rule.Remediation // Remediation information, if any.
 }
 
+// ProportionalScoreWithWeight is a structure that contains
+// the fields to calculate weighted proportional scores.
+type ProportionalScoreWithWeight struct {
+	Success int
+	Total   int
+	Weight  int
+}
+
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {
@@ -95,6 +103,20 @@ func CreateProportionalScore(success, total int) int {
 	}
 
 	return int(math.Min(float64(MaxResultScore*success/total), float64(MaxResultScore)))
+}
+
+// CreateProportionalScoreWithWeight creates the proportional score
+// between multiple successes over the total, but some proportions
+// are worth more.
+func CreateProportionalScoreWithWeight(scores ...*ProportionalScoreWithWeight) int {
+	ws := 0
+	wt := 0
+	for _, score := range scores {
+		ws += score.Success * score.Weight
+		wt += score.Total * score.Weight
+	}
+
+	return int(math.Min(float64(MaxResultScore*ws/wt), float64(MaxResultScore)))
 }
 
 // AggregateScores adds up all scores
