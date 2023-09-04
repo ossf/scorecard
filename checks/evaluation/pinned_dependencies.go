@@ -200,12 +200,12 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.Pr
 			{
 				Success: wp.gitHubOwned.pinned,
 				Total:   wp.gitHubOwned.total,
-				Weight:  8,
+				Weight:  2,
 			},
 			{
 				Success: wp.thirdParties.pinned,
 				Total:   wp.thirdParties.total,
-				Weight:  2,
+				Weight:  8,
 			},
 		}
 	}
