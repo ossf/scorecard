@@ -59,35 +59,45 @@ var (
 	errInvalidScore    = errors.New("invalid score")
 )
 
-func calcStats(input io.Reader, output io.Writer) error {
+// countScores quantizes the scores into 12 buckets, from [-1, 10]
+// If a check is provided, that check score is used, otherwise the aggregate score is used.
+func countScores(input io.Reader, check string) ([12]int, error) {
 	var counts [12]int // [-1, 10] inclusive
 	var score int
 	scanner := bufio.NewScanner(input)
-	scanner.Buffer(nil, 1024*1024)
+	scanner.Buffer(nil, 1024*1024) // TODO, how big is big enough?
 	for scanner.Scan() {
 		result, aggregateScore, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
 		if err != nil {
-			return fmt.Errorf("parsing result: %w", err)
+			return [12]int{}, fmt.Errorf("parsing result: %w", err)
 		}
-		if statsCheck == "" {
+		if check == "" {
 			score = int(aggregateScore)
 		} else {
 			i := slices.IndexFunc(result.Checks, func(c checker.CheckResult) bool {
-				return strings.EqualFold(c.Name, statsCheck)
+				return strings.EqualFold(c.Name, check)
 			})
 			if i == -1 {
-				return errCheckNotPresent
+				return [12]int{}, errCheckNotPresent
 			}
 			score = result.Checks[i].Score
 		}
 		if score < -1 || score > 10 {
-			return errInvalidScore
+			return [12]int{}, errInvalidScore
 		}
 		bucket := score + 1 // score of -1 is index 0, score of 0 is index 1, etc.
 		counts[bucket]++
 	}
 	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("parsing golden file: %w", err)
+		return [12]int{}, fmt.Errorf("parsing golden file: %w", err)
+	}
+	return counts, nil
+}
+
+func calcStats(input io.Reader, output io.Writer) error {
+	counts, err := countScores(input, statsCheck)
+	if err != nil {
+		return err
 	}
 	name := statsCheck
 	if name == "" {
