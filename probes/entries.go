@@ -18,6 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/contributorsWithOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
@@ -88,6 +89,8 @@ var (
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Run,
+	Contributors = []ProbeImpl{
+		contributorsWithOrgOrCompany.Run,
 	}
 )
 
@@ -97,7 +100,11 @@ func init() {
 		DependencyToolUpdates,
 		SecurityPolicy,
 		Fuzzing,
+<<<<<<< HEAD
 		License,
+=======
+		Contributors,
+>>>>>>> :seedling: Add probe support for contributors metrics
 	})
 }
 
