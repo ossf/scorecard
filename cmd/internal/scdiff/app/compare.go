@@ -90,11 +90,11 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 }
 
 func loadResults(x, y *bufio.Scanner) (pkg.ScorecardResult, pkg.ScorecardResult, error) {
-	xResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
+	xResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
 	if err != nil {
 		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
 	}
-	yResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
+	yResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
 	if err != nil {
 		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
 	}
