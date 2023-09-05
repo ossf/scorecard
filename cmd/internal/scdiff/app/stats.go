@@ -26,7 +26,6 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/docs/checks"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
@@ -58,25 +57,17 @@ var (
 )
 
 func calcStats(input io.Reader, output io.Writer) error {
-	checkDocs, err := checks.Read()
-	if err != nil {
-		return fmt.Errorf("cannot read yaml file: %w", err)
-	}
 	var counts [12]int // [-1, 10] inclusive
+	var score int
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(nil, 1024*1024)
 	for scanner.Scan() {
-		result, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
+		result, aggregateScore, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
 		if err != nil {
 			return fmt.Errorf("parsing result: %w", err)
 		}
-		var bucket int
 		if statsCheck == "" {
-			score, _ := result.GetAggregateScore(checkDocs) // todo, read from the file?
-			if score < -1 || score > 10 {
-				return fmt.Errorf("invalid score") // todo sentinel
-			}
-			bucket = int(score) + 1
+			score = int(aggregateScore)
 		} else {
 			i := slices.IndexFunc(result.Checks, func(c checker.CheckResult) bool {
 				return strings.EqualFold(c.Name, statsCheck)
@@ -84,9 +75,12 @@ func calcStats(input io.Reader, output io.Writer) error {
 			if i == -1 {
 				return fmt.Errorf("requested check not present")
 			}
-			bucket = result.Checks[i].Score
+			score = result.Checks[i].Score
 		}
-
+		if score < -1 || score > 10 {
+			return fmt.Errorf("invalid score") // todo sentinel
+		}
+		bucket := score + 1 // score of -1 is index 0, score of 0 is index 1, etc.
 		counts[bucket]++
 	}
 	if err := scanner.Err(); err != nil {
