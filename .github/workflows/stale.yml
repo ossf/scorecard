@@ -37,7 +37,7 @@ jobs:
         stale-issue-message: 'Stale issue message'
         stale-pr-message: 'Stale pull request message'
         stale-issue-label: 'no-issue-activity'
-        exempt-issue-labels: 'wishlist,slsa,priority,bug,core feature,enhancement,good first issue,help wanted,needs discussion'
+        exempt-issue-labels: 'priority,bug,good first issue'
         stale-pr-label: 'no-pr-activity'
         exempt-pr-labels: 'awaiting-approval,work-in-progress'
         days-before-pr-stale: '10'
