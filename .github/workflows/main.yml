@@ -117,7 +117,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -182,7 +182,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -277,7 +277,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -324,7 +324,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -359,7 +359,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -388,7 +388,7 @@ jobs:
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v2.3.4
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
