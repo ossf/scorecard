@@ -16,6 +16,7 @@ package app
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -37,8 +38,7 @@ func init() {
 
 var (
 	statsCheck string
-
-	statsCmd = &cobra.Command{
+	statsCmd   = &cobra.Command{
 		Use:   "stats [flags] FILE",
 		Short: "Summarize stats for a golden file",
 		Long:  `Summarize stats for a golden file`,
@@ -54,6 +54,9 @@ var (
 			return calcStats(f1, os.Stdout)
 		},
 	}
+
+	errCheckNotPresent = errors.New("requested check not present")
+	errInvalidScore    = errors.New("invalid score")
 )
 
 func calcStats(input io.Reader, output io.Writer) error {
@@ -73,12 +76,12 @@ func calcStats(input io.Reader, output io.Writer) error {
 				return strings.EqualFold(c.Name, statsCheck)
 			})
 			if i == -1 {
-				return fmt.Errorf("requested check not present")
+				return errCheckNotPresent
 			}
 			score = result.Checks[i].Score
 		}
 		if score < -1 || score > 10 {
-			return fmt.Errorf("invalid score") // todo sentinel
+			return errInvalidScore
 		}
 		bucket := score + 1 // score of -1 is index 0, score of 0 is index 1, etc.
 		counts[bucket]++
