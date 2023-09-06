@@ -536,11 +536,11 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		// then we can ignore the bypass actors.
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
-
-	// FIXME: hacks to avoid breaking existing tests
+	if base.RequireLastPushApproval == nil || readBoolPtr(translated.RequireLastPushApproval) {
+		base.RequireLastPushApproval = translated.RequireLastPushApproval
+	}
 	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
-	base.RequireLastPushApproval = translated.RequireLastPushApproval
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {
