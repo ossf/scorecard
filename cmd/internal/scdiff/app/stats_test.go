@@ -62,6 +62,11 @@ func Test_countScores(t *testing.T) {
 			results: `{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo1"},"score":12}`,
 			wantErr: true,
 		},
+		{
+			name:    "result fails to parse",
+			results: `]}[{}`,
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
