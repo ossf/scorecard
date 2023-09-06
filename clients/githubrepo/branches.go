@@ -537,9 +537,21 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 	}
 
 	// FIXME: hacks to avoid breaking existing tests
-	base.RequiredPullRequestReviews = translated.RequiredPullRequestReviews
+	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	base.CheckRules = translated.CheckRules
 	base.RequireLastPushApproval = translated.RequireLastPushApproval
+}
+
+func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
+	if readIntPtr(translated.RequiredApprovingReviewCount) > readIntPtr(base.RequiredApprovingReviewCount) {
+		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
+	}
+	if base.DismissStaleReviews == nil || readBoolPtr(translated.DismissStaleReviews) {
+		base.DismissStaleReviews = translated.DismissStaleReviews
+	}
+	if base.RequireCodeOwnerReviews == nil || readBoolPtr(translated.RequireCodeOwnerReviews) {
+		base.RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
+	}
 }
 
 func readBoolPtr(b *bool) bool {
