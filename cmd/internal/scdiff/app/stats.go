@@ -48,7 +48,7 @@ var (
 		Long:  `Summarize stats for a golden file`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				return errMissingInputFiles // TODO: generalize this?
+				return errMissingInputFiles
 			}
 			f1, err := os.Open(args[0])
 			if err != nil {
