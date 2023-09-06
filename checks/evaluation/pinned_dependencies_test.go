@@ -30,7 +30,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	tests := []struct {
 		name   string
 		r      worklowPinningResult
-		scores []*checker.ProportionalScoreWeighted
+		scores []checker.ProportionalScoreWeighted
 	}{
 		{
 			name: "GitHub-owned and Third-Party actions pinned",
@@ -44,7 +44,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 1,
 					Total:   1,
@@ -69,7 +69,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 1,
 					Total:   1,
@@ -94,7 +94,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 0,
 					Total:   1,
@@ -119,7 +119,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 0,
 					Total:   1,
@@ -144,7 +144,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 0,
 					Total:   1,
@@ -164,7 +164,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  0,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 0,
 					Total:   1,
@@ -184,7 +184,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  1,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 1,
 					Total:   1,
@@ -204,7 +204,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 					total:  0,
 				},
 			},
-			scores: []*checker.ProportionalScoreWeighted{
+			scores: []checker.ProportionalScoreWeighted{
 				{
 					Success: 1,
 					Total:   1,
