@@ -522,37 +522,24 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 }
 
 func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
-	var downgrade bool
-	upgrade := true
-
-	// FIXME: upgrade/downgrade clauses need to compare every property?
-	if translated.AllowDeletions != nil && !*translated.AllowDeletions {
+	if base.AllowDeletions == nil || translated.AllowDeletions != nil && !*translated.AllowDeletions {
 		base.AllowDeletions = translated.AllowDeletions
-		upgrade = upgrade && (base.AllowForcePushes == nil || base.AllowForcePushes == translated.AllowForcePushes)
-		downgrade = downgrade || (base.AllowForcePushes != nil && !*base.AllowForcePushes)
 	}
-	if translated.AllowForcePushes != nil && !*translated.AllowForcePushes {
+	if base.AllowForcePushes == nil || translated.AllowForcePushes != nil && !*translated.AllowForcePushes {
 		base.AllowForcePushes = translated.AllowForcePushes
-		upgrade = upgrade && (base.AllowDeletions == nil || base.AllowDeletions == translated.AllowDeletions)
-		downgrade = downgrade || (base.AllowDeletions != nil && !*base.AllowDeletions)
+	}
+	if base.EnforceAdmins == nil || translated.EnforceAdmins != nil && !*translated.EnforceAdmins {
+		// this is an over simplification to get preliminary support for repo rules merged.
+		// A more complete approach would process all rules without bypass actors first,
+		// then process those with bypass actors. If no settings improve (due to rule layering),
+		// then we can ignore the bypass actors.
+		base.EnforceAdmins = translated.EnforceAdmins
 	}
 
 	// FIXME: hacks to avoid breaking existing tests
 	base.RequiredPullRequestReviews = translated.RequiredPullRequestReviews
 	base.CheckRules = translated.CheckRules
 	base.RequireLastPushApproval = translated.RequireLastPushApproval
-
-	if base.EnforceAdmins == nil {
-		base.EnforceAdmins = translated.EnforceAdmins
-	} else if *base.EnforceAdmins != *translated.EnforceAdmins {
-		enforceAdmins := *base.EnforceAdmins
-		if upgrade {
-			enforceAdmins = true
-		} else if downgrade {
-			enforceAdmins = false
-		}
-		base.EnforceAdmins = &enforceAdmins
-	}
 }
 
 func readBoolPtr(b *bool) bool {
