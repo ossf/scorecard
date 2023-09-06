@@ -36,6 +36,10 @@ func init() {
 	statsCmd.PersistentFlags().StringVarP(&statsCheck, "check", "c", "", "Analyze breakdown of a single check")
 }
 
+// 1 MiB size limit for individual results. This currently works,
+// but bufio.Scanner always has a limit, may need to change approach in the future.
+const maxResultSize = 1024 * 1024
+
 var (
 	statsCheck string
 	statsCmd   = &cobra.Command{
@@ -65,7 +69,7 @@ func countScores(input io.Reader, check string) ([12]int, error) {
 	var counts [12]int // [-1, 10] inclusive
 	var score int
 	scanner := bufio.NewScanner(input)
-	scanner.Buffer(nil, 1024*1024) // TODO, how big is big enough?
+	scanner.Buffer(nil, maxResultSize)
 	for scanner.Scan() {
 		result, aggregateScore, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
 		if err != nil {

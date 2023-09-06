@@ -68,7 +68,9 @@ var (
 func compareReaders(x, y io.Reader, output io.Writer) error {
 	// results are currently newline delimited
 	xs := bufio.NewScanner(x)
+	xs.Buffer(nil, maxResultSize)
 	ys := bufio.NewScanner(y)
+	ys.Buffer(nil, maxResultSize)
 	for {
 		if shouldContinue, err := advanceScanners(xs, ys); err != nil {
 			return err
