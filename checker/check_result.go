@@ -109,8 +109,7 @@ func CreateProportionalScore(success, total int) int {
 // between multiple successes over the total, but some proportions
 // are worth more.
 func CreateProportionalScoreWeighted(scores ...*ProportionalScoreWeighted) int {
-	ws := 0
-	wt := 0
+	var ws, wt int
 	for _, score := range scores {
 		ws += score.Success * score.Weight
 		wt += score.Total * score.Weight
