@@ -311,6 +311,33 @@ func Test_applyRepoRules(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "required status checks no bypass",
+			base: &clients.BranchRef{},
+			ruleSet: ruleSet(withRules(&repoRule{
+				Type: ruleStatusCheck,
+				Parameters: repoRulesParameters{
+					StatusCheckParameters: requiredStatusCheckParameters{
+						StrictRequiredStatusChecksPolicy: &trueVal,
+						RequiredStatusChecks: []statusCheck{
+							{
+								Context: stringPtr("foo"),
+							},
+						},
+					},
+				},
+			})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins: &trueVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge:  &trueVal,
+						RequiresStatusChecks: &trueVal,
+						Contexts:             []string{"foo"},
+					},
+				},
+			},
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -325,4 +352,8 @@ func Test_applyRepoRules(t *testing.T) {
 			}
 		})
 	}
+}
+
+func stringPtr(s string) *string {
+	return &s
 }

@@ -167,10 +167,11 @@ type pullRequestRuleParameters struct {
 }
 type requiredStatusCheckParameters struct {
 	StrictRequiredStatusChecksPolicy *bool
-	RequiredStatusChecks             []struct {
-		Context       *string
-		IntegrationID *int64
-	}
+	RequiredStatusChecks             []statusCheck
+}
+type statusCheck struct {
+	Context       *string
+	IntegrationID *int64
 }
 type repoRule struct {
 	Type       string
