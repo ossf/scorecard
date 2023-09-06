@@ -15,6 +15,7 @@
 package app
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -82,5 +83,27 @@ func Test_countScores(t *testing.T) {
 				t.Errorf("counts differ: %v", cmp.Diff(got, tt.want))
 			}
 		})
+	}
+}
+
+func removeRepeatedSpaces(t *testing.T, s string) string {
+	t.Helper()
+	return strings.Join(strings.Fields(s), " ")
+}
+
+func Test_calcStats(t *testing.T) {
+	t.Parallel()
+	input := strings.NewReader(`{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo1"},"score":10}`)
+	var output bytes.Buffer
+	if err := calcStats(input, &output); err != nil {
+		t.Fatalf("unexepected error: %v", err)
+	}
+	got := output.String()
+	// this is a bit of a simplification, but keeps the test simple
+	// without needing to update every minor formatting change.
+	got = removeRepeatedSpaces(t, got)
+	want := "10 1" // score 10 should have count 1
+	if !strings.Contains(got, want) {
+		t.Errorf("didn't contain expected count")
 	}
 }
