@@ -36,6 +36,20 @@ type worklowPinningResult struct {
 	gitHubOwned  pinnedResult
 }
 
+// Weights used for proportional score.
+// This defines the priority of pinning a dependency over other dependencies.
+// The dependencies from all ecossystems are equally prioritized except
+// for GitHub Actions. GitHub Actions can be GitHub-owned or from third-party
+// development. The GitHub Actions ecossystem has equal priority compared to other
+// ecossystems, but, within GitHub Actions, pinning third-party actions has more
+// priority than pinning GitHub-owned actions.
+// https://github.com/ossf/scorecard/issues/802
+const (
+	gitHubOwnedActionWeight int = 2
+	thirdPartyActionWeight  int = 8
+	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
+)
+
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string, c *checker.CheckRequest,
 	r *checker.PinningDependenciesData,
@@ -112,7 +126,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		scores = append(scores, checker.ProportionalScoreWeighted{
 			Success: pr[t].pinned,
 			Total:   pr[t].total,
-			Weight:  10,
+			Weight:  normalWeight,
 		})
 	}
 
@@ -200,12 +214,12 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.Pro
 			{
 				Success: wp.gitHubOwned.pinned,
 				Total:   wp.gitHubOwned.total,
-				Weight:  2,
+				Weight:  gitHubOwnedActionWeight,
 			},
 			{
 				Success: wp.thirdParties.pinned,
 				Total:   wp.thirdParties.total,
-				Weight:  8,
+				Weight:  thirdPartyActionWeight,
 			},
 		}
 	}
@@ -214,7 +228,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.Pro
 			{
 				Success: wp.gitHubOwned.pinned,
 				Total:   wp.gitHubOwned.total,
-				Weight:  10,
+				Weight:  normalWeight,
 			},
 		}
 	}
@@ -222,7 +236,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.Pro
 		{
 			Success: wp.thirdParties.pinned,
 			Total:   wp.thirdParties.total,
-			Weight:  10,
+			Weight:  normalWeight,
 		},
 	}
 }
