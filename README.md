@@ -150,6 +150,8 @@ To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in the Scorecard GitHub Action setting.
 
+Data provided by the REST API is licensed under the [CDLA Permissive 2.0](https://cdla.dev/permissive-2-0).
+
 ### Scorecard Badges
 
 Enabling [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)

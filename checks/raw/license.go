@@ -116,6 +116,11 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 	// repo API for licenses is supported
 	// go the work and return from immediate (no searching repo).
 	case lerr == nil:
+		// licenses API may be supported, but platform might not detect license same way we do
+		// fallback to our local file logic
+		if len(licensesFound) == 0 {
+			break
+		}
 		for _, v := range licensesFound {
 			results.LicenseFiles = append(results.LicenseFiles,
 				checker.LicenseFile{

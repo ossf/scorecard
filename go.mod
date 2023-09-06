@@ -8,7 +8,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/bigquery v1.53.0
+	cloud.google.com/go/bigquery v1.54.0
 	cloud.google.com/go/monitoring v1.15.1 // indirect
 	cloud.google.com/go/pubsub v1.33.0
 	cloud.google.com/go/trace v1.10.1 // indirect
@@ -23,7 +23,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.8.0
-	github.com/moby/buildkit v0.12.1
+	github.com/moby/buildkit v0.12.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.27.10
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
@@ -32,9 +32,9 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opencensus.io v0.24.0
-	gocloud.dev v0.33.0
-	golang.org/x/text v0.12.0
-	golang.org/x/tools v0.11.0 // indirect
+	gocloud.dev v0.34.0
+	golang.org/x/text v0.13.0
+	golang.org/x/tools v0.12.0 // indirect
 	google.golang.org/genproto v0.0.0-20230731193218-e0aa005b6bdf // indirect
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -49,7 +49,7 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/osv-scanner v1.3.6
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.11.0
+	github.com/onsi/ginkgo/v2 v2.12.0
 	github.com/otiai10/copy v1.12.0
 	sigs.k8s.io/release-utils v0.6.0
 )
@@ -105,7 +105,7 @@ require (
 	github.com/spdx/tools-golang v0.5.2 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/term v0.11.0 // indirect
+	golang.org/x/term v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/vuln v1.0.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230731193218-e0aa005b6bdf // indirect
@@ -169,16 +169,16 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
-	github.com/xanzy/go-gitlab v0.90.0
+	github.com/xanzy/go-gitlab v0.91.1
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	golang.org/x/crypto v0.12.0 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-	golang.org/x/net v0.14.0 // indirect
-	golang.org/x/oauth2 v0.11.0
+	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/oauth2 v0.12.0
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.134.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

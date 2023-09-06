@@ -21,7 +21,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/secpolicy"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
@@ -31,14 +32,14 @@ const Probe = "securityPolicyContainsLinks"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", utils.ErrNil)
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 	var findings []finding.Finding
 	policies := raw.SecurityPolicyResults.PolicyFiles
 	for i := range policies {
 		policy := &policies[i]
-		emails := utils.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true)
-		urls := utils.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
+		emails := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeEmail, true)
+		urls := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
 
 		if (urls + emails) > 0 {
 			f, err := finding.NewPositive(fs, Probe,

@@ -39,7 +39,7 @@ jobs:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - name: Checkout
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v2.3.4
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
       - name: Set up Go
@@ -52,7 +52,7 @@ jobs:
         run: echo "version_flags=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@3fa32b8bb5620a2c1afe798654bbad59f9da4906 # v2.5.0
+        uses: goreleaser/goreleaser-action@5fdedb94abba051217030cc86d4523cf3f02243d # v2.5.0
         with:
           version: latest
           args: release --rm-dist
@@ -75,7 +75,7 @@ jobs:
       actions: read # To read the workflow path.
       id-token: write # To sign the provenance.
       contents: write # To add assets to a release.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.8.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.9.0
     with:
       base64-subjects: "${{ needs.goreleaser.outputs.hashes }}"
       upload-assets: true # upload to a new release
@@ -86,7 +86,7 @@ jobs:
     permissions: read-all
     steps:
       - name: Install the verifier
-        uses: slsa-framework/slsa-verifier/actions/installer@v2.3.0
+        uses: slsa-framework/slsa-verifier/actions/installer@v2.4.0
 
       - name: Download assets
         env:

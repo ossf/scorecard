@@ -12,10 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+// nolint:stylecheck
+package fuzzedWithPropertyBasedHaskell
 
 import (
-	"errors"
+	"embed"
+	"fmt"
+
+	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/fuzzing"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
-var ErrNil = errors.New("nil pointer")
+//go:embed *.yml
+var fs embed.FS
+
+const Probe = "fuzzedWithPropertyBasedHaskell"
+
+func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+	}
+	//nolint:wrapcheck
+	return fuzzing.Run(raw, fs, Probe, "HaskellPropertyBasedTesting")
+}
