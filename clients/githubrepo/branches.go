@@ -432,6 +432,11 @@ func isPermissionsError(err error) bool {
 const (
 	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
 	ruleConditionAllBranches   = "~ALL"
+	ruleDeletion               = "DELETION"
+	ruleForcePush              = "NON_FAST_FORWARD"
+	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
+	rulePullRequest            = "PULL_REQUEST"
+	ruleStatusCheck            = "REQUIRED_STATUS_CHECKS"
 )
 
 func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
@@ -478,15 +483,15 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
-			case "DELETION":
+			case ruleDeletion:
 				translated.AllowDeletions = &falseVal
-			case "NON_FAST_FORWARD":
+			case ruleForcePush:
 				translated.AllowForcePushes = &falseVal
-			case "REQUIRED_LINEAR_HISTORY":
+			case ruleLinear:
 				translated.RequireLinearHistory = &trueVal
-			case "PULL_REQUEST":
+			case rulePullRequest:
 				translatePullRequestRepoRule(&translated, rule)
-			case "REQUIRED_STATUS_CHECKS":
+			case ruleStatusCheck:
 				translateRequiredStatusRepoRule(&translated, rule)
 			}
 		}
