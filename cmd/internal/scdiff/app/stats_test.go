@@ -21,14 +21,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//nolint:lll // results are long
 func Test_countScores(t *testing.T) {
 	t.Parallel()
 
-	validResults := `{"date":"0001-01-01T00:00:00Z","repo":{"name":"github.com/repo/one","commit":""},"scorecard":{"version":"","commit":""},"score":0,"checks":[{"details":null,"score":10,"reason":"no bars detected","name":"Foo"}],"metadata":null}
-	{"date":"0001-01-01T00:00:00Z","repo":{"name":"github.com/repo/two","commit":""},"scorecard":{"version":"","commit":""},"score":-1,"checks":[{"details":null,"score":9,"reason":"some bars detected","name":"Foo"}],"metadata":null}
-`
-	invalidScore := `{"date":"0001-01-01T00:00:00Z","repo":{"name":"github.com/repo/one","commit":""},"scorecard":{"version":"","commit":""},"score":-2,"metadata":null}
+	common := `{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo1"},"score":0,"checks":[{"score":10,"name":"Foo"}]}
+{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo2"},"score":-1,"checks":[{"score":9,"name":"Foo"}]}
 `
 	tests := []struct {
 		name    string
@@ -39,30 +36,30 @@ func Test_countScores(t *testing.T) {
 	}{
 		{
 			name:    "aggregate score used when no check specified",
-			results: validResults,
+			results: common,
 			want:    [12]int{1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		},
 		{
 			name:    "check score used when check specified",
 			check:   "Foo",
-			results: validResults,
+			results: common,
 			want:    [12]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
 		},
 		{
 			name:    "check name case insensitive",
 			check:   "fOo",
-			results: validResults,
+			results: common,
 			want:    [12]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
 		},
 		{
 			name:    "non existent check",
 			check:   "not present",
-			results: validResults,
+			results: common,
 			wantErr: true,
 		},
 		{
 			name:    "score outside of [-1, 10] rejected",
-			results: invalidScore,
+			results: `{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo1"},"score":12}`,
 			wantErr: true,
 		},
 	}
@@ -81,5 +78,4 @@ func Test_countScores(t *testing.T) {
 			}
 		})
 	}
-
 }
