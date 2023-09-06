@@ -469,6 +469,7 @@ nextRule:
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 	falseVal := false
+	trueVal := true
 	for _, r := range rules {
 		adminEnforced := len(r.BypassActors.Nodes) == 0
 		translated := clients.BranchProtectionRule{
@@ -481,6 +482,8 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 				translated.AllowDeletions = &falseVal
 			case "NON_FAST_FORWARD":
 				translated.AllowForcePushes = &falseVal
+			case "REQUIRED_LINEAR_HISTORY":
+				translated.RequireLinearHistory = &trueVal
 			case "PULL_REQUEST":
 				translatePullRequestRepoRule(&translated, rule)
 			case "REQUIRED_STATUS_CHECKS":
@@ -538,6 +541,9 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 	}
 	if base.RequireLastPushApproval == nil || readBoolPtr(translated.RequireLastPushApproval) {
 		base.RequireLastPushApproval = translated.RequireLastPushApproval
+	}
+	if base.RequireLinearHistory == nil || readBoolPtr(translated.RequireLinearHistory) {
+		base.RequireLinearHistory = translated.RequireLinearHistory
 	}
 	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)

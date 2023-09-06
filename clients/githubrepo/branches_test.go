@@ -274,6 +274,17 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
+			name:    "require linear history no bypass",
+			base:    &clients.BranchRef{},
+			ruleSet: ruleSet(withRules(&repoRule{Type: "REQUIRED_LINEAR_HISTORY"})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					RequireLinearHistory: &trueVal,
+					EnforceAdmins:        &trueVal,
+				},
+			},
+		},
+		{
 			name: "require pull request no bypass",
 			base: &clients.BranchRef{},
 			ruleSet: ruleSet(withRules(&repoRule{
