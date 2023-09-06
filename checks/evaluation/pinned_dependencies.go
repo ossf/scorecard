@@ -101,7 +101,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	}
 
 	// Generate scores and Info results.
-	var scores []*checker.ProportionalScoreWithWeight
+	var scores []*checker.ProportionalScoreWeighted
 	// Go through all dependency types
 	// GitHub Actions need to be handled separately since they are not in pr
 	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp)...)
@@ -109,7 +109,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	// We will only score the ecossystem if there are dependencies
 	// This results in only existing ecossystems being included in the final score
 	for t := range pr {
-		scores = append(scores, &checker.ProportionalScoreWithWeight{
+		scores = append(scores, &checker.ProportionalScoreWeighted{
 			Success: pr[t].pinned,
 			Total:   pr[t].total,
 			Weight:  10,
@@ -120,7 +120,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateInconclusiveResult(name, "no dependencies found")
 	}
 
-	score := checker.CreateProportionalScoreWithWeight(scores...)
+	score := checker.CreateProportionalScoreWeighted(scores...)
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")
@@ -191,12 +191,12 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
-func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.ProportionalScoreWithWeight {
+func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.ProportionalScoreWeighted {
 	if wp.gitHubOwned.total == 0 && wp.thirdParties.total == 0 {
-		return []*checker.ProportionalScoreWithWeight{}
+		return []*checker.ProportionalScoreWeighted{}
 	}
 	if wp.gitHubOwned.total != 0 && wp.thirdParties.total != 0 {
-		return []*checker.ProportionalScoreWithWeight{
+		return []*checker.ProportionalScoreWeighted{
 			{
 				Success: wp.gitHubOwned.pinned,
 				Total:   wp.gitHubOwned.total,
@@ -210,7 +210,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.Pr
 		}
 	}
 	if wp.gitHubOwned.total != 0 {
-		return []*checker.ProportionalScoreWithWeight{
+		return []*checker.ProportionalScoreWeighted{
 			{
 				Success: wp.gitHubOwned.pinned,
 				Total:   wp.gitHubOwned.total,
@@ -218,7 +218,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []*checker.Pr
 			},
 		}
 	}
-	return []*checker.ProportionalScoreWithWeight{
+	return []*checker.ProportionalScoreWeighted{
 		{
 			Success: wp.thirdParties.pinned,
 			Total:   wp.thirdParties.total,
