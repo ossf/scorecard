@@ -22,6 +22,7 @@ import (
 
 	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
+	"golang.org/x/exp/slices"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"
@@ -538,8 +539,23 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 
 	// FIXME: hacks to avoid breaking existing tests
 	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
-	base.CheckRules = translated.CheckRules
+	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
 	base.RequireLastPushApproval = translated.RequireLastPushApproval
+}
+
+func mergeCheckRules(base, translated *clients.StatusChecksRule) {
+	if base.UpToDateBeforeMerge == nil || readBoolPtr(translated.UpToDateBeforeMerge) {
+		base.UpToDateBeforeMerge = translated.UpToDateBeforeMerge
+	}
+	if base.RequiresStatusChecks == nil || readBoolPtr(translated.RequiresStatusChecks) {
+		base.RequiresStatusChecks = translated.RequiresStatusChecks
+	}
+	for _, context := range translated.Contexts {
+		// this isn't optimal, but probably not a bottleneck.
+		if !slices.Contains(base.Contexts, context) {
+			base.Contexts = append(base.Contexts, context)
+		}
+	}
 }
 
 func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
