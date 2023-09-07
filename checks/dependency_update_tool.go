@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
@@ -49,7 +50,7 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults.DependencyUpdateToolResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(pRawResults, probes.DependencyToolUpdates)
+	findings, err := zrunner.Run(pRawResults, probes.DependencyToolUpdates)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)

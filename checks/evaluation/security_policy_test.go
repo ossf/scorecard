@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -28,8 +29,7 @@ func TestSecurityPolicy(t *testing.T) {
 	tests := []struct {
 		name     string
 		findings []finding.Finding
-		err      bool
-		want     checker.CheckResult
+		result   scut.TestReturn
 	}{
 		{
 			name: "missing findings links",
@@ -47,8 +47,9 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score: -1,
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
@@ -75,8 +76,9 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score: -1,
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
@@ -99,8 +101,10 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score: 0,
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -123,8 +127,9 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score: -1,
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
@@ -147,8 +152,10 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score: 6,
+			result: scut.TestReturn{
+				Score:        6,
+				NumberOfInfo: 2,
+				NumberOfWarn: 2,
 			},
 		},
 		{
@@ -171,8 +178,9 @@ func TestSecurityPolicy(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score: 10,
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 4,
 			},
 		},
 	}
@@ -181,16 +189,10 @@ func TestSecurityPolicy(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
 			dl := scut.TestDetailLogger{}
-			got := SecurityPolicy("SecurityPolicy", tt.findings, &dl)
-			if tt.err {
-				if got.Score != -1 {
-					t.Errorf("SecurityPolicy() = %v, want %v", got, tt.want)
-				}
-			}
-			if got.Score != tt.want.Score {
-				t.Errorf("SecurityPolicy() = %v, want %v for %v", got.Score, tt.want.Score, tt.name)
+			got := SecurityPolicy(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Fatalf(tt.name)
 			}
 		})
 	}

@@ -52,11 +52,11 @@ func Fuzzing(name string,
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			// Log all findings except the negative ones.
-			checker.LogFindings(findings, nil, []finding.Outcome{finding.OutcomeNegative}, dl)
+			checker.LogFindings(findings, nonNegativeFinding, dl)
 			return checker.CreateMaxScoreResult(name, "project is fuzzed")
 		}
 	}
 	// Log all findings.
-	checker.LogFindings(findings, nil, nil, dl)
+	checker.LogFindings(findings, anyFinding, dl)
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }

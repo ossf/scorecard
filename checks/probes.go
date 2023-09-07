@@ -15,25 +15,8 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes"
-	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
-
-// evaluateProbes runs the probes in probesToRun.
-func evaluateProbes(rawResults *checker.RawResults,
-	probesToRun []probes.ProbeImpl,
-) ([]finding.Finding, error) {
-	// Run the probes.
-	findings, err := zrunner.Run(rawResults, probesToRun)
-	if err != nil {
-		return nil, fmt.Errorf("zrunner.Run: %w", err)
-	}
-	return findings, nil
-}
 
 // getRawResults returns a pointer to the raw results in the CheckRequest
 // if the pointer is not nil. Else, it creates a new raw result.
