@@ -18,10 +18,14 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func nonNegativeFinding(f finding.Finding) bool {
-	return f.Outcome != finding.OutcomeNegative
-}
-
-func anyFinding(f finding.Finding) bool {
-	return true
+func nonNegativeFindings(findings []finding.Finding) []finding.Finding {
+	var ff []finding.Finding
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			continue
+		}
+		ff = append(ff, *f)
+	}
+	return ff
 }

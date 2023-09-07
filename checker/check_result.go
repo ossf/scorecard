@@ -195,15 +195,10 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, includeFunc func(f finding.Finding) bool,
-	dl DetailLogger,
+func LogFindings(findings []finding.Finding, dl DetailLogger,
 ) {
 	for i := range findings {
 		f := &findings[i]
-		// Only log finding types as requested by the caller.
-		if !includeFunc(*f) {
-			continue
-		}
 		switch f.Outcome {
 		case finding.OutcomeNegative:
 			dl.Warn(&LogMessage{

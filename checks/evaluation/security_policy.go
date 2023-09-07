@@ -66,7 +66,7 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 		}
 
 		// Log all findings.
-		checker.LogFindings(findings, anyFinding, dl)
+		checker.LogFindings(findings, dl)
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
 
@@ -74,7 +74,7 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 	// NOTE: if the score is checker.MaxResultScore, then all findings are positive.
 	// If the score is less than checker.MaxResultScore, some findings are negative,
 	// so we log both positive and negative findings.
-	checker.LogFindings(findings, anyFinding, dl)
+	checker.LogFindings(findings, dl)
 
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }

@@ -44,12 +44,12 @@ func DependencyUpdateTool(name string,
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			// Log all findings except the negative ones.
-			checker.LogFindings(findings, nonNegativeFinding, dl)
+			checker.LogFindings(nonNegativeFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "update tool detected")
 		}
 	}
 
 	// Log all findings.
-	checker.LogFindings(findings, anyFinding, dl)
+	checker.LogFindings(findings, dl)
 	return checker.CreateMinScoreResult(name, "no update tool detected")
 }
