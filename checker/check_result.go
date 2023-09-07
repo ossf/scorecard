@@ -200,7 +200,7 @@ func LogFindings(findings []finding.Finding, includeFunc func(f finding.Finding)
 ) {
 	for i := range findings {
 		f := &findings[i]
-		// Only log finding types as indicated by findingTypesToLog or findingTypesToNotLog.
+		// Only log finding types as requested by the caller.
 		if !includeFunc(*f) {
 			continue
 		}
