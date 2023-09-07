@@ -49,10 +49,10 @@ func Test_Run(t *testing.T) {
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
-						clients.User{
+						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{
-								clients.User{
+								{
 									Login:            "Login",
 									Companies:        []string{"comp3", "comp4"}, // These should not be included
 									NumContributions: 10,
@@ -73,20 +73,20 @@ func Test_Run(t *testing.T) {
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
-						clients.User{
+						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{
-								clients.User{
+								{
 									Login:            "Login1",
 									NumContributions: 10,
 								},
 							},
 							NumContributions: 10,
 						},
-						clients.User{
+						{
 							Companies: []string{"comp3", "comp4"},
 							Organizations: []clients.User{
-								clients.User{
+								{
 									Login:            "Login2",
 									NumContributions: 10,
 								},
@@ -109,20 +109,20 @@ func Test_Run(t *testing.T) {
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
-						clients.User{
+						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{
-								clients.User{
+								{
 									Login:            "Login1",
 									NumContributions: 10,
 								},
 							},
 							NumContributions: 10,
 						},
-						clients.User{
+						{
 							Companies: []string{"comp3", "comp4"},
 							Organizations: []clients.User{
-								clients.User{
+								{
 									Login:            "Login2",
 									NumContributions: 10,
 								},

@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	minContributionsPerUser    = 5
+	minContributionsPerUser = 5
 )
 
 func Run(raw *checker.RawResults, fs embed.FS, probeID string) ([]finding.Finding, string, error) {
@@ -63,7 +63,7 @@ func Run(raw *checker.RawResults, fs embed.FS, probeID string) ([]finding.Findin
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}
-		
+
 		findings = append(findings, *f)
 	}
 
