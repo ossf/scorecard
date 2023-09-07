@@ -21,6 +21,6 @@ implementation: >
 outcome:
   - If the project has contributions from Github users belonging to an organization or company, then the probe returns OutcomePositive.
 remediation:
-  effort: Low
+  effort: High
   text:
     - Encourage community-driven contributions to your project.
