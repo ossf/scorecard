@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package contributorsWithOrgOrCompany
+package contributorsFromOrgOrCompany
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "contributorsWithOrgOrCompany"
+const Probe = "contributorsFromOrgOrCompany"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

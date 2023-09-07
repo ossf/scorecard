@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: contributorsWithOrgOrCompany
+id: contributorsFromOrgOrCompany
 short: Checks whether a project has a contributions from Github users associated with a company or organization.
 motivation: >
   

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package contributorsWithOrgOrCompany
+package contributorsFromOrgOrCompany
 
 import (
 	"testing"
