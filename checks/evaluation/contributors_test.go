@@ -20,134 +20,75 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func TestContributors(t *testing.T) {
 	t.Parallel()
-	testCases := []struct {
+	type args struct { //nolint
 		name     string
-		raw      *checker.ContributorsData
-		expected checker.CheckResult
+		findings []finding.Finding
+	}
+	tests := []struct {
+		name string
+		args args
+		want checker.CheckResult
 	}{
 		{
-			name: "No data",
-			raw:  nil,
-			expected: checker.CheckResult{
-				Version: 2,
-				Score:   -1,
-				Reason:  "internal error: empty raw data",
+			name: "Only has two positive outcomes",
+			args: args{
+				name: "Contributors",
+				findings: []finding.Finding{
+					{
+						Probe:   "contributorsFromOrgOrCompany",
+						Outcome: finding.OutcomePositive,
+					},
+					{
+						Probe:   "contributorsFromOrgOrCompany",
+						Outcome: finding.OutcomePositive,
+					},
+				},
 			},
-		},
-		{
-			name: "No contributors",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{},
-			},
-			expected: checker.CheckResult{
-				Version: 2,
+			want: checker.CheckResult{
 				Score:   0,
-				Reason:  "0 different organizations found -- score normalized to 0",
+				Version: 2,
+				Name:    "contributorsFromOrgOrCompany",
+				Reason:  "project has 2 contributing companies or organizations",
 			},
-		},
-		{
-			name: "Contributors with orgs and number of contributions is greater than 5 with companies",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{
+		}, {
+			name: "Has two positive outcomes",
+			args: args{
+				name: "Contributors",
+				findings: []finding.Finding{
 					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org1",
-							},
-						},
-						Companies: []string{"company1"},
+						Probe:   "contributorsFromOrgOrCompany",
+						Outcome: finding.OutcomePositive,
 					},
 					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
+						Probe:   "contributorsFromOrgOrCompany",
+						Outcome: finding.OutcomePositive,
 					},
 					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org3",
-							},
-						},
-					},
-					{
-						NumContributions: 1,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
+						Probe:   "contributorsFromOrgOrCompany",
+						Outcome: finding.OutcomePositive,
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Version: 2,
+			want: checker.CheckResult{
 				Score:   10,
-				Reason:  "4 different organizations found -- score normalized to 10",
-			},
-		},
-		{
-			name: "Contributors with orgs and number of contributions is greater than 5 without companies",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org1",
-							},
-						},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org3",
-							},
-						},
-					},
-					{
-						NumContributions: 1,
-						Organizations: []clients.User{
-							{
-								Login: "org10",
-							},
-						},
-					},
-				},
-			},
-			expected: checker.CheckResult{
 				Version: 2,
-				Score:   10,
-				Reason:  "3 different organizations found -- score normalized to 10",
+				Name:    "contributorsFromOrgOrCompany",
+				Reason:  "project has 3 contributing companies or organizations",
 			},
 		},
 	}
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := Contributors("", &utests.TestDetailLogger{}, tc.raw)
-			if !cmp.Equal(result, tc.expected, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:govet
-				t.Errorf("expected %v, got %v", tc.expected, cmp.Diff(tc.expected, result, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			result := Contributors("contributorsFromOrgOrCompany", tt.args.findings)
+			if !cmp.Equal(result, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:govet
+				t.Errorf("expected %v, got %v", tt.want, cmp.Diff(tt.want, result, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
 			}
 		})
 	}

@@ -24,3 +24,4 @@ remediation:
   effort: High
   text:
     - Encourage community-driven contributions to your project.
+    - Ask contributors to join their respective organizations, if they have not already. Otherwise, there is no remediation for this check; it simply provides insight into which organizations have contributed so that you can make a trust-based decision based on that information.

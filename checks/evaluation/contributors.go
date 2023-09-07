@@ -16,60 +16,38 @@ package evaluation
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 )
 
 const (
-	minContributionsPerUser    = 5
 	numberCompaniesForTopScore = 3
 )
 
-// Contributors applies the score policy for the Contributors check.
-func Contributors(name string, dl checker.DetailLogger,
-	r *checker.ContributorsData,
+func Contributors(name string,
+	findings []finding.Finding,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		contributorsFromOrgOrCompany.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	entities := make(map[string]bool)
+	reason := fmt.Sprintf("project has %d contributing companies or organizations", len(findings))
 
-	for _, user := range r.Users {
-		if user.NumContributions < minContributionsPerUser {
-			continue
-		}
-
-		for _, org := range user.Organizations {
-			entities[org.Login] = true
-		}
-
-		for _, comp := range user.Companies {
-			entities[comp] = true
-		}
+	if len(findings) >= numberCompaniesForTopScore {
+		// Return max score. This may need changing if other probes
+		// are added for other contributors metrics. Right now, it the
+		// scoring is designed for a single probe that returns true
+		// or false.
+		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	names := []string{}
-	for c := range entities {
-		names = append(names, c)
-	}
-
-	sort.Strings(names)
-
-	if len(names) > 0 {
-		dl.Info(&checker.LogMessage{
-			Text: fmt.Sprintf("contributors work for %v", strings.Join(names, ",")),
-		})
-	} else {
-		dl.Warn(&checker.LogMessage{
-			Text: "no contributors have an org or company",
-		})
-	}
-
-	reason := fmt.Sprintf("%d different organizations found", len(entities))
-	return checker.CreateProportionalScoreResult(name, reason, len(entities), numberCompaniesForTopScore)
+	return checker.CreateMinScoreResult(name, reason)
 }

@@ -23,7 +23,8 @@ import (
 )
 
 // Contributors retrieves the raw data for the Contributors check.
-func Contributors(c clients.RepoClient) (checker.ContributorsData, error) {
+func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
+	c := cr.RepoClient
 	var users []clients.User
 
 	contribs, err := c.ListContributors()

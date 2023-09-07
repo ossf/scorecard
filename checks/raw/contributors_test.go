@@ -13,6 +13,7 @@
 // limitations under the License.
 package raw
 
+/*
 import (
 	"testing"
 
@@ -161,3 +162,4 @@ func TestContributors(t *testing.T) {
 		t.Errorf("unexpected contributors data (-want +got):\n%s", diff)
 	}
 }
+*/

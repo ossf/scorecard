@@ -19,6 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
 )
 
 // CheckContributors is the registered name for Contributors.
@@ -34,17 +35,23 @@ func init() {
 
 // Contributors run Contributors check.
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.Contributors(c.RepoClient)
+	rawData, err := raw.Contributors(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckContributors, e)
 	}
 
-	// Return raw results.
-	if c.RawResults != nil {
-		c.RawResults.ContributorsResults = rawData
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.ContributorsResults = rawData
+
+	// Evaluate the probes.
+	findings, err := evaluateProbes(c, pRawResults, probes.Contributors)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckContributors, e)
 	}
 
 	// Return the score evaluation.
-	return evaluation.Contributors(CheckContributors, c.Dlogger, &rawData)
+	return evaluation.Contributors(CheckContributors, findings)
 }
