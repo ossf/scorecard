@@ -17,7 +17,7 @@ short: Checks whether a project has a contributions from Github users associated
 motivation: >
   
 implementation: >
-  This probe looks for the the companies and organizations that contributors of the project belong to. 
+  This probe looks for the companies and organizations that contributors to the project belong to. 
 outcome:
   - If the project has contributions from Github users belonging to an organization or company, then the probe returns OutcomePositive.
 remediation:
