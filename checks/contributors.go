@@ -53,5 +53,5 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.Contributors(CheckContributors, findings)
+	return evaluation.Contributors(CheckContributors, findings, c.Dlogger)
 }

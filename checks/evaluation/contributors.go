@@ -29,6 +29,7 @@ const (
 
 func Contributors(name string,
 	findings []finding.Finding,
+	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		contributorsFromOrgOrCompany.Probe,
@@ -46,6 +47,7 @@ func Contributors(name string,
 		// are added for other contributors metrics. Right now, it the
 		// scoring is designed for a single probe that returns true
 		// or false.
+		// checker.LogFindings(nonNegativeFindings(findings), dl) TODO: Uncomment this line
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 

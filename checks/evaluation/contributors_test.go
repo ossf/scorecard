@@ -16,69 +16,53 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestContributors(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint
+	tests := []struct {
 		name     string
 		findings []finding.Finding
-	}
-	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		result   scut.TestReturn
 	}{
 		{
 			name: "Only has two positive outcomes",
-			args: args{
-				name: "Contributors",
-				findings: []finding.Finding{
-					{
-						Probe:   "contributorsFromOrgOrCompany",
-						Outcome: finding.OutcomePositive,
-					},
-					{
-						Probe:   "contributorsFromOrgOrCompany",
-						Outcome: finding.OutcomePositive,
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   0,
-				Version: 2,
-				Name:    "contributorsFromOrgOrCompany",
-				Reason:  "project has 2 contributing companies or organizations",
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfInfo: 0,
 			},
 		}, {
 			name: "Has two positive outcomes",
-			args: args{
-				name: "Contributors",
-				findings: []finding.Finding{
-					{
-						Probe:   "contributorsFromOrgOrCompany",
-						Outcome: finding.OutcomePositive,
-					},
-					{
-						Probe:   "contributorsFromOrgOrCompany",
-						Outcome: finding.OutcomePositive,
-					},
-					{
-						Probe:   "contributorsFromOrgOrCompany",
-						Outcome: finding.OutcomePositive,
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   10,
-				Version: 2,
-				Name:    "contributorsFromOrgOrCompany",
-				Reason:  "project has 3 contributing companies or organizations",
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 0,
 			},
 		},
 	}
@@ -86,9 +70,10 @@ func TestContributors(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := Contributors("contributorsFromOrgOrCompany", tt.args.findings)
-			if !cmp.Equal(result, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:govet
-				t.Errorf("expected %v, got %v", tt.want, cmp.Diff(tt.want, result, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := Contributors(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Fatalf(tt.name)
 			}
 		})
 	}
