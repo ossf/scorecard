@@ -27,9 +27,13 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
+<<<<<<< HEAD
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+=======
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
+>>>>>>> :seedling: Add license probe
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -77,6 +81,9 @@ var (
 		fuzzedWithPropertyBasedTypescript.Run,
 		fuzzedWithPropertyBasedJavascript.Run,
 	}
+	License = []ProbeImpl{
+		hasLicenseFile.Run,
+	}
 )
 
 //nolint:gochecknoinits
@@ -85,6 +92,7 @@ func init() {
 		DependencyToolUpdates,
 		SecurityPolicy,
 		Fuzzing,
+		License,
 	})
 }
 
