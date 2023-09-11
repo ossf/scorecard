@@ -598,7 +598,7 @@ This check looks for the following filenames in the project's last five
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
 
-This check ignores source code-only releases that are bundled by GitHub and looks for the most recent release with a associated artifact.
+This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
 Note: The check does not verify the signatures.
  
