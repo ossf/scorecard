@@ -21,8 +21,11 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/contributors"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+)
+
+const (
+	minContributionsPerUser = 5
 )
 
 //go:embed *.yml
@@ -35,5 +38,45 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 	//nolint:wrapcheck
-	return contributors.Run(raw, fs, Probe)
+	var findings []finding.Finding
+
+	users := raw.ContributorsResults.Users
+
+	if len(users) == 0 {
+		return findings, Probe, nil
+	}
+
+	entities := make(map[string]bool)
+
+	for _, user := range users {
+		if user.NumContributions < minContributionsPerUser {
+			continue
+		}
+
+		for _, org := range user.Organizations {
+			if _, ok := entities[org.Login]; !ok {
+				entities[org.Login] = true
+			}
+		}
+
+		for _, comp := range user.Companies {
+			if _, ok := entities[comp]; !ok {
+				entities[comp] = true
+			}
+		}
+	}
+
+	// Convert entities map to findings slice
+	for e := range entities {
+		f, err := finding.NewWith(fs, Probe,
+			fmt.Sprintf("%s contributor org/company found", e), nil,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+
+		findings = append(findings, *f)
+	}
+
+	return findings, Probe, nil
 }
