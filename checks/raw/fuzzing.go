@@ -317,7 +317,6 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 		if len(data.files) != 0 {
 			dataFiles = append(dataFiles, data.files...)
 			// This means no fuzz funcs matched for this language.
-
 		}
 	}
 
