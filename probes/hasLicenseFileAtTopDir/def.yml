@@ -1,0 +1,26 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasLicenseFileAtTopDir
+short: Check that the project has a license file
+motivation: >
+  A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
+implementation: >
+ This check will detect files in the top-level directory with any combination of the following names and extensions:LICENSE, LICENCE, COPYING, COPYRIGHT and having common extensions such as .html, .txt, or .md. It will also detect these files in a directory named LICENSES. (Files in a LICENSES directory are typically named as their SPDX license identifier followed by an appropriate file extension, as described in the REUSE Specification.)
+outcome:
+  - If the projects license file is found at the top level, then the outcome is positive.
+remediation:
+  effort: Low
+  text:
+    - Place the license file at the top level of the project source tree.

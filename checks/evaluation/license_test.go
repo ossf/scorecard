@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -35,21 +36,109 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasLicenseFile",
 					Outcome: finding.OutcomePositive,
 				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasLicenseFileAtTopDir",
+					Outcome: finding.OutcomePositive,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
 				NumberOfInfo: 0,
 			},
 		}, {
-			name: "Negative outcome = Min score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
 					Outcome: finding.OutcomeNegative,
 				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasLicenseFileAtTopDir",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
+				NumberOfInfo: 0,
+			},
+		}, {
+			findings: []finding.Finding{
+				{
+					Probe:   "hasLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasLicenseFileAtTopDir",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        6,
+				NumberOfInfo: 0,
+			},
+		}, {
+			findings: []finding.Finding{
+				{
+					Probe:   "hasLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        -1,
+				NumberOfInfo: 0,
+				Error:        sce.ErrScorecardInternal,
+			},
+		}, {
+			findings: []finding.Finding{
+				{
+					Probe:   "hasLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasLicenseFileAtTopDir",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        9,
+				NumberOfInfo: 0,
+			},
+		}, {
+			findings: []finding.Finding{
+				{
+					Probe:   "hasLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasApprovedLicenseFile",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "hasLicenseFileAtTopDir",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        7,
 				NumberOfInfo: 0,
 			},
 		},

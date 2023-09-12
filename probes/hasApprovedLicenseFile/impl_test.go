@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package hasLicenseFile
+package hasApprovedLicenseFile
 
 import (
 	"testing"
@@ -35,13 +35,16 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "License file found and outcome should be positive",
+			name: "License file found and is approved: outcome should be positive",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
 						{
 							File: checker.File{
-								Path: "SECURITY.md",
+								Path: "LICENSE.md",
+							},
+							LicenseInformation: checker.License{
+								Approved: true,
 							},
 						},
 					},
@@ -52,10 +55,50 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "License file found and is not approved: outcome should be negative",
+			raw: &checker.RawResults{
+				LicenseResults: checker.LicenseData{
+					LicenseFiles: []checker.LicenseFile{
+						{
+							File: checker.File{
+								Path: "LICENSE.md",
+							},
+							LicenseInformation: checker.License{
+								Approved: false,
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+		},
+		{
 			name: "License file not found and outcome should be negative",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+		},
+		{
+			name: "License file found and outcome should be positive",
+			raw: &checker.RawResults{
+				LicenseResults: checker.LicenseData{
+					LicenseFiles: []checker.LicenseFile{
+						{
+							File: checker.File{
+								Path: "LICENSE.md",
+							},
+							LicenseInformation: checker.License{
+								Attribution: "wrong attribution",
+							},
+						},
+					},
 				},
 			},
 			outcomes: []finding.Outcome{

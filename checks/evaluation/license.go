@@ -18,7 +18,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasApprovedLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 )
 
 // License applies the score policy for the Fuzzing check.
@@ -29,6 +31,8 @@ func License(name string,
 	// We have 7 unique probes, each should have a finding.
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
+		hasApprovedLicenseFile.Probe,
+		hasLicenseFileAtTopDir.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -36,14 +40,33 @@ func License(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// Compute the score. This is currently configured for a single probe
-	// that returns positive or negative (whether the project has a license
-	// file at all).
+	// Compute the score.
+	score := 0
+	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
-			return checker.CreateMaxScoreResult(name, "project has license file")
+			switch f.Probe {
+			case hasApprovedLicenseFile.Probe:
+				score += scoreProbeOnce(f.Probe, m, 1)
+			case hasLicenseFileAtTopDir.Probe:
+				score += scoreProbeOnce(f.Probe, m, 3)
+			case hasLicenseFile.Probe:
+				score += scoreProbeOnce(f.Probe, m, 6)
+				m[f.Probe] = true
+			default:
+				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
 		}
 	}
-	return checker.CreateMinScoreResult(name, "project does not have a license file")
+	_, defined := m[hasLicenseFile.Probe]
+	if !defined {
+		if score > 0 {
+			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
+			return checker.CreateRuntimeErrorResult(name, e)
+		}
+		return checker.CreateMinScoreResult(name, "license file not detected")
+	}
+	return checker.CreateResultWithScore(name, "license file detected", score)
 }
