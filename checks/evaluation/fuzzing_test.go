@@ -48,23 +48,23 @@ func TestFuzzing(t *testing.T) {
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithPythonAtheris",
+						Probe:   "fuzzedWithPythonAtheris",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithCLibFuzzer",
+						Probe:   "fuzzedWithCLibFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithCppLibFuzzer",
+						Probe:   "fuzzedWithCppLibFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithRustCargofuzz",
+						Probe:   "fuzzedWithRustCargofuzz",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithJavaJazzerFuzzer",
+						Probe:   "fuzzedWithJavaJazzerFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
@@ -110,23 +110,23 @@ func TestFuzzing(t *testing.T) {
 						Outcome: finding.OutcomePositive,
 					},
 					{
-						Probe: "fuzzedWithPythonAtheris",
+						Probe:   "fuzzedWithPythonAtheris",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithCLibFuzzer",
+						Probe:   "fuzzedWithCLibFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithCppLibFuzzer",
+						Probe:   "fuzzedWithCppLibFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithRustCargofuzz",
+						Probe:   "fuzzedWithRustCargofuzz",
 						Outcome: finding.OutcomeNegative,
 					},
 					{
-						Probe: "fuzzedWithJavaJazzerFuzzer",
+						Probe:   "fuzzedWithJavaJazzerFuzzer",
 						Outcome: finding.OutcomeNegative,
 					},
 					{

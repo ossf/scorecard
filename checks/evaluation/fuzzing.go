@@ -18,18 +18,19 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
