@@ -74,7 +74,7 @@ func collectShellScriptInsecureDownloads(c *checker.CheckRequest, r *checker.Pin
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
-	}, validateShellScriptIsFreeOfInsecureDownloads, r)
+	}, validateShellScriptIsFreeOfInsecureDownloads, true, r)
 }
 
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
@@ -106,7 +106,7 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
-	}, validateDockerfileInsecureDownloads, r)
+	}, validateDockerfileInsecureDownloads, true, r)
 }
 
 var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
@@ -190,7 +190,7 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
-	}, validateDockerfilesPinning, r)
+	}, validateDockerfilesPinning, true, r)
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -321,7 +321,7 @@ func collectGitHubWorkflowScriptInsecureDownloads(c *checker.CheckRequest, r *ch
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubWorkflowIsFreeOfInsecureDownloads, r)
+	}, validateGitHubWorkflowIsFreeOfInsecureDownloads, true, r)
 }
 
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
@@ -409,7 +409,7 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r)
+	}, validateGitHubActionWorkflow, true, r)
 }
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check

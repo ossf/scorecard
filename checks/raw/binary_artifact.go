@@ -54,7 +54,7 @@ func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
-	}, checkBinaryFileContent, &files)
+	}, checkBinaryFileContent, true, &files)
 	if err != nil {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
@@ -199,7 +199,7 @@ func gradleWrapperValidated(c clients.RepoClient) (bool, error) {
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, checkWorkflowValidatesGradleWrapper, &gradleWrapperValidatingWorkflowFile)
+	}, checkWorkflowValidatesGradleWrapper, true, &gradleWrapperValidatingWorkflowFile)
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}

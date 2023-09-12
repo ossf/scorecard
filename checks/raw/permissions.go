@@ -57,7 +57,7 @@ func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, er
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubActionTokenPermissions, &data)
+	}, validateGitHubActionTokenPermissions, true, &data)
 
 	return data.results, err
 }

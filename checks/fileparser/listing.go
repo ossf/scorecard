@@ -73,9 +73,15 @@ type DoWhileTrueOnFileContent func(path string, content []byte, args ...interfac
 // Continues iterating along the matched files until onFileContent returns
 // either a false value or an error.
 func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
-	onFileContent DoWhileTrueOnFileContent, args ...interface{},
+	onFileContent DoWhileTrueOnFileContent, skipTests bool, args ...interface{},
 ) error {
 	predicate := func(filepath string) (bool, error) {
+		if skipTests {
+			// Filter out test files.
+			if isTestdataFile(filepath) {
+				return false, nil
+			}
+		}
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(filepath, matchPathTo)
 		if err != nil {

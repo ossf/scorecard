@@ -532,7 +532,7 @@ func TestOnMatchingFileContent(t *testing.T) {
 			result := OnMatchingFileContentDo(mockRepo, PathMatcher{
 				Pattern:       tt.shellPattern,
 				CaseSensitive: tt.caseSensitive,
-			}, x)
+			}, x, true)
 
 			if tt.wantErr && result == nil {
 				t.Errorf("OnMatchingFileContentDo() = %v, want %v test name %v", result, tt.wantErr, tt.name)

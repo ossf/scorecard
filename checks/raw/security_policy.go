@@ -50,7 +50,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 				Pattern:       data.files[idx].File.Path,
 				CaseSensitive: false,
-			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			}, checkSecurityPolicyFileContent, true, &data.files[idx].File, &data.files[idx].Information)
 			if err != nil {
 				return checker.SecurityPolicyData{}, err
 			}
@@ -89,7 +89,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			err := fileparser.OnMatchingFileContentDo(client, fileparser.PathMatcher{
 				Pattern:       filePattern,
 				CaseSensitive: false,
-			}, checkSecurityPolicyFileContent, &data.files[idx].File, &data.files[idx].Information)
+			}, checkSecurityPolicyFileContent, true, &data.files[idx].File, &data.files[idx].Information)
 			if err != nil {
 				return checker.SecurityPolicyData{}, err
 			}

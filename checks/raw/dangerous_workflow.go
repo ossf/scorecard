@@ -72,7 +72,7 @@ func DangerousWorkflow(c clients.RepoClient) (checker.DangerousWorkflowData, err
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubActionWorkflowPatterns, &data)
+	}, validateGitHubActionWorkflowPatterns, true, &data)
 
 	return data, err
 }

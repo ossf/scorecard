@@ -204,7 +204,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) (int, error) {
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, searchGitHubActionWorkflowCodeQL, &workflowPaths)
+	}, searchGitHubActionWorkflowCodeQL, true, &workflowPaths)
 	if err != nil {
 		return checker.InconclusiveResultScore, err
 	}
@@ -286,7 +286,7 @@ func sonarEnabled(c *checker.CheckRequest) (int, error) {
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
-	}, validateSonarConfig, &config)
+	}, validateSonarConfig, true, &config)
 	if err != nil {
 		return checker.InconclusiveResultScore, err
 	}
