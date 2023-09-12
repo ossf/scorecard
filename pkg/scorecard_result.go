@@ -108,23 +108,24 @@ func FormatResults(
 	results *ScorecardResult,
 	doc checks.Doc,
 	policy *spol.ScorecardPolicy,
+	output io.Writer,
 ) error {
 	var err error
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy, opts)
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatFJSON:
-		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatPJSON:
-		err = results.AsPJSON(os.Stdout)
+		err = results.AsPJSON(output)
 	case options.FormatRaw:
-		err = results.AsRawJSON(os.Stdout)
+		err = results.AsRawJSON(output)
 	default:
 		err = sce.WithMessage(
 			sce.ErrScorecardInternal,
