@@ -34,7 +34,7 @@ jobs:
     - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v3.0.18
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        stale-issue-message: 'Stale issue message'
+        stale-issue-message: 'Stale issue message - this issue will be closed in 7 days'
         stale-pr-message: 'Stale pull request message'
         stale-issue-label: 'no-issue-activity'
         exempt-issue-labels: 'priority,bug,good first issue'
