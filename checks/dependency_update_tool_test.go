@@ -51,7 +51,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -64,7 +64,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -103,7 +103,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -118,7 +118,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -136,7 +136,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
