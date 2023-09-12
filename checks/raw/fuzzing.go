@@ -35,6 +35,11 @@ const (
 	fuzzerPropertyBasedHaskell    = "HaskellPropertyBasedTesting"
 	fuzzerPropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
 	fuzzerPropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
+	fuzzerPythonAtheris           = "PythonAtherisFuzzer"
+	fuzzerCLibFuzzer              = "CLibFuzzer"
+	fuzzerCppLibFuzzer            = "CppLibFuzzer"
+	fuzzerRustCargoFuzz           = "RustCargoFuzzer"
+	fuzzerJavaJazzerFuzzer        = "JavaJazzerFuzzer"
 	// TODO: add more fuzzing check supports.
 )
 
@@ -47,8 +52,8 @@ type filesWithPatternStr struct {
 type languageFuzzConfig struct {
 	URL, Desc *string
 
-	// Pattern is according to path.Match.
-	filePattern string
+	// Patterns are according to path.Match.
+	filePatterns []string
 
 	funcPattern, Name string
 	// TODO: add more language fuzzing-related fields.
@@ -59,10 +64,10 @@ type languageFuzzConfig struct {
 var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	// Default fuzz patterns for Go.
 	clients.Go: {
-		filePattern: "*_test.go",
-		funcPattern: `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
-		Name:        fuzzerBuiltInGo,
-		URL:         asPointer("https://go.dev/doc/fuzz/"),
+		filePatterns: []string{"*_test.go"},
+		funcPattern:  `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
+		Name:         fuzzerBuiltInGo,
+		URL:          asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
@@ -80,7 +85,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.Haskell: {
-		filePattern: "*.hs",
+		filePatterns: []string{"*.hs"},
 		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
@@ -96,7 +101,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.JavaScript: {
-		filePattern: "*.js",
+		filePatterns: []string{"*.js"},
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedJavaScript,
@@ -105,13 +110,54 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 				"and test that specific properties are satisfied."),
 	},
 	clients.TypeScript: {
-		filePattern: "*.ts",
+		filePatterns: []string{"*.ts"},
 		// Look for direct imports of fast-check.
 		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
 		Name:        fuzzerPropertyBasedTypeScript,
 		Desc: asPointer(
 			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
+	},
+	clients.Python: {
+		filePatterns: []string{"*.py"},
+		// Look for direct imports of fast-check.
+		funcPattern: `import atheris`,
+		Name:        fuzzerPythonAtheris,
+		Desc: asPointer(
+			"Python fuzzing by way of Atheris"),
+	},
+	clients.C: {
+		filePatterns: []string{"*.c"},
+		// Look for direct imports of fast-check.
+		funcPattern: `LLVMFuzzerTestOneInput`,
+		Name:        fuzzerCLibFuzzer,
+		Desc: asPointer(
+			"Fuzzed with C LibFuzzer"),
+	},
+	clients.Cpp: {
+		filePatterns: []string{"*.cc", "*.cpp"},
+		// Look for direct imports of fast-check.
+		funcPattern: `LLVMFuzzerTestOneInput`,
+		Name:        fuzzerCppLibFuzzer,
+		Desc: asPointer(
+			"Fuzzed with cpp LibFuzzer"),
+	},
+	clients.Rust: {
+		filePatterns: []string{"*.rs"},
+		// Look for direct imports of fast-check.
+		funcPattern: `libfuzzer_sys`,
+		Name:        fuzzerRustCargoFuzz,
+		Desc: asPointer(
+			"Fuzzed with Cargo-fuzz"),
+	},
+	clients.Java: {
+		filePatterns: []string{"*.java"},
+		// Look for direct imports of fast-check.
+		funcPattern: `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
+		// funcPattern: `jazze`,
+		Name: fuzzerJavaJazzerFuzzer,
+		Desc: asPointer(
+			"Fuzzed with Jazzer fuzzer"),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -171,6 +217,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	prominentLangs := getProminentLanguages(langs)
 	for _, lang := range prominentLangs {
 		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
+		fmt.Print(files)
 		if e != nil {
 			return checker.FuzzingData{}, fmt.Errorf("%w", e)
 		}
@@ -254,22 +301,31 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 	// Get patterns for file and func.
 	// We use the file pattern in the matcher to match the test files,
 	// and put the func pattern in var data to match file contents (func names).
-	filePattern, funcPattern := pattern.filePattern, pattern.funcPattern
-	matcher := fileparser.PathMatcher{
-		Pattern:       filePattern,
-		CaseSensitive: false,
-	}
-	data.pattern = funcPattern
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
-	if err != nil {
-		return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
+	filePatterns, funcPattern := pattern.filePatterns, pattern.funcPattern
+	dataFiles := []checker.File{}
+
+	for _, filePattern := range filePatterns {
+		matcher := fileparser.PathMatcher{
+			Pattern:       filePattern,
+			CaseSensitive: false,
+		}
+		data.pattern = funcPattern
+		err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
+		if err != nil {
+			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
+		}
+		if len(data.files) != 0 {
+			dataFiles = append(dataFiles, data.files...)
+			// This means no fuzz funcs matched for this language.
+			//return false, nil, nil
+		}
 	}
 
-	if len(data.files) == 0 {
+	if len(dataFiles) == 0 {
 		// This means no fuzz funcs matched for this language.
 		return false, nil, nil
 	}
-	return true, data.files, nil
+	return true, dataFiles, nil
 }
 
 // This is the callback func for interface OnMatchingFileContentDo
@@ -322,7 +378,7 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	// Languages that have lines of code above average will be considered prominent.
 	ret := []clients.LanguageName{}
 	for lName, loC := range langMap {
-		if loC >= avgLoC {
+		if loC >= avgLoC/4.0 {
 			lang := clients.LanguageName(strings.ToLower(string(lName)))
 			ret = append(ret, lang)
 		}

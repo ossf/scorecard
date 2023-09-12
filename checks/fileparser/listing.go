@@ -76,10 +76,6 @@ func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatc
 	onFileContent DoWhileTrueOnFileContent, args ...interface{},
 ) error {
 	predicate := func(filepath string) (bool, error) {
-		// Filter out test files.
-		if isTestdataFile(filepath) {
-			return false, nil
-		}
 		// Filter out files based on path/names using the pattern.
 		b, err := isMatchingPath(filepath, matchPathTo)
 		if err != nil {

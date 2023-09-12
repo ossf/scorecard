@@ -20,6 +20,11 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
@@ -35,6 +40,11 @@ func Fuzzing(name string,
 	expectedProbes := []string{
 		fuzzedWithClusterFuzzLite.Probe,
 		fuzzedWithGoNative.Probe,
+		fuzzedWithPythonAtheris.Probe,
+		fuzzedWithCLibFuzzer.Probe,
+		fuzzedWithCppLibFuzzer.Probe,
+		fuzzedWithRustCargofuzz.Probe,
+		fuzzedWithJavaJazzerFuzzer.Probe,
 		fuzzedWithOneFuzz.Probe,
 		fuzzedWithOSSFuzz.Probe,
 		fuzzedWithPropertyBasedHaskell.Probe,

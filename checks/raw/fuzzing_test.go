@@ -261,8 +261,8 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
 			lang:              clients.LanguageName("not_a_supported_one"),
-			fileName:          "a_fuzz_test.py",
-			fileContent:       `def NotSupported (foo)`,
+			fileName:          "a_fuzz_test.php",
+			fileContent:       `function function-not-supported (foo)`,
 			wantErr:           true,
 		},
 	}
@@ -274,7 +274,10 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
-			fileMatchPattern := langSpecs.filePattern
+			fileMatchPattern := "";
+			if (len(langSpecs.filePatterns) > 0) {
+				fileMatchPattern = langSpecs.filePatterns[0]
+			}
 			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
 			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
 				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
