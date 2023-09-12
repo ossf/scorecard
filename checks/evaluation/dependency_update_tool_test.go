@@ -219,7 +219,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			got := DependencyUpdateTool(tt.name, tt.findings, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Fatalf(tt.name)
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}
