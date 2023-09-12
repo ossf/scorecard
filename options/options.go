@@ -29,18 +29,17 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo       string
-	Local      string
-	Commit     string
-	LogLevel   string
-	Format     string
-	NPM        string
-	PyPI       string
-	RubyGems   string
-	Nuget      string
-	PolicyFile string
-	// TODO(action): Add logic for writing results to file
-	ResultsFile string
+	Repo        string
+	Local       string
+	Commit      string
+	LogLevel    string
+	Format      string
+	NPM         string
+	PyPI        string
+	RubyGems    string
+	Nuget       string
+	PolicyFile  string
+	Output      string
 	ChecksToRun []string
 	Metadata    []string
 	CommitDepth int
