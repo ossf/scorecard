@@ -29,7 +29,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/data"
 )
 
-const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"
+const ciiBaseURL = "https://www.bestpractices.dev/projects.json"
 
 type ciiPageResp struct {
 	RepoURL    string `json:"repo_url"`
