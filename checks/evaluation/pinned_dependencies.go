@@ -38,10 +38,10 @@ type worklowPinningResult struct {
 
 // Weights used for proportional score.
 // This defines the priority of pinning a dependency over other dependencies.
-// The dependencies from all ecossystems are equally prioritized except
+// The dependencies from all ecosystems are equally prioritized except
 // for GitHub Actions. GitHub Actions can be GitHub-owned or from third-party
-// development. The GitHub Actions ecossystem has equal priority compared to other
-// ecossystems, but, within GitHub Actions, pinning third-party actions has more
+// development. The GitHub Actions ecosystem has equal priority compared to other
+// ecosystems, but, within GitHub Actions, pinning third-party actions has more
 // priority than pinning GitHub-owned actions.
 // https://github.com/ossf/scorecard/issues/802
 const (
@@ -120,8 +120,8 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	// GitHub Actions need to be handled separately since they are not in pr
 	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp)...)
 	// Only exisiting dependencies will be found in pr
-	// We will only score the ecossystem if there are dependencies
-	// This results in only existing ecossystems being included in the final score
+	// We will only score the ecosystem if there are dependencies
+	// This results in only existing ecosystems being included in the final score
 	for t := range pr {
 		scores = append(scores, checker.ProportionalScoreWeighted{
 			Success: pr[t].pinned,

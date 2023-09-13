@@ -345,7 +345,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "1 ecossystem pinned and 1 ecossystem unpinned",
+			name: "1 ecosystem pinned and 1 ecosystem unpinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -367,7 +367,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "1 ecossystem partially pinned",
+			name: "1 ecosystem partially pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -610,7 +610,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "2 unpinned dependencies for 1 ecossystem shows 2 warn messages",
+			name: "2 unpinned dependencies for 1 ecosystem shows 2 warn messages",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -632,7 +632,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "2 unpinned dependencies for 2 ecossystems shows 2 warn messages",
+			name: "2 unpinned dependencies for 2 ecosystems shows 2 warn messages",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{},
@@ -654,7 +654,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with GitHub-owned pinned",
+			name: "GitHub Actions ecosystem with GitHub-owned pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
@@ -673,7 +673,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with third-party pinned",
+			name: "GitHub Actions ecosystem with third-party pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
@@ -692,7 +692,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with GitHub-owned and third-party pinned",
+			name: "GitHub Actions ecosystem with GitHub-owned and third-party pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
@@ -718,7 +718,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with GitHub-owned and third-party unpinned",
+			name: "GitHub Actions ecosystem with GitHub-owned and third-party unpinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
@@ -744,7 +744,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with GitHub-owned pinned and third-party unpinned",
+			name: "GitHub Actions ecosystem with GitHub-owned pinned and third-party unpinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
@@ -770,7 +770,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecossystem with GitHub-owned unpinned and third-party pinned",
+			name: "GitHub Actions ecosystem with GitHub-owned unpinned and third-party pinned",
 			dependencies: []checker.Dependency{
 				{
 					Location: &checker.File{
