@@ -269,7 +269,7 @@ func (handler *branchesHandler) setup() error {
 		// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 		handler.data = new(defaultBranchData)
 		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil &&
-			!isPermissionsError(err) || len(handler.ruleSets) == 0 {
+			(!isPermissionsError(err) || len(handler.ruleSets) == 0) {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
