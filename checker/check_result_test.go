@@ -368,7 +368,7 @@ func TestCreateProportionalScoreWeighted(t *testing.T) {
 			},
 		},
 		{
-			name: "group with no weight does not matter to the score and group with 0 total does not count to the score, results in max score",
+			name: "group with 0 weight counts as max score and group with 0 total does not count",
 			scores: []ProportionalScoreWeighted{
 				{
 					Success: 2,
