@@ -432,24 +432,23 @@ func isGoUnpinnedDownload(cmd []string) bool {
 	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
 	semverRegex := regexp.MustCompile(`^v\d+\.\d+\.\d+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$`)
 
-	for i := 2; i < len(cmd); i++ {
-		// The -d flag instructs get to download but not install the packages
-		if strings.EqualFold(cmd[i], "-d") {
-			return false
-		}
-
+	for i := 1; i < len(cmd)-1; i++ {
 		// Skip all flags
 		// TODO skip other build flags which might take arguments
-		if slices.Contains([]string{"-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i]) {
+		for i < len(cmd)-1 && slices.Contains([]string{"-d", "-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i+1]) {
 			// Record the flag -insecure
-			if cmd[i] == "-insecure" {
+			if cmd[i+1] == "-insecure" {
 				insecure = true
 			}
-			continue
+			i++
 		}
 
+		if i+1 >= len(cmd) {
+			// this is case go get -d -v
+			return false
+		}
 		// TODO check more than one package
-		pkg := cmd[i]
+		pkg := cmd[i+1]
 		// Consider strings that are not URLs as local folders
 		// which are pinned.
 		regex := regexp.MustCompile(`\w+\.\w+/\w+`)
