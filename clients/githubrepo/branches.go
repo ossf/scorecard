@@ -364,6 +364,9 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 }
 
 func getDefaultBranchNameFrom(data *ruleSetData) string {
+	if data == nil || data.Repository.DefaultBranchRef.Name == nil {
+		return ""
+	}
 	return *data.Repository.DefaultBranchRef.Name
 }
 
