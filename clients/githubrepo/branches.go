@@ -546,6 +546,7 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		// A more complete approach would process all rules without bypass actors first,
 		// then process those with bypass actors. If no settings improve (due to rule layering),
 		// then we can ignore the bypass actors.
+		// https://github.com/ossf/scorecard/issues/3480
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
 	if base.RequireLastPushApproval == nil || readBoolPtr(translated.RequireLastPushApproval) {
