@@ -185,25 +185,3 @@ require (
 	google.golang.org/grpc v1.57.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-replace (
-	// https://deps.dev/advisory/OSV/GO-2021-0057?from=%2Fgo%2Fgithub.com%252Fbuger%252Fjsonparser%2Fv1.0.0
-	github.com/buger/jsonparser => github.com/buger/jsonparser v1.1.1
-	// https://deps.dev/advisory/OSV/GO-2020-0017?from=%2Fgo%2Fk8s.io%252Fclient-go%2Fv0.0.0-20200207030105-473926661c44
-	github.com/dgrijalva/jwt-go v0.0.0-20170104182250-a601269ab70c => github.com/golang-jwt/jwt v3.2.1+incompatible
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible => github.com/golang-jwt/jwt v3.2.1+incompatible
-	// This replace is for GHSA-qq97-vm5h-rrhg and GHSA-hqxw-f8mx-cpmw
-	github.com/docker/distribution => github.com/docker/distribution v2.8.2+incompatible
-	// This replace is for https://osv.dev/vulnerability/GHSA-r48q-9g5r-8q2h
-	github.com/emicklei/go-restful => github.com/emicklei/go-restful v2.16.0+incompatible
-	// https://go.googlesource.com/vulndb/+/refs/heads/master/reports/GO-2020-0020.yaml
-	github.com/gorilla/handlers => github.com/gorilla/handlers v1.3.0
-	// https://github.com/miekg/dns/issues/1037
-	github.com/miekg/dns => github.com/miekg/dns v1.1.25-0.20191211073109-8ebf2e419df7
-	//https://github.com/opencontainers/distribution-spec/security/advisories/GHSA-mc8v-mgrf-8f4m
-	github.com/opencontainers/image-spec => github.com/opencontainers/image-spec v1.0.2
-	// This replace is for https://nvd.nist.gov/vuln/detail/CVE-2021-3538
-	github.com/satori/go.uuid => github.com/satori/go.uuid v1.2.1-0.20181016170032-d91630c85102
-	// This replace is for https://github.com/advisories/GHSA-25xm-hr59-7c27
-	github.com/ulikunitz/xz => github.com/ulikunitz/xz v0.5.8
-)
