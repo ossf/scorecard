@@ -76,7 +76,7 @@ func TestFuzzing(t *testing.T) {
 			},
 			wantErr: false,
 			expected: scut.TestReturn{
-				NumberOfWarn:  6,
+				NumberOfWarn:  0,
 				NumberOfDebug: 0,
 				NumberOfInfo:  1,
 				Score:         10,
