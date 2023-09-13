@@ -134,7 +134,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateInconclusiveResult(name, "no dependencies found")
 	}
 
-	score := checker.CreateProportionalScoreWeighted(scores...)
+	score, err := checker.CreateProportionalScoreWeighted(scores...)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
 
 	if score == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "all dependencies are pinned")

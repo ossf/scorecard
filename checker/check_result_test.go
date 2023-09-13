@@ -139,6 +139,273 @@ func TestCreateProportionalScore(t *testing.T) {
 	}
 }
 
+func TestCreateProportionalScoreWeighted(t *testing.T) {
+	t.Parallel()
+	type want struct {
+		score int
+		err   bool
+	}
+	tests := []struct {
+		name   string
+		scores []ProportionalScoreWeighted
+		want   want
+	}{
+		{
+			name: "max result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+		{
+			name: "min result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 0,
+			},
+		},
+		{
+			name: "partial result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 2,
+			},
+		},
+		{
+			name: "partial result with 2 groups and normal weights",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 5,
+			},
+		},
+		{
+			name: "partial result with 2 groups and odd weights",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "all groups with 0 weight, no groups matter for the score, results in max score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+		{
+			name: "not all groups with 0 weight, only groups with weight matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "no total, results in inconclusive score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: -1,
+			},
+		},
+		{
+			name: "some groups with 0 total, only groups with total matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 2,
+			},
+		},
+		{
+			name: "any group with number of successes higher than total, results in inconclusive score and error",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: -1,
+				err:   true,
+			},
+		},
+		{
+			name: "only groups with weight and total matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "only groups with weight and total matter to the score but no groups have success, results in min score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 0,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 0,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 0,
+			},
+		},
+		{
+			name: "group with no weight does not matter to the score and group with 0 total does not count to the score, results in max score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   8,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := CreateProportionalScoreWeighted(tt.scores...)
+			if err != nil && !tt.want.err {
+				t.Errorf("CreateProportionalScoreWeighted unexpected error '%v'", err)
+				t.Fail()
+			}
+			if err == nil && tt.want.err {
+				t.Errorf("CreateProportionalScoreWeighted expected error and got none")
+				t.Fail()
+			}
+			if got != tt.want.score {
+				t.Errorf("CreateProportionalScoreWeighted() = %v, want %v", got, tt.want.score)
+			}
+		})
+	}
+}
+
 func TestNormalizeReason(t *testing.T) {
 	t.Parallel()
 	type args struct {

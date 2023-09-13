@@ -108,14 +108,37 @@ func CreateProportionalScore(success, total int) int {
 // CreateProportionalScoreWeighted creates the proportional score
 // between multiple successes over the total, but some proportions
 // are worth more.
-func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) int {
+func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, error) {
 	var ws, wt int
+	allWeightsZero := true
+	noScoreGroups := true
 	for _, score := range scores {
+		if score.Success > score.Total {
+			return InconclusiveResultScore, fmt.Errorf("%d successes is higher than %d total", score.Success, score.Total)
+		}
+		if score.Total != 0 {
+			noScoreGroups = false
+		} else {
+			// Group with 0 total, does not count for score
+			continue
+		}
+		if score.Weight != 0 {
+			allWeightsZero = false
+		}
+		// Group with zero weight, adds nothing to the score
+
 		ws += score.Success * score.Weight
 		wt += score.Total * score.Weight
 	}
+	if noScoreGroups {
+		return InconclusiveResultScore, nil
+	}
+	// If has score groups but no groups matter to the score, result in max score
+	if allWeightsZero {
+		return MaxResultScore, nil
+	}
 
-	return int(math.Min(float64(MaxResultScore*ws/wt), float64(MaxResultScore)))
+	return int(math.Min(float64(MaxResultScore*ws/wt), float64(MaxResultScore))), nil
 }
 
 // AggregateScores adds up all scores
