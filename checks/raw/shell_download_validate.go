@@ -406,15 +406,25 @@ func isNpmDownload(cmd []string) bool {
 
 	for i := 1; i < len(cmd); i++ {
 		// Search for get/install/update commands.
-		// `npm ci` wil verify all hashes are present.
 		if strings.EqualFold(cmd[i], "install") ||
 			strings.EqualFold(cmd[i], "i") ||
 			strings.EqualFold(cmd[i], "install-test") ||
-			strings.EqualFold(cmd[i], "update") {
+			strings.EqualFold(cmd[i], "update") ||
+			strings.EqualFold(cmd[i], "ci") {
 			return true
 		}
 	}
 	return false
+}
+
+func isNpmUnpinnedDownload(cmd []string) bool {
+	for i := 1; i < len(cmd); i++ {
+		// `npm ci` wil verify all hashes are present.
+		if strings.EqualFold(cmd[i], "ci") {
+			return false
+		}
+	}
+	return true
 }
 
 func isGoDownload(cmd []string) bool {
@@ -826,7 +836,7 @@ func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.N
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(false),
+				Pinned: asBoolPointer(!isNpmUnpinnedDownload(c)),
 				Type:   checker.DependencyUseTypeNpmCommand,
 			},
 		)
