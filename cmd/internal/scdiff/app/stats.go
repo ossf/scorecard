@@ -46,10 +46,8 @@ var (
 		Use:   "stats [flags] FILE",
 		Short: "Summarize stats for a golden file",
 		Long:  `Summarize stats for a golden file`,
+		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
-				return errMissingInputFiles
-			}
 			f1, err := os.Open(args[0])
 			if err != nil {
 				return fmt.Errorf("opening %q: %w", args[0], err)

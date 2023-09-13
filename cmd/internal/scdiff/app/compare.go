@@ -36,18 +36,15 @@ func init() {
 }
 
 var (
-	errMissingInputFiles = errors.New("missing input file(s)")
-	errResultsDiffer     = errors.New("results differ")
-	errNumResults        = errors.New("number of results being compared differ")
+	errResultsDiffer = errors.New("results differ")
+	errNumResults    = errors.New("number of results being compared differ")
 
 	compareCmd = &cobra.Command{
 		Use:   "compare [flags] FILE1 FILE2",
 		Short: "Compare Scorecard results",
 		Long:  `Compare Scorecard results`,
+		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
-				return errMissingInputFiles
-			}
 			f1, err := os.Open(args[0])
 			if err != nil {
 				return fmt.Errorf("opening %q: %w", args[0], err)
