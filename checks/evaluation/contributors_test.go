@@ -41,8 +41,24 @@ func TestContributors(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
+				Score:        6,
 				NumberOfInfo: 0,
+			},
+		}, {
+			name: "Test negative logging",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        6,
+				NumberOfWarn: 1,
 			},
 		}, {
 			name: "Has three positive outcomes",
