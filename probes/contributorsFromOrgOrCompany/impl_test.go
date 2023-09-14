@@ -150,8 +150,7 @@ func Test_Run(t *testing.T) {
 				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.err, err, cmpopts.EquateErrors()))
 			}
 			if err != nil {
-				t.Fatal(err)
-				return
+				t.Error(err)
 			}
 
 			if diff := cmp.Diff(Probe, s); diff != "" {
