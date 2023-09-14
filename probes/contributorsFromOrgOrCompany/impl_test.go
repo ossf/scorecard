@@ -45,7 +45,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Should be 'comp1', 'comp2', 'Login'",
+			name: "Test that both User.Companies and User.Organizations are included",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
@@ -69,7 +69,7 @@ func Test_Run(t *testing.T) {
 				finding.OutcomePositive,
 			},
 		}, {
-			name: "Should be 'comp1', 'comp2', 'comp3', 'comp4', 'Login1', 'Login2'",
+			name: "Test multiple users",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
@@ -105,7 +105,7 @@ func Test_Run(t *testing.T) {
 				finding.OutcomePositive,
 			},
 		}, {
-			name: "Should be 'comp1', 'comp2', 'Login1' V2. The second user has too few contributions to be considered",
+			name: "Test multiple users where one user has insufficient contributions.",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Users: []clients.User{
