@@ -15,11 +15,12 @@ package pkg
 
 import (
 	"context"
-	"reflect"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/localdir"
@@ -119,15 +120,16 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 }
 
+
 func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		uri	string
+		uri string
 		commitSHA string
 	}
 	tests := []struct {
 		name    string
-		args    args
+		args    args 
 		want    ScorecardResult
 		wantErr bool
 	}{
@@ -137,11 +139,14 @@ func TestRunScorecard(t *testing.T) {
 				uri: "github.com/ossf/scorecard",
 				commitSHA: "",
 			},
-			want:    ScorecardResult{
+			want: ScorecardResult{
 				Repo: RepoInfo{
-					Name:      "github.com/ossf/scorecard",
+					Name: "github.com/ossf/scorecard",
 				},
-				Date: time.Now()},
+				Scorecard: ScorecardInfo{
+					CommitSHA: "unknown",
+				},
+			},
 			wantErr: false,
 		},
 	}
@@ -161,8 +166,6 @@ func TestRunScorecard(t *testing.T) {
 				return nil
 			})
 
-
-
 			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
 				if tt.args.commitSHA == "" {
 					return []clients.Commit{}, nil
@@ -179,9 +182,14 @@ func TestRunScorecard(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
+			// if !reflect.DeepEqual(got, tt.want) {
+			// 	t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
+			// }
+			
+			if !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(ScorecardResult{}, "Date")) { //nolint:govet
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, cmpopts.IgnoreFields(ScorecardResult{}, "Date"))) //nolint:lll
 			}
+
 		})
 	}
 }
