@@ -30,6 +30,7 @@ import (
 )
 
 func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {
+	t.Helper()
 	// Helper variables to mock Scorecard results
 	date, e := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
 	t.Logf("date: %v", date)
