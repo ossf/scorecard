@@ -37,7 +37,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
-	//nolint:wrapcheck
 	var findings []finding.Finding
 
 	users := raw.ContributorsResults.Users
