@@ -393,8 +393,3 @@ require (
 	sigs.k8s.io/kind v0.20.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace (
-	github.com/sigstore/cosign => github.com/sigstore/cosign v1.12.0
-	github.com/theupdateframework/go-tuf => github.com/theupdateframework/go-tuf v0.3.0
-)
