@@ -43,5 +43,5 @@ jobs:
         days-before-pr-stale: '10'
         days-before-pr-close: '20'
         days-before-issue-stale: '60'
-        days-before-issue-close: '67'
-        operations-per-run: '400'
+        days-before-issue-close: '7'
+        operations-per-run: '100'
