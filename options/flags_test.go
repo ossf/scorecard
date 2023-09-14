@@ -43,6 +43,7 @@ func TestOptions_AddFlags(t *testing.T) {
 				ChecksToRun: []string{"check1", "check2"},
 				PolicyFile:  "policy-file",
 				Format:      "json",
+				Output:      "result.json",
 			},
 		},
 	}
@@ -101,6 +102,16 @@ func TestOptions_AddFlags(t *testing.T) {
 			// check FlagFormat
 			if cmd.Flag(FlagFormat).Value.String() != tt.opts.Format {
 				t.Errorf("expected FlagFormat to be %q, but got %q", tt.opts.Format, cmd.Flag(FlagFormat).Value.String())
+			}
+
+			// check FlagOutput
+			if cmd.Flag(FlagOutput).Value.String() != tt.opts.Output {
+				t.Errorf("expected FlagOutput to be %q, but got %q", tt.opts.Output, cmd.Flag(FlagOutput).Value.String())
+			}
+
+			// check ShorthandFlagOutput
+			if cmd.Flag(FlagOutput).Shorthand != ShorthandFlagOutput {
+				t.Errorf("expected ShorthandFlagOutput to be %q, but got %q", ShorthandFlagOutput, cmd.Flag(FlagOutput).Shorthand)
 			}
 		})
 	}
