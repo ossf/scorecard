@@ -66,7 +66,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
-				finding.OutcomePositive)
+				finding.OutcomeNegative)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
