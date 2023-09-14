@@ -54,15 +54,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 
 		for _, org := range user.Organizations {
-			if _, ok := entities[org.Login]; !ok {
-				entities[org.Login] = true
-			}
+			entities[org.Login] = true
 		}
 
 		for _, comp := range user.Companies {
-			if _, ok := entities[comp]; !ok {
-				entities[comp] = true
-			}
+			entities[comp] = true
 		}
 	}
 
