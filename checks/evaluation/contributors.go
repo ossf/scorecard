@@ -27,6 +27,7 @@ const (
 	numberCompaniesForTopScore = 3
 )
 
+// Contributors applies the score policy for the Contributors check.
 func Contributors(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
