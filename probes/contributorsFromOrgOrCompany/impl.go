@@ -42,6 +42,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	users := raw.ContributorsResults.Users
 
 	if len(users) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Project does not have contributors.", nil,
+			finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+
+		findings = append(findings, *f)
 		return findings, Probe, nil
 	}
 
@@ -59,6 +67,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		for _, comp := range user.Companies {
 			entities[comp] = true
 		}
+	}
+
+	if len(entities) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"No companies/organizations have contributed to the project.", nil,
+			finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+
+		findings = append(findings, *f)
+		return findings, Probe, nil
 	}
 
 	// Convert entities map to findings slice
