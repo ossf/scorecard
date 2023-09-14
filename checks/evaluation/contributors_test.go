@@ -45,7 +45,7 @@ func TestContributors(t *testing.T) {
 				NumberOfInfo: 0,
 			},
 		}, {
-			name: "Has two positive outcomes",
+			name: "Has three positive outcomes",
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
