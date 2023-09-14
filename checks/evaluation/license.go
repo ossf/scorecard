@@ -28,7 +28,7 @@ func License(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 7 unique probes, each should have a finding.
+	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
 		hasApprovedLicenseFile.Probe,
