@@ -84,6 +84,17 @@ func Test_Run(t *testing.T) {
 				finding.OutcomeNegative,
 			},
 		},
+		{
+			name: "License file is nil",
+			raw: &checker.RawResults{
+				LicenseResults: checker.LicenseData{
+					LicenseFiles: nil,
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
