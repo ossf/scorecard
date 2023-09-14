@@ -45,7 +45,6 @@ func Test_Run(t *testing.T) {
 							},
 							LicenseInformation: checker.License{
 								Attribution: checker.LicenseAttributionTypeAPI,
-								Approved:    true,
 							},
 						},
 					},
@@ -77,7 +76,6 @@ func Test_Run(t *testing.T) {
 							},
 							LicenseInformation: checker.License{
 								Attribution: checker.LicenseAttributionTypeHeuristics,
-								Approved:    true,
 							},
 						},
 					},
@@ -98,7 +96,6 @@ func Test_Run(t *testing.T) {
 							},
 							LicenseInformation: checker.License{
 								Attribution: "wrong_attribution",
-								Approved:    true,
 							},
 						},
 					},
