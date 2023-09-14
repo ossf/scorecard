@@ -45,10 +45,10 @@ func Contributors(name string,
 
 	if len(findings) >= numberCompaniesForTopScore {
 		// Return max score. This may need changing if other probes
-		// are added for other contributors metrics. Right now, it the
+		// are added for other contributors metrics. Right now, the
 		// scoring is designed for a single probe that returns true
 		// or false.
-		// checker.LogFindings(nonNegativeFindings(findings), dl) TODO: Uncomment this line
+		checker.LogFindings(nonNegativeFindings(findings), dl)
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 

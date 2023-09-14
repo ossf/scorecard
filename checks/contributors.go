@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckContributors is the registered name for Contributors.
@@ -46,7 +47,7 @@ func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults.ContributorsResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, pRawResults, probes.Contributors)
+	findings, err := zrunner.Run(pRawResults, probes.Contributors)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckContributors, e)
