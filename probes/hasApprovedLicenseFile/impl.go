@@ -46,17 +46,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
 		if licenseFile.LicenseInformation.Approved {
-			if licenseFile.LicenseInformation.Approved {
-				msg := "License file is of approved type"
+			msg := "License file is of approved type"
 
-				f, err := finding.NewWith(fs, Probe,
-					msg, nil,
-					finding.OutcomePositive)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				return []finding.Finding{*f}, Probe, nil
+			f, err := finding.NewWith(fs, Probe,
+				msg, nil,
+				finding.OutcomePositive)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
+			return []finding.Finding{*f}, Probe, nil
 		}
 	}
 
