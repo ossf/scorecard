@@ -71,7 +71,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 			return []finding.Finding{*f}, Probe, nil
-		default:
 		}
 	}
 

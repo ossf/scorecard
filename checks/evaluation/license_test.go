@@ -46,7 +46,7 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MaxResultScore,
+				Score: checker.MaxResultScore,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -64,7 +64,7 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
+				Score: checker.MinResultScore,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -82,7 +82,7 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        6,
+				Score: 6,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -96,8 +96,8 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        -1,
-				Error:        sce.ErrScorecardInternal,
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -115,7 +115,7 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        9,
+				Score: 9,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -133,7 +133,7 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        7,
+				Score: 7,
 			},
 		},
 	}
