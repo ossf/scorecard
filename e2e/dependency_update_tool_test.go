@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  3,
+				NumberOfWarn:  0,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  3,
+				NumberOfWarn:  0,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}

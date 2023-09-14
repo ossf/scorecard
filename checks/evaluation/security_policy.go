@@ -25,7 +25,7 @@ import (
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
-func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult {
+func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
@@ -64,8 +64,17 @@ func SecurityPolicy(name string, findings []finding.Finding) checker.CheckResult
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
+
+		// Log all findings.
+		checker.LogFindings(findings, dl)
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
+
+	// Log all findings.
+	// NOTE: if the score is checker.MaxResultScore, then all findings are positive.
+	// If the score is less than checker.MaxResultScore, some findings are negative,
+	// so we log both positive and negative findings.
+	checker.LogFindings(findings, dl)
 
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }

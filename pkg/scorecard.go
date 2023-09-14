@@ -165,12 +165,10 @@ func RunScorecard(ctx context.Context,
 		// - `--probes X,Y`
 		// - `--check-definitions-file path/to/config.yml
 		// NOTE: we discard the returned error because the errors are
-		// already cotained in the findings and we want to return the findings
+		// already contained in the findings and we want to return the findings
 		// to users.
 		// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
-		// Note: we discard the error because each probe's error is reported within
-		// the probe and we don't want the entire scorecard run to fail if a single error
-		// is encountered.
+		// We also don't want the entire scorecard run to fail if a single error is encountered.
 		//nolint:errcheck
 		findings, _ = zrunner.Run(&ret.RawResults, probes.All)
 		ret.Findings = findings
