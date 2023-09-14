@@ -13,16 +13,16 @@
 # limitations under the License.
 
 id: contributorsFromOrgOrCompany
-short: Checks whether a project has a contributions from Github users associated with a company or organization.
+short: Checks whether a project has a contributions from users associated with a company or organization.
 motivation: >
   This probe tries to determine if the project has recent contributors from multiple organizations (e.g., companies). 
 
   Some projects cannot meet this requirement, such as small projects with only one active participant, or projects with a narrow scope that cannot attract the interest of multiple organizations. See Code Reviews for more information about evaluating projects with a small number of participants.
   
 implementation: >
-  The probe looks at the Company field on the GitHub user profile for authors of recent commits. To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits.
+  The probe looks at the Company field on the user profile for authors of recent commits. To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits.
 outcome:
-  - If the project has contributions from Github users belonging to an organization or company, then the probe returns OutcomePositive.
+  - If the project has contributions from users belonging to an organization or company, then the probe returns OutcomePositive.
 remediation:
   effort: High
   text:
