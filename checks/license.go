@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckLicense is the registered name for License.
@@ -49,10 +50,10 @@ func License(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults.LicenseResults = rawData
 
 	// Evaluate the probes.
-	findings, err := evaluateProbes(c, pRawResults, probes.License)
+	findings, err := zrunner.Run(pRawResults, probes.License)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckContributors, e)
+		return checker.CreateRuntimeErrorResult(CheckLicense, e)
 	}
 
 	return evaluation.License(CheckLicense, findings, c.Dlogger)

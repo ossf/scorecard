@@ -43,8 +43,6 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:        nil,
 				Score:        9, // Does not have approved format
-				NumberOfInfo: 2,
-				NumberOfWarn: 1,
 			},
 			err: nil,
 		},
@@ -54,7 +52,6 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:        nil,
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 3,
 			},
 			err: nil,
 		},
