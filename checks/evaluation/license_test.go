@@ -47,7 +47,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
-				NumberOfInfo: 0,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -66,7 +65,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfInfo: 0,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -85,7 +83,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        6,
-				NumberOfInfo: 0,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -100,7 +97,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        -1,
-				NumberOfInfo: 0,
 				Error:        sce.ErrScorecardInternal,
 			},
 		}, {
@@ -120,7 +116,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        9,
-				NumberOfInfo: 0,
 			},
 		}, {
 			findings: []finding.Finding{
@@ -139,7 +134,6 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        7,
-				NumberOfInfo: 0,
 			},
 		},
 	}
@@ -150,7 +144,7 @@ func TestLicense(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			got := License(tt.name, tt.findings, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Fatalf(tt.name)
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}
