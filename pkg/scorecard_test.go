@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
@@ -120,23 +119,22 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 }
 
-
 func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		uri string
+		uri       string
 		commitSHA string
 	}
 	tests := []struct {
 		name    string
-		args    args 
+		args    args
 		want    ScorecardResult
 		wantErr bool
 	}{
 		{
 			name: "empty commits repos should return repo details but no checks",
 			args: args{
-				uri: "github.com/ossf/scorecard",
+				uri:       "github.com/ossf/scorecard",
 				commitSHA: "",
 			},
 			want: ScorecardResult{
@@ -182,14 +180,9 @@ func TestRunScorecard(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			// if !reflect.DeepEqual(got, tt.want) {
-			// 	t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
-			// }
-			
 			if !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(ScorecardResult{}, "Date")) { //nolint:govet
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, cmpopts.IgnoreFields(ScorecardResult{}, "Date"))) //nolint:lll
 			}
-
 		})
 	}
 }
