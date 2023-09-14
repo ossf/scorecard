@@ -34,7 +34,7 @@ func TestOptions_Validate(t *testing.T) {
 		RubyGems          string
 		Nuget             string
 		PolicyFile        string
-		ResultsFile       string
+		Output            string
 		ChecksToRun       []string
 		Metadata          []string
 		ShowDetails       bool
@@ -102,7 +102,7 @@ func TestOptions_Validate(t *testing.T) {
 				RubyGems:          tt.fields.RubyGems,
 				Nuget:             tt.fields.Nuget,
 				PolicyFile:        tt.fields.PolicyFile,
-				ResultsFile:       tt.fields.ResultsFile,
+				Output:            tt.fields.Output,
 				ChecksToRun:       tt.fields.ChecksToRun,
 				Metadata:          tt.fields.Metadata,
 				ShowDetails:       tt.fields.ShowDetails,
