@@ -121,12 +121,10 @@ func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, 
 		if score.Success > score.Total {
 			return InconclusiveResultScore, fmt.Errorf("%w: %d, %d", errSuccessTotal, score.Success, score.Total)
 		}
-		if score.Total != 0 {
-			noScoreGroups = false
-		} else {
-			// Group with 0 total, does not count for score
-			continue
+		if score.Total == 0 {
+			continue // Group with 0 total, does not count for score
 		}
+		noScoreGroups = false
 		if score.Weight != 0 {
 			allWeightsZero = false
 		}
