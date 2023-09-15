@@ -51,9 +51,9 @@ const (
 	DetailDebug
 )
 
-// ErrSuccessTotal indicates a runtime error because number of success cases should
+// errSuccessTotal indicates a runtime error because number of success cases should
 // be smaller than the total cases to create a proportional score.
-var ErrSuccessTotal = errors.New("unexpected number of success is higher than total")
+var errSuccessTotal = errors.New("unexpected number of success is higher than total")
 
 // CheckResult captures result from a check run.
 //
@@ -119,7 +119,7 @@ func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, 
 	noScoreGroups := true
 	for _, score := range scores {
 		if score.Success > score.Total {
-			return InconclusiveResultScore, fmt.Errorf("%w: %d, %d", ErrSuccessTotal, score.Success, score.Total)
+			return InconclusiveResultScore, fmt.Errorf("%w: %d, %d", errSuccessTotal, score.Success, score.Total)
 		}
 		if score.Total != 0 {
 			noScoreGroups = false
