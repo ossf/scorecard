@@ -746,7 +746,7 @@ checks:
       example, by using build scripts controlled by the author of the PR or reading
       token in memory. This check does not detect whether untrusted code checkouts are
       used safely, for example, only on pull request that have been assigned a label.
-
+      
       Script Injection with Untrusted Context Variables: This pattern detects whether a
       workflow's inline script may execute untrusted input from attackers. This occurs when
       an attacker adds malicious commands and scripts to a context. When a workflow runs,
