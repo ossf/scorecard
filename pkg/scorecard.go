@@ -83,10 +83,10 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
 	}
 
-	if len(commits) > 0 {
-		return commits[0].SHA, nil
+	if len(commits) == 0 {
+		return "", errEmptyRepository
 	}
-	return "", errEmptyRepository
+	return commits[0].SHA, nil
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.

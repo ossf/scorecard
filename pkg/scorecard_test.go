@@ -180,8 +180,9 @@ func TestRunScorecard(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(ScorecardResult{}, "Date")) { //nolint:govet
-				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, cmpopts.IgnoreFields(ScorecardResult{}, "Date"))) //nolint:lll
+			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			if !cmp.Equal(got, tt.want, ignoreDate) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
 			}
 		})
 	}
