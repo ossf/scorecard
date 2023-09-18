@@ -15,10 +15,11 @@ package pkg
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/localdir"
@@ -41,7 +42,7 @@ func Test_getRepoCommitHash(t *testing.T) {
 		{
 			name:    "empty commit",
 			want:    "",
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -121,6 +122,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 func TestRunScorecard(t *testing.T) {
 	t.Parallel()
 	type args struct {
+		uri       string
 		commitSHA string
 	}
 	tests := []struct {
@@ -130,11 +132,19 @@ func TestRunScorecard(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "empty commits repos should return empty result",
+			name: "empty commits repos should return repo details but no checks",
 			args: args{
+				uri:       "github.com/ossf/scorecard",
 				commitSHA: "",
 			},
-			want:    ScorecardResult{},
+			want: ScorecardResult{
+				Repo: RepoInfo{
+					Name: "github.com/ossf/scorecard",
+				},
+				Scorecard: ScorecardInfo{
+					CommitSHA: "unknown",
+				},
+			},
 			wantErr: false,
 		},
 	}
@@ -145,6 +155,8 @@ func TestRunScorecard(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			repo := mockrepo.NewMockRepo(ctrl)
+
+			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
 
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 
@@ -168,8 +180,9 @@ func TestRunScorecard(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("RunScorecard() got = %v, want %v", got, tt.want)
+			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			if !cmp.Equal(got, tt.want, ignoreDate) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
 			}
 		})
 	}
