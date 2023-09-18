@@ -16,153 +16,68 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_createLogMessage(t *testing.T) {
-	msg := "msg"
-	t.Parallel()
-	tests := []struct { //nolint:govet
-		name    string
-		args    checker.Package
-		want    checker.LogMessage
-		wantErr bool
-	}{
-		{
-			name:    "nil package",
-			args:    checker.Package{},
-			want:    checker.LogMessage{},
-			wantErr: true,
-		},
-		{
-			name: "nil file",
-			args: checker.Package{
-				File: nil,
-			},
-			want:    checker.LogMessage{},
-			wantErr: true,
-		},
-		{
-			name: "msg is not nil",
-			args: checker.Package{
-				File: &checker.File{},
-				Msg:  &msg,
-			},
-			want: checker.LogMessage{
-				Text: "",
-			},
-			wantErr: true,
-		},
-		{
-			name: "file is not nil",
-			args: checker.Package{
-				File: &checker.File{
-					Path: "path",
-				},
-			},
-			want: checker.LogMessage{
-				Path: "path",
-			},
-			wantErr: true,
-		},
-		{
-			name: "runs are not zero",
-			args: checker.Package{
-				File: &checker.File{
-					Path: "path",
-				},
-				Runs: []checker.Run{
-					{},
-				},
-			},
-			want: checker.LogMessage{
-				Text: "GitHub/GitLab publishing workflow used in run ",
-				Path: "path",
-			},
-		},
-	}
-	for _, tt := range tests {
-		tt := tt // Parallel testing
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			got, err := createLogMessage(tt.args)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("createLogMessage() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !cmp.Equal(got, tt.want) {
-				t.Errorf("createLogMessage() got = %v, want %v", got, cmp.Diff(got, tt.want))
-			}
-		})
-	}
-}
-
 func TestPackaging(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
-		dl   checker.DetailLogger
-		r    *checker.PackagingData
-	}
 	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "nil packaging data",
-			args: args{
-				name: "name",
-				dl:   nil,
-				r:    nil,
-			},
-			want: checker.CheckResult{
-				Name:    "name",
-				Version: 2,
-				Score:   -1,
-				Reason:  "internal error: empty raw data",
-			},
-		},
-		{
-			name: "empty packaging data",
-			args: args{
-				name: "name",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.PackagingData{},
-			},
-			want: checker.CheckResult{
-				Name:    "name",
-				Version: 2,
-				Score:   -1,
-				Reason:  "no published package detected",
-			},
-		},
-		{
-			name: "runs are not zero",
-			args: args{
-				dl: &scut.TestDetailLogger{},
-				r: &checker.PackagingData{
-					Packages: []checker.Package{
-						{
-							File: &checker.File{
-								Path: "path",
-							},
-							Runs: []checker.Run{
-								{},
-							},
-						},
-					},
+			name: "test positive outcome",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithGithubActions",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Name:    "",
-				Version: 2,
-				Score:   10,
-				Reason:  "publishing workflow detected",
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "test positive outcome with wrong probes",
+			findings: []finding.Finding{
+				{
+					Probe:   "wrongProbe",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "test negative outcome",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithGithubActions",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.MinResultScore,
+			},
+		},
+		{
+			name: "test negative outcome with wrong probes",
+			findings: []finding.Finding{
+				{
+					Probe:   "wrongProbe",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
@@ -170,8 +85,10 @@ func TestPackaging(t *testing.T) {
 		tt := tt // Parallel testing
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Packaging(tt.args.name, tt.args.dl, tt.args.r); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
-				t.Errorf("Packaging() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := Packaging(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/packagedWithGithubActions"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -76,6 +77,9 @@ var (
 		fuzzedWithPropertyBasedHaskell.Run,
 		fuzzedWithPropertyBasedTypescript.Run,
 		fuzzedWithPropertyBasedJavascript.Run,
+	}
+	Packaging = []ProbeImpl{
+		packagedWithGithubActions.Run,
 	}
 )
 
