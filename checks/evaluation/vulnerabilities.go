@@ -15,46 +15,63 @@
 package evaluation
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/google/osv-scanner/pkg/grouper"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasKnownVulnerabilities"
 )
 
 // Vulnerabilities applies the score policy for the Vulnerabilities check.
-func Vulnerabilities(name string, dl checker.DetailLogger,
-	r *checker.VulnerabilitiesData,
+func Vulnerabilities(name string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
-		return checker.CreateRuntimeErrorResult(name, e)
+	expectedProbes := []string{
+		hasKnownVulnerabilities.Probe,
 	}
 
-	aliasVulnerabilities := []grouper.IDAliases{}
-	for _, vuln := range r.Vulnerabilities {
-		aliasVulnerabilities = append(aliasVulnerabilities, grouper.IDAliases(vuln))
+	err := validateFindings(findings, expectedProbes)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
-	IDs := grouper.Group(aliasVulnerabilities)
-	score := checker.MaxResultScore - len(IDs)
+	vulnsFound := 0
+	for _, f := range findings {
+		if f.Outcome == finding.OutcomeNegative {
+			// Log all the negative findings.
+			checker.LogFindings(negativeFindings(findings), dl)
+			vulnsFound++
+		}
+	}
+
+	score := checker.MaxResultScore - vulnsFound
 
 	if score < checker.MinResultScore {
 		score = checker.MinResultScore
 	}
 
-	if len(IDs) > 0 {
-		for _, v := range IDs {
-			dl.Warn(&checker.LogMessage{
-				Text: fmt.Sprintf("Project is vulnerable to: %s", strings.Join(v.IDs, " / ")),
-			})
-		}
+	return checker.CreateResultWithScore(name, "vulnerabilities detected", score)
+}
 
-		return checker.CreateResultWithScore(name,
-			fmt.Sprintf("%v existing vulnerabilities detected", len(IDs)), score)
+func validateFindings(findings []finding.Finding, expectedProbes []string) error {
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		return sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 	}
 
-	return checker.CreateMaxScoreResult(name, "no vulnerabilities detected")
+	if len(findings) == 0 {
+		return sce.WithMessage(sce.ErrScorecardInternal, "found 0 findings. Should not happen")
+	}
+	return nil
+}
+
+func negativeFindings(findings []finding.Finding) []finding.Finding {
+	var ff []finding.Finding
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			continue
+		}
+		ff = append(ff, *f)
+	}
+	return ff
 }
