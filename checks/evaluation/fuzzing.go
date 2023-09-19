@@ -51,6 +51,8 @@ func Fuzzing(name string,
 		fuzzedWithPropertyBasedJavascript.Probe,
 		fuzzedWithPropertyBasedTypescript.Probe,
 	}
+	// TODO: other packages to consider:
+	// - github.com/google/fuzztest
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
