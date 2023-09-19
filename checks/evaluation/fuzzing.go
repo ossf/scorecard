@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
@@ -44,6 +45,7 @@ func Fuzzing(name string,
 		fuzzedWithCLibFuzzer.Probe,
 		fuzzedWithCppLibFuzzer.Probe,
 		fuzzedWithRustCargofuzz.Probe,
+		fuzzedWithSwiftLibFuzzer.Probe,
 		fuzzedWithJavaJazzerFuzzer.Probe,
 		fuzzedWithOneFuzz.Probe,
 		fuzzedWithOSSFuzz.Probe,

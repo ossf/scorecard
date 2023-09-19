@@ -38,6 +38,7 @@ const (
 	fuzzerPythonAtheris           = "PythonAtherisFuzzer"
 	fuzzerCLibFuzzer              = "CLibFuzzer"
 	fuzzerCppLibFuzzer            = "CppLibFuzzer"
+	fuzzerSwiftLibFuzzer          = "SwiftLibFuzzer"
 	fuzzerRustCargoFuzz           = "RustCargoFuzzer"
 	fuzzerJavaJazzerFuzzer        = "JavaJazzerFuzzer"
 	// TODO: add more fuzzing check supports.
@@ -152,6 +153,13 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Name:         fuzzerJavaJazzerFuzzer,
 		Desc: asPointer(
 			"Fuzzed with Jazzer fuzzer"),
+	},
+	clients.Swift: {
+		filePatterns: []string{"*.swift"},
+		funcPattern:  `LLVMFuzzerTestOneInput`,
+		Name:         fuzzerSwiftLibFuzzer,
+		Desc: asPointer(
+			"Fuzzed with Swift LibFuzzer"),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }

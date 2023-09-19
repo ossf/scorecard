@@ -29,6 +29,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -68,6 +69,7 @@ var (
 		fuzzedWithPythonAtheris.Run,
 		fuzzedWithCLibFuzzer.Run,
 		fuzzedWithCppLibFuzzer.Run,
+		fuzzedWithSwiftLibFuzzer.Run,
 		fuzzedWithRustCargofuzz.Run,
 		fuzzedWithJavaJazzerFuzzer.Run,
 		fuzzedWithClusterFuzzLite.Run,
