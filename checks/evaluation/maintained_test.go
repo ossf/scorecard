@@ -15,221 +15,117 @@ package evaluation
 
 import (
 	"testing"
-	"time"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
-	t.Parallel()
-	r := clients.RepoAssociationCollaborator
-	twentDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
-	type args struct {
-		issue     *clients.Issue
-		threshold time.Time
-	}
-	tests := []struct { //nolint:govet
-		name string
-		args args
-		want bool
-	}{
-		{
-			name: "nil issue",
-			args: args{
-				issue:     nil,
-				threshold: time.Now(),
-			},
-			want: false,
-		},
-		{
-			name: "repo-association collaborator",
-			args: args{
-				issue: &clients.Issue{
-					CreatedAt:         nil,
-					AuthorAssociation: &r,
-				},
-			},
-			want: false,
-		},
-		{
-			name: "twentyDaysAgo",
-			args: args{
-				issue: &clients.Issue{
-					CreatedAt:         &twentDaysAgo,
-					AuthorAssociation: &r,
-				},
-			},
-			want: true,
-		},
-		{
-			name: "repo-association collaborator with comment",
-			args: args{
-				issue: &clients.Issue{
-					CreatedAt:         nil,
-					AuthorAssociation: &r,
-					Comments: []clients.IssueComment{
-						{
-							CreatedAt:         &twentDaysAgo,
-							AuthorAssociation: &r,
-						},
-					},
-				},
-			},
-			want: true,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			if got := hasActivityByCollaboratorOrHigher(tt.args.issue, tt.args.threshold); got != tt.want {
-				t.Errorf("hasActivityByCollaboratorOrHigher() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestMaintained(t *testing.T) {
-	twentyDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
-	collab := clients.RepoAssociationCollaborator
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
-		dl   checker.DetailLogger
-		r    *checker.MaintainedData
-	}
 	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "nil",
-			args: args{
-				name: "test",
-				dl:   nil,
-				r:    nil,
+			name: "Two commits in last 90 days",
+			findings: []finding.Finding{
+				{
+					Probe:   "commitsInLast90Days",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "commitsInLast90Days",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "archived",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "wasCreatedInLast90Days",
+					Outcome: finding.OutcomePositive,
+				},
 			},
-			want: checker.CheckResult{
-				Name:    "test",
-				Version: 2,
-				Reason:  "internal error: empty raw data",
-				Score:   -1,
+			result: scut.TestReturn{
+				Score: 2,
 			},
 		},
 		{
-			name: "archived",
-			args: args{
-				name: "test",
-				dl:   nil,
-				r: &checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{Status: true},
+			name: "No issues, no commits and not archived",
+			findings: []finding.Finding{
+				{
+					Probe:   "commitsInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "archived",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "wasCreatedInLast90Days",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Name:    "test",
-				Version: 2,
-				Reason:  "repo is marked as archived",
-				Score:   0,
+			result: scut.TestReturn{
+				Score: 0,
 			},
 		},
 		{
-			name: "no activity",
-			args: args{
-				name: "test",
-				dl:   nil,
-				r: &checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{Status: false},
-					DefaultBranchCommits: []clients.Commit{
-						{
-							CommittedDate: time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC),
-						},
-					},
+			name: "Wrong probe name",
+			findings: []finding.Finding{
+				{
+					Probe:   "commitsInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "archvied", /*misspelling*/
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "wasCreatedInLast90Days",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Name:    "test",
-				Version: 2,
-				Reason:  "0 commit(s) out of 1 and 0 issue activity out of 0 found in the last 90 days -- score normalized to 0",
-				Score:   0,
+			result: scut.TestReturn{
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
-			name: "commit activity in the last 30 days",
-			args: args{
-				name: "test",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{Status: false},
-					DefaultBranchCommits: []clients.Commit{
-						{
-							CommittedDate: time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/),
-						},
-						{
-							CommittedDate: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
-						},
-					},
-
-					Issues: []clients.Issue{
-						{
-							CreatedAt:         &twentyDaysAgo,
-							AuthorAssociation: &collab,
-						},
-					},
-					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -100 /*days*/),
+			name: "Project is archived",
+			findings: []finding.Finding{
+				{
+					Probe:   "commitsInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "archived",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "wasCreatedInLast90Days",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Name:    "test",
-				Version: 2,
-				Reason:  "2 commit(s) out of 2 and 1 issue activity out of 1 found in the last 90 days -- score normalized to 2",
-				Score:   2,
-			},
-		},
-		{
-			name: "Repo created recently",
-			args: args{
-				name: "test",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{Status: false},
-					DefaultBranchCommits: []clients.Commit{
-						{
-							CommittedDate: time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/),
-						},
-						{
-							CommittedDate: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
-						},
-					},
-
-					Issues: []clients.Issue{
-						{
-							CreatedAt:         &twentyDaysAgo,
-							AuthorAssociation: &collab,
-						},
-					},
-					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
-				},
-			},
-			want: checker.CheckResult{
-				Name:    "test",
-				Version: 2,
-				Reason:  "repo was created 10 days ago, not enough maintenance history",
-				Score:   0,
+			result: scut.TestReturn{
+				Score:        0,
+				NumberOfInfo: 1,
 			},
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
+		tt := tt // Parallel testing
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Maintained(tt.args.name, tt.args.dl, tt.args.r); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
-				t.Errorf("Maintained() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := Maintained(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

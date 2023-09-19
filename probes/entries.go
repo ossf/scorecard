@@ -17,8 +17,14 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+<<<<<<< HEAD
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+=======
+	"github.com/ossf/scorecard/v4/probes/activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/archived"
+	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
+>>>>>>> :seedling: Migrate Maintained check to probes
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
@@ -47,6 +53,11 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
+<<<<<<< HEAD
+=======
+	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
+	"github.com/ossf/scorecard/v4/probes/wasCreatedInLast90Days"
+>>>>>>> :seedling: Migrate Maintained check to probes
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -106,6 +117,12 @@ var (
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
+	}
+	Maintained = []ProbeImpl{
+		archived.Run,
+		commitsInLast90Days.Run,
+		activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Run,
+		wasCreatedInLast90Days.Run,
 	}
 )
 
