@@ -54,7 +54,7 @@ jobs:
         echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 #v3.3.1
+       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
        with:
          path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
@@ -106,7 +106,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
+       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
        with:
          path: |
            ~/go/pkg/mod
@@ -226,7 +226,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
+       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
        with:
          path: |
            ~/go/pkg/mod
@@ -266,7 +266,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
+       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
        with:
          path: |
            ~/go/pkg/mod
@@ -313,7 +313,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3.3.1
+       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
        with:
          path: |
            ~/go/pkg/mod
