@@ -306,10 +306,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 		if err != nil {
 			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
 		}
-		if len(data.files) != 0 {
-			dataFiles = append(dataFiles, data.files...)
-			// This means no fuzz funcs matched for this language.
-		}
+		dataFiles = append(dataFiles, data.files...)
 	}
 
 	if len(dataFiles) == 0 {
