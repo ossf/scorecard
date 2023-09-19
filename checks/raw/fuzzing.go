@@ -85,7 +85,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.Haskell: {
-		filePatterns: []string{"*.hs"},
+		filePatterns: []string{"*.hs", "*.lhs"},
 		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
@@ -120,42 +120,36 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	},
 	clients.Python: {
 		filePatterns: []string{"*.py"},
-		// Look for direct imports of fast-check.
-		funcPattern: `import atheris`,
-		Name:        fuzzerPythonAtheris,
+		funcPattern:  `import atheris`,
+		Name:         fuzzerPythonAtheris,
 		Desc: asPointer(
 			"Python fuzzing by way of Atheris"),
 	},
 	clients.C: {
 		filePatterns: []string{"*.c"},
-		// Look for direct imports of fast-check.
-		funcPattern: `LLVMFuzzerTestOneInput`,
-		Name:        fuzzerCLibFuzzer,
+		funcPattern:  `LLVMFuzzerTestOneInput`,
+		Name:         fuzzerCLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with C LibFuzzer"),
 	},
 	clients.Cpp: {
 		filePatterns: []string{"*.cc", "*.cpp"},
-		// Look for direct imports of fast-check.
-		funcPattern: `LLVMFuzzerTestOneInput`,
-		Name:        fuzzerCppLibFuzzer,
+		funcPattern:  `LLVMFuzzerTestOneInput`,
+		Name:         fuzzerCppLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with cpp LibFuzzer"),
 	},
 	clients.Rust: {
 		filePatterns: []string{"*.rs"},
-		// Look for direct imports of fast-check.
-		funcPattern: `libfuzzer_sys`,
-		Name:        fuzzerRustCargoFuzz,
+		funcPattern:  `libfuzzer_sys`,
+		Name:         fuzzerRustCargoFuzz,
 		Desc: asPointer(
 			"Fuzzed with Cargo-fuzz"),
 	},
 	clients.Java: {
 		filePatterns: []string{"*.java"},
-		// Look for direct imports of fast-check.
-		funcPattern: `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
-		// funcPattern: `jazze`,
-		Name: fuzzerJavaJazzerFuzzer,
+		funcPattern:  `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
+		Name:         fuzzerJavaJazzerFuzzer,
 		Desc: asPointer(
 			"Fuzzed with Jazzer fuzzer"),
 	},
@@ -217,7 +211,6 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	prominentLangs := getProminentLanguages(langs)
 	for _, lang := range prominentLangs {
 		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
-		fmt.Print(files)
 		if e != nil {
 			return checker.FuzzingData{}, fmt.Errorf("%w", e)
 		}
@@ -302,8 +295,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 	// We use the file pattern in the matcher to match the test files,
 	// and put the func pattern in var data to match file contents (func names).
 	filePatterns, funcPattern := pattern.filePatterns, pattern.funcPattern
-	dataFiles := []checker.File{}
-
+	var dataFiles []checker.File
 	for _, filePattern := range filePatterns {
 		matcher := fileparser.PathMatcher{
 			Pattern:       filePattern,

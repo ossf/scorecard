@@ -274,7 +274,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
-			fileMatchPattern := ""
+			var fileMatchPattern string
 			if len(langSpecs.filePatterns) > 0 {
 				fileMatchPattern = langSpecs.filePatterns[0]
 			}
