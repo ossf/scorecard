@@ -54,7 +54,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  7,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -99,7 +99,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         4,
 				NumberOfWarn:  5,
-				NumberOfInfo:  4,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -130,7 +130,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         4,
 				NumberOfWarn:  6,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -156,27 +156,151 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 		{
-			name: "Required pull request enabled",
+			name: "Admin run with all tier 2 requirements except require PRs and reviewers",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         4,
-				NumberOfWarn:  6,
-				NumberOfInfo:  3,
+				Score:         4, // Should be 4.2 if we allow decimal puctuation
+				NumberOfWarn:  3,
+				NumberOfInfo:  6,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:           &falseVal,
-					RequireLastPushApproval: &falseVal,
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &trueVal,
 					RequireLinearHistory:    &trueVal,
 					AllowForcePushes:        &falseVal,
 					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
-						RequiresStatusChecks: &trueVal,
-						UpToDateBeforeMerge:  &falseVal,
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
+					},
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &falseVal,
+						RequireCodeOwnerReviews:      &falseVal,
+						RequiredApprovingReviewCount: nil,
+					},
+				},
+			},
+		},
+		{
+			name: "Admin run on project requiring pull requests but without approver -- best a single maintainer can do",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         4, // Should be 4.8 if we allow decimal punctuation
+				NumberOfWarn:  3,
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &trueVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  &trueVal,
+						Contexts:             []string{"foo"},
+					},
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &falseVal,
+						RequireCodeOwnerReviews:      &falseVal,
+						RequiredApprovingReviewCount: &zeroVal,
+					},
+				},
+			},
+		},
+		{
+			name: "Admin run on project with all tier 2 requirements",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         6,
+				NumberOfWarn:  4,
+				NumberOfInfo:  6,
+				NumberOfDebug: 0,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &trueVal,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  &trueVal,
+						Contexts:             nil,
+					},
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &falseVal,
+						RequireCodeOwnerReviews:      &falseVal,
+						RequiredApprovingReviewCount: &oneVal,
+					},
+				},
+			},
+		},
+		{
+			name: "Non-admin run on project that doesn't require 1 reviewer",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         3,
+				NumberOfWarn:  3,
+				NumberOfInfo:  4,
+				NumberOfDebug: 2,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: nil,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  nil,
+						Contexts:             []string{"foo"},
+					},
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						DismissStaleReviews:          &falseVal,
+						RequireCodeOwnerReviews:      &falseVal,
+						RequiredApprovingReviewCount: nil,
+					},
+				},
+			},
+		},
+		{
+			name: "Non-admin run on project with all tier 2 requirements",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         6,
+				NumberOfWarn:  4,
+				NumberOfInfo:  3,
+				NumberOfDebug: 2,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: nil,
+					RequireLinearHistory:    &trueVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  nil,
+						Contexts:             nil,
 					},
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
@@ -192,7 +316,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  5,
-				NumberOfInfo:  4,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -223,7 +347,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  6,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -254,7 +378,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         1,
 				NumberOfWarn:  7,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -286,7 +410,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         1,
 				NumberOfWarn:  7,
-				NumberOfInfo:  2,
+				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -317,7 +441,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  2,
-				NumberOfInfo:  8,
+				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -348,7 +472,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  1,
-				NumberOfInfo:  8,
+				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -380,7 +504,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         5,
 				NumberOfWarn:  3,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
