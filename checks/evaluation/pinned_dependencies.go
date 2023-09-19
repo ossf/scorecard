@@ -215,7 +215,8 @@ func logPinnedResult(dl checker.DetailLogger, p pinnedResult, name string) {
 	})
 }
 
-func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult, dl checker.DetailLogger) []checker.ProportionalScoreWeighted {
+func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult, dl checker.DetailLogger,
+) []checker.ProportionalScoreWeighted {
 	if wp.gitHubOwned.total == 0 && wp.thirdParties.total == 0 {
 		return []checker.ProportionalScoreWeighted{}
 	}
