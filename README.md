@@ -16,6 +16,7 @@
 
 -   [What Is Scorecard?](#what-is-scorecard)
 -   [Prominent Scorecard Users](#prominent-scorecard-users)
+-   [View a Project's Score](#view-a-projects-score)
 -   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
@@ -90,6 +91,15 @@ metrics. Prominent projects that use Scorecard include:
 -   [Flutter](https://github.com/flutter/flutter)
 -   [sos.dev](https://sos.dev)
 -   [deps.dev](https://deps.dev)
+
+### View a Project's Score
+
+To see scores for the one million GitHub projects regually scanned by Scorecard, navigate to the Webviewer, replacing the placeholder text with the user/org and repository name: 
+https://securityscorecards.dev/viewer/?uri=github.com/<user_name_or_org>/<repository_name>.
+
+For example: [https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard).
+
+To view scores for projects not included in the webviewer, use the [Scorecard CLI](#scorecard-command-line-interface). 
 
 ### Public Data
 
