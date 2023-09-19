@@ -118,11 +118,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	var scores []checker.ProportionalScoreWeighted
 	// Go through all dependency types
 	// GitHub Actions need to be handled separately since they are not in pr
-	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp)...)
+	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp, dl)...)
 	// Only exisiting dependencies will be found in pr
 	// We will only score the ecosystem if there are dependencies
 	// This results in only existing ecosystems being included in the final score
 	for t := range pr {
+		logPinnedResult(dl, pr[t], string(t))
 		scores = append(scores, checker.ProportionalScoreWeighted{
 			Success: pr[t].pinned,
 			Total:   pr[t].total,
@@ -180,7 +181,7 @@ func generateText(rr *checker.Dependency) string {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
 		owner := generateOwnerToDisplay(gitHubOwned)
-		return fmt.Sprintf("%s %s not pinned by hash", owner, rr.Type)
+		return fmt.Sprintf("%s not pinned by hash", owner)
 	}
 
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
@@ -188,9 +189,9 @@ func generateText(rr *checker.Dependency) string {
 
 func generateOwnerToDisplay(gitHubOwned bool) string {
 	if gitHubOwned {
-		return "GitHub-owned"
+		return fmt.Sprintf("GitHub-owned %s", checker.DependencyUseTypeGHAction)
 	}
-	return "third-party"
+	return fmt.Sprintf("third-party %s", checker.DependencyUseTypeGHAction)
 }
 
 func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
@@ -208,11 +209,19 @@ func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, is
 	}
 }
 
-func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.ProportionalScoreWeighted {
+func logPinnedResult(dl checker.DetailLogger, p pinnedResult, name string) {
+	dl.Info(&checker.LogMessage{
+		Text: fmt.Sprintf("%3d out of %3d %s dependencies pinned", p.pinned, p.total, name),
+	})
+}
+
+func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult, dl checker.DetailLogger) []checker.ProportionalScoreWeighted {
 	if wp.gitHubOwned.total == 0 && wp.thirdParties.total == 0 {
 		return []checker.ProportionalScoreWeighted{}
 	}
 	if wp.gitHubOwned.total != 0 && wp.thirdParties.total != 0 {
+		logPinnedResult(dl, wp.gitHubOwned, generateOwnerToDisplay(true))
+		logPinnedResult(dl, wp.thirdParties, generateOwnerToDisplay(false))
 		return []checker.ProportionalScoreWeighted{
 			{
 				Success: wp.gitHubOwned.pinned,
@@ -227,6 +236,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.Pro
 		}
 	}
 	if wp.gitHubOwned.total != 0 {
+		logPinnedResult(dl, wp.gitHubOwned, generateOwnerToDisplay(true))
 		return []checker.ProportionalScoreWeighted{
 			{
 				Success: wp.gitHubOwned.pinned,
@@ -235,6 +245,7 @@ func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult) []checker.Pro
 			},
 		}
 	}
+	logPinnedResult(dl, wp.thirdParties, generateOwnerToDisplay(false))
 	return []checker.ProportionalScoreWeighted{
 		{
 			Success: wp.thirdParties.pinned,
