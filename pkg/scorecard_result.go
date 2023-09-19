@@ -102,6 +102,19 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, erro
 	return score / total, nil
 }
 
+// Define output to console or file
+func defineOutput(opts *options.Options) (io.Writer, error) {
+	if opts.Output == "" {
+		return os.Stdout, nil
+	}
+	file, err := os.Create(opts.Output)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create output file: %w", err)
+	}
+	defer file.Close()
+	return file, nil
+}
+
 // FormatResults formats scorecard results.
 func FormatResults(
 	opts *options.Options,
@@ -109,15 +122,9 @@ func FormatResults(
 	doc checks.Doc,
 	policy *spol.ScorecardPolicy,
 ) error {
-	// Define output to console or file
-	var output io.Writer = os.Stdout
-	if opts.Output != "" {
-		outputF, err := os.Create(opts.Output)
-		if err != nil {
-			return fmt.Errorf("unable to create output file: %w", err)
-		}
-		defer outputF.Close()
-		output = outputF
+	output, outputErr := defineOutput(opts)
+	if outputErr != nil {
+		return outputErr
 	}
 
 	var err error
