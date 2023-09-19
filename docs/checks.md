@@ -111,7 +111,8 @@ Tier 1 Requirements (3/10 points):
   - Prevent branch deletion
 
 Tier 2 Requirements (6/10 points):
-  - Require at least 1 reviewer for approval before merging
+  - For administrators: Require PRs prior to make any code changes
+  - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
   - For administrators: Require branch to be up to date before merging
   - For administrators: Require approval of the most recent reviewable push
 
