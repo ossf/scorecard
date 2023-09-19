@@ -31,59 +31,6 @@ func TestFuzzing(t *testing.T) {
 	}{
 		{
 			name: "Fuzzing - no fuzzing",
-<<<<<<< HEAD
-			args: args{
-				name: "Fuzzing",
-				findings: []finding.Finding{
-					{
-						Probe:   "fuzzedWithClusterFuzzLite",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithGoNative",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPythonAtheris",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithCLibFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithCppLibFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithRustCargofuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithJavaJazzerFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithOneFuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithOSSFuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedHaskell",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedJavascript",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedTypescript",
-						Outcome: finding.OutcomeNegative,
-					},
-=======
 			findings: []finding.Finding{
 				{
 					Probe:   "fuzzedWithClusterFuzzLite",
@@ -91,6 +38,26 @@ func TestFuzzing(t *testing.T) {
 				},
 				{
 					Probe:   "fuzzedWithGoNative",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -112,69 +79,15 @@ func TestFuzzing(t *testing.T) {
 				{
 					Probe:   "fuzzedWithPropertyBasedTypescript",
 					Outcome: finding.OutcomeNegative,
->>>>>>> ac13ac7c016d82cb962ea7b0858656e875cb0829
 				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 7,
+				NumberOfWarn: 12,
 			},
 		},
 		{
 			name: "Fuzzing - fuzzing GoNative",
-<<<<<<< HEAD
-			args: args{
-				name: "Fuzzing",
-				findings: []finding.Finding{
-					{
-						Probe:   "fuzzedWithClusterFuzzLite",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithGoNative",
-						Outcome: finding.OutcomePositive,
-					},
-					{
-						Probe:   "fuzzedWithPythonAtheris",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithCLibFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithCppLibFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithRustCargofuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithJavaJazzerFuzzer",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithOneFuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithOSSFuzz",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedHaskell",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedJavascript",
-						Outcome: finding.OutcomeNegative,
-					},
-					{
-						Probe:   "fuzzedWithPropertyBasedTypescript",
-						Outcome: finding.OutcomeNegative,
-					},
-=======
 			findings: []finding.Finding{
 				{
 					Probe:   "fuzzedWithClusterFuzzLite",
@@ -185,6 +98,26 @@ func TestFuzzing(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
 					Probe:   "fuzzedWithOneFuzz",
 					Outcome: finding.OutcomeNegative,
 				},
@@ -203,7 +136,6 @@ func TestFuzzing(t *testing.T) {
 				{
 					Probe:   "fuzzedWithPropertyBasedTypescript",
 					Outcome: finding.OutcomeNegative,
->>>>>>> ac13ac7c016d82cb962ea7b0858656e875cb0829
 				},
 			},
 			result: scut.TestReturn{
