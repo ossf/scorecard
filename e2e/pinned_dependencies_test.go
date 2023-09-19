@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  0,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
@@ -76,7 +76,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  0,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
@@ -112,7 +112,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 				Error:         nil,
 				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  0,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
