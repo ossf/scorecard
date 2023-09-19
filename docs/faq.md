@@ -25,8 +25,7 @@ This page answers frequently asked questions about Scorecard, including its purp
 
 Yes.
 
-Over a million projects are automatically tracked by the Scorecard project. View these scores with the Scorecard
-Webviewer, replacing the placeholder text with the user/org and repository name: 
+Over a million projects are automatically tracked by the Scorecard project. View these scores with the Scorecard Webviewer, replacing the placeholder text with the user/org and repository name: 
 https://securityscorecards.dev/viewer/?uri=github.com/<user_name_or_org>/<repository_name>.
 
 You can also use the CLI to generate scores for any public repository by following these steps:
