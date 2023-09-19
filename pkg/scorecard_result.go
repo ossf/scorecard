@@ -108,8 +108,18 @@ func FormatResults(
 	results *ScorecardResult,
 	doc checks.Doc,
 	policy *spol.ScorecardPolicy,
-	output io.Writer,
 ) error {
+	// Define output to console or file
+	var output io.Writer = os.Stdout
+	if opts.Output != "" {
+		outputF, err := os.Create(opts.Output)
+		if err != nil {
+			return fmt.Errorf("unable to create output file: %w", err)
+		}
+		defer outputF.Close()
+		output = outputF
+	}
+
 	var err error
 
 	switch opts.Format {

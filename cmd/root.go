@@ -18,7 +18,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"sort"
 	"strings"
@@ -120,17 +119,6 @@ func rootCmd(o *options.Options) error {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}
 
-	// Define output to console or file
-	var output io.Writer = os.Stdout
-	if o.Output != "" {
-		outputF, err := os.Create(o.Output)
-		if err != nil {
-			return fmt.Errorf("unable to create output file: %w", err)
-		}
-		defer outputF.Close()
-		output = outputF
-	}
-
 	for checkName := range enabledChecks {
 		fmt.Fprintf(os.Stdout, "Starting [%s]\n", checkName)
 	}
@@ -166,7 +154,6 @@ func rootCmd(o *options.Options) error {
 		&repoResult,
 		checkDocs,
 		pol,
-		output,
 	)
 	if resultsErr != nil {
 		return fmt.Errorf("failed to format results: %w", resultsErr)
