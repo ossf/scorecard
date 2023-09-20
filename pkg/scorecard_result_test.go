@@ -135,6 +135,8 @@ func Test_formatResults_outputToFile(t *testing.T) {
 
 			// Format results.
 			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy)
+			// Delete generated output file at the end of the test.
+			t.Cleanup(func() { os.Remove(tt.args.opts.Output) })
 			if (formatErr != nil) != tt.want.err {
 				t.Errorf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 				return
@@ -171,9 +173,6 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			if !bytes.Equal(output, wantOutput) {
 				t.Errorf("%v\nGOT\n-------\n%s\nWANT\n-------\n%s", tt.name, string(output), string(wantOutput))
 			}
-
-			// Delete generated output file.
-			os.Remove(tt.args.opts.Output)
 		})
 	}
 }
