@@ -146,7 +146,7 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			// Format results.
 			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy, outputF)
 			if (formatErr != nil) != tt.want.err {
-				t.Errorf("FormatResults() error = %v, want error %v", err, tt.want.err)
+				t.Errorf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 				return
 			}
 
