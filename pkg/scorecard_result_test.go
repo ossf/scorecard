@@ -138,18 +138,17 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			// Delete generated output file at the end of the test.
 			t.Cleanup(func() { os.Remove(tt.args.opts.Output) })
 			if (formatErr != nil) != tt.want.err {
-				t.Errorf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
-				return
+				t.Fatalf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 			}
 
 			// Get output and wanted output.
 			output, outputErr := os.ReadFile(tt.args.opts.Output)
 			if outputErr != nil {
-				t.Errorf("cannot read file: %v", outputErr)
+				t.Fatalf("cannot read file: %v", outputErr)
 			}
 			wantOutput, wantOutputErr := os.ReadFile("./testdata/" + tt.want.path)
 			if wantOutputErr != nil {
-				t.Errorf("cannot read file: %v", wantOutputErr)
+				t.Fatalf("cannot read file: %v", wantOutputErr)
 			}
 
 			// Unmarshal if comparing JSON output.
