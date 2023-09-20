@@ -38,15 +38,16 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       with:
         fetch-depth: 2 # needed to diff changed files
-    - id: files
-      name: Get changed files
-      uses: tj-actions/changed-files@90a06d6ba9543371ab4df8eeca0be07ca6054959 #v42.0.2
-      with:
-        files_ignore: '**.md'
     - id: docs_only_check
-      if: steps.files.outputs.any_changed != 'true'
       name: Check for docs-only changes
-      run: echo "docs_only=true" >> $GITHUB_OUTPUT
+      run: |
+        set +e # dont fail based on grep exit code
+        git diff --name-only HEAD~1 | grep --ignore-case --invert-match '.md$'
+        if [ $? -eq 1 ]; then
+            echo "docs_only=true" >> $GITHUB_OUTPUT
+        else
+            echo "docs_only=false" >> $GITHUB_OUTPUT
+        fi
 
   docker_matrix:
     strategy:
