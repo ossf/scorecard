@@ -133,25 +133,15 @@ func Test_formatResults_outputToFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// Create temp output file.
-			if tt.args.opts.Output == "" {
-				t.Fatalf("must have output file")
-			}
-			outputF, err := os.CreateTemp("./testdata", tt.args.opts.Output)
-			if err != nil {
-				t.Fatalf("unable to create temporary output file: %v", err)
-			}
-			defer os.Remove(outputF.Name())
-
 			// Format results.
-			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy, outputF)
+			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy)
 			if (formatErr != nil) != tt.want.err {
 				t.Errorf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 				return
 			}
 
 			// Get output and wanted output.
-			output, outputErr := os.ReadFile(outputF.Name())
+			output, outputErr := os.ReadFile(tt.args.opts.Output)
 			if outputErr != nil {
 				t.Errorf("cannot read file: %v", outputErr)
 			}
@@ -181,6 +171,9 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			if !bytes.Equal(output, wantOutput) {
 				t.Errorf("%v\nGOT\n-------\n%s\nWANT\n-------\n%s", tt.name, string(output), string(wantOutput))
 			}
+
+			// Delete generated output file.
+			os.Remove(tt.args.opts.Output)
 		})
 	}
 }
