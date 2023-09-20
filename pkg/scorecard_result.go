@@ -102,7 +102,7 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, erro
 	return score / total, nil
 }
 
-// Define output to console or file
+// Define output to console or file.
 func defineOutput(opts *options.Options) (*os.File, error) {
 	if opts.ResultsFile == "" {
 		return os.Stdout, nil
