@@ -99,7 +99,7 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			args: args{
 				opts: &options.Options{
 					Format:      options.FormatJSON,
-					Output:      "result.json",
+					ResultsFile: "result.json",
 					ShowDetails: true,
 					LogLevel:    log.DebugLevel.String(),
 				},
@@ -116,7 +116,7 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			args: args{
 				opts: &options.Options{
 					Format:      options.FormatDefault,
-					Output:      "result.log",
+					ResultsFile: "result.log",
 					ShowDetails: true,
 					LogLevel:    log.DebugLevel.String(),
 				},
@@ -137,13 +137,13 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			// Format results.
 			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy)
 			// Delete generated output file at the end of the test.
-			t.Cleanup(func() { os.Remove(tt.args.opts.Output) })
+			t.Cleanup(func() { os.Remove(tt.args.opts.ResultsFile) })
 			if (formatErr != nil) != tt.want.err {
 				t.Fatalf("FormatResults() error = %v, want error %v", formatErr, tt.want.err)
 			}
 
 			// Get output and wanted output.
-			output, outputErr := os.ReadFile(tt.args.opts.Output)
+			output, outputErr := os.ReadFile(tt.args.opts.ResultsFile)
 			if outputErr != nil {
 				t.Fatalf("cannot read file: %v", outputErr)
 			}

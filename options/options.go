@@ -39,7 +39,7 @@ type Options struct {
 	RubyGems    string
 	Nuget       string
 	PolicyFile  string
-	Output      string
+	ResultsFile string
 	ChecksToRun []string
 	Metadata    []string
 	CommitDepth int

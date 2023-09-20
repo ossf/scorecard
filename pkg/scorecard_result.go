@@ -104,10 +104,10 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, erro
 
 // Define output to console or file
 func defineOutput(opts *options.Options) (*os.File, error) {
-	if opts.Output == "" {
+	if opts.ResultsFile == "" {
 		return os.Stdout, nil
 	}
-	file, err := os.Create(opts.Output)
+	file, err := os.Create(opts.ResultsFile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create output file: %w", err)
 	}

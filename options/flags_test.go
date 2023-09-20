@@ -43,7 +43,7 @@ func TestOptions_AddFlags(t *testing.T) {
 				ChecksToRun: []string{"check1", "check2"},
 				PolicyFile:  "policy-file",
 				Format:      "json",
-				Output:      "result.json",
+				ResultsFile: "result.json",
 			},
 		},
 	}
@@ -104,14 +104,14 @@ func TestOptions_AddFlags(t *testing.T) {
 				t.Errorf("expected FlagFormat to be %q, but got %q", tt.opts.Format, cmd.Flag(FlagFormat).Value.String())
 			}
 
-			// check FlagOutput
-			if cmd.Flag(FlagOutput).Value.String() != tt.opts.Output {
-				t.Errorf("expected FlagOutput to be %q, but got %q", tt.opts.Output, cmd.Flag(FlagOutput).Value.String())
+			// check FlagResultsFile
+			if cmd.Flag(FlagResultsFile).Value.String() != tt.opts.ResultsFile {
+				t.Errorf("expected FlagResultsFile to be %q, but got %q", tt.opts.ResultsFile, cmd.Flag(FlagResultsFile).Value.String())
 			}
 
-			// check ShorthandFlagOutput
-			if cmd.Flag(FlagOutput).Shorthand != ShorthandFlagOutput {
-				t.Errorf("expected ShorthandFlagOutput to be %q, but got %q", ShorthandFlagOutput, cmd.Flag(FlagOutput).Shorthand)
+			// check ShorthandFlagResultsFile
+			if cmd.Flag(FlagResultsFile).Shorthand != ShorthandFlagResultsFile {
+				t.Errorf("expected ShorthandFlagResultsFile to be %q, but got %q", ShorthandFlagResultsFile, cmd.Flag(FlagResultsFile).Shorthand)
 			}
 		})
 	}
