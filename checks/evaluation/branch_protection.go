@@ -294,30 +294,6 @@ func basicNonAdminProtection(branch *clients.BranchRef, dl checker.DetailLogger)
 	return score, max
 }
 
-func basicAdminProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
-	score := 0
-	max := 0
-	// Only log information if the branch is protected.
-	log := branch.Protected != nil && *branch.Protected
-
-	// nil typically means we do not have access to the value.
-	if branch.BranchProtectionRule.EnforceAdmins != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
-		max++
-		switch *branch.BranchProtectionRule.EnforceAdmins {
-		case true:
-			info(dl, log, "settings apply to administrators on branch '%s'", *branch.Name)
-			score++
-		case false:
-			warn(dl, log, "settings do not apply to administrators on branch '%s'", *branch.Name)
-		}
-	} else {
-		debug(dl, log, "unable to retrieve whether or not settings apply to administrators on branch '%s'", *branch.Name)
-	}
-
-	return score, max
-}
-
 func nonAdminContextProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
@@ -408,6 +384,22 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	} else {
 		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
 	}
+
+	// nil typically means we do not have access to the value.
+	if branch.BranchProtectionRule.EnforceAdmins != nil {
+		// Note: we don't inrecase max possible score for non-admin viewers.
+		max++
+		switch *branch.BranchProtectionRule.EnforceAdmins {
+		case true:
+			info(dl, log, "settings apply to administrators on branch '%s'", *branch.Name)
+			score++
+		case false:
+			warn(dl, log, "settings do not apply to administrators on branch '%s'", *branch.Name)
+		}
+	} else {
+		debug(dl, log, "unable to retrieve whether or not settings apply to administrators on branch '%s'", *branch.Name)
+	}
+
 	return score, max
 }
 

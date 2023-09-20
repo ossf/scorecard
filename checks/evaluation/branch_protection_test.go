@@ -53,7 +53,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -86,7 +86,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Score:         0,
 				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -98,7 +98,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         4,
-				NumberOfWarn:  4,
+				NumberOfWarn:  5,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
@@ -129,7 +129,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         4,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -160,7 +160,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         4,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -192,7 +192,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  5,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -222,7 +222,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  5,
+				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
 			},
@@ -253,7 +253,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         1,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -285,7 +285,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         1,
-				NumberOfWarn:  6,
+				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
 			},
@@ -317,7 +317,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  2,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -348,7 +348,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  1,
-				NumberOfInfo:  7,
+				NumberOfInfo:  8,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -380,7 +380,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         5,
 				NumberOfWarn:  3,
-				NumberOfInfo:  6,
+				NumberOfInfo:  7,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
