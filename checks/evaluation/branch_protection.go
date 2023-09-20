@@ -25,7 +25,7 @@ import (
 const (
 	minReviews = 2
 	// Points incremented at each level.
-	adminNonAdminBasicLevel     = 3 // Level 1.
+	basicLevel                  = 3 // Level 1.
 	adminNonAdminReviewLevel    = 3 // Level 2.
 	nonAdminContextLevel        = 2 // Level 3.
 	nonAdminThoroughReviewLevel = 1 // Level 4.
@@ -35,7 +35,6 @@ const (
 
 type scoresInfo struct {
 	basic               int
-	adminBasic          int
 	review              int
 	adminReview         int
 	context             int
@@ -71,7 +70,6 @@ func BranchProtection(name string, dl checker.DetailLogger,
 			})
 		}
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&b, dl)
-		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&b, dl)
 		score.scores.review, score.maxes.review = nonAdminReviewProtection(&b)
 		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&b, dl)
 		score.scores.context, score.maxes.context = nonAdminContextProtection(&b, dl)
@@ -110,15 +108,6 @@ func computeNonAdminBasicScore(scores []levelScore) int {
 	for i := range scores {
 		s := scores[i]
 		score += s.scores.basic
-	}
-	return score
-}
-
-func computeAdminBasicScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.adminBasic
 	}
 	return score
 }
@@ -194,12 +183,9 @@ func computeScore(scores []levelScore) (int, error) {
 
 	// First, check if they all pass the basic (admin and non-admin) checks.
 	maxBasicScore := maxScore.basic * len(scores)
-	maxAdminBasicScore := maxScore.adminBasic * len(scores)
 	basicScore := computeNonAdminBasicScore(scores)
-	adminBasicScore := computeAdminBasicScore(scores)
-	score += noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, adminNonAdminBasicLevel)
-	if basicScore != maxBasicScore ||
-		adminBasicScore != maxAdminBasicScore {
+	score += noarmalizeScore(basicScore, maxBasicScore, basicLevel)
+	if basicScore != maxBasicScore {
 		return int(score), nil
 	}
 

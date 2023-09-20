@@ -49,7 +49,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Score:         6,
 				NumberOfWarn:  2,
 				NumberOfInfo:  4,
-				NumberOfDebug: 4,
+				NumberOfDebug: 3,
 			}
 			result := checks.BranchProtection(&req)
 			// UPGRADEv2: to remove.
@@ -107,7 +107,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Score:         1,
 				NumberOfWarn:  3,
 				NumberOfInfo:  3,
-				NumberOfDebug: 4,
+				NumberOfDebug: 3,
 			}
 			result := checks.BranchProtection(&req)
 
@@ -164,7 +164,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection+" (repo rules)", func(
 				Error:         nil,
 				Score:         3,
 				NumberOfWarn:  2,
-				NumberOfInfo:  4,
+				NumberOfInfo:  3,
 				NumberOfDebug: 2,
 			}
 			result := checks.BranchProtection(&req)
