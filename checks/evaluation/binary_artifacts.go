@@ -18,36 +18,47 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasBinaryArtifacts"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
-func BinaryArtifacts(name string, dl checker.DetailLogger,
-	r *checker.BinaryArtifactData,
+func BinaryArtifacts(name string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
-		return checker.CreateRuntimeErrorResult(name, e)
+	expectedProbes := []string{
+		hasBinaryArtifacts.Probe,
 	}
 
-	// Apply the policy evaluation.
-	if r.Files == nil || len(r.Files) == 0 {
+	err := validateFindings(findings, expectedProbes)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
+	if findings[0].Outcome == finding.OutcomePositive {
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 
-	score := checker.MaxResultScore
-	for _, f := range r.Files {
-		dl.Warn(&checker.LogMessage{
-			Path: f.Path, Type: finding.FileTypeBinary,
-			Offset: f.Offset,
-			Text:   "binary detected",
-		})
-		// We remove one point for each binary.
-		score--
-	}
+	// There are only negative findings.
+	// Deduct the number of findings from max score
+	numberOfBinaryFilesFound := len(findings)
+
+	score := checker.MaxResultScore - numberOfBinaryFilesFound
 
 	if score < checker.MinResultScore {
 		score = checker.MinResultScore
 	}
 
 	return checker.CreateResultWithScore(name, "binaries present in source code", score)
+}
+
+func validateFindings(findings []finding.Finding, expectedProbes []string) error {
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		return sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+	}
+
+	if len(findings) == 0 {
+		return sce.WithMessage(sce.ErrScorecardInternal, "found 0 findings. Should not happen")
+	}
+	return nil
 }

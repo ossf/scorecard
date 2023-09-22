@@ -21,8 +21,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func strptr(s string) *string {
@@ -220,6 +222,7 @@ func TestBinaryArtifacts(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo := mockrepo.NewMockRepo(ctrl)
 			for _, files := range tt.files {
 				mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
 			}
@@ -240,7 +243,14 @@ func TestBinaryArtifacts(t *testing.T) {
 				mockRepoClient.EXPECT().ListCommits().Return(tt.commits, nil)
 			}
 
-			f, err := BinaryArtifacts(mockRepoClient)
+			dl := scut.TestDetailLogger{}
+			c := &checker.CheckRequest{
+				RepoClient: mockRepoClient,
+				Repo:       mockRepo,
+				Dlogger:    &dl,
+			}
+
+			f, err := BinaryArtifacts(c)
 
 			if tt.err != nil {
 				// If we expect an error, make sure it is the same
@@ -260,6 +270,7 @@ func TestBinaryArtifacts(t *testing.T) {
 func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepo := mockrepo.NewMockRepo(ctrl)
 	const jarFile = "gradle-wrapper.jar"
 	const verifyWorkflow = ".github/workflows/verify.yaml"
 	files := []string{jarFile, verifyWorkflow}
@@ -280,7 +291,13 @@ func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
 	}).AnyTimes()
 
 	mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature).AnyTimes()
-	got, err := BinaryArtifacts(mockRepoClient)
+	dl := scut.TestDetailLogger{}
+	c := &checker.CheckRequest{
+		RepoClient: mockRepoClient,
+		Repo:       mockRepo,
+		Dlogger:    &dl,
+	}
+	got, err := BinaryArtifacts(c)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

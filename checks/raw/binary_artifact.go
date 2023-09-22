@@ -49,7 +49,8 @@ func mustParseConstraint(c string) *semver.Constraints {
 }
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
+func BinaryArtifacts(req *checker.CheckRequest) (checker.BinaryArtifactData, error) {
+	c := req.RepoClient
 	files := []checker.File{}
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       "*",

@@ -45,6 +45,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
+	"github.com/ossf/scorecard/v4/probes/hasBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -120,6 +121,9 @@ var (
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,
+	}
+	BinaryArtifacts = []ProbeImpl{
+		hasBinaryArtifacts.Run,
 	}
 )
 

@@ -1,0 +1,27 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasBinaryArtifacts
+short: Checks if the project has binary files in its source tree.
+motivation: >
+  Including generated executables in the source repository increases user risk. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
+implementation: >
+  The implementation looks for the presence of binary files.
+outcome:
+  - If the probe finds binary files, it returns a number of negative outcomes equal to the number of binary files found.
+remediation:
+  effort: Medium
+  text:
+    - Remove the generated executable artifacts from the repository.
+    - Build from source.
