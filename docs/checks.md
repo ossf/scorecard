@@ -440,7 +440,9 @@ The check currently looks for
 and language-specific GitHub Actions that upload the package to a corresponding
 hub, e.g., [Npm](https://www.npmjs.com/). We plan to add better support to query
 package manager hubs directly in the future, e.g., for
-[Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
+[Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/) or
+[Maven](https://maven.apache.org/) (see
+[#2687](https://github.com/ossf/scorecard/issues/2687)).
 
 You can create a package in several ways:
 
