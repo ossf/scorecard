@@ -143,3 +143,34 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 		})
 	})
 })
+
+var _ = Describe("E2E TEST:"+checks.CheckBranchProtection+" (repo rules)", func() {
+	Context("E2E TEST:Validating branch protection with repo rules", func() {
+		It("Should be able to read repo rules", func() {
+			dl := scut.TestDetailLogger{}
+			// no force push, no deletion, no bypass, dismiss stale reviews
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-repo-rules-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         3,
+				NumberOfWarn:  2,
+				NumberOfInfo:  4,
+				NumberOfDebug: 2,
+			}
+			result := checks.BranchProtection(&req)
+			Expect(result.Error).Should(BeNil())
+			Expect(scut.ValidateTestReturn(nil, "repo rules accessible", &expected, &result, &dl)).Should(BeTrue())
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+	})
+})

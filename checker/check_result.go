@@ -237,12 +237,12 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Version: 2,
 		Error:   e,
 		Score:   InconclusiveResultScore,
-		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
+		Reason:  e.Error(), // Note: message already accessible by caller through `Error`.
 	}
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, dl DetailLogger) error {
+func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
@@ -260,6 +260,4 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 			})
 		}
 	}
-
-	return nil
 }

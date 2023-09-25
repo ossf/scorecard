@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/rhysd/actionlint"
-	"gotest.tools/assert/cmp"
 )
 
 func TestGitHubWorkflowShell(t *testing.T) {
@@ -142,7 +142,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 					actualShells = append(actualShells, shell)
 				}
 			}
-			if !cmp.DeepEqual(tt.expectedShells, actualShells)().Success() {
+			if !cmp.Equal(tt.expectedShells, actualShells) {
 				t.Errorf("%v: Got (%v) expected (%v)", tt.name, actualShells, tt.expectedShells)
 			}
 		})
