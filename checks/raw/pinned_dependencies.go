@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -382,6 +383,9 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
+				if errors.Is(err, sce.ErrorJobOSParsing) {
+					continue
+				}
 				return false, err
 			}
 			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
