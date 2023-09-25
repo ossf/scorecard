@@ -127,6 +127,7 @@ func RunScorecard(ctx context.Context,
 	} else if err != nil {
 		return ScorecardResult{}, err
 	}
+	ret.Repo.CommitSHA = commitSHA
 
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
