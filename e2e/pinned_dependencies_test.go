@@ -49,9 +49,9 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         4,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
@@ -74,9 +74,9 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         4,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
@@ -110,9 +110,9 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         4,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  3,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
