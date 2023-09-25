@@ -3,11 +3,6 @@ module github.com/ossf/scorecard/v4
 go 1.19
 
 require (
-	github.com/rhysd/actionlint v1.6.15
-	gotest.tools v2.2.0+incompatible
-)
-
-require (
 	cloud.google.com/go/bigquery v1.55.0
 	cloud.google.com/go/monitoring v1.15.1 // indirect
 	cloud.google.com/go/pubsub v1.33.0
@@ -26,6 +21,7 @@ require (
 	github.com/moby/buildkit v0.12.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.27.10
+	github.com/rhysd/actionlint v1.6.15
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
 	github.com/sirupsen/logrus v1.9.3
