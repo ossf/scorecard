@@ -57,7 +57,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		return gh.RoundTrip(r)
 	}
 
-	*r = *r.WithContext(context.WithValue(r.Context(), githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
+	r = r.WithContext(context.WithValue(r.Context(), githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
 
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)

@@ -18,6 +18,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -58,6 +59,8 @@ func TestRoundTrip(t *testing.T) {
 		innerTransport: ts.Client().Transport,
 		logger:         log.NewLogger(log.DefaultLevel),
 	}
+
+	githubstats.InitMetrics()
 
 	t.Run("Successful response", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, ts.URL+"/success", nil)

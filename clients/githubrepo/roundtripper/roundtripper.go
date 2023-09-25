@@ -25,7 +25,9 @@ import (
 	"github.com/bradleyfalzon/ghinstallation/v2"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
+	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/stats"
 )
 
 const (
@@ -61,6 +63,16 @@ func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 	} else {
 		// TODO(log): Improve error message
 		logger.Error(fmt.Errorf("an error occurred while getting GitHub credentials"), "GitHub token env var is not set. Please read https://github.com/ossf/scorecard#authentication")
+	}
+
+	err := githubstats.InitMetrics()
+	if err != nil {
+		logger.Error(err, "setting up opentelemetry for github stats")
+	}
+
+	err = stats.InitMetrics()
+	if err != nil {
+		logger.Error(err, "setting up opentelemetry for general stats")
 	}
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))

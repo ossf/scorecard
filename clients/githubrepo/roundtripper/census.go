@@ -43,14 +43,14 @@ type censusTransport struct {
 
 // Roundtrip handles context update and measurement recording.
 func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	*r = *r.WithContext(context.WithValue(r.Context(), stats.RequestTag, "requested"))
+	r = r.WithContext(context.WithValue(r.Context(), stats.RequestTag, "requested"))
 
 	resp, err := ct.innerTransport.RoundTrip(r)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	if resp.Header.Get(fromCacheHeader) != "" {
-		*r = *r.WithContext(context.WithValue(r.Context(), stats.RequestTag, fromCacheHeader))
+		r = r.WithContext(context.WithValue(r.Context(), stats.RequestTag, fromCacheHeader))
 		if err != nil {
 			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
 		}

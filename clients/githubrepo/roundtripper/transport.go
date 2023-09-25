@@ -41,7 +41,7 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	id, token := gt.tokens.Next()
 	defer gt.tokens.Release(id)
 
-	*r = *r.WithContext(context.WithValue(r.Context(), githubstats.TokenIndex, fmt.Sprint(id)))
+	r = r.WithContext(context.WithValue(r.Context(), githubstats.TokenIndex, fmt.Sprint(id)))
 
 	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
 	resp, err := gt.innerTransport.RoundTrip(r)
