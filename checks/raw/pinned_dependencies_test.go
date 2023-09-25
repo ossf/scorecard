@@ -65,6 +65,11 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			name:     "Matrix as expression",
 			filename: "./testdata/.github/workflows/github-workflow-matrix-expression.yaml",
 		},
+		{
+			name:     "Can't detect OS, but still detects unpinned Actions",
+			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			warns:    2, // 1 in job with unknown OS, 1 in job with known OS
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -216,6 +221,11 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			filename: "./testdata/.github/workflows/workflow-mix-pinned-and-non-pinned-non-github.yaml",
 			warns:    1,
 		},
+		{
+			name:     "Can't detect OS, but still detects unpinned Actions",
+			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			warns:    2, // 1 in job with unknown OS, 1 in job with known OS
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -267,6 +277,11 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
 			warns:    49,
+		},
+		{
+			name:     "Can't identify OS but doesn't crash",
+			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			warns:    1, // job with unknown OS is skipped, 1 in job with known OS
 		},
 	}
 	for _, tt := range tests {
@@ -1241,6 +1256,11 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			name:     "wget across steps",
 			filename: "./testdata/.github/workflows/github-workflow-wget-across-steps.yaml",
 			warns:    2,
+		},
+		{
+			name:     "Can't identify OS but doesn't crash",
+			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			warns:    1, // job with unknown OS is skipped, 1 in job with known OS
 		},
 	}
 	for _, tt := range tests {
