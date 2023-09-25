@@ -36,18 +36,15 @@ func init() {
 }
 
 var (
-	errMissingInputFiles = errors.New("must provide at least two files from scdiff generate")
-	errResultsDiffer     = errors.New("results differ")
-	errNumResults        = errors.New("number of results being compared differ")
+	errResultsDiffer = errors.New("results differ")
+	errNumResults    = errors.New("number of results being compared differ")
 
 	compareCmd = &cobra.Command{
 		Use:   "compare [flags] FILE1 FILE2",
 		Short: "Compare Scorecard results",
 		Long:  `Compare Scorecard results`,
+		Args:  cobra.MinimumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 2 {
-				return errMissingInputFiles
-			}
 			f1, err := os.Open(args[0])
 			if err != nil {
 				return fmt.Errorf("opening %q: %w", args[0], err)
@@ -68,7 +65,9 @@ var (
 func compareReaders(x, y io.Reader, output io.Writer) error {
 	// results are currently newline delimited
 	xs := bufio.NewScanner(x)
+	xs.Buffer(nil, maxResultSize)
 	ys := bufio.NewScanner(y)
+	ys.Buffer(nil, maxResultSize)
 	for {
 		if shouldContinue, err := advanceScanners(xs, ys); err != nil {
 			return err
@@ -90,11 +89,11 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 }
 
 func loadResults(x, y *bufio.Scanner) (pkg.ScorecardResult, pkg.ScorecardResult, error) {
-	xResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
+	xResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
 	if err != nil {
 		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
 	}
-	yResult, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
+	yResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
 	if err != nil {
 		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
 	}

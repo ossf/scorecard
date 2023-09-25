@@ -176,17 +176,18 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	return nil
 }
 
-// This function is experimental. Do not depend on it, it may be removed at any point.
-func ExperimentalFromJSON2(r io.Reader) (ScorecardResult, error) {
+// ExperimentalFromJSON2 is experimental. Do not depend on it, it may be removed at any point.
+// Also returns the aggregate score, as the ScorecardResult field does not contain it.
+func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, err error) {
 	var jsr JSONScorecardResultV2
 	decoder := json.NewDecoder(r)
 	if err := decoder.Decode(&jsr); err != nil {
-		return ScorecardResult{}, fmt.Errorf("decode json: %w", err)
+		return ScorecardResult{}, 0, fmt.Errorf("decode json: %w", err)
 	}
 
 	date, err := time.Parse(time.RFC3339, jsr.Date)
 	if err != nil {
-		return ScorecardResult{}, fmt.Errorf("parse scorecard analysis time: %w", err)
+		return ScorecardResult{}, 0, fmt.Errorf("parse scorecard analysis time: %w", err)
 	}
 
 	sr := ScorecardResult{
@@ -216,7 +217,7 @@ func ExperimentalFromJSON2(r io.Reader) (ScorecardResult, error) {
 		sr.Checks = append(sr.Checks, cr)
 	}
 
-	return sr, nil
+	return sr, float64(jsr.AggregateScore), nil
 }
 
 func (r *ScorecardResult) AsFJSON(showDetails bool,
