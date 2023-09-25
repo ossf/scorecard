@@ -25,7 +25,6 @@ import (
 func testScore(branch *clients.BranchRef, codeownersFiles []string, dl checker.DetailLogger) (int, error) {
 	var score levelScore
 	score.scores.basic, score.maxes.basic = basicNonAdminProtection(branch, dl)
-	score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(branch, dl)
 	score.scores.review, score.maxes.review = nonAdminReviewProtection(branch)
 	score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(branch, dl)
 	score.scores.context, score.maxes.context = nonAdminContextProtection(branch, dl)
@@ -53,7 +52,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Nothing is enabled",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -98,7 +97,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required status check enabled",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         4,
 				NumberOfWarn:  5,
 				NumberOfInfo:  4,
 				NumberOfDebug: 0,
@@ -129,7 +128,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required status check enabled without checking for status string",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         4,
 				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
@@ -160,7 +159,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required pull request enabled",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         4,
 				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,
@@ -222,7 +221,7 @@ func TestIsBranchProtected(t *testing.T) {
 			name: "Required linear history enabled",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  6,
 				NumberOfInfo:  3,
 				NumberOfDebug: 0,

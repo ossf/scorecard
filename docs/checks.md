@@ -109,7 +109,6 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging
@@ -125,6 +124,7 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews and approvals when new commits are pushed
+  - For administrators: Include administrator for review
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
