@@ -15,47 +15,39 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/webhooksWithoutTokenAuth"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
-func Webhooks(name string, dl checker.DetailLogger,
-	r *checker.WebhooksData,
+func Webhooks(name string,
+	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		webhooksWithoutTokenAuth.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.Webhooks) < 1 {
-		return checker.CreateMaxScoreResult(name, "no webhooks defined")
+	totalWebhooks := findings[0].Values["totalWebhooks"]
+	webhooksWithoutSecret := findings[0].Values["webhooksWithoutSecret"]
+
+	if findings[0].Outcome == finding.OutcomeNotApplicable {
+		return checker.CreateMaxScoreResult(name, "project does not have webhook")
+	}
+	if totalWebhooks == webhooksWithoutSecret {
+		return checker.CreateMinScoreResult(name, "no hook(s) have a secret configured")
 	}
 
-	hasNoSecretCount := 0
-	for _, hook := range r.Webhooks {
-		if !hook.UsesAuthSecret {
-			dl.Warn(&checker.LogMessage{
-				Path: hook.Path,
-				Type: finding.FileTypeURL,
-				Text: "Webhook with no secret configured",
-			})
-			hasNoSecretCount++
-		}
-	}
-
-	if hasNoSecretCount == 0 {
-		return checker.CreateMaxScoreResult(name, fmt.Sprintf("all %d hook(s) have a secret configured", len(r.Webhooks)))
-	}
-
-	if len(r.Webhooks) == hasNoSecretCount {
-		return checker.CreateMinScoreResult(name, fmt.Sprintf("%d hook(s) do not have a secret configured", len(r.Webhooks)))
+	if webhooksWithoutSecret == 0 {
+		return checker.CreateMaxScoreResult(name, findings[0].Message)
 	}
 
 	return checker.CreateProportionalScoreResult(name,
-		fmt.Sprintf("%d/%d hook(s) with no secrets configured detected",
-			hasNoSecretCount, len(r.Webhooks)), hasNoSecretCount, len(r.Webhooks))
+		findings[0].Message, webhooksWithoutSecret, totalWebhooks)
 }

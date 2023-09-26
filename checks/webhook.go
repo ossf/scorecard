@@ -15,12 +15,12 @@
 package checks
 
 import (
-	"os"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 const (
@@ -38,17 +38,6 @@ func init() {
 
 // WebHooks run Webhooks check.
 func WebHooks(c *checker.CheckRequest) checker.CheckResult {
-	// TODO: remove this check when v6 is released
-	_, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL")
-	if !enabled {
-		c.Dlogger.Warn(&checker.LogMessage{
-			Text: "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check",
-		})
-
-		e := sce.WithMessage(sce.ErrorUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check")
-		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
-	}
-
 	rawData, err := raw.WebHook(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -56,10 +45,16 @@ func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.WebhookResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.WebhookResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Webhook)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
 	}
 
 	// Return the score evaluation.
-	return evaluation.Webhooks(CheckWebHooks, c.Dlogger, &rawData)
+	return evaluation.Webhooks(CheckWebHooks, findings, c.Dlogger)
 }

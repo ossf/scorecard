@@ -127,6 +127,14 @@ func TestCreateProportionalScore(t *testing.T) {
 			},
 			want: 5,
 		},
+		{
+			name: "2 and 5",
+			args: args{
+				success: 2,
+				total:   5,
+			},
+			want: 4,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
