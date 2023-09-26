@@ -8,7 +8,6 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.14.1
 	github.com/goreleaser/goreleaser v1.20.0
-	github.com/naveensrinivasan/stunning-tribble v0.4.2
 	github.com/onsi/ginkgo/v2 v2.13.0
 	google.golang.org/protobuf v1.31.0
 )
