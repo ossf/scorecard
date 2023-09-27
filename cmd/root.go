@@ -119,8 +119,10 @@ func rootCmd(o *options.Options) error {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}
 
-	for checkName := range enabledChecks {
-		fmt.Fprintf(os.Stdout, "Starting [%s]\n", checkName)
+	if o.Format == options.FormatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+		}
 	}
 
 	repoResult, err := pkg.RunScorecard(
@@ -145,8 +147,10 @@ func rootCmd(o *options.Options) error {
 		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
 	})
 
-	for checkName := range enabledChecks {
-		fmt.Fprintf(os.Stdout, "Finished [%s]\n", checkName)
+	if o.Format == options.FormatDefault {
+		for checkName := range enabledChecks {
+			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		}
 	}
 
 	resultsErr := pkg.FormatResults(
