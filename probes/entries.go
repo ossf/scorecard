@@ -44,6 +44,12 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
+	"github.com/ossf/scorecard/v4/probes/hasBadgeNotFound"
+	"github.com/ossf/scorecard/v4/probes/hasGoldBadge"
+	"github.com/ossf/scorecard/v4/probes/hasInProgressBadge"
+	"github.com/ossf/scorecard/v4/probes/hasPassingBadge"
+	"github.com/ossf/scorecard/v4/probes/hasSilverBadge"
+	"github.com/ossf/scorecard/v4/probes/hasUnknownBadge"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -116,6 +122,14 @@ var (
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		notCreatedRecently.Run,
+	}
+	CIIBestPractices = []ProbeImpl{
+		hasBadgeNotFound.Run,
+		hasGoldBadge.Run,
+		hasSilverBadge.Run,
+		hasInProgressBadge.Run,
+		hasPassingBadge.Run,
+		hasUnknownBadge.Run,
 	}
 )
 

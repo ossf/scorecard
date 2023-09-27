@@ -1,0 +1,29 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasInProgressBadge
+short: This check determines whether the project has an OpenSSF (formerly CII) Best Practices Badge at the InProgress level.
+motivation: >
+  The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open source software.
+implementation: >
+  The probe checks the type of the badge from the raw results.
+outcome:
+  - If the project has a badge at the InProgress level, the probe returns on OutcomePositive (1).
+  - If the project does not have a badge at the InProgress level, the probe returns on OutcomeNegative (0).
+remediation:
+  effort: High
+  text:
+    - Work on fulfilling more of the OpenSSF Best Practices Badge criteria.
+  markdown:
+    - Work on fulfilling more of [the OpenSSF Best Practices Badge criteria](https://www.bestpractices.dev/en/criteria/0).

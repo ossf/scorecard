@@ -16,71 +16,191 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestCIIBestPractices(t *testing.T) {
-	t.Run("CIIBestPractices", func(t *testing.T) {
-		t.Run("in progress", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.InProgress,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != inProgressScore {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, inProgressScore)
+	t.Parallel()
+	tests := []struct {
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
+	}{
+		{
+			name: "Badge not found",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 0,
+			},
+		},
+		{
+			name: "Has InProgress Badge",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 2,
+			},
+		},
+		{
+			name: "Has Passing Badge",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 5,
+			},
+		},
+		{
+			name: "Has Silver Badge",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 7,
+			},
+		},
+		{
+			name: "Has Gold Badge",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 10,
+			},
+		},
+		{
+			name: "Has Unknown Badge",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasBadgeNotFound",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasGoldBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasSilverBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasInProgressBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasPassingBadge",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasUnknownBadge",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Parallel testing
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dl := scut.TestDetailLogger{}
+			got := CIIBestPractices(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
-		t.Run("passing", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.Passing,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != passingScore {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, passingScore)
-			}
-		})
-		t.Run("silver", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.Silver,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != silverScore {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, silverScore)
-			}
-		})
-		t.Run("gold", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.Gold,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != checker.MaxResultScore {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, checker.MaxResultScore)
-			}
-		})
-		t.Run("not found", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.NotFound,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != checker.MinResultScore {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, checker.MinResultScore)
-			}
-		})
-		t.Run("error", func(t *testing.T) {
-			r := &checker.CIIBestPracticesData{
-				Badge: clients.Unknown,
-			}
-			result := CIIBestPractices("CIIBestPractices", nil, r)
-			if result.Score != -1 {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, -1)
-			}
-		})
-		t.Run("nil response", func(t *testing.T) {
-			result := CIIBestPractices("CIIBestPractices", nil, nil)
-			if result.Score != -1 {
-				t.Errorf("CIIBestPractices() = %v, want %v", result.Score, -1)
-			}
-		})
-	})
+	}
 }
