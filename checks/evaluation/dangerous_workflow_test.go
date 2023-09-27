@@ -16,151 +16,106 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestDangerousWorkflow(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
-		dl   checker.DetailLogger
-		r    *checker.DangerousWorkflowData
-	}
 	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "DangerousWorkflow - empty",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.DangerousWorkflowData{},
+			name: "Has untrusted checkout workflow",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasAnyWorkflows",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
-			want: checker.CheckResult{
-				Score:   checker.InconclusiveResultScore,
-				Reason:  "no workflows found",
-				Version: 2,
-				Name:    "DangerousWorkflow",
+			result: scut.TestReturn{
+				Score: 0,
+			},
+		},
+		{
+			name: "DangerousWorkflow - empty",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasAnyWorkflows",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
 			},
 		},
 		{
 			name: "DangerousWorkflow - found workflows, none dangerous",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.DangerousWorkflowData{
-					NumWorkflows: 5,
+			findings: []finding.Finding{
+				{
+					Probe:   "hasAnyWorkflows",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   checker.MaxResultScore,
-				Reason:  "no dangerous workflow patterns detected",
-				Version: 2,
-				Name:    "DangerousWorkflow",
+			result: scut.TestReturn{
+				Score: 10,
 			},
 		},
 		{
 			name: "DangerousWorkflow - Dangerous workflow detected",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.DangerousWorkflowData{
-					NumWorkflows: 1,
-					Workflows: []checker.DangerousWorkflow{
-						{
-							Type: checker.DangerousWorkflowUntrustedCheckout,
-							File: checker.File{
-								Path:      "a",
-								Snippet:   "a",
-								Offset:    0,
-								EndOffset: 0,
-								Type:      0,
-							},
-						},
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "hasAnyWorkflows",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   0,
-				Reason:  "dangerous workflow patterns detected",
-				Version: 2,
-				Name:    "DangerousWorkflow",
+			result: scut.TestReturn{
+				Score: 0,
 			},
 		},
 		{
 			name: "DangerousWorkflow - Script injection detected",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.DangerousWorkflowData{
-					NumWorkflows: 1,
-					Workflows: []checker.DangerousWorkflow{
-						{
-							Type: checker.DangerousWorkflowScriptInjection,
-							File: checker.File{
-								Path:      "a",
-								Snippet:   "a",
-								Offset:    0,
-								EndOffset: 0,
-								Type:      0,
-							},
-						},
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "hasAnyWorkflows",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   0,
-				Reason:  "dangerous workflow patterns detected",
-				Version: 2,
-				Name:    "DangerousWorkflow",
-			},
-		},
-		{
-			name: "DangerousWorkflow - unknown type",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.DangerousWorkflowData{
-					NumWorkflows: 1,
-					Workflows: []checker.DangerousWorkflow{
-						{
-							Type: "foobar",
-							File: checker.File{
-								Path:      "a",
-								Snippet:   "a",
-								Offset:    0,
-								EndOffset: 0,
-								Type:      0,
-							},
-						},
-					},
-				},
-			},
-			want: checker.CheckResult{
-				Score:   -1,
-				Reason:  "internal error: invalid type",
-				Version: 2,
-				Name:    "DangerousWorkflow",
-			},
-		},
-		{
-			name: "DangerousWorkflow - nil data",
-			args: args{
-				name: "DangerousWorkflow",
-				dl:   &scut.TestDetailLogger{},
-				r:    nil,
-			},
-			want: checker.CheckResult{
-				Score:   -1,
-				Reason:  "internal error: empty raw data",
-				Name:    "DangerousWorkflow",
-				Version: 2,
+			result: scut.TestReturn{
+				Score: 0,
 			},
 		},
 	}
@@ -168,8 +123,10 @@ func TestDangerousWorkflow(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := DangerousWorkflow(tt.args.name, tt.args.dl, tt.args.r); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
-				t.Errorf("DangerousWorkflow() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := DangerousWorkflow(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

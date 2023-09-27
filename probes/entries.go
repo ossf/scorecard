@@ -36,6 +36,9 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/hasAnyWorkflows"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -94,6 +97,11 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
+	}
+	DangerousWorkflows = []ProbeImpl{
+		hasAnyWorkflows.Run,
+		hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 )
 

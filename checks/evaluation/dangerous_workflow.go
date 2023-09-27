@@ -15,59 +15,79 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasAnyWorkflows"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 )
 
 // DangerousWorkflow applies the score policy for the DangerousWorkflow check.
-func DangerousWorkflow(name string, dl checker.DetailLogger,
-	r *checker.DangerousWorkflowData,
+func DangerousWorkflow(name string,
+	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		hasAnyWorkflows.Probe,
+		hasDangerousWorkflowScriptInjection.Probe,
+		hasDangerousWorkflowUntrustedCheckout.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if r.NumWorkflows == 0 {
+	if !hasWorkflows(findings) {
 		return checker.CreateInconclusiveResult(name, "no workflows found")
 	}
 
-	for _, e := range r.Workflows {
-		var text string
-		switch e.Type {
-		case checker.DangerousWorkflowUntrustedCheckout:
-			text = fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet)
-		case checker.DangerousWorkflowScriptInjection:
-			text = fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet)
-		default:
-			err := sce.WithMessage(sce.ErrScorecardInternal, "invalid type")
-			return checker.CreateRuntimeErrorResult(name, err)
-		}
-
-		dl.Warn(&checker.LogMessage{
-			Path:    e.File.Path,
-			Type:    e.File.Type,
-			Offset:  e.File.Offset,
-			Text:    text,
-			Snippet: e.File.Snippet,
-		})
+	if hasDWWithUntrustedCheckout(findings) {
+		return checker.CreateMinScoreResult(name,
+			"dangerous workflow patterns detected")
 	}
 
-	if len(r.Workflows) > 0 {
-		return createResult(name, checker.MinResultScore)
-	}
-	return createResult(name, checker.MaxResultScore)
-}
-
-// Create the result.
-func createResult(name string, score int) checker.CheckResult {
-	if score != checker.MaxResultScore {
-		return checker.CreateResultWithScore(name,
-			"dangerous workflow patterns detected", score)
+	if hasDWWithScriptInjection(findings) {
+		return checker.CreateMinScoreResult(name,
+			"dangerous workflow patterns detected")
 	}
 
 	return checker.CreateMaxScoreResult(name,
 		"no dangerous workflow patterns detected")
+}
+
+func hasWorkflows(findings []finding.Finding) bool {
+	for i := range findings {
+		f := &findings[i]
+		if f.Probe == hasAnyWorkflows.Probe {
+			if f.Outcome == finding.OutcomePositive {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasDWWithUntrustedCheckout(findings []finding.Finding) bool {
+	for i := range findings {
+		f := &findings[i]
+		if f.Probe == hasDangerousWorkflowUntrustedCheckout.Probe {
+			if f.Outcome == finding.OutcomeNegative {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasDWWithScriptInjection(findings []finding.Finding) bool {
+	for i := range findings {
+		f := &findings[i]
+		if f.Probe == hasDangerousWorkflowScriptInjection.Probe {
+			if f.Outcome == finding.OutcomeNegative {
+				return true
+			}
+		}
+	}
+	return false
 }
