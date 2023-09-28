@@ -41,17 +41,31 @@ func Contributors(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	reason := fmt.Sprintf("project has %d contributing companies or organizations", len(findings))
+	numberOfPositives := getNumberOfPositives(findings)
+	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfPositives)
 
-	if len(findings) >= numberCompaniesForTopScore {
+	if numberOfPositives >= numberCompaniesForTopScore {
 		// Return max score. This may need changing if other probes
 		// are added for other contributors metrics. Right now, the
 		// scoring is designed for a single probe that returns true
 		// or false.
-		checker.LogFindings(nonNegativeFindings(findings), dl)
+		checker.LogFindings(findings, dl)
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
 	checker.LogFindings(negativeFindings(findings), dl)
-	return checker.CreateProportionalScoreResult(name, reason, len(findings), numberCompaniesForTopScore)
+	return checker.CreateProportionalScoreResult(name, reason, numberOfPositives, numberCompaniesForTopScore)
+}
+
+func getNumberOfPositives(findings []finding.Finding) int {
+	var numberOfPositives int
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			if f.Probe == contributorsFromOrgOrCompany.Probe {
+				numberOfPositives++
+			}
+		}
+	}
+	return numberOfPositives
 }

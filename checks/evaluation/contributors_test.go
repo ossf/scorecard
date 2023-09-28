@@ -45,19 +45,15 @@ func TestContributors(t *testing.T) {
 				NumberOfInfo: 0,
 			},
 		}, {
-			name: "Test negative logging",
+			name: "No contributors",
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
-				},
 			},
 			result: scut.TestReturn{
-				Score:        6,
+				Score:        0,
 				NumberOfWarn: 1,
 			},
 		}, {
