@@ -31,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/packagedWithGithubActions"
+	"github.com/ossf/scorecard/v4/probes/packagedNpmWithGitHubWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -79,7 +80,7 @@ var (
 		fuzzedWithPropertyBasedJavascript.Run,
 	}
 	Packaging = []ProbeImpl{
-		packagedWithGithubActions.Run,
+		packagedNpmWithGitHubWorkflow.Run,
 	}
 )
 

@@ -33,7 +33,7 @@ func TestPackaging(t *testing.T) {
 			name: "test positive outcome",
 			findings: []finding.Finding{
 				{
-					Probe:   "packagedWithGithubActions",
+					Probe:   "packagedNpmWithGitHubWorkflow",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -59,7 +59,7 @@ func TestPackaging(t *testing.T) {
 			name: "test negative outcome",
 			findings: []finding.Finding{
 				{
-					Probe:   "packagedWithGithubActions",
+					Probe:   "packagedNpmWithGitHubWorkflow",
 					Outcome: finding.OutcomeNegative,
 				},
 			},

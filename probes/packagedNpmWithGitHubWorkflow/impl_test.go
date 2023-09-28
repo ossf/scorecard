@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package packagedWithGithubActions
+package packagedNpmWithGitHubWorkflow
 
 import (
 	"testing"

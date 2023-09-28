@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package packagedWithGithubActions
+package packagedNpmWithGitHubWorkflow
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "packagedWithGithubActions"
+const Probe = "packagedNpmWithGitHubWorkflow"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

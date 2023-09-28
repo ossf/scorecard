@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/packagedWithGithubActions"
+	"github.com/ossf/scorecard/v4/probes/packagedNpmWithGitHubWorkflow"
 )
 
 // Packaging applies the score policy for the Packaging check.
@@ -27,12 +27,12 @@ func Packaging(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		packagedWithGithubActions.Probe,
+		packagedNpmWithGitHubWorkflow.Probe,
 	}
 
-	err := validateFindings(findings, expectedProbes)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	// Currently there is only a single packaging probe that returns
@@ -49,15 +49,4 @@ func Packaging(name string,
 
 	checker.LogFindings(nonNegativeFindings(findings), dl)
 	return checker.CreateMinScoreResult(name, "project is not published as package")
-}
-
-func validateFindings(findings []finding.Finding, expectedProbes []string) error {
-	if !finding.UniqueProbesEqual(findings, expectedProbes) {
-		return sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
-	}
-
-	if len(findings) == 0 {
-		return sce.WithMessage(sce.ErrScorecardInternal, "found 0 findings. Should not happen")
-	}
-	return nil
 }

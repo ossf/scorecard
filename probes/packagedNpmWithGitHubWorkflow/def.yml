@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: packagedWithGithubActions
+id: packagedNpmWithGitHubWorkflow
 short: Check that the project is fuzzed using OSS-Fuzz
 motivation: >
   Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.
 implementation: >
-  The implementation checks all the packages of the project. If one of these packages do not have a debug message, then it is considered a release package and the probe returns a positive outcome.
+  The implementation checks whether a project uses common patterns for packaging across multiple ecosystems. Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`. 
 outcome:
   - If the project has a package without a debug message, the outcome is positive.
   - If the project has a package with a debug message, the outcome is negative.
