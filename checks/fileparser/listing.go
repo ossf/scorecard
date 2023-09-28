@@ -112,6 +112,52 @@ func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatc
 	return nil
 }
 
+func OnMatchingFileContentWithTestDataDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
+	onFileContent DoWhileTrueOnFileContent, args ...interface{},
+) error {
+	predicate := func(filepath string) (bool, error) {
+		// Filter out test files.
+		if isTestdataFile(filepath) {
+			return false, nil
+		}
+		// Filter out files based on path/names using the pattern.
+		b, err := isMatchingPath(filepath, matchPathTo)
+		if err != nil {
+			return false, err
+		}
+		return b, nil
+	}
+	return OnMatchDo(repoClient, onFileContent, predicate, args)
+}
+
+
+func OnMatchDo(repoClient clients.RepoClient,
+	onFileContent DoWhileTrueOnFileContent, predicate func(filepath string) (bool, error), args ...interface{},
+) error {
+	matchedFiles, err := repoClient.ListFiles(predicate)
+	if err != nil {
+		return fmt.Errorf("error during ListFiles: %w", err)
+	}
+
+	for _, file := range matchedFiles {
+		content, err := repoClient.GetFileContent(file)
+		if err != nil {
+			return fmt.Errorf("error during GetFileContent: %w", err)
+		}
+
+		continueIter, err := onFileContent(file, content, args...)
+		if err != nil {
+			return err
+		}
+
+		if !continueIter {
+			break
+		}
+	}
+
+	return nil
+}
+
 // DoWhileTrueOnFilename takes a filename and optional variadic args and returns
 // true if the next filename should continue to be processed.
 type DoWhileTrueOnFilename func(path string, args ...interface{}) (bool, error)

@@ -238,7 +238,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	result := false
-	e := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	e := fileparser.OnMatchingFileContentWithTestDataDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".clusterfuzzlite/Dockerfile",
 		CaseSensitive: true,
 	}, func(path string, content []byte, args ...interface{}) (bool, error) {
@@ -254,7 +254,7 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 
 func checkOneFuzz(c *checker.CheckRequest) (bool, error) {
 	result := false
-	e := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	e := fileparser.OnMatchingFileContentWithTestDataDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "^\\.onefuzz$",
 		CaseSensitive: true,
 	}, func(path string, content []byte, args ...interface{}) (bool, error) {
@@ -310,9 +310,9 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 			CaseSensitive: false,
 		}
 		data.pattern = funcPattern
-		err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
+		err := fileparser.OnMatchingFileContentWithTestDataDo(c.RepoClient, matcher, getFuzzFunc, &data)
 		if err != nil {
-			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
+			return false, nil, fmt.Errorf("error when OnMatchingFileContentWithTestDataDo: %w", err)
 		}
 		dataFiles = append(dataFiles, data.files...)
 	}
@@ -324,7 +324,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 	return true, dataFiles, nil
 }
 
-// This is the callback func for interface OnMatchingFileContentDo
+// This is the callback func for interface OnMatchingFileContentWithTestDataDo
 // used for matching fuzz functions in the file content,
 // and return a list of files (or nil for not found).
 var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
