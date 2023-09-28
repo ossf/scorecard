@@ -244,7 +244,7 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 	}, func(path string, content []byte, args ...interface{}) (bool, error) {
 		result = fileparser.CheckFileContainsCommands(content, "#")
 		return false, nil
-	}, false, nil)
+	}, nil)
 	if e != nil {
 		return result, fmt.Errorf("%w", e)
 	}
@@ -260,7 +260,7 @@ func checkOneFuzz(c *checker.CheckRequest) (bool, error) {
 	}, func(path string, content []byte, args ...interface{}) (bool, error) {
 		result = true
 		return false, nil
-	}, false, nil)
+	}, nil)
 	if e != nil {
 		return result, fmt.Errorf("%w", e)
 	}
@@ -310,7 +310,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 			CaseSensitive: false,
 		}
 		data.pattern = funcPattern
-		err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, false, &data)
+		err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
 		if err != nil {
 			return false, nil, fmt.Errorf("error when OnMatchingFileContentDo: %w", err)
 		}

@@ -123,7 +123,7 @@ func collectCodeownersFiles(c clients.RepoClient, codeownersFiles *[]string) err
 	return fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       "CODEOWNERS",
 		CaseSensitive: true,
-	}, addCodeownersFile, true, codeownersFiles)
+	}, addCodeownersFile, codeownersFiles)
 }
 
 var addCodeownersFile fileparser.DoWhileTrueOnFileContent = func(
