@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasApprovedLicenseFile"
+	"github.com/ossf/scorecard/v4/probes/hasApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 )
@@ -31,7 +31,7 @@ func License(name string,
 	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
-		hasApprovedLicenseFile.Probe,
+		hasApprovedLicense.Probe,
 		hasLicenseFileAtTopDir.Probe,
 	}
 
@@ -47,7 +47,7 @@ func License(name string,
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
-			case hasApprovedLicenseFile.Probe:
+			case hasApprovedLicense.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
 			case hasLicenseFileAtTopDir.Probe:
 				score += scoreProbeOnce(f.Probe, m, 3)

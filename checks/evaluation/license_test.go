@@ -37,7 +37,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
 				{
@@ -55,7 +55,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -73,7 +73,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -91,7 +91,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -106,7 +106,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -124,7 +124,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicenseFile",
+					Probe:   "hasApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
 				{

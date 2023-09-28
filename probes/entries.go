@@ -32,6 +32,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasApprovedLicenseFile"
+	"github.com/ossf/scorecard/v4/probes/hasApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
@@ -83,7 +84,7 @@ var (
 	}
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
-		hasApprovedLicenseFile.Run,
+		hasApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Run,
 	}
 )

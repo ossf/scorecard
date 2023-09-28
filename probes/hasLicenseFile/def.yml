@@ -19,10 +19,11 @@ motivation: >
 implementation: >
  The implementation checks whether a license file is present.
 outcome:
-  - If a license file is found, the outcome is positive.
+  - If a license file is found, the probe returns a single OutcomePositive (1).
+  - If a license file is not found, the probe returns a single OutcomeNegative (0).
 remediation:
   effort: Low
   text:
-    - Determine which license to apply to your project. For GitHub hosted projects, follow those instructions to establish a license for your project.
-    - For other hosting environments, create the license in a .adoc, .asc, .docx, .doc, .ext, .html, .markdown, .md, .rst, .txt, or .xml, named LICENSE, COPYRIGHT, or COPYING, and place it in the top-level directory. To identify a specific license, use an SPDX license identifier in the filename. Examples include LICENSE.md, Apache-2.0-LICENSE.md or LICENSE-Apache-2.0.
+    - For Github projects, follow [this guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to determine which license to apply to your project and establish a license file for your project.
+    - For Gitlab projects, create the license in a .adoc, .asc, .docx, .doc, .ext, .html, .markdown, .md, .rst, .txt, or .xml, named LICENSE, COPYRIGHT, or COPYING, and place it in the top-level directory. To identify a specific license, use an SPDX license identifier in the filename. Examples include LICENSE.md, Apache-2.0-LICENSE.md or LICENSE-Apache-2.0.
     - Alternately, create a LICENSE directory and add a license file(s) with a name that matches your SPDX license identifier. such as LICENSES/Apache-2.0.txt.

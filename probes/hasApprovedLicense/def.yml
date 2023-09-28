@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: hasApprovedLicenseFile
-short: Check that the project has a license file of approved format
+id: hasApprovedLicense
+short: Check that the project has a license file of approved format. An approved format is a file named either LICENSE, LICENCE, COPYING or COPYRIGHT with the file extension .html, .txt, or .md.
 motivation: >
   A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
 implementation: >
  The implementation checks whether a license file is present and is of an approved format
 outcome:
-  - If a license file is found, the outcome is positive.
+  - If a license file is found and is of an approved format, probe returns a single OutcomePositive (1).
+  - If a license file is missing or is not of an approved format, probe returns a single OutcomeNegative (0).
 remediation:
   effort: Low
   text:
-    - Update the license file format in the Github repository.
+    - Update the license file format in the Github repository to be of an approved format.
