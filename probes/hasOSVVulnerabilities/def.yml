@@ -17,9 +17,9 @@ short: Check whether the project has known vulnerabilities
 motivation: >
   This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability may be exploited by attackers and should be fixed as soon as possible.
 implementation: >
- The implementation uses the VulnerabilitiesData from the raw results.
+ The implementation fetches data from OSV.dev about the project which shows whether a given project has known, unfixed vulnerabilities. The implementation uses the number of known, unfixed vulnerabilities to score.
 outcome:
-  - The probe returns one negative outcome for each vulnerability in the raw results.
+  - The probe returns one negative outcome for each vulnerability found in OSV.
   - If there are no known vulnerabilities from the raw results, the probe returns one positive outcome.
 remediation:
   effort: High
@@ -30,4 +30,4 @@ remediation:
   markdown:
     - Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on [https://osv.dev](https://osv.dev/).
     - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
-    - If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
+    - If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
