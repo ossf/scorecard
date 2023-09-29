@@ -36,7 +36,7 @@ const (
 func Maintained(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 7 unique probes, each should have a finding.
+	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		archived.Probe,
 		activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Probe,

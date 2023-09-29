@@ -39,7 +39,7 @@ func Maintained(c *checker.CheckRequest) checker.CheckResult {
 	rawData, err := raw.Maintained(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 
 	// Set the raw results.
@@ -50,7 +50,7 @@ func Maintained(c *checker.CheckRequest) checker.CheckResult {
 	findings, err := zrunner.Run(pRawResults, probes.Maintained)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
 	}
 
 	// Return the score evaluation.
