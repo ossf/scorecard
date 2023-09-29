@@ -108,6 +108,87 @@ func TestWebhooks(t *testing.T) {
 				Score: 4,
 			},
 		},
+		{
+			name: "Twelve webhooks none of which have secrets",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasWebhooks",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				}, {
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

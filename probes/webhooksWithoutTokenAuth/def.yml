@@ -13,20 +13,20 @@
 # limitations under the License.
 
 id: webhooksWithoutTokenAuth
-short: This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
+short: This check determines whether webhooks defined in the repository use a token to authenticate to remote servers.
 motivation: >
   Webhooks without token authorization have the potential to make projects accessible to third-parties.
 implementation: >
-  The probe checks all webhooks of a project and returns if it finds a single webhook without token authentication.
+  The probe checks all webhooks of a project and checks whether each uses token authentication.
 outcome:
-  - If the project has a single webhook without token authorization, the probe returns one OutcomeNegative (0).
+  - If the project has one or more webhooks without token authorization, the probe returns as many OutcomeNegative (0) as the project has webhooks without token authorization.
   - If the project does not have any webhooks without token authorization, the probe returns one OutcomePositive (1).
 remediation:
   effort: Low
   text:
     - Check whether your service supports token authentication.
-    - If there is support for token authentication, set the secret in the webhook configuration. 
-    - If there is no support for token authentication, request the webhook service implement token authentication functionality.
+    - If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
+    - If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
   markdown:
     - Check whether your service supports token authentication.
     - If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
