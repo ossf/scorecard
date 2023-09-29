@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: hasKnownVulnerabilities
+id: hasOSVVulnerabilities
 short: Check whether the project has known vulnerabilities
 motivation: >
-  This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability is readily exploited by attackers and should be fixed as soon as possible.
+  This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability may be exploited by attackers and should be fixed as soon as possible.
 implementation: >
  The implementation uses the VulnerabilitiesData from the raw results.
 outcome:

@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasKnownVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 )
 
 // Vulnerabilities applies the score policy for the Vulnerabilities check.
@@ -27,12 +27,12 @@ func Vulnerabilities(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasKnownVulnerabilities.Probe,
+		hasOSVVulnerabilities.Probe,
 	}
 
-	err := validateFindings(findings, expectedProbes)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	vulnsFound := 0
@@ -51,27 +51,4 @@ func Vulnerabilities(name string,
 	}
 
 	return checker.CreateResultWithScore(name, "vulnerabilities detected", score)
-}
-
-func validateFindings(findings []finding.Finding, expectedProbes []string) error {
-	if !finding.UniqueProbesEqual(findings, expectedProbes) {
-		return sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
-	}
-
-	if len(findings) == 0 {
-		return sce.WithMessage(sce.ErrScorecardInternal, "found 0 findings. Should not happen")
-	}
-	return nil
-}
-
-func negativeFindings(findings []finding.Finding) []finding.Finding {
-	var ff []finding.Finding
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			continue
-		}
-		ff = append(ff, *f)
-	}
-	return ff
 }

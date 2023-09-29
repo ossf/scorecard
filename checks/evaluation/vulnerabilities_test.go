@@ -38,7 +38,7 @@ func TestVulnerabilities(t *testing.T) {
 			name: "no vulnerabilities",
 			findings: []finding.Finding {
 				{
-					Probe:   "hasKnownVulnerabilities",
+					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -50,21 +50,78 @@ func TestVulnerabilities(t *testing.T) {
 			name: "three vulnerabilities",
 			findings: []finding.Finding {
 				{
-					Probe:   "hasKnownVulnerabilities",
+					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "hasKnownVulnerabilities",
+					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "hasKnownVulnerabilities",
+					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
 				Score: 7,
 				NumberOfWarn: 9,
+			},
+		},
+		{
+			name: "twelve vulnerabilities",
+			findings: []finding.Finding {
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 0,
+				NumberOfWarn: 144,
 			},
 		},
 		{

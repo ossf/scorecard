@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package hasKnownVulnerabilities
+package hasOSVVulnerabilities
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasKnownVulnerabilities"
+const Probe = "hasOSVVulnerabilities"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -37,7 +37,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	for i := 0; i < len(raw.VulnerabilitiesResults.Vulnerabilities); i++ {
 		f, err := finding.NewWith(fs, Probe,
-			"Project has known vulnerability.", nil,
+			"Project contains OSV vulnerabilities", nil,
 			finding.OutcomeNegative)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -48,7 +48,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	// if no vulns were found
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"Project does not packagehave known vulnerabilities.", nil,
+			"Project does not contain OSV vulnerabilities", nil,
 			finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
