@@ -46,6 +46,11 @@ func (handler *licensesHandler) setup() error {
 	handler.once.Do(func() {
 		l := handler.glProject.License
 
+		// No registered license on GitLab repo, use file-based license detection instead
+		if l == nil {
+			return
+		}
+
 		ptn, err := regexp.Compile(fmt.Sprintf("%s/-/blob/(?:\\w+)/(.*)", handler.repourl.URI()))
 		if err != nil {
 			handler.errSetup = fmt.Errorf("couldn't parse license url: %w", err)

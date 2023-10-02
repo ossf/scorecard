@@ -25,7 +25,11 @@ This page answers frequently asked questions about Scorecard, including its purp
 
 Yes.
 
-Over a million projects are automatically tracked by the Scorecard project. These projects' scores can be seen at https://api.securityscorecards.dev/projects/github.com/<username_or_org>/<repository_name>.
+Over a million projects are automatically tracked by the Scorecard project. Use the webviewer to see these scores, replacing the placeholder text with the platform, user/org, and repository name: https://securityscorecards.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
+
+For example: 
+ - [https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
+ - [https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient](https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient)
 
 You can also use the CLI to generate scores for any public repository by following these steps:
 
