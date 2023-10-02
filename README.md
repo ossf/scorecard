@@ -94,8 +94,9 @@ metrics. Prominent projects that use Scorecard include:
 
 ### View a Project's Score
 
-To see scores for projects regually scanned by Scorecard, navigate to the webviewer, replacing the placeholder text with the platform, user/org, and repository name: 
-https://securityscorecards.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
+To see scores for projects regually scanned by Scorecard, [navigate to the webviewer](https://securityscorecards.dev/viewer/), replacing the placeholder text with the platform, user/org, and repository name:
+
+<a href="https://securityscorecards.dev/viewer" target="_blank"><img src="artwork/viewer-screenshot.png" alt="Screenshot of scorecards search"></a>
 
 For example: 
  - [https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
