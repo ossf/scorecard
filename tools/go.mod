@@ -9,7 +9,7 @@ require (
 	github.com/google/ko v0.14.1
 	github.com/goreleaser/goreleaser v1.20.0
 	github.com/naveensrinivasan/stunning-tribble v0.4.2
-	github.com/onsi/ginkgo/v2 v2.12.0
+	github.com/onsi/ginkgo/v2 v2.12.1
 	google.golang.org/protobuf v1.31.0
 )
 
@@ -362,7 +362,7 @@ require (
 	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
@@ -392,9 +392,4 @@ require (
 	mvdan.cc/unparam v0.0.0-20221223090309-7455f1af531d // indirect
 	sigs.k8s.io/kind v0.20.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
-)
-
-replace (
-	github.com/sigstore/cosign => github.com/sigstore/cosign v1.12.0
-	github.com/theupdateframework/go-tuf => github.com/theupdateframework/go-tuf v0.3.0
 )

@@ -16,6 +16,7 @@
 package checker
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -49,6 +50,10 @@ const (
 	// DetailDebug is debug log.
 	DetailDebug
 )
+
+// errSuccessTotal indicates a runtime error because number of success cases should
+// be smaller than the total cases to create a proportional score.
+var errSuccessTotal = errors.New("unexpected number of success is higher than total")
 
 // CheckResult captures result from a check run.
 //
@@ -88,6 +93,14 @@ type LogMessage struct {
 	Remediation *rule.Remediation // Remediation information, if any.
 }
 
+// ProportionalScoreWeighted is a structure that contains
+// the fields to calculate weighted proportional scores.
+type ProportionalScoreWeighted struct {
+	Success int
+	Total   int
+	Weight  int
+}
+
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {
@@ -95,6 +108,40 @@ func CreateProportionalScore(success, total int) int {
 	}
 
 	return int(math.Min(float64(MaxResultScore*success/total), float64(MaxResultScore)))
+}
+
+// CreateProportionalScoreWeighted creates the proportional score
+// between multiple successes over the total, but some proportions
+// are worth more.
+func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, error) {
+	var ws, wt int
+	allWeightsZero := true
+	noScoreGroups := true
+	for _, score := range scores {
+		if score.Success > score.Total {
+			return InconclusiveResultScore, fmt.Errorf("%w: %d, %d", errSuccessTotal, score.Success, score.Total)
+		}
+		if score.Total == 0 {
+			continue // Group with 0 total, does not count for score
+		}
+		noScoreGroups = false
+		if score.Weight != 0 {
+			allWeightsZero = false
+		}
+		// Group with zero weight, adds nothing to the score
+
+		ws += score.Success * score.Weight
+		wt += score.Total * score.Weight
+	}
+	if noScoreGroups {
+		return InconclusiveResultScore, nil
+	}
+	// If has score groups but no groups matter to the score, result in max score
+	if allWeightsZero {
+		return MaxResultScore, nil
+	}
+
+	return int(math.Min(float64(MaxResultScore*ws/wt), float64(MaxResultScore))), nil
 }
 
 // AggregateScores adds up all scores
@@ -195,7 +242,7 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, dl DetailLogger) error {
+func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
@@ -213,6 +260,4 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 			})
 		}
 	}
-
-	return nil
 }
