@@ -59,7 +59,8 @@ Allowed by Scorecard:
 Risk: `High` (vulnerable to intentional malicious code injection)
 
 This check determines whether a project's default and release branches are
-protected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings.
+protected with GitHub's [branch protection](https://docs.github.com/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) 
+or [repository rules](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) settings.
 Branch protection allows maintainers to define rules that enforce
 certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
@@ -68,8 +69,9 @@ public history.
 Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmins`, `RequireLastPushApproval`, `RequiresStatusChecks` and `UpToDateBeforeMerge`. If
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
-Even so, we recommend using a non-admin token, which provides a thorough enough
-result to meet most user needs.
+However, all of these settings are accessible via Repo Rules. `EnforceAdmins` is calculated slightly differently.
+This setting is calculated as `false` if any [Bypass Actors](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#granting-bypass-permissions-for-your-ruleset)
+ are defined on any rule, regardless of if they are admins.
 
 Different types of branch protection protect against different risks:
 
@@ -107,7 +109,6 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging
@@ -123,6 +124,7 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews and approvals when new commits are pushed
+  - For administrators: Include administrator for review
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
@@ -597,6 +599,8 @@ This check looks for the following filenames in the project's last five
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+
+This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
 Note: The check does not verify the signatures.
  

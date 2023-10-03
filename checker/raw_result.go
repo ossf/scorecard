@@ -121,6 +121,7 @@ type Dependency struct {
 	PinnedAt *string
 	Location *File
 	Msg      *string // Only for debug messages.
+	Pinned   *bool
 	Type     DependencyUseType
 }
 

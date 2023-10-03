@@ -242,3 +242,69 @@ func Test_isGoUnpinnedDownload(t *testing.T) {
 		})
 	}
 }
+
+func Test_isNpmDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "npm install",
+			args: args{
+				cmd: []string{"npm", "install"},
+			},
+			want: true,
+		},
+		{
+			name: "npm ci",
+			args: args{
+				cmd: []string{"npm", "ci"},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isNpmDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isNpmDownload() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_isNpmUnpinnedDownload(t *testing.T) {
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "npm install",
+			args: args{
+				cmd: []string{"npm", "install"},
+			},
+			want: true,
+		},
+		{
+			name: "npm ci",
+			args: args{
+				cmd: []string{"npm", "ci"},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isNpmUnpinnedDownload(tt.args.cmd); got != tt.want {
+				t.Errorf("isNpmUnpinnedDownload() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
