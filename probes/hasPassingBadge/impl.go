@@ -45,7 +45,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 func negativeOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
-		"Did not detect InProgress badge.", nil,
+		"OpenSSF best practice badge found at Passing level.", nil,
 		finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -55,7 +55,7 @@ func negativeOutcome() ([]finding.Finding, string, error) {
 
 func positiveOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
-		"Detected InProgress badge.", nil,
+		"OpenSSF best practice badge found at Passing level.", nil,
 		finding.OutcomePositive)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)

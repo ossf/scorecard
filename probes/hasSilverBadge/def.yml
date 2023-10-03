@@ -24,6 +24,6 @@ outcome:
 remediation:
   effort: High
   text:
-    - Work on fulfilling more of the OpenSSF Best Practices Badge criteria.
+    - Learn about best practices by following the OpenSSF Best Practices Badge criteria.
   markdown:
-    - Work on fulfilling more of [the OpenSSF Best Practices Badge criteria](https://www.bestpractices.dev/en/criteria/0).
+    - Learn about best practices by following [the OpenSSF Best Practices Badge criteria](https://www.bestpractices.dev/en/criteria/0).
