@@ -164,11 +164,6 @@ func FormatResults(
 func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	checkDocs checks.Doc, writer io.Writer,
 ) error {
-	if writer == os.Stdout {
-		fmt.Fprintln(writer)
-	}
-	fmt.Fprintln(writer, "RESULTS\n-------")
-
 	data := make([][]string, len(r.Checks))
 
 	for i, row := range r.Checks {
