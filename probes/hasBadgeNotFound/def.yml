@@ -17,10 +17,10 @@ short: This check determines whether the project is missing an OpenSSF (formerly
 motivation: >
   The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open source software.
 implementation: >
-  The probe checks the type of the badge from the raw results.
+  Checks for the presence of an OpenSSF best practice badge.
 outcome:
-  - If the project is missing a badge, the probe returns one OutcomePositive (1).
-  - If the project is NOT missing a badge, the probe returns one OutcomeNegative (0).
+  - If the project has a badge, the probe returns one OutcomePositive (1).
+  - If the project does not have a badge, the probe returns one OutcomeNegative (0).
 remediation:
   effort: Low
   text:
