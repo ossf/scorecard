@@ -112,7 +112,7 @@ func FormatResults(
 	var err error
 
 	// Define output to console or file
-	var output *os.File = os.Stdout
+	output := os.Stdout
 	if opts.ResultsFile != "" {
 		output, err = os.Create(opts.ResultsFile)
 		if err != nil {
