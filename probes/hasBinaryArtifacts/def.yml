@@ -15,7 +15,7 @@
 id: hasBinaryArtifacts
 short: Checks if the project has binary files in its source tree.
 motivation: >
-  Including generated executables in the source repository increases user risk. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
+  Binary files are not readable so users can't see what they do. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
 implementation: >
   The implementation looks for the presence of binary files.
 outcome:
