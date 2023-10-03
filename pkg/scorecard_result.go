@@ -111,20 +111,30 @@ func FormatResults(
 ) error {
 	var err error
 
+	// Define output to console or file
+	output := os.Stdout
+	if opts.ResultsFile != "" {
+		output, err = os.Create(opts.ResultsFile)
+		if err != nil {
+			return fmt.Errorf("unable to create output file: %w", err)
+		}
+		defer output.Close()
+	}
+
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), os.Stdout, doc, policy, opts)
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatFJSON:
-		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, os.Stdout)
+		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatPJSON:
-		err = results.AsPJSON(os.Stdout)
+		err = results.AsPJSON(output)
 	case options.FormatRaw:
-		err = results.AsRawJSON(os.Stdout)
+		err = results.AsRawJSON(output)
 	default:
 		err = sce.WithMessage(
 			sce.ErrScorecardInternal,
@@ -195,10 +205,10 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	if score == checker.InconclusiveResultScore {
 		s = "Aggregate score: ?\n\n"
 	}
-	fmt.Fprint(os.Stdout, s)
-	fmt.Fprintln(os.Stdout, "Check scores:")
+	fmt.Fprint(writer, s)
+	fmt.Fprintln(writer, "Check scores:")
 
-	table := tablewriter.NewWriter(os.Stdout)
+	table := tablewriter.NewWriter(writer)
 	header := []string{"Score", "Name", "Reason"}
 	if showDetails {
 		header = append(header, "Details")
