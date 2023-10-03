@@ -24,6 +24,6 @@ outcome:
 remediation:
   effort: Low
   text:
-    - Sign up for the OpenSSF Best Practices program.
+    - Sign up for [the OpenSSF Best Practices program](https://www.bestpractices.dev/).
   markdown:
     - Sign up for [the OpenSSF Best Practices program](https://www.bestpractices.dev/).
