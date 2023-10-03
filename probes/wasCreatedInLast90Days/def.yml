@@ -19,8 +19,8 @@ motivation: >
 implementation: >
   The implementation checks the creation date is within the last 90 days.
 outcome:
-  - If the project was created within the last 90 days, the outocome is OutcomeNegative (0).
-  - If the project was created before the last 90 days, the outocome is OutcomePositive (1).
+  - If the project was created within the last 90 days, the outcome is OutcomeNegative (0).
+  - If the project was created before the last 90 days, the outcome is OutcomePositive (1).
 remediation:
   effort: Low
   text:
