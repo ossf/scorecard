@@ -35,9 +35,6 @@ func TestBinaryArtifacts(t *testing.T) {
 		name     string
 		findings     []finding.Finding
 		result     scut.TestReturn
-		expected []struct {
-			lineNumber uint
-		}
 	}{
 		{
 			name: "no binary artifacts",
