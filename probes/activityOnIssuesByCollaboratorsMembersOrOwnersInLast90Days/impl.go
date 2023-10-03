@@ -42,7 +42,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.MaintainedResults
 
-	// If not explicitly marked archived, look for activity in past `lookBackDays`.
+	// Look for activity in past `lookBackDays`.
 	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	var findings []finding.Finding
 	for i := range r.Issues {
