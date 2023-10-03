@@ -19,8 +19,8 @@ motivation: >
 implementation: >
   The probe checks the type of the badge from the raw results.
 outcome:
-  - If the project is missing a badge, the probe returns on OutcomePositive (1).
-  - If the project is NOT missing a badge, the probe returns on OutcomeNegative (0).
+  - If the project is missing a badge, the probe returns one OutcomePositive (1).
+  - If the project is NOT missing a badge, the probe returns one OutcomeNegative (0).
 remediation:
   effort: Low
   text:
