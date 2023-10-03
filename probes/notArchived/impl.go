@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package archived
+package notArchived
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "archived"
+const Probe = "notArchived"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

@@ -41,7 +41,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "archived",
+					Probe:   "notArchived",
 					Outcome: finding.OutcomePositive,
 				}, {
 					Probe:   "wasCreatedInLast90Days",
@@ -62,7 +62,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "archived",
+					Probe:   "notArchived",
 					Outcome: finding.OutcomePositive,
 				}, {
 					Probe:   "wasCreatedInLast90Days",
@@ -105,7 +105,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "archived",
+					Probe:   "notArchived",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "wasCreatedInLast90Days",

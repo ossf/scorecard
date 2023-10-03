@@ -21,8 +21,9 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days"
-	"github.com/ossf/scorecard/v4/probes/archived"
 	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/wasCreatedInLast90Days"
 )
 
@@ -38,7 +39,7 @@ func Maintained(name string,
 ) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
-		archived.Probe,
+		notArchived.Probe,
 		activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Probe,
 		commitsInLast90Days.Probe,
 		wasCreatedInLast90Days.Probe,
@@ -84,7 +85,7 @@ func projectIsArchived(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeNegative {
-			if f.Probe == archived.Probe {
+			if f.Probe == notArchived.Probe {
 				return true
 			}
 		}
