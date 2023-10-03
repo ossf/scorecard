@@ -42,6 +42,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f = f.WithRemediationMetadata(map[string]string{
+			"osvid": raw.VulnerabilitiesResults.Vulnerabilities[i].ID,
+		})
 		findings = append(findings, *f)
 	}
 

@@ -24,10 +24,10 @@ outcome:
 remediation:
   effort: High
   text:
-    - Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on https://osv.dev.
+    - Fix the ${{ metadata.osvid }} by following information from https://osv.dev/${{ metadata.osvid }}.
     - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
     - If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.
   markdown:
-    - Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on [https://osv.dev](https://osv.dev/).
+    - Fix the ${{ metadata.osvid }} by following information from [OSV](https://osv.dev/${{ metadata.osvid }}).
     - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
     - If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
