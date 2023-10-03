@@ -38,7 +38,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	// Apply the policy evaluation.
 	if r.Files == nil || len(r.Files) == 0 {
-		return positiveOutcome()
+		f, err := finding.NewWith(fs, Probe,
+		"Repository does not have binary artifacts.", nil,
+		finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
 	}
 
 	var findings []finding.Finding
@@ -66,14 +72,4 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	return findings, Probe, nil
-}
-
-func positiveOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository does not have binary artifacts.", nil,
-		finding.OutcomePositive)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-	return []finding.Finding{*f}, Probe, nil
 }

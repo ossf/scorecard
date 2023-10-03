@@ -30,9 +30,9 @@ func BinaryArtifacts(name string,
 		hasBinaryArtifacts.Probe,
 	}
 
-	err := validateFindings(findings, expectedProbes)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	if findings[0].Outcome == finding.OutcomePositive {
@@ -50,15 +50,4 @@ func BinaryArtifacts(name string,
 	}
 
 	return checker.CreateResultWithScore(name, "binaries present in source code", score)
-}
-
-func validateFindings(findings []finding.Finding, expectedProbes []string) error {
-	if !finding.UniqueProbesEqual(findings, expectedProbes) {
-		return sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
-	}
-
-	if len(findings) == 0 {
-		return sce.WithMessage(sce.ErrScorecardInternal, "found 0 findings. Should not happen")
-	}
-	return nil
 }
