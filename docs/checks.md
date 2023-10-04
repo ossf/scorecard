@@ -83,7 +83,7 @@ Different types of branch protection protect against different risks:
 
     - requiring two or more reviewers protects even more from the insider risk 
     whereby a compromised contributor can be used by an attacker to LGTM 
-    the attacker PR and inject a malicious code as if it was legitm.
+    the attacker PR and inject a malicious code as if it was legit.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -330,7 +330,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without additional manual effort.
 
 ## Fuzzing 
 
