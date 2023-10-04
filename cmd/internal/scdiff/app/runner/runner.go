@@ -16,6 +16,7 @@ package runner
 
 import (
 	"context"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
@@ -42,7 +43,8 @@ type Runner struct {
 	vuln          clients.VulnerabilitiesClient
 }
 
-func New() Runner {
+// Creates a Runner which will run the listed checks. If no checks are provided, all will run.
+func New(checks []string) Runner {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DefaultLevel)
 	return Runner{
@@ -52,7 +54,7 @@ func New() Runner {
 		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
 		cii:           clients.DefaultCIIBestPracticesClient(),
 		vuln:          clients.DefaultVulnerabilitiesClient(),
-		enabledChecks: checks.GetAll(),
+		enabledChecks: parseChecks(checks),
 	}
 }
 
@@ -72,4 +74,21 @@ func (r *Runner) log(msg string) {
 	if r.logger != nil {
 		r.logger.Info(msg)
 	}
+}
+
+func parseChecks(c []string) checker.CheckNameToFnMap {
+	all := checks.GetAll()
+	if len(c) == 0 {
+		return all
+	}
+
+	ret := checker.CheckNameToFnMap{}
+	for _, requested := range c {
+		for key, fn := range all {
+			if strings.EqualFold(key, requested) {
+				ret[key] = fn
+			}
+		}
+	}
+	return ret
 }
