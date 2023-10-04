@@ -33,13 +33,13 @@ func init() {
 	rootCmd.AddCommand(generateCmd)
 	generateCmd.PersistentFlags().StringVarP(&repoFile, "repos", "r", "", "path to newline-delimited repo file")
 	generateCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "", "write to file instead of stdout")
-	generateCmd.PersistentFlags().StringVar(&checks, "checks", "", "Comma separated list of checks to run")
+	generateCmd.PersistentFlags().StringVar(&checksArg, "checks", "", "Comma separated list of checks to run")
 }
 
 var (
 	repoFile   string
 	outputFile string
-	checks     string
+	checksArg  string
 
 	generateCmd = &cobra.Command{
 		Use:   "generate [flags] repofile",
@@ -60,7 +60,7 @@ var (
 				defer outputF.Close()
 				output = outputF
 			}
-			checks := strings.Split(checks, ",")
+			checks := strings.Split(checksArg, ",")
 			r := runner.New(checks)
 			return generate(&r, input, output)
 		},

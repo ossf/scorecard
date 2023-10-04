@@ -44,7 +44,7 @@ type Runner struct {
 }
 
 // Creates a Runner which will run the listed checks. If no checks are provided, all will run.
-func New(checks []string) Runner {
+func New(enabledChecks []string) Runner {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DefaultLevel)
 	return Runner{
@@ -54,7 +54,7 @@ func New(checks []string) Runner {
 		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
 		cii:           clients.DefaultCIIBestPracticesClient(),
 		vuln:          clients.DefaultVulnerabilitiesClient(),
-		enabledChecks: parseChecks(checks),
+		enabledChecks: parseChecks(enabledChecks),
 	}
 }
 
