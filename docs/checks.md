@@ -83,7 +83,7 @@ Different types of branch protection protect against different risks:
 
     - requiring two or more reviewers protects even more from the insider risk 
     whereby a compromised contributor can be used by an attacker to LGTM 
-    the attacker PR and inject a malicious code as if it was legitm.
+    the attacker PR and inject a malicious code as if it was legit.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -329,7 +329,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without additional manual effort.
 
 ## Fuzzing 
 
@@ -599,6 +599,8 @@ This check looks for the following filenames in the project's last five
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+
+This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
 Note: The check does not verify the signatures.
  
