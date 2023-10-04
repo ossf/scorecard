@@ -99,7 +99,6 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			args: args{
 				opts: &options.Options{
 					Format:      options.FormatJSON,
-					ResultsFile: "result.json",
 					ShowDetails: true,
 					LogLevel:    log.DebugLevel.String(),
 				},
@@ -116,7 +115,6 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			args: args{
 				opts: &options.Options{
 					Format:      options.FormatDefault,
-					ResultsFile: "result.log",
 					ShowDetails: true,
 					LogLevel:    log.DebugLevel.String(),
 				},
@@ -133,6 +131,14 @@ func Test_formatResults_outputToFile(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
+
+			// generate a unique result file in a temp directory for every test run to avoid race conditions in the test.
+			// This can happen when ginkgo runs unit tests in parallel (with -p flag)
+			resultFile, err := os.CreateTemp("", "result-file")
+			if err != nil {
+				t.Fatalf("create temp result file: %v", err)
+			}
+			tt.args.opts.ResultsFile = resultFile.Name()
 
 			// Format results.
 			formatErr := FormatResults(tt.args.opts, tt.args.results, tt.args.doc, tt.args.policy)
