@@ -109,7 +109,6 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging
@@ -125,6 +124,7 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews and approvals when new commits are pushed
+  - For administrators: Include administrator for review
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
@@ -599,6 +599,8 @@ This check looks for the following filenames in the project's last five
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+
+This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
 Note: The check does not verify the signatures.
  
