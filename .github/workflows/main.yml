@@ -73,7 +73,7 @@ jobs:
          files: ./unit-coverage.out
          verbose: true
      - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -127,7 +127,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
@@ -155,7 +155,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # v2.8.3
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
        with:
           max_attempts: 3
           retry_on: error
@@ -192,7 +192,7 @@ jobs:
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
@@ -245,7 +245,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd # v2.8.3
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
        with:
           max_attempts: 3
           retry_on: error
@@ -287,7 +287,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
@@ -334,7 +334,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
@@ -369,7 +369,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
