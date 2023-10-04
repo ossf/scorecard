@@ -473,7 +473,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			// Commonly JavaScript packages, but supports multiple ecosystems
 			Steps: []*fileparser.JobMatcherStep{
 				{
-					Run: "npx.*semantic-release",
+					Run: "(npx|pnpm|yarn).*semantic-release",
 				},
 			},
 			LogText: "candidate publishing workflow using semantic-release",
