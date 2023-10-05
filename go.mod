@@ -20,8 +20,8 @@ require (
 	github.com/jszwec/csvutil v1.8.0
 	github.com/moby/buildkit v0.12.2
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/gomega v1.27.10
-	github.com/rhysd/actionlint v1.6.15
+	github.com/onsi/gomega v1.28.0
+	github.com/rhysd/actionlint v1.6.26
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
 	github.com/sirupsen/logrus v1.9.3
@@ -43,10 +43,10 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.4.0
+	github.com/google/osv-scanner v1.4.1
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.12.1
-	github.com/otiai10/copy v1.12.0
+	github.com/otiai10/copy v1.14.0
 	sigs.k8s.io/release-utils v0.6.0
 )
 
@@ -57,7 +57,7 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.7.2 // indirect
-	github.com/anchore/go-struct-converter v0.0.0-20221118182256-c68fdcfa2092 // indirect
+	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v12 v12.0.0 // indirect
 	github.com/apache/thrift v0.16.0 // indirect
@@ -70,7 +70,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
-	github.com/goark/errs v1.1.0 // indirect
+	github.com/goark/errs v1.3.2 // indirect
 	github.com/goark/go-cvss v1.6.6 // indirect
 	github.com/goccy/go-json v0.9.11 // indirect
 	github.com/golang/glog v1.1.0 // indirect
@@ -95,19 +95,20 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/owenrumney/go-sarif/v2 v2.2.0 // indirect
+	github.com/owenrumney/go-sarif/v2 v2.2.2 // indirect
 	github.com/package-url/packageurl-go v0.1.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/prometheus/prometheus v0.46.0 // indirect
-	github.com/skeema/knownhosts v1.2.0 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/skeema/knownhosts v1.2.1 // indirect
 	github.com/spdx/gordf v0.0.0-20221230105357-b735bd5aac89 // indirect
 	github.com/spdx/tools-golang v0.5.3 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/term v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/vuln v1.0.0 // indirect
+	golang.org/x/vuln v1.0.1 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20230731193218-e0aa005b6bdf // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230731193218-e0aa005b6bdf // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -128,7 +129,7 @@ require (
 	cloud.google.com/go/iam v1.1.1 // indirect
 	cloud.google.com/go/storage v1.31.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230923063757-afb1ddc0824c // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/aws/aws-sdk-go v1.44.314 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
@@ -159,17 +160,16 @@ require (
 	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/robfig/cron v1.2.0 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/rivo/uniseg v0.4.4 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
-	github.com/xanzy/go-gitlab v0.92.1
+	github.com/xanzy/go-gitlab v0.93.0
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
