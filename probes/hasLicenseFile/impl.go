@@ -35,15 +35,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var outcome finding.Outcome
+	var msg string
 
 	if raw.LicenseResults.LicenseFiles == nil || len(raw.LicenseResults.LicenseFiles) == 0 {
 		outcome = finding.OutcomeNegative
+		msg = "project does not have a license file"
 	} else {
 		outcome = finding.OutcomePositive
+		msg = "project has a license file"
 	}
 
 	f, err := finding.NewWith(fs, Probe,
-		"project has a license file", nil,
+		msg, nil,
 		outcome)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)

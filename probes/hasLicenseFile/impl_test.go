@@ -63,7 +63,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "nil license files and outcome should be positive",
+			name: "nil license files and outcome should be negative",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: nil,
@@ -74,7 +74,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "0 license files and outcome should be positive",
+			name: "0 license files and outcome should be negative",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},

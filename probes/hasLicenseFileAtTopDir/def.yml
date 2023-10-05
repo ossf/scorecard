@@ -17,7 +17,7 @@ short: Check that the project has a license file
 motivation: >
   A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
 implementation: >
- This check will detect files in the top-level directory with any combination of the following names and extensions: LICENSE, LICENCE, COPYING, COPYRIGHT and having common extensions such as .html, .txt, or .md. It will also detect these files in a directory named LICENSES in the top directory. (Files in a LICENSES directory are typically named as their SPDX license identifier followed by an appropriate file extension, as described in the [REUSE Specification](https://reuse.software/spec/).)
+  This check will detect files in the top-level directory with any combination of the following names and extensions: LICENSE, LICENCE, COPYING, COPYRIGHT and having common extensions such as .html, .txt, or .md. It will also detect these files in a directory named LICENSES in the top directory. (Files in a LICENSES directory are typically named as their SPDX license identifier followed by an appropriate file extension, as described in the [REUSE Specification](https://reuse.software/spec/).)
 outcome:
   - If the projects license file is found at the top level, the probe returns a single OutcomePositive (1).
   - If the projects license file is not found at the top level, the probe returns a single OutcomeNegative (0).
