@@ -54,7 +54,7 @@ func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	findings, err := zrunner.Run(pRawResults, probes.BinaryArtifacts)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
 	}
 
 	return evaluation.BinaryArtifacts(CheckBinaryArtifacts, findings, c.Dlogger)
