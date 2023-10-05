@@ -53,7 +53,7 @@ func Contributors(name string,
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	checker.LogFindings(negativeFindings(findings), dl)
+	checker.LogFindings(positiveFindings(findings), dl)
 	return checker.CreateProportionalScoreResult(name, reason, numberOfPositives, numberCompaniesForTopScore)
 }
 

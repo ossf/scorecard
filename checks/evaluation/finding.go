@@ -30,7 +30,7 @@ func nonNegativeFindings(findings []finding.Finding) []finding.Finding {
 	return ff
 }
 
-func negativeFindings(findings []finding.Finding) []finding.Finding {
+func positiveFindings(findings []finding.Finding) []finding.Finding {
 	var ff []finding.Finding
 	for i := range findings {
 		f := &findings[i]
