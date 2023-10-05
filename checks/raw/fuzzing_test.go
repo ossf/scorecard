@@ -274,19 +274,19 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
-			var fileMatchPattern string
-			if len(langSpecs.filePatterns) > 0 {
-				fileMatchPattern = langSpecs.filePatterns[0]
+			var found bool
+			for _, fileMatchPattern := range langSpecs.filePatterns {
+				fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
+				if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
+					t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+				}
+				funcRegexPattern := langSpecs.funcPattern
+				r := regexp.MustCompile(funcRegexPattern)
+				found = found || r.MatchString(tt.fileContent)
 			}
-			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
-			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
-				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
-			}
-			funcRegexPattern := langSpecs.funcPattern
-			r := regexp.MustCompile(funcRegexPattern)
-			found := r.MatchString(tt.fileContent)
+
 			if (found != tt.expectedFuncMatch) && !tt.wantErr {
-				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+				t.Errorf("found = %v, want %v for %v", found, tt.expectedFileMatch, tt.name)
 			}
 		})
 	}
