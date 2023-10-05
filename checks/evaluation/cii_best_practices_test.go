@@ -32,9 +32,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Badge not found",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomePositive,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomeNegative,
 				}, {
@@ -59,9 +56,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has InProgress Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomeNegative,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomeNegative,
 				}, {
@@ -86,9 +80,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Passing Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomeNegative,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomeNegative,
 				}, {
@@ -113,9 +104,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Silver Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomeNegative,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomeNegative,
 				}, {
@@ -140,9 +128,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Gold Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomeNegative,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomePositive,
 				}, {
@@ -167,9 +152,6 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Unknown Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasBadgeNotFound",
-					Outcome: finding.OutcomeNegative,
-				}, {
 					Probe:   "hasGoldBadge",
 					Outcome: finding.OutcomeNegative,
 				}, {

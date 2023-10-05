@@ -18,7 +18,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasBadgeNotFound"
 	"github.com/ossf/scorecard/v4/probes/hasGoldBadge"
 	"github.com/ossf/scorecard/v4/probes/hasInProgressBadge"
 	"github.com/ossf/scorecard/v4/probes/hasPassingBadge"
@@ -42,7 +41,6 @@ func CIIBestPractices(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasBadgeNotFound.Probe,
 		hasGoldBadge.Probe,
 		hasSilverBadge.Probe,
 		hasInProgressBadge.Probe,
@@ -55,16 +53,32 @@ func CIIBestPractices(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var score, numberOfPositives int
+	var countBadges int
+	// Sanity check that we don't have multiple positives
+	for i := range findings {
+		f := &findings[i]
+
+		if f.Outcome == finding.OutcomePositive {
+			countBadges++
+		}
+	}
+
+	var score int
 	var text string
+
+	if countBadges > 1 {
+		errText := "invalid probe results: multiple badges detected"
+		e := sce.WithMessage(sce.ErrScorecardInternal, errText)
+		return checker.CreateRuntimeErrorResult(name, e)
+	} else if countBadges == 0 {
+		text = "no effort to earn an OpenSSF best practices badge detected"
+		return checker.CreateResultWithScore(name, text, minScore)
+	}
+
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
-			numberOfPositives++
 			switch f.Probe {
-			case hasBadgeNotFound.Probe:
-				score = minScore
-				text = "no effort to earn an OpenSSF best practices badge detected"
 			case hasInProgressBadge.Probe:
 				score = inProgressScore
 				text = "badge detected: InProgress"
@@ -82,12 +96,6 @@ func CIIBestPractices(name string,
 				text = "unsupported badge detected"
 			}
 		}
-	}
-
-	if numberOfPositives != 1 {
-		errText := "invalid probe results: multiple badges detected"
-		e := sce.WithMessage(sce.ErrScorecardInternal, errText)
-		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	if score == -1 {

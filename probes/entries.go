@@ -124,7 +124,6 @@ var (
 		notCreatedRecently.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
-		hasBadgeNotFound.Run,
 		hasGoldBadge.Run,
 		hasSilverBadge.Run,
 		hasInProgressBadge.Run,
