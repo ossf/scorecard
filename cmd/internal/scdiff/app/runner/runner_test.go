@@ -25,9 +25,14 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	r := New()
+	r := New(nil)
 	if len(r.enabledChecks) == 0 {
 		t.Errorf("runner has no checks to run: %v", r.enabledChecks)
+	}
+	requestedChecks := []string{"Code-Review"}
+	r = New(requestedChecks)
+	if len(r.enabledChecks) != len(requestedChecks) {
+		t.Errorf("requested %d checks but only got: %v", len(requestedChecks), r.enabledChecks)
 	}
 }
 
