@@ -58,8 +58,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions:          &falseVal,
 					AllowForcePushes:        &falseVal,
@@ -89,8 +90,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 			},
 		},
 		{
@@ -103,8 +105,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
@@ -134,8 +137,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &falseVal,
 					RequireLastPushApproval: &falseVal,
@@ -165,8 +169,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &trueVal,
@@ -196,8 +201,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &trueVal,
@@ -227,8 +233,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &trueVal,
@@ -258,8 +265,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 2,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &falseVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: nil,
@@ -289,8 +297,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 2,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &falseVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: nil,
@@ -320,8 +329,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &falseVal,
@@ -351,8 +361,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &falseVal,
 					RequireLastPushApproval: &falseVal,
@@ -382,8 +393,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &falseVal,
 					RequireLastPushApproval: &falseVal,
@@ -414,8 +426,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &falseVal,
 					RequireLastPushApproval: &falseVal,
@@ -445,8 +458,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLinearHistory:    &trueVal,
@@ -476,8 +490,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLinearHistory:    &trueVal,
@@ -508,8 +523,9 @@ func TestIsBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
-				Name:      &branchVal,
-				Protected: &trueVal,
+				Name:                     &branchVal,
+				Protected:                &trueVal,
+				WereAllSettingsAvailable: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &falseVal,
