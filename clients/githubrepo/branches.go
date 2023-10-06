@@ -483,8 +483,6 @@ func initializedBoolRef(value bool) *bool {
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
-	falseVal := false
-	trueVal := true
 	for _, r := range rules {
 		// Init values of base checkbox as if they're unchecked
 		translated := clients.BranchProtectionRule{
@@ -498,11 +496,11 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case ruleDeletion:
-				translated.AllowDeletions = &falseVal
+				translated.AllowDeletions = initializedBoolRef(false)
 			case ruleForcePush:
-				translated.AllowForcePushes = &falseVal
+				translated.AllowForcePushes = initializedBoolRef(false)
 			case ruleLinear:
-				translated.RequireLinearHistory = &trueVal
+				translated.RequireLinearHistory = initializedBoolRef(true)
 			case rulePullRequest:
 				translatePullRequestRepoRule(&translated, rule)
 			case ruleStatusCheck:
@@ -526,8 +524,7 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 	if len(statusParams.RequiredStatusChecks) == 0 {
 		return
 	}
-	enabled := true
-	base.CheckRules.RequiresStatusChecks = &enabled
+	base.CheckRules.RequiresStatusChecks = initializedBoolRef(true)
 	base.CheckRules.UpToDateBeforeMerge = statusParams.StrictRequiredStatusChecksPolicy
 	for _, chk := range statusParams.RequiredStatusChecks {
 		if chk.Context == nil {
