@@ -404,11 +404,13 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	*branchRef.Protected = true
 	branchRule := &branchRef.BranchProtectionRule
 
+	branchRef.WereAllSettingsAvailable = new(bool)
 	switch {
 	// All settings are available. This typically means
 	// scorecard is run with a token that has access
 	// to admin settings.
 	case data.BranchProtectionRule != nil:
+		*branchRef.WereAllSettingsAvailable = true
 		rule := data.BranchProtectionRule
 
 		// Admin settings.
@@ -420,8 +422,15 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	// Only non-admin settings are available.
 	// https://docs.github.com/en/graphql/reference/objects#refupdaterule.
 	case data.RefUpdateRule != nil:
+		*branchRef.WereAllSettingsAvailable = false
 		rule := data.RefUpdateRule
 		copyNonAdminSettings(rule, branchRule)
+	}
+
+	// As all settings set by repo rules are public, if any rule apply to
+	// this branch, we can already say we have all settings.
+	if len(rules) > 0 {
+		*branchRef.WereAllSettingsAvailable = true
 	}
 
 	applyRepoRules(branchRef, rules)
@@ -512,9 +521,9 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
-		base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
-		base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
-		base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
+	base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
+	base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
+	base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
 	base.RequiredPullRequestReviews.RequiredApprovingReviewCount = rule.Parameters.PullRequestParameters.
 		RequiredApprovingReviewCount
 }

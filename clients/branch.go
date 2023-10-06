@@ -16,9 +16,10 @@ package clients
 
 // BranchRef represents a single branch reference and its protection rules.
 type BranchRef struct {
-	Name                 *string
-	Protected            *bool
-	BranchProtectionRule BranchProtectionRule
+	Name                     *string
+	Protected                *bool
+	WereAllSettingsAvailable *bool
+	BranchProtectionRule     BranchProtectionRule
 }
 
 // BranchProtectionRule captures the settings enabled on a branch for security.
