@@ -476,14 +476,24 @@ nextRule:
 	return ret, nil
 }
 
+func initializedBoolRef(value bool) *bool {
+	v := new(bool)
+	*v = value
+	return v
+}
+
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 	falseVal := false
 	trueVal := true
 	for _, r := range rules {
-		adminEnforced := len(r.BypassActors.Nodes) == 0
+		// Init values of base checkbox as if they're unchecked
 		translated := clients.BranchProtectionRule{
-			EnforceAdmins: &adminEnforced,
+			AllowDeletions:       initializedBoolRef(true),
+			AllowForcePushes:     initializedBoolRef(true),
+			RequireLinearHistory: initializedBoolRef(false),
 		}
+
+		translated.EnforceAdmins = initializedBoolRef(len(r.BypassActors.Nodes) == 0)
 
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
@@ -504,18 +514,11 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
-	if readBoolPtr(rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush) {
 		base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
-	}
-	if readBoolPtr(rule.Parameters.PullRequestParameters.RequireCodeOwnerReview) {
 		base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
-	}
-	if readBoolPtr(rule.Parameters.PullRequestParameters.RequireLastPushApproval) {
 		base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
-	}
-	if reviewerCount := readIntPtr(rule.Parameters.PullRequestParameters.RequiredApprovingReviewCount); reviewerCount > 0 {
-		base.RequiredPullRequestReviews.RequiredApprovingReviewCount = &reviewerCount
-	}
+	base.RequiredPullRequestReviews.RequiredApprovingReviewCount = rule.Parameters.PullRequestParameters.
+		RequiredApprovingReviewCount
 }
 
 func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
@@ -534,14 +537,17 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 	}
 }
 
+// Merge strategy:
+//   - if both are nil, keep it nil
+//   - if any of them is not nil, keep the most restrictive one
 func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
-	if base.AllowDeletions == nil || translated.AllowDeletions != nil && !*translated.AllowDeletions {
+	if base.AllowDeletions == nil || (translated.AllowDeletions != nil && !*translated.AllowDeletions) {
 		base.AllowDeletions = translated.AllowDeletions
 	}
-	if base.AllowForcePushes == nil || translated.AllowForcePushes != nil && !*translated.AllowForcePushes {
+	if base.AllowForcePushes == nil || (translated.AllowForcePushes != nil && !*translated.AllowForcePushes) {
 		base.AllowForcePushes = translated.AllowForcePushes
 	}
-	if base.EnforceAdmins == nil || translated.EnforceAdmins != nil && !*translated.EnforceAdmins {
+	if base.EnforceAdmins == nil || (translated.EnforceAdmins != nil && !*translated.EnforceAdmins) {
 		// this is an over simplification to get preliminary support for repo rules merged.
 		// A more complete approach would process all rules without bypass actors first,
 		// then process those with bypass actors. If no settings improve (due to rule layering),
@@ -549,22 +555,30 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		// https://github.com/ossf/scorecard/issues/3480
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
-	if base.RequireLastPushApproval == nil || readBoolPtr(translated.RequireLastPushApproval) {
-		base.RequireLastPushApproval = translated.RequireLastPushApproval
+	if base.RequireLastPushApproval != nil || translated.RequireLastPushApproval != nil {
+		base.RequireLastPushApproval = initializedBoolRef(
+			readBoolPtr(base.RequireLastPushApproval) || readBoolPtr(translated.RequireLastPushApproval),
+		)
 	}
-	if base.RequireLinearHistory == nil || readBoolPtr(translated.RequireLinearHistory) {
-		base.RequireLinearHistory = translated.RequireLinearHistory
+	if base.RequireLinearHistory != nil || translated.RequireLinearHistory != nil {
+		base.RequireLinearHistory = initializedBoolRef(
+			readBoolPtr(base.RequireLinearHistory) || readBoolPtr(translated.RequireLinearHistory),
+		)
 	}
 	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {
-	if base.UpToDateBeforeMerge == nil || readBoolPtr(translated.UpToDateBeforeMerge) {
-		base.UpToDateBeforeMerge = translated.UpToDateBeforeMerge
+	if base.UpToDateBeforeMerge != nil || translated.UpToDateBeforeMerge != nil {
+		base.UpToDateBeforeMerge = initializedBoolRef(
+			readBoolPtr(base.UpToDateBeforeMerge) || readBoolPtr(translated.UpToDateBeforeMerge),
+		)
 	}
-	if base.RequiresStatusChecks == nil || readBoolPtr(translated.RequiresStatusChecks) {
-		base.RequiresStatusChecks = translated.RequiresStatusChecks
+	if base.RequiresStatusChecks != nil || translated.RequiresStatusChecks != nil {
+		base.RequiresStatusChecks = initializedBoolRef(
+			readBoolPtr(base.RequiresStatusChecks) || readBoolPtr(translated.RequiresStatusChecks),
+		)
 	}
 	for _, context := range translated.Contexts {
 		// this isn't optimal, but probably not a bottleneck.
@@ -575,14 +589,19 @@ func mergeCheckRules(base, translated *clients.StatusChecksRule) {
 }
 
 func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
-	if readIntPtr(translated.RequiredApprovingReviewCount) > readIntPtr(base.RequiredApprovingReviewCount) {
+	if translated.RequiredApprovingReviewCount != nil &&
+		(readIntPtr(translated.RequiredApprovingReviewCount) >= readIntPtr(base.RequiredApprovingReviewCount)) {
 		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
 	}
-	if base.DismissStaleReviews == nil || readBoolPtr(translated.DismissStaleReviews) {
-		base.DismissStaleReviews = translated.DismissStaleReviews
+	if base.DismissStaleReviews != nil || translated.DismissStaleReviews != nil {
+		base.DismissStaleReviews = initializedBoolRef(
+			readBoolPtr(base.DismissStaleReviews) || readBoolPtr(translated.DismissStaleReviews),
+		)
 	}
-	if base.RequireCodeOwnerReviews == nil || readBoolPtr(translated.RequireCodeOwnerReviews) {
-		base.RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
+	if base.RequireCodeOwnerReviews != nil || translated.RequireCodeOwnerReviews != nil {
+		base.RequireCodeOwnerReviews = initializedBoolRef(
+			readBoolPtr(base.RequireCodeOwnerReviews) || readBoolPtr(translated.RequireCodeOwnerReviews),
+		)
 	}
 }
 
