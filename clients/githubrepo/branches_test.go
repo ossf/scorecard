@@ -180,6 +180,7 @@ func Test_applyRepoRules(t *testing.T) {
 	t.Parallel()
 	trueVal := true
 	falseVal := false
+	zeroVal := int32(0)
 	twoVal := int32(2)
 
 	testcases := []struct {
@@ -190,13 +191,41 @@ func Test_applyRepoRules(t *testing.T) {
 		name       string
 	}{
 		{
+			name:    "test if unchecked checkboxes have consistent values",
+			base:    &clients.BranchRef{},
+			ruleSet: ruleSet(),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:   &trueVal,
+					AllowForcePushes: &trueVal,
+					CheckRules: clients.StatusChecksRule{
+						// nil values mean that this checkbox wasn't checked
+						UpToDateBeforeMerge:  nil,
+						RequiresStatusChecks: nil,
+						Contexts:             nil,
+					},
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: nil, // this checkbox is enabled only if require status checks
+					RequireLinearHistory:    &falseVal,
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						// nil values mean that this checkbox wasn't checked
+						RequiredApprovingReviewCount: nil,
+						DismissStaleReviews:          nil,
+						RequireCodeOwnerReviews:      nil,
+					},
+				},
+			},
+		},
+		{
 			name:    "block deletion no bypass",
 			base:    &clients.BranchRef{},
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleDeletion})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions: &falseVal,
-					EnforceAdmins:  &trueVal,
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &trueVal,
+					RequireLinearHistory: &falseVal,
+					EnforceAdmins:        &trueVal,
 				},
 			},
 		},
@@ -206,8 +235,10 @@ func Test_applyRepoRules(t *testing.T) {
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleDeletion}), withBypass()),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions: &falseVal,
-					EnforceAdmins:  &falseVal,
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &trueVal,
+					RequireLinearHistory: &falseVal,
+					EnforceAdmins:        &falseVal,
 				},
 			},
 		},
@@ -222,9 +253,10 @@ func Test_applyRepoRules(t *testing.T) {
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleDeletion}, &repoRule{Type: ruleForcePush}), withBypass()),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:   &falseVal,
-					AllowForcePushes: &falseVal,
-					EnforceAdmins:    &falseVal, // Downgrade: deletion does not enforce admins
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &falseVal,
+					EnforceAdmins:        &falseVal, // Downgrade: deletion does not enforce admins
+					RequireLinearHistory: &falseVal,
 				},
 			},
 		},
@@ -232,16 +264,18 @@ func Test_applyRepoRules(t *testing.T) {
 			name: "block deletion no bypass while force push is blocked with bypass",
 			base: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowForcePushes: &falseVal,
-					EnforceAdmins:    &falseVal,
+					AllowForcePushes:     &falseVal,
+					EnforceAdmins:        &falseVal,
+					RequireLinearHistory: &falseVal,
 				},
 			},
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleDeletion})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:   &falseVal,
-					AllowForcePushes: &falseVal,
-					EnforceAdmins:    &falseVal, // Maintain: deletion enforces but forcepush does not
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &falseVal,
+					EnforceAdmins:        &falseVal, // Maintain: deletion enforces but forcepush does not
+					RequireLinearHistory: &falseVal,
 				},
 			},
 		},
@@ -256,9 +290,10 @@ func Test_applyRepoRules(t *testing.T) {
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleDeletion})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:   &falseVal,
-					AllowForcePushes: &falseVal,
-					EnforceAdmins:    &trueVal, // Maintain: base and rule are equal strictness
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &falseVal,
+					EnforceAdmins:        &trueVal, // Maintain: base and rule are equal strictness
+					RequireLinearHistory: &falseVal,
 				},
 			},
 		},
@@ -268,8 +303,10 @@ func Test_applyRepoRules(t *testing.T) {
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleForcePush})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowForcePushes: &falseVal,
-					EnforceAdmins:    &trueVal,
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &falseVal,
+					EnforceAdmins:        &trueVal,
+					RequireLinearHistory: &falseVal,
 				},
 			},
 		},
@@ -279,8 +316,36 @@ func Test_applyRepoRules(t *testing.T) {
 			ruleSet: ruleSet(withRules(&repoRule{Type: ruleLinear})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
 					RequireLinearHistory: &trueVal,
 					EnforceAdmins:        &trueVal,
+				},
+			},
+		},
+		{
+			name: "require pull request but no reviewers and no bypass",
+			base: &clients.BranchRef{},
+			ruleSet: ruleSet(withRules(&repoRule{
+				Type: rulePullRequest,
+				Parameters: repoRulesParameters{
+					PullRequestParameters: pullRequestRuleParameters{
+						RequireLastPushApproval:      initializedBoolRef(true),
+						RequiredApprovingReviewCount: &zeroVal,
+					},
+				},
+			})),
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:          &trueVal,
+					AllowForcePushes:        &trueVal,
+					EnforceAdmins:           &trueVal,
+					RequireLastPushApproval: &trueVal,
+					RequireLinearHistory:    &falseVal,
+					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						// DismissStaleReviews:          &trueVal,
+						RequiredApprovingReviewCount: &zeroVal,
+					},
 				},
 			},
 		},
@@ -301,7 +366,10 @@ func Test_applyRepoRules(t *testing.T) {
 			})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:          &trueVal,
+					AllowForcePushes:        &trueVal,
 					EnforceAdmins:           &trueVal,
+					RequireLinearHistory:    &falseVal,
 					RequireLastPushApproval: &trueVal,
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						DismissStaleReviews:          &trueVal,
@@ -329,7 +397,10 @@ func Test_applyRepoRules(t *testing.T) {
 			})),
 			expected: &clients.BranchRef{
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins: &trueVal,
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
+					EnforceAdmins:        &trueVal,
+					RequireLinearHistory: &falseVal,
 					CheckRules: clients.StatusChecksRule{
 						UpToDateBeforeMerge:  &trueVal,
 						RequiresStatusChecks: &trueVal,
