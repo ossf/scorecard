@@ -163,9 +163,9 @@ var _ = Describe("E2E TEST:"+checks.CheckBranchProtection+" (repo rules)", func(
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  2,
-				NumberOfInfo:  4,
-				NumberOfDebug: 2,
+				NumberOfWarn:  4,
+				NumberOfInfo:  5,
+				NumberOfDebug: 1,
 			}
 			result := checks.BranchProtection(&req)
 			Expect(result.Error).Should(BeNil())
