@@ -42,7 +42,6 @@ const (
 	fuzzerRustCargoFuzz           = "RustCargoFuzzer"
 	fuzzerJavaJazzerFuzzer        = "JavaJazzerFuzzer"
 	// TODO: add more fuzzing check supports.
-	fourPointZero = 4.0
 )
 
 type filesWithPatternStr struct {
@@ -373,9 +372,10 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	// This var can stay as an int, no need for a precise float value.
 	avgLoC := totalLoC / numLangs
 	// Languages that have lines of code above average will be considered prominent.
+	prominentThreshold := avgLoC / 4.0
 	ret := []clients.LanguageName{}
 	for lName, loC := range langMap {
-		if loC >= avgLoC/fourPointZero {
+		if loC >= prominentThreshold {
 			lang := clients.LanguageName(strings.ToLower(string(lName)))
 			ret = append(ret, lang)
 		}
