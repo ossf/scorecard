@@ -84,6 +84,12 @@ const (
 	_
 	// OutcomeNotSupported indicates a non-supported outcome.
 	OutcomeNotSupported
+	_
+	_
+	_
+	// OutcomeNotApplicable indicates if a finding should not
+	// be considered in evaluation.
+	OutcomeNotApplicable
 )
 
 // Finding represents a finding.
