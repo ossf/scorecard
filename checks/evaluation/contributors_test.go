@@ -42,7 +42,6 @@ func TestContributors(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        6,
-				NumberOfInfo: 0,
 			},
 		}, {
 			name: "No contributors",
@@ -53,8 +52,7 @@ func TestContributors(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        0,
-				NumberOfWarn: 1,
+				Score: 0,
 			},
 		}, {
 			name: "Has three positive outcomes",
