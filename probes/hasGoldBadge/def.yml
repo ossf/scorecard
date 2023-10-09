@@ -15,7 +15,7 @@
 id: hasGoldBadge
 short: This check determines whether the project has an OpenSSF (formerly CII) Best Practices Badge at the Gold level.
 motivation: >
-  The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open source software.
+  The OpenSSF Best Practices badge indicates whether or not the project uses a set of security-focused best development practices for open source software.
 implementation: >
   The probe checks the type of the badge from the raw results.
 outcome:
