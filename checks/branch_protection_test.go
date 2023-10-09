@@ -134,7 +134,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Only development branch",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,
@@ -173,7 +173,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Take worst of release and development",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         4,
 				NumberOfWarn:  9,
 				NumberOfInfo:  10,
 				NumberOfDebug: 0,
@@ -285,7 +285,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			name: "Ignore a non-branch targetcommitish",
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         2,
+				Score:         3,
 				NumberOfWarn:  7,
 				NumberOfInfo:  2,
 				NumberOfDebug: 0,

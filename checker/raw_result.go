@@ -25,25 +25,25 @@ import (
 // is applied.
 // nolint
 type RawResults struct {
-	PackagingResults            PackagingData
-	CIIBestPracticesResults     CIIBestPracticesData
-	DangerousWorkflowResults    DangerousWorkflowData
-	VulnerabilitiesResults      VulnerabilitiesData
 	BinaryArtifactResults       BinaryArtifactData
-	SecurityPolicyResults       SecurityPolicyData
-	DependencyUpdateToolResults DependencyUpdateToolData
 	BranchProtectionResults     BranchProtectionsData
+	CIIBestPracticesResults     CIIBestPracticesData
+	CITestResults               CITestData
 	CodeReviewResults           CodeReviewData
-	PinningDependenciesResults  PinningDependenciesData
-	WebhookResults              WebhooksData
 	ContributorsResults         ContributorsData
-	MaintainedResults           MaintainedData
-	SignedReleasesResults       SignedReleasesData
+	DangerousWorkflowResults    DangerousWorkflowData
+	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
-	TokenPermissionsResults     TokenPermissionsData
-	CITestResults               CITestData
+	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
+	PackagingResults            PackagingData
+	PinningDependenciesResults  PinningDependenciesData
+	SecurityPolicyResults       SecurityPolicyData
+	SignedReleasesResults       SignedReleasesData
+	TokenPermissionsResults     TokenPermissionsData
+	VulnerabilitiesResults      VulnerabilitiesData
+	WebhookResults              WebhooksData
 }
 
 type MetadataData struct {
@@ -121,6 +121,7 @@ type Dependency struct {
 	PinnedAt *string
 	Location *File
 	Msg      *string // Only for debug messages.
+	Pinned   *bool
 	Type     DependencyUseType
 }
 

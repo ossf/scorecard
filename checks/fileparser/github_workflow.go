@@ -131,6 +131,11 @@ func getJobDefaultRunShell(job *actionlint.Job) string {
 
 func getJobRunsOnLabels(job *actionlint.Job) []*actionlint.String {
 	if job != nil && job.RunsOn != nil {
+		// Starting at v1.6.16, either field may be set
+		// https://github.com/rhysd/actionlint/issues/164
+		if job.RunsOn.LabelsExpr != nil {
+			return []*actionlint.String{job.RunsOn.LabelsExpr}
+		}
 		return job.RunsOn.Labels
 	}
 	return nil
@@ -235,7 +240,7 @@ func GetShellForStep(step *actionlint.Step, job *actionlint.Job) (string, error)
 	}
 	execRunShell := getExecRunShell(execRun)
 	if execRunShell != "" {
-		return execRun.Shell.Value, nil
+		return execRunShell, nil
 	}
 	jobDefaultRunShell := getJobDefaultRunShell(job)
 	if jobDefaultRunShell != "" {

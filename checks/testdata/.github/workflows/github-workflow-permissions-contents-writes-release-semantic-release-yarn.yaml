@@ -1,4 +1,4 @@
-# Copyright 2021 OpenSSF Scorecard Authors
+# Copyright 2022 Security Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+name: semantic-release release workflow
+on: [push]
+permissions:
 
-FROM golang:1.21@sha256:e9ebfe932adeff65af5338236f0b0604c86b143c1bff3e1d0551d8f6196ab5c5 AS base
-WORKDIR /src
-ENV CGO_ENABLED=0
-COPY go.* ./
-RUN go mod download
-COPY . ./
-
-FROM base AS worker
-ARG TARGETOS
-ARG TARGETARCH
-RUN CGO_ENABLED=0 make build-worker
-
-FROM gcr.io/distroless/base:nonroot@sha256:29da700a46816467c7cb91058f53eac4170a4a25ac8551d316d9fd38e2c58bdf
-COPY --from=worker /src/cron/internal/worker/worker cron/internal/worker/worker
-ENTRYPOINT ["cron/internal/worker/worker"]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: semantic-release
+        run: pnpm dlx semantic-release
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
