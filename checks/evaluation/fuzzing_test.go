@@ -41,6 +41,30 @@ func TestFuzzing(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithSwiftLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
 					Probe:   "fuzzedWithOneFuzz",
 					Outcome: finding.OutcomeNegative,
 				},
@@ -63,7 +87,7 @@ func TestFuzzing(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 7,
+				NumberOfWarn: 13,
 			},
 		},
 		{
@@ -76,6 +100,30 @@ func TestFuzzing(t *testing.T) {
 				{
 					Probe:   "fuzzedWithGoNative",
 					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithSwiftLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
+					Outcome: finding.OutcomeNegative,
 				},
 				{
 					Probe:   "fuzzedWithOneFuzz",
