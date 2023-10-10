@@ -53,11 +53,11 @@ type filesWithPatternStr struct {
 type languageFuzzConfig struct {
 	URL, Desc *string
 
-	// Patterns are according to path.Match.
-	filePatterns []string
-
 	funcPattern, Name string
 	// TODO: add more language fuzzing-related fields.
+
+	// Patterns are according to path.Match.
+	filePatterns []string
 }
 
 // Contains fuzzing speficications for programming languages.
