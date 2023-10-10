@@ -261,8 +261,8 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
 			lang:              clients.LanguageName("not_a_supported_one"),
-			fileName:          "a_fuzz_test.py",
-			fileContent:       `def NotSupported (foo)`,
+			fileName:          "a_fuzz_test.php",
+			fileContent:       `function function-not-supported (foo)`,
 			wantErr:           true,
 		},
 	}
@@ -274,16 +274,19 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
-			fileMatchPattern := langSpecs.filePattern
-			fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
-			if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
-				t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+			var found bool
+			for _, fileMatchPattern := range langSpecs.filePatterns {
+				fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
+				if (fileMatch != tt.expectedFileMatch || err != nil) && !tt.wantErr {
+					t.Errorf("fileMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+				}
+				funcRegexPattern := langSpecs.funcPattern
+				r := regexp.MustCompile(funcRegexPattern)
+				found = found || r.MatchString(tt.fileContent)
 			}
-			funcRegexPattern := langSpecs.funcPattern
-			r := regexp.MustCompile(funcRegexPattern)
-			found := r.MatchString(tt.fileContent)
+
 			if (found != tt.expectedFuncMatch) && !tt.wantErr {
-				t.Errorf("funcMatch = %v, want %v for %v", fileMatch, tt.expectedFileMatch, tt.name)
+				t.Errorf("found = %v, want %v for %v", found, tt.expectedFileMatch, tt.name)
 			}
 		})
 	}
