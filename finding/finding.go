@@ -266,6 +266,16 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	return f
 }
 
+// WithValue adds a value to f.Values.
+// No copy is made.
+func (f *Finding) WithValue(k string, v int) *Finding {
+	if f.Values == nil {
+		f.Values = make(map[string]int)
+	}
+	f.Values[k] = v
+	return f
+}
+
 // UnmarshalYAML is a custom unmarshalling function
 // to transform the string into an enum.
 func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
