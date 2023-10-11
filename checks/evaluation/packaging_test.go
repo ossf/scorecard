@@ -64,7 +64,8 @@ func TestPackaging(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: checker.MinResultScore,
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 1,
 			},
 		},
 		{

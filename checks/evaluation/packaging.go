@@ -47,6 +47,6 @@ func Packaging(name string,
 		}
 	}
 
-	checker.LogFindings(nonNegativeFindings(findings), dl)
+	checker.LogFindings(negativeFindings(findings), dl)
 	return checker.CreateMinScoreResult(name, "project is not published as package")
 }
