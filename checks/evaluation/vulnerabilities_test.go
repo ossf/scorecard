@@ -64,7 +64,7 @@ func TestVulnerabilities(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score: 7,
-				NumberOfWarn: 9,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -121,7 +121,7 @@ func TestVulnerabilities(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score: 0,
-				NumberOfWarn: 144,
+				NumberOfWarn: 12,
 			},
 		},
 		{

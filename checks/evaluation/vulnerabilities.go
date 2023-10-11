@@ -35,11 +35,11 @@ func Vulnerabilities(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	checker.LogFindings(negativeFindings(findings), dl)
 	vulnsFound := 0
 	for _, f := range findings {
 		if f.Outcome == finding.OutcomeNegative {
 			// Log all the negative findings.
-			checker.LogFindings(negativeFindings(findings), dl)
 			vulnsFound++
 		}
 	}
