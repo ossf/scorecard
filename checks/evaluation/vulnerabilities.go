@@ -15,6 +15,8 @@
 package evaluation
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
@@ -50,5 +52,6 @@ func Vulnerabilities(name string,
 		score = checker.MinResultScore
 	}
 
-	return checker.CreateResultWithScore(name, "vulnerabilities detected", score)
+	return checker.CreateResultWithScore(name,
+		fmt.Sprintf("%v existing vulnerabilities detected", vulnsFound), score)
 }
