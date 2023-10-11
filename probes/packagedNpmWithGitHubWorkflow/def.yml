@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: packagedNpmWithGitHubWorkflow
-short: Check that the project is fuzzed using OSS-Fuzz
+short: Checks whether the project uses automated packaging.
 motivation: >
   Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.
 implementation: >
