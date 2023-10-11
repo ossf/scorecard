@@ -50,7 +50,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			// both repoAPI and scorecard (not using the API) follow checks.md
 			// for a file to be found it must have been in the correct location
 			// award location points.
-			msg := "License file found in expected location"
+
+			// Store the file path in the msg
+			msg := licenseFile.File.Path
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
 				finding.OutcomePositive)

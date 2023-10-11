@@ -46,9 +46,11 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: checker.MaxResultScore,
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2,
 			},
 		}, {
+			name: "Negative outcomes from all probes = Min score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -64,9 +66,11 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: checker.MinResultScore,
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 1,
 			},
 		}, {
+			name: "Has license file but not a top level or in OSI/FSF format",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -82,9 +86,11 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 6,
+				Score:        6,
+				NumberOfWarn: 1,
 			},
 		}, {
+			name: "Findings missing a probe = Error",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -100,6 +106,7 @@ func TestLicense(t *testing.T) {
 				Error: sce.ErrScorecardInternal,
 			},
 		}, {
+			name: "Has a license at top dir but it is not OSI/FSF approved",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -115,9 +122,12 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 9,
+				Score:        9,
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		}, {
+			name: "Has an OSI/FSF approved license but not at top level dir",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -133,7 +143,8 @@ func TestLicense(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 7,
+				Score:        7,
+				NumberOfInfo: 1,
 			},
 		},
 	}

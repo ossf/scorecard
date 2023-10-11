@@ -41,8 +41,10 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			name:        "With LICENSE",
 			inputFolder: "testdata/licensedir/withlicense",
 			expected: scut.TestReturn{
-				Error: nil,
-				Score: 9, // Does not have approved format
+				Error:        nil,
+				Score:        9, // Does not have approved format
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 			err: nil,
 		},
@@ -50,8 +52,9 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			name:        "Without LICENSE",
 			inputFolder: "testdata/licensedir/withoutlicense",
 			expected: scut.TestReturn{
-				Error: nil,
-				Score: checker.MinResultScore,
+				Error:        nil,
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 1,
 			},
 			err: nil,
 		},

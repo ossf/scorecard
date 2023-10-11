@@ -46,7 +46,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
 		if licenseFile.LicenseInformation.Approved {
-			msg := "License file is of approved type"
+			// Store the file path in the msg
+			msg := licenseFile.File.Path
 
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
