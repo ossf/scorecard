@@ -98,6 +98,14 @@ func Test_Run(t *testing.T) {
 								Attribution: "wrong attribution",
 							},
 						},
+						{
+							File: checker.File{
+								Path: "COPYING.md",
+							},
+							LicenseInformation: checker.License{
+								Attribution: "wrong attribution2",
+							},
+						},
 					},
 				},
 			},
