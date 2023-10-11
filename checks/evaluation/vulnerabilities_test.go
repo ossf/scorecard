@@ -68,7 +68,7 @@ func TestVulnerabilities(t *testing.T) {
 			},
 		},
 		{
-			name: "twelve vulnerabilities",
+			name: "twelve vulnerabilities to check that score is not less than 0",
 			findings: []finding.Finding {
 				{
 					Probe:   "hasOSVVulnerabilities",
