@@ -100,6 +100,7 @@ type Finding struct {
 	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
+	Values      map[string]int     `json:”values,omitempty”`
 }
 
 // AnonymousFinding is a finding without a corerpsonding probe ID.
