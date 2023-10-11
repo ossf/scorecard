@@ -60,7 +60,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return []finding.Finding{*f}, Probe, nil
 
 		case checker.LicenseAttributionTypeOther:
-			// TODO ascertain location found
 			msg := "License file found in unexpected location"
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
