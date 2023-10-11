@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: hasApprovedLicense
-short: Check that the project has a license file of approved format. An approved format is a file named either LICENSE, LICENCE, COPYING or COPYRIGHT with the file extension .html, .txt, or .md.
+short: Check that the project has an FSF or OSI approved license. For more, see [all FSF or OSI approved license formats](https://spdx.org/licenses/).
 motivation: >
   A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
 implementation: >
