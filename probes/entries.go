@@ -17,9 +17,8 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/contributorsWithOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
