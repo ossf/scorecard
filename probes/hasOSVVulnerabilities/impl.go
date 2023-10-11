@@ -18,6 +18,9 @@ package hasOSVVulnerabilities
 import (
 	"embed"
 	"fmt"
+	"strings"
+
+	"github.com/google/osv-scanner/pkg/grouper"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -35,27 +38,35 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	for i := 0; i < len(raw.VulnerabilitiesResults.Vulnerabilities); i++ {
-		f, err := finding.NewWith(fs, Probe,
-			"Project contains OSV vulnerabilities", nil,
-			finding.OutcomeNegative)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithRemediationMetadata(map[string]string{
-			"osvid": raw.VulnerabilitiesResults.Vulnerabilities[i].ID,
-		})
-		findings = append(findings, *f)
-	}
 
 	// if no vulns were found
-	if len(findings) == 0 {
+	if len(raw.VulnerabilitiesResults.Vulnerabilities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not contain OSV vulnerabilities", nil,
 			finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
+	aliasVulnerabilities := []grouper.IDAliases{}
+	for _, vuln := range raw.VulnerabilitiesResults.Vulnerabilities {
+		aliasVulnerabilities = append(aliasVulnerabilities, grouper.IDAliases(vuln))
+	}
+
+	IDs := grouper.Group(aliasVulnerabilities)
+
+	for _, vuln := range IDs {
+		f, err := finding.NewWith(fs, Probe,
+			"Project contains OSV vulnerabilities", nil,
+			finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithMessage(fmt.Sprintf("Project is vulnerable to: %s",
+			strings.Join(vuln.IDs, " / ")))
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

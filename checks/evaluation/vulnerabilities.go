@@ -37,21 +37,20 @@ func Vulnerabilities(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	checker.LogFindings(negativeFindings(findings), dl)
-	vulnsFound := 0
-	for _, f := range findings {
-		if f.Outcome == finding.OutcomeNegative {
-			// Log all the negative findings.
-			vulnsFound++
-		}
+	vulnsFound := negativeFindings(findings)
+	numVulnsFound := len(negativeFindings(findings))
+	for _, vuln := range vulnsFound {
+		dl.Warn(&checker.LogMessage{
+			Text: vuln.Message,
+		})
 	}
 
-	score := checker.MaxResultScore - vulnsFound
+	score := checker.MaxResultScore - numVulnsFound
 
 	if score < checker.MinResultScore {
 		score = checker.MinResultScore
 	}
 
 	return checker.CreateResultWithScore(name,
-		fmt.Sprintf("%v existing vulnerabilities detected", vulnsFound), score)
+		fmt.Sprintf("%v existing vulnerabilities detected", numVulnsFound), score)
 }
