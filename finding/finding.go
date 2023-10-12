@@ -276,6 +276,8 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 		*o = OutcomeNotAvailable
 	case "NotSupported":
 		*o = OutcomeNotSupported
+	case "NotApplicable":
+		*o = OutcomeNotApplicable
 	case "Error":
 		*o = OutcomeError
 	default:
