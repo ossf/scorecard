@@ -33,9 +33,9 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 		issue     *clients.Issue
 		threshold time.Time
 	}
-	tests := []struct { //nolint:govet
-		name string
+	tests := []struct {
 		args args
+		name string
 		want bool
 	}{
 		{
@@ -98,10 +98,10 @@ func TestMaintained(t *testing.T) {
 	twentyDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
 	collab := clients.RepoAssociationCollaborator
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
+	type args struct {
 		dl   checker.DetailLogger
 		r    *checker.MaintainedData
+		name string
 	}
 	tests := []struct {
 		name string

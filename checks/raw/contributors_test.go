@@ -25,10 +25,10 @@ import (
 
 func TestCompanyContains(t *testing.T) {
 	t.Parallel()
-	testCases := []struct { //nolint:govet
+	testCases := []struct {
 		name     string
-		cs       []string
 		company  string
+		cs       []string
 		expected bool
 	}{
 		{
@@ -65,10 +65,10 @@ func TestCompanyContains(t *testing.T) {
 
 func TestOrgContains(t *testing.T) {
 	t.Parallel()
-	testCases := []struct { //nolint:govet
+	testCases := []struct {
 		name     string
-		os       []clients.User
 		login    string
+		os       []clients.User
 		expected bool
 	}{
 		{

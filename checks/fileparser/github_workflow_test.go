@@ -403,8 +403,8 @@ func TestGetLineNumber(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name string
 		args args
+		name string
 		want uint
 	}{
 		{
@@ -490,9 +490,9 @@ func TestGetUses(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name string
 		args args
 		want *actionlint.String
+		name string
 	}{
 		{
 			name: "uses",
@@ -564,9 +564,9 @@ func Test_getWith(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name string
 		args args
 		want map[string]*actionlint.Input
+		name string
 	}{
 		{
 			name: "with",
@@ -650,9 +650,9 @@ func Test_getRun(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name string
 		args args
 		want *actionlint.String
+		name string
 	}{
 		{
 			name: "run",
@@ -748,8 +748,8 @@ func Test_stepsMatch(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name string
 		args args
+		name string
 		want bool
 	}{
 		{

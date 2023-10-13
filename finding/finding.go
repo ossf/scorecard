@@ -45,11 +45,11 @@ const (
 // Location represents the location of a finding.
 // nolint: govet
 type Location struct {
-	Type      FileType `json:"type"`
-	Path      string   `json:"path"`
 	LineStart *uint    `json:"lineStart,omitempty"`
 	LineEnd   *uint    `json:"lineEnd,omitempty"`
 	Snippet   *string  `json:"snippet,omitempty"`
+	Path      string   `json:"path"`
+	Type      FileType `json:"type"`
 }
 
 // Outcome is the result of a finding.
@@ -95,20 +95,18 @@ const (
 // Finding represents a finding.
 // nolint: govet
 type Finding struct {
-	Probe       string             `json:"probe"`
-	Outcome     Outcome            `json:"outcome"`
-	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
 	Values      map[string]int     `json:"values,omitempty"`
+	Probe       string             `json:"probe"`
+	Message     string             `json:"message"`
+	Outcome     Outcome            `json:"outcome"`
 }
 
 // AnonymousFinding is a finding without a corerpsonding probe ID.
 type AnonymousFinding struct {
-	Finding
-	// Remove the probe ID from
-	// the structure until the probes are GA.
 	Probe string `json:"probe,omitempty"`
+	Finding
 }
 
 var errInvalid = errors.New("invalid")

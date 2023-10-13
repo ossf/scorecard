@@ -36,8 +36,8 @@ var (
 // nolint: govet
 type branchArg struct {
 	err           error
-	name          string
 	branchRef     *clients.BranchRef
+	name          string
 	defaultBranch bool
 }
 
@@ -65,13 +65,13 @@ func TestBranchProtection(t *testing.T) {
 	t.Parallel()
 	//nolint: govet
 	tests := []struct {
+		releasesErr error
+		wantErr     error
 		name        string
+		want        checker.BranchProtectionsData
 		branches    branchesArg
 		repoFiles   []string
 		releases    []clients.Release
-		releasesErr error
-		want        checker.BranchProtectionsData
-		wantErr     error
 	}{
 		{
 			name: "default-branch-err",

@@ -49,11 +49,11 @@ type jsonCheckDocumentationV2 struct {
 
 // nolint: govet
 type jsonCheckResultV2 struct {
-	Details []string                 `json:"details"`
-	Score   int                      `json:"score"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 	Reason  string                   `json:"reason"`
 	Name    string                   `json:"name"`
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
 }
 
 type jsonRepoV2 struct {
@@ -77,12 +77,12 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 //
 //nolint:govet
 type JSONScorecardResultV2 struct {
-	Date           string              `json:"date"`
 	Repo           jsonRepoV2          `json:"repo"`
 	Scorecard      jsonScorecardV2     `json:"scorecard"`
-	AggregateScore jsonFloatScore      `json:"score"`
+	Date           string              `json:"date"`
 	Checks         []jsonCheckResultV2 `json:"checks"`
 	Metadata       []string            `json:"metadata"`
+	AggregateScore jsonFloatScore      `json:"score"`
 }
 
 // AsJSON exports results as JSON for new detail format.

@@ -29,8 +29,8 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name   string
-		r      worklowPinningResult
 		scores []checker.ProportionalScoreWeighted
+		r      worklowPinningResult
 	}{
 		{
 			name: "GitHub-owned and Third-Party actions pinned",
@@ -819,10 +819,10 @@ func Test_PinningDependencies(t *testing.T) {
 
 func Test_generateOwnerToDisplay(t *testing.T) {
 	t.Parallel()
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name        string
-		gitHubOwned bool
 		want        string
+		gitHubOwned bool
 	}{
 		{
 			name:        "returns GitHub if gitHubOwned is true",
@@ -1009,10 +1009,10 @@ func TestUpdatePinningResults(t *testing.T) {
 		w  *worklowPinningResult
 		pr map[checker.DependencyUseType]pinnedResult
 	}
-	tests := []struct { //nolint:govet
-		name string
+	tests := []struct {
 		args args
 		want want
+		name string
 	}{
 		{
 			name: "add pinned GitHub-owned action",

@@ -36,13 +36,13 @@ func Test_SAST(t *testing.T) {
 
 	//nolint: govet, goerr113
 	tests := []struct {
-		name          string
-		commits       []clients.Commit
 		err           error
-		searchresult  clients.SearchResponse
-		checkRuns     []clients.CheckRun
 		searchRequest clients.SearchRequest
+		name          string
 		path          string
+		commits       []clients.Commit
+		checkRuns     []clients.CheckRun
+		searchresult  clients.SearchResponse
 		expected      checker.CheckResult
 	}{
 		{
@@ -272,9 +272,9 @@ func Test_validateSonarConfig(t *testing.T) {
 	tests := []struct {
 		name      string
 		path      string
+		url       string
 		offset    uint
 		endOffset uint
-		url       string
 		score     int
 	}{
 		{

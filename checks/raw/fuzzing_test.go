@@ -33,8 +33,8 @@ func Test_checkOSSFuzz(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name        string
-		want        bool
 		response    clients.SearchResponse
+		want        bool
 		wantErr     bool
 		wantFuzzErr bool
 	}{
@@ -109,9 +109,9 @@ func Test_checkOneFuzz(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name     string
+		fileName []string
 		want     bool
 		wantErr  bool
-		fileName []string
 	}{
 		{
 			name:     "Test_checkOneFuzz success",
@@ -168,10 +168,10 @@ func Test_checkCFLite(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name        string
+		fileContent string
+		fileName    []string
 		want        bool
 		wantErr     bool
-		fileName    []string
-		fileContent string
 	}{
 		{
 			name:        "Test_checkCFLite success",
@@ -222,11 +222,11 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name              string
-		expectedFileMatch bool
-		expectedFuncMatch bool
 		lang              clients.LanguageName
 		fileName          string
 		fileContent       string
+		expectedFileMatch bool
+		expectedFuncMatch bool
 		wantErr           bool
 	}{
 		{
@@ -297,11 +297,11 @@ func Test_checkFuzzFunc(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name        string
-		want        bool
-		wantErr     bool
+		fileContent string
 		langs       []clients.Language
 		fileName    []string
-		fileContent string
+		want        bool
+		wantErr     bool
 	}{
 		{
 			name:    "Test_checkFuzzFunc failure",

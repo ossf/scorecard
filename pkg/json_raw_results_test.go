@@ -29,10 +29,10 @@ import (
 func TestAsPointer(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		expected *string
 		name     string
 		input    string
-		expected *string
 	}{
 		{
 			name:     "test_empty_string",
@@ -66,9 +66,9 @@ func TestAsPointer(t *testing.T) {
 func TestJsonScorecardRawResult_AddPackagingRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.PackagingData
+		name      string
 		wantError bool
 	}{
 		{
@@ -145,9 +145,9 @@ func TestJsonScorecardRawResult_AddPackagingRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddTokenPermissionsRawResults(t *testing.T) {
 	t.Parallel()
 	loc := checker.PermissionLocation("testLocationType")
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.TokenPermissionsData
+		name      string
 		wantError bool
 	}{
 		{
@@ -225,9 +225,9 @@ func TestJsonScorecardRawResult_AddTokenPermissionsRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddDependencyPinningRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.PinningDependenciesData
+		name      string
 		wantError bool
 	}{
 		{
@@ -291,9 +291,9 @@ func TestJsonScorecardRawResult_AddDependencyPinningRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddDangerousWorkflowRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.DangerousWorkflowData
+		name      string
 		wantError bool
 	}{
 		{
@@ -336,9 +336,9 @@ func TestJsonScorecardRawResult_AddDangerousWorkflowRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddContributorsRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.ContributorsData
+		name      string
 		wantError bool
 	}{
 		{
@@ -376,9 +376,9 @@ func TestJsonScorecardRawResult_AddContributorsRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.SignedReleasesData
+		name      string
 		wantError bool
 	}{
 		{
@@ -418,9 +418,9 @@ func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddMaintainedRawResults(t *testing.T) {
 	t.Parallel()
 	c := clients.RepoAssociationNone
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.MaintainedData
+		name      string
 		wantError bool
 	}{
 		{
@@ -551,9 +551,9 @@ func TestSetDefaultCommitData(t *testing.T) {
 func TestJsonScorecardRawResult_AddOssfBestPracticesRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.CIIBestPracticesData
+		name      string
 		wantError bool
 	}{
 		{
@@ -592,9 +592,9 @@ func TestJsonScorecardRawResult_AddOssfBestPracticesRawResults(t *testing.T) {
 func TestJsonScorecardRawResult_AddCodeReviewRawResults(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name      string
+	tests := []struct {
 		input     *checker.CodeReviewData
+		name      string
 		wantError bool
 	}{
 		{
@@ -1227,17 +1227,17 @@ func intPtr(i int32) *int32 {
 //nolint:lll
 func TestScorecardResult_AsRawJSON(t *testing.T) {
 	type fields struct {
-		Repo       RepoInfo
 		Date       time.Time
+		Repo       RepoInfo
 		Scorecard  ScorecardInfo
 		Checks     []checker.CheckResult
-		RawResults checker.RawResults
 		Metadata   []string
+		RawResults checker.RawResults
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name       string
-		fields     fields
 		wantWriter string
+		fields     fields
 		wantErr    bool
 	}{
 		{
@@ -1278,10 +1278,10 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 
 func TestAddBranchProtectionRawResults(t *testing.T) {
 	t.Parallel()
-	testCases := []struct { //nolint:govet
-		name     string
+	testCases := []struct {
 		input    *checker.BranchProtectionsData
 		expected *jsonScorecardRawResult
+		name     string
 	}{
 		{
 			name: "no branch protections",

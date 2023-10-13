@@ -28,9 +28,9 @@ func TestCodeReview(t *testing.T) {
 
 	//nolint:govet // ignore since this is a test.
 	tests := []struct {
+		rawData  *checker.CodeReviewData
 		name     string
 		expected scut.TestReturn
-		rawData  *checker.CodeReviewData
 	}{
 		{
 			name: "NullRawData",

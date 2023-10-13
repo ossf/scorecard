@@ -26,7 +26,7 @@ import (
 func Test_createLogMessage(t *testing.T) {
 	msg := "msg"
 	t.Parallel()
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name    string
 		args    checker.Package
 		want    checker.LogMessage
@@ -103,10 +103,10 @@ func Test_createLogMessage(t *testing.T) {
 
 func TestPackaging(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
+	type args struct {
 		dl   checker.DetailLogger
 		r    *checker.PackagingData
+		name string
 	}
 	tests := []struct {
 		name string

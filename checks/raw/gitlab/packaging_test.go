@@ -30,8 +30,8 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name       string
-		lineNumber uint
 		filename   string
+		lineNumber uint
 		exists     bool
 	}{
 		{
@@ -103,8 +103,8 @@ func TestGitlabPackagingPackager(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name       string
-		lineNumber uint
 		filename   string
+		lineNumber uint
 		exists     bool
 	}{
 		{

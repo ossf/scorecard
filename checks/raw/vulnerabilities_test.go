@@ -31,13 +31,13 @@ func TestVulnerabilities(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
+		err             error
 		name            string
 		want            checker.VulnerabilitiesData
-		err             error
-		wantErr         bool
 		vulnsResponse   clients.VulnerabilitiesResponse
-		numberofCommits int
 		expected        scut.TestReturn
+		numberofCommits int
+		wantErr         bool
 		vulnsError      bool
 	}{
 		{

@@ -29,7 +29,7 @@ import (
 
 // ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-//nolint
+// nolint
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
@@ -47,16 +47,16 @@ func Test_Maintained(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		err        error
-		name       string
-		isarchived bool
-		archiveerr error
-		commits    []clients.Commit
-		commiterr  error
-		issues     []clients.Issue
-		issueerr   error
 		createdat  time.Time
+		err        error
+		archiveerr error
+		commiterr  error
+		issueerr   error
+		name       string
+		commits    []clients.Commit
+		issues     []clients.Issue
 		expected   checker.CheckResult
+		isarchived bool
 	}{
 		{
 			name:       "archived",

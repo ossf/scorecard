@@ -29,9 +29,9 @@ func Test_scoreLicenseCriteria(t *testing.T) {
 		f  *checker.LicenseFile
 		dl checker.DetailLogger
 	}
-	tests := []struct { //nolint:govet
-		name string
+	tests := []struct {
 		args args
+		name string
 		want int
 	}{
 		{
@@ -97,10 +97,10 @@ func Test_scoreLicenseCriteria(t *testing.T) {
 
 func TestLicense(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
+	type args struct {
 		dl   checker.DetailLogger
 		r    *checker.LicenseData
+		name string
 	}
 	tests := []struct {
 		name string

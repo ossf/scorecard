@@ -62,9 +62,9 @@ func TestAggregateScoresWithWeight(t *testing.T) {
 	type args struct {
 		scores map[int]int
 	}
-	tests := []struct { //nolint:govet
-		name string
+	tests := []struct {
 		args args
+		name string
 		want int
 	}{
 		{
@@ -412,10 +412,10 @@ func TestNormalizeReason(t *testing.T) {
 		reason string
 		score  int
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
-		args args
 		want string
+		args args
 	}{
 		{
 			name: "empty",
@@ -505,7 +505,7 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 		b      int
 		t      int
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
 		args args
 		want CheckResult
@@ -701,9 +701,9 @@ func TestCreateInconclusiveResult(t *testing.T) {
 
 func TestCreateRuntimeErrorResult(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
+	type args struct {
 		e    error
+		name string
 	}
 	tests := []struct {
 		name string

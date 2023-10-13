@@ -137,8 +137,8 @@ func TestCheckFileContainsCommands(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
-		content []byte
 		comment string
+		content []byte
 	}
 	tests := []struct {
 		name string
@@ -400,12 +400,12 @@ func TestOnMatchingFileContent(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name                   string
-		wantErr                bool
 		shellPattern           string
+		files                  []string
+		wantErr                bool
 		caseSensitive          bool
 		shouldFuncFail         bool
 		shouldGetPredicateFail bool
-		files                  []string
 	}{
 		{
 			name:          "no files",
@@ -586,13 +586,13 @@ func TestOnAllFilesDo(t *testing.T) {
 	}
 	//nolint
 	tests := []struct {
-		name         string
-		onFile       DoWhileTrueOnFilename
-		onFileArgs   []interface{}
-		listFiles    []string
 		errListFiles error
 		err          error
+		onFile       DoWhileTrueOnFilename
 		testArgs     testArgsFn
+		name         string
+		onFileArgs   []interface{}
+		listFiles    []string
 	}{
 		{
 			name:         "error during ListFiles",

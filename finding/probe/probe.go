@@ -69,11 +69,11 @@ type yamlProbe struct {
 
 // nolint: govet
 type Probe struct {
+	Remediation    *Remediation
 	ID             string
 	Short          string
 	Motivation     string
 	Implementation string
-	Remediation    *Remediation
 }
 
 // FromBytes creates a probe from a file.

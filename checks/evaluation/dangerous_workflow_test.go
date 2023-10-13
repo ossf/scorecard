@@ -25,10 +25,10 @@ import (
 
 func TestDangerousWorkflow(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		name string
+	type args struct {
 		dl   checker.DetailLogger
 		r    *checker.DangerousWorkflowData
+		name string
 	}
 	tests := []struct {
 		name string

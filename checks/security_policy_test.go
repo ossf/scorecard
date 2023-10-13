@@ -33,8 +33,8 @@ func TestSecurityPolicy(t *testing.T) {
 		name    string
 		path    string
 		files   []string
-		wantErr bool
 		want    scut.TestReturn
+		wantErr bool
 	}{
 		{
 			name: "security.md",

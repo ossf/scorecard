@@ -31,13 +31,13 @@ func TestWebhooks(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name                   string
 		err                    error
+		name                   string
 		uri                    string
-		wantErr                bool
-		expectedUsesAuthSecret int
-		expected               scut.TestReturn
 		webhookResponse        []clients.Webhook
+		expected               scut.TestReturn
+		expectedUsesAuthSecret int
+		wantErr                bool
 	}{
 		{
 			name:            "No Webhooks",

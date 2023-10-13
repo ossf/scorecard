@@ -33,13 +33,13 @@ func TestFuzzing(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name        string
+		fileContent string
 		langs       []clients.Language
+		fileName    []string
 		response    clients.SearchResponse
+		expected    scut.TestReturn
 		wantErr     bool
 		wantFuzzErr bool
-		fileName    []string
-		fileContent string
-		expected    scut.TestReturn
 	}{
 		{
 			name:     "empty response",

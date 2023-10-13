@@ -31,10 +31,10 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "empty file",
@@ -187,10 +187,10 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "Pinned non-github workflow",
@@ -257,10 +257,10 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "npm packages without verification",
@@ -306,10 +306,10 @@ func TestDockerfilePinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "invalid dockerfile",
@@ -538,9 +538,9 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		filename string
 		expected []struct {
 			snippet   string
+			t         checker.DependencyUseType
 			startLine uint
 			endLine   uint
-			t         checker.DependencyUseType
 		}
 	}{
 		{
@@ -549,9 +549,9 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			//nolint
 			expected: []struct {
 				snippet   string
+				t         checker.DependencyUseType
 				startLine uint
 				endLine   uint
-				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "curl bla | bash",
@@ -633,9 +633,9 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			//nolint
 			expected: []struct {
 				snippet   string
+				t         checker.DependencyUseType
 				startLine uint
 				endLine   uint
-				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "/tmp/file3",
@@ -704,9 +704,9 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 		filename string
 		expected []struct {
 			snippet   string
+			t         checker.DependencyUseType
 			startLine uint
 			endLine   uint
-			t         checker.DependencyUseType
 		}
 	}{
 		{
@@ -715,9 +715,9 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 			//nolint
 			expected: []struct {
 				snippet   string
+				t         checker.DependencyUseType
 				startLine uint
 				endLine   uint
-				t         checker.DependencyUseType
 			}{
 				{
 					snippet:   "bash /tmp/file",
@@ -885,10 +885,10 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "Pinned dockerfile as no hash",
@@ -940,10 +940,10 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		warns    int
 		err      error
 		name     string
 		filename string
+		warns    int
 	}{
 		{
 			name:     "curl | sh",
@@ -1045,10 +1045,10 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
+		err      error
 		name     string
 		filename string
 		warns    int
-		err      error
 	}{
 		{
 			name:     "curl | sh",
@@ -1089,11 +1089,11 @@ func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
+		err      error
 		name     string
 		filename string
 		warns    int
 		debugs   int
-		err      error
 	}{
 		{
 			name:     "sh script",
@@ -1171,10 +1171,10 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
+		err      error
 		name     string
 		filename string
 		warns    int
-		err      error
 	}{
 		{
 			name:     "sh script",
@@ -1221,10 +1221,10 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
+		err      error
 		name     string
 		filename string
 		warns    int
-		err      error
 	}{
 		{
 			name:     "workflow curl default",

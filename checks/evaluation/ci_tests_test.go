@@ -204,11 +204,11 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 
 func Test_prHasSuccessStatus(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		r  checker.RevisionCIInfo
+	type args struct {
 		dl checker.DetailLogger
+		r  checker.RevisionCIInfo
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name    string
 		args    args
 		want    bool
@@ -277,11 +277,11 @@ func Test_prHasSuccessStatus(t *testing.T) {
 
 func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		r  checker.RevisionCIInfo
+	type args struct {
 		dl checker.DetailLogger
+		r  checker.RevisionCIInfo
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name    string
 		args    args
 		want    bool
@@ -369,14 +369,14 @@ func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 
 func TestCITests(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
-		in0 string
-		c   *checker.CITestData
+	type args struct {
 		dl  checker.DetailLogger
+		c   *checker.CITestData
+		in0 string
 	}
-	tests := []struct { //nolint:govet
-		name string
+	tests := []struct {
 		args args
+		name string
 		want int
 	}{
 		{

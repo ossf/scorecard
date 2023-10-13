@@ -133,11 +133,11 @@ func TestDependencyUpdateTool(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name              string
-		wantErr           bool
-		want              int
 		SearchCommits     []clients.Commit
-		CallSearchCommits int
 		files             []string
+		want              int
+		CallSearchCommits int
+		wantErr           bool
 	}{
 		{
 			name:              "dependency update tool",

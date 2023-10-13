@@ -27,16 +27,14 @@ func TestVulnerabilities(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
-		name string
 		r    *checker.VulnerabilitiesData
+		name string
 	}
 	tests := []struct {
-		name     string
 		args     args
+		name     string
+		expected []struct{ lineNumber uint }
 		want     checker.CheckResult
-		expected []struct {
-			lineNumber uint
-		}
 	}{
 		{
 			name: "no vulnerabilities",

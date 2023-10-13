@@ -25,25 +25,25 @@ import (
 // is applied.
 // nolint
 type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
+	Metadata                    MetadataData
 	BranchProtectionResults     BranchProtectionsData
-	CIIBestPracticesResults     CIIBestPracticesData
-	CITestResults               CITestData
+	FuzzingResults              FuzzingData
+	SignedReleasesResults       SignedReleasesData
 	CodeReviewResults           CodeReviewData
 	ContributorsResults         ContributorsData
-	DangerousWorkflowResults    DangerousWorkflowData
+	WebhookResults              WebhooksData
 	DependencyUpdateToolResults DependencyUpdateToolData
-	FuzzingResults              FuzzingData
+	BinaryArtifactResults       BinaryArtifactData
 	LicenseResults              LicenseData
-	MaintainedResults           MaintainedData
-	Metadata                    MetadataData
+	VulnerabilitiesResults      VulnerabilitiesData
+	CITestResults               CITestData
 	PackagingResults            PackagingData
 	PinningDependenciesResults  PinningDependenciesData
 	SecurityPolicyResults       SecurityPolicyData
-	SignedReleasesResults       SignedReleasesData
+	MaintainedResults           MaintainedData
 	TokenPermissionsResults     TokenPermissionsData
-	VulnerabilitiesResults      VulnerabilitiesData
-	WebhookResults              WebhooksData
+	DangerousWorkflowResults    DangerousWorkflowData
+	CIIBestPracticesResults     CIIBestPracticesData
 }
 
 type MetadataData struct {

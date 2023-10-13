@@ -31,11 +31,11 @@ func Test_FromBytes(t *testing.T) {
 	t.Parallel()
 	// nolint: govet
 	tests := []struct {
+		err   error
+		probe *Probe
 		name  string
 		id    string
 		path  string
-		err   error
-		probe *Probe
 	}{
 		{
 			name: "all fields set",

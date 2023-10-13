@@ -27,9 +27,9 @@ func TestWebhooks(t *testing.T) {
 	t.Parallel()
 	//nolint
 	type args struct {
-		name string
 		dl   checker.DetailLogger
 		r    *checker.WebhooksData
+		name string
 	}
 	tests := []struct {
 		name    string

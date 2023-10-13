@@ -23,15 +23,15 @@ import (
 // nolint:paralleltest
 // because we are using t.Setenv.
 func TestGetClients(t *testing.T) { //nolint:gocognit
-	type args struct { //nolint:govet
+	type args struct {
 		ctx      context.Context
+		logger   *log.Logger
 		repoURI  string
 		localURI string
-		logger   *log.Logger
 	}
-	tests := []struct { //nolint:govet
-		name                  string
+	tests := []struct {
 		args                  args
+		name                  string
 		shouldOSSFuzzBeNil    bool
 		shouldRepoClientBeNil bool
 		shouldVulnClientBeNil bool

@@ -66,11 +66,11 @@ func TestSecurityPolicy(t *testing.T) {
 	//nolint
 	tests := []struct {
 		name    string
-		files   []string
 		path    string
+		files   []string
 		result  checker.SecurityPolicyData
-		wantErr bool
 		want    scut.TestReturn
+		wantErr bool
 	}{
 		{
 			name: "security.md",

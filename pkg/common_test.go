@@ -26,9 +26,9 @@ func TestDetailString(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
-		detail checker.CheckDetail
 		log    log.Level
 		want   string
+		detail checker.CheckDetail
 	}{
 		{
 			name: "ignoreDebug",

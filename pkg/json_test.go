@@ -84,9 +84,9 @@ func TestJSONOutput(t *testing.T) {
 	tests := []struct {
 		name        string
 		expected    string
-		showDetails bool
 		logLevel    log.Level
 		result      ScorecardResult
+		showDetails bool
 	}{
 		{
 			name:        "check-1",
