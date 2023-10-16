@@ -68,6 +68,8 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 	xs.Buffer(nil, maxResultSize)
 	ys := bufio.NewScanner(y)
 	ys.Buffer(nil, maxResultSize)
+
+	var differs bool
 	for {
 		if shouldContinue, err := advanceScanners(xs, ys); err != nil {
 			return err
@@ -82,8 +84,11 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 			// go-cmp says its not production ready. Is this a valid usage?
 			// it certainly helps with readability.
 			fmt.Fprintf(output, "%s\n", cmp.Diff(xResult, yResult))
-			return errResultsDiffer
+			differs = true
 		}
+	}
+	if differs {
+		return errResultsDiffer
 	}
 	return nil
 }

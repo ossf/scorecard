@@ -16,6 +16,7 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -185,7 +186,11 @@ func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, 
 		return ScorecardResult{}, 0, fmt.Errorf("decode json: %w", err)
 	}
 
+	var parseErr *time.ParseError
 	date, err := time.Parse(time.RFC3339, jsr.Date)
+	if errors.As(err, &parseErr) {
+		date, err = time.Parse("2006-01-02", jsr.Date)
+	}
 	if err != nil {
 		return ScorecardResult{}, 0, fmt.Errorf("parse scorecard analysis time: %w", err)
 	}
