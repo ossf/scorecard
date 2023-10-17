@@ -51,7 +51,7 @@ func Maintained(name string,
 	}
 
 	if projectIsArchived(findings) {
-		checker.LogFindings(nonNegativeFindings(findings), dl)
+		checker.LogFindings(negativeFindings(findings), dl)
 		return checker.CreateMinScoreResult(name, "project is archived")
 	}
 
