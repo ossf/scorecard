@@ -618,6 +618,6 @@ func testResult(wantErr bool, responseFileName string) (*http.Response, error) {
 	}
 	return &http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(bytes.NewBufferString(string(content))),
+		Body:       io.NopCloser(bytes.NewBuffer(content)),
 	}, nil
 }

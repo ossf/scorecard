@@ -50,6 +50,7 @@ linters:
     - ineffassign
     - lll
     - makezero
+    - mirror
     - misspell
     - nakedret
     - nestif
