@@ -61,6 +61,7 @@ linters:
     - typecheck
     - unconvert
     - unused
+    - usestdlibvars
     - whitespace
     - wrapcheck
 linters-settings:

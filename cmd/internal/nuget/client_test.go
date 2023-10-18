@@ -608,7 +608,7 @@ func testResult(wantErr bool, responseFileName string) (*http.Response, error) {
 	}
 	if wantErr && responseFileName == "text" {
 		return &http.Response{
-			StatusCode: 200,
+			StatusCode: http.StatusOK,
 			Body:       io.NopCloser(bytes.NewBufferString("text")),
 		}, nil
 	}
@@ -617,7 +617,7 @@ func testResult(wantErr bool, responseFileName string) (*http.Response, error) {
 		return nil, fmt.Errorf("%w", err)
 	}
 	return &http.Response{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Body:       io.NopCloser(bytes.NewBufferString(string(content))),
 	}, nil
 }
