@@ -42,6 +42,9 @@ linters:
     - gofumpt
     - goheader
     - goimports
+    # manage use of replace, retract and exclude directives (see https://github.com/ossf/scorecard/pull/3440#issuecomment-1708904830)
+    # https://golangci-lint.run/usage/linters/#gomoddirectives
+    - gomoddirectives
     - gomodguard
     - goprintffuncname
     - gosec
