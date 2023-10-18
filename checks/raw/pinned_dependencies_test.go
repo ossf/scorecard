@@ -102,6 +102,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 }
 
 func TestGithubWorkflowPinningPattern(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		desc     string
 		uses     string

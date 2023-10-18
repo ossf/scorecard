@@ -57,7 +57,6 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			err := initRepoAndClientByChecks(&tt.dCtx, tt.srcRepo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("initClientByChecks() error = {%v}, want error: %v", err, tt.wantErr)
@@ -84,7 +83,6 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 }
 
 func Test_getScorecardCheckResults(t *testing.T) {
-	//nolint
 	tests := []struct {
 		name    string
 		dCtx    dependencydiffContext
@@ -104,7 +102,6 @@ func Test_getScorecardCheckResults(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			err := getScorecardCheckResults(&tt.dCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
