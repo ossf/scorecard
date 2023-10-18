@@ -56,6 +56,7 @@ linters:
     - predeclared
     - staticcheck
     - stylecheck
+    - tenv
     - thelper
     - typecheck
     - unconvert
