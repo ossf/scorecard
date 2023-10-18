@@ -91,7 +91,7 @@ func (c *client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 }
 
 func (c *client) init() {
-	b, err := fetchStatusFile(c.statusURL)
+	b, err := fetchStatusFile(context.Background(), c.statusURL)
 	if err != nil {
 		c.err = err
 		return
@@ -118,9 +118,12 @@ func parseStatusFile(contents []byte, m map[string]bool) error {
 	return nil
 }
 
-func fetchStatusFile(uri string) ([]byte, error) {
-	//nolint:gosec // URI comes from a constant or a test HTTP server, not user input
-	resp, err := http.Get(uri)
+func fetchStatusFile(ctx context.Context, uri string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("making status file request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http.Get: %w", err)
 	}
