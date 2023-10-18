@@ -29,6 +29,7 @@ linters:
     - errorlint
     - exhaustive
     - exportloopref
+    - forbidigo
     - gci
     - gochecknoinits
     - gocognit
@@ -73,6 +74,9 @@ linters-settings:
   exhaustive:
     # https://golangci-lint.run/usage/linters/#exhaustive
     default-signifies-exhaustive: true
+  forbidigo:
+    forbid:
+      - 'fmt\.Print.*(# Do not commit print statements\. Output to stdout interferes with users who redirect JSON results to files\.)?'
   govet:
     enable:
       - fieldalignment
