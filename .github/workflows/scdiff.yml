@@ -33,12 +33,16 @@ jobs:
         with:
           ref: ${{ steps.pr-refs.outputs.base }}
       - name: generate before results
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/before.json
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ steps.pr-refs.outputs.head }}
       - name: generate after results
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/after.json
       - name: compare results
