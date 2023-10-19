@@ -10,8 +10,8 @@ jobs:
     steps:
       - name: repos to run anlaysis on
         run: |
-          echo github.com/ossf/scorecard-action >> repos.txt
-          echo github.com/ossf/scorecard-webapp >> repos.txt
+          echo github.com/ossf/scorecard-action >> $HOME/repos.txt
+          echo github.com/ossf/scorecard-webapp >> $HOME/repos.txt
       - name: fetch base and head shas
         id: pr-refs
         env:
@@ -34,13 +34,13 @@ jobs:
           ref: ${{ steps.pr-refs.outputs.base }}
       - name: generate before results
         run: |
-          go run cmd/internal/scdiff/main.go generate --repos repos.txt > before.json
+          go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/before.json
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ steps.pr-refs.outputs.head }}
       - name: generate after results
         run: |
-          go run cmd/internal/scdiff/main.go generate --repos repos.txt > after.json
+          go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/after.json
       - name: compare results
         run: |
-          go run cmd/internal/scdiff/main.go compare before.json after.json
+          go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
