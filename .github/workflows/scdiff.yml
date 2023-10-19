@@ -1,0 +1,48 @@
+name: scdiff PR evaluation
+on:
+  issue_comment:
+    types: [created, edited, deleted]
+
+jobs:
+  golden-test:
+    if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: repos to run anlaysis on
+        run: |
+          cat << EOF
+          github.com/ossf/scorecard-action
+          github.com/ossf/scorecard-webapp
+          EOF > repos.txt
+      - name: fetch base and head shas
+        id: pr-refs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PULL_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          curl -L \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer $GITHUB_TOKEN" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/$REPOSITORY/pulls/$PULL_NUMBER > pr.json
+          echo "base=$(jq '.base.sha' pr.json)" >> "$GITHUB_OUTPUT"
+          echo "head=$(jq '.head.sha' pr.json)" >> "$GITHUB_OUTPUT"
+      - run: |
+          echo ${{ steps.pr-refs.outputs.base }}
+          echo ${{ steps.pr-refs.outputs.head }}
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          ref: ${{ steps.pr-refs.outputs.base }}
+      - name: generate before results
+        run: |
+          go run cmd/internal/scdiff/main.go generate --repos repos > before.json
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          ref: ${{ steps.pr-refs.outputs.head }}
+      - name: generate after results
+        run: |
+          go run cmd/internal/scdiff/main.go generate --repos repos > after.json
+      - name: compare results
+        run: |
+          go run cmd/internal/scdiff/main.go compare before.json after.json
