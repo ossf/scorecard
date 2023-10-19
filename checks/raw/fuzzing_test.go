@@ -441,6 +441,30 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "import fc from \"fast-check\";",
 		},
 		{
+			name:     "JavaScript fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.js"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "JavaScript fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.js"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/jest\";",
+		},
+		{
 			name:     "JavaScript with no property-based testing",
 			want:     false,
 			fileName: []string{"main.spec.js"},
@@ -476,6 +500,30 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "TypeScript fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.ts"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "TypeScript fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.ts"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/vitest\";",
 		},
 		{
 			name:     "TypeScript with no property-based testing",
