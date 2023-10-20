@@ -1055,10 +1055,9 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 	in := strings.NewReader(string(content))
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
-		// Note: this is caught by internal caller and only printed
-		// to avoid failing on shell scripts that our parser does not understand.
-		// Example: https://github.com/openssl/openssl/blob/master/util/shlib_wrap.sh.in
-		return sce.WithMessage(sce.ErrorShellParsing, err.Error())
+		// If we cannot parse the file, register that we are skipping it
+		r.Incomplete = append(r.Incomplete, sce.WithMessage(sce.ErrorShellParsing, err.Error()))
+		return nil
 	}
 
 	printer := syntax.NewPrinter()
