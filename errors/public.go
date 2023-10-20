@@ -65,3 +65,14 @@ func GetName(err error) string {
 		return "ErrUnknown"
 	}
 }
+
+// ElementError adds generic "element" information (file path, workflow job, step ID,
+// etc) to an error.
+type ElementError struct {
+	Err     error
+	Element string
+}
+
+func (e *ElementError) Error() string {
+	return fmt.Sprintf("%s: %s", e.Err, e.Element)
+}
