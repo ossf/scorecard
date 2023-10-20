@@ -46,29 +46,37 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 
+	var findings []finding.Finding
 	for _, e := range r.Workflows {
+		e := e
 		if e.Type == checker.DangerousWorkflowScriptInjection {
-			return negativeOutcome()
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
+				nil, finding.OutcomeNegative)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithLocation(&finding.Location{
+				Path:      e.File.Path,
+				Type:      e.File.Type,
+				LineStart: &e.File.Offset,
+				Snippet:   &e.File.Snippet,
+			})
+			findings = append(findings, *f)
 		}
 	}
 
-	return positiveOutcome()
+	if len(findings) == 0 {
+		return positiveOutcome()
+	}
+
+	return findings, Probe, nil
 }
 
 func positiveOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project does not have dangerous workflow(s) with possibility of script injection.", nil,
 		finding.OutcomePositive)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-	return []finding.Finding{*f}, Probe, nil
-}
-
-func negativeOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Project has dangerous workflow(s) with possibility of script injection.", nil,
-		finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

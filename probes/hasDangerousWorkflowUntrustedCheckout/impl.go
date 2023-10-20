@@ -46,13 +46,29 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 
+	var findings []finding.Finding
 	for _, e := range r.Workflows {
+		e := e
 		if e.Type == checker.DangerousWorkflowUntrustedCheckout {
-			return negativeOutcome()
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet),
+				nil, finding.OutcomeNegative)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithLocation(&finding.Location{
+				Path:      e.File.Path,
+				Type:      e.File.Type,
+				LineStart: &e.File.Offset,
+				Snippet:   &e.File.Snippet,
+			})
+			findings = append(findings, *f)
 		}
 	}
-
-	return positiveOutcome()
+	if len(findings) == 0 {
+		return positiveOutcome()
+	}
+	return findings, Probe, nil
 }
 
 func positiveOutcome() ([]finding.Finding, string, error) {
@@ -65,7 +81,7 @@ func positiveOutcome() ([]finding.Finding, string, error) {
 	return []finding.Finding{*f}, Probe, nil
 }
 
-func negativeOutcome() ([]finding.Finding, string, error) {
+/*func negativeOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project has workflow(s) with untrusted checkout.", nil,
 		finding.OutcomeNegative)
@@ -73,4 +89,4 @@ func negativeOutcome() ([]finding.Finding, string, error) {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 	return []finding.Finding{*f}, Probe, nil
-}
+}*/

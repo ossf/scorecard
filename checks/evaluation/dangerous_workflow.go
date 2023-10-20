@@ -40,6 +40,24 @@ func DangerousWorkflow(name string,
 		return checker.CreateInconclusiveResult(name, "no workflows found")
 	}
 
+	// Log all detected dangerous workflows
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			if f.Location == nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
+			dl.Warn(&checker.LogMessage{
+				Path:    f.Location.Path,
+				Type:    f.Location.Type,
+				Offset:  *f.Location.LineStart,
+				Text:    f.Message,
+				Snippet: *f.Location.Snippet,
+			})
+		}
+	}
+
 	if hasDWWithUntrustedCheckout(findings) || hasDWWithScriptInjection(findings) {
 		return checker.CreateMinScoreResult(name,
 			"dangerous workflow patterns detected")

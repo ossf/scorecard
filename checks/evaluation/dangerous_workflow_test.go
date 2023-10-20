@@ -21,6 +21,11 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
+var (
+	testSnippet   = "other/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675"
+	testLineStart = uint(123)
+)
+
 func TestDangerousWorkflow(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -37,10 +42,17 @@ func TestDangerousWorkflow(t *testing.T) {
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -82,10 +94,17 @@ func TestDangerousWorkflow(t *testing.T) {
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -94,13 +113,136 @@ func TestDangerousWorkflow(t *testing.T) {
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
 					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfWarn: 1,
+			},
+		},
+		{
+			name: "DangerousWorkflow - 3 script injection workflows detected",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow2.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        0,
+				NumberOfWarn: 2,
+			},
+		},
+		{
+			name: "DangerousWorkflow - 8 script injection workflows detected",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow2.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow3.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow4.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow5.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow6.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow7.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowScriptInjection",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "./github/workflows/dangerous-workflow8.yml",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+				}, {
+					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        0,
+				NumberOfWarn: 8,
 			},
 		},
 	}
