@@ -40,12 +40,7 @@ func DangerousWorkflow(name string,
 		return checker.CreateInconclusiveResult(name, "no workflows found")
 	}
 
-	if hasDWWithUntrustedCheckout(findings) {
-		return checker.CreateMinScoreResult(name,
-			"dangerous workflow patterns detected")
-	}
-
-	if hasDWWithScriptInjection(findings) {
+	if hasDWWithUntrustedCheckout(findings) || hasDWWithScriptInjection(findings) {
 		return checker.CreateMinScoreResult(name,
 			"dangerous workflow patterns detected")
 	}
