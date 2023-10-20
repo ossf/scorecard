@@ -48,3 +48,13 @@ jobs:
       - name: compare results
         run: |
           go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
+      - name: share link to workflow run
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `[Here's a link to the scdiff run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/{$contex.runId})`
+            })
