@@ -40,3 +40,14 @@ func negativeFindings(findings []finding.Finding) []finding.Finding {
 	}
 	return ff
 }
+
+func positiveFindings(findings []finding.Finding) []finding.Finding {
+	var ff []finding.Finding
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			ff = append(ff, *f)
+		}
+	}
+	return ff
+}

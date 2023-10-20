@@ -56,7 +56,7 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test negative outcome",
+			name: "test inconclusive outcome",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
@@ -64,7 +64,7 @@ func TestPackaging(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
+				Score:        checker.InconclusiveResultScore,
 				NumberOfWarn: 1,
 			},
 		},

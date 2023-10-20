@@ -42,11 +42,12 @@ func Packaging(name string,
 	for _, f := range findings {
 		if f.Outcome == finding.OutcomePositive {
 			// Log all findings except the negative ones.
-			checker.LogFindings(nonNegativeFindings(findings), dl)
+			checker.LogFindings(positiveFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "project is published as package")
 		}
 	}
 
 	checker.LogFindings(negativeFindings(findings), dl)
-	return checker.CreateMinScoreResult(name, "project is not published as package")
+	return checker.CreateInconclusiveResult(name,
+		"no published package detected")
 }
