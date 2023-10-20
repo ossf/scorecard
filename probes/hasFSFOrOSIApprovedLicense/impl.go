@@ -37,7 +37,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw.LicenseResults.LicenseFiles == nil || len(raw.LicenseResults.LicenseFiles) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"project does not have a license file", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -60,7 +60,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	f, err := finding.NewWith(fs, Probe,
-		"project license file has no approved information", nil,
+		"project license file does not contain an FSF or OSI license.", nil,
 		finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)

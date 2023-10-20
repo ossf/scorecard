@@ -54,7 +54,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:        nil,
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				NumberOfWarn: 0,
 			},
 			err: nil,
 		},

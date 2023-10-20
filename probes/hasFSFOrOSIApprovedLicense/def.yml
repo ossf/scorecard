@@ -19,8 +19,9 @@ motivation: >
 implementation: >
  The implementation checks whether a license file is present and is of an approved format
 outcome:
-  - If a license file is found and is of an approved format, the probe returns a single OutcomePositive (1).
-  - If a license file is missing or is not of an approved format, the probe returns a single OutcomeNegative (0).
+  - If a license file is found and is of an approved format, the probe returns a single OutcomePositive.
+  - If a license file is missing the probe returns a single OutcomeNotApplicable.
+  - If the license is not of an approved format, the probe returns a single OutcomeNegative.
 remediation:
   effort: Low
   text:
