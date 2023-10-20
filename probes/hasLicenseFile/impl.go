@@ -46,7 +46,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	} else {
 		outcome = finding.OutcomePositive
 		var sb strings.Builder
-		for i:=0;i<len(licenseFiles);i++ {
+		for i := 0; i < len(licenseFiles); i++ {
 			sb.WriteString(fmt.Sprintf(" %s", licenseFiles[i].File.Path))
 		}
 		msg = fmt.Sprintf("project has %d file(s): %s", len(licenseFiles), sb.String())
