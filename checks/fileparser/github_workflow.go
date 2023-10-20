@@ -208,8 +208,11 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 	}
 
 	if len(jobOSes) == 0 {
-		return jobOSes, sce.WithMessage(sce.ErrorJobOSParsing,
-			fmt.Sprintf("unable to determine OS for job: %v", GetJobName(job)))
+		// This error is caught by the caller and pretty-printed in the output details
+		return jobOSes, &sce.ElementError{
+			Element: GetJobName(job),
+			Err:     sce.ErrorJobOSParsing,
+		}
 	}
 	return jobOSes, nil
 }
