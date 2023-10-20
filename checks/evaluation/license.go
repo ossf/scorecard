@@ -25,7 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 )
 
-// License applies the score policy for the Fuzzing check.
+// License applies the score policy for the License check.
 func License(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
