@@ -268,20 +268,22 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		warns    int
-		err      error
-		name     string
-		filename string
+		unpinned   int
+		incomplete int
+		err        error
+		name       string
+		filename   string
 	}{
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			warns:    49,
+			unpinned: 49,
 		},
 		{
-			name:     "Can't identify OS but doesn't crash",
-			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
-			warns:    1, // job with unknown OS is skipped, 1 in job with known OS
+			name:       "Can't identify OS but doesn't crash",
+			filename:   "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			incomplete: 1, // job with unknown OS is skipped
+			unpinned:   1, // only 1 in job with known OS, since other job is skipped
 		},
 	}
 	for _, tt := range tests {
@@ -310,8 +312,12 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 			unpinned := countUnpinned(r.Dependencies)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
@@ -1237,30 +1243,32 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		filename string
-		warns    int
-		err      error
+		name       string
+		filename   string
+		unpinned   int
+		incomplete int
+		err        error
 	}{
 		{
 			name:     "workflow curl default",
 			filename: "./testdata/.github/workflows/github-workflow-curl-default.yaml",
-			warns:    1,
+			unpinned: 1,
 		},
 		{
 			name:     "workflow curl no default",
 			filename: "./testdata/.github/workflows/github-workflow-curl-no-default.yaml",
-			warns:    1,
+			unpinned: 1,
 		},
 		{
 			name:     "wget across steps",
 			filename: "./testdata/.github/workflows/github-workflow-wget-across-steps.yaml",
-			warns:    2,
+			unpinned: 2,
 		},
 		{
-			name:     "Can't identify OS but doesn't crash",
-			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
-			warns:    1, // job with unknown OS is skipped, 1 in job with known OS
+			name:       "Can't identify OS but doesn't crash",
+			filename:   "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			incomplete: 1, // job with unknown OS has a skipped step
+			unpinned:   1, // only found in 1 in job with known OS
 		},
 	}
 	for _, tt := range tests {
@@ -1292,8 +1300,12 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 
 			unpinned := countUnpinned(r.Dependencies)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
