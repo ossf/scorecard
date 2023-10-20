@@ -9,8 +9,8 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: GitHubSecurityLab/actions-permissions/monitor@v1
-          with:
-            config: ${{ vars.PERMISSIONS_CONFIG }}
+        with:
+          config: ${{ vars.PERMISSIONS_CONFIG }}
       - name: share link to workflow run
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
@@ -27,8 +27,8 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
       - uses: GitHubSecurityLab/actions-permissions/monitor@v1
-          with:
-            config: ${{ vars.PERMISSIONS_CONFIG }}
+        with:
+          config: ${{ vars.PERMISSIONS_CONFIG }}
       - name: repos to run anlaysis on
         run: |
           echo github.com/ossf/scorecard-action >> $HOME/repos.txt
