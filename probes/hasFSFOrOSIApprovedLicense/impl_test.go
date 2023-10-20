@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package hasApprovedLicense
+package hasFSFOrOSIApprovedLicense
 
 import (
 	"testing"

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package hasApprovedLicense
+package hasFSFOrOSIApprovedLicense
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasApprovedLicense"
+const Probe = "hasFSFOrOSIApprovedLicense"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

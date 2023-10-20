@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: hasApprovedLicense
+id: hasFSFOrOSIApprovedLicense
 short: Check that the project has an FSF or OSI approved license. For more, see [all FSF or OSI approved license formats](https://spdx.org/licenses/).
 motivation: >
   A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.

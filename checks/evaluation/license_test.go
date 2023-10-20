@@ -37,7 +37,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
 				{
@@ -57,7 +57,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -77,7 +77,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -97,7 +97,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -113,7 +113,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -134,7 +134,7 @@ func TestLicense(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "hasApprovedLicense",
+					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
 				{

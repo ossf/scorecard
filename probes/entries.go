@@ -30,7 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/hasApprovedLicense"
+	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
@@ -82,7 +82,7 @@ var (
 	}
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
-		hasApprovedLicense.Run,
+		hasFSFOrOSIApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Run,
 	}
 )
