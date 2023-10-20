@@ -241,6 +241,7 @@ func Test_PinningDependencies(t *testing.T) {
 	tests := []struct {
 		name         string
 		dependencies []checker.Dependency
+		incomplete   []error
 		expected     scut.TestReturn
 	}{
 		{
@@ -796,6 +797,29 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "Skipped objects and dependencies",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+				},
+			},
+			incomplete: []error{
+				sce.ErrorJobOSParsing,
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         8,
+				NumberOfWarn:  3, // 2 for npm commands, 1 for skipped job
+				NumberOfInfo:  7,
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -808,6 +832,7 @@ func Test_PinningDependencies(t *testing.T) {
 			actual := PinningDependencies("checkname", &c,
 				&checker.PinningDependenciesData{
 					Dependencies: tt.dependencies,
+					Incomplete:   tt.incomplete,
 				})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
@@ -990,7 +1015,7 @@ func TestGenerateText(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := generateText(tc.dependency)
+			result := generateTextUnpinned(tc.dependency)
 			if !cmp.Equal(tc.expectedText, result) {
 				t.Errorf("generateText mismatch (-want +got):\n%s", cmp.Diff(tc.expectedText, result))
 			}
