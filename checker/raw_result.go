@@ -111,6 +111,7 @@ const (
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
 	Dependencies []Dependency
+	Incomplete   []error // jobs or files with errors may have incomplete results
 }
 
 // Dependency represents a dependency.
