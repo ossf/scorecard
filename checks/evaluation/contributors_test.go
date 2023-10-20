@@ -72,7 +72,7 @@ func TestContributors(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
-				NumberOfInfo: 3,
+				NumberOfInfo: 1,
 			},
 		},
 	}

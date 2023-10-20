@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -49,7 +50,7 @@ func Contributors(name string,
 		// are added for other contributors metrics. Right now, the
 		// scoring is designed for a single probe that returns true
 		// or false.
-		checker.LogFindings(findings, dl)
+		logFindings(findings, dl)
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
@@ -67,4 +68,17 @@ func getNumberOfPositives(findings []finding.Finding) int {
 		}
 	}
 	return numberOfPositives
+}
+
+func logFindings(findings []finding.Finding, dl checker.DetailLogger) {
+	var sb strings.Builder
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			sb.WriteString(fmt.Sprintf("%s, ", f.Message))
+		}
+	}
+	dl.Info(&checker.LogMessage{
+		Text: sb.String(),
+	})
 }
