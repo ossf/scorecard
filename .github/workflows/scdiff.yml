@@ -16,7 +16,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `[Here's a link to the scdiff run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/{$contex.runId})`
+              body: `[Here's a link to the scdiff run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/{$context.runId})`
             })
 
   golden-test:
