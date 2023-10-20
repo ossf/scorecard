@@ -60,7 +60,53 @@ func Test_SAST(t *testing.T) {
 			expected:     checker.CheckResult{Score: -1},
 		},
 		{
-			name: "Successful SAST checker should return success status",
+			name: "Successful SAST checker should return success status for github-advanced-security",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "github-advanced-security",
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "Successful SAST checker should return success status for github-code-scanning",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "github-code-scanning",
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "Successful SAST checker should return success status for lgtm",
 			commits: []clients.Commit{
 				{
 					AssociatedMergeRequest: clients.PullRequest{
@@ -75,6 +121,29 @@ func Test_SAST(t *testing.T) {
 					Conclusion: "success",
 					App: clients.CheckRunApp{
 						Slug: "lgtm-com",
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "Successful SAST checker should return success status for sonarcloud",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "sonarcloud",
 					},
 				},
 			},
