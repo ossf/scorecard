@@ -55,6 +55,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 				Error:        nil,
 				Score:        checker.MinResultScore,
 				NumberOfWarn: 0,
+				NumberOfInfo: 2,
 			},
 			err: nil,
 		},

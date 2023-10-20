@@ -67,7 +67,7 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				NumberOfWarn: 2,
 			},
 		}, {
 			name: "Has license file but not a top level or in OSI/FSF format",
@@ -87,7 +87,7 @@ func TestLicense(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        6,
-				NumberOfWarn: 1,
+				NumberOfWarn: 2,
 			},
 		}, {
 			name: "Findings missing a probe = Error",
@@ -145,6 +145,7 @@ func TestLicense(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        7,
 				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
 	}

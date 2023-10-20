@@ -15,8 +15,6 @@
 package evaluation
 
 import (
-	"strings"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
@@ -47,7 +45,14 @@ func License(name string,
 	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		switch f.Outcome {
+		case finding.OutcomeNotApplicable:
+			dl.Info(&checker.LogMessage{
+				Type:   finding.FileTypeSource,
+				Offset: 1,
+				Text:   f.Message,
+			})
+		case finding.OutcomePositive:
 			switch f.Probe {
 			case hasFSFOrOSIApprovedLicense.Probe:
 				dl.Info(&checker.LogMessage{
@@ -71,17 +76,15 @@ func License(name string,
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
-		} else if f.Outcome == finding.OutcomeNegative {
+		case finding.OutcomeNegative:
 			switch f.Probe {
 			case hasLicenseFileAtTopDir.Probe:
-				if strings.Contains(f.Message, "License file found in unexpected location") {
-					dl.Warn(&checker.LogMessage{
-						Type:   finding.FileTypeSource,
-						Offset: 1,
-						Path:   f.Message,
-						Text:   "License file found in unexpected location",
-					})
-				}
+				dl.Warn(&checker.LogMessage{
+					Type:   finding.FileTypeSource,
+					Offset: 1,
+					Path:   f.Message,
+					Text:   "License file found in unexpected location",
+				})
 			case hasFSFOrOSIApprovedLicense.Probe:
 				dl.Warn(&checker.LogMessage{
 					Type:   finding.FileTypeSource,

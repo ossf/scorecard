@@ -55,14 +55,14 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "License file not found and outcome should be negative",
+			name: "License file not found and outcome should be OutcomeNotApplicable",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -106,25 +106,25 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "nil license files and outcome should be positive",
+			name: "nil license files and outcome should be OutcomeNotApplicable",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: nil,
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
-			name: "0 license files and outcome should be positive",
+			name: "0 license files and outcome should be OutcomeNotApplicable",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeNotApplicable,
 			},
 		},
 	}
