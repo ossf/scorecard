@@ -18,6 +18,7 @@ package hasLicenseFile
 import (
 	"embed"
 	"fmt"
+	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -37,12 +38,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var outcome finding.Outcome
 	var msg string
 
-	if raw.LicenseResults.LicenseFiles == nil || len(raw.LicenseResults.LicenseFiles) == 0 {
+	licenseFiles := raw.LicenseResults.LicenseFiles
+
+	if len(licenseFiles) == 0 {
 		outcome = finding.OutcomeNegative
 		msg = "project does not have a license file"
 	} else {
 		outcome = finding.OutcomePositive
-		msg = "project has a license file"
+		var sb strings.Builder
+		for i:=0;i<len(licenseFiles);i++ {
+			sb.WriteString(fmt.Sprintf(" %s", licenseFiles[i].File.Path))
+		}
+		msg = fmt.Sprintf("project has %d file(s): %s", len(licenseFiles), sb.String())
 	}
 
 	f, err := finding.NewWith(fs, Probe,
