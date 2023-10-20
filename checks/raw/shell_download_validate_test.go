@@ -102,8 +102,12 @@ func TestValidateShellFile(t *testing.T) {
 
 	var r checker.PinningDependenciesData
 	err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &r)
-	if err == nil {
-		t.Errorf("failed to detect shell parsing error: %v", err)
+	if err != nil {
+		t.Errorf("error validating shell file")
+	}
+
+	if r.Incomplete == nil {
+		t.Errorf("failed to register shell parsing error")
 	}
 }
 

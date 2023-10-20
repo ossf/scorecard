@@ -367,6 +367,11 @@ func TestDockerfilePinning(t *testing.T) {
 			filename: "./testdata/Dockerfile-not-pinned",
 			warns:    1,
 		},
+		{
+			name:     "Parser error doesn't affect docker image pinning",
+			filename: "./testdata/Dockerfile-not-pinned-with-parser-error",
+			warns:    1,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -445,6 +450,21 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 					snippet:   "FROM python:3.7",
 					startLine: 17,
 					endLine:   17,
+				},
+			},
+		},
+		{
+			name:     "Parser error doesn't affect docker image pinning",
+			filename: "./testdata/Dockerfile-not-pinned-with-parser-error",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "FROM abrarov/msvc-2017:2.11.0",
+					startLine: 1,
+					endLine:   1,
 				},
 			},
 		},
@@ -556,9 +576,10 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		filename string
-		expected []struct {
+		name       string
+		filename   string
+		incomplete int
+		expected   []struct {
 			snippet   string
 			startLine uint
 			endLine   uint
@@ -685,6 +706,31 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:       "Parser error may lead to incomplete data",
+			filename:   "./testdata/Dockerfile-not-pinned-with-parser-error",
+			incomplete: 1,
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+				t         checker.DependencyUseType
+			}{
+				{
+					snippet:   "choco install --no-progress -r -y cmake",
+					startLine: 4,
+					endLine:   4,
+					t:         checker.DependencyUseTypeChocoCommand,
+				},
+				{
+					snippet:   "choco install --no-progress -r -y gzip wget ninja",
+					startLine: 9,
+					endLine:   9,
+					t:         checker.DependencyUseTypeChocoCommand,
+				},
+				// `curl bla | bash` isn't detected due to parser error
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -713,6 +759,10 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
 					t.Errorf("test failed: dependency not present: %+v", tt.expected)
 				}
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
@@ -962,15 +1012,16 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		warns    int
-		err      error
-		name     string
-		filename string
+		unpinned   int
+		incomplete int
+		err        error
+		name       string
+		filename   string
 	}{
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-curl-sh",
-			warns:    4,
+			unpinned: 4,
 		},
 		{
 			name:     "empty file",
@@ -987,7 +1038,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "wget | /bin/sh",
 			filename: "./testdata/Dockerfile-wget-bin-sh",
-			warns:    3,
+			unpinned: 3,
 		},
 		{
 			name:     "wget no exec",
@@ -996,37 +1047,43 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "curl file sh",
 			filename: "./testdata/Dockerfile-curl-file-sh",
-			warns:    12,
+			unpinned: 12,
 		},
 		{
 			name:     "proc substitution",
 			filename: "./testdata/Dockerfile-proc-subs",
-			warns:    6,
+			unpinned: 6,
 		},
 		{
 			name:     "wget file",
 			filename: "./testdata/Dockerfile-wget-file",
-			warns:    10,
+			unpinned: 10,
 		},
 		{
 			name:     "gsutil file",
 			filename: "./testdata/Dockerfile-gsutil-file",
-			warns:    17,
+			unpinned: 17,
 		},
 		{
 			name:     "aws file",
 			filename: "./testdata/Dockerfile-aws-file",
-			warns:    15,
+			unpinned: 15,
 		},
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			warns:    60,
+			unpinned: 60,
 		},
 		{
 			name:     "download with some python",
 			filename: "./testdata/Dockerfile-some-python",
-			warns:    1,
+			unpinned: 1,
+		},
+		{
+			name:       "Parser error doesn't affect docker image pinning",
+			filename:   "./testdata/Dockerfile-not-pinned-with-parser-error",
+			incomplete: 1,
+			unpinned:   2, // `curl bla | bash` missed due to parser error
 		},
 	}
 	for _, tt := range tests {
@@ -1056,8 +1113,12 @@ func TestDockerfileScriptDownload(t *testing.T) {
 
 			unpinned := countUnpinned(r.Dependencies)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
@@ -1067,14 +1128,20 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		filename string
-		warns    int
-		err      error
+		name       string
+		filename   string
+		unpinned   int
+		incomplete int
+		err        error
 	}{
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-no-curl-sh",
+		},
+		{
+			name:       "Parser error doesn't affect docker image pinning",
+			filename:   "./testdata/Dockerfile-no-curl-sh-with-parser-error",
+			incomplete: 1, // everything is pinned, but parser error still throws warning
 		},
 	}
 	for _, tt := range tests {
@@ -1100,8 +1167,12 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 
 			unpinned := countUnpinned(r.Dependencies)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
@@ -1111,16 +1182,16 @@ func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name     string
-		filename string
-		warns    int
-		debugs   int
-		err      error
+		name       string
+		filename   string
+		unpinned   int
+		incomplete int
+		err        error
 	}{
 		{
 			name:     "sh script",
 			filename: "../testdata/script-sh",
-			warns:    7,
+			unpinned: 7,
 		},
 		{
 			name:     "empty file",
@@ -1133,21 +1204,22 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "bash script",
 			filename: "./testdata/script-bash",
-			warns:    7,
+			unpinned: 7,
 		},
 		{
 			name:     "sh script 2",
 			filename: "../testdata/script.sh",
-			warns:    7,
+			unpinned: 7,
 		},
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			warns:    56,
+			unpinned: 56,
 		},
 		{
-			name:     "invalid shell script",
-			filename: "./testdata/script-invalid.sh",
+			name:       "invalid shell script",
+			filename:   "./testdata/script-invalid.sh",
+			incomplete: 1, // `curl bla | bash` not detected due to invalid script
 		},
 	}
 	for _, tt := range tests {
@@ -1178,12 +1250,12 @@ func TestShellScriptDownload(t *testing.T) {
 
 			unpinned := countUnpinned(r.Dependencies)
 
-			// Note: this works because all our examples
-			// either have warns or debugs.
-			ws := (tt.warns == unpinned) && (tt.debugs == 0)
-			ds := (tt.debugs == unpinned) && (tt.warns == 0)
-			if !ws && !ds {
-				t.Errorf("expected %v or %v. Got %v", tt.warns, tt.debugs, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, len(r.Dependencies))
+			}
+
+			if tt.incomplete != len(r.Incomplete) {
+				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
 			}
 		})
 	}
