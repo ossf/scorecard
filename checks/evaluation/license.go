@@ -67,7 +67,6 @@ func License(name string,
 				score += scoreProbeOnce(f.Probe, m, 3)
 			case hasLicenseFile.Probe:
 				score += scoreProbeOnce(f.Probe, m, 6)
-				m[f.Probe] = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
