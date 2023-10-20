@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/packagedNpmWithGitHubWorkflow"
+	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 )
 
 // Packaging applies the score policy for the Packaging check.
@@ -27,7 +27,7 @@ func Packaging(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		packagedNpmWithGitHubWorkflow.Probe,
+		packagedWithAutomatedWorkflow.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {

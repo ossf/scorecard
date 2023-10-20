@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: packagedNpmWithGitHubWorkflow
+id: packagedWithAutomatedWorkflow
 short: Checks whether the project uses automated packaging.
 motivation: >
   Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.
