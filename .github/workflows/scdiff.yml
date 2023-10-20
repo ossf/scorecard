@@ -37,8 +37,8 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             })
-            core.setOutput('base', response.base.sha)
-            core.setOutput('head', response.head.sha)
+            core.setOutput('base', response.data.base.sha)
+            core.setOutput('head', response.data.head.sha)
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ steps.pr-refs.outputs.base }}
