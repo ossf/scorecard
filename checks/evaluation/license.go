@@ -93,6 +93,8 @@ func License(name string,
 					Text:   f.Message,
 				})
 			}
+		default:
+			continue // for linting
 		}
 	}
 	_, defined := m[hasLicenseFile.Probe]
