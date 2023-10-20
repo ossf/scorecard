@@ -36,6 +36,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.DangerousWorkflowResults
 
+	if r.NumWorkflows == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Project does not have any workflows.", nil,
+			finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
 	for _, e := range r.Workflows {
 		if e.Type == checker.DangerousWorkflowUntrustedCheckout {
 			return negativeOutcome()

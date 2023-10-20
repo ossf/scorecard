@@ -99,7 +99,6 @@ var (
 		hasOSVVulnerabilities.Run,
 	}
 	DangerousWorkflows = []ProbeImpl{
-		hasAnyWorkflows.Run,
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
