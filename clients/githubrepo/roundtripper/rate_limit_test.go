@@ -14,6 +14,7 @@
 package roundtripper
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -60,7 +61,7 @@ func TestRoundTrip(t *testing.T) {
 	}
 
 	t.Run("Successful response", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodGet, ts.URL+"/success", nil)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, ts.URL+"/success", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -69,13 +70,14 @@ func TestRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 		}
 	})
 
 	t.Run("Retry-After header set", func(t *testing.T) {
-		req, err := http.NewRequest(http.MethodGet, ts.URL+"/retry", nil)
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, ts.URL+"/retry", nil)
 		if err != nil {
 			t.Fatalf("Failed to create request: %v", err)
 		}
@@ -84,6 +86,7 @@ func TestRoundTrip(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 		}

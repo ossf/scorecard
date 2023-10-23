@@ -62,6 +62,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)
 	if err != nil {
+		//nolint:nilerr // just an error in metadata, response may still be useful?
 		return resp, nil
 	}
 	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
@@ -73,6 +74,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if remaining <= 0 {
 		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))
 		if err != nil {
+			//nolint:nilerr // just an error in metadata, response may still be useful?
 			return resp, nil
 		}
 

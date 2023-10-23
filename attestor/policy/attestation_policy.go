@@ -29,7 +29,7 @@ import (
 	sclog "github.com/ossf/scorecard/v4/log"
 )
 
-//nolint:govet
+//nolint:govet,musttag // JSON usage is test only
 type AttestationPolicy struct {
 	// PreventBinaryArtifacts : set to true to require that this project's SCM repo is
 	// free of binary artifacts
