@@ -35,10 +35,6 @@ KO := $(TOOLS_BIN_DIR)/ko
 $(KO): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/google/ko
 
-STUNNING_TRIBBLE := $(TOOLS_BIN_DIR)/stunning-tribble
-$(STUNNING_TRIBBLE): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/naveensrinivasan/stunning-tribble
-
 MOCKGEN := $(TOOLS_BIN_DIR)/mockgen
 $(MOCKGEN): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golang/mock/mockgen
@@ -73,7 +69,6 @@ $(PROTOC):
 install: ## Installs required binaries.
 install: $(GOLANGCI_LINT) \
 	$(KO) \
-	$(STUNNING_TRIBBLE) \
 	$(PROTOC_GEN_GO) $(PROTOC) \
 	$(MOCKGEN) \
 	$(GINKGO) \
