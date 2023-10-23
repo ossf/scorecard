@@ -16,7 +16,6 @@ package pubsub
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -24,9 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/cron/data"
 )
-
-// ErrorInParse indicates there was an error while unmarshalling the protocol buffer message.
-var ErrorInParse = errors.New("error during protojson.Unmarshal")
 
 // Subscriber interface is used pull messages from PubSub.
 type Subscriber interface {
@@ -49,7 +45,7 @@ func CreateSubscriber(ctx context.Context, subscriptionURL string) (Subscriber, 
 func parseJSONToRequest(jsonData []byte) (*data.ScorecardBatchRequest, error) {
 	ret := &data.ScorecardBatchRequest{}
 	if err := protojson.Unmarshal(jsonData, ret); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrorInParse, err)
+		return nil, fmt.Errorf("protojson.Unmarshal: %w", err)
 	}
 	return ret, nil
 }
