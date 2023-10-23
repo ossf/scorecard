@@ -63,6 +63,7 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 				t.Errorf("Test_GetURI_calls_client_get_with_input() error in Get= %v", err)
 				return
 			}
+			defer got.Body.Close()
 			body, err := io.ReadAll(got.Body)
 			if err != nil {
 				t.Errorf("Test_GetURI_calls_client_get_with_input() error in ReadAll= %v", err)
@@ -118,6 +119,7 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 				t.Errorf("Test_Get_calls_client_get_with_input() error in Get = %v", err)
 				return
 			}
+			defer got.Body.Close()
 			body, err := io.ReadAll(got.Body)
 			if err != nil {
 				t.Errorf("Test_Get_calls_client_get_with_input() error in ReadAll = %v", err)

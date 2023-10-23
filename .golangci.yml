@@ -29,6 +29,7 @@ linters:
     - errorlint
     - exhaustive
     - exportloopref
+    - forbidigo
     - gci
     - gochecknoinits
     - gocognit
@@ -53,18 +54,23 @@ linters:
     - ineffassign
     - lll
     - makezero
+    - mirror
     - misspell
     - nakedret
     - nestif
     - predeclared
     - staticcheck
     - stylecheck
+    - tenv
     - thelper
     - typecheck
     - unconvert
     - unused
+    - usestdlibvars
     - whitespace
     - wrapcheck
+  presets:
+    - bugs
 linters-settings:
   errcheck:
     check-type-assertions: true
@@ -76,6 +82,10 @@ linters-settings:
   exhaustive:
     # https://golangci-lint.run/usage/linters/#exhaustive
     default-signifies-exhaustive: true
+  forbidigo:
+    forbid:
+      - p: "^fmt\\.Print.*$"
+        msg: "Do not commit print statements. Output to stdout interferes with users who redirect JSON results to files."
   govet:
     enable:
       - fieldalignment

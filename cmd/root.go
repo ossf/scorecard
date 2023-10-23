@@ -151,7 +151,7 @@ func rootCmd(o *options.Options) error {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 		}
-		fmt.Println("\nRESULTS\n-------")
+		fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 	}
 
 	resultsErr := pkg.FormatResults(
