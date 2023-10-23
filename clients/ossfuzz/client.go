@@ -39,6 +39,7 @@ var (
 )
 
 type client struct {
+	ctx       context.Context
 	err       error
 	projects  map[string]bool
 	statusURL string
@@ -54,6 +55,7 @@ type ossFuzzStatus struct {
 // CreateOSSFuzzClient returns a client which implements RepoClient interface.
 func CreateOSSFuzzClient(ossFuzzStatusURL string) clients.RepoClient {
 	return &client{
+		ctx:       context.Background(),
 		statusURL: ossFuzzStatusURL,
 		projects:  map[string]bool{},
 	}
@@ -62,6 +64,7 @@ func CreateOSSFuzzClient(ossFuzzStatusURL string) clients.RepoClient {
 // CreateOSSFuzzClientEager returns a OSS Fuzz Client which has already fetched and parsed the status file.
 func CreateOSSFuzzClientEager(ossFuzzStatusURL string) (clients.RepoClient, error) {
 	c := client{
+		ctx:       context.Background(),
 		statusURL: ossFuzzStatusURL,
 		projects:  map[string]bool{},
 	}
@@ -91,7 +94,7 @@ func (c *client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 }
 
 func (c *client) init() {
-	b, err := fetchStatusFile(c.statusURL)
+	b, err := fetchStatusFile(c.ctx, c.statusURL)
 	if err != nil {
 		c.err = err
 		return
@@ -118,9 +121,12 @@ func parseStatusFile(contents []byte, m map[string]bool) error {
 	return nil
 }
 
-func fetchStatusFile(uri string) ([]byte, error) {
-	//nolint:gosec // URI comes from a constant or a test HTTP server, not user input
-	resp, err := http.Get(uri)
+func fetchStatusFile(ctx context.Context, uri string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("making status file request: %w", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("http.Get: %w", err)
 	}

@@ -27,7 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-// nolint: govet
+//nolint:govet
 type jsonCheckResult struct {
 	Name       string
 	Details    []string
@@ -35,6 +35,7 @@ type jsonCheckResult struct {
 	Pass       bool
 }
 
+//nolint:musttag
 type jsonScorecardResult struct {
 	Repo     string
 	Date     string
