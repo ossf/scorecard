@@ -78,7 +78,8 @@ linters-settings:
     default-signifies-exhaustive: true
   forbidigo:
     forbid:
-      - 'fmt\.Print.*(# Do not commit print statements\. Output to stdout interferes with users who redirect JSON results to files\.)?'
+      - p: "^fmt\\.Print.*$"
+        msg: "Do not commit print statements. Output to stdout interferes with users who redirect JSON results to files."
   govet:
     enable:
       - fieldalignment
