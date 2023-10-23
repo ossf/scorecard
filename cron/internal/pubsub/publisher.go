@@ -17,7 +17,6 @@ package pubsub
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -31,7 +30,13 @@ import (
 	"github.com/ossf/scorecard/v4/cron/data"
 )
 
-var errorPublish = errors.New("total errors when publishing")
+type publishError struct {
+	count uint64
+}
+
+func (pe publishError) Error() string {
+	return fmt.Sprintf("total errors when publishing: %d", pe.count)
+}
 
 // Publisher interface is used to publish cron job requests to PubSub.
 type Publisher interface {
@@ -88,7 +93,7 @@ func (publisher *publisherImpl) Publish(request *data.ScorecardBatchRequest) err
 func (publisher *publisherImpl) Close() error {
 	publisher.wg.Wait()
 	if publisher.totalErrors > 0 {
-		return fmt.Errorf("%w: %d", errorPublish, publisher.totalErrors)
+		return publishError{count: publisher.totalErrors}
 	}
 	return nil
 }
