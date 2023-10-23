@@ -15,7 +15,6 @@
 package gitlabrepo
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -107,9 +106,9 @@ func TestRepoURL_IsValid(t *testing.T) {
 				t.Errorf("repoURL.IsValid() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmpopts.IgnoreUnexported(repoURL{})) {
-				fmt.Println("expected: " + tt.expected.host + " GOT: " + r.host)
-				fmt.Println("expected: " + tt.expected.owner + " GOT: " + r.owner)
-				fmt.Println("expected: " + tt.expected.project + " GOT: " + r.project)
+				t.Logf("expected: %s GOT: %s", tt.expected.host, r.host)
+				t.Logf("expected: %s GOT: %s", tt.expected.owner, r.owner)
+				t.Logf("expected: %s GOT: %s", tt.expected.project, r.project)
 				t.Errorf("Got diff: %s", cmp.Diff(tt.expected, r))
 			}
 			if !cmp.Equal(r.Host(), tt.expected.host) {
