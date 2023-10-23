@@ -103,7 +103,7 @@ func SAST(name string,
 	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
 		if codeQlScore == checker.MaxResultScore {
-			return checker.CreateMaxScoreResult(name, "SAST tool detected")
+			return checker.CreateMaxScoreResult(name, "SAST tool detected: CodeQL")
 		}
 		return checker.CreateMinScoreResult(name, "no SAST tool detected")
 	}
