@@ -114,7 +114,7 @@ func init() {
 
 func Execute() {
 	if err := RootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stdout, err) // can this just be stderr?
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
