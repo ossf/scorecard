@@ -20,20 +20,23 @@ import (
 )
 
 var (
+	// some of these errors didn't follow naming conventions when they were introduced.
+	// for backward compatibility reasons, they can't be changed and have nolint directives.
+
 	// ErrScorecardInternal indicates a runtime error in Scorecard code.
 	ErrScorecardInternal = errors.New("internal error")
 	// ErrRepoUnreachable indicates Scorecard is unable to establish connection with the repository.
 	ErrRepoUnreachable = errors.New("repo unreachable")
 	// ErrorUnsupportedHost indicates the repo's host is unsupported.
-	ErrorUnsupportedHost = errors.New("unsupported host")
+	ErrorUnsupportedHost = errors.New("unsupported host") //nolint:errname
 	// ErrorInvalidURL indicates the repo's full URL was not passed.
-	ErrorInvalidURL = errors.New("invalid repo flag")
+	ErrorInvalidURL = errors.New("invalid repo flag") //nolint:errname
 	// ErrorShellParsing indicates there was an error when parsing shell code.
-	ErrorShellParsing = errors.New("error parsing shell code")
+	ErrorShellParsing = errors.New("error parsing shell code") //nolint:errname
 	// ErrorUnsupportedCheck indicates check cannot be run for given request.
-	ErrorUnsupportedCheck = errors.New("check is not supported for this request")
+	ErrorUnsupportedCheck = errors.New("check is not supported for this request") //nolint:errname
 	// ErrorCheckRuntime indicates an individual check had a runtime error.
-	ErrorCheckRuntime = errors.New("check runtime error")
+	ErrorCheckRuntime = errors.New("check runtime error") //nolint:errname
 )
 
 // WithMessage wraps any of the errors listed above.

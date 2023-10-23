@@ -26,6 +26,7 @@ linters:
     - asciicheck
     - dogsled
     - errcheck
+    - errname
     - errorlint
     - exhaustive
     - exportloopref
