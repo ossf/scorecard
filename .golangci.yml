@@ -63,6 +63,8 @@ linters:
     - unused
     - whitespace
     - wrapcheck
+  presets:
+    - bugs
 linters-settings:
   errcheck:
     check-type-assertions: true
