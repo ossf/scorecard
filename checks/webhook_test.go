@@ -16,7 +16,6 @@ package checks
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -27,8 +26,8 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
+//nolint:tparallel,paralleltest // since t.Setenv is used
 func TestWebhooks(t *testing.T) {
-	t.Parallel()
 	tests := []struct {
 		expected checker.CheckResult
 		uri      string
@@ -96,9 +95,7 @@ func TestWebhooks(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			os.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			t.Setenv("SCORECARD_EXPERIMENTAL", "true")
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 

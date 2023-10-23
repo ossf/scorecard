@@ -52,7 +52,7 @@ func TestGetBranches(t *testing.T) {
 			},
 			returnStatus: &gitlab.Response{
 				Response: &http.Response{
-					StatusCode: 200,
+					StatusCode: http.StatusOK,
 				},
 			},
 			branchReturn:        &gitlab.ProtectedBranch{},
@@ -69,7 +69,7 @@ func TestGetBranches(t *testing.T) {
 			},
 			returnStatus: &gitlab.Response{
 				Response: &http.Response{
-					StatusCode: 200,
+					StatusCode: http.StatusOK,
 				},
 			},
 		},
