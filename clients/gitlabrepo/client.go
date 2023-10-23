@@ -62,8 +62,7 @@ var errRepoAccess = errors.New("repo inaccessible")
 
 // Raise an error if repository access level is private or disabled.
 func checkRepoInaccessible(repo *gitlab.Project) error {
-	if (repo.RepositoryAccessLevel == gitlab.PrivateAccessControl) ||
-		(repo.RepositoryAccessLevel == gitlab.DisabledAccessControl) {
+	if repo.RepositoryAccessLevel == gitlab.DisabledAccessControl {
 		return fmt.Errorf("%w: %s access level %s",
 			errRepoAccess, repo.PathWithNamespace, string(repo.RepositoryAccessLevel),
 		)
