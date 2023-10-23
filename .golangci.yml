@@ -51,16 +51,19 @@ linters:
     - ineffassign
     - lll
     - makezero
+    - mirror
     - misspell
     - nakedret
     - nestif
     - predeclared
     - staticcheck
     - stylecheck
+    - tenv
     - thelper
     - typecheck
     - unconvert
     - unused
+    - usestdlibvars
     - whitespace
     - wrapcheck
   presets:
