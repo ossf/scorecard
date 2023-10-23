@@ -55,6 +55,8 @@ type ScorecardResultWithError struct {
 }
 
 // DependencyCheckResult is the dependency structure used in the returned results.
+//
+//nolint:musttag // functionality is deprecated anyway
 type DependencyCheckResult struct {
 	// ChangeType indicates whether the dependency is added, updated, or removed.
 	ChangeType *ChangeType
