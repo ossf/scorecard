@@ -25,9 +25,9 @@ func TestCheckRepoInaccessible(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		repo *gitlab.Project
 		want error
+		repo *gitlab.Project
+		name string
 	}{
 		{
 			name: "if repo is enabled then it is accessible",
