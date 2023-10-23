@@ -89,7 +89,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      nil,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -110,7 +109,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      nil,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -150,7 +148,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -186,7 +183,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -208,7 +204,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -244,7 +239,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -266,7 +260,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -303,7 +296,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -342,7 +334,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -379,7 +370,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &falseVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
@@ -391,7 +381,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					WereAllSettingsAvailable: &falseVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,

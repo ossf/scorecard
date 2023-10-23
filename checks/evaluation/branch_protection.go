@@ -49,10 +49,12 @@ type levelScore struct {
 	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
-// Limited information is normally provided when Scorecard is run wihout admin token and
-// the branch protection was not set using the new Repo Rules(that makes all infos public).
-func wasLimitedInformationProvided(branchProtectionData *clients.BranchRef) bool {
-	return branchProtectionData.WereAllSettingsAvailable == nil || !*branchProtectionData.WereAllSettingsAvailable
+// Evaluates if Scorecard is being run with an administrator token.
+func isUserAdmin(branchProtectionData *clients.BranchRef) bool {
+	// When Scorecard is run without the admin token, Github retrieves both of the following fields as nil,
+	// so we're using them to evaluate if Scorecard is run using admin token or not.
+	return branchProtectionData.BranchProtectionRule.CheckRules.UpToDateBeforeMerge != nil ||
+		branchProtectionData.BranchProtectionRule.RequireLastPushApproval != nil
 }
 
 // BranchProtection runs Branch-Protection check.
@@ -324,8 +326,8 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		}
 	}
 
-	if !wasLimitedInformationProvided(branch) {
-		// If we're able to retrieve all information, we can interprete GitHub's response to say
+	if isUserAdmin(branch) {
+		// If Scorecard is run with admin token, we can interprete GitHub's response to say
 		// if the branch requires PRs prior to code changes.
 		max++
 		if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
@@ -387,12 +389,12 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	max++
 
 	// On this first check we exclude the case of PRs don't being required, covered on adminReviewProtection function
-	if wasLimitedInformationProvided(branch) ||
-		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+	if !(isUserAdmin(branch) &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == nil) {
 		switch {
 		// If not running as admin, the nil value can both mean that no reviews are required or no PR are required,
 		// so here we assume no reviews are required.
-		case (wasLimitedInformationProvided(branch) &&
+		case (!isUserAdmin(branch) &&
 			branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == nil) ||
 			*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == 0:
 			warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
