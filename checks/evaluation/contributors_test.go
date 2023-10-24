@@ -41,7 +41,8 @@ func TestContributors(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 6,
+				Score:        6,
+				NumberOfInfo: 1,
 			},
 		}, {
 			name: "No contributors",

@@ -45,12 +45,10 @@ func Contributors(name string,
 	numberOfPositives := getNumberOfPositives(findings)
 	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfPositives)
 
-	if numberOfPositives >= numberCompaniesForTopScore {
-		// Return max score. This may need changing if other probes
-		// are added for other contributors metrics. Right now, the
-		// scoring is designed for a single probe that returns true
-		// or false.
+	if numberOfPositives > 0 {
 		logFindings(findings, dl)
+	}
+	if numberOfPositives > numberCompaniesForTopScore {
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
