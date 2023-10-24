@@ -89,6 +89,7 @@ var (
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Run,
+	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
 	}
@@ -100,11 +101,8 @@ func init() {
 		DependencyToolUpdates,
 		SecurityPolicy,
 		Fuzzing,
-<<<<<<< HEAD
 		License,
-=======
 		Contributors,
->>>>>>> :seedling: Add probe support for contributors metrics
 	})
 }
 
