@@ -93,7 +93,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 			log.Printf("error during Recieive: %v", err)
 			return nil, nil
 		}
-		numReceivedMessages = len(result.ReceivedMessages)
+		numReceivedMessages = len(result.GetReceivedMessages())
 		if numReceivedMessages > 0 {
 			msgToProcess = result.GetReceivedMessages()[0]
 		} else {
@@ -107,7 +107,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 		log.Fatalf("expected to receive max %d messages, got %d", maxMessagesToPull, numReceivedMessages)
 	}
 
-	subscriber.recvdAckID = msgToProcess.AckId
+	subscriber.recvdAckID = msgToProcess.GetAckId()
 	// Continuously notify the server that processing is still happening on this message.
 	go subscriber.extendAckDeadline()
 

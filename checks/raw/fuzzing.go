@@ -91,9 +91,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
 		Name:        fuzzerPropertyBasedHaskell,
-		Desc: asPointer(
-			"Property-based testing in Haskell generates test instances randomly or exhaustively " +
-				"and test that specific properties are satisfied."),
+		Desc:        propertyBasedDescription("Haskell"),
 	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
@@ -110,9 +108,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
 		Name: fuzzerPropertyBasedJavaScript,
-		Desc: asPointer(
-			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
-				"and test that specific properties are satisfied."),
+		Desc: propertyBasedDescription("JavaScript"),
 	},
 	clients.TypeScript: {
 		filePatterns: []string{"*.ts"},
@@ -120,9 +116,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
 		Name: fuzzerPropertyBasedTypeScript,
-		Desc: asPointer(
-			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
-				"and test that specific properties are satisfied."),
+		Desc: propertyBasedDescription("TypeScript"),
 	},
 	clients.Python: {
 		filePatterns: []string{"*.py"},
@@ -386,4 +380,10 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 		}
 	}
 	return ret
+}
+
+func propertyBasedDescription(language string) *string {
+	s := fmt.Sprintf("Property-based testing in %s generates test instances randomly or exhaustively "+
+		"and test that specific properties are satisfied.", language)
+	return &s
 }

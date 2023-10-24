@@ -174,25 +174,25 @@ func processRequest(ctx context.Context,
 	var rawBuffer bytes.Buffer
 	// TODO: run Scorecard for each repo in a separate thread.
 	for _, repoReq := range batchRequest.GetRepos() {
-		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", *repoReq.Url))
+		logger.Info(fmt.Sprintf("Running Scorecard for repo: %s", repoReq.GetUrl()))
 		var repo clients.Repo
 		var err error
 		repoClient := githubClient
 		disabledChecks := blacklistedChecks
-		if repo, err = gitlabrepo.MakeGitlabRepo(*repoReq.Url); err == nil { // repo is a gitlab url
+		if repo, err = gitlabrepo.MakeGitlabRepo(repoReq.GetUrl()); err == nil { // repo is a gitlab url
 			repoClient = gitlabClient
 			disabledChecks = gitlabDisabledChecks
-		} else if repo, err = githubrepo.MakeGithubRepo(*repoReq.Url); err != nil {
+		} else if repo, err = githubrepo.MakeGithubRepo(repoReq.GetUrl()); err != nil {
 			// TODO(log): Previously Warn. Consider logging an error here.
 			logger.Info(fmt.Sprintf("URL was neither valid GitLab nor GitHub: %v", err))
 			continue
 		}
-		repo.AppendMetadata(repoReq.Metadata...)
+		repo.AppendMetadata(repoReq.GetMetadata()...)
 
 		commitSHA := clients.HeadSHA
 		requiredRequestType := []checker.RequestType{}
-		if repoReq.Commit != nil && *repoReq.Commit != clients.HeadSHA {
-			commitSHA = *repoReq.Commit
+		if repoReq.GetCommit() != clients.HeadSHA {
+			commitSHA = repoReq.GetCommit()
 			requiredRequestType = append(requiredRequestType, checker.CommitBased)
 		}
 		checksToRun, err := policy.GetEnabled(nil /*policy*/, nil /*checks*/, requiredRequestType)
