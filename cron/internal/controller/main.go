@@ -103,6 +103,7 @@ func localFiles(filenames []string) (data.Iterator, error) {
 	return iter, nil
 }
 
+//nolint:protogetter // this is a false positive https://github.com/ghostiam/protogetter/issues/4
 func main() {
 	ctx := context.Background()
 	t := time.Now().UTC()

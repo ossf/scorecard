@@ -160,7 +160,7 @@ func TestChecksHavePolicies(t *testing.T) {
 		t.Error("Expected checks to have policies")
 	}
 
-	delete(sp.Policies, "Binary-Artifacts")
+	delete(sp.GetPolicies(), "Binary-Artifacts")
 	// Call the function being tested
 	result = checksHavePolicies(sp, check)
 
@@ -246,8 +246,8 @@ func TestParseFromFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-	if len(sp.Policies) != 3 {
-		t.Errorf("Unexpected number of policies: got %v, want %v", len(sp.Policies), 3)
+	if len(sp.GetPolicies()) != 3 {
+		t.Errorf("Unexpected number of policies: got %v, want %v", len(sp.GetPolicies()), 3)
 	}
 	invalidPolicy := "testdata/policy-invalid-score-0.yaml"
 	_, err = ParseFromFile(invalidPolicy)
