@@ -34,9 +34,10 @@ func negativeFindings(findings []finding.Finding) []finding.Finding {
 	var ff []finding.Finding
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
-			ff = append(ff, *f)
+		if f.Outcome == finding.OutcomePositive {
+			continue
 		}
+		ff = append(ff, *f)
 	}
 	return ff
 }
