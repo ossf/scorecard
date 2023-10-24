@@ -98,23 +98,28 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
 	// Based on the import of one of these packages:
-	// * https://fast-check.dev/
+	// * https://github.com/dubzzz/fast-check/tree/main/packages/fast-check#readme
+	// * https://github.com/dubzzz/fast-check/tree/main/packages/ava#readme
+	// * https://github.com/dubzzz/fast-check/tree/main/packages/jest#readme
+	// * https://github.com/dubzzz/fast-check/tree/main/packages/vitest#readme
 	//
 	// This is not an exhaustive list.
 	clients.JavaScript: {
 		filePatterns: []string{"*.js"},
-		// Look for direct imports of fast-check.
-		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
-		Name:        fuzzerPropertyBasedJavaScript,
+		// Look for direct imports of fast-check and its test runners integrations.
+		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
+			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
+		Name: fuzzerPropertyBasedJavaScript,
 		Desc: asPointer(
 			"Property-based testing in JavaScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),
 	},
 	clients.TypeScript: {
 		filePatterns: []string{"*.ts"},
-		// Look for direct imports of fast-check.
-		funcPattern: `(from\s+['"]fast-check['"]|require\(\s*['"]fast-check['"]\s*\))`,
-		Name:        fuzzerPropertyBasedTypeScript,
+		// Look for direct imports of fast-check and its test runners integrations.
+		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
+			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
+		Name: fuzzerPropertyBasedTypeScript,
 		Desc: asPointer(
 			"Property-based testing in TypeScript generates test instances randomly or exhaustively " +
 				"and test that specific properties are satisfied."),

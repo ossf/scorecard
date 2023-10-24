@@ -60,7 +60,10 @@ var (
 				defer outputF.Close()
 				output = outputF
 			}
-			checks := strings.Split(checksArg, ",")
+			var checks []string
+			if checksArg != "" {
+				checks = strings.Split(checksArg, ",")
+			}
 			r := runner.New(checks)
 			return generate(&r, input, output)
 		},

@@ -1,0 +1,29 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasLicenseFile
+short: Check that the project has a license file
+motivation: >
+  A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
+implementation: >
+ The implementation checks whether a license file is present.
+outcome:
+  - If license files are found, the probe returns OutcomePositive for each license file.
+  - If a license file is not found, the probe returns a single OutcomeNegative.
+remediation:
+  effort: Low
+  text:
+    - For Github projects, follow [this guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to determine which license to apply to your project and establish a license file for your project.
+    - For Gitlab projects, create the license in a .adoc, .asc, .docx, .doc, .ext, .html, .markdown, .md, .rst, .txt, or .xml, named LICENSE, COPYRIGHT, or COPYING, and place it in the top-level directory. To identify a specific license, use an SPDX license identifier in the filename. Examples include LICENSE.md, Apache-2.0-LICENSE.md or LICENSE-Apache-2.0.
+    - Alternately, create a LICENSE directory and add a license file(s) with a name that matches your SPDX license identifier. such as LICENSES/Apache-2.0.txt.

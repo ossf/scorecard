@@ -50,7 +50,7 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 func (client *httpClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error) {
 	repoURI := fmt.Sprintf("https://%s", uri)
 	url := fmt.Sprintf("https://www.bestpractices.dev/projects.json?url=%s", repoURI)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return Unknown, fmt.Errorf("error during http.NewRequestWithContext: %w", err)
 	}

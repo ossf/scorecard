@@ -30,6 +30,9 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
@@ -81,6 +84,11 @@ var (
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
 	}
+	License = []ProbeImpl{
+		hasLicenseFile.Run,
+		hasFSFOrOSIApprovedLicense.Run,
+		hasLicenseFileAtTopDir.Run,
+	}
 )
 
 //nolint:gochecknoinits
@@ -89,6 +97,7 @@ func init() {
 		DependencyToolUpdates,
 		SecurityPolicy,
 		Fuzzing,
+		License,
 	})
 }
 

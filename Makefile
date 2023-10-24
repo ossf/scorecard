@@ -35,10 +35,6 @@ KO := $(TOOLS_BIN_DIR)/ko
 $(KO): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/google/ko
 
-STUNNING_TRIBBLE := $(TOOLS_BIN_DIR)/stunning-tribble
-$(STUNNING_TRIBBLE): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/naveensrinivasan/stunning-tribble
-
 MOCKGEN := $(TOOLS_BIN_DIR)/mockgen
 $(MOCKGEN): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golang/mock/mockgen
@@ -73,7 +69,6 @@ $(PROTOC):
 install: ## Installs required binaries.
 install: $(GOLANGCI_LINT) \
 	$(KO) \
-	$(STUNNING_TRIBBLE) \
 	$(PROTOC_GEN_GO) $(PROTOC) \
 	$(MOCKGEN) \
 	$(GINKGO) \
@@ -336,15 +331,15 @@ e2e-pat: build-scorecard check-env | $(GINKGO)
 e2e-gh-token: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to default GITHUB_TOKEN
 e2e-gh-token: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN set to secrets.GITHUB_TOKEN must be used to run this.
-	GITLAB_AUTH_TOKEN="" TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -cover -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
+	GITLAB_AUTH_TOKEN="" TOKEN_TYPE="GITHUB_TOKEN" $(GINKGO) --race -p -v -coverprofile=e2e-coverage.out --keep-separate-coverprofiles ./...
 
 e2e-gitlab-token: ## Runs e2e tests that require a GITLAB_TOKEN
 e2e-gitlab-token: build-scorecard check-env-gitlab | $(GINKGO)
-	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv --focus '.*GitLab' ./...
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus '.*GitLab' ./...
 
 e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
 e2e-gitlab: build-scorecard | $(GINKGO)
-	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO) --race -p -vv --focus ".*GitLab" ./...
+	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO)  --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus ".*GitLab" ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
 	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..

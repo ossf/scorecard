@@ -100,7 +100,7 @@ type Finding struct {
 	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]int     `json:”values,omitempty”`
+	Values      map[string]int     `json:"values,omitempty"`
 }
 
 // AnonymousFinding is a finding without a corerpsonding probe ID.
@@ -276,6 +276,8 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 		*o = OutcomeNotAvailable
 	case "NotSupported":
 		*o = OutcomeNotSupported
+	case "NotApplicable":
+		*o = OutcomeNotApplicable
 	case "Error":
 		*o = OutcomeError
 	default:
