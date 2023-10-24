@@ -39,12 +39,19 @@ func Packaging(name string,
 	// a single positive or negative outcome. As such, in this evaluation,
 	// we return max score if the outcome is positive and lowest score if
 	// the outcome is negative.
+	maxScore := false
 	for _, f := range findings {
+		f := f
 		if f.Outcome == finding.OutcomePositive {
+			maxScore = true
 			// Log all findings except the negative ones.
-			checker.LogFindings(positiveFindings(findings), dl)
-			return checker.CreateMaxScoreResult(name, "packaging workflow detected")
+			dl.Info(&checker.LogMessage{
+				Finding: &f,
+			})
 		}
+	}
+	if maxScore {
+		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
 	}
 
 	checker.LogFindings(negativeFindings(findings), dl)

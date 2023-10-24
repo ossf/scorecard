@@ -35,18 +35,32 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	r := raw.PackagingResults
+	var findings []finding.Finding
 	for _, p := range r.Packages {
-		if p.Msg == nil {
-			// Presence of a single non-debug message means the
-			// check passes.
-			f, err := finding.NewWith(fs, Probe,
-				"Project packages its releases by way of Github Actions.", nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			return []finding.Finding{*f}, Probe, nil
+		p := p
+		if p.Msg != nil {
+			continue
 		}
+		// Presence of a single non-debug message means the
+		// check passes.
+		f, err := finding.NewWith(fs, Probe,
+			"Project packages its releases by way of Github Actions.", nil,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		loc := &finding.Location{}
+		if p.File != nil {
+			loc.Path = p.File.Path
+			loc.Type = p.File.Type
+			loc.LineStart = &p.File.Offset
+		}
+		f = f.WithLocation(loc)
+		findings = append(findings, *f)
+	}
+
+	if len(findings) > 0 {
+		return findings, Probe, nil
 	}
 
 	f, err := finding.NewWith(fs, Probe,
