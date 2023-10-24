@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: contributorsFromOrgOrCompany
+short: Checks whether a project has a contributions from users associated with a company or organization.
+motivation: >
+  This probe tries to determine if the project has recent contributors from multiple organizations (e.g., companies). 
+
+  Some projects cannot meet this requirement, such as small projects with only one active participant, or projects with a narrow scope that cannot attract the interest of multiple organizations. See Code Reviews for more information about evaluating projects with a small number of participants.
+  
+implementation: >
+  The probe looks at the Company field on the user profile for authors of recent commits. To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits.
+outcome:
+  - If the project has no contributing organizations or companies, the probe returns 1 OutcomeNegative
+  - If the project has contributing organizations or companies, the probe returns 1 Outcome per org or company.
+  - If the probe fails to process the raw results, it returns nil instead of the findings slice as well as an error.
+remediation:
+  effort: High
+  text:
+    - Encourage community-driven contributions to your project.
+    - Ask contributors to join their respective organizations, if they have not already. Otherwise, there is no remediation for this probe; it simply provides insight into how many organizations have contributed so that you can make a trust-based decision based on that information.
