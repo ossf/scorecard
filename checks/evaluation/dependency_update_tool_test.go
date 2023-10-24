@@ -46,10 +46,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -71,10 +67,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomePositive,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -90,39 +82,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 				{
 					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        checker.MaxResultScore,
-				NumberOfInfo: 1,
-			},
-		},
-		{
-			name: "sonatype",
-			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
 					Outcome: finding.OutcomePositive,
 				},
 				{
@@ -150,14 +109,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolPyUpInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 4,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -169,10 +124,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 				{
 					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolSonatypeInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -194,10 +145,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 				},
 				{
 					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolSonatypeInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{

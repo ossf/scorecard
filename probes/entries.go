@@ -42,7 +42,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -65,7 +64,6 @@ var (
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,
 		toolPyUpInstalled.Run,
-		toolSonatypeLiftInstalled.Run,
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzedWithOSSFuzz.Run,
