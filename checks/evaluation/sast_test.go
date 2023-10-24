@@ -23,6 +23,9 @@ import (
 )
 
 func TestSAST(t *testing.T) {
+	snippet := "some code snippet"
+	sline := uint(10)
+	eline := uint(46)
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -64,6 +67,13 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   "sastToolSonarInstalled",
 					Outcome: finding.OutcomePositive,
+					Location: &finding.Location{
+						Type:      finding.FileTypeSource,
+						Path:      "path/to/file.txt",
+						LineStart: &sline,
+						LineEnd:   &eline,
+						Snippet:   &snippet,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -87,6 +97,13 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   "sastToolSonarInstalled",
 					Outcome: finding.OutcomePositive,
+					Location: &finding.Location{
+						Type:      finding.FileTypeSource,
+						Path:      "path/to/file.txt",
+						LineStart: &sline,
+						LineEnd:   &eline,
+						Snippet:   &snippet,
+					},
 				},
 			},
 			result: scut.TestReturn{

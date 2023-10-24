@@ -37,15 +37,24 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.SASTResults
 
 	for _, wf := range r.Workflows {
-		if wf.Type == checker.SonarWorkflow {
-			f, err := finding.NewWith(fs, Probe,
-				"SAST tool detected: Sonar", nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			return []finding.Finding{*f}, Probe, nil
+		if wf.Type != checker.SonarWorkflow {
+			continue
 		}
+		wf := wf
+		loc := &finding.Location{
+			Type:      wf.File.Type,
+			Path:      wf.File.Path,
+			LineStart: &wf.File.Offset,
+			LineEnd:   &wf.File.EndOffset,
+			Snippet:   &wf.File.Snippet,
+		}
+		f, err := finding.NewWith(fs, Probe,
+			"SAST tool detected: Sonar", loc,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
 	}
 	f, err := finding.NewWith(fs, Probe,
 		"Sonar tool not detected", nil,

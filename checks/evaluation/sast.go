@@ -52,7 +52,12 @@ func SAST(name string,
 			if f.Outcome == finding.OutcomePositive {
 				sonarScore = checker.MaxResultScore
 				dl.Info(&checker.LogMessage{
-					Text: f.Message,
+					Text:      f.Message,
+					Type:      f.Location.Type,
+					Path:      f.Location.Path,
+					Offset:    *f.Location.LineStart,
+					EndOffset: *f.Location.LineEnd,
+					Snippet:   *f.Location.Snippet,
 				})
 			} else if f.Outcome == finding.OutcomeNegative {
 				sonarScore = checker.MinResultScore
