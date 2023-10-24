@@ -67,7 +67,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 
 	for i := range r.Incomplete {
 		skipped := r.Incomplete[i]
-		dl.Warn(&checker.LogMessage{
+		dl.Info(&checker.LogMessage{
 			Text: generateTextIncompleteResults(skipped),
 			Type: finding.FileTypeSource,
 		})

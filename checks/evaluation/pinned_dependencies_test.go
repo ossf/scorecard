@@ -815,8 +815,8 @@ func Test_PinningDependencies(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         8,
-				NumberOfWarn:  3, // 2 for npm commands, 1 for skipped job
-				NumberOfInfo:  7,
+				NumberOfWarn:  2,
+				NumberOfInfo:  8, // 7 for all but npm, +1 for skipped job
 				NumberOfDebug: 0,
 			},
 		},
