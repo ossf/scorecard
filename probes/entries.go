@@ -33,6 +33,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -79,6 +80,9 @@ var (
 		fuzzedWithPropertyBasedHaskell.Run,
 		fuzzedWithPropertyBasedTypescript.Run,
 		fuzzedWithPropertyBasedJavascript.Run,
+	}
+	Packaging = []ProbeImpl{
+		packagedWithAutomatedWorkflow.Run,
 	}
 	License = []ProbeImpl{
 		hasLicenseFile.Run,

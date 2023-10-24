@@ -22,6 +22,8 @@ import (
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckPackaging is the registered name for Packaging.
@@ -54,10 +56,14 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.PackagingResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.PackagingResults = rawData
+
+	findings, err := zrunner.Run(pRawResults, probes.Packaging)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	return evaluation.Packaging(CheckPackaging, c.Dlogger, &rawData)
+	return evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
 }
