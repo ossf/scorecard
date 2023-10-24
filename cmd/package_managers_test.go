@@ -146,7 +146,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 					}
 
 					return &http.Response{
-						StatusCode: 200,
+						StatusCode: http.StatusOK,
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
@@ -456,7 +456,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 					}
 
 					return &http.Response{
-						StatusCode: 200,
+						StatusCode: http.StatusOK,
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()
@@ -725,7 +725,7 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 					}
 
 					return &http.Response{
-						StatusCode: 200,
+						StatusCode: http.StatusOK,
 						Body:       io.NopCloser(bytes.NewBufferString(tt.args.result)),
 					}, nil
 				}).AnyTimes()

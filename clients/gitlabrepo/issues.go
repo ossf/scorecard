@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/xanzy/go-gitlab"
@@ -53,7 +54,7 @@ func (handler *issuesHandler) setup() error {
 		if err != nil && resp.StatusCode != 401 {
 			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
 			return
-		} else if resp.StatusCode == 401 {
+		} else if resp.StatusCode == http.StatusUnauthorized {
 			handler.errSetup = fmt.Errorf("insufficient permissions to check issue author associations %w", err)
 			return
 		}
