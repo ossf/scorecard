@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"errors"
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
@@ -26,17 +25,6 @@ import (
 
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
-
-var errInvalid = errors.New("invalid")
-
-var sastTools = map[string]bool{
-	"github-advanced-security": true,
-	"github-code-scanning":     true,
-	"lgtm-com":                 true,
-	"sonarcloud":               true,
-}
-
-var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 //nolint:gochecknoinits
 func init() {

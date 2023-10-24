@@ -35,7 +35,12 @@ const CheckSAST = "SAST"
 
 var errInvalid = errors.New("invalid")
 
-var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+var sastTools = map[string]bool{
+	"github-advanced-security": true,
+	"github-code-scanning":     true,
+	"lgtm-com":                 true,
+	"sonarcloud":               true,
+}
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 

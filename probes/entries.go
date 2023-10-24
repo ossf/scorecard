@@ -86,7 +86,6 @@ var (
 		fuzzedWithPropertyBasedTypescript.Run,
 		fuzzedWithPropertyBasedJavascript.Run,
 	}
-<<<<<<< HEAD
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
 	}
@@ -100,12 +99,11 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
-=======
+	}
 	SAST = []ProbeImpl{
 		sastToolCodeQLInstalled.Run,
 		sastToolRunsOnAllCommits.Run,
 		sastToolSonarInstalled.Run,
->>>>>>> Convert SAST checks to probes
 	}
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
