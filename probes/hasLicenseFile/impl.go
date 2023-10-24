@@ -18,7 +18,6 @@ package hasLicenseFile
 import (
 	"embed"
 	"fmt"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -35,6 +34,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
+	var findings []finding.Finding
 	var outcome finding.Outcome
 	var msg string
 
@@ -43,20 +43,34 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(licenseFiles) == 0 {
 		outcome = finding.OutcomeNegative
 		msg = "project does not have a license file"
-	} else {
-		outcome = finding.OutcomePositive
-		var sb strings.Builder
-		for i := 0; i < len(licenseFiles); i++ {
-			sb.WriteString(fmt.Sprintf(" %s", licenseFiles[i].File.Path))
+		f, err := finding.NewWith(fs, Probe,
+			msg, nil,
+			outcome)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		msg = fmt.Sprintf("project has %d file(s): %s", len(licenseFiles), sb.String())
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	} else {
+		for _, licenseFile := range licenseFiles {
+			licenseFile := licenseFile
+			loc := &finding.Location{
+				Type:      licenseFile.File.Type,
+				Path:      licenseFile.File.Path,
+				LineStart: &licenseFile.File.Offset,
+				LineEnd:   &licenseFile.File.EndOffset,
+				Snippet:   &licenseFile.File.Snippet,
+			}
+			msg = "project has a license file"
+			outcome = finding.OutcomePositive
+			f, err := finding.NewWith(fs, Probe,
+				msg, loc,
+				outcome)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
+		}
 	}
-
-	f, err := finding.NewWith(fs, Probe,
-		msg, nil,
-		outcome)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-	return []finding.Finding{*f}, Probe, nil
+	return findings, Probe, nil
 }

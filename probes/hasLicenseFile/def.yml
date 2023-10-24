@@ -19,8 +19,8 @@ motivation: >
 implementation: >
  The implementation checks whether a license file is present.
 outcome:
-  - If a license file is found, the probe returns a single OutcomePositive (1).
-  - If a license file is not found, the probe returns a single OutcomeNegative (0).
+  - If license files are found, the probe returns OutcomePositive for each license file.
+  - If a license file is not found, the probe returns a single OutcomeNegative.
 remediation:
   effort: Low
   text:
