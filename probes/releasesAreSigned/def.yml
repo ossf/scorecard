@@ -1,0 +1,33 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: releasesAreSigned
+short: Check that the projects releases are signed.
+motivation: >
+  Signed releases allow consumers to verify their artifacts before consuming them.
+implementation: >
+ The implementation checks whether a signature file is present in release assets. The probe checks the last 5 releases.
+outcome:
+  - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a signature file in the release assets.
+  - For each of the last 5 releases, the probe returns OutcomeNegative, if the the release does not have a signature file in the release assets.
+  - If the project has no releases, the probe returns OutcomeNotApplicable.
+remediation:
+  effort: Medium
+  text:
+    - Publish the release.
+    - Generate a signing key.
+    - Download the release as an archive locally.
+    - Sign the release archive with this key (should output a signature file).
+    - Attach the signature file next to the release archive.
+    - If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).

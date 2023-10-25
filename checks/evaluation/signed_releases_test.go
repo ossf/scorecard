@@ -17,79 +17,245 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
+
+const (
+	releaseIndex0 = 0
+	releaseIndex1 = 1
+	releaseIndex2 = 2
+	releaseIndex3 = 3
+	releaseIndex4 = 4
+)
+
+const (
+	assetIndex0 = 0
+	assetIndex1 = 1
+	assetIndex2 = 2
+	assetIndex3 = 3
+	assetIndex4 = 4
+	assetIndex5 = 5
+	assetIndex6 = 6
+	assetIndex7 = 7
+	assetIndex8 = 8
+	assetIndex9 = 9
+)
+
+func negativeProvenanceProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+	return finding.Finding{
+		Probe:   "releasesHaveProvenance",
+		Outcome: finding.OutcomeNegative,
+		Values: map[string]int{
+			"totalReleases": totalReleases,
+			"releaseIndex":  releaseindex,
+			"assetIndex":    assetIndex,
+		},
+	}
+}
+
+func positiveProvenanceProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+	return finding.Finding{
+		Probe:   "releasesHaveProvenance",
+		Outcome: finding.OutcomePositive,
+		Values: map[string]int{
+			"totalReleases": totalReleases,
+			"releaseIndex":  releaseindex,
+			"assetIndex":    assetIndex,
+		},
+	}
+}
 
 func TestSignedReleases(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name           string
-		releases       []clients.Release
-		expectedResult checker.CheckResult
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "Full score",
-			releases: []clients.Release{
+			name: "Has one release that is signed but no provenance",
+			findings: []finding.Finding{
 				{
-					TagName: "v1.0",
-					Assets: []clients.ReleaseAsset{
-						{Name: "binary.tar.gz"},
-						{Name: "binary.tar.gz.sig"},
-						{Name: "binary.tar.gz.intoto.jsonl"},
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
+					},
+				},
+				{
+					Probe:   "releasesHaveProvenance",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
 					},
 				},
 			},
-			expectedResult: checker.CheckResult{
-				Name:    "Signed-Releases",
-				Version: 2,
-				Score:   10,
-				Reason:  "1 out of 1 artifacts are signed or have provenance",
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
 		{
-			name: "Partial score",
-			releases: []clients.Release{
+			name: "Has one release that is signed and has provenance",
+			findings: []finding.Finding{
 				{
-					TagName: "v1.0",
-					Assets: []clients.ReleaseAsset{
-						{Name: "binary.tar.gz"},
-						{Name: "binary.tar.gz.sig"},
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
+					},
+				},
+				{
+					Probe:   "releasesHaveProvenance",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
 					},
 				},
 			},
-			expectedResult: checker.CheckResult{
-				Name:    "Signed-Releases",
-				Version: 2,
-				Score:   8,
-				Reason:  "1 out of 1 artifacts are signed or have provenance",
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 2,
 			},
 		},
 		{
-			name: "No score",
-			releases: []clients.Release{
+			name: "Has one release that is not signed but has provenance",
+			findings: []finding.Finding{
 				{
-					TagName: "v1.0",
-					Assets: []clients.ReleaseAsset{
-						{Name: "binary.tar.gz"},
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
+					},
+				},
+				{
+					Probe:   "releasesHaveProvenance",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 1,
+						"releaseIndex":  0,
+						"assetIndex":    0,
 					},
 				},
 			},
-			expectedResult: checker.CheckResult{
-				Name:    "Signed-Releases",
-				Version: 2,
-				Score:   0,
-				Reason:  "0 out of 1 artifacts are signed or have provenance",
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
+
 		{
-			name:           "No releases",
-			releases:       []clients.Release{},
-			expectedResult: checker.CreateInconclusiveResult("Signed-Releases", "no releases found"),
+			name: "A complex project with 3 releases and different assets in each release.",
+			findings: []finding.Finding{
+				// Release 1:
+				// Release 1, Asset 1:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  0,
+						"assetIndex":    0,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex0, assetIndex0),
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  0,
+						"assetIndex":    1,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex0, assetIndex1),
+				// Release 2:
+				// Release 2, Asset 1:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  1,
+						"assetIndex":    0,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex1, assetIndex0),
+				// Release 2, Asset 2:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  1,
+						"assetIndex":    1,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex1, assetIndex1),
+				// Release 2, Asset 3:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  1,
+						"assetIndex":    2,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex1, assetIndex2),
+				// Release 3, Asset 1:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  2,
+						"assetIndex":    0,
+					},
+				},
+				positiveProvenanceProbe(3, releaseIndex2, assetIndex0),
+				// Release 3, Asset 2:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  2,
+						"assetIndex":    1,
+					},
+				},
+				positiveProvenanceProbe(3, releaseIndex2, assetIndex1),
+				// Release 3, Asset 3:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalReleases": 3,
+						"releaseIndex":  2,
+						"assetIndex":    2,
+					},
+				},
+				negativeProvenanceProbe(3, releaseIndex2, assetIndex2),
+			},
+			result: scut.TestReturn{
+				Score:        9,
+				NumberOfInfo: 3,
+				NumberOfWarn: 13,
+			},
 		},
 	}
 

@@ -17,118 +17,90 @@ package evaluation
 import (
 	"fmt"
 	"math"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 )
-
-var (
-	signatureExtensions  = []string{".asc", ".minisig", ".sig", ".sign"}
-	provenanceExtensions = []string{".intoto.jsonl"}
-)
-
-const releaseLookBack = 5
 
 // SignedReleases applies the score policy for the Signed-Releases check.
-//
 //nolint:gocognit
-func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+func SignedReleases(name string,
+	findings []finding.Finding, dl checker.DetailLogger,
+) checker.CheckResult {
+	expectedProbes := []string{
+		releasesAreSigned.Probe,
+		releasesHaveProvenance.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	totalReleases := 0
-	total := 0
-	score := 0
-	for _, release := range r.Releases {
-		if len(release.Assets) == 0 {
-			continue
-		}
-
-		dl.Debug(&checker.LogMessage{
-			Text: fmt.Sprintf("GitHub release found: %s", release.TagName),
-		})
-
-		totalReleases++
-		signed := false
-		hasProvenance := false
-
-		// Check for provenance.
-		for _, asset := range release.Assets {
-			for _, suffix := range provenanceExtensions {
-				if strings.HasSuffix(asset.Name, suffix) {
-					dl.Info(&checker.LogMessage{
-						Path: asset.URL,
-						Type: finding.FileTypeURL,
-						Text: fmt.Sprintf("provenance for release artifact: %s", asset.Name),
-					})
-					hasProvenance = true
-					total++
-					break
-				}
-			}
-			if hasProvenance {
-				// Assign maximum points.
-				score += 10
-				break
-			}
-		}
-
-		if hasProvenance {
-			continue
-		}
-
-		dl.Warn(&checker.LogMessage{
-			Path: release.URL,
-			Type: finding.FileTypeURL,
-			Text: fmt.Sprintf("release artifact %s does not have provenance", release.TagName),
-		})
-
-		// No provenance. Try signatures.
-		for _, asset := range release.Assets {
-			for _, suffix := range signatureExtensions {
-				if strings.HasSuffix(asset.Name, suffix) {
-					dl.Info(&checker.LogMessage{
-						Path: asset.URL,
-						Type: finding.FileTypeURL,
-						Text: fmt.Sprintf("signed release artifact: %s", asset.Name),
-					})
-					signed = true
-					total++
-					break
-				}
-			}
-			if signed {
-				// Assign 8 points.
-				score += 8
-				break
-			}
-		}
-
-		if !signed {
+	// All probes have OutcomeNotApplicable in case the project has no 
+	// releases. Therefore, check for any finding with OutcomeNotApplicable.
+	for i := range findings {
+        f := &findings[i]
+	    if f.Outcome == finding.OutcomeNotApplicable {
 			dl.Warn(&checker.LogMessage{
-				Path: release.URL,
-				Type: finding.FileTypeURL,
-				Text: fmt.Sprintf("release artifact %s not signed", release.TagName),
+				Text: "no GitHub releases found",
 			})
-		}
-		if totalReleases >= releaseLookBack {
-			break
+			// Generic summary.
+			return checker.CreateInconclusiveResult(name, "no releases found")
 		}
 	}
 
-	if totalReleases == 0 {
-		dl.Warn(&checker.LogMessage{
-			Text: "no GitHub releases found",
-		})
-		// Generic summary.
-		return checker.CreateInconclusiveResult(name, "no releases found")
-	}
+	score := 0
+	totalPositive := 0
+	totalReleases := 0
+	checker.LogFindings(findings, dl)
 
+	for i := range findings {
+        f := &findings[i]
+	    if f.Outcome == finding.OutcomePositive {
+	        switch f.Probe {
+	        case releasesAreSigned.Probe:
+	        	totalPositive++
+	        	if !releaseAlsoHasProvenance(f, findings) {
+					score += 8
+				}
+	        	totalReleases = f.Values["totalReleases"]
+	        case releasesHaveProvenance.Probe:
+	        	totalPositive++
+	        	score += 10
+	        	totalReleases = f.Values["totalReleases"]
+	        }
+        }
+    }
+
+    if totalPositive == 0 {
+    	return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
+    }
+
+    if totalReleases == 0 {
+    	// This should not happen in production, but it is useful to have 
+    	// for testing.
+    	return checker.CreateInconclusiveResult(name, "no releases found")
+    }
+    //fmt.Println("totalReleases: ", totalReleases)
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
-	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", total, totalReleases)
+	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", totalPositive, totalReleases)
 	return checker.CreateResultWithScore(name, reason, score)
+}
+
+func releaseAlsoHasProvenance(f1 *finding.Finding, findings []finding.Finding) bool {
+	for i := range findings {
+		f2 := &findings[i]
+		if f2.Probe == releasesHaveProvenance.Probe && f2.Outcome == finding.OutcomePositive {
+			if f1.Values["releaseIndex"] == f2.Values["releaseIndex"] {
+				if f1.Values["assetIndex"] == f2.Values["assetIndex"] {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
