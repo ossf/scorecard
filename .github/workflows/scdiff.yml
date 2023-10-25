@@ -46,7 +46,7 @@ jobs:
 
             checks = '""'
             const commentBody = '${{ github.event.comment.body }}'
-            const regex = /scdiff generate ([^ ]+)/;
+            const regex = /\/scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
             if (found && found.length == 2) {
               checks = found[1]
