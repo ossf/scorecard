@@ -34,6 +34,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
@@ -90,6 +91,9 @@ var (
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
+	}
+	Vulnerabilities = []ProbeImpl{
+		hasOSVVulnerabilities.Run,
 	}
 )
 
