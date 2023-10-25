@@ -45,8 +45,9 @@ jobs:
             core.setOutput('head', response.data.head.sha)
 
             checks = ""
+            const commentBody = ${{ github.event.comment.body }}
             const regex = /\/scdiff generate ([^ ]+)/;
-            const found = paragraph.match(regex);
+            const found = commentBody.match(regex);
             if (found && found.length == 2) {
               checks = found[1]
             }
