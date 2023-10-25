@@ -27,7 +27,6 @@ import (
 func Test_checkDependencyFileExists(t *testing.T) {
 	t.Parallel()
 
-	//nolint
 	tests := []struct {
 		name    string
 		path    string
@@ -97,13 +96,13 @@ func Test_checkDependencyFileExists(t *testing.T) {
 		{
 			name:    ".lift.toml",
 			path:    ".lift.toml",
-			want:    true,
+			want:    false, // support removed
 			wantErr: false,
 		},
 		{
 			name:    ".lift/config.toml",
 			path:    ".lift/config.toml",
-			want:    true,
+			want:    false, // support removed
 			wantErr: false,
 		},
 	}

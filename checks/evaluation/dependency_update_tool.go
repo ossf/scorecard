@@ -21,7 +21,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
 // DependencyUpdateTool applies the score policy and logs the details
@@ -33,7 +32,6 @@ func DependencyUpdateTool(name string,
 		toolDependabotInstalled.Probe,
 		toolPyUpInstalled.Probe,
 		toolRenovateInstalled.Probe,
-		toolSonatypeLiftInstalled.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
