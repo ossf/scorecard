@@ -43,6 +43,14 @@ jobs:
             })
             core.setOutput('base', response.data.base.sha)
             core.setOutput('head', response.data.head.sha)
+
+            checks = ""
+            const regex = /\/scdiff generate ([^ ]+)/;
+            const found = paragraph.match(regex);
+            if (found && found.length == 2) {
+              checks = found[1]
+            }
+            core.setOutput('checks', checks)
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ steps.pr-refs.outputs.base }}
@@ -50,7 +58,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/before.json
+          go run cmd/internal/scdiff/main.go generate \
+            --repos $HOME/repos.txt \
+            --checks ${{ steps.pr-refs.outputs.checks }} > $HOME/before.json
       - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           ref: ${{ steps.pr-refs.outputs.head }}
@@ -58,7 +68,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          go run cmd/internal/scdiff/main.go generate --repos $HOME/repos.txt > $HOME/after.json
+          go run cmd/internal/scdiff/main.go generate \
+            --repos $HOME/repos.txt \
+            --checks ${{ steps.pr-refs.outputs.checks }} > $HOME/after.json
       - name: compare results
         run: |
           go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
