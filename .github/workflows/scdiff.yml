@@ -44,7 +44,7 @@ jobs:
             core.setOutput('base', response.data.base.sha)
             core.setOutput('head', response.data.head.sha)
 
-            checks = ""
+            checks = '""'
             const commentBody = '${{ github.event.comment.body }}'
             const regex = /scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
