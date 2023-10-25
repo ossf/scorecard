@@ -24,16 +24,18 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
 	// nolint:govet
 	tests := []struct {
-		name     string
-		raw      *checker.RawResults
-		outcomes []finding.Outcome
-		err      error
+		name            string
+		raw             *checker.RawResults
+		outcomes        []finding.Outcome
+		expectedFinding *finding.Finding
+		err             error
 	}{
 		{
 			name: "vulnerabilities present",
@@ -57,6 +59,45 @@ func Test_Run(t *testing.T) {
 			},
 			outcomes: []finding.Outcome{
 				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "vulnerabilities not present",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "vulnerabilities and metadata present. 'foo' must appear in the findings remediation text.",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{
+						{ID: "foo"},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+			expectedFinding: &finding.Finding{
+				Probe:   "hasOSVVulnerabilities",
+				Message: "Project is vulnerable to: foo",
+				Remediation: &probe.Remediation{
+					//nolint
+					Text: `Fix the foo by following information from https://osv.dev/foo.
+If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
+If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.`,
+					//nolint
+					Markdown: `Fix the foo by following information from [OSV](https://osv.dev/foo).
+If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
+If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).`,
+					Effort: 3,
+				},
 			},
 		},
 	}
@@ -83,6 +124,12 @@ func Test_Run(t *testing.T) {
 				f := &findings[i]
 				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
+				}
+				if tt.expectedFinding != nil {
+					f := &findings[i]
+					if diff := cmp.Diff(tt.expectedFinding, f); diff != "" {
+						t.Errorf("mismatch (-want +got):\n%s", diff)
+					}
 				}
 			}
 		})

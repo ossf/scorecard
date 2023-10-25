@@ -67,6 +67,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f = f.WithMessage(fmt.Sprintf("Project is vulnerable to: %s",
 			strings.Join(vuln.IDs, " / ")))
+		f = f.WithRemediationMetadata(map[string]string{
+			"osvid": strings.Join(vuln.IDs[:], ","),
+		})
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
