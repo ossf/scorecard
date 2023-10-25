@@ -34,6 +34,8 @@ jobs:
       - name: fetch base and head shas
         id: pr-refs
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         with:
           script: |
             const response = await github.rest.pulls.get({
@@ -45,8 +47,8 @@ jobs:
             core.setOutput('head', response.data.head.sha)
 
             checks = ""
-            const commentBody = ${{ github.event.comment.body }}
-            const regex = /\/scdiff generate ([^ ]+)/;
+            const commentBody = ${{ env.COMMENT_BODY }}
+            const regex = /scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
             if (found && found.length == 2) {
               checks = found[1]
