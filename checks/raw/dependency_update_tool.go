@@ -113,19 +113,6 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 				},
 			},
 		})
-	case ".lift.toml", ".lift/config.toml":
-		*ptools = append(*ptools, checker.Tool{
-			Name: "Sonatype Lift",
-			URL:  asPointer("https://lift.sonatype.com"),
-			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
-			Files: []checker.File{
-				{
-					Path:   name,
-					Type:   finding.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
-			},
-		})
 	}
 
 	// Continue iterating, even if we have found a tool.
