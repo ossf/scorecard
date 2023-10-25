@@ -38,12 +38,8 @@ func Vulnerabilities(name string,
 	}
 
 	vulnsFound := negativeFindings(findings)
-	numVulnsFound := len(negativeFindings(findings))
-	for _, vuln := range vulnsFound {
-		dl.Warn(&checker.LogMessage{
-			Text: vuln.Message,
-		})
-	}
+	numVulnsFound := len(vulnsFound)
+	checker.LogFindings(vulnsFound, dl)
 
 	score := checker.MaxResultScore - numVulnsFound
 
