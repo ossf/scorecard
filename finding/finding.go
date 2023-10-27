@@ -221,6 +221,13 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 	return f
 }
 
+// WithValues adds values to an existing finding.
+// No copy is made.
+func (f *Finding) WithValues(values map[string]int) *Finding {
+	f.Values = values
+	return f
+}
+
 // WithPatch adds a patch to an existing finding.
 // No copy is made.
 func (f *Finding) WithPatch(patch *string) *Finding {
