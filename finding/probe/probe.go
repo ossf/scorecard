@@ -141,7 +141,7 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errInvalid, err)
+		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
 	return &r, nil
 }
@@ -151,7 +151,7 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
 	// nolint:goconst

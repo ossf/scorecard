@@ -153,7 +153,7 @@ func (handler *tarballHandler) getTarball() error {
 	defer repoFile.Close()
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
 		// This can happen if the incoming tarball is corrupted/server gateway times out.
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 
 	handler.tempDir = tempDir
@@ -169,7 +169,7 @@ func (handler *tarballHandler) extractTarball() error {
 	}
 	gz, err := gzip.NewReader(in)
 	if err != nil {
-		return fmt.Errorf("%w: gzip.NewReader %v %v", errTarballCorrupted, handler.tempTarFile, err)
+		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
 	tr := tar.NewReader(gz)
 	for {
@@ -178,7 +178,7 @@ func (handler *tarballHandler) extractTarball() error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("%w tarReader.Next: %v", errTarballCorrupted, err)
+			return fmt.Errorf("%w tarReader.Next: %w", errTarballCorrupted, err)
 		}
 
 		switch header.Typeflag {
@@ -217,7 +217,7 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
-				return fmt.Errorf("%w io.Copy: %v", errTarballCorrupted, err)
+				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
 			handler.files = append(handler.files,
