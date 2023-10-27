@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package toolSonatypeLiftInstalled
+package contributorsFromOrgOrCompany
 
 import (
 	"testing"
@@ -22,9 +22,18 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+type User struct {
+	Login            string
+	Companies        []string
+	Organizations    []User
+	NumContributions int
+	ID               int64
+	IsBot            bool
+}
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
@@ -36,30 +45,20 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "tool present",
+			name: "Test that both User.Companies and User.Organizations are included",
 			raw: &checker.RawResults{
-				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
-					Tools: []checker.Tool{
+				ContributorsResults: checker.ContributorsData{
+					Users: []clients.User{
 						{
-							Name: "Sonatype Lift",
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
-		{
-			name: "multiple correct tools",
-			raw: &checker.RawResults{
-				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
-					Tools: []checker.Tool{
-						{
-							Name: "Sonatype Lift",
-						},
-						{
-							Name: "Sonatype Lift",
+							Companies: []string{"comp1", "comp2"},
+							Organizations: []clients.User{
+								{
+									Login:            "Login",
+									Companies:        []string{"comp3", "comp4"}, // These should not be included
+									NumContributions: 10,
+								},
+							},
+							NumContributions: 10,
 						},
 					},
 				},
@@ -67,33 +66,77 @@ func Test_Run(t *testing.T) {
 			outcomes: []finding.Outcome{
 				finding.OutcomePositive,
 				finding.OutcomePositive,
+				finding.OutcomePositive,
 			},
-		},
-		{
-			name: "different tool name",
+		}, {
+			name: "Test multiple users",
 			raw: &checker.RawResults{
-				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
-					Tools: []checker.Tool{
+				ContributorsResults: checker.ContributorsData{
+					Users: []clients.User{
 						{
-							Name: "not-Sonatype Lift",
+							Companies: []string{"comp1", "comp2"},
+							Organizations: []clients.User{
+								{
+									Login:            "Login1",
+									NumContributions: 10,
+								},
+							},
+							NumContributions: 10,
+						},
+						{
+							Companies: []string{"comp3", "comp4"},
+							Organizations: []clients.User{
+								{
+									Login:            "Login2",
+									NumContributions: 10,
+								},
+							},
+							NumContributions: 10,
 						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
 			},
-		},
-		{
-			name: "empty results",
-			raw:  &checker.RawResults{},
+		}, {
+			name: "Test multiple users where one user has insufficient contributions.",
+			raw: &checker.RawResults{
+				ContributorsResults: checker.ContributorsData{
+					Users: []clients.User{
+						{
+							Companies: []string{"comp1", "comp2"},
+							Organizations: []clients.User{
+								{
+									Login:            "Login1",
+									NumContributions: 10,
+								},
+							},
+							NumContributions: 10,
+						},
+						{
+							Companies: []string{"comp3", "comp4"},
+							Organizations: []clients.User{
+								{
+									Login:            "Login2",
+									NumContributions: 10,
+								},
+							},
+							NumContributions: 2,
+						},
+					},
+				},
+			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
 			},
-		},
-		{
-			name: "nil raw",
-			err:  uerror.ErrNil,
 		},
 	}
 	for _, tt := range tests {
@@ -101,13 +144,15 @@ func Test_Run(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
+			// TODO(#https://github.com/ossf/scorecard/issues/3472) Use common validation function.
 			findings, s, err := Run(tt.raw)
 			if !cmp.Equal(tt.err, err, cmpopts.EquateErrors()) {
 				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.err, err, cmpopts.EquateErrors()))
 			}
 			if err != nil {
-				return
+				t.Error(err)
 			}
+
 			if diff := cmp.Diff(Probe, s); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}

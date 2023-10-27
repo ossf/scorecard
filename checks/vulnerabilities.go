@@ -19,6 +19,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckVulnerabilities is the registered name for the OSV check.
@@ -45,9 +47,15 @@ func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.VulnerabilitiesResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.VulnerabilitiesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Vulnerabilities)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
-	return evaluation.Vulnerabilities(CheckVulnerabilities, c.Dlogger, &rawData)
+	return evaluation.Vulnerabilities(CheckVulnerabilities, findings, c.Dlogger)
 }

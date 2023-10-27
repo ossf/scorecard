@@ -16,138 +16,75 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v4/finding"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestContributors(t *testing.T) {
 	t.Parallel()
-	testCases := []struct {
+	tests := []struct {
 		name     string
-		raw      *checker.ContributorsData
-		expected checker.CheckResult
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "No data",
-			raw:  nil,
-			expected: checker.CheckResult{
-				Version: 2,
-				Score:   -1,
-				Reason:  "internal error: empty raw data",
+			name: "Only has two positive outcomes",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
 			},
-		},
-		{
+			result: scut.TestReturn{
+				Score:        6,
+				NumberOfInfo: 1,
+			},
+		}, {
 			name: "No contributors",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{},
-			},
-			expected: checker.CheckResult{
-				Version: 2,
-				Score:   0,
-				Reason:  "0 different organizations found -- score normalized to 0",
-			},
-		},
-		{
-			name: "Contributors with orgs and number of contributions is greater than 5 with companies",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org1",
-							},
-						},
-						Companies: []string{"company1"},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org3",
-							},
-						},
-					},
-					{
-						NumContributions: 1,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
-			expected: checker.CheckResult{
-				Version: 2,
-				Score:   10,
-				Reason:  "4 different organizations found -- score normalized to 10",
+			result: scut.TestReturn{
+				Score: 0,
 			},
-		},
-		{
-			name: "Contributors with orgs and number of contributions is greater than 5 without companies",
-			raw: &checker.ContributorsData{
-				Users: []clients.User{
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org1",
-							},
-						},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org2",
-							},
-						},
-					},
-					{
-						NumContributions: 10,
-						Organizations: []clients.User{
-							{
-								Login: "org3",
-							},
-						},
-					},
-					{
-						NumContributions: 1,
-						Organizations: []clients.User{
-							{
-								Login: "org10",
-							},
-						},
-					},
+		}, {
+			name: "Has three positive outcomes",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			expected: checker.CheckResult{
-				Version: 2,
-				Score:   10,
-				Reason:  "3 different organizations found -- score normalized to 10",
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
 			},
 		},
 	}
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := Contributors("", &utests.TestDetailLogger{}, tc.raw)
-			if !cmp.Equal(result, tc.expected, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:govet
-				t.Errorf("expected %v, got %v", tc.expected, cmp.Diff(tc.expected, result, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := Contributors(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Error(tt.name)
 			}
 		})
 	}

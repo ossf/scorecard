@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -84,10 +85,10 @@ func (handler *branchesHandler) setup() error {
 		if branch.Protected {
 			protectedBranch, resp, err := handler.getProtectedBranch(
 				handler.repourl.projectID, branch.Name)
-			if err != nil && resp.StatusCode != 403 {
+			if err != nil && resp.StatusCode != http.StatusForbidden {
 				handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
 				return
-			} else if resp.StatusCode == 403 {
+			} else if resp.StatusCode == http.StatusForbidden {
 				handler.errSetup = fmt.Errorf("incorrect permissions to fully check branch protection %w", err)
 				return
 			}
