@@ -120,6 +120,7 @@ func TestRisk_GreaterThan(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.r.GreaterThan(tt.rr); got != tt.want {
 				t.Errorf("Risk.GreaterThan() = %v, want %v", got, tt.want)
 			}
@@ -170,6 +171,7 @@ func TestRisk_String(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.r.String(); got != tt.want {
 				t.Errorf("Risk.String() = %v, want %v", got, tt.want)
 			}
@@ -215,6 +217,7 @@ func TestRemediationEffort_String(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.effort.String(); got != tt.want {
 				t.Errorf("RemediationEffort.String() = %v, want %v", got, tt.want)
 			}
@@ -261,6 +264,7 @@ func TestRisk_UnmarshalYAML(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var r Risk
 			err := yaml.Unmarshal([]byte(tt.input), &r)
 			if err != nil {
@@ -305,6 +309,7 @@ func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var r RemediationEffort
 			err := yaml.Unmarshal([]byte(tt.input), &r)
 			if err != nil {
@@ -353,6 +358,7 @@ func Test_validate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := validate(tt.rule)
 			if err != nil {
 				if tt.wantErr == nil || !cmp.Equal(tt.wantErr.Error(), err.Error()) {

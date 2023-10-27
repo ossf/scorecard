@@ -120,6 +120,7 @@ func TestOptions_AddFlags(t *testing.T) {
 }
 
 func TestOptions_AddFlags_ChecksToRun(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		opts     *Options
