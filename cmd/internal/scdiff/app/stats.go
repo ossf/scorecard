@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/exp/slices"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/pkg"

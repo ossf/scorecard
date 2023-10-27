@@ -22,11 +22,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"golang.org/x/exp/slices"
 
 	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 )

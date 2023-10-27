@@ -17,12 +17,12 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
-	"golang.org/x/exp/slices"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"

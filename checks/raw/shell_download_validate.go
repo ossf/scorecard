@@ -23,9 +23,9 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 
-	"golang.org/x/exp/slices"
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/ossf/scorecard/v4/checker"
