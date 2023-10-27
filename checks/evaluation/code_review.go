@@ -16,7 +16,6 @@ package evaluation
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -74,7 +73,7 @@ func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData)
 		return checker.CreateProportionalScoreResult(
 			name,
 			fmt.Sprintf("found %d unreviewed changesets out of %d", nUnreviewedChanges, nChanges),
-			int(math.Max(float64(nChanges-nUnreviewedChanges), 0)),
+			max(nChanges-nUnreviewedChanges, 0),
 			nChanges,
 		)
 	}

@@ -107,7 +107,7 @@ func CreateProportionalScore(success, total int) int {
 		return 0
 	}
 
-	return int(math.Min(float64(MaxResultScore*success/total), float64(MaxResultScore)))
+	return min(MaxResultScore*success/total, MaxResultScore)
 }
 
 // CreateProportionalScoreWeighted creates the proportional score
@@ -141,7 +141,7 @@ func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, 
 		return MaxResultScore, nil
 	}
 
-	return int(math.Min(float64(MaxResultScore*ws/wt), float64(MaxResultScore))), nil
+	return min(MaxResultScore*ws/wt, MaxResultScore), nil
 }
 
 // AggregateScores adds up all scores
