@@ -803,10 +803,12 @@ func Test_PinningDependencies(t *testing.T) {
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
 				},
 				{
 					Location: &checker.File{},
 					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
 				},
 			},
 			incomplete: []error{
@@ -814,9 +816,9 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         8,
-				NumberOfWarn:  2,
-				NumberOfInfo:  8, // 7 for all but npm, +1 for skipped job
+				Score:         0,
+				NumberOfWarn:  2, // unpinned deps
+				NumberOfInfo:  2, // 1 for npm deps, 1 for skipped job
 				NumberOfDebug: 0,
 			},
 		},
