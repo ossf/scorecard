@@ -65,11 +65,9 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
 
-	for i := range r.Incomplete {
-		skipped := r.Incomplete[i]
+	for _, incomplete := range r.Incomplete {
 		dl.Info(&checker.LogMessage{
-			Text: generateTextIncompleteResults(skipped),
-			Type: finding.FileTypeSource,
+			Text: generateTextIncompleteResults(incomplete),
 		})
 	}
 
