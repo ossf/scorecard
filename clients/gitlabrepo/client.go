@@ -62,8 +62,7 @@ var errRepoAccess = errors.New("repo inaccessible")
 
 // Raise an error if repository access level is private or disabled.
 func checkRepoInaccessible(repo *gitlab.Project) error {
-	if (repo.RepositoryAccessLevel == gitlab.PrivateAccessControl) ||
-		(repo.RepositoryAccessLevel == gitlab.DisabledAccessControl) {
+	if repo.RepositoryAccessLevel == gitlab.DisabledAccessControl {
 		return fmt.Errorf("%w: %s access level %s",
 			errRepoAccess, repo.PathWithNamespace, string(repo.RepositoryAccessLevel),
 		)
@@ -81,7 +80,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Sanity check.
 	proj := fmt.Sprintf("%s/%s", glRepo.owner, glRepo.project)
-	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{})
+	license := true // Get project license information. Used for licenses client.
+	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{License: &license})
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
@@ -107,7 +107,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 
 	if repo.Owner != nil {
-		client.repourl.owner = repo.Owner.Name
+		client.repourl.owner = repo.Owner.Username
 	}
 
 	// Init contributorsHandler
@@ -162,7 +162,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.projectID)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
 }
 
 func (client *Client) LocalPath() (string, error) {

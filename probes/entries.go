@@ -20,6 +20,25 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
+	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
+	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
+	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -27,7 +46,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -50,7 +68,35 @@ var (
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,
 		toolPyUpInstalled.Run,
-		toolSonatypeLiftInstalled.Run,
+	}
+	Fuzzing = []ProbeImpl{
+		fuzzedWithOSSFuzz.Run,
+		fuzzedWithOneFuzz.Run,
+		fuzzedWithGoNative.Run,
+		fuzzedWithPythonAtheris.Run,
+		fuzzedWithCLibFuzzer.Run,
+		fuzzedWithCppLibFuzzer.Run,
+		fuzzedWithSwiftLibFuzzer.Run,
+		fuzzedWithRustCargofuzz.Run,
+		fuzzedWithJavaJazzerFuzzer.Run,
+		fuzzedWithClusterFuzzLite.Run,
+		fuzzedWithPropertyBasedHaskell.Run,
+		fuzzedWithPropertyBasedTypescript.Run,
+		fuzzedWithPropertyBasedJavascript.Run,
+	}
+	Packaging = []ProbeImpl{
+		packagedWithAutomatedWorkflow.Run,
+	}
+	License = []ProbeImpl{
+		hasLicenseFile.Run,
+		hasFSFOrOSIApprovedLicense.Run,
+		hasLicenseFileAtTopDir.Run,
+	}
+	Contributors = []ProbeImpl{
+		contributorsFromOrgOrCompany.Run,
+	}
+	Vulnerabilities = []ProbeImpl{
+		hasOSVVulnerabilities.Run,
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
@@ -64,6 +110,9 @@ func init() {
 		DependencyToolUpdates,
 		CodeReview,
 		SecurityPolicy,
+		Fuzzing,
+		License,
+		Contributors,
 	})
 }
 

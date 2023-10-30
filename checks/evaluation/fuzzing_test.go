@@ -16,79 +16,214 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint
-		name string
-		dl   checker.DetailLogger
-		r    *checker.FuzzingData
-	}
 	tests := []struct {
-		name string
-		args args
-		want checker.CheckResult
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
 			name: "Fuzzing - no fuzzing",
-			args: args{
-				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.FuzzingData{},
-			},
-			want: checker.CheckResult{
-				Score:   0,
-				Name:    "Fuzzing",
-				Version: 2,
-				Reason:  "project is not fuzzed",
-			},
-		},
-		{
-			name: "Fuzzing - fuzzing",
-			args: args{
-				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "Fuzzing",
-							Files: []checker.File{
-								{
-									Path:    "Fuzzing",
-									Type:    0,
-									Offset:  1,
-									Snippet: "Fuzzing",
-								},
-							},
-						},
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "fuzzedWithClusterFuzzLite",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithGoNative",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithSwiftLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOneFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOSSFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedHaskell",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedJavascript",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedTypescript",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score:   10,
-				Name:    "Fuzzing",
-				Version: 2,
-				Reason:  "project is fuzzed with [Fuzzing]",
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 13,
 			},
 		},
 		{
-			name: "Fuzzing - fuzzing data nil",
-			args: args{
-				name: "Fuzzing",
-				dl:   &scut.TestDetailLogger{},
-				r:    nil,
+			name: "Fuzzing - fuzzing GoNative",
+			findings: []finding.Finding{
+				{
+					Probe:   "fuzzedWithClusterFuzzLite",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithGoNative",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "fuzzedWithPythonAtheris",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithCppLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithRustCargofuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithSwiftLibFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithJavaJazzerFuzzer",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOneFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOSSFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedHaskell",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedJavascript",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedTypescript",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
-			want: checker.CheckResult{
-				Score:   -1,
-				Name:    "Fuzzing",
-				Version: 2,
-				Reason:  "internal error: empty raw data",
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
+			},
+		},
+
+		{
+			name: "Fuzzing - fuzzing missing GoNative finding",
+			findings: []finding.Finding{
+				{
+					Probe:   "fuzzedWithClusterFuzzLite",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOneFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOSSFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedHaskell",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedJavascript",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedTypescript",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "Fuzzing - fuzzing invalid probe name",
+			findings: []finding.Finding{
+				{
+					Probe:   "fuzzedWithClusterFuzzLite",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithGoNative",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "fuzzedWithOneFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithOSSFuzz",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedHaskell",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedJavascript",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithPropertyBasedTypescript",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "fuzzedWithInvalidProbeName",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
@@ -96,8 +231,10 @@ func TestFuzzing(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := Fuzzing(tt.args.name, tt.args.dl, tt.args.r); !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) { //nolint:lll
-				t.Errorf("Fuzzing() = %v, want %v", got, cmp.Diff(got, tt.want, cmpopts.IgnoreFields(checker.CheckResult{}, "Error"))) //nolint:lll
+			dl := scut.TestDetailLogger{}
+			got := Fuzzing(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

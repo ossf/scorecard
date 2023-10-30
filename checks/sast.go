@@ -36,7 +36,12 @@ const CheckSAST = "SAST"
 
 var errInvalid = errors.New("invalid")
 
-var sastTools = map[string]bool{"github-code-scanning": true, "lgtm-com": true, "sonarcloud": true}
+var sastTools = map[string]bool{
+	"github-advanced-security": true,
+	"github-code-scanning":     true,
+	"lgtm-com":                 true,
+	"sonarcloud":               true,
+}
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
@@ -81,7 +86,7 @@ func SAST(c *checker.CheckRequest) checker.CheckResult {
 	// We assume the CodeQl config uses a cron and is not enabled as pre-submit.
 	// TODO: verify the above comment in code.
 	// We encourage developers to have sast check run on every pre-submit rather
-	// than as cron jobs thru the score computation below.
+	// than as cron jobs through the score computation below.
 	// Warning: there is a hidden assumption that *any* sast tool is equally good.
 	if sastScore != checker.InconclusiveResultScore &&
 		codeQlScore != checker.InconclusiveResultScore {

@@ -352,7 +352,7 @@ func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
 
 // Scanning tool run externally and SARIF file uploaded.
 func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
-	// TODO: some third party tools may upload directly thru their actions.
+	// TODO: some third party tools may upload directly through their actions.
 	// Very unlikely.
 	// See https://github.com/marketplace for tools.
 	return isAllowedWorkflow(workflow, fp, pdata)
@@ -473,7 +473,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			// Commonly JavaScript packages, but supports multiple ecosystems
 			Steps: []*fileparser.JobMatcherStep{
 				{
-					Run: "npx.*semantic-release",
+					Run: "(npx|pnpm|yarn).*semantic-release",
 				},
 			},
 			LogText: "candidate publishing workflow using semantic-release",

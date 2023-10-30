@@ -59,7 +59,8 @@ Allowed by Scorecard:
 Risk: `High` (vulnerable to intentional malicious code injection)
 
 This check determines whether a project's default and release branches are
-protected with GitHub's [branch protection](https://docs.github.com/en/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) settings.
+protected with GitHub's [branch protection](https://docs.github.com/github/administering-a-repository/defining-the-mergeability-of-pull-requests/about-protected-branches) 
+or [repository rules](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) settings.
 Branch protection allows maintainers to define rules that enforce
 certain workflows for branches, such as requiring review or passing certain
 status checks before acceptance into a main branch, or preventing rewriting of
@@ -68,8 +69,9 @@ public history.
 Note: The following settings queried by the Branch-Protection check require an admin token: `DismissStaleReviews`, `EnforceAdmins`, `RequireLastPushApproval`, `RequiresStatusChecks` and `UpToDateBeforeMerge`. If
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
-Even so, we recommend using a non-admin token, which provides a thorough enough
-result to meet most user needs.
+However, all of these settings are accessible via Repo Rules. `EnforceAdmins` is calculated slightly differently.
+This setting is calculated as `false` if any [Bypass Actors](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#granting-bypass-permissions-for-your-ruleset)
+ are defined on any rule, regardless of if they are admins.
 
 Different types of branch protection protect against different risks:
 
@@ -81,7 +83,7 @@ Different types of branch protection protect against different risks:
 
     - requiring two or more reviewers protects even more from the insider risk 
     whereby a compromised contributor can be used by an attacker to LGTM 
-    the attacker PR and inject a malicious code as if it was legitm.
+    the attacker PR and inject a malicious code as if it was legit.
 
   - Prevent force push: prevents use of the `--force` command on public
     branches, which overwrites code irrevocably. This protection prevents the
@@ -107,7 +109,6 @@ Note: If Scorecard is run without an administrative access token, the requiremen
 Tier 1 Requirements (3/10 points):
   - Prevent force push
   - Prevent branch deletion
-  - For administrators: Include administrator for review
 
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging
@@ -123,6 +124,7 @@ Tier 4 Requirements (9/10 points):
 
 Tier 5 Requirements (10/10 points):
   - For administrators: Dismiss stale reviews and approvals when new commits are pushed
+  - For administrators: Include administrator for review
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
@@ -165,17 +167,17 @@ If a project's system was not detected and you think it should be, please
 
 Risk: `Low` (possibly not following security best practices)
 
-This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://bestpractices.coreinfrastructure.org/) at the passing, silver, or gold level.
+This check determines whether the project has earned an [OpenSSF (formerly CII) Best Practices Badge](https://www.bestpractices.dev/) at the passing, silver, or gold level.
 The OpenSSF Best Practices badge indicates whether or not that the project uses a set of security-focused best development practices for open
 source software. The check uses the URL for the Git repo and the OpenSSF Best Practices badge API.
 
 The OpenSSF Best Practices badge has 3 tiers: passing, silver, and gold. We give
-full credit to projects that meet the [gold criteria](https://bestpractices.coreinfrastructure.org/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
+full credit to projects that meet the [gold criteria](https://www.bestpractices.dev/criteria/2), which is a significant achievement for projects and requires multiple developers in the project.
 Lower scores represent a project that has met the silver criteria, met the passing criteria, or is working to achieve the passing badge, with increasingly more points awarded as more criteria are met. Note that even meeting the passing criteria is a significant achievement.
 
-- [gold badge](https://bestpractices.coreinfrastructure.org/criteria/2): 10
-- [silver badge](https://bestpractices.coreinfrastructure.org/criteria/1): 7
-- [passing badge](https://bestpractices.coreinfrastructure.org/criteria/0): 5
+- [gold badge](https://www.bestpractices.dev/criteria/2): 10
+- [silver badge](https://www.bestpractices.dev/criteria/1): 7
+- [passing badge](https://www.bestpractices.dev/criteria/0): 5
 - in progress badge: 2
 
 Some of these criteria overlap with other Scorecard checks.
@@ -183,7 +185,7 @@ However, note that in those overlapping cases, Scorecard can only report what it
  
 
 **Remediation steps**
-- Sign up for the [OpenSSF Best Practices program](https://bestpractices.coreinfrastructure.org/).
+- Sign up for the [OpenSSF Best Practices program](https://www.bestpractices.dev/).
 
 ## Code-Review 
 
@@ -308,7 +310,6 @@ This check tries to determine if the project uses a dependency update tool,
 specifically one of:
 - [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
 - [Renovate bot](https://docs.renovatebot.com/configuration-options/)
-- [Sonatype Lift](https://help.sonatype.com/lift/getting-started)
 - [PyUp](https://docs.pyup.io/docs) (Python)
 Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
@@ -327,7 +328,7 @@ low score is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
-- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without aditional manual effort.
+- Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without additional manual effort.
 
 ## Fuzzing 
 
@@ -597,6 +598,8 @@ This check looks for the following filenames in the project's last five
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+
+This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
 Note: The check does not verify the signatures.
  

@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -28,9 +29,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 	tests := []struct {
 		name     string
 		findings []finding.Finding
-		err      bool
-		want     checker.CheckResult
-		expected scut.TestReturn
+		result   scut.TestReturn
 	}{
 		{
 			name: "dependabot",
@@ -47,13 +46,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
-			want: checker.CheckResult{
-				Score: 10,
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -71,13 +67,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomePositive,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
-			want: checker.CheckResult{
-				Score: 10,
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -95,37 +88,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolRenovateInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
-			want: checker.CheckResult{
-				Score: 10,
-			},
-		},
-		{
-			name: "sonatype",
-			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-			},
-			want: checker.CheckResult{
-				Score: 10,
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -143,19 +109,52 @@ func TestDependencyUpdateTool(t *testing.T) {
 					Probe:   "toolPyUpInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "toolSonatypeLiftInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
-			want: checker.CheckResult{
-				Score: 0,
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 3,
 			},
 		},
 		{
-			name: "empty tool list",
-			want: checker.CheckResult{
-				Score: -1,
+			name: "missing probes renovate",
+			findings: []finding.Finding{
+				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "invalid probe name",
+			findings: []finding.Finding{
+				{
+					Probe:   "toolDependabotInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolRenovateInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolPyUpInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "toolInvalidProbeName",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
@@ -164,13 +163,10 @@ func TestDependencyUpdateTool(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := DependencyUpdateTool(tt.name, tt.findings)
-			if tt.want.Score != got.Score {
-				t.Errorf("DependencyUpdateTool() got Score = %v, want %v for %v", got.Score, tt.want.Score, tt.name)
-			}
-			if tt.err && got.Error == nil {
-				t.Errorf("DependencyUpdateTool() error = %v, want %v for %v", got.Error, tt.want.Error, tt.name)
-				return
+			dl := scut.TestDetailLogger{}
+			got := DependencyUpdateTool(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

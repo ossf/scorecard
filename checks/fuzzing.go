@@ -19,6 +19,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckFuzzing is the registered name for Fuzzing.
@@ -41,9 +43,16 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.FuzzingResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.FuzzingResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Fuzzing)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
 	}
 
-	return evaluation.Fuzzing(CheckFuzzing, c.Dlogger, &rawData)
+	// Return the score evaluation.
+	return evaluation.Fuzzing(CheckFuzzing, findings, c.Dlogger)
 }

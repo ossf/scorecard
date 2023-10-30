@@ -19,6 +19,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
@@ -130,8 +131,10 @@ func TestContributors(t *testing.T) {
 	}
 
 	mockRepoClient.EXPECT().ListContributors().Return(contributors, nil)
-
-	data, err := Contributors(mockRepoClient)
+	req := &checker.CheckRequest{
+		RepoClient: mockRepoClient,
+	}
+	data, err := Contributors(req)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

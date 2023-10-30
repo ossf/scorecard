@@ -45,7 +45,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITLAB_AUTH_TOKEN")},
 	)
-	handler.client = oauth2.NewClient(context.Background(), src)
+	handler.client = oauth2.NewClient(ctx, src)
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("%s/api/graphql", repourl.Host()), handler.client)
 }
 

@@ -63,6 +63,12 @@ const (
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
 
+	// FlagResultsFile is the flag name for specifying output file.
+	FlagResultsFile = "output"
+
+	// ShorthandFlagResultsFile is the shorthand flag name for specifying output file.
+	ShorthandFlagResultsFile = "o"
+
 	FlagCommitDepth = "commit-depth"
 )
 
@@ -187,5 +193,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 			"output format. Possible values are: %s",
 			strings.Join(allowedFormats, ", "),
 		),
+	)
+
+	cmd.Flags().StringVarP(
+		&o.ResultsFile,
+		FlagResultsFile,
+		ShorthandFlagResultsFile,
+		o.ResultsFile,
+		"output file",
 	)
 }

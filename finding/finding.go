@@ -84,6 +84,12 @@ const (
 	_
 	// OutcomeNotSupported indicates a non-supported outcome.
 	OutcomeNotSupported
+	_
+	_
+	_
+	// OutcomeNotApplicable indicates if a finding should not
+	// be considered in evaluation.
+	OutcomeNotApplicable
 )
 
 // Finding represents a finding.
@@ -94,6 +100,7 @@ type Finding struct {
 	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
+	Values      map[string]int     `json:"values,omitempty"`
 }
 
 // AnonymousFinding is a finding without a corerpsonding probe ID.
@@ -149,19 +156,19 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-// NewWith create a negative finding with the desried location.
+// NewWith create a negative finding with the desired location.
 func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNegative)
 }
 
-// NewNotAvailable create a finding with a NotAvailable outcome and the desried location.
+// NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
 func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desried location.
+// NewPositive create a positive finding with the desired location.
 func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomePositive)
@@ -211,6 +218,13 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
 			"${{ finding.location.path }}", f.Location.Path, -1)
 	}
+	return f
+}
+
+// WithValues sets the values to an existing finding.
+// No copy is made.
+func (f *Finding) WithValues(values map[string]int) *Finding {
+	f.Values = values
 	return f
 }
 
@@ -269,6 +283,8 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 		*o = OutcomeNotAvailable
 	case "NotSupported":
 		*o = OutcomeNotSupported
+	case "NotApplicable":
+		*o = OutcomeNotApplicable
 	case "Error":
 		*o = OutcomeError
 	default:

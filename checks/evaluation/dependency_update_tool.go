@@ -21,18 +21,17 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 )
 
-// DependencyUpdateTool applies the score policy for the Dependency-Update-Tool check.
+// DependencyUpdateTool applies the score policy and logs the details
+// for the Dependency-Update-Tool check.
 func DependencyUpdateTool(name string,
-	findings []finding.Finding,
+	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		toolDependabotInstalled.Probe,
 		toolPyUpInstalled.Probe,
 		toolRenovateInstalled.Probe,
-		toolSonatypeLiftInstalled.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -42,9 +41,13 @@ func DependencyUpdateTool(name string,
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
+			// Log all findings except the negative ones.
+			checker.LogFindings(nonNegativeFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "update tool detected")
 		}
 	}
 
+	// Log all findings.
+	checker.LogFindings(findings, dl)
 	return checker.CreateMinScoreResult(name, "no update tool detected")
 }

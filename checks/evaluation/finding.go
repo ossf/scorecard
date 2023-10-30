@@ -12,10 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package utils
+package evaluation
 
 import (
-	"errors"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
-var ErrNil = errors.New("nil pointer")
+func nonNegativeFindings(findings []finding.Finding) []finding.Finding {
+	var ff []finding.Finding
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			continue
+		}
+		ff = append(ff, *f)
+	}
+	return ff
+}
+
+func negativeFindings(findings []finding.Finding) []finding.Finding {
+	var ff []finding.Finding
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			ff = append(ff, *f)
+		}
+	}
+	return ff
+}

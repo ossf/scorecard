@@ -34,7 +34,7 @@ const (
 )
 
 // BadgeLevel corresponds to CII-Best-Practices badge levels.
-// https://bestpractices.coreinfrastructure.org/en
+// https://www.bestpractices.dev/en
 type BadgeLevel uint
 
 // String returns a string value for BadgeLevel enum.

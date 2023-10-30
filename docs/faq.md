@@ -25,7 +25,11 @@ This page answers frequently asked questions about Scorecard, including its purp
 
 Yes.
 
-Over a million projects are automatically tracked by the Scorecard project. These projects' scores can be seen at https://api.securityscorecards.dev/projects/github.com/<username_or_org>/<repository_name>.
+Over a million projects are automatically tracked by the Scorecard project. Use the webviewer to see these scores, replacing the placeholder text with the platform, user/org, and repository name: https://securityscorecards.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
+
+For example: 
+ - [https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
+ - [https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient](https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient)
 
 You can also use the CLI to generate scores for any public repository by following these steps:
 
@@ -39,7 +43,7 @@ Most code scanning tools are focused on detecting specific vulnerabilities alrea
 
 ### Wasn't this project called "Scorecards" (plural)?
 
-Yes, kind of. The project was initially called "Security Scorecards" but that form wasn't used consistently. In particular, the repo was named "scorecard" and so was the program. Over time people started referring to either form (singular and plural) and the inconsitency became prevalent. To end this situation the decision was made to consolidate over the use of the singular form in keeping with the repo and program name, drop the "Security" part and use "OpenSSF" instead to ensure uniqueness. One should therefore refer to this project as "OpenSSF Scorecard" or "Scorecard" for short.
+Yes, kind of. The project was initially called "Security Scorecards" but that form wasn't used consistently. In particular, the repo was named "scorecard" and so was the program. Over time people started referring to either form (singular and plural) and the inconsistency became prevalent. To end this situation the decision was made to consolidate over the use of the singular form in keeping with the repo and program name, drop the "Security" part and use "OpenSSF" instead to ensure uniqueness. One should therefore refer to this project as "OpenSSF Scorecard" or "Scorecard" for short.
 
 ## Check-specific Questions
 
@@ -51,7 +55,7 @@ While it isn't currently possible to allowlist such binaries, the Scorecard team
 
 ### Code-Review: Can it ignore bot commits?
 
-This is quite a complex question. Right now, there is no way to do that. Here are some pros and cons on allowing users to set up an ignore-list for bots.
+This is quite a complex question. Right now, there is no way to do that. Here are some pros and cons of allowing users to set up an ignore-list for bots.
 
 - Pros: Some bots run very frequently; for some projects, reviewing every change is therefore not feasible or reasonable.
 - Cons: Bots can be compromised (their credentials can be compromised, for example). Or if commits are not signed, an attacker could easily send a commit spoofing the bot. This means that a bot having unsupervised write access to the repository could be a security risk.
