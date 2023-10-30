@@ -27,6 +27,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/remediation"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -187,10 +189,20 @@ func isDockerfile(pathfn string, content []byte) bool {
 }
 
 func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
 	}, validateDockerfilesPinning, r)
+	if err != nil {
+		return err
+	}
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+	for i := range r.Dependencies {
+		rr := r.Dependencies[i]
+		rr.Remediation = generateRemediation(remediationMetadata, &rr)
+	}
+	return nil
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -317,10 +329,21 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 }
 
 func collectGitHubWorkflowScriptInsecureDownloads(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
 	}, validateGitHubWorkflowIsFreeOfInsecureDownloads, r)
+	if err != nil {
+		return err
+	}
+
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+	for i := range r.Dependencies {
+		rr := r.Dependencies[i]
+		rr.Remediation = generateRemediation(remediationMetadata, &rr)
+	}
+	return nil
 }
 
 // validateGitHubWorkflowIsFreeOfInsecureDownloads checks if the workflow file downloads dependencies that are unpinned.
@@ -507,4 +530,15 @@ func isActionDependencyPinned(actionUses string) bool {
 
 	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
 	return dockerhubActionRegex.MatchString(actionUses)
+}
+
+func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
+	switch rr.Type {
+	case checker.DependencyUseTypeGHAction:
+		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
+	case checker.DependencyUseTypeDockerfileContainerImage:
+		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+	default:
+		return nil
+	}
 }

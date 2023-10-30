@@ -20,8 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/remediation"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 type pinnedResult struct {
@@ -62,8 +60,6 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	var wp worklowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
-	//nolint:errcheck
-	remediationMetadata, _ := remediation.New(c)
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
@@ -107,7 +103,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				EndOffset:   rr.Location.EndOffset,
 				Text:        generateText(&rr),
 				Snippet:     rr.Location.Snippet,
-				Remediation: generateRemediation(remediationMetadata, &rr),
+				Remediation: rr.Remediation,
 			})
 		}
 		// Update the pinning status.
@@ -146,17 +142,6 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 
 	return checker.CreateProportionalScoreResult(name,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
-}
-
-func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
-	switch rr.Type {
-	case checker.DependencyUseTypeGHAction:
-		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
-	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
-	default:
-		return nil
-	}
 }
 
 func updatePinningResults(rr *checker.Dependency,
