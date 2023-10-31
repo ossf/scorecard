@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package wasCreatedInLast90Days
+package notCreatedInLast90Days
 
 import (
 	"testing"

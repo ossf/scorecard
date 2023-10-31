@@ -43,6 +43,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/notCreatedInLast90Days"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
@@ -51,7 +52,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/wasCreatedInLast90Days"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -116,7 +116,7 @@ var (
 		notArchived.Run,
 		commitsInLast90Days.Run,
 		issueActivityByProjectMember.Run,
-		wasCreatedInLast90Days.Run,
+		notCreatedInLast90Days.Run,
 	}
 )
 

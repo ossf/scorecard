@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package wasCreatedInLast90Days
+package notCreatedInLast90Days
 
 import (
 	"embed"
@@ -32,7 +32,7 @@ const (
 	lookBackDays = 90
 )
 
-const Probe = "wasCreatedInLast90Days"
+const Probe = "notCreatedInLast90Days"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
