@@ -20,9 +20,8 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days"
 	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
-	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/wasCreatedInLast90Days"
 )
@@ -40,7 +39,7 @@ func Maintained(name string,
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		notArchived.Probe,
-		activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Probe,
+		issueActivityByProjectMember.Probe,
 		commitsInLast90Days.Probe,
 		wasCreatedInLast90Days.Probe,
 	}
@@ -67,7 +66,7 @@ func Maintained(name string,
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
-			case activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Probe:
+			case issueActivityByProjectMember.Probe:
 				issuesUpdatedWithinThreshold++
 			case commitsInLast90Days.Probe:
 				commitsWithinThreshold++

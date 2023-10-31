@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days
+package issueActivityByProjectMember
 
 import (
 	"embed"
@@ -33,7 +33,7 @@ const (
 	lookBackDays = 90
 )
 
-const Probe = "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days"
+const Probe = "issueActivityByProjectMember"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days
+package issueActivityByProjectMember
 
 import (
 	"testing"

@@ -38,7 +38,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "commitsInLast90Days",
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomePositive,
 				}, {
 					Probe:   "notArchived",
@@ -59,7 +59,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "commitsInLast90Days",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "notArchived",
@@ -80,7 +80,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "commitsInLast90Days",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "archvied", /*misspelling*/
@@ -102,7 +102,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "commitsInLast90Days",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days",
+					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "notArchived",
@@ -114,7 +114,7 @@ func TestMaintained(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        0,
-				NumberOfInfo: 1,
+				NumberOfWarn: 3,
 			},
 		},
 	}

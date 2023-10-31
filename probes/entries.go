@@ -17,10 +17,9 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days"
-	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
@@ -42,7 +41,9 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -50,7 +51,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolSonatypeLiftInstalled"
 	"github.com/ossf/scorecard/v4/probes/wasCreatedInLast90Days"
 )
 
@@ -115,7 +115,7 @@ var (
 	Maintained = []ProbeImpl{
 		notArchived.Run,
 		commitsInLast90Days.Run,
-		activityOnIssuesByCollaboratorsMembersOrOwnersInLast90Days.Run,
+		issueActivityByProjectMember.Run,
 		wasCreatedInLast90Days.Run,
 	}
 )
