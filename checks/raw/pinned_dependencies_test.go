@@ -1463,10 +1463,17 @@ func TestCollectDockerfilePinning(t *testing.T) {
 		name                string
 		filename            string
 		outcomeDependencies []checker.Dependency
+		expectError         bool
 	}{
 		{
-			name:     "Pinned dockerfile",
-			filename: "./testdata/Dockerfile-pinned",
+			name:        "Pinned dockerfile",
+			filename:    "./testdata/.github/workflows/github-workflow-download-lines.yaml",
+			expectError: true,
+		},
+		{
+			name:        "Pinned dockerfile",
+			filename:    "./testdata/Dockerfile-pinned",
+			expectError: false,
 			outcomeDependencies: []checker.Dependency{
 				{
 					Name:     stringAsPointer("python"),
@@ -1484,8 +1491,9 @@ func TestCollectDockerfilePinning(t *testing.T) {
 			},
 		},
 		{
-			name:     "Non-pinned dockerfile",
-			filename: "./testdata/Dockerfile-not-pinned",
+			name:        "Non-pinned dockerfile",
+			filename:    "./testdata/Dockerfile-not-pinned",
+			expectError: false,
 			outcomeDependencies: []checker.Dependency{
 				{
 					Name:     stringAsPointer("python"),
@@ -1536,7 +1544,9 @@ func TestCollectDockerfilePinning(t *testing.T) {
 			var r checker.PinningDependenciesData
 			err := collectDockerfilePinning(&req, &r)
 			if err != nil {
-				t.Error(err.Error())
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
 			}
 			for i := range tt.outcomeDependencies {
 				outcomeDependency := &tt.outcomeDependencies[i]
@@ -1556,10 +1566,17 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 		name                string
 		filename            string
 		outcomeDependencies []checker.Dependency
+		expectError         bool
 	}{
 		{
-			name:     "Pinned workflow",
-			filename: ".github/workflows/workflow-pinned.yaml",
+			name:        "Pinned dockerfile",
+			filename:    "Dockerfile-empty",
+			expectError: true,
+		},
+		{
+			name:        "Pinned workflow",
+			filename:    ".github/workflows/workflow-pinned.yaml",
+			expectError: false,
 			outcomeDependencies: []checker.Dependency{
 				{
 					Name:     stringAsPointer("actions/checkout"),
@@ -1584,8 +1601,9 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			},
 		},
 		{
-			name:     "Non-pinned workflow",
-			filename: ".github/workflows/workflow-not-pinned.yaml",
+			name:        "Non-pinned workflow",
+			filename:    ".github/workflows/workflow-not-pinned.yaml",
+			expectError: false,
 			outcomeDependencies: []checker.Dependency{
 				{
 					Name:     stringAsPointer("actions/checkout"),
@@ -1637,7 +1655,9 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			var r checker.PinningDependenciesData
 			err := collectGitHubActionsWorkflowPinning(&req, &r)
 			if err != nil {
-				t.Error(err.Error())
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
 			}
 			t.Log(r.Dependencies)
 			for i := range tt.outcomeDependencies {
