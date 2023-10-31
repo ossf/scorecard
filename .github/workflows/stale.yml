@@ -38,6 +38,8 @@ jobs:
         stale-pr-message: 'Stale pull request message'
         stale-issue-label: 'no-issue-activity'
         exempt-issue-labels: 'priority,bug,good first issue'
+        exempt-issue-milestones: 'Structured results'
+        stale-pr-label: 'no-pr-activity'
         stale-pr-label: 'no-pr-activity'
         exempt-pr-labels: 'awaiting-approval,work-in-progress'
         days-before-pr-stale: '10'
