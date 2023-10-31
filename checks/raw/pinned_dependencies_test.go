@@ -17,6 +17,7 @@ package raw
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -1530,6 +1531,94 @@ func TestCollectDockerfilePinning(t *testing.T) {
 			if err != nil {
 				t.Error(err.Error())
 			}
+			for i := range tt.outcomeDependencies {
+				outcomeDependency := &tt.outcomeDependencies[i]
+				depend := &r.Dependencies[i]
+				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
+					t.Errorf("mismatch (-want +got):\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+// TestCollectGitHubActionsWorkflowPinning tests the collectGitHubActionsWorkflowPinning function.
+func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		filename            string
+		outcomeDependencies []checker.Dependency
+	}{
+		{
+			name:     "Pinned workflow",
+			filename: ".github/workflows/workflow-pinned.yaml",
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("actions/checkout"),
+					PinnedAt: stringAsPointer("daadedc81d5f9d3c06d2c92f49202a3cc2b919ba"),
+					Location: &checker.File{
+						Path:      ".github/workflows/workflow-pinned.yaml",
+						Snippet:   "actions/checkout@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba",
+						Offset:    31,
+						EndOffset: 31,
+						Type:      1,
+					},
+					Pinned: boolAsPointer(true),
+					Type:   "GitHubAction",
+				},
+			},
+		},
+		{
+			name:     "Non-pinned workflow",
+			filename: ".github/workflows/workflow-not-pinned.yaml",
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("actions/checkout"),
+					PinnedAt: stringAsPointer("daadedc81d5f9d3c06d2c92f49202a3cc2b919ba"),
+					Location: &checker.File{
+						Path:      ".github/workflows/workflow-not-pinned.yaml",
+						Snippet:   "actions/checkout@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba",
+						Offset:    31,
+						EndOffset: 31,
+						FileSize:  0,
+						Type:      1,
+					},
+					Pinned: boolAsPointer(true),
+					Type:   "GitHubAction",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				// This will read the file and return the content
+				content, err := os.ReadFile(filepath.Join("testdata", file))
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			})
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+			var r checker.PinningDependenciesData
+			err := collectGitHubActionsWorkflowPinning(&req, &r)
+			if err != nil {
+				t.Error(err.Error())
+			}
+			t.Log(r.Dependencies)
 			for i := range tt.outcomeDependencies {
 				outcomeDependency := &tt.outcomeDependencies[i]
 				depend := &r.Dependencies[i]
