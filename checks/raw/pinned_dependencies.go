@@ -198,11 +198,11 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 	}
 	remediationMetadata, err := remediation.New(c)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create remediation metadata: %w", err)
 	}
 	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		rr.Remediation = generateRemediation(remediationMetadata, &rr)
+		rr := &r.Dependencies[i]
+		rr.Remediation = generateRemediation(remediationMetadata, rr)
 	}
 	return nil
 }
@@ -428,11 +428,11 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	}
 	remediationMetadata, err := remediation.New(c)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create remediation metadata: %w", err)
 	}
 	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		rr.Remediation = generateRemediation(remediationMetadata, &rr)
+		rr := &r.Dependencies[i]
+		rr.Remediation = generateRemediation(remediationMetadata, rr)
 	}
 	return nil
 }

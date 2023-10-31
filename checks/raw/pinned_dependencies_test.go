@@ -27,6 +27,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/rule"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -1499,6 +1500,12 @@ func TestCollectDockerfilePinning(t *testing.T) {
 					},
 					Pinned: boolAsPointer(false),
 					Type:   "containerImage",
+					Remediation: &rule.Remediation{
+						Text: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+						Markdown: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+					},
 				},
 			},
 		},
@@ -1566,6 +1573,13 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 					},
 					Pinned: boolAsPointer(true),
 					Type:   "GitHubAction",
+					Remediation: &rule.Remediation{
+						Text: "update your workflow using https://app.stepsecurity.io" +
+							"/secureworkflow/ossf/scorecard/workflow-pinned.yaml/main?enable=pin",
+						Markdown: "update your workflow using [https://app.stepsecurity.io]" +
+							"(https://app.stepsecurity.io/secureworkflow/ossf/scorecard/" +
+							"workflow-pinned.yaml/main?enable=pin)",
+					},
 				},
 			},
 		},
@@ -1586,6 +1600,13 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 					},
 					Pinned: boolAsPointer(true),
 					Type:   "GitHubAction",
+					Remediation: &rule.Remediation{
+						Text: "update your workflow using https://app.stepsecurity.io" +
+							"/secureworkflow/ossf/scorecard/workflow-not-pinned.yaml/main?enable=pin",
+						Markdown: "update your workflow using [https://app.stepsecurity.io]" +
+							"(https://app.stepsecurity.io/secureworkflow/ossf/scorecard/" +
+							"workflow-not-pinned.yaml/main?enable=pin)",
+					},
 				},
 			},
 		},
