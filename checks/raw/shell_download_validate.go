@@ -17,6 +17,7 @@ package raw
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"net/url"
 	"path"
@@ -1056,8 +1057,22 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// If we cannot parse the file, register that we are skipping it
-		r.Incomplete = append(r.Incomplete, sce.WithMessage(sce.ErrorShellParsing, err.Error()))
-		return nil
+		var parseError syntax.ParseError
+		if errors.As(err, &parseError) {
+			content := string(content)
+			r.Incomplete = append(r.Incomplete, &checker.ElementError{
+				Err: sce.WithMessage(sce.ErrorShellParsing, parseError.Text),
+				Element: &finding.Location{
+					Path:      pathfn,
+					LineStart: &startLine,
+					LineEnd:   &endLine,
+					Snippet:   &content,
+					Type:      finding.FileTypeSource,
+				},
+			})
+			return nil
+		}
+		return sce.WithMessage(sce.ErrorShellParsing, err.Error())
 	}
 
 	printer := syntax.NewPrinter()
