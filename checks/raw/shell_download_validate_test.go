@@ -106,7 +106,7 @@ func TestValidateShellFile(t *testing.T) {
 		t.Errorf("error validating shell file")
 	}
 
-	if r.Incomplete == nil {
+	if r.ProcessingErrors == nil {
 		t.Errorf("failed to register shell parsing error")
 	}
 }

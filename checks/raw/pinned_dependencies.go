@@ -384,18 +384,18 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
-				var unknownOSError *checker.ElementError
-				if errors.As(err, &unknownOSError) {
+				var elementError *checker.ElementError
+				if errors.As(err, &elementError) {
 					// Add the workflow name and step ID to the element
 					lineStart := uint(step.Pos.Line)
-					unknownOSError.Element = &finding.Location{
+					elementError.Element = &finding.Location{
 						Path:      pathfn,
-						Snippet:   unknownOSError.Element.Snippet,
+						Snippet:   elementError.Element.Snippet,
 						LineStart: &lineStart,
 						Type:      finding.FileTypeSource,
 					}
 
-					pdata.Incomplete = append(pdata.Incomplete, unknownOSError)
+					pdata.ProcessingErrors = append(pdata.ProcessingErrors, *elementError)
 
 					// continue instead of break because other `run` steps may declare
 					// a valid shell we can scan

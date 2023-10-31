@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -65,9 +66,12 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
 
-	for _, incomplete := range r.Incomplete {
+	for _, e := range r.ProcessingErrors {
 		dl.Info(&checker.LogMessage{
-			Text: generateTextIncompleteResults(incomplete),
+			Finding: &finding.Finding{
+				Message:  generateTextIncompleteResults(e),
+				Location: e.Element,
+			},
 		})
 	}
 
@@ -193,8 +197,8 @@ func generateTextUnpinned(rr *checker.Dependency) string {
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
 
-func generateTextIncompleteResults(e error) string {
-	return fmt.Sprintf("Possibly incomplete results: %s", e)
+func generateTextIncompleteResults(e checker.ElementError) string {
+	return fmt.Sprintf("Possibly incomplete results: %s", e.Err)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {

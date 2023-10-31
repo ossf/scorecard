@@ -268,11 +268,11 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 
 	//nolint
 	tests := []struct {
-		unpinned   int
-		incomplete int
-		err        error
-		name       string
-		filename   string
+		unpinned         int
+		processingErrors int
+		err              error
+		name             string
+		filename         string
 	}{
 		{
 			name:     "npm packages without verification",
@@ -280,10 +280,10 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 			unpinned: 49,
 		},
 		{
-			name:       "Can't identify OS but doesn't crash",
-			filename:   "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
-			incomplete: 1, // job with unknown OS is skipped
-			unpinned:   1, // only 1 in job with known OS, since other job is skipped
+			name:             "Can't identify OS but doesn't crash",
+			filename:         "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			processingErrors: 1, // job with unknown OS is skipped
+			unpinned:         1, // only 1 in job with known OS, since other job is skipped
 		},
 	}
 	for _, tt := range tests {
@@ -316,8 +316,8 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}
@@ -576,10 +576,10 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name       string
-		filename   string
-		incomplete int
-		expected   []struct {
+		name             string
+		filename         string
+		processingErrors int
+		expected         []struct {
 			snippet   string
 			startLine uint
 			endLine   uint
@@ -707,9 +707,9 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 			},
 		},
 		{
-			name:       "Parser error may lead to incomplete data",
-			filename:   "./testdata/Dockerfile-not-pinned-with-parser-error",
-			incomplete: 1,
+			name:             "Parser error may lead to incomplete data",
+			filename:         "./testdata/Dockerfile-not-pinned-with-parser-error",
+			processingErrors: 1,
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -761,8 +761,8 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 				}
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}
@@ -1012,11 +1012,11 @@ func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		unpinned   int
-		incomplete int
-		err        error
-		name       string
-		filename   string
+		unpinned         int
+		processingErrors int
+		err              error
+		name             string
+		filename         string
 	}{
 		{
 			name:     "curl | sh",
@@ -1080,10 +1080,10 @@ func TestDockerfileScriptDownload(t *testing.T) {
 			unpinned: 1,
 		},
 		{
-			name:       "Parser error doesn't affect docker image pinning",
-			filename:   "./testdata/Dockerfile-not-pinned-with-parser-error",
-			incomplete: 1,
-			unpinned:   2, // `curl bla | bash` missed due to parser error
+			name:             "Parser error doesn't affect docker image pinning",
+			filename:         "./testdata/Dockerfile-not-pinned-with-parser-error",
+			processingErrors: 1,
+			unpinned:         2, // `curl bla | bash` missed due to parser error
 		},
 	}
 	for _, tt := range tests {
@@ -1117,8 +1117,8 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}
@@ -1128,20 +1128,20 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name       string
-		filename   string
-		unpinned   int
-		incomplete int
-		err        error
+		name             string
+		filename         string
+		unpinned         int
+		processingErrors int
+		err              error
 	}{
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-no-curl-sh",
 		},
 		{
-			name:       "Parser error doesn't affect docker image pinning",
-			filename:   "./testdata/Dockerfile-no-curl-sh-with-parser-error",
-			incomplete: 1, // everything is pinned, but parser error still throws warning
+			name:             "Parser error doesn't affect docker image pinning",
+			filename:         "./testdata/Dockerfile-no-curl-sh-with-parser-error",
+			processingErrors: 1, // everything is pinned, but parser error still throws warning
 		},
 	}
 	for _, tt := range tests {
@@ -1171,8 +1171,8 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}
@@ -1182,11 +1182,11 @@ func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name       string
-		filename   string
-		unpinned   int
-		incomplete int
-		err        error
+		name             string
+		filename         string
+		unpinned         int
+		processingErrors int
+		err              error
 	}{
 		{
 			name:     "sh script",
@@ -1217,9 +1217,9 @@ func TestShellScriptDownload(t *testing.T) {
 			unpinned: 56,
 		},
 		{
-			name:       "invalid shell script",
-			filename:   "./testdata/script-invalid.sh",
-			incomplete: 1, // `curl bla | bash` not detected due to invalid script
+			name:             "invalid shell script",
+			filename:         "./testdata/script-invalid.sh",
+			processingErrors: 1, // `curl bla | bash` not detected due to invalid script
 		},
 	}
 	for _, tt := range tests {
@@ -1254,8 +1254,8 @@ func TestShellScriptDownload(t *testing.T) {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, len(r.Dependencies))
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}
@@ -1315,11 +1315,11 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint
 	tests := []struct {
-		name       string
-		filename   string
-		unpinned   int
-		incomplete int
-		err        error
+		name             string
+		filename         string
+		unpinned         int
+		processingErrors int
+		err              error
 	}{
 		{
 			name:     "workflow curl default",
@@ -1337,10 +1337,10 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 			unpinned: 2,
 		},
 		{
-			name:       "Can't identify OS but doesn't crash",
-			filename:   "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
-			incomplete: 1, // job with unknown OS has a skipped step
-			unpinned:   1, // only found in 1 in job with known OS
+			name:             "Can't identify OS but doesn't crash",
+			filename:         "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
+			processingErrors: 1, // job with unknown OS has a skipped step
+			unpinned:         1, // only found in 1 in job with known OS
 		},
 	}
 	for _, tt := range tests {
@@ -1376,8 +1376,8 @@ func TestGitHubWorflowRunDownload(t *testing.T) {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
 			}
 
-			if tt.incomplete != len(r.Incomplete) {
-				t.Errorf("expected %v incomplete. Got %v", tt.incomplete, len(r.Incomplete))
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
 	}

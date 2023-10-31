@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -239,10 +240,10 @@ func Test_PinningDependencies(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		dependencies []checker.Dependency
-		incomplete   []error
-		expected     scut.TestReturn
+		name             string
+		dependencies     []checker.Dependency
+		processingErrors []checker.ElementError
+		expected         scut.TestReturn
 	}{
 		{
 			name: "all dependencies pinned",
@@ -811,17 +812,17 @@ func Test_PinningDependencies(t *testing.T) {
 					Pinned:   asBoolPointer(false),
 				},
 			},
-			incomplete: []error{
-				sce.ErrorJobOSParsing,
-				&checker.ElementError{
-					Err: sce.ErrorJobOSParsing,
+			processingErrors: []checker.ElementError{
+				{
+					Err:     sce.ErrorJobOSParsing,
+					Element: &finding.Location{},
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  2, // unpinned deps
-				NumberOfInfo:  3, // 1 for npm deps, 2 for incomplete results
+				NumberOfInfo:  3, // 1 for npm deps, 2 for processing errors
 				NumberOfDebug: 0,
 			},
 		},
@@ -836,8 +837,8 @@ func Test_PinningDependencies(t *testing.T) {
 			c := checker.CheckRequest{Dlogger: &dl}
 			actual := PinningDependencies("checkname", &c,
 				&checker.PinningDependenciesData{
-					Dependencies: tt.dependencies,
-					Incomplete:   tt.incomplete,
+					Dependencies:     tt.dependencies,
+					ProcessingErrors: tt.processingErrors,
 				})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
