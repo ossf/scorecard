@@ -414,7 +414,7 @@ func (f *File) Location() *finding.Location {
 // lines or workflow job step that caused the failure, not just the file path.
 type ElementError struct {
 	Err     error
-	Element string
+	Element *finding.Location
 }
 
 func (e *ElementError) Error() string {

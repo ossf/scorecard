@@ -362,7 +362,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		}
 		taintedFiles := make(map[string]bool)
 
-		for i, step := range job.Steps {
+		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
@@ -384,10 +384,16 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
-				var unknownOSError *sce.ElementError
+				var unknownOSError *checker.ElementError
 				if errors.As(err, &unknownOSError) {
 					// Add the workflow name and step ID to the element
-					unknownOSError.Element = fmt.Sprintf("%s's job '%s' (step %d)", pathfn, unknownOSError.Element, i+1)
+					lineStart := uint(step.Pos.Line)
+					unknownOSError.Element = &finding.Location{
+						Path:      pathfn,
+						Snippet:   unknownOSError.Element.Snippet,
+						LineStart: &lineStart,
+						Type:      finding.FileTypeSource,
+					}
 
 					pdata.Incomplete = append(pdata.Incomplete, unknownOSError)
 
