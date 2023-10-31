@@ -813,12 +813,15 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			incomplete: []error{
 				sce.ErrorJobOSParsing,
+				&checker.ElementError{
+					Err: sce.ErrorJobOSParsing,
+				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  2, // unpinned deps
-				NumberOfInfo:  2, // 1 for npm deps, 1 for skipped job
+				NumberOfInfo:  3, // 1 for npm deps, 2 for incomplete results
 				NumberOfDebug: 0,
 			},
 		},
