@@ -73,6 +73,7 @@ jobs:
       - name: generate before results
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
@@ -83,6 +84,7 @@ jobs:
       - name: generate after results
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
