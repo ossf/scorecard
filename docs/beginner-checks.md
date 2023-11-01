@@ -69,7 +69,7 @@ Another benefit to releasing projects as packages is reproducibility—the versi
 
 ## Customize your checks to your project’s needs
 
-Based on the specifics of your project, not all the checks offered by Scorecard, or even not all of the checks discussed on this page, may apply to you. For example, if you are the sole maintainer of an open-source project, the “Code Review” check would not be usable for your project.
+Based on the specifics of your project, not all the checks offered by Scorecard or discussed on this page may apply to you. For example, if you are the sole maintainer of an open-source project, the “Code Review” check would not be usable for your project.
 
 The languages you use also influence which checks will be useful to you. For example, if your project is built in C or C++, the Packaging and Dependency-Update-Tool checks will not be applicable because the C/C++ ecosystem does not have a centralized package manager.
 
