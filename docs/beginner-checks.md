@@ -6,7 +6,7 @@ Choosing which Scorecard checks to get started with as a project maintainer can 
 
 ## 1. Setting up your project
 
-The setup phase of an open-source project can be hectic, which can make it difficult to prioritize security concerns. Start your project off strong by focusing on Scorecard checks that help you secure your project dependencies and workflows.
+Start your project off strong by focusing on Scorecard checks that help you secure your project dependencies and workflows.
 
 - Secure your dependencies with the Vulnerabilities check and the Dependency-Update-Tool check
 - Secure your workflows with the Token-Permissions check
