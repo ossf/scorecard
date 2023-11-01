@@ -13,7 +13,7 @@ Start your project off strong by focusing on Scorecard checks that help you secu
 
 ### The Vulnerabilities and Dependency-Update-Tool checks secure your dependencies
 
-Vulnerabilities are probably the most familiar security risk. By running Scorecard’s [Vulnerabilities check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities), you’ll get information about known vulnerabilities in your project, either through your codebase or through your direct and (for most languages) indirect dependencies. Tracking these can be tricky, but it’s important: [95% of vulnerable dependencies are transitive](https://www.endorlabs.com/state-of-dependency-management).
+Vulnerabilities are probably the most familiar security risk. By running Scorecard’s [Vulnerabilities check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#vulnerabilities), you’ll get information about known vulnerabilities in your project, either through your codebase or through your direct and (for most languages) indirect dependencies. Tracking vulnerabilities in an indirect (sometimes called transitive) dependency can be tricky, but it’s important: [95% of vulnerable dependencies are transitive](https://www.endorlabs.com/state-of-dependency-management).
 
 If vulnerabilities are found in your dependencies, there are a few options:
 
