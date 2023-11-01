@@ -27,10 +27,25 @@ jobs:
     if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
     runs-on: [ubuntu-latest]
     steps:
-      - name: repos to run anlaysis on
+      - name: create file of repos to anlayze
         run: |
-          echo github.com/ossf/scorecard-action >> $HOME/repos.txt
-          echo github.com/ossf/scorecard-webapp >> $HOME/repos.txt
+          cat <<EOF > $HOME/repos.txt
+          https://github.com/airbnb/lottie-web
+          https://github.com/apache/tomcat
+          https://github.com/Azure/azure-functions-dotnet-worker
+          https://github.com/cncf/xds
+          https://github.com/google/go-cmp
+          https://github.com/google/highwayhash
+          https://github.com/googleapis/google-api-php-client
+          https://github.com/jacoco/jacoco
+          https://github.com/ossf/scorecard
+          https://github.com/pallets/jinja
+          https://github.com/polymer/polymer
+          https://github.com/rust-random/getrandom
+          https://github.com/yaml/libyaml
+          https://gitlab.com/baserow/baserow
+          https://gitlab.com/cryptsetup/cryptsetup
+          EOF
       - name: fetch base and head shas
         id: pr-refs
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
