@@ -2,7 +2,7 @@
 
 If you are an open-source developer, you know that maintaining the security posture of a project can feel like a full-time job, but it can be easier with a little guidance. [Scorecard](https://github.com/ossf/scorecard#openssf-scorecard), an automated tool created [by the Open Source Security Foundation](https://openssf.org/) (OpenSSF), checks projects for security best practices and scores projects on a scale between 1 and 10. Maintainers can use the Scorecard checks as guidelines to improve their project's security practices.
 
-Choosing which Scorecard checks to get started with can be overwhelming, though. On this page, we’ll walk you through getting started with some of the most important checks, focusing on the ones that give you the biggest payoff versus effort. We’ve broken them down into three categories based on stages of the development process: setting up your project, accepting contributions from others, and packaging the project to release to the world.
+Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: setting up your project, accepting contributions from others, and packaging the project to release to the world.
 
 ## 1. Setting up your project
 
