@@ -29,7 +29,7 @@ Next, Scorecard’s [Dependency-Update-Tool check](https://github.com/ossf/score
 
 Automated processes like these save you time and are highly configurable; for example, you can set your bot to update dependencies every day or every week at the same time.
 
-If you want to increase your score in this category, sign up for automatic updates with a dependency update tool. Do note, however, that this check can only assess whether the dependency update tool is enabled, not that it is running. To maximize your benefit from this check, be sure that you consistently run your dependency update tool.
+If you want to increase your score in this category, sign up for automatic updates with a dependency update tool. Do note, however, that this check can only assess whether the dependency update tool is enabled, not that it is running. To maximize your benefit from this check, be sure that you consistently run and act on the information from your dependency update tool.
 
 ### Token-Permissions check helps you secure your workflows
 
