@@ -1,7 +1,5 @@
 # Getting Started with Scorecard Checks for Supply Chain Security
 
-If you are an open-source developer, you know that maintaining the security posture of a project can feel like a full-time job, but it can be easier with a little guidance. [Scorecard](https://github.com/ossf/scorecard#openssf-scorecard), an automated tool created [by the Open Source Security Foundation](https://openssf.org/) (OpenSSF), checks projects for security best practices and scores projects on a scale between 1 and 10. Maintainers can use the Scorecard checks as guidelines to improve their project's security practices.
-
 Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: setting up your project, accepting contributions from others, and packaging the project to release to the world.
 
 ## 1. Setting up your project
@@ -29,11 +27,11 @@ Next, Scorecard’s [Dependency-Update-Tool check](https://github.com/ossf/score
 
 Automated processes like these save you time and are highly configurable; for example, you can set your bot to update dependencies every day or every week at the same time.
 
-If you want to increase your score in this category, sign up for automatic updates with a dependency update tool. Do note, however, that this check can only assess whether the dependency update tool is enabled, not that it is running. To maximize your benefit from this check, be sure that you consistently run and act on the information from your dependency update tool.
+If you want to increase your score in this category, sign up for automatic updates with a dependency update tool. Keep in mind, though, that this check can only show that the dependency update tool is enabled, not that it is running. To benefit as much as possible from this check, be sure that you consistently run and act on the information from your dependency update tool.
 
 ### Token-Permissions check helps you secure your workflows
 
-We suggest addressing the [Token-Permissions check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions) next because it takes just a few minutes to “set it and forget it” and secure your workflows. The check warns you when your project’s top-level tokens have `write` access instead of the more restrictive `read` access. Not all `write` access permissions need to be eliminated; some workflows may genuinely require them. However, ensuring your top-level permissions have `read` access helps your project adhere to the principle of least privilege, which means that permissions are granted based on the minimal necessary access to perform a function. Projects that have top-level tokens set to `write` access for their automated workflows may be vulnerable to malicious code execution. By simply switching `write` to `read` you’ll be able to close off a powerful attack vector (exploiting compromised tokens that have write permissions and using them to inject malicious code into the project).
+We suggest addressing the [Token-Permissions check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions) next because it takes just a few minutes to “set it and forget it” and secure your workflows. The check warns you when your project’s top-level tokens have `write` access instead of the more restrictive `read` access. Not all `write` access permissions need to be eliminated; some workflows may genuinely require them. But ensuring your top-level permissions have `read` access helps your project follow the principle of least privilege, which means that permissions are granted based on the minimal necessary access to perform a function. Projects that have top-level tokens set to `write` access for their automated workflows may be vulnerable to malicious code execution. By simply switching `write` to `read` you’ll be able to close off a powerful attack vector (exploiting compromised tokens that have write permissions and using them to inject malicious code into the project).
 
 To change the default setting for token permissions, add the following to the top of your workflow:
 
