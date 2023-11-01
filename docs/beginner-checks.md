@@ -65,7 +65,7 @@ The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md
 
 Packaging your projects makes it easier for users to receive security patches as updates. It also provides information about the release details to your users, which opens the door to more collaboration from your open-source peers.
 
-Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation; this makes it easier to track whether any newly discovered security issues are applicable to your project.
+Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
 
 ## Customize your checks to your project’s needs
 
