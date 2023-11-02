@@ -46,8 +46,8 @@ jobs:
           https://gitlab.com/baserow/baserow
           https://gitlab.com/cryptsetup/cryptsetup
           EOF
-      - name: fetch base and head shas
-        id: pr-refs
+      - name: configure scdiff
+        id: config
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           script: |
@@ -69,7 +69,7 @@ jobs:
             core.setOutput('checks', checks)
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ steps.pr-refs.outputs.base }}
+          ref: ${{ steps.config.outputs.base }}
       - name: generate before results
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -77,10 +77,10 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks ${{ steps.pr-refs.outputs.checks }} > $HOME/before.json
+            --checks ${{ steps.config.outputs.checks }} > $HOME/before.json
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ steps.pr-refs.outputs.head }}
+          ref: ${{ steps.config.outputs.head }}
       - name: generate after results
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -88,7 +88,7 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks ${{ steps.pr-refs.outputs.checks }} > $HOME/after.json
+            --checks ${{ steps.config.outputs.checks }} > $HOME/after.json
       - name: compare results
         run: |
           go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
