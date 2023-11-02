@@ -72,7 +72,7 @@ jobs:
           ref: ${{ steps.config.outputs.base }}
       - name: generate before results
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
           GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           go run cmd/internal/scdiff/main.go generate \
@@ -83,7 +83,7 @@ jobs:
           ref: ${{ steps.config.outputs.head }}
       - name: generate after results
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
           GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           go run cmd/internal/scdiff/main.go generate \
