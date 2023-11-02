@@ -55,7 +55,7 @@ func Maintained(name string,
 	}
 
 	if projectWasCreatedInLast90Days(findings) {
-		checker.LogFindings(nonPositiveFindings(findings), dl)
+		checker.LogFindings(negativeFindings(findings), dl)
 		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
 	}
 
