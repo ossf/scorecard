@@ -35,10 +35,9 @@ jobs:
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'This issue is stale because it has been open for 60 days with no activity.'
-        stale-pr-message: 'Stale pull request message'
-        stale-issue-label: 'no-issue-activity'
+        stale-pr-message: 'This pull request is stale because it has been open for 10 days with no activity'
         exempt-issue-labels: 'priority,bug,good first issue'
-        stale-pr-label: 'no-pr-activity'
+        exempt-issue-milestones: 'Structured results'
         exempt-pr-labels: 'awaiting-approval,work-in-progress'
         days-before-pr-stale: '10'
         days-before-pr-close: '20'
