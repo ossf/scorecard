@@ -134,7 +134,7 @@ func TestSAST(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        3,
-				NumberOfWarn: 3,
+				NumberOfWarn: 2,
 				NumberOfInfo: 0,
 			},
 		},

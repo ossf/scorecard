@@ -61,9 +61,6 @@ func SAST(name string,
 				})
 			} else if f.Outcome == finding.OutcomeNegative {
 				sonarScore = checker.MinResultScore
-				dl.Warn(&checker.LogMessage{
-					Text: f.Message,
-				})
 			}
 		}
 	}
@@ -133,7 +130,7 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomeNotApplicable:
 		dl.Warn(&checker.LogMessage{
-			Text: "no pull requests merged into dev branch",
+			Text: f.Message,
 		})
 		return checker.InconclusiveResultScore
 	case finding.OutcomePositive:
@@ -154,11 +151,6 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 // if it doesn't.
 func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
-	case finding.OutcomeNotApplicable:
-		dl.Warn(&checker.LogMessage{
-			Text: "no pull requests merged into dev branch",
-		})
-		return checker.InconclusiveResultScore
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
