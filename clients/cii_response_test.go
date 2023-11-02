@@ -86,6 +86,7 @@ func TestBadgeResponse_AsJSON(t *testing.T) {
 	}
 
 	t.Run(tt.name, func(t *testing.T) {
+		t.Parallel()
 		resp := BadgeResponse{
 			BadgeLevel: tt.fields.BadgeLevel,
 		}
