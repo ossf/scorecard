@@ -62,6 +62,15 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
+			name: "Has no issues in threshold",
+			raw: &checker.RawResults{
+				MaintainedResults: checker.MaintainedData{
+					Issues: []clients.Issue{},
+				},
+			},
+			outcomes: []finding.Outcome{finding.OutcomeNegative},
+		},
+		{
 			name: "Has five commits in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
