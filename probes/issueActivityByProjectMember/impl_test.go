@@ -27,12 +27,12 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func Test_Run(t *testing.T) {
-	t.Parallel()
+var (
+	collab        = clients.RepoAssociationCollaborator
+	firstTimeUser = clients.RepoAssociationFirstTimeContributor
+)
 
-	collab := clients.RepoAssociationCollaborator
-	firstTimeUser := clients.RepoAssociationFirstTimeContributor
-
+func fiveIssuesInThreshold() []clients.Issue {
 	fiveIssuesInThreshold := make([]clients.Issue, 0)
 	for i := 0; i < 5; i++ {
 		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
@@ -42,16 +42,10 @@ func Test_Run(t *testing.T) {
 		}
 		fiveIssuesInThreshold = append(fiveIssuesInThreshold, commit)
 	}
-	twentyIssuesInThresholdAndtwentyNot := make([]clients.Issue, 0)
-	for i := 70; i < 111; i++ {
-		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
-		commit := clients.Issue{
-			CreatedAt:         &createdAt,
-			AuthorAssociation: &collab,
-		}
-		twentyIssuesInThresholdAndtwentyNot = append(twentyIssuesInThresholdAndtwentyNot, commit)
-	}
+	return fiveIssuesInThreshold
+}
 
+func fiveInThresholdByCollabAndFiveByFirstTimeUser() []clients.Issue {
 	fiveInThresholdByCollabAndFiveByFirstTimeUser := make([]clients.Issue, 0)
 	for i := 0; i < 10; i++ {
 		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
@@ -65,19 +59,28 @@ func Test_Run(t *testing.T) {
 		}
 		fiveInThresholdByCollabAndFiveByFirstTimeUser = append(fiveInThresholdByCollabAndFiveByFirstTimeUser, commit)
 	}
+	return fiveInThresholdByCollabAndFiveByFirstTimeUser
+}
 
-	fivePositiveOutcome := make([]finding.Outcome, 0)
-	for i := 0; i < 5; i++ {
-		fivePositiveOutcome = append(fivePositiveOutcome, finding.OutcomePositive)
+func twentyIssuesInThresholdAndtwentyNot() []clients.Issue {
+	twentyIssuesInThresholdAndtwentyNot := make([]clients.Issue, 0)
+	for i := 70; i < 111; i++ {
+		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
+		commit := clients.Issue{
+			CreatedAt:         &createdAt,
+			AuthorAssociation: &collab,
+		}
+		twentyIssuesInThresholdAndtwentyNot = append(twentyIssuesInThresholdAndtwentyNot, commit)
 	}
+	return twentyIssuesInThresholdAndtwentyNot
+}
 
-	twentyPositiveOutcomes := make([]finding.Outcome, 0)
-	for i := 0; i < 20; i++ {
-		twentyPositiveOutcomes = append(twentyPositiveOutcomes, finding.OutcomePositive)
-	}
+func Test_Run(t *testing.T) {
+	t.Parallel()
 	// nolint:govet
 	tests := []struct {
 		name     string
+		values   map[string]int
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
 		err      error
@@ -95,28 +98,37 @@ func Test_Run(t *testing.T) {
 			name: "Has 5 issues in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					Issues: fiveIssuesInThreshold,
+					Issues: fiveIssuesInThreshold(),
 				},
 			},
-			outcomes: fivePositiveOutcome,
+			values: map[string]int{
+				"issuesUpdatedWithinThreshold": 5,
+			},
+			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
 		{
 			name: "Has 20 issues in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					Issues: twentyIssuesInThresholdAndtwentyNot,
+					Issues: twentyIssuesInThresholdAndtwentyNot(),
 				},
 			},
-			outcomes: twentyPositiveOutcomes,
+			values: map[string]int{
+				"issuesUpdatedWithinThreshold": 20,
+			},
+			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
 		{
 			name: "Has 5 issues by collaborator and 5 by first time user",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					Issues: fiveInThresholdByCollabAndFiveByFirstTimeUser,
+					Issues: fiveInThresholdByCollabAndFiveByFirstTimeUser(),
 				},
 			},
-			outcomes: fivePositiveOutcome,
+			values: map[string]int{
+				"issuesUpdatedWithinThreshold": 5,
+			},
+			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
 	}
 	for _, tt := range tests {
@@ -137,9 +149,14 @@ func Test_Run(t *testing.T) {
 			if diff := cmp.Diff(len(tt.outcomes), len(findings)); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
-			for i := range tt.outcomes {
+			for i := range findings {
 				outcome := &tt.outcomes[i]
 				f := &findings[i]
+				if tt.values != nil {
+					if diff := cmp.Diff(tt.values, f.Values); diff != "" {
+						t.Errorf("mismatch (-want +got):\n%s", diff)
+					}
+				}
 				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
 				}

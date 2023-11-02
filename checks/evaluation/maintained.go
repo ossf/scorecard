@@ -67,9 +67,9 @@ func Maintained(name string,
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
-				issuesUpdatedWithinThreshold++
+				issuesUpdatedWithinThreshold = f.Values["issuesUpdatedWithinThreshold"]
 			case commitsInLast90Days.Probe:
-				commitsWithinThreshold++
+				commitsWithinThreshold = f.Values["commitsWithinThreshold"]
 			}
 		}
 	}

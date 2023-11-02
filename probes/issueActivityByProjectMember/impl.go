@@ -41,23 +41,29 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	r := raw.MaintainedResults
+	issuesUpdatedWithinThreshold := 0
 
 	// Look for activity in past `lookBackDays`.
 	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 	var findings []finding.Finding
 	for i := range r.Issues {
 		if hasActivityByCollaboratorOrHigher(&r.Issues[i], threshold) {
-			f, err := finding.NewWith(fs, Probe,
-				"Found a issue within the threshold.", nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
+			issuesUpdatedWithinThreshold++
 		}
 	}
 
-	if len(findings) == 0 {
+	if issuesUpdatedWithinThreshold > 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Found a issue within the threshold.", nil,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValues(map[string]int{
+			"issuesUpdatedWithinThreshold": issuesUpdatedWithinThreshold,
+		})
+		findings = append(findings, *f)
+	} else {
 		f, err := finding.NewWith(fs, Probe,
 			"Did not find issues within the threshold.", nil,
 			finding.OutcomeNegative)

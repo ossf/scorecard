@@ -27,8 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func Test_Run(t *testing.T) {
-	t.Parallel()
+func fiveCommitsInThreshold() []clients.Commit {
 	fiveCommitsInThreshold := make([]clients.Commit, 0)
 	for i := 0; i < 5; i++ {
 		commit := clients.Commit{
@@ -36,6 +35,10 @@ func Test_Run(t *testing.T) {
 		}
 		fiveCommitsInThreshold = append(fiveCommitsInThreshold, commit)
 	}
+	return fiveCommitsInThreshold
+}
+
+func twentyCommitsInThresholdAndtwentyNot() []clients.Commit {
 	twentyCommitsInThresholdAndtwentyNot := make([]clients.Commit, 0)
 	for i := 70; i < 111; i++ {
 		commit := clients.Commit{
@@ -43,22 +46,17 @@ func Test_Run(t *testing.T) {
 		}
 		twentyCommitsInThresholdAndtwentyNot = append(twentyCommitsInThresholdAndtwentyNot, commit)
 	}
+	return twentyCommitsInThresholdAndtwentyNot
+}
 
-	fivePositiveOutcome := make([]finding.Outcome, 0)
-	for i := 0; i < 5; i++ {
-		fivePositiveOutcome = append(fivePositiveOutcome, finding.OutcomePositive)
-	}
-
-	twentyPositiveOutcomes := make([]finding.Outcome, 0)
-	for i := 0; i < 20; i++ {
-		twentyPositiveOutcomes = append(twentyPositiveOutcomes, finding.OutcomePositive)
-	}
-
+func Test_Run(t *testing.T) {
+	t.Parallel()
 	// nolint:govet
 	tests := []struct {
 		name     string
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
+		values   map[string]int
 		err      error
 	}{
 		{
@@ -74,19 +72,25 @@ func Test_Run(t *testing.T) {
 			name: "Has five commits in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					DefaultBranchCommits: fiveCommitsInThreshold,
+					DefaultBranchCommits: fiveCommitsInThreshold(),
 				},
 			},
-			outcomes: fivePositiveOutcome,
+			values: map[string]int{
+				"commitsWithinThreshold": 5,
+			},
+			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
 		{
 			name: "Has twenty in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					DefaultBranchCommits: twentyCommitsInThresholdAndtwentyNot,
+					DefaultBranchCommits: twentyCommitsInThresholdAndtwentyNot(),
 				},
 			},
-			outcomes: twentyPositiveOutcomes,
+			values: map[string]int{
+				"commitsWithinThreshold": 20,
+			},
+			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
 	}
 	for _, tt := range tests {
@@ -107,9 +111,14 @@ func Test_Run(t *testing.T) {
 			if diff := cmp.Diff(len(tt.outcomes), len(findings)); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
-			for i := range tt.outcomes {
+			for i := range findings {
 				outcome := &tt.outcomes[i]
 				f := &findings[i]
+				if tt.values != nil {
+					if diff := cmp.Diff(tt.values, f.Values); diff != "" {
+						t.Errorf("mismatch (-want +got):\n%s", diff)
+					}
+				}
 				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
 				}

@@ -34,12 +34,15 @@ func TestMaintained(t *testing.T) {
 				{
 					Probe:   "commitsInLast90Days",
 					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "commitsInLast90Days",
-					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"commitsWithinThreshold": 2,
+					},
 				}, {
 					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"issuesUpdatedWithinThreshold": 1,
+					},
 				}, {
 					Probe:   "notArchived",
 					Outcome: finding.OutcomePositive,

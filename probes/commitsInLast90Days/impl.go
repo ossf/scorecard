@@ -43,21 +43,27 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.MaintainedResults
 	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
+	commitsWithinThreshold := 0
 
 	for i := range r.DefaultBranchCommits {
 		commit := r.DefaultBranchCommits[i]
 		if commit.CommittedDate.After(threshold) {
-			f, err := finding.NewWith(fs, Probe,
-				"Found a contribution within the threshold.", nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
+			commitsWithinThreshold++
 		}
 	}
 
-	if len(findings) == 0 {
+	if commitsWithinThreshold > 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Found a contribution within the threshold.", nil,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValues(map[string]int{
+			"commitsWithinThreshold": commitsWithinThreshold,
+		})
+		findings = append(findings, *f)
+	} else {
 		f, err := finding.NewWith(fs, Probe,
 			"Did not find contribution within the threshold.", nil,
 			finding.OutcomeNegative)

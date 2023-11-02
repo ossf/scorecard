@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The implementation checks the number of commits made in the last 90 days by any user type.
 outcome:
-  - If the project has commits from the last 90 days, the probe returns as many OutcomePositive as the project has commits.
+  - If the project has commits from the last 90 days, the probe returns one OutcomePositive with a "commitsWithinThreshold" value.
   - If the project does not have commits in the last 90 days, the probe returns a single OutcomeNegative.
 remediation:
   effort: Low
