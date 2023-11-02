@@ -62,10 +62,8 @@ func structuredResultString(d *checker.CheckDetail) string {
 		}
 	}
 
-	// Effort to remediate.
-	if f.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort.String()))
-	}
+	// TODO(#3349) revisit remediation details later
+
 	return sb.String()
 }
 
