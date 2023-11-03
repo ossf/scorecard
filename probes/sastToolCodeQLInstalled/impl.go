@@ -39,7 +39,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for _, wf := range r.Workflows {
 		if wf.Type == checker.CodeQLWorkflow {
 			f, err := finding.NewWith(fs, Probe,
-				"SAST tool detected: CodeQL", nil,
+				"SAST tool installed: CodeQL", nil,
 				finding.OutcomePositive)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -48,7 +48,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 	}
 	f, err := finding.NewWith(fs, Probe,
-		"CodeQL tool not detected", nil,
+		"CodeQL tool not installed", nil,
 		finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)

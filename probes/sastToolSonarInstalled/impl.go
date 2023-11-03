@@ -43,7 +43,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		loc := wf.File.Location()
 		f, err := finding.NewWith(fs, Probe,
-			"SAST tool detected: Sonar", loc,
+			"SAST tool installed: Sonar", loc,
 			finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -51,7 +51,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 	f, err := finding.NewWith(fs, Probe,
-		"Sonar tool not detected", nil,
+		"Sonar tool not installed", nil,
 		finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
