@@ -50,7 +50,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and CodeCQ is installed",
+			name: "Sonar and codeQL is installed",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
