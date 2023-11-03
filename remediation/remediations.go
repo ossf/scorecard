@@ -22,7 +22,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/rule"
 )
 
@@ -50,9 +49,6 @@ func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 	// Get the branch for remediation.
 	branch, err := c.RepoClient.GetDefaultBranchName()
 	if err != nil {
-		if errors.Is(err, clients.ErrUnsupportedFeature) {
-			return nil, nil
-		}
 		return &RemediationMetadata{}, fmt.Errorf("GetDefaultBranchName: %w", err)
 	}
 
