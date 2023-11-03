@@ -17,10 +17,10 @@ short: Check that the project uses the CodeQL github actions
 motivation: >
   SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.
 implementation: >
-  The implementation checks whether the project invokes the github/codeql-action/analyze workflow.
+  The implementation checks whether the project invokes the github/codeql-action/analyze action.
 outcome:
-  - If the project uses the github/codeql-action/analyze workflow, the probe returns one finding with OutcomePositive (1).
-  - If the project does not use the github/codeql-action/analyze workflow, the probe returns one finding with OutcomeNegative (0).
+  - If the project uses the github/codeql-action/analyze action, the probe returns one finding with OutcomePositive (1).
+  - If the project does not use the github/codeql-action/analyze action, the probe returns one finding with OutcomeNegative (0).
 remediation:
   effort: Medium
   text:
