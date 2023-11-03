@@ -41,7 +41,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "issueActivityByProjectMember",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"issuesUpdatedWithinThreshold": 1,
+						"numberOfIssuesUpdatedWithinThreshold": 1,
 					},
 				}, {
 					Probe:   "notArchived",

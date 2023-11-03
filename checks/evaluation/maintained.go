@@ -60,14 +60,14 @@ func Maintained(name string,
 	}
 
 	commitsWithinThreshold := 0
-	issuesUpdatedWithinThreshold := 0
+	numberOfIssuesUpdatedWithinThreshold := 0
 
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
-				issuesUpdatedWithinThreshold = f.Values["issuesUpdatedWithinThreshold"]
+				numberOfIssuesUpdatedWithinThreshold = f.Values["numberOfIssuesUpdatedWithinThreshold"]
 			case commitsInLast90Days.Probe:
 				commitsWithinThreshold = f.Values["commitsWithinThreshold"]
 			}
@@ -76,8 +76,8 @@ func Maintained(name string,
 
 	return checker.CreateProportionalScoreResult(name, fmt.Sprintf(
 		"%d commit(s) and %d issue activity found in the last %d days",
-		commitsWithinThreshold, issuesUpdatedWithinThreshold, lookBackDays),
-		commitsWithinThreshold+issuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
+		commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold, lookBackDays),
+		commitsWithinThreshold+numberOfIssuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
 }
 
 func projectIsArchived(findings []finding.Finding) bool {

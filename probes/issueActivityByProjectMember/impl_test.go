@@ -102,7 +102,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]int{
-				"issuesUpdatedWithinThreshold": 5,
+				"numberOfIssuesUpdatedWithinThreshold": 5,
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -114,7 +114,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]int{
-				"issuesUpdatedWithinThreshold": 20,
+				"numberOfIssuesUpdatedWithinThreshold": 20,
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -126,7 +126,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]int{
-				"issuesUpdatedWithinThreshold": 5,
+				"numberOfIssuesUpdatedWithinThreshold": 5,
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
