@@ -95,10 +95,8 @@ func projectIsArchived(findings []finding.Finding) bool {
 func projectWasCreatedInLast90Days(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
-			if f.Probe == notCreatedInLast90Days.Probe {
-				return true
-			}
+		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedInLast90Days.Probe {
+			return true
 		}
 	}
 	return false
