@@ -43,30 +43,31 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 
-	totalMerged := len(r.Commits)
-	totalTested := 0
+	totalPullRequestsMerged := len(r.Commits)
+	totalPullRequestsAnalyzed := 0
 
 	for i := range r.Commits {
 		wf := &r.Commits[i]
 		if wf.Compliant {
-			totalTested++
+			totalPullRequestsAnalyzed++
 		}
 	}
 
-	if totalMerged == 0 {
+	if totalPullRequestsMerged == 0 {
 		f = f.WithOutcome(finding.OutcomeNotApplicable)
 		f = f.WithMessage("no pull requests merged into dev branch")
 		return []finding.Finding{*f}, Probe, nil
 	}
 
-	f = f.WithValue("totalTested", totalTested)
-	f = f.WithValue("totalMerged", totalMerged)
+	f = f.WithValue("totalPullRequestsAnalyzed", totalPullRequestsAnalyzed)
+	f = f.WithValue("totalPullRequestsMerged", totalPullRequestsMerged)
 
-	if totalTested == totalMerged {
-		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged)
+	if totalPullRequestsAnalyzed == totalPullRequestsMerged {
+		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalPullRequestsMerged)
 		f = f.WithOutcome(finding.OutcomePositive).WithMessage(msg)
 	} else {
-		msg := fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged)
+		msg := fmt.Sprintf("%v commits out of %v are checked with a SAST tool",
+			totalPullRequestsAnalyzed, totalPullRequestsMerged)
 		f = f.WithOutcome(finding.OutcomeNegative).WithMessage(msg)
 	}
 	return []finding.Finding{*f}, Probe, nil

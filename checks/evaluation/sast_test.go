@@ -60,8 +60,8 @@ func TestSAST(t *testing.T) {
 					Probe:   "sastToolRunsOnAllCommits",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalTested": 1,
-						"totalMerged": 2,
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   2,
 					},
 				},
 				{
@@ -123,8 +123,8 @@ func TestSAST(t *testing.T) {
 					Probe:   "sastToolRunsOnAllCommits",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"totalTested": 1,
-						"totalMerged": 3,
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   3,
 					},
 				},
 				{

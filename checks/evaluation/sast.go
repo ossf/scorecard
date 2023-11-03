@@ -142,9 +142,9 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 			Text: f.Message,
 		})
 	default:
-		checker.CreateProportionalScore(f.Values["totalTested"], f.Values["totalMerged"])
+		checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
 	}
-	return checker.CreateProportionalScore(f.Values["totalTested"], f.Values["totalMerged"])
+	return checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
 }
 
 // getCodeQLScore returns positive the project runs CodeQL and negative

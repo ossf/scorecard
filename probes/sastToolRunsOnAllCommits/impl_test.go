@@ -58,8 +58,8 @@ func Test_Run(t *testing.T) {
 					Probe:   "sastToolRunsOnAllCommits",
 					Message: "1 commits out of 2 are checked with a SAST tool",
 					Values: map[string]int{
-						"totalTested": 1,
-						"totalMerged": 2,
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   2,
 					},
 				},
 			},
@@ -88,8 +88,8 @@ func Test_Run(t *testing.T) {
 					Message: "all commits (2) are checked with a SAST tool",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalTested": 2,
-						"totalMerged": 2,
+						"totalPullRequestsAnalyzed": 2,
+						"totalPullRequestsMerged":   2,
 					},
 				},
 			},
