@@ -20,7 +20,7 @@ implementation: >
   The implementation checks the projects pom.xml for use of Sonar.
 outcome:
   - If the project uses Sonar, the probe returns one finding with OutcomePositive (1).
-  - If the project does not use the Sonar, the probe returns one finding with OutcomeNegative (0).
+  - If the project does not the Sonar, the probe returns one finding with OutcomeNegative (0).
 remediation:
   effort: Medium
   text:
