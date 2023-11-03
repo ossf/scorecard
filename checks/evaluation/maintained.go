@@ -83,10 +83,8 @@ func Maintained(name string,
 func projectIsArchived(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
-			if f.Probe == notArchived.Probe {
-				return true
-			}
+		if f.Outcome == finding.OutcomeNegative && f.Probe == notArchived.Probe {
+			return true
 		}
 	}
 	return false
