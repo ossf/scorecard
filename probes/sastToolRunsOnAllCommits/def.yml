@@ -20,8 +20,8 @@ implementation: >
   The implementation iterates through the projects commits and checks whether any of the check runs for the commits associated merge request was any of the SAST tools that Scorecard supports.
 outcome:
   - If the project had no commits merged, the probe returns a finding with OutcomeNotApplicable.
-  - If the project runs SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomePositive (1). In addition, the finding will include to values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
-  - If the project does not run SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomeNegative (0). In addition, the finding will include to values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
+  - If the project runs SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomePositive (1). In addition, the finding will include two values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
+  - If the project does not run SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomeNegative (0). In addition, the finding will include two values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
 remediation:
   effort: Low
   text:
