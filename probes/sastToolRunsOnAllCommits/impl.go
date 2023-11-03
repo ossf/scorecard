@@ -63,11 +63,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	f = f.WithValue("totalMerged", totalMerged)
 
 	if totalTested == totalMerged {
-		f = f.WithOutcome(finding.OutcomePositive)
-		f = f.WithMessage(fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged))
+		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalMerged)
+		f = f.WithOutcome(finding.OutcomePositive).WithMessage(msg)
 	} else {
-		f = f.WithOutcome(finding.OutcomeNegative)
-		f = f.WithMessage(fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged))
+		msg := fmt.Sprintf("%v commits out of %v are checked with a SAST tool", totalTested, totalMerged)
+		f = f.WithOutcome(finding.OutcomeNegative).WithMessage(msg)
 	}
 	return []finding.Finding{*f}, Probe, nil
 }
