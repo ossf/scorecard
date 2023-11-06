@@ -1,0 +1,29 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasDangerousWorkflowScriptInjection
+short: Check whether the project has Github Actions workflows that enable script injection.
+motivation: >
+  Script Injection with Untrusted Context Variables: This pattern detects whether a workflow's inline script may execute untrusted input from attackers. This occurs when an attacker adds malicious commands and scripts to a context. When a workflow runs, these strings may be interpreted as code that is executed on the runner. Attackers can add their own content to certain github context variables that are considered untrusted, for example, github.event.issue.title. These values should not flow directly into executable code.
+implementation: >
+  The probe iterates through the workflows from the raw results and checks the workflow type. If it finds a workflow of the type `DangerousWorkflowScriptInjection`, it returns.
+outcome:
+  - If the project has at least one workflow with possibility of script injection, the probe returns one finding with OutcomeNegative (0).
+  - If the project does not have a single workflow with possibility of script injection, the probe returns one finding with OutcomePositive (1).
+remediation:
+  effort: Low
+  text:
+    - Avoid the dangerous workflow patterns.
+  markdown:
+    - Avoid the dangerous workflow patterns. See [this post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See [this document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.

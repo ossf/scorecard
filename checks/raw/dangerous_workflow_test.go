@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -24,6 +25,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
@@ -166,7 +168,12 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				return content, nil
 			})
 
-			dw, err := DangerousWorkflow(mockRepoClient)
+			req := &checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: mockRepoClient,
+			}
+
+			dw, err := DangerousWorkflow(req)
 
 			if !errCmp(err, tt.expected.err) {
 				t.Errorf(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))

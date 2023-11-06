@@ -19,6 +19,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
@@ -38,17 +40,22 @@ func init() {
 
 // DangerousWorkflow  will check the repository contains Dangerous-Workflow.
 func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.DangerousWorkflow(c.RepoClient)
+	rawData, err := raw.DangerousWorkflow(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
 	}
 
-	// Return raw results.
-	if c.RawResults != nil {
-		c.RawResults.DangerousWorkflowResults = rawData
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.DangerousWorkflowResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.DangerousWorkflows)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
 	}
 
-	// Return the score evaluation.
-	return evaluation.DangerousWorkflow(CheckDangerousWorkflow, c.Dlogger, &rawData)
+	return evaluation.DangerousWorkflow(CheckDangerousWorkflow, findings, c.Dlogger)
 }
