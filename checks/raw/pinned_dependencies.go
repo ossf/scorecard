@@ -28,7 +28,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -196,13 +195,12 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 	if err != nil {
 		return err
 	}
-	//nolint:errcheck
-	remediationMetadata, _ := remediation.New(c)
 
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
 		if !*rr.Pinned {
-			rr.Remediation = generateRemediation(remediationMetadata, rr)
+			remdtion := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+			rr.Remediation = remdtion
 		}
 	}
 	return nil
@@ -433,7 +431,8 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
 		if !*rr.Pinned {
-			rr.Remediation = generateRemediation(remediationMetadata, rr)
+			remdtion := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			rr.Remediation = remdtion
 		}
 	}
 	return nil
@@ -535,15 +534,4 @@ func isActionDependencyPinned(actionUses string) bool {
 
 	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
 	return dockerhubActionRegex.MatchString(actionUses)
-}
-
-func generateRemediation(remediationMd *remediation.RemediationMetadata, rr *checker.Dependency) *rule.Remediation {
-	switch rr.Type {
-	case checker.DependencyUseTypeGHAction:
-		return remediationMd.CreateWorkflowPinningRemediation(rr.Location.Path)
-	case checker.DependencyUseTypeDockerfileContainerImage:
-		return remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
-	default:
-		return nil
-	}
 }
