@@ -1466,7 +1466,7 @@ func TestCollectDockerfilePinning(t *testing.T) {
 		expectError         bool
 	}{
 		{
-			name:        "Pinned dockerfile",
+			name:        "Workflow with error",
 			filename:    "./testdata/.github/workflows/github-workflow-download-lines.yaml",
 			expectError: true,
 		},
