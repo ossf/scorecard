@@ -1588,15 +1588,9 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 						EndOffset: 31,
 						Type:      1,
 					},
-					Pinned: boolAsPointer(true),
-					Type:   "GitHubAction",
-					Remediation: &rule.Remediation{
-						Text: "update your workflow using https://app.stepsecurity.io" +
-							"/secureworkflow/ossf/scorecard/workflow-pinned.yaml/main?enable=pin",
-						Markdown: "update your workflow using [https://app.stepsecurity.io]" +
-							"(https://app.stepsecurity.io/secureworkflow/ossf/scorecard/" +
-							"workflow-pinned.yaml/main?enable=pin)",
-					},
+					Pinned:      boolAsPointer(true),
+					Type:        "GitHubAction",
+					Remediation: nil,
 				},
 			},
 		},
@@ -1616,15 +1610,9 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 						FileSize:  0,
 						Type:      1,
 					},
-					Pinned: boolAsPointer(true),
-					Type:   "GitHubAction",
-					Remediation: &rule.Remediation{
-						Text: "update your workflow using https://app.stepsecurity.io" +
-							"/secureworkflow/ossf/scorecard/workflow-not-pinned.yaml/main?enable=pin",
-						Markdown: "update your workflow using [https://app.stepsecurity.io]" +
-							"(https://app.stepsecurity.io/secureworkflow/ossf/scorecard/" +
-							"workflow-not-pinned.yaml/main?enable=pin)",
-					},
+					Pinned:      boolAsPointer(true),
+					Type:        "GitHubAction",
+					Remediation: nil,
 				},
 			},
 		},
