@@ -31,6 +31,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
@@ -94,6 +96,10 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
+	}
+	DangerousWorkflows = []ProbeImpl{
+		hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 )
 
