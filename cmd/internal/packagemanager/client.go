@@ -29,22 +29,22 @@ type Client interface {
 
 type PackageManagerClient struct{}
 
-// nolint: noctx
+//nolint:noctx
 func (c *PackageManagerClient) Get(url, packageName string) (*http.Response, error) {
 	return c.getRemoteURL(fmt.Sprintf(url, packageName))
 }
 
-// nolint: noctx
+//nolint:noctx
 func (c *PackageManagerClient) GetURI(url string) (*http.Response, error) {
 	return c.getRemoteURL(url)
 }
 
-//nolint: noctx
+//nolint:noctx
 func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) {
 	const timeout = 10
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}
-	//nolint
+	//nolint:wrapcheck
 	return client.Get(url)
 }

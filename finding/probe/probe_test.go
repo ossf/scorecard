@@ -29,7 +29,7 @@ func errCmp(e1, e2 error) bool {
 
 func Test_FromBytes(t *testing.T) {
 	t.Parallel()
-	// nolint: govet
+	//nolint:govet
 	tests := []struct {
 		name  string
 		id    string

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+//nolint:stylecheck
 package fuzzedWithPythonAtheris
 
 import (
@@ -28,7 +28,7 @@ import (
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
-	// nolint:govet
+	//nolint:govet
 	tests := []struct {
 		name     string
 		raw      *checker.RawResults

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+//nolint:stylecheck
 package fuzzedWithCLibFuzzer
 
 import (
