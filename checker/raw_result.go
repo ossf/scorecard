@@ -39,6 +39,7 @@ type RawResults struct {
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
 	PinningDependenciesResults  PinningDependenciesData
+	SASTResults                 SASTData
 	SecurityPolicyResults       SecurityPolicyData
 	SignedReleasesResults       SignedReleasesData
 	TokenPermissionsResults     TokenPermissionsData
@@ -223,6 +224,40 @@ type SecurityPolicyFile struct {
 	// security policy information found in repo or org
 	Information []SecurityPolicyInformation
 	// file that contains the security policy information
+	File File
+}
+
+// SASTData contains the raw results
+// for the SAST check.
+type SASTData struct {
+	Workflows    []SASTWorkflow
+	Commits      []SASTCommit
+	NumWorkflows int
+}
+
+type SASTCommit struct {
+	CommittedDate          time.Time
+	Message                string
+	SHA                    string
+	CheckRuns              []clients.CheckRun
+	AssociatedMergeRequest clients.PullRequest
+	Committer              clients.User
+	Compliant              bool
+}
+
+// SASTWorkflowType represents a type of SAST workflow.
+type SASTWorkflowType string
+
+const (
+	// CodeQLWorkflow represents a workflow that runs CodeQL.
+	CodeQLWorkflow SASTWorkflowType = "CodeQL"
+	// SonarWorkflow represents a workflow that runs Sonar.
+	SonarWorkflow SASTWorkflowType = "Sonar"
+)
+
+// SASTWorkflow represents a SAST workflow.
+type SASTWorkflow struct {
+	Type SASTWorkflowType
 	File File
 }
 
