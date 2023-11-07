@@ -256,7 +256,7 @@ func (handler *tarballHandler) extractTarball() error {
 				return fmt.Errorf("os.Create: %w", err)
 			}
 
-			//nolint: gosec
+			//nolint:gosec
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {

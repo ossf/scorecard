@@ -106,7 +106,7 @@ type graphqlData struct {
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
 			Nodes []struct {
-				//nolint: revive,stylecheck // naming according to githubv4 convention.
+				//nolint:revive,stylecheck // naming according to githubv4 convention.
 				Url               *string
 				AuthorAssociation *string
 				Author            struct {

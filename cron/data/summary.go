@@ -126,7 +126,7 @@ func GetBucketSummary(ctx context.Context, bucketURL string) (*BucketSummary, er
 			summary.getOrCreate(creationTime).shardsExpected = int(metadata.GetNumShard())
 			summary.getOrCreate(creationTime).shardMetadata = keyData
 		default:
-			//nolint: goerr113
+			//nolint:goerr113
 			return nil, fmt.Errorf("found unrecognized file: %s", key)
 		}
 	}

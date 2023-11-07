@@ -58,11 +58,11 @@ func (n packageRegistrationCatalogRoot) latestVersion(manager pmc.Client) (strin
 		page := n.Pages[pageIndex]
 		if page.Packages == nil {
 			err := decodeResponseFromClient(func() (*http.Response, error) {
-				//nolint: wrapcheck
+				//nolint:wrapcheck
 				return manager.GetURI(page.ID)
 			},
 				func(rc io.ReadCloser) error {
-					//nolint: wrapcheck
+					//nolint:wrapcheck
 					return json.NewDecoder(rc).Decode(&page)
 				}, "nuget package registration page")
 			if err != nil {
@@ -170,12 +170,12 @@ func (c *NugetClient) packageSpec(packageBaseURL, registrationBaseURL, packageNa
 	}
 	packageSpecResults := &packageNuspec{}
 	err = decodeResponseFromClient(func() (*http.Response, error) {
-		//nolint: wrapcheck
+		//nolint:wrapcheck
 		return c.Manager.Get(
 			packageBaseURL+"%[1]v/"+lastPackageVersion+"/%[1]v.nuspec", lowerCasePackageName)
 	},
 		func(rc io.ReadCloser) error {
-			//nolint: wrapcheck
+			//nolint:wrapcheck
 			return xml.NewDecoder(rc).Decode(packageSpecResults)
 		}, "nuget package spec")
 
@@ -193,11 +193,11 @@ func (c *NugetClient) baseUrls() (string, string, error) {
 	indexURL := "https://api.nuget.org/v3/index.json"
 	indexResults := &indexResults{}
 	err := decodeResponseFromClient(func() (*http.Response, error) {
-		//nolint: wrapcheck
+		//nolint:wrapcheck
 		return c.Manager.GetURI(indexURL)
 	},
 		func(rc io.ReadCloser) error {
-			//nolint: wrapcheck
+			//nolint:wrapcheck
 			return json.NewDecoder(rc).Decode(indexResults)
 		}, "nuget index json")
 	if err != nil {
@@ -219,11 +219,11 @@ func (c *NugetClient) baseUrls() (string, string, error) {
 func (c *NugetClient) latestListedVersion(baseURL, packageName string) (string, error) {
 	packageRegistrationCatalogRoot := &packageRegistrationCatalogRoot{}
 	err := decodeResponseFromClient(func() (*http.Response, error) {
-		//nolint: wrapcheck
+		//nolint:wrapcheck
 		return c.Manager.Get(baseURL+"%s/index.json", packageName)
 	},
 		func(rc io.ReadCloser) error {
-			//nolint: wrapcheck
+			//nolint:wrapcheck
 			return json.NewDecoder(rc).Decode(packageRegistrationCatalogRoot)
 		}, "nuget package registration index json")
 	if err != nil {

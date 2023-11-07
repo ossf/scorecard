@@ -50,7 +50,7 @@ func transferDataToBq(ctx context.Context,
 		if webhookURL == "" {
 			continue
 		}
-		//nolint: noctx, gosec // variable URL is ok here.
+		//nolint:noctx,gosec // variable URL is ok here.
 		resp, err := http.Post(webhookURL, "application/json", bytes.NewBuffer(shards.Metadata()))
 		if err != nil {
 			return fmt.Errorf("error during http.Post to %s: %w", webhookURL, err)

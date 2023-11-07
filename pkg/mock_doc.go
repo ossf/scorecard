@@ -70,8 +70,7 @@ type mockDoc struct {
 }
 
 func (d *mockDoc) GetCheck(name string) (docs.CheckDoc, error) {
-	//nolint: gosimple
-	m, _ := d.checks[name]
+	m := d.checks[name]
 	return &m, nil
 }
 
