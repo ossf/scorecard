@@ -22,7 +22,6 @@ import (
 type ecosystem string
 
 // OSV ecosystem naming data source: https://ossf.github.io/osv-schema/#affectedpackage-field
-//nolint
 const (
 	// The Go ecosystem.
 	ecosystemGo ecosystem = "Go"
@@ -30,7 +29,7 @@ const (
 	// The NPM ecosystem.
 	ecosystemNpm ecosystem = "npm"
 
-	// The Android ecosystem
+	// The Android ecosystem.
 	ecosystemAndroid ecosystem = "Android" //nolint:unused
 
 	// The crates.io ecosystem for RUST.

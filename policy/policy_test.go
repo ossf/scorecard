@@ -29,7 +29,7 @@ import (
 func TestPolicyRead(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		err      error
 		name     string

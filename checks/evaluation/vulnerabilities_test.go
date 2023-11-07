@@ -25,18 +25,18 @@ import (
 // TestVulnerabilities tests the vulnerabilities checker.
 func TestVulnerabilities(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name     string
-		findings     []finding.Finding
-		result     scut.TestReturn
+		findings []finding.Finding
+		result   scut.TestReturn
 		expected []struct {
 			lineNumber uint
 		}
 	}{
 		{
 			name: "no vulnerabilities",
-			findings: []finding.Finding {
+			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomePositive,
@@ -48,7 +48,7 @@ func TestVulnerabilities(t *testing.T) {
 		},
 		{
 			name: "three vulnerabilities",
-			findings: []finding.Finding {
+			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeNegative,
@@ -63,13 +63,13 @@ func TestVulnerabilities(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 7,
+				Score:        7,
 				NumberOfWarn: 3,
 			},
 		},
 		{
 			name: "twelve vulnerabilities to check that score is not less than 0",
-			findings: []finding.Finding {
+			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeNegative,
@@ -120,13 +120,13 @@ func TestVulnerabilities(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
 				NumberOfWarn: 12,
 			},
 		},
 		{
-			name: "invalid findings",
-			findings: []finding.Finding {},
+			name:     "invalid findings",
+			findings: []finding.Finding{},
 			result: scut.TestReturn{
 				Score: -1,
 				Error: sce.ErrScorecardInternal,

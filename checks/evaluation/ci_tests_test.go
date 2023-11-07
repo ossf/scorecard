@@ -130,8 +130,6 @@ func Test_isTest(t *testing.T) {
 func Test_prHasSuccessfulCheck(t *testing.T) {
 	t.Parallel()
 
-	//enabled nolint because this is a test
-	//nolint
 	tests := []struct {
 		name    string
 		args    checker.RevisionCIInfo

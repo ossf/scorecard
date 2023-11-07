@@ -401,7 +401,7 @@ func TestGetLineNumber(t *testing.T) {
 	type args struct {
 		pos *actionlint.Pos
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -488,7 +488,7 @@ func TestGetUses(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -562,7 +562,7 @@ func Test_getWith(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -648,7 +648,7 @@ func Test_getRun(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -746,7 +746,7 @@ func Test_stepsMatch(t *testing.T) {
 		stepToMatch *JobMatcherStep
 		step        *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args

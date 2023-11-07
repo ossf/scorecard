@@ -70,7 +70,7 @@ func getByteValueFromFile(filename string) ([]byte, error) {
 	if filename == "" {
 		return nil, nil
 	}
-	//nolint
+	//nolint:wrapcheck
 	return os.ReadFile(filename)
 }
 

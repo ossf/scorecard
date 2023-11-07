@@ -64,7 +64,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 
 	var oneVal int32 = 1
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name          string
 		expected      scut.TestReturn

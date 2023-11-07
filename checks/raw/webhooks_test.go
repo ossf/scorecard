@@ -29,7 +29,7 @@ import (
 
 func TestWebhooks(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name                   string
 		err                    error

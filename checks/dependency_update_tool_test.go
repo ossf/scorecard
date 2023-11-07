@@ -32,7 +32,7 @@ const (
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
 func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name              string
 		wantErr           bool

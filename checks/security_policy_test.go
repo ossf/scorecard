@@ -28,7 +28,7 @@ import (
 
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name    string
 		path    string

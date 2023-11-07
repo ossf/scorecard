@@ -17,7 +17,7 @@ package roundtripper
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -37,11 +37,13 @@ const (
 	githubAppInstallationID = "GITHUB_APP_INSTALLATION_ID"
 )
 
+var errGithubCredentials = errors.New("an error occurred while getting GitHub credentials")
+
 // NewTransport returns a configured http.Transport for use with GitHub.
 func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 	transport := http.DefaultTransport
 
-	//nolint
+	//nolint:nestif
 	if tokenAccessor := tokens.MakeTokenAccessor(); tokenAccessor != nil {
 		// Use GitHub PAT
 		transport = makeGitHubTransport(transport, tokenAccessor)
@@ -60,7 +62,8 @@ func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 		}
 	} else {
 		// TODO(log): Improve error message
-		logger.Error(fmt.Errorf("an error occurred while getting GitHub credentials"), "GitHub token env var is not set. Please read https://github.com/ossf/scorecard#authentication")
+		//nolint:lll
+		logger.Error(errGithubCredentials, "GitHub token env var is not set. Please read https://github.com/ossf/scorecard#authentication")
 	}
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))

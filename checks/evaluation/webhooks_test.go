@@ -25,7 +25,7 @@ import (
 // TestWebhooks tests the webhooks check.
 func TestWebhooks(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	type args struct {
 		name string
 		dl   checker.DetailLogger

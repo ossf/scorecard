@@ -26,7 +26,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-//nolint:tparallel,paralleltest // since t.Setenv is used
+//nolint:paralleltest // since t.Setenv is used
 func TestWebhooks(t *testing.T) {
 	tests := []struct {
 		expected checker.CheckResult

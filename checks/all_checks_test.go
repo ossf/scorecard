@@ -23,12 +23,12 @@ import (
 
 func Test_registerCheck(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	type args struct {
 		name string
 		fn   checker.CheckFn
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name    string
 		args    args

@@ -24,7 +24,7 @@ import (
 // TestBinaryArtifacts tests the binary artifacts check.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	type args struct {
 		name string
 		dl   checker.DetailLogger

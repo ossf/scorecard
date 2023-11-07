@@ -34,7 +34,7 @@ import (
 func TestGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		warns    int
 		err      error
@@ -196,7 +196,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 func TestNonGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		warns    int
 		err      error
@@ -271,7 +271,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		unpinned         int
 		processingErrors int
@@ -331,7 +331,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 func TestDockerfilePinning(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		warns    int
 		err      error
@@ -579,7 +579,7 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet,lll
 	tests := []struct {
 		name             string
 		filename         string
@@ -594,7 +594,6 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		{
 			name:     "dockerfile downloads",
 			filename: "./testdata/Dockerfile-download-lines",
-			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -678,7 +677,6 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		{
 			name:     "dockerfile downloads multi-run",
 			filename: "./testdata/Dockerfile-download-multi-runs",
-			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -775,7 +773,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet,lll
 	tests := []struct {
 		name     string
 		filename string
@@ -789,7 +787,6 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 		{
 			name:     "shell downloads",
 			filename: "./testdata/shell-download-lines.sh",
-			//nolint
 			expected: []struct {
 				snippet   string
 				startLine uint
@@ -960,7 +957,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestDockerfilePinningWihoutHash(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		warns    int
 		err      error
@@ -1015,7 +1012,7 @@ func TestDockerfilePinningWihoutHash(t *testing.T) {
 
 func TestDockerfileScriptDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		unpinned         int
 		processingErrors int
@@ -1131,7 +1128,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 
 func TestDockerfileScriptDownloadInfo(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name             string
 		filename         string
@@ -1185,7 +1182,7 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 
 func TestShellScriptDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name             string
 		filename         string
@@ -1268,7 +1265,7 @@ func TestShellScriptDownload(t *testing.T) {
 
 func TestShellScriptDownloadPinned(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name     string
 		filename string
@@ -1318,7 +1315,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 
 func TestGitHubWorflowRunDownload(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name             string
 		filename         string

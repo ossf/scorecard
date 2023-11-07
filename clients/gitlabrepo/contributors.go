@@ -62,7 +62,7 @@ func (handler *contributorsHandler) retrieveContributors(project string) ([]*git
 			},
 		)
 		if err != nil {
-			//nolint wrapcheck
+			//nolint:wrapcheck
 			return nil, err
 		}
 
@@ -78,7 +78,7 @@ func (handler *contributorsHandler) retrieveContributors(project string) ([]*git
 func (handler *contributorsHandler) retrieveUsers(queryName string) ([]*gitlab.User, error) {
 	users, _, err := handler.glClient.Search.Users(queryName, &gitlab.SearchOptions{})
 	if err != nil {
-		//nolint wrapcheck
+		//nolint:wrapcheck
 		return nil, err
 	}
 	return users, nil

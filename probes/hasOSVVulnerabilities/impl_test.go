@@ -88,11 +88,11 @@ func Test_Run(t *testing.T) {
 				Probe:   "hasOSVVulnerabilities",
 				Message: "Project is vulnerable to: foo",
 				Remediation: &probe.Remediation{
-					//nolint
+					//nolint:lll
 					Text: `Fix the foo by following information from https://osv.dev/foo.
 If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.`,
-					//nolint
+					//nolint:lll
 					Markdown: `Fix the foo by following information from [OSV](https://osv.dev/foo).
 If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).`,

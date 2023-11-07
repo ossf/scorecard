@@ -323,7 +323,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		}
 	}
 
-	//nolint
+	//nolint:lll
 	// The file need not have a FROM statement,
 	// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/partials/jupyter.partial.Dockerfile.
 

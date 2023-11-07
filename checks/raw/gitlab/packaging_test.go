@@ -27,7 +27,7 @@ import (
 func TestGitlabPackagingYamlCheck(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name       string
 		lineNumber uint
@@ -100,7 +100,7 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 func TestGitlabPackagingPackager(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name       string
 		lineNumber uint
