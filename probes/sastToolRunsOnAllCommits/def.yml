@@ -1,0 +1,30 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: sastToolRunsOnAllCommits
+short: Checks that a SAST tool runs on all commits in the projects CI.
+motivation: >
+  SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.
+implementation: >
+  The implementation iterates through the projects commits and checks whether any of the check runs for the commits associated merge request was any of the SAST tools that Scorecard supports.
+outcome:
+  - If the project had no commits merged, the probe returns a finding with OutcomeNotApplicable.
+  - If the project runs SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomePositive (1). In addition, the finding will include two values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
+  - If the project does not run any SAST tools successfuly on every pull request before merging, the probe returns one finding with OutcomeNegative (0). In addition, the finding will include two values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.
+remediation:
+  effort: Low
+  text:
+    - Ensure that your SAST tools run on every commit.
+  markdown:
+    - Ensure that your SAST tools run on every commit.
