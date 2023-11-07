@@ -154,6 +154,8 @@ linters-settings:
       - typeUnparen
       - unnecessaryBlock
   nolintlint:
+    # `//nolint` should mention specific linter such as `//nolint:my-linter`
+    # Overly broad directives can hide unrelated issues
     require-specific: true
   wrapcheck:
     ignorePackageGlobs:
