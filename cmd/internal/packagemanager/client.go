@@ -29,12 +29,10 @@ type Client interface {
 
 type PackageManagerClient struct{}
 
-//nolint:noctx
 func (c *PackageManagerClient) Get(url, packageName string) (*http.Response, error) {
 	return c.getRemoteURL(fmt.Sprintf(url, packageName))
 }
 
-//nolint:noctx
 func (c *PackageManagerClient) GetURI(url string) (*http.Response, error) {
 	return c.getRemoteURL(url)
 }

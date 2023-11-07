@@ -34,7 +34,7 @@ var testfs embed.FS
 
 func Test_New(t *testing.T) {
 	t.Parallel()
-	// nolint: govet
+	//nolint: govet
 	tests := []struct {
 		name string
 		id   string
