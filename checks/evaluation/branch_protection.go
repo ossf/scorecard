@@ -284,7 +284,8 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	max := 0
 
 	max += 2
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
 		*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0 {
 		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
 		score += 2
@@ -330,7 +331,8 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		// If Scorecard is run with admin token, we can interprete GitHub's response to say
 		// if the branch requires PRs prior to code changes.
 		max++
-		if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+		if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+			branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
 			score++
 			info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 		} else {
@@ -347,7 +349,8 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
 		// Note: we don't inrecase max possible score for non-admin viewers.
 		max++
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
@@ -389,9 +392,11 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	max++
 
 	// On this first check we exclude the case of PRs don't being required, covered on adminReviewProtection function
-	if !(isUserAdmin(branch) &&
+	if !(isUserAdmin(branch) && branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
 		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == nil) {
 		switch {
+		case branch.BranchProtectionRule.RequiredPullRequestReviews == nil:
+			debug(dl, log, "Unable to evaluate if PRs are required to make changes on branch '%s'", *branch.Name)
 		// If not running as admin, the nil value can both mean that no reviews are required or no PR are required,
 		// so here we assume no reviews are required.
 		case (!isUserAdmin(branch) &&
@@ -419,7 +424,8 @@ func codeownerBranchProtection(
 
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		case true:
 			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)

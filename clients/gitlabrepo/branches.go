@@ -192,7 +192,7 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 		Contexts:             makeContextsFromResp(projectStatusChecks),
 	}
 
-	pullRequestReviewRule := clients.PullRequestReviewRule{
+	pullRequestReviewRule := &clients.PullRequestReviewRule{
 		DismissStaleReviews:     newTrue(),
 		RequireCodeOwnerReviews: &protectedBranch.CodeOwnerApprovalRequired,
 	}

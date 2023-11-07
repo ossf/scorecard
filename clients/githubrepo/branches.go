@@ -404,6 +404,8 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	*branchRef.Protected = true
 	branchRule := &branchRef.BranchProtectionRule
 
+	branchRule.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+
 	switch {
 	// All settings are available. This typically means
 	// scorecard is run with a token that has access
@@ -493,6 +495,9 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 
 		translated.EnforceAdmins = initializedBoolRef(len(r.BypassActors.Nodes) == 0)
 
+		// Instatiate this struct as it will never be null on Repo Rules. We'll always know if PRs are required or not
+		translated.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case ruleDeletion:
@@ -562,8 +567,9 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 			readBoolPtr(base.RequireLinearHistory) || readBoolPtr(translated.RequireLinearHistory),
 		)
 	}
-	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
+	base.RequiredPullRequestReviews = mergePullRequestReviews(
+		base.RequiredPullRequestReviews, translated.RequiredPullRequestReviews)
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {
@@ -585,21 +591,34 @@ func mergeCheckRules(base, translated *clients.StatusChecksRule) {
 	}
 }
 
-func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
-	if translated.RequiredApprovingReviewCount != nil &&
-		(readIntPtr(translated.RequiredApprovingReviewCount) >= readIntPtr(base.RequiredApprovingReviewCount)) {
-		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
+func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) *clients.PullRequestReviewRule {
+	// Case of no branch protection defined or we couldn't retrieve info about PR reviews
+	if base == nil {
+		base = new(clients.PullRequestReviewRule)
 	}
+
+	result := new(clients.PullRequestReviewRule)
+
+	if translated.RequiredApprovingReviewCount != nil || base.RequiredApprovingReviewCount != nil {
+		if readIntPtr(translated.RequiredApprovingReviewCount) >= readIntPtr(base.RequiredApprovingReviewCount) {
+			result.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
+		} else {
+			result.RequiredApprovingReviewCount = base.RequiredApprovingReviewCount
+		}
+	}
+
 	if base.DismissStaleReviews != nil || translated.DismissStaleReviews != nil {
-		base.DismissStaleReviews = initializedBoolRef(
+		result.DismissStaleReviews = initializedBoolRef(
 			readBoolPtr(base.DismissStaleReviews) || readBoolPtr(translated.DismissStaleReviews),
 		)
 	}
 	if base.RequireCodeOwnerReviews != nil || translated.RequireCodeOwnerReviews != nil {
-		base.RequireCodeOwnerReviews = initializedBoolRef(
+		result.RequireCodeOwnerReviews = initializedBoolRef(
 			readBoolPtr(base.RequireCodeOwnerReviews) || readBoolPtr(translated.RequireCodeOwnerReviews),
 		)
 	}
+
+	return result
 }
 
 func readBoolPtr(b *bool) bool {

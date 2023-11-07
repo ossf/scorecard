@@ -210,14 +210,16 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 			bp = &jsonBranchProtectionSettings{
 				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
 				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
-				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
 				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
-				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
 				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
 				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
 				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
-				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
+			}
+			if v.BranchProtectionRule.RequiredPullRequestReviews != nil {
+				bp.DismissesStaleReviews = v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews
+				bp.RequiredApprovingReviewCount = v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
+				bp.RequiresCodeOwnerReviews = v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
 			}
 		}
 		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{

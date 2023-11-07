@@ -95,7 +95,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -115,7 +115,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -154,7 +154,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -189,7 +189,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -210,7 +210,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -245,7 +245,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -266,7 +266,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -302,7 +302,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -340,7 +340,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -358,9 +358,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  4,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
-				NumberOfDebug: 8,
+				NumberOfDebug: 10,
 			},
 			nonadmin:      true,
 			defaultBranch: main,

@@ -66,7 +66,7 @@ func TestIsBranchProtected(t *testing.T) {
 					RequireLinearHistory:    &falseVal,
 					EnforceAdmins:           &falseVal,
 					RequireLastPushApproval: &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -84,9 +84,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  2,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -106,7 +106,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -142,7 +142,7 @@ func TestIsBranchProtected(t *testing.T) {
 					RequireLinearHistory:    &falseVal,
 					AllowForcePushes:        &falseVal,
 					AllowDeletions:          &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -178,7 +178,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: nil,
@@ -209,7 +209,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -240,7 +240,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             nil,
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &oneVal,
@@ -271,7 +271,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  nil,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: nil,
@@ -302,7 +302,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  nil,
 						Contexts:             nil,
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &oneVal,
@@ -333,7 +333,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &falseVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -364,7 +364,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &falseVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -396,7 +396,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &falseVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -427,7 +427,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &falseVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &zeroVal,
@@ -458,7 +458,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &trueVal,
 						RequireCodeOwnerReviews:      &trueVal,
 						RequiredApprovingReviewCount: &oneVal,
@@ -489,7 +489,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &trueVal,
 						RequireCodeOwnerReviews:      &trueVal,
 						RequiredApprovingReviewCount: &oneVal,
@@ -521,7 +521,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
 						DismissStaleReviews:          &trueVal,
 						RequireCodeOwnerReviews:      &trueVal,
 						RequiredApprovingReviewCount: &oneVal,

@@ -23,7 +23,7 @@ type BranchRef struct {
 
 // BranchProtectionRule captures the settings enabled on a branch for security.
 type BranchProtectionRule struct {
-	RequiredPullRequestReviews PullRequestReviewRule
+	RequiredPullRequestReviews *PullRequestReviewRule
 	AllowDeletions             *bool
 	AllowForcePushes           *bool
 	RequireLinearHistory       *bool
