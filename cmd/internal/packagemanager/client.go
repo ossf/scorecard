@@ -39,7 +39,7 @@ func (c *PackageManagerClient) GetURI(url string) (*http.Response, error) {
 	return c.getRemoteURL(url)
 }
 
-// nolint: noctx
+//nolint: noctx
 func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) {
 	const timeout = 10
 	client := &http.Client{

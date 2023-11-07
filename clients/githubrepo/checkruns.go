@@ -67,7 +67,7 @@ type checkRunsGraphqlData struct {
 
 type checkRunsByRef = map[string][]clients.CheckRun
 
-// nolint: govet
+//nolint:govet
 type checkrunsHandler struct {
 	client         *github.Client
 	graphClient    *githubv4.Client

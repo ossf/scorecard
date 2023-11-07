@@ -62,7 +62,7 @@ type (
 		options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error)
 )
 
-// nolint: nestif
+//nolint:nestif
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {

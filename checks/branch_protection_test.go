@@ -57,7 +57,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 
 	rel1 := "release/v.1"
 	sha := "8fb3cb86082b17144a80402f5367ae65f06083bd"
-	//nolint:goconst
 	main := "main"
 	trueVal := true
 	falseVal := false

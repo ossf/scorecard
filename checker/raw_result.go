@@ -25,7 +25,8 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-// nolint
+//
+//nolint:govet
 type RawResults struct {
 	BinaryArtifactResults       BinaryArtifactData
 	BranchProtectionResults     BranchProtectionsData
@@ -77,7 +78,6 @@ type PackagingData struct {
 }
 
 // Package represents a package.
-// nolint
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
 	// ecosystems: purl, OSV, CPE, etc.

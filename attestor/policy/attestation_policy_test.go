@@ -170,7 +170,7 @@ func TestCheckPreventBinaryArtifacts(t *testing.T) {
 func TestCheckCodeReviewed(t *testing.T) {
 	t.Parallel()
 
-	// nolint
+	//nolint
 	tests := []struct {
 		err      error
 		raw      *checker.RawResults
@@ -385,7 +385,7 @@ func asPointer(s string) *string {
 func TestNoUnpinnedDependencies(t *testing.T) {
 	t.Parallel()
 
-	// nolint
+	//nolint
 	tests := []struct {
 		err      error
 		raw      *checker.RawResults

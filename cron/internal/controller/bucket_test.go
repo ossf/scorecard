@@ -22,7 +22,6 @@ import (
 
 //nolint:tparallel,paralleltest // since t.Setenv is used
 func TestGetPrefix(t *testing.T) {
-	//nolint:govet
 	testcases := []struct {
 		name       string
 		url        string

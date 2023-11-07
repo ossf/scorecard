@@ -204,7 +204,7 @@ func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.Fil
 	return nil
 }
 
-// nolint: gocognit
+//nolint:gocognit
 func (handler *tarballHandler) extractTarball() error {
 	in, err := os.OpenFile(handler.tempTarFile, os.O_RDONLY, 0o644)
 	if err != nil {

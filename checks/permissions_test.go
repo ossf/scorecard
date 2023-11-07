@@ -28,7 +28,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-// nolint
+//nolint:lll
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 

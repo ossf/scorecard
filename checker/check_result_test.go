@@ -50,7 +50,7 @@ func TestAggregateScores(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := AggregateScores(tt.args.scores...); got != tt.want { //nolint:govet
+			if got := AggregateScores(tt.args.scores...); got != tt.want {
 				t.Errorf("AggregateScores() = %v, want %v", got, tt.want)
 			}
 		})
@@ -86,7 +86,7 @@ func TestAggregateScoresWithWeight(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := AggregateScoresWithWeight(tt.args.scores); got != tt.want { //nolint:govet
+			if got := AggregateScoresWithWeight(tt.args.scores); got != tt.want {
 				t.Errorf("AggregateScoresWithWeight() = %v, want %v", got, tt.want)
 			}
 		})
@@ -132,8 +132,8 @@ func TestCreateProportionalScore(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScore(tt.args.success, tt.args.total); got != tt.want { //nolint:govet
-				t.Errorf("CreateProportionalScore() = %v, want %v", got, tt.want) //nolint:govet
+			if got := CreateProportionalScore(tt.args.success, tt.args.total); got != tt.want {
+				t.Errorf("CreateProportionalScore() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -438,8 +438,8 @@ func TestNormalizeReason(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := NormalizeReason(tt.args.reason, tt.args.score); got != tt.want { //nolint:govet
-				t.Errorf("NormalizeReason() = %v, want %v", got, tt.want) //nolint:govet
+			if got := NormalizeReason(tt.args.reason, tt.args.score); got != tt.want {
+				t.Errorf("NormalizeReason() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -490,8 +490,8 @@ func TestCreateResultWithScore(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score); !cmp.Equal(got, tt.want) { //nolint:lll,govet
-				t.Errorf("CreateResultWithScore() = %v, want %v", got, cmp.Diff(got, tt.want)) //nolint:govet
+			if got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score); !cmp.Equal(got, tt.want) {
+				t.Errorf("CreateResultWithScore() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
@@ -545,8 +545,8 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) { //nolint:govet,lll
-				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want)) //nolint:govet
+			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) { //nolint:lll
+				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
@@ -594,7 +594,7 @@ func TestCreateMaxScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateMaxScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
+			if got := CreateMaxScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateMaxScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -643,7 +643,7 @@ func TestCreateMinScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
+			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateMinScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})

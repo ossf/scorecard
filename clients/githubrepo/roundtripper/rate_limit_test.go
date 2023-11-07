@@ -27,27 +27,28 @@ func TestRoundTrip(t *testing.T) {
 	var requestCount int
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Customize the response headers and body based on the test scenario
+		//nolint:errcheck
 		switch r.URL.Path {
 		case "/error":
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal Server Error")) // nolint: errcheck
+			w.Write([]byte("Internal Server Error"))
 		case "/retry":
 			requestCount++
 			if requestCount == 2 {
 				// Second request: Return successful response
 				w.Header().Set("X-RateLimit-Remaining", "10")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Success")) // nolint: errcheck
+				w.Write([]byte("Success"))
 			} else {
 				// First request: Return Retry-After header
 				w.Header().Set("Retry-After", "1")
 				w.WriteHeader(http.StatusTooManyRequests)
-				w.Write([]byte("Rate Limit Exceeded")) // nolint: errcheck
+				w.Write([]byte("Rate Limit Exceeded"))
 			}
 		case "/success":
 			w.Header().Set("X-RateLimit-Remaining", "10")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("Success")) // nolint: errcheck
+			w.Write([]byte("Success"))
 		}
 	}))
 	t.Cleanup(func() {

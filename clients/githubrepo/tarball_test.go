@@ -79,7 +79,7 @@ func setup(inputFile string) (tarballHandler, error) {
 	return tarballHandler, nil
 }
 
-// nolint: gocognit
+//nolint:gocognit
 func TestExtractTarball(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
