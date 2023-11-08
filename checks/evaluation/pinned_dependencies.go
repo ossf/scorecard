@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/remediation"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -65,6 +66,16 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
 
+	for _, e := range r.ProcessingErrors {
+		e := e
+		dl.Info(&checker.LogMessage{
+			Finding: &finding.Finding{
+				Message:  generateTextIncompleteResults(e),
+				Location: &e.Location,
+			},
+		})
+	}
+
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
 		if rr.Location == nil {
@@ -105,7 +116,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				Type:        rr.Location.Type,
 				Offset:      rr.Location.Offset,
 				EndOffset:   rr.Location.EndOffset,
-				Text:        generateText(&rr),
+				Text:        generateTextUnpinned(&rr),
 				Snippet:     rr.Location.Snippet,
 				Remediation: generateRemediation(remediationMetadata, &rr),
 			})
@@ -176,7 +187,7 @@ func updatePinningResults(rr *checker.Dependency,
 	pr[rr.Type] = p
 }
 
-func generateText(rr *checker.Dependency) string {
+func generateTextUnpinned(rr *checker.Dependency) string {
 	if rr.Type == checker.DependencyUseTypeGHAction {
 		// Check if we are dealing with a GitHub action or a third-party one.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
@@ -185,6 +196,10 @@ func generateText(rr *checker.Dependency) string {
 	}
 
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
+}
+
+func generateTextIncompleteResults(e checker.ElementError) string {
+	return fmt.Sprintf("Possibly incomplete results: %s", e.Err)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {
