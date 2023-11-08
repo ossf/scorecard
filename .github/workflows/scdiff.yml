@@ -61,6 +61,12 @@ jobs:
         uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
         with:
           script: |
+            const allowedAssociations = ["COLLABORATOR", "MEMBER", "OWNER"];
+            authorAssociation = '${{ github.event.comment.author_association }}'
+            if (!allowedAssociations.includes(authorAssociation)) {
+              core.setFailed("You don't have access to run scdiff");
+            }
+
             const response = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
