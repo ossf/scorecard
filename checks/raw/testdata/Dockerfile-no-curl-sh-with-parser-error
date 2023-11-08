@@ -1,4 +1,4 @@
-#!/bin/sh
+
 # Copyright 2021 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-curl bla | bash
+FROM abrarov/msvc-2017:2.11.0@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
 
-# syntax error: unexpected token 'fi'
-fi
+RUN echo hello
+RUN ["echo", "hello"]
 
-curl bla | bash
+ARG python=3.8
+RUN if "%python%"=="3.8" echo "Hello world"

@@ -15,6 +15,7 @@
 package checker
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -111,7 +112,8 @@ const (
 
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	Dependencies []Dependency
+	Dependencies     []Dependency
+	ProcessingErrors []ElementError // jobs or files with errors may have incomplete results
 }
 
 // Dependency represents a dependency.
@@ -436,4 +438,24 @@ func (f *File) Location() *finding.Location {
 	}
 
 	return loc
+}
+
+// ElementError allows us to identify the "element" that led to the given error.
+// The "element" is the specific "code under analysis" that caused the error. It should
+// describe what caused the error as precisely as possible.
+//
+// For example, if a shell parsing error occurs while parsing a Dockerfile `RUN` block
+// or a GitHub workflow's `run:` step, the "element" should point to the Dockerfile
+// lines or workflow job step that caused the failure, not just the file path.
+type ElementError struct {
+	Err      error
+	Location finding.Location
+}
+
+func (e *ElementError) Error() string {
+	return fmt.Sprintf("%s: %v", e.Err, e.Location)
+}
+
+func (e *ElementError) Unwrap() error {
+	return e.Err
 }
