@@ -67,10 +67,11 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	remediationMetadata, _ := remediation.New(c)
 
 	for _, e := range r.ProcessingErrors {
+		e := e
 		dl.Info(&checker.LogMessage{
 			Finding: &finding.Finding{
 				Message:  generateTextIncompleteResults(e),
-				Location: e.Element,
+				Location: &e.Location,
 			},
 		})
 	}

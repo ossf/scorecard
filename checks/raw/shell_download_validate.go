@@ -1062,7 +1062,7 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 			content := string(content)
 			r.ProcessingErrors = append(r.ProcessingErrors, checker.ElementError{
 				Err: sce.WithMessage(sce.ErrorShellParsing, parseError.Text),
-				Element: &finding.Location{
+				Location: finding.Location{
 					Path:      pathfn,
 					LineStart: &startLine,
 					LineEnd:   &endLine,

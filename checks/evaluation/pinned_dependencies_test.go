@@ -814,15 +814,15 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 			processingErrors: []checker.ElementError{
 				{
-					Err:     sce.ErrorJobOSParsing,
-					Element: &finding.Location{},
+					Err:      sce.ErrJobOSParsing,
+					Location: finding.Location{},
 				},
 			},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
 				NumberOfWarn:  2, // unpinned deps
-				NumberOfInfo:  3, // 1 for npm deps, 2 for processing errors
+				NumberOfInfo:  2, // 1 for npm deps, 1 for processing error
 				NumberOfDebug: 0,
 			},
 		},

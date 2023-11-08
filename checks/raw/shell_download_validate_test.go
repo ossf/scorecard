@@ -103,7 +103,7 @@ func TestValidateShellFile(t *testing.T) {
 	var r checker.PinningDependenciesData
 	err = validateShellFile(filename, 0, 0, content, map[string]bool{}, &r)
 	if err != nil {
-		t.Errorf("error validating shell file")
+		t.Errorf("error validating shell file: %v", err)
 	}
 
 	if r.ProcessingErrors == nil {

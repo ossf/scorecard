@@ -388,9 +388,9 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 				if errors.As(err, &elementError) {
 					// Add the workflow name and step ID to the element
 					lineStart := uint(step.Pos.Line)
-					elementError.Element = &finding.Location{
+					elementError.Location = finding.Location{
 						Path:      pathfn,
-						Snippet:   elementError.Element.Snippet,
+						Snippet:   elementError.Location.Snippet,
 						LineStart: &lineStart,
 						Type:      finding.FileTypeSource,
 					}

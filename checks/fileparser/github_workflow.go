@@ -212,10 +212,10 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 		// precise location information
 		jobName := GetJobName(job)
 		return jobOSes, &checker.ElementError{
-			Element: &finding.Location{
+			Location: finding.Location{
 				Snippet: &jobName,
 			},
-			Err: sce.ErrorJobOSParsing,
+			Err: sce.ErrJobOSParsing,
 		}
 	}
 	return jobOSes, nil

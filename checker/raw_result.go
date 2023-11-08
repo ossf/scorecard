@@ -413,12 +413,12 @@ func (f *File) Location() *finding.Location {
 // or a GitHub workflow's `run:` step, the "element" should point to the Dockerfile
 // lines or workflow job step that caused the failure, not just the file path.
 type ElementError struct {
-	Err     error
-	Element *finding.Location
+	Err      error
+	Location finding.Location
 }
 
 func (e *ElementError) Error() string {
-	return fmt.Sprintf("%s: %v", e.Err, *e.Element)
+	return fmt.Sprintf("%s: %v", e.Err, e.Location)
 }
 
 func (e *ElementError) Unwrap() error {
