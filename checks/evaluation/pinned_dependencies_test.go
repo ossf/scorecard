@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -239,9 +240,10 @@ func Test_PinningDependencies(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		dependencies []checker.Dependency
-		expected     scut.TestReturn
+		name             string
+		dependencies     []checker.Dependency
+		processingErrors []checker.ElementError
+		expected         scut.TestReturn
 	}{
 		{
 			name: "all dependencies pinned",
@@ -796,6 +798,34 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "Skipped objects and dependencies",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			processingErrors: []checker.ElementError{
+				{
+					Err:      sce.ErrJobOSParsing,
+					Location: finding.Location{},
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  2, // unpinned deps
+				NumberOfInfo:  2, // 1 for npm deps, 1 for processing error
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -807,7 +837,8 @@ func Test_PinningDependencies(t *testing.T) {
 			c := checker.CheckRequest{Dlogger: &dl}
 			actual := PinningDependencies("checkname", &c,
 				&checker.PinningDependenciesData{
-					Dependencies: tt.dependencies,
+					Dependencies:     tt.dependencies,
+					ProcessingErrors: tt.processingErrors,
 				})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
@@ -990,7 +1021,7 @@ func TestGenerateText(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := generateText(tc.dependency)
+			result := generateTextUnpinned(tc.dependency)
 			if !cmp.Equal(tc.expectedText, result) {
 				t.Errorf("generateText mismatch (-want +got):\n%s", cmp.Diff(tc.expectedText, result))
 			}
