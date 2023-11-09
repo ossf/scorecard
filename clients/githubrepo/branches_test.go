@@ -433,6 +433,72 @@ func Test_applyRepoRules(t *testing.T) {
 	}
 }
 
+func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
+	t.Parallel()
+	trueVal := true
+	falseVal := false
+	zeroVal := int32(0)
+
+	testcases := []struct {
+		branch   *branch
+		ruleSet  *repoRuleSet
+		expected *clients.BranchRef
+		name     string
+	}{
+		{
+			name: "Non-admin Branch Protection rule with no reviewers get reviewers struct set to nil",
+			branch: &branch{
+				Name: nil,
+				RefUpdateRule: &refUpdateRule{
+					AllowsDeletions:              &falseVal,
+					AllowsForcePushes:            &falseVal,
+					RequiredApprovingReviewCount: &zeroVal,
+					RequiresCodeOwnerReviews:     &falseVal,
+					RequiresLinearHistory:        &falseVal,
+					RequiredStatusCheckContexts:  nil,
+				},
+				BranchProtectionRule: nil,
+			},
+			ruleSet: nil,
+			expected: &clients.BranchRef{
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &falseVal,
+					AllowForcePushes:     &falseVal,
+					RequireLinearHistory: &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge:  nil,
+						RequiresStatusChecks: nil,
+						Contexts:             []string{},
+					},
+					RequiredPullRequestReviews: nil,
+				},
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		testcase := testcase
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var repoRules []*repoRuleSet
+			if testcase.ruleSet == nil {
+				repoRules = []*repoRuleSet{}
+			} else {
+				repoRules = []*repoRuleSet{testcase.ruleSet}
+			}
+
+			result := getBranchRefFrom(testcase.branch, repoRules)
+
+			if !cmp.Equal(result, testcase.expected) {
+				diff := cmp.Diff(result, testcase.expected)
+				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.expected, result, diff)
+			}
+		})
+	}
+}
+
 func stringPtr(s string) *string {
 	return &s
 }
