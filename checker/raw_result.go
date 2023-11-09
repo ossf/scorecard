@@ -15,6 +15,7 @@
 package checker
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -40,6 +41,7 @@ type RawResults struct {
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
 	PinningDependenciesResults  PinningDependenciesData
+	SASTResults                 SASTData
 	SecurityPolicyResults       SecurityPolicyData
 	SignedReleasesResults       SignedReleasesData
 	TokenPermissionsResults     TokenPermissionsData
@@ -111,7 +113,8 @@ const (
 
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	Dependencies []Dependency
+	Dependencies     []Dependency
+	ProcessingErrors []ElementError // jobs or files with errors may have incomplete results
 }
 
 // Dependency represents a dependency.
@@ -225,6 +228,40 @@ type SecurityPolicyFile struct {
 	// security policy information found in repo or org
 	Information []SecurityPolicyInformation
 	// file that contains the security policy information
+	File File
+}
+
+// SASTData contains the raw results
+// for the SAST check.
+type SASTData struct {
+	Workflows    []SASTWorkflow
+	Commits      []SASTCommit
+	NumWorkflows int
+}
+
+type SASTCommit struct {
+	CommittedDate          time.Time
+	Message                string
+	SHA                    string
+	CheckRuns              []clients.CheckRun
+	AssociatedMergeRequest clients.PullRequest
+	Committer              clients.User
+	Compliant              bool
+}
+
+// SASTWorkflowType represents a type of SAST workflow.
+type SASTWorkflowType string
+
+const (
+	// CodeQLWorkflow represents a workflow that runs CodeQL.
+	CodeQLWorkflow SASTWorkflowType = "CodeQL"
+	// SonarWorkflow represents a workflow that runs Sonar.
+	SonarWorkflow SASTWorkflowType = "Sonar"
+)
+
+// SASTWorkflow represents a SAST workflow.
+type SASTWorkflow struct {
+	Type SASTWorkflowType
 	File File
 }
 
@@ -403,4 +440,24 @@ func (f *File) Location() *finding.Location {
 	}
 
 	return loc
+}
+
+// ElementError allows us to identify the "element" that led to the given error.
+// The "element" is the specific "code under analysis" that caused the error. It should
+// describe what caused the error as precisely as possible.
+//
+// For example, if a shell parsing error occurs while parsing a Dockerfile `RUN` block
+// or a GitHub workflow's `run:` step, the "element" should point to the Dockerfile
+// lines or workflow job step that caused the failure, not just the file path.
+type ElementError struct {
+	Err      error
+	Location finding.Location
+}
+
+func (e *ElementError) Error() string {
+	return fmt.Sprintf("%s: %v", e.Err, e.Location)
+}
+
+func (e *ElementError) Unwrap() error {
+	return e.Err
 }

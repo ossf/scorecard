@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -373,6 +374,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
+
 		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
@@ -395,6 +397,23 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
+				var elementError *checker.ElementError
+				if errors.As(err, &elementError) {
+					// Add the workflow name and step ID to the element
+					lineStart := uint(step.Pos.Line)
+					elementError.Location = finding.Location{
+						Path:      pathfn,
+						Snippet:   elementError.Location.Snippet,
+						LineStart: &lineStart,
+						Type:      finding.FileTypeSource,
+					}
+
+					pdata.ProcessingErrors = append(pdata.ProcessingErrors, *elementError)
+
+					// continue instead of break because other `run` steps may declare
+					// a valid shell we can scan
+					continue
+				}
 				return false, err
 			}
 			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
