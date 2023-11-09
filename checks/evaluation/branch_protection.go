@@ -49,14 +49,6 @@ type levelScore struct {
 	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
-// Evaluates if Scorecard is being run with an administrator token.
-func isUserAdmin(branchProtectionData *clients.BranchRef) bool {
-	// When Scorecard is run without the admin token, Github retrieves both of the following fields as nil,
-	// so we're using them to evaluate if Scorecard is run using admin token or not.
-	return branchProtectionData.BranchProtectionRule.CheckRules.UpToDateBeforeMerge != nil ||
-		branchProtectionData.BranchProtectionRule.RequireLastPushApproval != nil
-}
-
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
 	r *checker.BranchProtectionsData,
@@ -327,12 +319,12 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		}
 	}
 
-	if isUserAdmin(branch) {
-		// If Scorecard is run with admin token, we can interprete GitHub's response to say
-		// if the branch requires PRs prior to code changes.
+	if branch.BranchProtectionRule.RequiredPullRequestReviews == nil {
+		debug(dl, log, "unable to retrieve whether PRs are needed to make changes on branch '%s'", *branch.Name)
+		warn(dl, log, "No reviewers are required to make changes on branch '%s'", *branch.Name)
+	} else {
 		max++
-		if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-			branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
+		if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
 			score++
 			info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 		} else {
@@ -391,17 +383,14 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 
 	max++
 
-	// On this first check we exclude the case of PRs don't being required, covered on adminReviewProtection function
-	if !(isUserAdmin(branch) && branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == nil) {
+	// On this first check we exclude 1. The case which we don't know if the PRs are required
+	// 2. The case we know that PRs are not required, because it's covered on adminReviewProtection function.
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
 		switch {
-		case branch.BranchProtectionRule.RequiredPullRequestReviews == nil:
-			debug(dl, log, "Unable to evaluate if PRs are required to make changes on branch '%s'", *branch.Name)
 		// If not running as admin, the nil value can both mean that no reviews are required or no PR are required,
 		// so here we assume no reviews are required.
-		case (!isUserAdmin(branch) &&
-			branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == nil) ||
-			*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == 0:
+		case *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == 0:
 			warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
 		case *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews:
 			info(dl, log, "number of required reviewers is %d on branch '%s'",

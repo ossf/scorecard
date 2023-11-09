@@ -23,6 +23,9 @@ type BranchRef struct {
 
 // BranchProtectionRule captures the settings enabled on a branch for security.
 type BranchProtectionRule struct {
+	// The nil value of this struct means that we can't tell if PRs are required to make changes or not.
+	// This happens when Scorecard is run without admin token on a repo that uses the old Branch Protection
+	// setting (not the new Repo Rules, that are always public).
 	RequiredPullRequestReviews *PullRequestReviewRule
 	AllowDeletions             *bool
 	AllowForcePushes           *bool

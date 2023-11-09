@@ -84,7 +84,7 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 5,
 			},
@@ -156,6 +156,37 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 		{
+			name: "Admin run with all tier 1 requirements but don't require PRs",
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         3,
+				NumberOfWarn:  7,
+				NumberOfInfo:  2,
+				NumberOfDebug: 0,
+			},
+			branch: &clients.BranchRef{
+				Name:      &branchVal,
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					AllowForcePushes:        &falseVal,
+					AllowDeletions:          &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						RequiresStatusChecks: &falseVal,
+						UpToDateBeforeMerge:  &falseVal,
+						Contexts:             nil,
+					},
+					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						DismissStaleReviews:          &falseVal,
+						RequireCodeOwnerReviews:      &falseVal,
+						RequiredApprovingReviewCount: nil,
+					},
+				},
+			},
+		},
+		{
 			name: "Admin run with all tier 2 requirements except require PRs and reviewers",
 			expected: scut.TestReturn{
 				Error:         nil,
@@ -205,7 +236,7 @@ func TestIsBranchProtected(t *testing.T) {
 					AllowForcePushes:        &falseVal,
 					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
-						RequiresStatusChecks: &falseVal,
+						RequiresStatusChecks: &trueVal,
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
@@ -249,61 +280,57 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 		{
-			name: "Non-admin run on project that doesn't require 1 reviewer",
+			name: "Non-admin run on project that require zero reviewer (or don't require PRs at all, we can't differentiate it)",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  3,
-				NumberOfInfo:  4,
-				NumberOfDebug: 2,
+				NumberOfWarn:  2,
+				NumberOfInfo:  2,
+				NumberOfDebug: 5,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:           &trueVal,
+					EnforceAdmins:           nil,
 					RequireLastPushApproval: nil,
-					RequireLinearHistory:    &trueVal,
+					RequireLinearHistory:    &falseVal,
 					AllowForcePushes:        &falseVal,
 					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
-						RequiresStatusChecks: &falseVal,
+						RequiresStatusChecks: nil,
 						UpToDateBeforeMerge:  nil,
-						Contexts:             []string{"foo"},
+						Contexts:             nil,
 					},
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
-						RequireCodeOwnerReviews:      &falseVal,
-						RequiredApprovingReviewCount: nil,
-					},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
 		{
-			name: "Non-admin run on project with all tier 2 requirements",
+			name: "Non-admin run on project that require 1 reviewer",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         6,
-				NumberOfWarn:  4,
+				NumberOfWarn:  3,
 				NumberOfInfo:  3,
-				NumberOfDebug: 2,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					EnforceAdmins:           &trueVal,
+					EnforceAdmins:           nil,
 					RequireLastPushApproval: nil,
-					RequireLinearHistory:    &trueVal,
+					RequireLinearHistory:    &falseVal,
 					AllowForcePushes:        &falseVal,
 					AllowDeletions:          &falseVal,
 					CheckRules: clients.StatusChecksRule{
-						RequiresStatusChecks: &falseVal,
+						RequiresStatusChecks: nil,
 						UpToDateBeforeMerge:  nil,
 						Contexts:             nil,
 					},
 					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
+						DismissStaleReviews:          nil,
 						RequireCodeOwnerReviews:      &falseVal,
 						RequiredApprovingReviewCount: &oneVal,
 					},

@@ -324,9 +324,10 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 }
 
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
+	dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
-	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
 		// TODO(#3255): Update when GitHub GraphQL bug is fixed
@@ -346,6 +347,9 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 	// TODO: requiresConversationResolution, requiresSignatures, viewerAllowedToDismissReviews, viewerCanPush
 	switch v := src.(type) {
 	case *branchProtectionRule:
+		if dst.RequiredPullRequestReviews == nil {
+			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+		}
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
@@ -357,9 +361,22 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
-		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+
+		if (v.RequiredApprovingReviewCount == nil || *v.RequiredApprovingReviewCount == 0) &&
+			(v.RequiresCodeOwnerReviews == nil || !*v.RequiresCodeOwnerReviews) {
+			// If run without admin permissions and using the old Branch Protection configuration (not the Repo Rules),
+			// we can't tell if the project requires PRs for changes or not as the RequiredApprovingReviewCount = 0
+			// can mean both "don't require PRs" and "require PR but no reviewers".
+			// For this case, we set the whole RequirePullRequestReviews structure to nil
+			dst.RequiredPullRequestReviews = nil
+		} else {
+			if dst.RequiredPullRequestReviews == nil {
+				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+			}
+			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		}
 	}
 }
 
@@ -403,8 +420,6 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 
 	*branchRef.Protected = true
 	branchRule := &branchRef.BranchProtectionRule
-
-	branchRule.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 
 	switch {
 	// All settings are available. This typically means
