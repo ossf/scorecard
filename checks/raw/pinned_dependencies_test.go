@@ -15,14 +15,19 @@
 package raw
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
+	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/rule"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -1545,4 +1550,215 @@ func countUnpinned(r []checker.Dependency) int {
 	}
 
 	return unpinned
+}
+
+func stringAsPointer(s string) *string {
+	return &s
+}
+
+func boolAsPointer(b bool) *bool {
+	return &b
+}
+
+// TestCollectDockerfilePinning tests the collectDockerfilePinning function.
+func TestCollectDockerfilePinning(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		filename            string
+		outcomeDependencies []checker.Dependency
+		expectError         bool
+	}{
+		{
+			name:        "Workflow with error",
+			filename:    "./testdata/.github/workflows/github-workflow-download-lines.yaml",
+			expectError: true,
+		},
+		{
+			name:        "Pinned dockerfile",
+			filename:    "./testdata/Dockerfile-pinned",
+			expectError: false,
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("python"),
+					PinnedAt: stringAsPointer("3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2"),
+					Location: &checker.File{
+						Path:      "./testdata/Dockerfile-pinned",
+						Snippet:   "FROM python:3.7@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2",
+						Offset:    16,
+						EndOffset: 16,
+						Type:      1,
+					},
+					Pinned: boolAsPointer(true),
+					Type:   "containerImage",
+				},
+			},
+		},
+		{
+			name:        "Non-pinned dockerfile",
+			filename:    "./testdata/Dockerfile-not-pinned",
+			expectError: false,
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("python"),
+					PinnedAt: stringAsPointer("3.7"),
+					Location: &checker.File{
+						Path:      "./testdata/Dockerfile-not-pinned",
+						Snippet:   "FROM python:3.7",
+						Offset:    17,
+						EndOffset: 17,
+						FileSize:  0,
+						Type:      1,
+					},
+					Pinned: boolAsPointer(false),
+					Type:   "containerImage",
+					Remediation: &rule.Remediation{
+						Text: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+						Markdown: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				// This will read the file and return the content
+				content, err := os.ReadFile(file)
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			})
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+			var r checker.PinningDependenciesData
+			err := collectDockerfilePinning(&req, &r)
+			if err != nil {
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
+			}
+			for i := range tt.outcomeDependencies {
+				outcomeDependency := &tt.outcomeDependencies[i]
+				depend := &r.Dependencies[i]
+				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
+					t.Errorf("mismatch (-want +got):\n%s", diff)
+				}
+			}
+		})
+	}
+}
+
+// TestCollectGitHubActionsWorkflowPinning tests the collectGitHubActionsWorkflowPinning function.
+func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		filename            string
+		outcomeDependencies []checker.Dependency
+		expectError         bool
+	}{
+		{
+			name:        "Pinned dockerfile",
+			filename:    "Dockerfile-empty",
+			expectError: true,
+		},
+		{
+			name:        "Pinned workflow",
+			filename:    ".github/workflows/workflow-pinned.yaml",
+			expectError: false,
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("actions/checkout"),
+					PinnedAt: stringAsPointer("daadedc81d5f9d3c06d2c92f49202a3cc2b919ba"),
+					Location: &checker.File{
+						Path:      ".github/workflows/workflow-pinned.yaml",
+						Snippet:   "actions/checkout@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba",
+						Offset:    31,
+						EndOffset: 31,
+						Type:      1,
+					},
+					Pinned:      boolAsPointer(true),
+					Type:        "GitHubAction",
+					Remediation: nil,
+				},
+			},
+		},
+		{
+			name:        "Non-pinned workflow",
+			filename:    ".github/workflows/workflow-not-pinned.yaml",
+			expectError: false,
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("actions/checkout"),
+					PinnedAt: stringAsPointer("daadedc81d5f9d3c06d2c92f49202a3cc2b919ba"),
+					Location: &checker.File{
+						Path:      ".github/workflows/workflow-not-pinned.yaml",
+						Snippet:   "actions/checkout@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba",
+						Offset:    31,
+						EndOffset: 31,
+						FileSize:  0,
+						Type:      1,
+					},
+					Pinned:      boolAsPointer(true),
+					Type:        "GitHubAction",
+					Remediation: nil,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
+				// This will read the file and return the content
+				content, err := os.ReadFile(filepath.Join("testdata", file))
+				if err != nil {
+					return content, fmt.Errorf("%w", err)
+				}
+				return content, nil
+			})
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+			var r checker.PinningDependenciesData
+			err := collectGitHubActionsWorkflowPinning(&req, &r)
+			if err != nil {
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
+			}
+			t.Log(r.Dependencies)
+			for i := range tt.outcomeDependencies {
+				outcomeDependency := &tt.outcomeDependencies[i]
+				depend := &r.Dependencies[i]
+				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
+					t.Errorf("mismatch (-want +got):\n%s", diff)
+				}
+			}
+		})
+	}
 }

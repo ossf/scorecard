@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -188,10 +189,22 @@ func isDockerfile(pathfn string, content []byte) bool {
 }
 
 func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
 	}, validateDockerfilesPinning, r)
+	if err != nil {
+		return err
+	}
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remdtion := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+			rr.Remediation = remdtion
+		}
+	}
+	return nil
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -424,10 +437,24 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
 	}, validateGitHubActionWorkflow, r)
+	if err != nil {
+		return err
+	}
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remdtion := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			rr.Remediation = remdtion
+		}
+	}
+	return nil
 }
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
