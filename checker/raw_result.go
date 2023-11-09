@@ -20,6 +20,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 // RawResults contains results before a policy
@@ -120,12 +121,13 @@ type PinningDependenciesData struct {
 type Dependency struct {
 	// TODO: unique dependency name.
 	// TODO: Job         *WorkflowJob
-	Name     *string
-	PinnedAt *string
-	Location *File
-	Msg      *string // Only for debug messages.
-	Pinned   *bool
-	Type     DependencyUseType
+	Name        *string
+	PinnedAt    *string
+	Location    *File
+	Msg         *string // Only for debug messages.
+	Pinned      *bool
+	Remediation *rule.Remediation
+	Type        DependencyUseType
 }
 
 // MaintainedData contains the raw results
