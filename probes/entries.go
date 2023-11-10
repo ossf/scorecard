@@ -34,11 +34,16 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -101,6 +106,15 @@ var (
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
 		codeReviewTwoReviewers.Run,
+	}
+	SAST = []ProbeImpl{
+		sastToolCodeQLInstalled.Run,
+		sastToolRunsOnAllCommits.Run,
+		sastToolSonarInstalled.Run,
+	}
+	DangerousWorkflows = []ProbeImpl{
+		hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 )
 
