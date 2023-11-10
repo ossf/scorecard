@@ -34,6 +34,9 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
+
+	//https://docs.github.com/en/graphql/overview/rate-limits-and-node-limits-for-the-graphql-api#node-limit
+	defaultPageLimit = 100
 )
 
 //nolint:govet
@@ -154,20 +157,35 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commi
 	handler.issues = nil
 }
 
-func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
+func populateCommits(handler *graphqlHandler, vars map[string]interface{}, pageLimit int) ([]clients.Commit, error) {
+	if pageLimit < 1 {
+		return nil, sce.CreateInternal(sce.ErrScorecardInternal, "invalid pagination limit")
+	}
 	var allCommits []clients.Commit
 	var commitsLeft githubv4.Int
 	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
 	if !ok {
 		return nil, nil
 	}
-	for vars["commitsToAnalyze"] = githubv4.Int(100); commitsLeft > 0; commitsLeft = commitsLeft - 100 {
-		if commitsLeft < 100 {
-			vars["commitsToAnalyze"] = commitsLeft
+	pageLimitConverted := githubv4.Int(pageLimit)
+	retries := 3
+	for vars["commitsToAnalyze"] = pageLimitConverted; commitsLeft > 0; commitsLeft = commitsLeft - pageLimitConverted {
+		if commitsLeft < pageLimitConverted {
+			pageLimitConverted = commitsLeft
+			vars["commitsToAnalyze"] = pageLimitConverted
 		}
 		err := handler.client.Query(handler.ctx, handler.data, vars)
 		if err != nil {
-			return nil, fmt.Errorf("failed to populate commits: %w", err)
+			// 502 usually indicate timeouts, where we're requesting too much data
+			// so make our requests smaller and try again
+			if retries > 0 && strings.Contains(err.Error(), "502 Bad Gateway body") {
+				retries--
+				pageLimitConverted /= 2
+				vars["commitsToAnalyze"] = pageLimitConverted
+				commitsLeft += pageLimitConverted // undo the decrement thats going to happen from the continue
+				continue
+			}
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
 		tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
@@ -194,18 +212,7 @@ func (handler *graphqlHandler) setup() error {
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
-		// if NumberOfCommits set to < 99 we are required by the graphql to page by 100 commits.
-		if handler.commitDepth > 99 {
-			handler.commits, handler.errSetup = populateCommits(handler, vars)
-			handler.issues = issuesFrom(handler.data)
-			handler.archived = bool(handler.data.Repository.IsArchived)
-			return
-		}
-		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-			return
-		}
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		handler.commits, handler.errSetup = populateCommits(handler, vars, defaultPageLimit)
 		handler.issues = issuesFrom(handler.data)
 		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
