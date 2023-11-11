@@ -21,6 +21,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 type pinnedResult struct {
@@ -49,6 +51,141 @@ const (
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
 )
 
+var (
+	dependencyTypes = map[checker.DependencyUseType]int{
+		checker.DependencyUseTypeGHAction:                 0,
+		checker.DependencyUseTypeDockerfileContainerImage: 1,
+		checker.DependencyUseTypeDownloadThenRun:          2,
+		checker.DependencyUseTypeGoCommand:                3,
+		checker.DependencyUseTypeChocoCommand:             4,
+		checker.DependencyUseTypeNpmCommand:               5,
+		checker.DependencyUseTypePipCommand:               6,
+		checker.DependencyUseTypeNugetCommand:             7,
+	}
+	intToDepType = map[int]checker.DependencyUseType{
+		0: checker.DependencyUseTypeGHAction,
+		1: checker.DependencyUseTypeDockerfileContainerImage,
+		2: checker.DependencyUseTypeDownloadThenRun,
+		3: checker.DependencyUseTypeGoCommand,
+		4: checker.DependencyUseTypeChocoCommand,
+		5: checker.DependencyUseTypeNpmCommand,
+		6: checker.DependencyUseTypePipCommand,
+		7: checker.DependencyUseTypeNugetCommand,
+	}
+)
+
+func ruleRemToProbeRem(rem *rule.Remediation) *probe.Remediation {
+	return &probe.Remediation{
+		Patch:    rem.Patch,
+		Text:     rem.Text,
+		Markdown: rem.Markdown,
+		Effort:   probe.RemediationEffort(rem.Effort),
+	}
+}
+
+func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
+	return &rule.Remediation{
+		Patch:    rem.Patch,
+		Text:     rem.Text,
+		Markdown: rem.Markdown,
+		Effort:   rule.RemediationEffort(rem.Effort),
+	}
+}
+
+func dependenciesToFindings(deps []checker.Dependency) ([]finding.Finding, error) {
+	findings := make([]finding.Finding, 0)
+	for i := range deps {
+		rr := deps[i]
+		if rr.Location == nil {
+			if rr.Msg == nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
+				return findings, e
+			}
+			f := &finding.Finding{
+				Probe:   "",
+				Outcome: finding.OutcomeNotApplicable,
+				Message: *rr.Msg,
+			}
+			findings = append(findings, *f)
+			continue
+		}
+		if rr.Msg != nil {
+			loc := &finding.Location{
+				Type:      rr.Location.Type,
+				Path:      rr.Location.Path,
+				LineStart: &rr.Location.Offset,
+				LineEnd:   &rr.Location.EndOffset,
+				Snippet:   &rr.Location.Snippet,
+			}
+			f := &finding.Finding{
+				Probe:    "",
+				Outcome:  finding.OutcomeNotApplicable,
+				Message:  *rr.Msg,
+				Location: loc,
+			}
+			findings = append(findings, *f)
+			continue
+		}
+		if rr.Pinned == nil {
+			loc := &finding.Location{
+				Type:      rr.Location.Type,
+				Path:      rr.Location.Path,
+				LineStart: &rr.Location.Offset,
+				LineEnd:   &rr.Location.EndOffset,
+				Snippet:   &rr.Location.Snippet,
+			}
+			f := &finding.Finding{
+				Probe:    "",
+				Outcome:  finding.OutcomeNotApplicable,
+				Message:  fmt.Sprintf("%s has empty Pinned field", rr.Type),
+				Location: loc,
+			}
+			findings = append(findings, *f)
+			continue
+		}
+		if !*rr.Pinned {
+			loc := &finding.Location{
+				Type:      rr.Location.Type,
+				Path:      rr.Location.Path,
+				LineStart: &rr.Location.Offset,
+				LineEnd:   &rr.Location.EndOffset,
+				Snippet:   &rr.Location.Snippet,
+			}
+			f := &finding.Finding{
+				Probe:    "",
+				Outcome:  finding.OutcomeNegative,
+				Message:  generateTextUnpinned(&rr),
+				Location: loc,
+			}
+			if rr.Remediation != nil {
+				f.Remediation = ruleRemToProbeRem(rr.Remediation)
+			}
+			f = f.WithValues(map[string]int{
+				"dependencyType": dependencyTypes[rr.Type],
+			})
+			findings = append(findings, *f)
+		} else {
+			loc := &finding.Location{
+				Type:      rr.Location.Type,
+				Path:      rr.Location.Path,
+				LineStart: &rr.Location.Offset,
+				LineEnd:   &rr.Location.EndOffset,
+				Snippet:   &rr.Location.Snippet,
+			}
+			f := &finding.Finding{
+				Probe:    "",
+				Outcome:  finding.OutcomePositive,
+				Location: loc,
+			}
+			f = f.WithValues(map[string]int{
+				"dependencyType": dependencyTypes[rr.Type],
+			})
+			findings = append(findings, *f)
+		}
+	}
+	return findings, nil
+}
+
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string, c *checker.CheckRequest,
 	r *checker.PinningDependenciesData,
@@ -72,53 +209,47 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		})
 	}
 
-	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		if rr.Location == nil {
-			if rr.Msg == nil {
-				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
-				return checker.CreateRuntimeErrorResult(name, e)
+	findings, err := dependenciesToFindings(r.Dependencies)
+	if err != nil {
+		return checker.CreateRuntimeErrorResult(name, err)
+	}
+
+	for i := range findings {
+		f := findings[i]
+		if f.Outcome == finding.OutcomeNotApplicable {
+			if f.Location != nil {
+				dl.Debug(&checker.LogMessage{
+					Path:      f.Location.Path,
+					Type:      f.Location.Type,
+					Offset:    *f.Location.LineStart,
+					EndOffset: *f.Location.LineEnd,
+					Text:      f.Message,
+					Snippet:   *f.Location.Snippet,
+				})
+			} else {
+				dl.Debug(&checker.LogMessage{
+					Text: f.Message,
+				})
 			}
-			dl.Debug(&checker.LogMessage{
-				Text: *rr.Msg,
-			})
 			continue
+		} else if f.Outcome == finding.OutcomeNegative {
+			lm := &checker.LogMessage{
+				Path:      f.Location.Path,
+				Type:      f.Location.Type,
+				Offset:    *f.Location.LineStart,
+				EndOffset: *f.Location.LineEnd,
+				Text:      f.Message,
+				Snippet:   *f.Location.Snippet,
+			}
+
+			if f.Remediation != nil {
+				lm.Remediation = probeRemToRuleRem(f.Remediation)
+			}
+			dl.Warn(lm)
 		}
-		if rr.Msg != nil {
-			dl.Debug(&checker.LogMessage{
-				Path:      rr.Location.Path,
-				Type:      rr.Location.Type,
-				Offset:    rr.Location.Offset,
-				EndOffset: rr.Location.EndOffset,
-				Text:      *rr.Msg,
-				Snippet:   rr.Location.Snippet,
-			})
-			continue
-		}
-		if rr.Pinned == nil {
-			dl.Debug(&checker.LogMessage{
-				Path:      rr.Location.Path,
-				Type:      rr.Location.Type,
-				Offset:    rr.Location.Offset,
-				EndOffset: rr.Location.EndOffset,
-				Text:      fmt.Sprintf("%s has empty Pinned field", rr.Type),
-				Snippet:   rr.Location.Snippet,
-			})
-			continue
-		}
-		if !*rr.Pinned {
-			dl.Warn(&checker.LogMessage{
-				Path:        rr.Location.Path,
-				Type:        rr.Location.Type,
-				Offset:      rr.Location.Offset,
-				EndOffset:   rr.Location.EndOffset,
-				Text:        generateTextUnpinned(&rr),
-				Snippet:     rr.Location.Snippet,
-				Remediation: rr.Remediation,
-			})
-		}
-		// Update the pinning status.
-		updatePinningResults(&rr, &wp, pr)
+		updatePinningResults(intToDepType[f.Values["dependencyType"]],
+			f.Outcome, f.Location.Snippet,
+			&wp, pr)
 	}
 
 	// Generate scores and Info results.
@@ -155,21 +286,22 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		"dependency not pinned by hash detected", score, checker.MaxResultScore)
 }
 
-func updatePinningResults(rr *checker.Dependency,
+func updatePinningResults(dependencyType checker.DependencyUseType,
+	outcome finding.Outcome, snippet *string,
 	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
-	if rr.Type == checker.DependencyUseTypeGHAction {
+	if dependencyType == checker.DependencyUseTypeGHAction {
 		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
 		// if it's a GitHub-owned action or not.
-		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
-		addWorkflowPinnedResult(rr, wp, gitHubOwned)
+		gitHubOwned := fileparser.IsGitHubOwnedAction(*snippet)
+		addWorkflowPinnedResult(outcome, wp, gitHubOwned)
 		return
 	}
 
 	// Update other result types.
-	p := pr[rr.Type]
-	addPinnedResult(rr, &p)
-	pr[rr.Type] = p
+	p := pr[dependencyType]
+	addPinnedResult(outcome, &p)
+	pr[dependencyType] = p
 }
 
 func generateTextUnpinned(rr *checker.Dependency) string {
@@ -194,18 +326,18 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 	return fmt.Sprintf("third-party %s", checker.DependencyUseTypeGHAction)
 }
 
-func addPinnedResult(rr *checker.Dependency, r *pinnedResult) {
-	if *rr.Pinned {
+func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
+	if outcome == finding.OutcomePositive {
 		r.pinned += 1
 	}
 	r.total += 1
 }
 
-func addWorkflowPinnedResult(rr *checker.Dependency, w *worklowPinningResult, isGitHub bool) {
+func addWorkflowPinnedResult(outcome finding.Outcome, w *worklowPinningResult, isGitHub bool) {
 	if isGitHub {
-		addPinnedResult(rr, &w.gitHubOwned)
+		addPinnedResult(outcome, &w.gitHubOwned)
 	} else {
-		addPinnedResult(rr, &w.thirdParties)
+		addPinnedResult(outcome, &w.thirdParties)
 	}
 }
 
