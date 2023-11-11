@@ -22,8 +22,16 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/rule"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
+
+var testRemediation = &rule.Remediation{
+	Patch:    stringAsPointer("test"),
+	Text:     "test",
+	Markdown: "test markdown",
+	Effort:   rule.RemediationEffortLow,
+}
 
 func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	t.Parallel()
@@ -303,40 +311,47 @@ func Test_PinningDependencies(t *testing.T) {
 					Location: &checker.File{
 						Snippet: "actions/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
 					Location: &checker.File{
 						Snippet: "other/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeDockerfileContainerImage,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeDownloadThenRun,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeGoCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeGoCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNpmCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeNpmCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -351,9 +366,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "1 ecosystem pinned and 1 ecosystem unpinned",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
 					Location: &checker.File{},
@@ -373,9 +389,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "1 ecosystem partially pinned",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
 					Location: &checker.File{},
@@ -423,9 +440,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned dependency shows warn message",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -497,9 +515,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned choco install",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeChocoCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeChocoCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -514,9 +533,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned Dockerfile container image",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeDockerfileContainerImage,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -531,9 +551,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned download then run",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeDownloadThenRun,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeDownloadThenRun,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -548,9 +569,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned go install",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeGoCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeGoCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -565,9 +587,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned npm install",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNpmCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeNpmCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -582,9 +605,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned nuget install",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNugetCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -599,9 +623,10 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "unpinned pip install",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -616,14 +641,16 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "2 unpinned dependencies for 1 ecosystem shows 2 warn messages",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -638,14 +665,16 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "2 unpinned dependencies for 2 ecosystems shows 2 warn messages",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypePipCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypePipCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeGoCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeGoCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -727,15 +756,17 @@ func Test_PinningDependencies(t *testing.T) {
 					Location: &checker.File{
 						Snippet: "actions/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
 					Location: &checker.File{
 						Snippet: "other/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -760,8 +791,9 @@ func Test_PinningDependencies(t *testing.T) {
 					Location: &checker.File{
 						Snippet: "other/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			expected: scut.TestReturn{
@@ -779,8 +811,9 @@ func Test_PinningDependencies(t *testing.T) {
 					Location: &checker.File{
 						Snippet: "actions/checkout@v2",
 					},
-					Type:   checker.DependencyUseTypeGHAction,
-					Pinned: asBoolPointer(false),
+					Type:        checker.DependencyUseTypeGHAction,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
 					Location: &checker.File{
@@ -802,14 +835,16 @@ func Test_PinningDependencies(t *testing.T) {
 			name: "Skipped objects and dependencies",
 			dependencies: []checker.Dependency{
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNpmCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeNpmCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 				{
-					Location: &checker.File{},
-					Type:     checker.DependencyUseTypeNpmCommand,
-					Pinned:   asBoolPointer(false),
+					Location:    &checker.File{},
+					Type:        checker.DependencyUseTypeNpmCommand,
+					Pinned:      asBoolPointer(false),
+					Remediation: testRemediation,
 				},
 			},
 			processingErrors: []checker.ElementError{
