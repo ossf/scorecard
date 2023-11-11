@@ -23,7 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 )
 
 const (
@@ -41,7 +41,7 @@ func Maintained(name string,
 		notArchived.Probe,
 		issueActivityByProjectMember.Probe,
 		commitsInLast90Days.Probe,
-		notCreatedInLast90Days.Probe,
+		notCreatedRecently.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -93,7 +93,7 @@ func projectIsArchived(findings []finding.Finding) bool {
 func projectWasCreatedInLast90Days(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedInLast90Days.Probe {
+		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedRecently.Probe {
 			return true
 		}
 	}

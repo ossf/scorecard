@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package notCreatedInLast90Days
+package notCreatedRecently
 
 import (
 	"embed"
@@ -32,7 +32,7 @@ const (
 	lookBackDays = 90
 )
 
-const Probe = "notCreatedInLast90Days"
+const Probe = "notCreatedRecently"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -66,5 +66,8 @@ func positiveOutcome() ([]finding.Finding, string, error) {
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
+	f = f.WithValues(map[string]int{
+		"lookBackDays": 90,
+	})
 	return []finding.Finding{*f}, Probe, nil
 }

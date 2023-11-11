@@ -37,14 +37,13 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
-	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedInLast90Days"
-	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -116,7 +115,7 @@ var (
 		notArchived.Run,
 		commitsInLast90Days.Run,
 		issueActivityByProjectMember.Run,
-		notCreatedInLast90Days.Run,
+		notCreatedRecently.Run,
 	}
 )
 

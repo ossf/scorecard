@@ -47,7 +47,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "notArchived",
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedInLast90Days",
+					Probe:   "notCreatedRecently",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -68,7 +68,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "notArchived",
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedInLast90Days",
+					Probe:   "notCreatedRecently",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -89,7 +89,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "archvied", /*misspelling*/
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedInLast90Days",
+					Probe:   "notCreatedRecently",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -111,7 +111,7 @@ func TestMaintained(t *testing.T) {
 					Probe:   "notArchived",
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "notCreatedInLast90Days",
+					Probe:   "notCreatedRecently",
 					Outcome: finding.OutcomePositive,
 				},
 			},
