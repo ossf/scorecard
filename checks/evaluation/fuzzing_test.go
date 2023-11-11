@@ -65,10 +65,6 @@ func TestFuzzing(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "fuzzedWithOneFuzz",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
 					Probe:   "fuzzedWithOSSFuzz",
 					Outcome: finding.OutcomeNegative,
 				},
@@ -87,7 +83,7 @@ func TestFuzzing(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 13,
+				NumberOfWarn: 12,
 			},
 		},
 		{
@@ -126,10 +122,6 @@ func TestFuzzing(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "fuzzedWithOneFuzz",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
 					Probe:   "fuzzedWithOSSFuzz",
 					Outcome: finding.OutcomeNegative,
 				},
@@ -157,10 +149,6 @@ func TestFuzzing(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "fuzzedWithClusterFuzzLite",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "fuzzedWithOneFuzz",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -195,10 +183,6 @@ func TestFuzzing(t *testing.T) {
 				{
 					Probe:   "fuzzedWithGoNative",
 					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "fuzzedWithOneFuzz",
-					Outcome: finding.OutcomeNegative,
 				},
 				{
 					Probe:   "fuzzedWithOSSFuzz",
