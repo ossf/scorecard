@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/pubsub v1.33.0
 	cloud.google.com/go/trace v1.10.2 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
-	github.com/bombsimon/logrusr/v2 v2.0.1
+	github.com/bombsimon/logrusr/v4 v4.1.0
 	github.com/bradleyfalzon/ghinstallation/v2 v2.8.0
 	github.com/go-git/go-git/v5 v5.10.0
 	github.com/go-logr/logr v1.3.0
