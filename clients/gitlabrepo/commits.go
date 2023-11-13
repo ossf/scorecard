@@ -27,31 +27,52 @@ import (
 )
 
 type commitsHandler struct {
-	glClient   *gitlab.Client
-	once       *sync.Once
-	errSetup   error
-	repourl    *repoURL
-	commitsRaw []*gitlab.Commit
+	glClient    *gitlab.Client
+	once        *sync.Once
+	errSetup    error
+	repourl     *repoURL
+	commitsRaw  []*gitlab.Commit
+	commitDepth int
 }
 
-func (handler *commitsHandler) init(repourl *repoURL) {
+func (handler *commitsHandler) init(repourl *repoURL, commitDepth int) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.commitDepth = commitDepth
 }
 
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(
-			handler.repourl.projectID,
-			&gitlab.ListCommitsOptions{
-				RefName: &handler.repourl.commitSHA,
-			},
-		)
-		if err != nil {
-			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
-			return
+		var commits []*gitlab.Commit
+		i := 1
+
+		for {
+			c, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID,
+				&gitlab.ListCommitsOptions{
+					ListOptions: gitlab.ListOptions{
+						Page:    i,
+						PerPage: handler.commitDepth,
+					},
+				})
+			if err != nil {
+				handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
+				return
+			}
+
+			if len(c) == 0 {
+				break
+			}
+			i++
+
+			commits = append(commits, c...)
+
+			if len(commits) >= handler.commitDepth {
+				commits = commits[:handler.commitDepth]
+				break
+			}
 		}
+
 		handler.commitsRaw = commits
 		if handler.repourl.commitSHA != clients.HeadSHA {
 			//nolint:lll
