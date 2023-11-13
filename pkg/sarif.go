@@ -158,13 +158,6 @@ type sarif210 struct {
 	Runs    []run  `json:"runs"`
 }
 
-func maxOffset(x, y uint) uint {
-	if x < y {
-		return y
-	}
-	return x
-}
-
 func calculateSeverityLevel(risk string) string {
 	//nolint:lll
 	// https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#reportingdescriptor-object.
@@ -273,7 +266,7 @@ func detailToRegion(details *checker.CheckDetail) region {
 	default:
 		panic("invalid")
 	case finding.FileTypeURL:
-		line := maxOffset(checker.OffsetDefault, getStartLine(details))
+		line := max(checker.OffsetDefault, getStartLine(details))
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
@@ -281,8 +274,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case finding.FileTypeNone:
 		// Do nothing.
 	case finding.FileTypeSource:
-		startLine := maxOffset(checker.OffsetDefault, getStartLine(details))
-		endLine := maxOffset(startLine, getEndLine(details))
+		startLine := max(checker.OffsetDefault, getStartLine(details))
+		endLine := max(startLine, getEndLine(details))
 		reg = region{
 			StartLine: &startLine,
 			EndLine:   &endLine,

@@ -130,7 +130,7 @@ func (handler *tarballHandler) getTarball() error {
 	}
 	repoFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 	defer repoFile.Close()
 	err = handler.apiFunction(url, tempDir, repoFile)
@@ -188,18 +188,18 @@ func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.Fil
 	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 	defer resp.Body.Close()
 
 	// Handler 400/404 errors.
 	switch resp.StatusCode {
 	case http.StatusNotFound, http.StatusBadRequest:
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 	if _, err := io.Copy(repoFile, resp.Body); err != nil {
 		// If the incoming tarball is corrupted or the server times out.
-		return fmt.Errorf("%w io.Copy: %v", errTarballNotFound, err)
+		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 	return nil
 }
@@ -212,7 +212,7 @@ func (handler *tarballHandler) extractTarball() error {
 	}
 	gz, err := gzip.NewReader(in)
 	if err != nil {
-		return fmt.Errorf("%w: gzip.NewReader %v %v", errTarballCorrupted, handler.tempTarFile, err)
+		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
 	tr := tar.NewReader(gz)
 	for {
@@ -221,7 +221,7 @@ func (handler *tarballHandler) extractTarball() error {
 			break
 		}
 		if err != nil {
-			return fmt.Errorf("%w tarReader.Next: %v", errTarballCorrupted, err)
+			return fmt.Errorf("%w tarReader.Next: %w", errTarballCorrupted, err)
 		}
 
 		switch header.Typeflag {
@@ -260,7 +260,7 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
-				return fmt.Errorf("%w io.Copy: %v", errTarballCorrupted, err)
+				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
 			handler.files = append(handler.files,
