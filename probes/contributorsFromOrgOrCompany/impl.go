@@ -60,12 +60,24 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 
+		hasOrgForUser := false
+
 		for _, org := range user.Organizations {
-			entities[org.Login] = true
+			if _, ok := entities[org.Login]; !ok {
+				entities[org.Login] = true
+				hasOrgForUser = true
+				break
+			}
+		}
+		if hasOrgForUser {
+			continue
 		}
 
 		for _, comp := range user.Companies {
-			entities[comp] = true
+			if _, ok := entities[comp]; !ok {
+				entities[comp] = true
+				break
+			}
 		}
 	}
 
