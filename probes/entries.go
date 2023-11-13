@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
@@ -73,7 +72,6 @@ var (
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzedWithOSSFuzz.Run,
-		fuzzedWithOneFuzz.Run,
 		fuzzedWithGoNative.Run,
 		fuzzedWithPythonAtheris.Run,
 		fuzzedWithCLibFuzzer.Run,
