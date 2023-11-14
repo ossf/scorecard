@@ -72,7 +72,7 @@ func CIIBestPractices(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	} else if countBadges == 0 {
 		text = "no effort to earn an OpenSSF best practices badge detected"
-		return checker.CreateResultWithScore(name, text, minScore)
+		return checker.CreateMinScoreResult(name, text)
 	}
 
 	for i := range findings {
