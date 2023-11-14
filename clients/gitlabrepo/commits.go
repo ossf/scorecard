@@ -45,25 +45,21 @@ func (handler *commitsHandler) init(repourl *repoURL, commitDepth int) {
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
 		var commits []*gitlab.Commit
-		i := 1
+		opt := gitlab.ListOptions{
+			Page:    1,
+			PerPage: handler.commitDepth,
+		}
 
 		for {
-			c, _, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID,
+			c, resp, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID,
 				&gitlab.ListCommitsOptions{
-					ListOptions: gitlab.ListOptions{
-						Page:    i,
-						PerPage: handler.commitDepth,
-					},
+					RefName:     &handler.repourl.commitSHA,
+					ListOptions: opt,
 				})
 			if err != nil {
 				handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 				return
 			}
-
-			if len(c) == 0 {
-				break
-			}
-			i++
 
 			commits = append(commits, c...)
 
@@ -71,6 +67,14 @@ func (handler *commitsHandler) setup() error {
 				commits = commits[:handler.commitDepth]
 				break
 			}
+
+			// Exit the loop when we've seen all pages.
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			opt.Page = resp.NextPage
 		}
 
 		handler.commitsRaw = commits
