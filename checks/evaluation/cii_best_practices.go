@@ -31,7 +31,6 @@ const (
 	// https://github.com/ossf/scorecard-action/blob/main/policies/template.yml#L61.
 	passingScore    = 5
 	inProgressScore = 2
-	maxScore        = 10
 	minScore        = 0
 	errScore        = -1
 )
@@ -89,7 +88,7 @@ func CIIBestPractices(name string,
 				score = silverScore
 				text = "badge detected: Silver"
 			case hasGoldBadge.Probe:
-				score = maxScore
+				score = checker.MaxResultScore
 				text = "badge detected: Gold"
 			case hasUnknownBadge.Probe:
 				score = errScore
