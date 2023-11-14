@@ -32,7 +32,6 @@ const (
 	passingScore    = 5
 	inProgressScore = 2
 	minScore        = 0
-	errScore        = -1
 )
 
 // CIIBestPractices applies the score policy for the CIIBestPractices check.
@@ -91,15 +90,11 @@ func CIIBestPractices(name string,
 				score = checker.MaxResultScore
 				text = "badge detected: Gold"
 			case hasUnknownBadge.Probe:
-				score = errScore
 				text = "unsupported badge detected"
+				e := sce.WithMessage(sce.ErrScorecardInternal, text)
+				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		}
-	}
-
-	if score == -1 {
-		e := sce.WithMessage(sce.ErrScorecardInternal, text)
-		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	return checker.CreateResultWithScore(name, text, score)
