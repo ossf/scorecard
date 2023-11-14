@@ -40,9 +40,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	var findings []finding.Finding
 
-	if totalWebhooks == 0 {
+	if len(r.Webhooks) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"Repository has webhook without token authorization.", nil,
+			"Repository does not have webhooks.", nil,
 			finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
