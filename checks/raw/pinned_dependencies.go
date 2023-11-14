@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -111,6 +112,27 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 	}, validateDockerfileInsecureDownloads, r)
 }
 
+func fileIsInVendorDir(pathfn string) bool {
+	cleanedPath := filepath.Clean(pathfn)
+	splitCleanedPath := strings.Split(cleanedPath, "/")
+
+	// If the project vendors, this is likely to be how
+	// they do it. Therefore, check the first index
+	// before looping.
+	if splitCleanedPath[0] == "vendor" {
+		return true
+	}
+	for _, d := range splitCleanedPath {
+		if strings.EqualFold(d, "vendor") {
+			return true
+		}
+		if strings.EqualFold(d, "third_party") {
+			return true
+		}
+	}
+	return false
+}
+
 var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -120,6 +142,10 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return false, fmt.Errorf(
 			"validateDockerfileInsecureDownloads requires exactly 1 arguments: got %v: %w",
 			len(args), errInvalidArgLength)
+	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
 	}
 
 	pdata := dataAsPinnedDependenciesPointer(args[0])
@@ -219,6 +245,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, fmt.Errorf(
 			"validateDockerfilesPinning requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 
 	// Return early if this is not a dockerfile.
