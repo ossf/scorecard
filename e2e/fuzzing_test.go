@@ -34,7 +34,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 	Context("E2E TEST:Validating use of fuzzing tools", func() {
 		It("Should return use of OSS-Fuzz", func() {
 			dl := scut.TestDetailLogger{}
-			repo, err := githubrepo.MakeGithubRepo("tensorflow/tensorflow")
+			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard-webapp")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  12,
+				NumberOfInfo:  3, // 1 for OSSFuzz, 2 for go native fuzzing
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
@@ -192,7 +192,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  13,
+				NumberOfWarn:  12,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}

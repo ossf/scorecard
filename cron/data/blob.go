@@ -156,7 +156,7 @@ func ParseBlobFilename(key string) (time.Time, string, error) {
 	objectName := key[len(filePrefixFormat):]
 	t, err := time.Parse(filePrefixFormat, prefix)
 	if err != nil {
-		return t, "", fmt.Errorf("%w: %v", errParseBlobName, err)
+		return t, "", fmt.Errorf("%w: %w", errParseBlobName, err)
 	}
 	return t, objectName, nil
 }

@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard/v4
 
-go 1.19
+go 1.21
 
 require (
 	cloud.google.com/go/bigquery v1.57.1
@@ -20,7 +20,7 @@ require (
 	github.com/jszwec/csvutil v1.8.0
 	github.com/moby/buildkit v0.12.3
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/rhysd/actionlint v1.6.26
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
@@ -169,12 +169,12 @@ require (
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.3 // indirect
-	github.com/xanzy/go-gitlab v0.93.2
+	github.com/xanzy/go-gitlab v0.94.0
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.14.0 // indirect
-	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.13.0
 	golang.org/x/sync v0.4.0 // indirect
