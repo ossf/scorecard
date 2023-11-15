@@ -96,7 +96,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 				port = "8080"
 			}
 			logger.Info("Listening on localhost:" + port + "\n")
-			//nolint: gosec // unsused.
+			//nolint:gosec // unsused.
 			err = http.ListenAndServe(fmt.Sprintf("0.0.0.0:%s", port), nil)
 			if err != nil {
 				// TODO(log): Should this actually panic?

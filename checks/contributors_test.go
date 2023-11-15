@@ -29,8 +29,6 @@ import (
 // TestContributors tests the contributors check.
 func TestContributors(t *testing.T) {
 	t.Parallel()
-	//fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint
 	tests := []struct {
 		err      error
 		name     string
@@ -61,7 +59,6 @@ func TestContributors(t *testing.T) {
 			name: "Valid contributors with enough contributors and companies",
 			contrib: []clients.User{
 				{
-
 					Companies:        []string{"company1"},
 					NumContributions: 10,
 					Organizations: []clients.User{
@@ -146,7 +143,7 @@ func TestContributors(t *testing.T) {
 			},
 		},
 		{
-			err:     errors.New("error"),
+			err:     errors.New("error"), //nolint:goerr113
 			name:    "Error getting contributors",
 			contrib: []clients.User{},
 			expected: checker.CheckResult{

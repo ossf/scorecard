@@ -30,7 +30,7 @@ import (
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.
 func Test_checkOSSFuzz(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -76,7 +76,7 @@ func Test_checkOSSFuzz(t *testing.T) {
 			mockFuzz.EXPECT().Search(gomock.Any()).
 				DoAndReturn(func(q clients.SearchRequest) (clients.SearchResponse, error) {
 					if tt.wantErr {
-						//nolint
+						//nolint:goerr113
 						return clients.SearchResponse{}, errors.New("error")
 					}
 					return tt.response, nil
@@ -106,7 +106,7 @@ func Test_checkOSSFuzz(t *testing.T) {
 // Test_checkCFLite is a test function for checkCFLite.
 func Test_checkCFLite(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -138,7 +138,7 @@ func Test_checkCFLite(t *testing.T) {
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
-					//nolint
+					//nolint:goerr113
 					return "", errors.New("error")
 				}
 				return tt.fileContent, nil
@@ -160,7 +160,7 @@ func Test_checkCFLite(t *testing.T) {
 
 func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name              string
 		expectedFileMatch bool
@@ -235,7 +235,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 
 func Test_checkFuzzFunc(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -490,7 +490,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) ([]byte, error) {
 				if tt.wantErr {
-					//nolint
+					//nolint:goerr113
 					return nil, errors.New("error")
 				}
 				return []byte(tt.fileContent), nil
@@ -510,7 +510,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 
 func Test_getProminentLanguages(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name      string
 		languages []clients.Language

@@ -28,7 +28,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-//nolint:govet
 type graphqlHandler struct {
 	err         error
 	client      *http.Client
@@ -49,7 +48,6 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("%s/api/graphql", repourl.Host()), handler.client)
 }
 
-//nolint:govet
 type graphqlData struct {
 	Project struct {
 		MergeRequests struct {

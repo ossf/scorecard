@@ -40,7 +40,6 @@ type text struct {
 	Text string `json:"text,omitempty"`
 }
 
-// nolint
 type region struct {
 	StartLine   *uint `json:"startLine,omitempty"`
 	EndLine     *uint `json:"endLine,omitempty"`
@@ -62,16 +61,15 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//nolint:govet
+//nolint:govet,lll
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
-	//nolint
 	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
 	Message        *text `json:"message,omitempty"`
 	HasRemediation bool  `json:"-"`
 }
 
-// nolint
+//nolint:govet
 type relatedLocation struct {
 	ID               int              `json:"id"`
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -124,7 +122,7 @@ type tool struct {
 	Driver driver `json:"driver"`
 }
 
-// nolint
+//nolint:govet
 type result struct {
 	RuleID           string            `json:"ruleId"`
 	Level            string            `json:"level,omitempty"` // Optional.
@@ -338,7 +336,7 @@ func detailsToLocations(details []checker.CheckDetail,
 ) []location {
 	locs := []location{}
 
-	//nolint
+	//nolint:lll
 	// Populate the locations.
 	// Note https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#result-object
 	// "Only the first value of this array is used. All other values are ignored."
@@ -429,7 +427,7 @@ func createSARIFRun(uri, toolName, version, commit string, t time.Time,
 	return run{
 		Tool:    createSARIFTool(uri, toolName, version),
 		Results: []result{},
-		//nolint
+		//nolint:lll
 		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 		AutomationDetails: automationDetails{
 			// Time formatting: https://pkg.go.dev/time#pkg-constants.
@@ -613,7 +611,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
 	opts *options.Options,
 ) error {
-	//nolint
+	//nolint:lll
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
@@ -621,8 +619,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	sarif := createSARIFHeader()
 	runs := make(map[string]*run)
 
-	//nolint
 	for _, check := range r.Checks {
+		check := check
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
@@ -692,6 +690,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
+				loc := loc
 				// Use the location's message (check's detail's message) as message.
 				msg := messageWithScore(loc.Message.Text, check.Score)
 				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc)

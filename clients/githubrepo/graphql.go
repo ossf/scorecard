@@ -106,7 +106,7 @@ type graphqlData struct {
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
 			Nodes []struct {
-				//nolint: revive,stylecheck // naming according to githubv4 convention.
+				//nolint:revive,stylecheck // naming according to githubv4 convention.
 				Url               *string
 				AuthorAssociation *string
 				Author            struct {
@@ -239,7 +239,6 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {

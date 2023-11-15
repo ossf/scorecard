@@ -58,6 +58,7 @@ linters:
     - misspell
     - nakedret
     - nestif
+    - nolintlint
     - predeclared
     - staticcheck
     - stylecheck
@@ -152,6 +153,10 @@ linters-settings:
       - ptrToRefParam
       - typeUnparen
       - unnecessaryBlock
+  nolintlint:
+    # `//nolint` should mention specific linter such as `//nolint:my-linter`
+    # Overly broad directives can hide unrelated issues
+    require-specific: true
   wrapcheck:
     ignorePackageGlobs:
       - github.com/ossf/scorecard/v4/checks/fileparser

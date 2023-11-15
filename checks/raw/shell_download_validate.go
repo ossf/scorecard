@@ -1089,7 +1089,6 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		// TODO: support other interpreters.
 		// Example: https://github.com/apache/airflow/blob/main/scripts/ci/kubernetes/ci_run_kubernetes_tests.sh#L75
 		// HOST_PYTHON_VERSION=$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')``
-		// nolint
 		if ok && isShellInterpreterOrCommand([]string{i}) {
 			start, end := getLine(startLine, endLine, node)
 			e := validateShellFileAndRecord(pathfn, start, end,

@@ -29,7 +29,7 @@ import (
 
 func TestVulnerabilities(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name            string
 		want            checker.VulnerabilitiesData
@@ -49,7 +49,7 @@ func TestVulnerabilities(t *testing.T) {
 		{
 			name:    "err response",
 			wantErr: true,
-			//nolint
+			//nolint:goerr113
 			err:           errors.New("error"),
 			vulnsResponse: clients.VulnerabilitiesResponse{},
 		},
@@ -93,7 +93,7 @@ func TestVulnerabilities(t *testing.T) {
 			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					if tt.vulnsError {
-						//nolint
+						//nolint:goerr113
 						return clients.VulnerabilitiesResponse{}, errors.New("error")
 					}
 					return tt.vulnsResponse, tt.err

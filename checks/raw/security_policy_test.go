@@ -63,7 +63,7 @@ func Test_isSecurityPolicyFilename(t *testing.T) {
 // TestSecurityPolicy tests the security policy.
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name    string
 		files   []string

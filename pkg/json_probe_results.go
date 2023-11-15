@@ -24,8 +24,6 @@ import (
 )
 
 // JSONScorecardProbeResult exports results as JSON for flat findings without checks.
-//
-//nolint:govet
 type JSONScorecardProbeResult struct {
 	Date      string            `json:"date"`
 	Repo      jsonRepoV2        `json:"repo"`
