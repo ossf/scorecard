@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
@@ -47,7 +46,6 @@ func Fuzzing(name string,
 		fuzzedWithRustCargofuzz.Probe,
 		fuzzedWithSwiftLibFuzzer.Probe,
 		fuzzedWithJavaJazzerFuzzer.Probe,
-		fuzzedWithOneFuzz.Probe,
 		fuzzedWithOSSFuzz.Probe,
 		fuzzedWithPropertyBasedHaskell.Probe,
 		fuzzedWithPropertyBasedJavascript.Probe,
