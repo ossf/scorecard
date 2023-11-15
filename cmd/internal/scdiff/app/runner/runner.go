@@ -16,13 +16,16 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/ossfuzz"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/pkg"
 )
@@ -37,7 +40,8 @@ type Runner struct {
 	ctx           context.Context
 	logger        *log.Logger
 	enabledChecks checker.CheckNameToFnMap
-	repoClient    clients.RepoClient
+	githubClient  clients.RepoClient
+	gitlabClient  clients.RepoClient
 	ossFuzz       clients.RepoClient
 	cii           clients.CIIBestPracticesClient
 	vuln          clients.VulnerabilitiesClient
@@ -47,10 +51,15 @@ type Runner struct {
 func New(enabledChecks []string) Runner {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DefaultLevel)
+	gitlabClient, err := gitlabrepo.CreateGitlabClient(ctx, "https://gitlab.com")
+	if err != nil {
+		logger.Error(err, "creating gitlab client")
+	}
 	return Runner{
 		ctx:           ctx,
 		logger:        logger,
-		repoClient:    githubrepo.CreateGithubRepoClient(ctx, logger),
+		githubClient:  githubrepo.CreateGithubRepoClient(ctx, logger),
+		gitlabClient:  gitlabClient,
 		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
 		cii:           clients.DefaultCIIBestPracticesClient(),
 		vuln:          clients.DefaultVulnerabilitiesClient(),
@@ -61,12 +70,16 @@ func New(enabledChecks []string) Runner {
 //nolint:wrapcheck
 func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 	r.log("processing repo: " + repoURI)
-	// TODO (gitlab?)
+	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
+	if errors.Is(err, sce.ErrorUnsupportedHost) {
+		repo, err = gitlabrepo.MakeGitlabRepo(repoURI)
+		repoClient = r.gitlabClient
+	}
 	if err != nil {
 		return pkg.ScorecardResult{}, err
 	}
-	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, r.repoClient, r.ossFuzz, r.cii, r.vuln)
+	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln)
 }
 
 // logs only if logger is set.
