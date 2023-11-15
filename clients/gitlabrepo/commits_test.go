@@ -87,6 +87,13 @@ func TestListRawCommits(t *testing.T) {
 			wantErr:     false,
 		},
 		{
+			name:        "request more commits than exist in the repo",
+			commitsPath: "./testdata/valid-commits",
+			commitDepth: 60,
+			want:        32,
+			wantErr:     false,
+		},
+		{
 			name:        "failure fetching commits",
 			commitsPath: "./testdata/invalid-commits",
 			commitDepth: 30,
