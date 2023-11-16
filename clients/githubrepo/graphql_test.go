@@ -49,6 +49,6 @@ func Test_getCommits_retry(t *testing.T) {
 	}
 	want := retryLimit + 1 // 1 represents the initial request
 	if *rt.requestCounter != want {
-		t.Errorf("wanted %d retries, got %d", want, rt.requestCounter)
+		t.Errorf("wanted %d retries, got %d", want, *rt.requestCounter)
 	}
 }
