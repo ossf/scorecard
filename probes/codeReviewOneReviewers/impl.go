@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package codeReviewTwoReviewers
+package codeReviewOneReviewers
 
 import (
 	"embed"
@@ -32,8 +32,8 @@ var (
 )
 
 const (
-	probe            = "codeReviewTwoReviewers"
-	minimumReviewers = 2
+	probe            = "codeReviewOneReviewers"
+	minimumReviewers = 1
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -68,7 +68,8 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
-		} else if !data.Author.IsBot {
+		}
+		if !data.Author.IsBot {
 			foundHumanActivity = true
 		}
 		nReviewers, err := uniqueReviewers(data.Author.Login, data.Reviews)
@@ -93,7 +94,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		findings = append(findings, *f)
 		return findings, probeID, nil
 	case leastFoundReviewers < minimumReviewers:
-		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (2).
+		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (1).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("some changesets had <%d reviewers",
 			minimumReviewers), nil, negativeOutcome)
 		if err != nil {
@@ -101,7 +102,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		}
 		findings = append(findings, *f)
 	default:
-		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (2).
+		// returns PositiveOutcome if the lowest number of unique reviewers is at least as high as minimumReviewers (1).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf(">%d reviewers found for all changesets",
 			minimumReviewers), nil, positiveOutcome)
 		if err != nil {

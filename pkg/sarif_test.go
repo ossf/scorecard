@@ -99,17 +99,8 @@ func sarifMockDocRead() *mockDoc {
 	return &m
 }
 
-// nolint
 func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
-
-	type Check struct {
-		Risk        string   `yaml:"-"`
-		Short       string   `yaml:"short"`
-		Description string   `yaml:"description"`
-		Remediation []string `yaml:"remediation"`
-		Tags        string   `yaml:"tags"`
-	}
 
 	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
@@ -122,6 +113,7 @@ func TestSARIFOutput(t *testing.T) {
 
 	checkDocs := sarifMockDocRead()
 
+	//nolint:govet
 	tests := []struct {
 		name        string
 		expected    string

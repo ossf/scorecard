@@ -38,7 +38,7 @@ func Test_FromBytes(t *testing.T) {
 	positiveOutcome := OutcomePositive
 	negativeOutcome := OutcomeNegative
 	t.Parallel()
-	// nolint:govet
+	//nolint:govet
 	tests := []struct {
 		name     string
 		id       string

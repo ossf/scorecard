@@ -33,7 +33,7 @@ var errNew = errors.New("error")
 func TestCodereview(t *testing.T) {
 	t.Parallel()
 	//fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint
+	//nolint:goerr113
 
 	tests := []struct {
 		err       error

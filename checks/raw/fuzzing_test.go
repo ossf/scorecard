@@ -30,7 +30,7 @@ import (
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.
 func Test_checkOSSFuzz(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -76,7 +76,7 @@ func Test_checkOSSFuzz(t *testing.T) {
 			mockFuzz.EXPECT().Search(gomock.Any()).
 				DoAndReturn(func(q clients.SearchRequest) (clients.SearchResponse, error) {
 					if tt.wantErr {
-						//nolint
+						//nolint:goerr113
 						return clients.SearchResponse{}, errors.New("error")
 					}
 					return tt.response, nil
@@ -103,69 +103,10 @@ func Test_checkOSSFuzz(t *testing.T) {
 	}
 }
 
-// Test_checkOneFuzz is a test function for checkOneFuzz.
-func Test_checkOneFuzz(t *testing.T) {
-	t.Parallel()
-	//nolint
-	tests := []struct {
-		name     string
-		want     bool
-		wantErr  bool
-		fileName []string
-	}{
-		{
-			name:     "Test_checkOneFuzz success",
-			want:     true,
-			wantErr:  false,
-			fileName: []string{".onefuzz"},
-		},
-		{
-			name:     "Test_checkOneFuzz not found",
-			want:     false,
-			wantErr:  false,
-			fileName: []string{},
-		},
-		{
-			name:     "Test_checkOneFuzz failure",
-			want:     false,
-			wantErr:  true,
-			fileName: []string{".onefuzz"},
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-			mockFuzz := mockrepo.NewMockRepoClient(ctrl)
-			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
-			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
-				if tt.wantErr {
-					//nolint
-					return "", errors.New("error")
-				}
-				return "", nil
-			}).AnyTimes()
-			req := checker.CheckRequest{
-				RepoClient: mockFuzz,
-			}
-			got, err := checkOneFuzz(&req)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("checkOneFuzz() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("checkOneFuzz() = %v, want %v for test %v", got, tt.want, tt.name)
-			}
-		})
-	}
-}
-
 // Test_checkCFLite is a test function for checkCFLite.
 func Test_checkCFLite(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -197,7 +138,7 @@ func Test_checkCFLite(t *testing.T) {
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
-					//nolint
+					//nolint:goerr113
 					return "", errors.New("error")
 				}
 				return tt.fileContent, nil
@@ -219,7 +160,7 @@ func Test_checkCFLite(t *testing.T) {
 
 func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name              string
 		expectedFileMatch bool
@@ -294,7 +235,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 
 func Test_checkFuzzFunc(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		want        bool
@@ -549,7 +490,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) ([]byte, error) {
 				if tt.wantErr {
-					//nolint
+					//nolint:goerr113
 					return nil, errors.New("error")
 				}
 				return []byte(tt.fileContent), nil
@@ -569,7 +510,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 
 func Test_getProminentLanguages(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name      string
 		languages []clients.Language

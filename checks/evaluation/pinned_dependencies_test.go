@@ -27,7 +27,7 @@ import (
 
 func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name   string
 		r      worklowPinningResult
@@ -884,7 +884,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		w          *worklowPinningResult
 		isGitHub   bool
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
 		want *worklowPinningResult
 		args args

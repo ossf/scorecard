@@ -19,7 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
-	"github.com/ossf/scorecard/v4/probes/codeReviewTwoReviewers"
+	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
@@ -27,7 +27,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
@@ -76,7 +75,6 @@ var (
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzedWithOSSFuzz.Run,
-		fuzzedWithOneFuzz.Run,
 		fuzzedWithGoNative.Run,
 		fuzzedWithPythonAtheris.Run,
 		fuzzedWithCLibFuzzer.Run,
@@ -105,7 +103,7 @@ var (
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
-		codeReviewTwoReviewers.Run,
+		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
 		sastToolCodeQLInstalled.Run,

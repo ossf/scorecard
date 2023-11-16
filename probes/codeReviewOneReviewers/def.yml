@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: codeReviewTwoReviewers
-short: Check that at least two reviewers review a change before merging.
+id: codeReviewOneReviewers
+short: Check that at least one reviewers review a change before merging.
 motivation: >
   To ensure that the review process works, the proposed changes
   should have a minimum number of approvals.
@@ -21,8 +21,8 @@ implementation: >
   The implementation looks for the number of reviewers for the last few changesets.
   Only unique reviewer logins that aren't the same as the changeset author are counted.
 outcome:
-  - If all the changes had at least two reviewers, the probe returns OutcomePositive (1)
-  - If the changes had fewer than two reviewers, the prove returns OutcomeNegative (0)
+  - If all the changes had at least one reviewers, the probe returns OutcomePositive (1)
+  - If the changes had fewer than one reviewers, the prove returns OutcomeNegative (0)
 remediation:
   effort: Low
   text:

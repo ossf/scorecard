@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package codeReviewTwoReviewers
+package codeReviewOneReviewers
 
 import (
 	"errors"
@@ -62,7 +62,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeReviewTwoReviewers",
+					Probe:   "codeReviewOneReviewers",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -112,7 +112,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeReviewTwoReviewers",
+					Probe:   "codeReviewOneReviewers",
 					Outcome: finding.OutcomeNotAvailable,
 				},
 			},
@@ -143,7 +143,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeReviewTwoReviewers",
+					Probe:   "codeReviewOneReviewers",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -187,7 +187,39 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeReviewTwoReviewers",
+					Probe:   "codeReviewOneReviewers",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+		},
+		{
+			name: "reviewer and author are same",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "kratos"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeReviewOneReviewers",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -223,7 +255,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeReviewTwoReviewers",
+					Probe:   "codeReviewOneReviewers",
 					Outcome: finding.OutcomePositive,
 				},
 			},
