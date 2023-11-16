@@ -66,7 +66,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				client: graphClient,
 			}
 			handler.init(context.Background(), repourl, 1)
-			commits, err := populateCommits(handler, vars)
+			commits, err := populateCommits(handler, vars, defaultPageLimit)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(1))
 		})
@@ -99,7 +99,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				client: graphClient,
 			}
 			handler.init(context.Background(), repourl, 30)
-			commits, err := populateCommits(handler, vars)
+			commits, err := populateCommits(handler, vars, defaultPageLimit)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(30))
 		})
@@ -132,7 +132,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 				client: graphClient,
 			}
 			handler.init(context.Background(), repourl, 101)
-			commits, err := populateCommits(handler, vars)
+			commits, err := populateCommits(handler, vars, defaultPageLimit)
 			Expect(err).To(BeNil())
 			Expect(len(commits)).Should(BeEquivalentTo(101))
 		})
