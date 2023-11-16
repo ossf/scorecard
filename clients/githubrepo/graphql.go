@@ -37,6 +37,7 @@ const (
 
 	// https://docs.github.com/en/graphql/overview/rate-limits-and-node-limits-for-the-graphql-api#node-limit
 	defaultPageLimit = 100
+	retryLimit       = 3
 )
 
 //nolint:govet
@@ -164,14 +165,14 @@ func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]cl
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, "unexpected type")
 	}
 	commitsRequested := min(defaultPageLimit, commitsLeft)
-	retries := 3
+	var retries int
 	for commitsLeft > 0 {
 		vars["commitsToAnalyze"] = commitsRequested
 		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			// 502 usually indicate timeouts, where we're requesting too much data
 			// so make our requests smaller and try again
-			if retries > 0 && strings.Contains(err.Error(), "502 Bad Gateway body") {
-				retries--
+			if retries < retryLimit && strings.Contains(err.Error(), "502 Bad Gateway") {
+				retries++
 				commitsRequested /= 2
 				continue
 			}
