@@ -116,12 +116,6 @@ func fileIsInVendorDir(pathfn string) bool {
 	cleanedPath := filepath.Clean(pathfn)
 	splitCleanedPath := strings.Split(cleanedPath, "/")
 
-	// If the project vendors, this is likely to be how
-	// they do it. Therefore, check the first index
-	// before looping.
-	if splitCleanedPath[0] == "vendor" {
-		return true
-	}
 	for _, d := range splitCleanedPath {
 		if strings.EqualFold(d, "vendor") {
 			return true
