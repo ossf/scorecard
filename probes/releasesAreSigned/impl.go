@@ -103,7 +103,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		findings = append(findings, *f)
 
-		if totalReleases >= releaseLookBack {
+		if releaseIndex >= releaseLookBack {
 			break
 		}
 	}
