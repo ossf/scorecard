@@ -110,7 +110,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"no GitHub releases found",
+			"no GitHub/GitLab releases found",
 			nil,
 			finding.OutcomeNotApplicable)
 		if err != nil {
