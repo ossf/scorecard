@@ -25,9 +25,6 @@ outcome:
 remediation:
   effort: Medium
   text:
-    - Publish the release.
-    - Generate a signing key.
-    - Download the release as an archive locally.
-    - Sign the release archive with this key (should output a signature file).
-    - Attach the signature file next to the release archive.
-    - If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
+    - Install Cosign by following https://docs.sigstore.dev/system_config/installation/
+    - Sign your release artifacts using `cosign sign $YOUR_ARTIFACT`. See more here: https://docs.sigstore.dev/signing/quickstart/
+    - Publish your release and add the certificate and signature produced by Cosign.
