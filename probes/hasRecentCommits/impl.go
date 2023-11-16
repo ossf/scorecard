@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package commitsInLast90Days
+package hasRecentCommits
 
 import (
 	"embed"
@@ -32,7 +32,7 @@ const (
 	lookBackDays = 90
 )
 
-const Probe = "commitsInLast90Days"
+const Probe = "hasRecentCommits"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -61,6 +61,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f = f.WithValues(map[string]int{
 			"commitsWithinThreshold": commitsWithinThreshold,
+			"lookBackDays":           90,
 		})
 		findings = append(findings, *f)
 	} else {

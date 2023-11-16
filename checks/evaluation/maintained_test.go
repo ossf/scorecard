@@ -32,7 +32,7 @@ func TestMaintained(t *testing.T) {
 			name: "Two commits in last 90 days",
 			findings: []finding.Finding{
 				{
-					Probe:   "commitsInLast90Days",
+					Probe:   "hasRecentCommits",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
 						"commitsWithinThreshold": 2,
@@ -59,7 +59,7 @@ func TestMaintained(t *testing.T) {
 			name: "No issues, no commits and not archived",
 			findings: []finding.Finding{
 				{
-					Probe:   "commitsInLast90Days",
+					Probe:   "hasRecentCommits",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "issueActivityByProjectMember",
@@ -80,7 +80,7 @@ func TestMaintained(t *testing.T) {
 			name: "Wrong probe name",
 			findings: []finding.Finding{
 				{
-					Probe:   "commitsInLast90Days",
+					Probe:   "hasRecentCommits",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "issueActivityByProjectMember",
@@ -102,7 +102,7 @@ func TestMaintained(t *testing.T) {
 			name: "Project is archived",
 			findings: []finding.Finding{
 				{
-					Probe:   "commitsInLast90Days",
+					Probe:   "hasRecentCommits",
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "issueActivityByProjectMember",

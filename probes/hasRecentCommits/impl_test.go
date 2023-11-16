@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // nolint:stylecheck
-package commitsInLast90Days
+package hasRecentCommits
 
 import (
 	"testing"
@@ -77,6 +77,7 @@ func Test_Run(t *testing.T) {
 			},
 			values: map[string]int{
 				"commitsWithinThreshold": 5,
+				"lookBackDays":           90,
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -89,6 +90,7 @@ func Test_Run(t *testing.T) {
 			},
 			values: map[string]int{
 				"commitsWithinThreshold": 20,
+				"lookBackDays":           90,
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},

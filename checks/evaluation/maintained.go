@@ -20,7 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/commitsInLast90Days"
+	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
@@ -40,7 +40,7 @@ func Maintained(name string,
 	expectedProbes := []string{
 		notArchived.Probe,
 		issueActivityByProjectMember.Probe,
-		commitsInLast90Days.Probe,
+		hasRecentCommits.Probe,
 		notCreatedRecently.Probe,
 	}
 
@@ -68,7 +68,7 @@ func Maintained(name string,
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
 				numberOfIssuesUpdatedWithinThreshold = f.Values["numberOfIssuesUpdatedWithinThreshold"]
-			case commitsInLast90Days.Probe:
+			case hasRecentCommits.Probe:
 				commitsWithinThreshold = f.Values["commitsWithinThreshold"]
 			}
 		}
