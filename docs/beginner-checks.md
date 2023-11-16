@@ -1,6 +1,6 @@
 # Getting Started with Scorecard Checks for Supply Chain Security
 
-Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: setting up your project, accepting contributions from others, and packaging the project to release to the world.
+Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: [setting up your project](#setting-up-your-project), [accepting contributions from others](#manage-contributions-to-your-project), and [packaging the project to release to the world](#package-and-release-your-project).
 
 ## 1. Setting up your project
 
@@ -31,7 +31,7 @@ If you want to increase your score in this category, sign up for automatic updat
 
 ### Token-Permissions check helps you secure your workflows
 
-We suggest addressing the [Token-Permissions check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions) next because it takes just a few minutes to “set it and forget it” and secure your workflows. The check warns you when your project’s top-level tokens have `write` access instead of the more restrictive `read` access. Not all `write` access permissions need to be eliminated; some workflows may genuinely require them. But ensuring your top-level permissions have `read` access helps your project follow the principle of least privilege, which means that permissions are granted based on the minimal necessary access to perform a function. Projects that have top-level tokens set to `write` access for their automated workflows may be vulnerable to malicious code execution. By simply switching `write` to `read` you’ll be able to close off a powerful attack vector (exploiting compromised tokens that have write permissions and using them to inject malicious code into the project).
+We suggest addressing the [Token-Permissions check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#token-permissions) next because it takes just a few minutes to “set it and forget it” and secure your workflows. The check warns you when your project’s top-level tokens have `write` access instead of the more restrictive `read` access. Not all `write` access permissions need to be eliminated; some workflows may genuinely require them. But ensuring your top-level permissions have `read` access helps your project follow the principle of least privilege, which means that permissions are granted based on the minimal necessary access to perform a function. Projects that don't follow least privilege, particularly around `write` permissions, expose themselves to undue risks of attack if their workflow dependencies become compromised. By simply switching `write` to `read` you’ll be able to close off a powerful attack vector (exploiting compromised tokens that have write permissions and using them to inject malicious code into the project).
 
 To change the default setting for token permissions, add the following to the top of your workflow:
 
@@ -59,11 +59,9 @@ Deciding how to securely share your code can be difficult. Building locally on y
 
 ### Packaging check verifies if a project is published as a package
 
-The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging) assesses whether a project has been published as a package. The check is currently limited to repositories hosted on GitHub. It looks for [GitHub packaging workflows](https://docs.github.com/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, like npm or PyPI.
+The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging) assesses whether a project has been published as a package. The check is currently limited to repositories hosted on GitHub. It looks for [GitHub packaging workflows](https://docs.github.com/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, like npm or PyPI. Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
 
 Packaging your projects makes it easier for users to receive security patches as updates. It also provides information about the release details to your users, which opens the door to more collaboration from your open-source peers.
-
-Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
 
 ## Customize your checks to your project’s needs
 
