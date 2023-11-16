@@ -35,7 +35,7 @@ const (
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
 
-	//https://docs.github.com/en/graphql/overview/rate-limits-and-node-limits-for-the-graphql-api#node-limit
+	// https://docs.github.com/en/graphql/overview/rate-limits-and-node-limits-for-the-graphql-api#node-limit
 	defaultPageLimit = 100
 )
 
@@ -159,6 +159,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commi
 
 func populateCommits(handler *graphqlHandler, vars map[string]interface{}, pageLimit int) ([]clients.Commit, error) {
 	if pageLimit < 1 {
+		//nolint:wrapcheck
 		return nil, sce.CreateInternal(sce.ErrScorecardInternal, "invalid pagination limit")
 	}
 	var allCommits []clients.Commit
