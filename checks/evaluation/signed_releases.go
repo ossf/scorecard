@@ -26,7 +26,8 @@ import (
 )
 
 // SignedReleases applies the score policy for the Signed-Releases check.
-//nolint:gocognit
+//
+
 func SignedReleases(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
@@ -40,11 +41,11 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// All probes have OutcomeNotApplicable in case the project has no 
+	// All probes have OutcomeNotApplicable in case the project has no
 	// releases. Therefore, check for any finding with OutcomeNotApplicable.
 	for i := range findings {
-        f := &findings[i]
-	    if f.Outcome == finding.OutcomeNotApplicable {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNotApplicable {
 			dl.Warn(&checker.LogMessage{
 				Text: "no GitHub releases found",
 			})
@@ -59,33 +60,32 @@ func SignedReleases(name string,
 	checker.LogFindings(findings, dl)
 
 	for i := range findings {
-        f := &findings[i]
-	    if f.Outcome == finding.OutcomePositive {
-	        switch f.Probe {
-	        case releasesAreSigned.Probe:
-	        	totalPositive++
-	        	if !releaseAlsoHasProvenance(f, findings) {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			switch f.Probe {
+			case releasesAreSigned.Probe:
+				totalPositive++
+				if !releaseAlsoHasProvenance(f, findings) {
 					score += 8
 				}
-	        	totalReleases = f.Values["totalReleases"]
-	        case releasesHaveProvenance.Probe:
-	        	totalPositive++
-	        	score += 10
-	        	totalReleases = f.Values["totalReleases"]
-	        }
-        }
-    }
+				totalReleases = f.Values["totalReleases"]
+			case releasesHaveProvenance.Probe:
+				totalPositive++
+				score += 10
+				totalReleases = f.Values["totalReleases"]
+			}
+		}
+	}
 
-    if totalPositive == 0 {
-    	return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
-    }
+	if totalPositive == 0 {
+		return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
+	}
 
-    if totalReleases == 0 {
-    	// This should not happen in production, but it is useful to have 
-    	// for testing.
-    	return checker.CreateInconclusiveResult(name, "no releases found")
-    }
-    //fmt.Println("totalReleases: ", totalReleases)
+	if totalReleases == 0 {
+		// This should not happen in production, but it is useful to have
+		// for testing.
+		return checker.CreateInconclusiveResult(name, "no releases found")
+	}
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
 	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", totalPositive, totalReleases)
 	return checker.CreateResultWithScore(name, reason, score)
