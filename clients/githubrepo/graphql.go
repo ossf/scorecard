@@ -157,33 +157,22 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commi
 	handler.issues = nil
 }
 
-func populateCommits(handler *graphqlHandler, vars map[string]interface{}, pageLimit int) ([]clients.Commit, error) {
-	if pageLimit < 1 {
-		//nolint:wrapcheck
-		return nil, sce.CreateInternal(sce.ErrScorecardInternal, "invalid pagination limit")
-	}
-	var allCommits []clients.Commit
-	var commitsLeft githubv4.Int
+func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
+	var commits []clients.Commit
 	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
 	if !ok {
-		return nil, nil
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, "unexpected type")
 	}
-	pageLimitConverted := githubv4.Int(pageLimit)
+	commitsRequested := min(defaultPageLimit, commitsLeft)
 	retries := 3
-	for vars["commitsToAnalyze"] = pageLimitConverted; commitsLeft > 0; commitsLeft = commitsLeft - pageLimitConverted {
-		if commitsLeft < pageLimitConverted {
-			pageLimitConverted = commitsLeft
-			vars["commitsToAnalyze"] = pageLimitConverted
-		}
-		err := handler.client.Query(handler.ctx, handler.data, vars)
-		if err != nil {
+	for commitsLeft > 0 {
+		vars["commitsToAnalyze"] = commitsRequested
+		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
 			// 502 usually indicate timeouts, where we're requesting too much data
 			// so make our requests smaller and try again
 			if retries > 0 && strings.Contains(err.Error(), "502 Bad Gateway body") {
 				retries--
-				pageLimitConverted /= 2
-				vars["commitsToAnalyze"] = pageLimitConverted
-				commitsLeft += pageLimitConverted // undo the decrement thats going to happen from the continue
+				commitsRequested /= 2
 				continue
 			}
 			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
@@ -193,9 +182,11 @@ func populateCommits(handler *graphqlHandler, vars map[string]interface{}, pageL
 		if err != nil {
 			return nil, fmt.Errorf("failed to populate commits: %w", err)
 		}
-		allCommits = append(allCommits, tmp...)
+		commits = append(commits, tmp...)
+		commitsLeft -= commitsRequested
+		commitsRequested = min(commitsRequested, commitsLeft)
 	}
-	return allCommits, nil
+	return commits, nil
 }
 
 func (handler *graphqlHandler) setup() error {
@@ -213,7 +204,7 @@ func (handler *graphqlHandler) setup() error {
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
-		handler.commits, handler.errSetup = populateCommits(handler, vars, defaultPageLimit)
+		handler.commits, handler.errSetup = populateCommits(handler, vars)
 		handler.issues = issuesFrom(handler.data)
 		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
