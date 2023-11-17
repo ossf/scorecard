@@ -384,22 +384,17 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 
 	max++
 
-	// On this first check we exclude 1. The case which we don't know if the PRs are required
-	// 2. The case we know that PRs are not required, because it's covered on adminReviewProtection function.
+	// On this first check we exclude the case where PRs are not required to make changes,
+	// because it's already covered on adminReviewProtection function.
 	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
 		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		switch {
-		// If not running as admin, the nil value can both mean that no reviews are required or no PR are required,
-		// so here we assume no reviews are required.
-		case *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount == 0:
-			warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
-		case *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews:
+		if *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
 			info(dl, log, "number of required reviewers is %d on branch '%s'",
 				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name)
 			score++
-		default:
-			warn(dl, log, "number of required reviewers is only %d on branch '%s'",
-				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name)
+		} else {
+			warn(dl, log, "number of required reviewers is %d on branch '%s', while the ideal suggested is %d",
+				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name, minReviews)
 		}
 	}
 
