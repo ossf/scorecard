@@ -275,6 +275,7 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	score := 0
 	max := 0
 
+	// Adding 2 here because having at least 1 reviewer weights twice than the other Tier 2 requirements.
 	max += 2
 	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
 		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
