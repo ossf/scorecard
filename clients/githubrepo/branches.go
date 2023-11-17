@@ -363,14 +363,9 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
-		if (v.RequiredApprovingReviewCount == nil || *v.RequiredApprovingReviewCount == 0) &&
-			(v.RequiresCodeOwnerReviews == nil || !*v.RequiresCodeOwnerReviews) {
-			// If run without admin permissions and using the old Branch Protection configuration (not the Repo Rules),
-			// we can't tell if the project requires PRs for changes or not as the RequiredApprovingReviewCount = 0
-			// can mean both "don't require PRs" and "require PR but no reviewers".
-			// For this case, we set the whole RequirePullRequestReviews structure to nil
-			dst.RequiredPullRequestReviews = nil
-		} else {
+		// Evaluate if we have data to infer that the project requires PRs to make changes. If we don't have data, we let
+		// the struct RequiredPullRequestReviews as nil
+		if readIntPtr(v.RequiredApprovingReviewCount) > 0 || readBoolPtr(v.RequiresCodeOwnerReviews) {
 			if dst.RequiredPullRequestReviews == nil {
 				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 			}
