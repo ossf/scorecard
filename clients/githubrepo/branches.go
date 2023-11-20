@@ -324,8 +324,6 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 }
 
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
-	dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
 	if src.RequiresStatusChecks != nil {
@@ -341,21 +339,31 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
 		}
 	}
+	if readBoolPtr(src.DismissesStaleReviews) {
+		if dst.RequiredPullRequestReviews == nil {
+			// this shouldn't happen, as it should be always instantiated at copyNonAdminSettings
+			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+		}
+		copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
+	}
 }
 
 func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 	// TODO: requiresConversationResolution, requiresSignatures, viewerAllowedToDismissReviews, viewerCanPush
 	switch v := src.(type) {
 	case *branchProtectionRule:
-		if dst.RequiredPullRequestReviews == nil {
-			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-		}
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
-		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+
+		// If RequiredApprovingReviewCount is nil, we let the struct RequiredPullRequestReviews point to nil, as it means
+		// that PRs are not required for making changes at the branch.
+		if v.RequiredApprovingReviewCount != nil {
+			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		}
 
 	case *refUpdateRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
@@ -423,11 +431,11 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	case data.BranchProtectionRule != nil:
 		rule := data.BranchProtectionRule
 
-		// Admin settings.
-		copyAdminSettings(rule, branchRule)
-
 		// Non-admin settings.
 		copyNonAdminSettings(rule, branchRule)
+
+		// Admin settings.
+		copyAdminSettings(rule, branchRule)
 
 	// Only non-admin settings are available.
 	// https://docs.github.com/en/graphql/reference/objects#refupdaterule.
@@ -505,9 +513,6 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 
 		translated.EnforceAdmins = initializedBoolRef(len(r.BypassActors.Nodes) == 0)
 
-		// Instatiate this struct as it will never be null on Repo Rules. We'll always know if PRs are required or not
-		translated.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case ruleDeletion:
@@ -527,6 +532,8 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
+	base.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+
 	base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
 	base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
 	base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
@@ -602,9 +609,15 @@ func mergeCheckRules(base, translated *clients.StatusChecksRule) {
 }
 
 func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) *clients.PullRequestReviewRule {
-	// Case of no branch protection defined or we couldn't retrieve info about PR reviews
-	if base == nil {
+	switch {
+	case base == nil && translated == nil:
+		// none of the configs require PRs.
+		return nil
+	// initiate empty structure to avoid NPE at merge.
+	case base == nil:
 		base = new(clients.PullRequestReviewRule)
+	case translated == nil:
+		translated = new(clients.PullRequestReviewRule)
 	}
 
 	result := new(clients.PullRequestReviewRule)
