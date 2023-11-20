@@ -35,6 +35,7 @@ func testScore(branch *clients.BranchRef, codeownersFiles []string, dl checker.D
 	return computeFinalScore([]levelScore{score}, dl)
 }
 
+// TODO: order of tests to have progressive scores.
 func TestIsBranchProtected(t *testing.T) {
 	t.Parallel()
 	trueVal := true
@@ -49,6 +50,7 @@ func TestIsBranchProtected(t *testing.T) {
 		expected        scut.TestReturn
 	}{
 		{
+			// TODO: Naming is inconsistent. We should change this to make it score 0.
 			name: "Nothing is enabled",
 			expected: scut.TestReturn{
 				Error:         nil,

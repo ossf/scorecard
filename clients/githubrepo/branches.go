@@ -323,6 +323,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 	return branchRef, nil
 }
 
+// TODO: Move these two functions to below the GetBranchRefFrom functions, the single place they're used.
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
