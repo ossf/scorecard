@@ -320,17 +320,16 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		}
 	}
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews == nil {
-		debug(dl, log, "unable to retrieve whether PRs are needed to make changes on branch '%s'", *branch.Name)
-		warn(dl, log, "No reviewers are required to make changes on branch '%s'", *branch.Name)
+	max++
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil {
+		score++
+		info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 	} else {
-		max++
-		if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-			score++
-			info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
-		} else {
-			warn(dl, log, "PRs are not required in order to make changes on branch '%s'", *branch.Name)
-		}
+		warn(dl, log, "PRs are not required to make changes on branch '%s'; or we don't have data to detect it."+
+			"If you think it might be the last case, make sure you run scorecard with a PAT token or use Repo "+
+			"Rules (that are always public) instead of the old Branch Protection settings", *branch.Name)
+		// Warning it here because since `RequiredPullRequestReviews` is nil, we won't check reviewers count afterwards
+		warn(dl, log, "No reviewers required to merge changes on branch '%s'", *branch.Name)
 	}
 
 	return score, max
@@ -342,19 +341,24 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
+	if branch.BranchProtectionRule.RequiredPullRequestReviews == nil {
+		// If the repo doesn't require PRs, we still have to discount score for not dismissing stale reviews.
 		max++
-		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
-		case true:
-			info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
-			score++
-		case false:
-			warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
-		}
+		warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
 	} else {
-		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
+		if branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews == nil {
+			// The case of a non-admin run on a repo using the old Branch Protection
+			debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
+		} else {
+			max++
+			switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
+			case true:
+				info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
+				score++
+			case false:
+				warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
+			}
+		}
 	}
 
 	// nil typically means we do not have access to the value.
