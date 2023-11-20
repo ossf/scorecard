@@ -204,15 +204,10 @@ func Test_applyRepoRules(t *testing.T) {
 						RequiresStatusChecks: nil,
 						Contexts:             nil,
 					},
-					EnforceAdmins:           &trueVal,
-					RequireLastPushApproval: nil, // this checkbox is enabled only if require status checks
-					RequireLinearHistory:    &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						// nil values mean that this checkbox wasn't checked
-						RequiredApprovingReviewCount: nil,
-						DismissStaleReviews:          nil,
-						RequireCodeOwnerReviews:      nil,
-					},
+					EnforceAdmins:              &trueVal,
+					RequireLastPushApproval:    nil, // this checkbox is enabled only if require status checks
+					RequireLinearHistory:       &falseVal,
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -226,7 +221,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &trueVal,
 					RequireLinearHistory:       &falseVal,
 					EnforceAdmins:              &trueVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -240,7 +235,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &trueVal,
 					RequireLinearHistory:       &falseVal,
 					EnforceAdmins:              &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -259,7 +254,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &falseVal,
 					EnforceAdmins:              &falseVal, // Downgrade: deletion does not enforce admins
 					RequireLinearHistory:       &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -279,7 +274,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &falseVal,
 					EnforceAdmins:              &falseVal, // Maintain: deletion enforces but forcepush does not
 					RequireLinearHistory:       &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -298,7 +293,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &falseVal,
 					EnforceAdmins:              &trueVal, // Maintain: base and rule are equal strictness
 					RequireLinearHistory:       &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -312,7 +307,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &falseVal,
 					EnforceAdmins:              &trueVal,
 					RequireLinearHistory:       &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -326,7 +321,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:           &trueVal,
 					RequireLinearHistory:       &trueVal,
 					EnforceAdmins:              &trueVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -350,14 +345,13 @@ func Test_applyRepoRules(t *testing.T) {
 					RequireLastPushApproval: &trueVal,
 					RequireLinearHistory:    &falseVal,
 					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						// DismissStaleReviews:          &trueVal,
 						RequiredApprovingReviewCount: &zeroVal,
 					},
 				},
 			},
 		},
 		{
-			name: "require pull request no bypass",
+			name: "require pull request with 2 reviewers no bypass",
 			base: &clients.BranchRef{},
 			ruleSet: ruleSet(withRules(&repoRule{
 				Type: rulePullRequest,
@@ -413,7 +407,7 @@ func Test_applyRepoRules(t *testing.T) {
 						RequiresStatusChecks: &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -446,7 +440,7 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 		name     string
 	}{
 		{
-			name: "Non-admin Branch Protection rule with no reviewers get reviewers struct set to nil",
+			name: "Non-admin Branch Protection rule with insufficient data about requiring PRs",
 			branch: &branch{
 				Name: nil,
 				RefUpdateRule: &refUpdateRule{

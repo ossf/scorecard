@@ -84,9 +84,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  2,
+				NumberOfWarn:  4,
 				NumberOfInfo:  0,
-				NumberOfDebug: 5,
+				NumberOfDebug: 3,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -156,7 +156,7 @@ func TestIsBranchProtected(t *testing.T) {
 			},
 		},
 		{
-			name: "Admin run with all tier 1 requirements but don't require PRs",
+			name: "Admin run only preventing force pushes and deletions",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
@@ -178,11 +178,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &falseVal,
 						Contexts:             nil,
 					},
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
-						RequireCodeOwnerReviews:      &falseVal,
-						RequiredApprovingReviewCount: nil,
-					},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -209,11 +205,7 @@ func TestIsBranchProtected(t *testing.T) {
 						UpToDateBeforeMerge:  &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
-						RequireCodeOwnerReviews:      &falseVal,
-						RequiredApprovingReviewCount: nil,
-					},
+					RequiredPullRequestReviews: nil,
 				},
 			},
 		},
@@ -222,8 +214,8 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         4, // Should be 4.8 if we allow decimal punctuation
-				NumberOfWarn:  3,
-				NumberOfInfo:  7,
+				NumberOfWarn:  2,
+				NumberOfInfo:  9,
 				NumberOfDebug: 0,
 			},
 			branch: &clients.BranchRef{
@@ -241,8 +233,8 @@ func TestIsBranchProtected(t *testing.T) {
 						Contexts:             []string{"foo"},
 					},
 					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
-						RequireCodeOwnerReviews:      &falseVal,
+						DismissStaleReviews:          &trueVal,
+						RequireCodeOwnerReviews:      &trueVal,
 						RequiredApprovingReviewCount: &zeroVal,
 					},
 				},
@@ -284,9 +276,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  2,
+				NumberOfWarn:  4,
 				NumberOfInfo:  2,
-				NumberOfDebug: 5,
+				NumberOfDebug: 3,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
