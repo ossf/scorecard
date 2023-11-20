@@ -28,7 +28,7 @@ import (
 var (
 	//go:embed *.yml
 	fs               embed.FS
-	reviewerLoginErr = fmt.Errorf("could not find the login of a reviewer")
+	ErrReviewerLogin = fmt.Errorf("could not find the login of a reviewer")
 )
 
 const (
@@ -55,7 +55,7 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 	leastFoundReviewers := 0
 	nChangesets := len(changesets)
 	if nChangesets == 0 {
-		return nil, probeID, utils.NoChangesetsErr
+		return nil, probeID, utils.ErrNoChangesets
 	}
 	// Loops through all changesets, if an author login cannot be retrieved: returns OutcomeNotAvailabe.
 	// leastFoundReviewers will be the lowest number of unique reviewers found among the changesets.
@@ -119,7 +119,7 @@ func uniqueReviewers(changesetAuthor string, reviews []clients.Review) (int, err
 	reviewersList := make(map[string]bool)
 	for i := range reviews {
 		if reviews[i].Author.Login == "" {
-			return 0, reviewerLoginErr
+			return 0, ErrReviewerLogin
 		}
 		if !reviewersList[reviews[i].Author.Login] && reviews[i].Author.Login != changesetAuthor {
 			reviewersList[reviews[i].Author.Login] = true

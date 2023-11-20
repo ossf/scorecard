@@ -45,7 +45,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	nChanges := 0
 	nUnapprovedChangesets := 0
 	if nChangesets == 0 {
-		return nil, probeID, utils.NoChangesetsErr
+		return nil, probeID, utils.ErrNoChangesets
 	}
 	for x := range changesets {
 		data := &changesets[x]
