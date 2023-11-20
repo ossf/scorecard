@@ -6,7 +6,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/google/addlicense v1.1.1
-	github.com/google/ko v0.15.0
+	github.com/google/ko v0.15.1
 	github.com/goreleaser/goreleaser v1.20.0
 	github.com/onsi/ginkgo/v2 v2.13.1
 	google.golang.org/protobuf v1.31.0
@@ -363,18 +363,18 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	gocloud.dev v0.34.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
-	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/oauth2 v0.13.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
+	golang.org/x/tools v0.15.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.149.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
@@ -391,7 +391,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.1.0 // indirect
 	honnef.co/go/tools v0.4.6 // indirect
-	k8s.io/apimachinery v0.28.3 // indirect
+	k8s.io/apimachinery v0.28.4 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	mvdan.cc/gofumpt v0.5.0 // indirect
