@@ -475,6 +475,43 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Admin Branch Protection rule nothing selected",
+			branch: &branch{
+				Name:          nil,
+				RefUpdateRule: nil,
+				BranchProtectionRule: &branchProtectionRule{
+					DismissesStaleReviews:        &falseVal,
+					IsAdminEnforced:              &falseVal,
+					RequiresStrictStatusChecks:   &falseVal,
+					RequiresStatusChecks:         &falseVal,
+					AllowsDeletions:              &falseVal,
+					AllowsForcePushes:            &falseVal,
+					RequiredApprovingReviewCount: nil,
+					RequiresCodeOwnerReviews:     &falseVal,
+					RequiresLinearHistory:        &falseVal,
+					RequireLastPushApproval:      &falseVal,
+					RequiredStatusCheckContexts:  []string{},
+				},
+			},
+			ruleSet: nil,
+			expected: &clients.BranchRef{
+				Protected: &trueVal,
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:          &falseVal,
+					AllowForcePushes:        &falseVal,
+					EnforceAdmins:           &falseVal,
+					RequireLastPushApproval: &falseVal,
+					RequireLinearHistory:    &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge:  &falseVal,
+						RequiresStatusChecks: &falseVal,
+						Contexts:             []string{},
+					},
+					RequiredPullRequestReviews: nil,
+				},
+			},
+		},
 	}
 
 	for _, testcase := range testcases {
