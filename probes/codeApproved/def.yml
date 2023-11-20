@@ -19,7 +19,7 @@ motivation: >
   To ensure that the review process works, the proposed changes
   should have a minimum number of approvals.
 implementation: >
-  The implementation looks for the reviews of a changeset and that their state is "APPROVED"
+  This probe looks for whether all changes over the last `--commit-depth` commits have been approved by a maintainer. Commits are grouped by the Pull Request they were introduced in, and each Pull Request must have at least one approval.
 outcome:
   - If all changesets were approved, the probe returns OutcomePositive (1)
   - If a changeset was not approved, the prove returns OutcomeNegative (0)
