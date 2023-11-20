@@ -89,12 +89,12 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	return commits[0].SHA, nil
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
-func RunScorecard(ctx context.Context,
+func runScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -150,6 +150,26 @@ func RunScorecard(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
+	if len(probesToRun) > 0 {
+		probeFindings := make([]finding.Finding, 0)
+		for _, probeName := range probesToRun {
+			probeRunner, err := probes.GetProbeRunner(probeName)
+			if err != nil {
+				msg := fmt.Sprintf("could not find probe: %s", probeName)
+				return ScorecardResult{},
+					sce.WithMessage(sce.ErrScorecardInternal, msg)
+			}
+			findings, _, err := probeRunner(&ret.RawResults)
+			if err != nil {
+				return ScorecardResult{},
+					sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+			}
+			probeFindings = append(probeFindings, findings...)
+		}
+		ret.Findings = probeFindings
+		return ret, nil
+	}
+
 	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
 		repoClient, ossFuzzRepoClient,
 		ciiClient, vulnsClient, resultsCh)
@@ -175,4 +195,53 @@ func RunScorecard(ctx context.Context,
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func RunScorecard(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		[]string{},
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
+}
+
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func ExperimentalRunProbes(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		probesToRun,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
 }

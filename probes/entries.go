@@ -15,6 +15,8 @@
 package probes
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
@@ -133,6 +135,43 @@ var (
 	CITests = []ProbeImpl{
 		testsRunInCI.Run,
 	}
+
+	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
+		securityPolicyPresent.Probe:                         securityPolicyPresent.Run,
+		securityPolicyContainsLinks.Probe:                   securityPolicyContainsLinks.Run,
+		securityPolicyContainsVulnerabilityDisclosure.Probe: securityPolicyContainsVulnerabilityDisclosure.Run,
+		securityPolicyContainsText.Probe:                    securityPolicyContainsText.Run,
+		toolRenovateInstalled.Probe:                         toolRenovateInstalled.Run,
+		toolDependabotInstalled.Probe:                       toolDependabotInstalled.Run,
+		toolPyUpInstalled.Probe:                             toolPyUpInstalled.Run,
+		fuzzedWithOSSFuzz.Probe:                             fuzzedWithOSSFuzz.Run,
+		fuzzedWithGoNative.Probe:                            fuzzedWithGoNative.Run,
+		fuzzedWithPythonAtheris.Probe:                       fuzzedWithPythonAtheris.Run,
+		fuzzedWithCLibFuzzer.Probe:                          fuzzedWithCLibFuzzer.Run,
+		fuzzedWithCppLibFuzzer.Probe:                        fuzzedWithCppLibFuzzer.Run,
+		fuzzedWithSwiftLibFuzzer.Probe:                      fuzzedWithSwiftLibFuzzer.Run,
+		fuzzedWithRustCargofuzz.Probe:                       fuzzedWithRustCargofuzz.Run,
+		fuzzedWithJavaJazzerFuzzer.Probe:                    fuzzedWithJavaJazzerFuzzer.Run,
+		fuzzedWithClusterFuzzLite.Probe:                     fuzzedWithClusterFuzzLite.Run,
+		fuzzedWithPropertyBasedHaskell.Probe:                fuzzedWithPropertyBasedHaskell.Run,
+		fuzzedWithPropertyBasedTypescript.Probe:             fuzzedWithPropertyBasedTypescript.Run,
+		fuzzedWithPropertyBasedJavascript.Probe:             fuzzedWithPropertyBasedJavascript.Run,
+		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
+		hasLicenseFile.Probe:                                hasLicenseFile.Run,
+		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
+		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
+		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
+		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
+		sastToolCodeQLInstalled.Probe:                       sastToolCodeQLInstalled.Run,
+		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
+		sastToolSonarInstalled.Probe:                        sastToolSonarInstalled.Run,
+		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
+		notArchived.Probe:                                   notArchived.Run,
+		hasRecentCommits.Probe:                              hasRecentCommits.Run,
+		issueActivityByProjectMember.Probe:                  issueActivityByProjectMember.Run,
+		notCreatedRecently.Probe:                            notCreatedRecently.Run,
+	}
 )
 
 //nolint:gochecknoinits
@@ -144,6 +183,13 @@ func init() {
 		License,
 		Contributors,
 	})
+}
+
+func GetProbeRunner(probeName string) (func(*checker.RawResults) ([]finding.Finding, string, error), error) {
+	if runner, ok := probeRunners[probeName]; ok {
+		return runner, nil
+	}
+	return nil, fmt.Errorf("could not find probe")
 }
 
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {

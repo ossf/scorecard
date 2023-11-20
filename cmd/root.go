@@ -73,6 +73,9 @@ func New(o *options.Options) *cobra.Command {
 
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
+	var err error
+	var repoResult pkg.ScorecardResult
+
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
@@ -119,23 +122,43 @@ func rootCmd(o *options.Options) error {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}
 
-	if o.Format == options.FormatDefault {
+	enabledProbes := o.Probes()
+	if len(enabledProbes) > 0 {
+		for _, probeName := range enabledProbes {
+			fmt.Fprintf(os.Stderr, "Starting probe [%s]\n", probeName)
+		}
+	} else if o.Format == options.FormatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
 		}
 	}
 
-	repoResult, err := pkg.RunScorecard(
-		ctx,
-		repoURI,
-		o.Commit,
-		o.CommitDepth,
-		enabledChecks,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-	)
+	if len(enabledProbes) > 0 {
+		repoResult, err = pkg.ExperimentalRunProbes(
+			ctx,
+			repoURI,
+			o.Commit,
+			o.CommitDepth,
+			enabledChecks,
+			enabledProbes,
+			repoClient,
+			ossFuzzRepoClient,
+			ciiClient,
+			vulnsClient,
+		)
+	} else {
+		repoResult, err = pkg.RunScorecard(
+			ctx,
+			repoURI,
+			o.Commit,
+			o.CommitDepth,
+			enabledChecks,
+			repoClient,
+			ossFuzzRepoClient,
+			ciiClient,
+			vulnsClient,
+		)
+	}
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
 	}
@@ -147,7 +170,11 @@ func rootCmd(o *options.Options) error {
 		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
 	})
 
-	if o.Format == options.FormatDefault {
+	if len(enabledProbes) > 0 {
+		for _, probeName := range enabledProbes {
+			fmt.Fprintf(os.Stderr, "Finished probe %s\n", probeName)
+		}
+	} else if o.Format == options.FormatDefault {
 		for checkName := range enabledChecks {
 			fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 		}
