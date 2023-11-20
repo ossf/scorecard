@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 )
 
@@ -32,6 +33,7 @@ func SAST(name string,
 		sastToolCodeQLInstalled.Probe,
 		sastToolRunsOnAllCommits.Probe,
 		sastToolSonarInstalled.Probe,
+		sastToolSnykInstalled.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -39,7 +41,7 @@ func SAST(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var sastScore, codeQlScore, sonarScore int
+	var sastScore, codeQlScore, snykScore, sonarScore int
 	// Assign sastScore, codeQlScore and sonarScore
 	for i := range findings {
 		f := &findings[i]
@@ -48,6 +50,8 @@ func SAST(name string,
 			sastScore = getSASTScore(f, dl)
 		case sastToolCodeQLInstalled.Probe:
 			codeQlScore = getCodeQLScore(f, dl)
+		case sastToolSnykInstalled.Probe:
+			snykScore = getSnykScore(f, dl)
 		case sastToolSonarInstalled.Probe:
 			if f.Outcome == finding.OutcomePositive {
 				sonarScore = checker.MaxResultScore
@@ -103,6 +107,13 @@ func SAST(name string,
 	}
 
 	// Sast inconclusive.
+	if snykScore != checker.InconclusiveResultScore {
+		if snykScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
+		}
+		return checker.CreateMinScoreResult(name, "no SAST tool detected")
+	}
+
 	if codeQlScore != checker.InconclusiveResultScore {
 		if codeQlScore == checker.MaxResultScore {
 			return checker.CreateMaxScoreResult(name, "SAST tool detected: CodeQL")
@@ -150,6 +161,23 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 // getCodeQLScore returns positive the project runs CodeQL and negative
 // if it doesn't.
 func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
+	switch f.Outcome {
+	case finding.OutcomePositive:
+		dl.Info(&checker.LogMessage{
+			Text: f.Message,
+		})
+		return checker.MaxResultScore
+	case finding.OutcomeNegative:
+		dl.Warn(&checker.LogMessage{
+			Text: f.Message,
+		})
+		return checker.MinResultScore
+	default:
+		panic("Should not happen")
+	}
+}
+
+func getSnykScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{

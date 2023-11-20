@@ -40,6 +40,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
@@ -102,6 +103,7 @@ var (
 	}
 	SAST = []ProbeImpl{
 		sastToolCodeQLInstalled.Run,
+		sastToolSnykInstalled.Run,
 		sastToolRunsOnAllCommits.Run,
 		sastToolSonarInstalled.Run,
 	}

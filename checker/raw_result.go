@@ -257,6 +257,8 @@ const (
 	CodeQLWorkflow SASTWorkflowType = "CodeQL"
 	// SonarWorkflow represents a workflow that runs Sonar.
 	SonarWorkflow SASTWorkflowType = "Sonar"
+	// SnykWorkflow represents a workflow that runs Snyk.
+	SnykWorkflow SASTWorkflowType = "Snyk"
 )
 
 // SASTWorkflow represents a SAST workflow.
