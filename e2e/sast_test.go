@@ -45,7 +45,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         10,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
