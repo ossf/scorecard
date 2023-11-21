@@ -51,10 +51,8 @@ func Test_GetURI_calls_client_get_with_input(t *testing.T) {
 				if r.URL.Path != tt.wantURL {
 					t.Errorf("Expected to request '%s', got: %s", tt.wantURL, r.URL.Path)
 				}
-				// nolint
 				w.WriteHeader(http.StatusOK)
-				// nolint
-				w.Write([]byte(tt.wantResponse))
+				w.Write([]byte(tt.wantResponse)) //nolint:errcheck
 			}))
 			defer server.Close()
 			client := PackageManagerClient{}
@@ -107,10 +105,8 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 				if r.URL.Path != tt.wantURL {
 					t.Errorf("Expected to request '%s', got: %s", tt.wantURL, r.URL.Path)
 				}
-				// nolint
 				w.WriteHeader(http.StatusOK)
-				// nolint
-				w.Write([]byte(tt.wantResponse))
+				w.Write([]byte(tt.wantResponse)) //nolint:errcheck
 			}))
 			defer server.Close()
 			client := PackageManagerClient{}

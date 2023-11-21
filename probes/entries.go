@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
@@ -37,6 +36,10 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
@@ -73,7 +76,6 @@ var (
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzedWithOSSFuzz.Run,
-		fuzzedWithOneFuzz.Run,
 		fuzzedWithGoNative.Run,
 		fuzzedWithPythonAtheris.Run,
 		fuzzedWithCLibFuzzer.Run,
@@ -108,6 +110,12 @@ var (
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
+	}
+	Maintained = []ProbeImpl{
+		notArchived.Run,
+		hasRecentCommits.Run,
+		issueActivityByProjectMember.Run,
+		notCreatedRecently.Run,
 	}
 )
 

@@ -26,7 +26,7 @@ import (
 // CheckDependencyUpdateTool is the exported name for Automatic-Depdendency-Update.
 const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
-// nolint
+//nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,

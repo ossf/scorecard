@@ -46,7 +46,7 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo.EXPECT().Close().Return(nil)
 	r := Runner{
 		enabledChecks: checker.CheckNameToFnMap{},
-		repoClient:    mockRepo,
+		githubClient:  mockRepo,
 	}
 	const repo = "github.com/foo/bar"
 	result, err := r.Run(repo)

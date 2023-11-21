@@ -28,8 +28,6 @@ import (
 
 func TestSignedRelease(t *testing.T) {
 	t.Parallel()
-	//fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint
 	tests := []struct {
 		err      error
 		name     string
@@ -363,12 +361,13 @@ func TestSignedRelease(t *testing.T) {
 				Score: 8,
 			},
 		},
+
 		{
 			name: "Error getting releases",
-			err:  errors.New("Error getting releases"),
+			err:  errors.New("Error getting releases"), //nolint:goerr113
 			expected: checker.CheckResult{
 				Score: -1,
-				Error: errors.New("Error getting releases"),
+				Error: errors.New("Error getting releases"), //nolint:goerr113
 			},
 		},
 	}

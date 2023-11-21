@@ -50,7 +50,7 @@ func Read() (Doc, error) {
 func (d *DocImpl) GetCheck(name string) (CheckDoc, error) {
 	ic, exists := d.internaldoc.InternalChecks[name]
 	if !exists {
-		//nolint: wrapcheck
+		//nolint:wrapcheck
 		return nil, sce.CreateInternal(errCheckNotExist, "")
 	}
 	// Set the name and URL.
@@ -63,7 +63,7 @@ func (d *DocImpl) GetCheck(name string) (CheckDoc, error) {
 func (d *DocImpl) GetChecks() []CheckDoc {
 	var checks []CheckDoc
 	for k := range d.internaldoc.InternalChecks {
-		//nolint: errcheck
+		//nolint:errcheck
 		check, _ := d.GetCheck(k)
 		checks = append(checks, check)
 	}

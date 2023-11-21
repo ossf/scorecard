@@ -66,7 +66,7 @@ func jsonMockDocRead() *mockDoc {
 	return &m
 }
 
-// nolint
+//nolint:gocognit
 func TestJSONOutput(t *testing.T) {
 	t.Parallel()
 
@@ -82,6 +82,7 @@ func TestJSONOutput(t *testing.T) {
 
 	checkDocs := jsonMockDocRead()
 
+	//nolint:govet
 	tests := []struct {
 		name        string
 		expected    string

@@ -57,7 +57,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 
 	rel1 := "release/v.1"
 	sha := "8fb3cb86082b17144a80402f5367ae65f06083bd"
-	//nolint:goconst
 	main := "main"
 	trueVal := true
 	falseVal := false
@@ -65,7 +64,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 
 	var oneVal int32 = 1
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name          string
 		expected      scut.TestReturn

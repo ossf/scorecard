@@ -30,7 +30,6 @@ import (
 const (
 	fuzzerOSSFuzz                 = "OSSFuzz"
 	fuzzerClusterFuzzLite         = "ClusterFuzzLite"
-	oneFuzz                       = "OneFuzz"
 	fuzzerBuiltInGo               = "GoBuiltInFuzzer"
 	fuzzerPropertyBasedHaskell    = "HaskellPropertyBasedTesting"
 	fuzzerPropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
@@ -181,21 +180,6 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		)
 	}
 
-	usingOneFuzz, e := checkOneFuzz(c)
-	if e != nil {
-		return checker.FuzzingData{}, fmt.Errorf("%w", e)
-	}
-	if usingOneFuzz {
-		fuzzers = append(fuzzers,
-			checker.Tool{
-				Name: oneFuzz,
-				URL:  asPointer("https://github.com/microsoft/onefuzz"),
-				Desc: asPointer("Enables continuous developer-driven fuzzing to proactively harden software prior to release."),
-				// TODO: File.
-			},
-		)
-	}
-
 	usingOSSFuzz, e := checkOSSFuzz(c)
 	if e != nil {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
@@ -242,22 +226,6 @@ func checkCFLite(c *checker.CheckRequest) (bool, error) {
 		CaseSensitive: true,
 	}, func(path string, content []byte, args ...interface{}) (bool, error) {
 		result = fileparser.CheckFileContainsCommands(content, "#")
-		return false, nil
-	}, nil)
-	if e != nil {
-		return result, fmt.Errorf("%w", e)
-	}
-
-	return result, nil
-}
-
-func checkOneFuzz(c *checker.CheckRequest) (bool, error) {
-	result := false
-	e := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       "^\\.onefuzz$",
-		CaseSensitive: true,
-	}, func(path string, content []byte, args ...interface{}) (bool, error) {
-		result = true
 		return false, nil
 	}, nil)
 	if e != nil {

@@ -29,7 +29,7 @@ var errInvalidArg = errors.New("invalid argument")
 
 var (
 	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
-	//nolint
+	//nolint:lll
 	workflowMarkdown  = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
 	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )

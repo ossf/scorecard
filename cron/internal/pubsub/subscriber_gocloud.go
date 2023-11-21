@@ -37,7 +37,6 @@ type gocloudSubscriber struct {
 	msg          *pubsub.Message
 }
 
-//nolint:unused,deadcode
 func createGocloudSubscriber(ctx context.Context, subscriptionURL string) (*gocloudSubscriber, error) {
 	subscription, err := pubsub.OpenSubscription(ctx, subscriptionURL)
 	if err != nil {

@@ -16,12 +16,10 @@
 package options
 
 import (
-	"os"
 	"testing"
 )
 
-// Cannot run parallel tests because of the ENV variables.
-// nolint
+//nolint:paralleltest // because we are using t.Setenv.
 func TestOptions_Validate(t *testing.T) {
 	type fields struct {
 		Repo              string
@@ -110,8 +108,7 @@ func TestOptions_Validate(t *testing.T) {
 				EnableScorecardV6: tt.fields.EnableScorecardV6,
 			}
 			if o.EnableSarif {
-				os.Setenv(EnvVarEnableSarif, "1")
-				defer os.Unsetenv(EnvVarEnableSarif)
+				t.Setenv(EnvVarEnableSarif, "1")
 			}
 
 			if err := o.Validate(); (err != nil) != tt.wantErr {

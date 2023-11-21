@@ -32,7 +32,8 @@ var (
 const releaseLookBack = 5
 
 // SignedReleases applies the score policy for the Signed-Releases check.
-// nolint
+//
+//nolint:gocognit
 func SignedReleases(name string, dl checker.DetailLogger, r *checker.SignedReleasesData) checker.CheckResult {
 	if r == nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")

@@ -27,7 +27,7 @@ import (
 func TestGitlabPackagingYamlCheck(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name       string
 		lineNumber uint
@@ -100,7 +100,7 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 func TestGitlabPackagingPackager(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name       string
 		lineNumber uint
@@ -136,7 +136,7 @@ func TestGitlabPackagingPackager(t *testing.T) {
 
 			moqRepoClient.EXPECT().GetFileContent(tt.filename).
 				DoAndReturn(func(b string) ([]byte, error) {
-					//nolint: errcheck
+					//nolint:errcheck
 					content, _ := os.ReadFile(b)
 					return content, nil
 				}).AnyTimes()
@@ -150,7 +150,7 @@ func TestGitlabPackagingPackager(t *testing.T) {
 				Repo:       moqRepo,
 			}
 
-			//nolint: errcheck
+			//nolint:errcheck
 			packagingData, _ := Packaging(&req)
 
 			if !tt.exists {

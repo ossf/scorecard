@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
-package fuzzedWithOneFuzz
+//nolint:stylecheck
+package notArchived
 
 import (
 	"embed"
@@ -21,19 +21,43 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/fuzzing"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
 var fs embed.FS
 
-var Probe = "fuzzedWithOneFuzz"
+const Probe = "notArchived"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
-	//nolint:wrapcheck
-	return fuzzing.Run(raw, fs, Probe, "OneFuzz")
+
+	r := raw.MaintainedResults
+
+	if r.ArchivedStatus.Status {
+		return negativeOutcome()
+	}
+	return positiveOutcome()
+}
+
+func negativeOutcome() ([]finding.Finding, string, error) {
+	f, err := finding.NewWith(fs, Probe,
+		"Repository is archived.", nil,
+		finding.OutcomeNegative)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+	return []finding.Finding{*f}, Probe, nil
+}
+
+func positiveOutcome() ([]finding.Finding, string, error) {
+	f, err := finding.NewWith(fs, Probe,
+		"Repository is not archived.", nil,
+		finding.OutcomePositive)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+	return []finding.Finding{*f}, Probe, nil
 }

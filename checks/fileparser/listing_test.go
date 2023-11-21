@@ -135,7 +135,7 @@ func TestIsTemplateFile(t *testing.T) {
 // TestCheckFileContainsCommands tests if the content starts with a comment.
 func TestCheckFileContainsCommands(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	type args struct {
 		content []byte
 		comment string
@@ -397,7 +397,7 @@ func Test_isTestdataFile(t *testing.T) {
 // TestOnMatchingFileContentDo tests the OnMatchingFileContent function.
 func TestOnMatchingFileContent(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name                   string
 		wantErr                bool
@@ -515,7 +515,7 @@ func TestOnMatchingFileContent(t *testing.T) {
 			t.Parallel()
 			x := func(path string, content []byte, args ...interface{}) (bool, error) {
 				if tt.shouldFuncFail {
-					//nolint
+					//nolint:goerr113
 					return false, errors.New("test error")
 				}
 				if tt.shouldGetPredicateFail {
@@ -542,8 +542,6 @@ func TestOnMatchingFileContent(t *testing.T) {
 }
 
 // TestOnAllFilesDo tests the OnAllFilesDo function.
-//
-//nolint:gocognit
 func TestOnAllFilesDo(t *testing.T) {
 	t.Parallel()
 
@@ -584,7 +582,7 @@ func TestOnAllFilesDo(t *testing.T) {
 	alwaysFail := func(path string, args ...interface{}) (bool, error) {
 		return false, errTest
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name         string
 		onFile       DoWhileTrueOnFilename
