@@ -1,0 +1,26 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: requiresCodeOwnersReview
+short: Check that the project requires dedicated code owners to review PRs.
+motivation: >
+  Code owners are expected to have deep knowledge about a code; Having experienced reviewers for PRs is expected to prevent security issues.
+implementation: >
+  The probe checks which brances require code owner reviews.
+outcome:
+  - The probe returns one OutcomePositive for each branch that requires code owner review for PRs, and one OutcomeNegative for branches that don't.
+remediation:
+  effort: High
+  text:
+    - Configure the project such that code owners must review PRs.
