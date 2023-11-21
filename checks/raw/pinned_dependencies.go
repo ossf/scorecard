@@ -498,15 +498,29 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
+	dockerArgs := map[string]string{}
 	for _, child := range res.AST.Children {
 		cmdType := child.Value
-		if cmdType != "FROM" {
+		switch cmdType {
+		case "FROM":
+		case "ARG":
+			for n := child.Next; n != nil; n = n.Next {
+				if k, v, ok := strings.Cut(n.Value, "="); ok {
+					dockerArgs[k] = v
+				}
+			}
+			continue
+		default:
 			continue
 		}
 
 		var valueList []string
 		for n := child.Next; n != nil; n = n.Next {
-			valueList = append(valueList, n.Value)
+			value := n.Value
+			for k, v := range dockerArgs {
+				value = strings.ReplaceAll(value, "${"+k+"}", v)
+			}
+			valueList = append(valueList, value)
 		}
 
 		switch {
