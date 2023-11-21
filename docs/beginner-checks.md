@@ -1,6 +1,6 @@
 # Getting Started with Scorecard Checks for Supply Chain Security
 
-Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: [setting up your project](#setting-up-your-project), [accepting contributions from others](#manage-contributions-to-your-project), and [packaging the project to release to the world](#package-and-release-your-project).
+Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: [setting up your project](#1-setting-up-your-project), [accepting contributions from others](#2-manage-contributions-to-your-project), and [packaging the project to release to the world](#3-package-and-release-your-project).
 
 ## 1. Setting up your project
 
