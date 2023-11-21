@@ -277,3 +277,63 @@ func ExperimentalRunProbes(ctx context.Context,
 		projectClient,
 	)
 }
+
+type runConfig struct {
+	client      clients.RepoClient
+	checks      checker.CheckNameToFnMap
+	commit      string
+	commitDepth int
+}
+
+type Option func(*runConfig) error
+
+func WithCommitDepth(depth int) Option {
+	return func(c *runConfig) error {
+		c.commitDepth = depth
+		return nil
+	}
+}
+
+func WithCommitSHA(sha string) Option {
+	return func(c *runConfig) error {
+		c.commit = sha
+		return nil
+	}
+}
+
+func WithChecks(checks checker.CheckNameToFnMap) Option {
+	return func(c *runConfig) error {
+		c.checks = checks
+		return nil
+	}
+}
+
+func WithRepoClient(client clients.RepoClient) Option {
+	return func(c *runConfig) error {
+		c.client = client
+		return nil
+	}
+}
+
+// func RunScorecard(ctx context.Context,
+// 	repo clients.Repo,
+// 	commitSHA string,
+// 	commitDepth int,
+// 	checksToRun checker.CheckNameToFnMap,
+// 	repoClient clients.RepoClient,
+// 	ossFuzzRepoClient clients.RepoClient,
+// 	ciiClient clients.CIIBestPracticesClient,
+// 	vulnsClient clients.VulnerabilitiesClient,
+// )
+
+func Run(ctx context.Context, repo clients.Repo, options ...Option) error {
+	c := runConfig{
+		commit: clients.HeadSHA,
+	}
+	for _, option := range options {
+		if err := option(&c); err != nil {
+			return err
+		}
+	}
+	return nil
+}
