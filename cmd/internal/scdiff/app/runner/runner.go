@@ -40,7 +40,6 @@ type Runner struct {
 	ctx           context.Context
 	logger        *log.Logger
 	enabledChecks checker.CheckNameToFnMap
-	enabledProbes []string
 	githubClient  clients.RepoClient
 	gitlabClient  clients.RepoClient
 	ossFuzz       clients.RepoClient

@@ -174,7 +174,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.ProbesToRun,
 		FlagProbes,
 		o.ProbesToRun,
-		fmt.Sprintf("Probes to run."),
+		"Probes to run.",
 	)
 
 	// TODO(options): Extract logic
