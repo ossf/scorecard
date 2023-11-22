@@ -71,8 +71,8 @@ func serveCmd(o *options.Options) *cobra.Command {
 				ciiClient := clients.DefaultCIIBestPracticesClient()
 				checksToRun := checks.GetAll()
 				repoResult, err := pkg.RunScorecard(
-					ctx, repo, clients.HeadSHA /*commitSHA*/, o.CommitDepth, checksToRun,
-					repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
+					ctx, repo, clients.HeadSHA /*commitSHA*/, o.CommitDepth, checksToRun, repoClient,
+					ossFuzzRepoClient, ciiClient, vulnsClient)
 				if err != nil {
 					logger.Error(err, "running enabled scorecard checks on repo")
 					rw.WriteHeader(http.StatusInternalServerError)

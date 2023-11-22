@@ -15,15 +15,19 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -193,6 +197,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 	type args struct {
 		uri       string
 		commitSHA string
+		probes    []string
 	}
 	tests := []struct {
 		name    string
@@ -204,17 +209,61 @@ func TestExperimentalRunProbes(t *testing.T) {
 			name: "empty commits repos should return repo details but no checks",
 			args: args{
 				uri:       "github.com/ossf/scorecard",
-				commitSHA: "",
+				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:    []string{"fuzzedWithOSSFuzz"},
 			},
 			want: ScorecardResult{
 				Repo: RepoInfo{
-					Name: "github.com/ossf/scorecard",
+					Name:      "github.com/ossf/scorecard",
+					CommitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				},
+				RawResults: checker.RawResults{
+					Metadata: checker.MetadataData{
+						Metadata: map[string]string{
+							"repository.defaultBranch": "main",
+							"repository.host":          "github.com",
+							"repository.name":          "ossf/scorecard",
+							"repository.sha1":          "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+							"repository.uri":           "github.com/ossf/scorecard",
+						},
+					},
 				},
 				Scorecard: ScorecardInfo{
 					CommitSHA: "unknown",
 				},
+				Findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Message: "no OSSFuzz integration found",
+						Remediation: &probe.Remediation{
+							Text: fmt.Sprintf("%s%s%s\n%s%s",
+								"Follow the steps in ",
+								"https://github.com/google/oss-fuzz ",
+								"to integrate fuzzing for your project.",
+								"Over time, try to add fuzzing for more ",
+								"functionalities of your project."),
+							Markdown: fmt.Sprintf("%s%s%s\n%s%s",
+								"Follow the steps in [https://github.com",
+								"/google/oss-fuzz](https://github.com/google/oss-fuzz) ",
+								"to integrate fuzzing for your project.",
+								"Over time, try to add fuzzing for more ",
+								"functionalities of your project."),
+							Effort: 3,
+						},
+					},
+				},
 			},
 			wantErr: false,
+		},
+		{
+			name: "Wrong probe",
+			args: args{
+				uri:       "github.com/ossf/scorecard",
+				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:    []string{"nonExistentProbe"},
+			},
+			want:    ScorecardResult{},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -226,6 +275,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 			repo := mockrepo.NewMockRepo(ctrl)
 
 			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+			repo.EXPECT().Host().Return("github.com").AnyTimes()
 
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 
@@ -243,8 +293,18 @@ func TestExperimentalRunProbes(t *testing.T) {
 					},
 				}, nil
 			})
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			defer ctrl.Finish()
-			got, err := ExperimentalRunProbes(context.Background(), repo, tt.args.commitSHA, 0, nil, []string{"fuzzedWithOSSFuzz"}, mockRepoClient, nil, nil, nil)
+			got, err := ExperimentalRunProbes(context.Background(),
+				repo,
+				tt.args.commitSHA,
+				0,
+				nil,
+				tt.args.probes,
+				mockRepoClient,
+				nil,
+				nil,
+				nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
