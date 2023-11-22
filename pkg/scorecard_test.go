@@ -187,3 +187,72 @@ func TestRunScorecard(t *testing.T) {
 		})
 	}
 }
+
+func TestExperimentalRunProbes(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		uri       string
+		commitSHA string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    ScorecardResult
+		wantErr bool
+	}{
+		{
+			name: "empty commits repos should return repo details but no checks",
+			args: args{
+				uri:       "github.com/ossf/scorecard",
+				commitSHA: "",
+			},
+			want: ScorecardResult{
+				Repo: RepoInfo{
+					Name: "github.com/ossf/scorecard",
+				},
+				Scorecard: ScorecardInfo{
+					CommitSHA: "unknown",
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			repo := mockrepo.NewMockRepo(ctrl)
+
+			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+
+			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
+
+			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
+				return nil
+			})
+
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+				if tt.args.commitSHA == "" {
+					return []clients.Commit{}, nil
+				}
+				return []clients.Commit{
+					{
+						SHA: tt.args.commitSHA,
+					},
+				}, nil
+			})
+			defer ctrl.Finish()
+			got, err := ExperimentalRunProbes(context.Background(), repo, tt.args.commitSHA, 0, nil, []string{"fuzzedWithOSSFuzz"}, mockRepoClient, nil, nil, nil)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			if !cmp.Equal(got, tt.want, ignoreDate) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
+			}
+		})
+	}
+}
