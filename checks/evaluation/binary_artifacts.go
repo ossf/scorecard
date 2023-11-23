@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasBinaryArtifacts"
+	"github.com/ossf/scorecard/v4/probes/freeOfUntrustedBinaryArtifacts"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
@@ -27,7 +27,7 @@ func BinaryArtifacts(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasBinaryArtifacts.Probe,
+		freeOfUntrustedBinaryArtifacts.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -37,6 +37,16 @@ func BinaryArtifacts(name string,
 
 	if findings[0].Outcome == finding.OutcomePositive {
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
+	}
+
+	for i := range findings {
+		f := &findings[i]
+		dl.Warn(&checker.LogMessage{
+			Path:   f.Location.Path,
+			Type:   f.Location.Type,
+			Offset: *f.Location.LineStart,
+			Text:   "binary detected",
+		})
 	}
 
 	// There are only negative findings.

@@ -128,7 +128,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 			},
 			getFileContentCount: 3,
-			expect:              0,
+			expect:              1,
 		},
 		{
 			name: "gradle-wrapper.jar with non-verification action",
@@ -212,7 +212,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 			},
 			getFileContentCount: 3,
-			expect:              0,
+			expect:              1,
 		},
 	}
 	for _, tt := range tests {

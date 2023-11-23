@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
-package hasBinaryArtifacts
+//nolint:stylecheck
+package freeOfUntrustedBinaryArtifacts
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasBinaryArtifacts"
+const Probe = "freeOfUntrustedBinaryArtifacts"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -36,40 +36,34 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.BinaryArtifactResults
 
-	// Apply the policy evaluation.
-	if r.Files == nil || len(r.Files) == 0 {
-		f, err := finding.NewWith(fs, Probe,
-		"Repository does not have binary artifacts.", nil,
-		finding.OutcomePositive)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		return []finding.Finding{*f}, Probe, nil
-	}
-
 	var findings []finding.Finding
 
-	for range r.Files {
+	for i := range r.Files {
+		file := &r.Files[i]
+		if file.Type == finding.FileTypeGradleWrapper {
+			continue
+		}
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
 			nil, finding.OutcomeNegative)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f = f.WithLocation(&finding.Location{
+			Path:      file.Path,
+			LineStart: &file.Offset,
+			Type:      file.Type,
+		})
 		findings = append(findings, *f)
 	}
 
 	if len(findings) == 0 {
-		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
-	}
-
-	// Check if there are both positive and negative outcomes.
-	// This should not happen.
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+		f, err := finding.NewWith(fs, Probe,
+			"Repository does not have binary artifacts.", nil,
+			finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		findings = append(findings, *f)
 	}
-
 	return findings, Probe, nil
 }

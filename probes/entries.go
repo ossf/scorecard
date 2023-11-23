@@ -18,6 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/freeOfUntrustedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
@@ -45,7 +46,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
-	"github.com/ossf/scorecard/v4/probes/hasBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -123,7 +123,7 @@ var (
 		hasOpenSSFBadge.Run,
 	}
 	BinaryArtifacts = []ProbeImpl{
-		hasBinaryArtifacts.Run,
+		freeOfUntrustedBinaryArtifacts.Run,
 	}
 )
 

@@ -25,22 +25,28 @@ import (
 // TestBinaryArtifacts tests the binary artifacts check.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
-	type args struct {
-		name string
-		dl   checker.DetailLogger
-		r    *checker.BinaryArtifactData
+	lineStart := uint(123)
+	negativeFinding := finding.Finding{
+		Probe:   "freeOfUntrustedBinaryArtifacts",
+		Outcome: finding.OutcomeNegative,
+
+		Location: &finding.Location{
+			Path:      "path",
+			Type:      finding.FileTypeBinary,
+			LineStart: &lineStart,
+		},
 	}
+
 	tests := []struct {
 		name     string
-		findings     []finding.Finding
-		result     scut.TestReturn
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
 			name: "no binary artifacts",
-			findings: []finding.Finding {
+			findings: []finding.Finding{
 				{
-					Probe:   "hasBinaryArtifacts",
+					Probe:   "freeOfUntrustedBinaryArtifacts",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -50,119 +56,79 @@ func TestBinaryArtifacts(t *testing.T) {
 		},
 		{
 			name: "one binary artifact",
-			findings: []finding.Finding {
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
+			findings: []finding.Finding{
+				negativeFinding,
 			},
 			result: scut.TestReturn{
-				Score: 9,
+				Score:        9,
+				NumberOfWarn: 1,
 			},
 		},
 		{
 			name: "two binary artifact",
-			findings: []finding.Finding {
+			findings: []finding.Finding{
 				{
-					Probe:   "hasBinaryArtifacts",
+					Probe:   "freeOfUntrustedBinaryArtifacts",
 					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Path:      "path",
+						Type:      finding.FileTypeBinary,
+						LineStart: &lineStart,
+					},
 				},
 				{
-					Probe:   "hasBinaryArtifacts",
+					Probe:   "freeOfUntrustedBinaryArtifacts",
 					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Path:      "path",
+						Type:      finding.FileTypeBinary,
+						LineStart: &lineStart,
+					},
 				},
 			},
 			result: scut.TestReturn{
-				Score: 8,
+				Score:        8,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name: "five binary artifact",
-			findings: []finding.Finding {
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
+			findings: []finding.Finding{
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
 			},
 			result: scut.TestReturn{
-				Score: 5,
+				Score:        5,
+				NumberOfWarn: 5,
 			},
 		},
 		{
 			name: "twelve binary artifact",
-			findings: []finding.Finding {
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
-				},
+			findings: []finding.Finding{
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfWarn: 12,
 			},
 		},
 		{
-			name: "invalid findings",
-			findings: []finding.Finding {},
+			name:     "invalid findings",
+			findings: []finding.Finding{},
 			result: scut.TestReturn{
 				Score: -1,
 				Error: sce.ErrScorecardInternal,

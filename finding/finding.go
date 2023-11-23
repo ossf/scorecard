@@ -40,6 +40,8 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
+	// FileTypeGradleWrapper for gradle-wrapper.jar files.
+	FileTypeGradleWrapper
 )
 
 // Location represents the location of a finding.

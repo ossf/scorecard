@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: hasBinaryArtifacts
-short: Checks if the project has binary files in its source tree.
+id: freeOfUntrustedBinaryArtifacts
+short: Checks if the project has binary files in its source tree. The probe skips trusted binary files which currently are gradle-wrappers.
 motivation: >
   Binary files are not readable so users can't see what they do. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
 implementation: >
-  The implementation looks for the presence of binary files.
+  The implementation looks for the presence of binary files. This is a more permissive probe than "freeOfAnyBinaryArtifacts" which does not trust any binary files.
 outcome:
-  - If the probe finds binary files, it returns a number of negative outcomes equal to the number of binary files found.
+  - If the probe finds untrusted binary files, it returns a number of negative outcomes equal to the number of untrusted binary files found. Each outcome includes a location of the file.
+  - If the probe finds no untrusted binary files, it returns a single positive outcome.
 remediation:
   effort: Medium
   text:

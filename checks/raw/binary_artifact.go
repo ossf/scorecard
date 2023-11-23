@@ -90,9 +90,10 @@ func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) 
 	// Remove Gradle wrapper JARs from files.
 	filterFiles := []checker.File{}
 	for _, f := range files {
-		if filepath.Base(f.Path) != "gradle-wrapper.jar" {
-			filterFiles = append(filterFiles, f)
+		if filepath.Base(f.Path) == "gradle-wrapper.jar" {
+			f.Type = finding.FileTypeGradleWrapper
 		}
+		filterFiles = append(filterFiles, f)
 	}
 	files = filterFiles
 	return files, nil
