@@ -38,6 +38,58 @@ var (
 	topNoWriteID   = "gitHubWorkflowPermissionsTopNoWrite"
 )
 
+type PermissionLevel int
+
+const (
+	// PermissionLevelNone is a permission set to `none`.
+	PermissionLevelNone PermissionLevel = iota
+	// PermissionLevelRead is a permission set to `read`.
+	PermissionLevelRead
+	// PermissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
+	// TODO: remove it once we have implemented severity (#1874).
+	PermissionLevelUnknown
+	// PermissionLevelUndeclared is an undeclared permission.
+	PermissionLevelUndeclared
+	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
+	PermissionLevelWrite
+)
+
+// PermissionLocation represents a declaration type.
+type LocationType int
+
+const (
+	// PermissionLocationNil is in case the permission is nil.
+	PermissionLocationNil LocationType = iota
+	// PermissionLocationNotDeclared is for undeclared permission.
+	PermissionLocationNotDeclared
+	// PermissionLocationTop is top-level workflow permission.
+	PermissionLocationTop
+	// PermissionLocationJob is job-level workflow permission.
+	PermissionLocationJob
+)
+
+// PermissionLocation represents a declaration type.
+type PermissionType int
+
+const (
+	// PermissionTypeNone represents none permission type.
+	PermissionTypeNone PermissionType = iota
+	// PermissionTypeNone is the "all" github permission type.
+	PermissionTypeAll
+	// PermissionTypeNone is the "statuses" github permission type.
+	PermissionTypeStatuses
+	// PermissionTypeNone is the "checks" github permission type.
+	PermissionTypeChecks
+	// PermissionTypeNone is the "security-events" github permission type.
+	PermissionTypeSecurityEvents
+	// PermissionTypeNone is the "deployments" github permission type.
+	PermissionTypeDeployments
+	// PermissionTypeNone is the "packages" github permission type.
+	PermissionTypePackages
+	// PermissionTypeNone is the "actions" github permission type.
+	PermissionTypeActions
+)
+
 // TokenPermissions applies the score policy for the Token-Permissions check.
 func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPermissionsData) checker.CheckResult {
 	if r == nil {
@@ -49,7 +101,18 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 		return checker.CreateInconclusiveResult(name, "no tokens found")
 	}
 
-	score, err := applyScorePolicy(r, c)
+	if len(r.TokenPermissions) == 0 {
+		text := "no workflows found in the repository"
+		return checker.CreateInconclusiveResult(name, text)
+	}
+
+	// This is a temporary step that should be replaced by probes in ./probes
+	findings, err := rawToFindings(r)
+	if err != nil {
+		return checker.CreateInconclusiveResult(name, "could not convert raw data to findings")
+	}
+
+	score, err := applyScorePolicy(findings, c)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -63,29 +126,10 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 		"GitHub workflow tokens follow principle of least privilege")
 }
 
-// avoid memory aliasing by returning a new copy.
-func newUint(u uint) *uint {
-	return &u
-}
-
-// avoid memory aliasing by returning a new copy.
-func newStr(s string) *string {
-	return &s
-}
-
-func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckRequest) (int, error) {
-	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
-	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
-	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
-
-	hm := make(map[string]permissions)
-	dl := c.Dlogger
-	//nolint:errcheck
-	remediationMetadata, _ := remediation.New(c)
-	negativeProbeResults := map[string]bool{
-		stepsNoWriteID: false,
-		topNoWriteID:   false,
-	}
+// rawToFindings is a temporary step for converting the raw results
+// to findings. This should be replaced by probes in ./probes.
+func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, error) {
+	var findings []finding.Finding
 
 	for _, r := range results.TokenPermissions {
 		var loc *finding.Location
@@ -99,77 +143,215 @@ func applyScorePolicy(results *checker.TokenPermissionsData, c *checker.CheckReq
 				loc.Snippet = newStr(r.File.Snippet)
 			}
 		}
-
 		text, err := createText(r)
 		if err != nil {
-			return checker.MinResultScore, err
+			return findings, err
 		}
 
-		msg, err := createLogMsg(r.LocationType)
+		f, err := createFinding(r.LocationType, text, loc)
 		if err != nil {
-			return checker.InconclusiveResultScore, err
+			return findings, err
 		}
-		msg.Finding = msg.Finding.WithMessage(text).WithLocation(loc)
-		switch r.Type {
-		case checker.PermissionLevelNone, checker.PermissionLevelRead:
-			msg.Finding = msg.Finding.WithOutcome(finding.OutcomePositive)
-			dl.Info(msg)
-		case checker.PermissionLevelUnknown:
-			dl.Debug(msg)
 
+		switch r.Type {
+		case checker.PermissionLevelNone:
+			f = f.WithOutcome(finding.OutcomePositive)
+			f = f.WithValues(map[string]int{
+				"PermissionLevel": int(PermissionLevelNone),
+			})
+		case checker.PermissionLevelRead:
+			f = f.WithOutcome(finding.OutcomePositive)
+			f = f.WithValues(map[string]int{
+				"PermissionLevel": int(PermissionLevelRead),
+			})
+
+		case checker.PermissionLevelUnknown:
+			f = f.WithValues(map[string]int{
+				"PermissionLevel": int(PermissionLevelUnknown),
+			})
 		case checker.PermissionLevelUndeclared:
+			var locationType LocationType
+			//nolint:gocritic
 			if r.LocationType == nil {
+				locationType = PermissionLocationNil
+			} else if *r.LocationType == checker.PermissionLocationTop {
+				locationType = PermissionLocationTop
+			} else {
+				locationType = PermissionLocationNotDeclared
+			}
+			permissionType := permTypeToEnum(r.Name)
+			f = f.WithValues(map[string]int{
+				"PermissionLevel": int(PermissionLevelUndeclared),
+				"LocationType":    int(locationType),
+				"PermissionType":  int(permissionType),
+			})
+		case checker.PermissionLevelWrite:
+			var locationType LocationType
+			switch *r.LocationType {
+			case checker.PermissionLocationTop:
+				locationType = PermissionLocationTop
+			case checker.PermissionLocationJob:
+				locationType = PermissionLocationJob
+			default:
+				locationType = PermissionLocationNotDeclared
+			}
+			permissionType := permTypeToEnum(r.Name)
+			f = f.WithValues(map[string]int{
+				"PermissionLevel": int(PermissionLevelWrite),
+				"LocationType":    int(locationType),
+				"PermissionType":  int(permissionType),
+			})
+			f = f.WithOutcome(finding.OutcomeNegative)
+		}
+		findings = append(findings, *f)
+	}
+	return findings, nil
+}
+
+func permTypeToEnum(tokenName *string) PermissionType {
+	if tokenName == nil {
+		return PermissionTypeNone
+	}
+	switch *tokenName {
+	//nolint:goconst
+	case "all":
+		return PermissionTypeAll
+	case "statuses":
+		return PermissionTypeStatuses
+	case "checks":
+		return PermissionTypeChecks
+	case "security-events":
+		return PermissionTypeSecurityEvents
+	case "deployments":
+		return PermissionTypeDeployments
+	case "contents":
+		return PermissionTypePackages
+	case "actions":
+		return PermissionTypeActions
+	default:
+		return PermissionTypeNone
+	}
+}
+
+func permTypeToName(permType int) *string {
+	var permName string
+	switch PermissionType(permType) {
+	case PermissionTypeAll:
+		permName = "all"
+	case PermissionTypeStatuses:
+		permName = "statuses"
+	case PermissionTypeChecks:
+		permName = "checks"
+	case PermissionTypeSecurityEvents:
+		permName = "security-events"
+	case PermissionTypeDeployments:
+		permName = "deployments"
+	case PermissionTypePackages:
+		permName = "contents"
+	case PermissionTypeActions:
+		permName = "actions"
+	default:
+		permName = ""
+	}
+	return &permName
+}
+
+func createFinding(loct *checker.PermissionLocation, text string, loc *finding.Location) (*finding.Finding, error) {
+	probe := stepsNoWriteID
+	if loct == nil || *loct == checker.PermissionLocationTop {
+		probe = topNoWriteID
+	}
+	content, err := probes.ReadFile(probe + ".yml")
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
+	}
+	f, err := finding.FromBytes(content, probe)
+	if err != nil {
+		return nil,
+			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	f = f.WithMessage(text)
+	if loc != nil {
+		f = f.WithLocation(loc)
+	}
+	return f, nil
+}
+
+// avoid memory aliasing by returning a new copy.
+func newUint(u uint) *uint {
+	return &u
+}
+
+// avoid memory aliasing by returning a new copy.
+func newStr(s string) *string {
+	return &s
+}
+
+func applyScorePolicy(findings []finding.Finding, c *checker.CheckRequest) (int, error) {
+	// See list https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/.
+	// Note: there are legitimate reasons to use some of the permissions like checks, deployments, etc.
+	// in CI/CD systems https://docs.travis-ci.com/user/github-oauth-scopes/.
+
+	hm := make(map[string]permissions)
+	dl := c.Dlogger
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+	negativeProbeResults := map[string]bool{
+		stepsNoWriteID: false,
+		topNoWriteID:   false,
+	}
+
+	for i := range findings {
+		f := &findings[i]
+		pLevel := PermissionLevel(f.Values["PermissionLevel"])
+		switch pLevel {
+		case PermissionLevelNone, PermissionLevelRead:
+			dl.Info(&checker.LogMessage{
+				Finding: f,
+			})
+		case PermissionLevelUnknown:
+			dl.Debug(&checker.LogMessage{
+				Finding: f,
+			})
+
+		case PermissionLevelUndeclared:
+			switch LocationType(f.Values["LocationType"]) {
+			case PermissionLocationNil:
 				return checker.InconclusiveResultScore,
 					sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
-			}
-
-			// We warn only for top-level.
-			if *r.LocationType == checker.PermissionLocationTop {
-				warnWithRemediation(dl, msg, remediationMetadata, loc, negativeProbeResults)
-			} else {
-				dl.Debug(msg)
+			case PermissionLocationTop:
+				warnWithRemediation(dl, remediationMetadata, f, negativeProbeResults)
+			default:
+				// We warn only for top-level.
+				dl.Debug(&checker.LogMessage{
+					Finding: f,
+				})
 			}
 
 			// Group results by workflow name for score computation.
-			if err := updateWorkflowHashMap(hm, r); err != nil {
+			if err := updateWorkflowHashMap(hm, f); err != nil {
 				return checker.InconclusiveResultScore, err
 			}
 
-		case checker.PermissionLevelWrite:
-			warnWithRemediation(dl, msg, remediationMetadata, loc, negativeProbeResults)
+		case PermissionLevelWrite:
+			warnWithRemediation(dl, remediationMetadata, f, negativeProbeResults)
 
 			// Group results by workflow name for score computation.
-			if err := updateWorkflowHashMap(hm, r); err != nil {
+			if err := updateWorkflowHashMap(hm, f); err != nil {
 				return checker.InconclusiveResultScore, err
 			}
 		}
 	}
 
-	if err := reportDefaultFindings(results, c.Dlogger, negativeProbeResults); err != nil {
+	if err := reportDefaultFindings(findings, c.Dlogger, negativeProbeResults); err != nil {
 		return checker.InconclusiveResultScore, err
 	}
-
 	return calculateScore(hm), nil
 }
 
-func reportDefaultFindings(results *checker.TokenPermissionsData,
+func reportDefaultFindings(results []finding.Finding,
 	dl checker.DetailLogger, negativeProbeResults map[string]bool,
 ) error {
-	// TODO(#2928): re-visit the need for NotApplicable outcome.
-	// No workflow files exist.
-	if len(results.TokenPermissions) == 0 {
-		text := "no workflows found in the repository"
-		if err := reportFinding(stepsNoWriteID,
-			text, finding.OutcomeNotAvailable, dl); err != nil {
-			return err
-		}
-		if err := reportFinding(topNoWriteID,
-			text, finding.OutcomeNotAvailable, dl); err != nil {
-			return err
-		}
-		return nil
-	}
-
 	// Workflow files found, report positive findings if no
 	// negative findings were found.
 	// NOTE: we don't consider probe `topNoWriteID`
@@ -202,44 +384,28 @@ func reportFinding(probe, text string, o finding.Outcome, dl checker.DetailLogge
 	return nil
 }
 
-func createLogMsg(loct *checker.PermissionLocation) (*checker.LogMessage, error) {
-	probe := stepsNoWriteID
-	if loct == nil || *loct == checker.PermissionLocationTop {
-		probe = topNoWriteID
-	}
-	content, err := probes.ReadFile(probe + ".yml")
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	f, err := finding.FromBytes(content, probe)
-	if err != nil {
-		return nil,
-			sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-	}
-	return &checker.LogMessage{
-		Finding: f,
-	}, nil
-}
-
-func warnWithRemediation(logger checker.DetailLogger, msg *checker.LogMessage,
-	rem *remediation.RemediationMetadata, loc *finding.Location,
+func warnWithRemediation(logger checker.DetailLogger,
+	rem *remediation.RemediationMetadata,
+	f *finding.Finding,
 	negativeProbeResults map[string]bool,
 ) {
-	if loc != nil && loc.Path != "" {
-		msg.Finding = msg.Finding.WithRemediationMetadata(map[string]string{
+	if f.Location != nil && f.Location.Path != "" {
+		f = f.WithRemediationMetadata(map[string]string{
 			"repo":     rem.Repo,
 			"branch":   rem.Branch,
-			"workflow": strings.TrimPrefix(loc.Path, ".github/workflows/"),
+			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
 		})
 	}
-	logger.Warn(msg)
+	logger.Warn(&checker.LogMessage{
+		Finding: f,
+	})
 
 	// Record that we found a negative result.
-	negativeProbeResults[msg.Finding.Probe] = true
+	negativeProbeResults[f.Probe] = true
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
-	locType checker.PermissionLocation, permName *string,
+	locType LocationType, permType int,
 ) {
 	if _, exists := hm[path]; !exists {
 		hm[path] = permissions{
@@ -250,11 +416,12 @@ func recordPermissionWrite(hm map[string]permissions, path string,
 
 	// Select the hash map to update.
 	m := hm[path].jobLevelWritePermissions
-	if locType == checker.PermissionLocationTop {
+	if locType == PermissionLocationTop {
 		m = hm[path].topLevelWritePermissions
 	}
 
 	// Set the permission name to record.
+	permName := permTypeToName(permType)
 	name := "all"
 	if permName != nil && *permName != "" {
 		name = *permName
@@ -262,21 +429,20 @@ func recordPermissionWrite(hm map[string]permissions, path string,
 	m[name] = true
 }
 
-func updateWorkflowHashMap(hm map[string]permissions, t checker.TokenPermission) error {
-	if t.LocationType == nil {
+func updateWorkflowHashMap(hm map[string]permissions, f *finding.Finding) error {
+	if _, ok := f.Values["LocationType"]; !ok {
 		return sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
 	}
 
-	if t.File == nil || t.File.Path == "" {
+	if f.Location == nil || f.Location.Path == "" {
 		return sce.WithMessage(sce.ErrScorecardInternal, "path is not set")
 	}
 
-	if t.Type != checker.PermissionLevelWrite &&
-		t.Type != checker.PermissionLevelUndeclared {
+	if PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelWrite &&
+		PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelUndeclared {
 		return nil
 	}
-
-	recordPermissionWrite(hm, t.File.Path, *t.LocationType, t.Name)
+	recordPermissionWrite(hm, f.Location.Path, LocationType(f.Values["LocationType"]), f.Values["PermissionType"])
 
 	return nil
 }
