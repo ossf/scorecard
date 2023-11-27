@@ -57,6 +57,8 @@ var downloadUtils = []string{
 	"curl", "wget", "gsutil",
 }
 
+var gitCommitHashRegex = regexp.MustCompile(`^[a-fA-F0-9]{40}$`)
+
 func isBinaryName(expected, name string) bool {
 	return strings.EqualFold(path.Base(name), expected)
 }
@@ -324,6 +326,32 @@ func collectFetchPipeExecute(startLine, endLine uint, node syntax.Node, cmd, pat
 	}
 
 	if !isInterpreter(rightStmt) {
+		return
+	}
+
+	var urls []*url.URL
+
+	// Extract any URLs passed to the download utility
+	for _, s := range leftStmt {
+		u, err := url.ParseRequestURI(s)
+		if err == nil {
+			urls = append(urls, u)
+		}
+	}
+
+	// Look for any URLs which are pinned to a GitHub SHA
+	var pinned []*url.URL
+	for _, u := range urls {
+		// Look for a URL of the form: https://raw.githubusercontent.com/{owner}/{repo}/{ref}/{path}
+		if u.Scheme == "https" && u.Host == "raw.githubusercontent.com" {
+			segments := strings.Split(u.Path, "/")
+			if len(segments) > 4 && gitCommitHashRegex.MatchString(segments[3]) {
+				pinned = append(pinned, u)
+			}
+		}
+	}
+
+	if len(pinned) > 0 && len(urls) == len(pinned) {
 		return
 	}
 
