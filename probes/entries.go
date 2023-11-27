@@ -36,6 +36,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
@@ -44,12 +45,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
-	"github.com/ossf/scorecard/v4/probes/hasBadgeNotFound"
-	"github.com/ossf/scorecard/v4/probes/hasGoldBadge"
-	"github.com/ossf/scorecard/v4/probes/hasInProgressBadge"
-	"github.com/ossf/scorecard/v4/probes/hasPassingBadge"
-	"github.com/ossf/scorecard/v4/probes/hasSilverBadge"
-	"github.com/ossf/scorecard/v4/probes/hasUnknownBadge"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -124,11 +119,7 @@ var (
 		notCreatedRecently.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
-		hasGoldBadge.Run,
-		hasSilverBadge.Run,
-		hasInProgressBadge.Run,
-		hasPassingBadge.Run,
-		hasUnknownBadge.Run,
+		hasOpenSSFBadge.Run,
 	}
 )
 

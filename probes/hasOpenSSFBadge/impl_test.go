@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
-package hasUnknownBadge
+//nolint:stylecheck
+package hasOpenSSFBadge
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ import (
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
-	// nolint:govet
+	//nolint:govet
 	tests := []struct {
 		name     string
 		raw      *checker.RawResults
@@ -36,10 +36,10 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Has InProgress badge",
+			name: "Has Gold badge",
 			raw: &checker.RawResults{
 				CIIBestPracticesResults: checker.CIIBestPracticesData{
-					Badge: clients.Unknown,
+					Badge: clients.Gold,
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -47,14 +47,47 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Does not have InProgress badge",
+			name: "Has Silver badge",
 			raw: &checker.RawResults{
 				CIIBestPracticesResults: checker.CIIBestPracticesData{
-					Badge: clients.NotFound,
+					Badge: clients.Silver,
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "Has Passing badge",
+			raw: &checker.RawResults{
+				CIIBestPracticesResults: checker.CIIBestPracticesData{
+					Badge: clients.Passing,
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "Has InProgress badge",
+			raw: &checker.RawResults{
+				CIIBestPracticesResults: checker.CIIBestPracticesData{
+					Badge: clients.InProgress,
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "Has Unknown badge",
+			raw: &checker.RawResults{
+				CIIBestPracticesResults: checker.CIIBestPracticesData{
+					Badge: clients.Unknown,
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
 			},
 		},
 	}

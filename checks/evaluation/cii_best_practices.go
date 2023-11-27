@@ -18,11 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasGoldBadge"
-	"github.com/ossf/scorecard/v4/probes/hasInProgressBadge"
-	"github.com/ossf/scorecard/v4/probes/hasPassingBadge"
-	"github.com/ossf/scorecard/v4/probes/hasSilverBadge"
-	"github.com/ossf/scorecard/v4/probes/hasUnknownBadge"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 )
 
 const (
@@ -39,11 +35,7 @@ func CIIBestPractices(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasGoldBadge.Probe,
-		hasSilverBadge.Probe,
-		hasInProgressBadge.Probe,
-		hasPassingBadge.Probe,
-		hasUnknownBadge.Probe,
+		hasOpenSSFBadge.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -51,50 +43,40 @@ func CIIBestPractices(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var countBadges int
-	// Sanity check that we don't have multiple positives
-	for i := range findings {
-		f := &findings[i]
-
-		if f.Outcome == finding.OutcomePositive {
-			countBadges++
-		}
-	}
-
 	var score int
 	var text string
 
-	if countBadges > 1 {
-		errText := "invalid probe results: multiple badges detected"
+	if len(findings) != 1 {
+		errText := "invalid probe results: multiple findings detected"
 		e := sce.WithMessage(sce.ErrScorecardInternal, errText)
 		return checker.CreateRuntimeErrorResult(name, e)
-	} else if countBadges == 0 {
+	}
+
+	f := &findings[0]
+	if f.Outcome == finding.OutcomeNegative {
 		text = "no effort to earn an OpenSSF best practices badge detected"
 		return checker.CreateMinScoreResult(name, text)
 	}
-
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			switch f.Probe {
-			case hasInProgressBadge.Probe:
-				score = inProgressScore
-				text = "badge detected: InProgress"
-			case hasPassingBadge.Probe:
-				score = passingScore
-				text = "badge detected: Passing"
-			case hasSilverBadge.Probe:
-				score = silverScore
-				text = "badge detected: Silver"
-			case hasGoldBadge.Probe:
-				score = checker.MaxResultScore
-				text = "badge detected: Gold"
-			case hasUnknownBadge.Probe:
-				text = "unsupported badge detected"
-				e := sce.WithMessage(sce.ErrScorecardInternal, text)
-				return checker.CreateRuntimeErrorResult(name, e)
-			}
-		}
+	//nolint:nestif
+	if _, hasKey := f.Values["Gold"]; hasKey {
+		score = checker.MaxResultScore
+		text = "badge detected: Gold"
+	} else if _, hasKey := f.Values["Silver"]; hasKey {
+		score = silverScore
+		text = "badge detected: Silver"
+	} else if _, hasKey := f.Values["Passing"]; hasKey {
+		score = passingScore
+		text = "badge detected: Passing"
+	} else if _, hasKey := f.Values["InProgress"]; hasKey {
+		score = inProgressScore
+		text = "badge detected: InProgress"
+	} else if _, hasKey := f.Values["Unknown"]; hasKey {
+		text = "unsupported badge detected"
+		e := sce.WithMessage(sce.ErrScorecardInternal, text)
+		return checker.CreateRuntimeErrorResult(name, e)
+	} else {
+		text = "no effort to earn an OpenSSF best practices badge detected"
+		return checker.CreateMinScoreResult(name, text)
 	}
 
 	return checker.CreateResultWithScore(name, text, score)

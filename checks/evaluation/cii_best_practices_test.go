@@ -32,20 +32,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Badge not found",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasSilverBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasInProgressBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasPassingBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasUnknownBadge",
-					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"Unsupported": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -56,20 +47,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has InProgress Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasSilverBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasInProgressBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "hasPassingBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasUnknownBadge",
-					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"InProgress": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -80,20 +62,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Passing Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasSilverBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasInProgressBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasPassingBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "hasUnknownBadge",
-					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"Passing": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -104,20 +77,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Silver Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasSilverBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "hasInProgressBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasPassingBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasUnknownBadge",
-					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"Silver": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -128,20 +92,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Gold Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "hasSilverBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasInProgressBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasPassingBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasUnknownBadge",
-					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"Gold": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{
@@ -152,20 +107,11 @@ func TestCIIBestPractices(t *testing.T) {
 			name: "Has Unknown Badge",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasGoldBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasSilverBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasInProgressBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasPassingBadge",
-					Outcome: finding.OutcomeNegative,
-				}, {
-					Probe:   "hasUnknownBadge",
+					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"Unknown": 1,
+					},
 				},
 			},
 			result: scut.TestReturn{

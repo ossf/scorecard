@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
-package hasPassingBadge
+//nolint:stylecheck
+package hasOpenSSFBadge
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasPassingBadge"
+const Probe = "hasOpenSSFBadge"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -36,29 +36,38 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	r := raw.CIIBestPracticesResults
+	var badgeLevel string
 
-	if r.Badge == clients.Passing {
-		return positiveOutcome()
+	switch r.Badge {
+	case clients.Gold:
+		badgeLevel = "Gold"
+	case clients.Silver:
+		badgeLevel = "Silver"
+	case clients.Passing:
+		badgeLevel = "Passing"
+	case clients.InProgress:
+		badgeLevel = "InProgress"
+	case clients.Unknown:
+		badgeLevel = "Unknown"
+	default:
+		f, err := finding.NewWith(fs, Probe,
+			"Project does not have an OpenSSF badge", nil,
+			finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
 	}
-	return negativeOutcome()
-}
 
-func negativeOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
-		"OpenSSF best practice badge found at Passing level.", nil,
-		finding.OutcomeNegative)
+		fmt.Sprintf("OpenSSF best practice badge found at %s level.", badgeLevel),
+		nil, finding.OutcomePositive)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
-	return []finding.Finding{*f}, Probe, nil
-}
 
-func positiveOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"OpenSSF best practice badge found at Passing level.", nil,
-		finding.OutcomePositive)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
+	f = f.WithValues(map[string]int{
+		badgeLevel: 1,
+	})
 	return []finding.Finding{*f}, Probe, nil
 }
