@@ -77,7 +77,7 @@ jobs:
             if (found && found.length == 2) {
               checks = found[1]
             }
-            core.setOutput('checks', checks)
+            core.exportVariable('SCORECARD_CHECKS', checks)
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ steps.config.outputs.base }}
@@ -93,4 +93,4 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks ${{ steps.config.outputs.checks }}
+            --checks $SCORECARD_CHECKS
