@@ -93,4 +93,18 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks $SCORECARD_CHECKS
+            --checks $SCORECARD_CHECKS > $HOME/before.json
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ steps.config.outputs.head }}
+      - name: generate after results
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          go run cmd/internal/scdiff/main.go generate \
+            --repos $HOME/repos.txt \
+            --checks $SCORECARD_CHECKS > $HOME/after.json
+      - name: compare results
+        run: |
+          go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
