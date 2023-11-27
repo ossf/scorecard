@@ -49,15 +49,10 @@ jobs:
           https://gitlab.com/baserow/baserow
           https://gitlab.com/cryptsetup/cryptsetup
           EOF
-      # use shell syntax to escape, since the checks arg goes to CLI when calling scdiff
-      - name: escape comment body
-        id: comment
-        env:
-          BODY: ${{ github.event.comment.body }}
-        run: |
-          echo "body=$BODY" >> $GITHUB_OUTPUT
       - name: configure scdiff
         id: config
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
@@ -76,7 +71,7 @@ jobs:
             core.setOutput('head', response.data.head.sha)
 
             checks = '""'
-            const commentBody = '${{ steps.comment.outputs.body }}'
+            const commentBody = process.env.COMMENT_BODY
             const regex = /\/scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
             if (found && found.length == 2) {
