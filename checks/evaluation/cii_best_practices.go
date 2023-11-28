@@ -70,11 +70,11 @@ func CIIBestPractices(name string,
 		score = inProgressScore
 		text = "badge detected: InProgress"
 	} else if _, hasKey := f.Values[hasOpenSSFBadge.UnknownLevel]; hasKey {
-		text = "unsupported badge detected"
+		text = "unknown badge detected"
 		e := sce.WithMessage(sce.ErrScorecardInternal, text)
 		return checker.CreateRuntimeErrorResult(name, e)
 	} else {
-		text = "no effort to earn an OpenSSF best practices badge detected"
+		text = "unsupported badge detected"
 		e := sce.WithMessage(sce.ErrScorecardInternal, text)
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
