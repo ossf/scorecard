@@ -28,7 +28,14 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasOpenSSFBadge"
+const (
+	Probe           = "hasOpenSSFBadge"
+	GoldLevel       = "Gold"
+	SilverLevel     = "Silver"
+	PassingLevel    = "Passing"
+	InProgressLevel = "InProgress"
+	UnknownLevel    = "Unknown"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -40,15 +47,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	switch r.Badge {
 	case clients.Gold:
-		badgeLevel = "Gold"
+		badgeLevel = GoldLevel
 	case clients.Silver:
-		badgeLevel = "Silver"
+		badgeLevel = SilverLevel
 	case clients.Passing:
-		badgeLevel = "Passing"
+		badgeLevel = PassingLevel
 	case clients.InProgress:
-		badgeLevel = "InProgress"
+		badgeLevel = InProgressLevel
 	case clients.Unknown:
-		badgeLevel = "Unknown"
+		badgeLevel = UnknownLevel
 	default:
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not have an OpenSSF badge", nil,

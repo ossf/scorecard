@@ -18,6 +18,7 @@ import (
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -50,7 +51,7 @@ func TestCIIBestPractices(t *testing.T) {
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"InProgress": 1,
+						hasOpenSSFBadge.InProgressLevel: 1,
 					},
 				},
 			},
@@ -65,7 +66,7 @@ func TestCIIBestPractices(t *testing.T) {
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"Passing": 1,
+						hasOpenSSFBadge.PassingLevel: 1,
 					},
 				},
 			},
@@ -80,7 +81,7 @@ func TestCIIBestPractices(t *testing.T) {
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"Silver": 1,
+						hasOpenSSFBadge.SilverLevel: 1,
 					},
 				},
 			},
@@ -95,7 +96,7 @@ func TestCIIBestPractices(t *testing.T) {
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"Gold": 1,
+						hasOpenSSFBadge.GoldLevel: 1,
 					},
 				},
 			},

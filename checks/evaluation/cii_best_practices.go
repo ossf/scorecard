@@ -57,19 +57,19 @@ func CIIBestPractices(name string,
 		return checker.CreateMinScoreResult(name, text)
 	}
 	//nolint:nestif
-	if _, hasKey := f.Values["Gold"]; hasKey {
+	if _, hasKey := f.Values[hasOpenSSFBadge.GoldLevel]; hasKey {
 		score = checker.MaxResultScore
 		text = "badge detected: Gold"
-	} else if _, hasKey := f.Values["Silver"]; hasKey {
+	} else if _, hasKey := f.Values[hasOpenSSFBadge.SilverLevel]; hasKey {
 		score = silverScore
 		text = "badge detected: Silver"
-	} else if _, hasKey := f.Values["Passing"]; hasKey {
+	} else if _, hasKey := f.Values[hasOpenSSFBadge.PassingLevel]; hasKey {
 		score = passingScore
 		text = "badge detected: Passing"
-	} else if _, hasKey := f.Values["InProgress"]; hasKey {
+	} else if _, hasKey := f.Values[hasOpenSSFBadge.InProgressLevel]; hasKey {
 		score = inProgressScore
 		text = "badge detected: InProgress"
-	} else if _, hasKey := f.Values["Unknown"]; hasKey {
+	} else if _, hasKey := f.Values[hasOpenSSFBadge.UnknownLevel]; hasKey {
 		text = "unsupported badge detected"
 		e := sce.WithMessage(sce.ErrScorecardInternal, text)
 		return checker.CreateRuntimeErrorResult(name, e)
