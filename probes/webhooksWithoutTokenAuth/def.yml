@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: webhooksWithoutTokenAuth
-short: This check determines whether webhooks defined in the repository use a token to authenticate to remote servers.
+short: This check determines whether the webhooks defined in the repository have tokens configured to authenticate the origins of requests.
 motivation: >
   Webhooks without token authorization have the potential to make projects accessible to third-parties.
 implementation: >
