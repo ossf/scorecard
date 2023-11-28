@@ -75,7 +75,8 @@ func CIIBestPractices(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	} else {
 		text = "no effort to earn an OpenSSF best practices badge detected"
-		return checker.CreateMinScoreResult(name, text)
+		e := sce.WithMessage(sce.ErrScorecardInternal, text)
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	return checker.CreateResultWithScore(name, text, score)

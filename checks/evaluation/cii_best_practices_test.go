@@ -30,7 +30,7 @@ func TestCIIBestPractices(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Badge not found",
+			name: "Unsupported badge found with negative finding",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
@@ -42,6 +42,22 @@ func TestCIIBestPractices(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score: 0,
+			},
+		},
+		{
+			name: "Unsupported badge found with positive finding",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasOpenSSFBadge",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"Unsupported": 1,
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
