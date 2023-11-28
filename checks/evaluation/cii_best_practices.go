@@ -27,7 +27,6 @@ const (
 	// https://github.com/ossf/scorecard-action/blob/main/policies/template.yml#L61.
 	passingScore    = 5
 	inProgressScore = 2
-	minScore        = 0
 )
 
 // CIIBestPractices applies the score policy for the CIIBestPractices check.
