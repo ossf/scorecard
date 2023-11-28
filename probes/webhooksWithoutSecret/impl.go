@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package webhooksWithoutTokenAuth
+package webhooksWithoutSecret
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "webhooksWithoutTokenAuth"
+const Probe = "webhooksWithoutSecret"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

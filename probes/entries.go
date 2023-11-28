@@ -53,7 +53,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/webhooksWithoutTokenAuth"
+	"github.com/ossf/scorecard/v4/probes/webhooksWithoutSecret"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -127,7 +127,7 @@ var (
 		freeOfUnverifiedBinaryArtifacts.Run,
 	}
 	Webhook = []ProbeImpl{
-		webhooksWithoutTokenAuth.Run,
+		webhooksWithoutSecret.Run,
 	}
 )
 

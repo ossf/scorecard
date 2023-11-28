@@ -20,7 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/webhooksWithoutTokenAuth"
+	"github.com/ossf/scorecard/v4/probes/webhooksWithoutSecret"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
@@ -28,7 +28,7 @@ func Webhooks(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		webhooksWithoutTokenAuth.Probe,
+		webhooksWithoutSecret.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -40,30 +40,30 @@ func Webhooks(name string,
 		return checker.CreateMaxScoreResult(name, "project does not have webhook")
 	}
 
-	var webhooksWithoutSecret int
+	var webhooksWithNoSecret int
 
 	totalWebhooks := findings[0].Values["totalWebhooks"]
 
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeNegative {
-			webhooksWithoutSecret++
+			webhooksWithNoSecret++
 		}
 	}
 
-	if totalWebhooks == webhooksWithoutSecret {
+	if totalWebhooks == webhooksWithNoSecret {
 		return checker.CreateMinScoreResult(name, "no hook(s) have a secret configured")
 	}
 
-	if webhooksWithoutSecret == 0 {
+	if webhooksWithNoSecret == 0 {
 		msg := fmt.Sprintf("All %d of the projects webhooks are configure with a secret", totalWebhooks)
 		return checker.CreateMaxScoreResult(name, msg)
 	}
 
 	msg := fmt.Sprintf("%d out of the projects %d webhooks are configure without a secret",
-		webhooksWithoutSecret,
+		webhooksWithNoSecret,
 		totalWebhooks)
 
 	return checker.CreateProportionalScoreResult(name,
-		msg, totalWebhooks-webhooksWithoutSecret, totalWebhooks)
+		msg, totalWebhooks-webhooksWithNoSecret, totalWebhooks)
 }
