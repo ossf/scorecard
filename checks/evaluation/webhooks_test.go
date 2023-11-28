@@ -17,7 +17,6 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -25,12 +24,6 @@ import (
 // TestWebhooks tests the webhooks check.
 func TestWebhooks(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
-	type args struct {
-		name string
-		dl   checker.DetailLogger
-		r    *checker.WebhooksData
-	}
 	tests := []struct {
 		name     string
 		findings []finding.Finding
