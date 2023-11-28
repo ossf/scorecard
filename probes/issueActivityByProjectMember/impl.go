@@ -30,7 +30,8 @@ import (
 var fs embed.FS
 
 const (
-	lookBackDays = 90
+	lookBackDays    = 90
+	NoOfIssuesValue = "numberOfIssuesUpdatedWithinThreshold"
 )
 
 const Probe = "issueActivityByProjectMember"
@@ -60,7 +61,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithValues(map[string]int{
-			"numberOfIssuesUpdatedWithinThreshold": numberOfIssuesUpdatedWithinThreshold,
+			NoOfIssuesValue: numberOfIssuesUpdatedWithinThreshold,
 		})
 		findings = append(findings, *f)
 	} else {

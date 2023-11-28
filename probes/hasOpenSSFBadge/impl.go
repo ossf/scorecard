@@ -13,14 +13,14 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package hasRecentCommits
+package hasOpenSSFBadge
 
 import (
 	"embed"
 	"fmt"
-	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
@@ -29,52 +29,52 @@ import (
 var fs embed.FS
 
 const (
-	lookBackDays  = 90
-	CommitsValue  = "commitsWithinThreshold"
-	LookBackValue = "lookBackDays"
+	Probe           = "hasOpenSSFBadge"
+	GoldLevel       = "Gold"
+	SilverLevel     = "Silver"
+	PassingLevel    = "Passing"
+	InProgressLevel = "InProgress"
+	UnknownLevel    = "Unknown"
 )
-
-const Probe = "hasRecentCommits"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	var findings []finding.Finding
+	r := raw.CIIBestPracticesResults
+	var badgeLevel string
 
-	r := raw.MaintainedResults
-	threshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
-	commitsWithinThreshold := 0
-
-	for i := range r.DefaultBranchCommits {
-		commit := r.DefaultBranchCommits[i]
-		if commit.CommittedDate.After(threshold) {
-			commitsWithinThreshold++
-		}
-	}
-
-	if commitsWithinThreshold > 0 {
+	switch r.Badge {
+	case clients.Gold:
+		badgeLevel = GoldLevel
+	case clients.Silver:
+		badgeLevel = SilverLevel
+	case clients.Passing:
+		badgeLevel = PassingLevel
+	case clients.InProgress:
+		badgeLevel = InProgressLevel
+	case clients.Unknown:
+		badgeLevel = UnknownLevel
+	default:
 		f, err := finding.NewWith(fs, Probe,
-			"Found a contribution within the threshold.", nil,
-			finding.OutcomePositive)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithValues(map[string]int{
-			CommitsValue:  commitsWithinThreshold,
-			LookBackValue: lookBackDays,
-		})
-		findings = append(findings, *f)
-	} else {
-		f, err := finding.NewWith(fs, Probe,
-			"Did not find contribution within the threshold.", nil,
+			"Project does not have an OpenSSF badge", nil,
 			finding.OutcomeNegative)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		findings = append(findings, *f)
+		return []finding.Finding{*f}, Probe, nil
 	}
 
-	return findings, Probe, nil
+	f, err := finding.NewWith(fs, Probe,
+		fmt.Sprintf("OpenSSF best practice badge found at %s level.", badgeLevel),
+		nil, finding.OutcomePositive)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+
+	f = f.WithValues(map[string]int{
+		badgeLevel: 1,
+	})
+	return []finding.Finding{*f}, Probe, nil
 }
