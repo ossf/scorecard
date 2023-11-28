@@ -16,6 +16,7 @@
 package releasesAreSigned
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -54,104 +55,139 @@ func Test_Run(t *testing.T) {
 			outcomes: []finding.Outcome{
 				finding.OutcomePositive,
 			},
-		}, /*
-			{
-				name: "Has two signed releases.",
-				raw: &checker.RawResults{
-					SignedReleasesResults: checker.SignedReleasesData{
-						Releases: []clients.Release{
-							{
-								TagName: "v1.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.sig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+		},
+		{
+			name: "Has two signed releases.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
-							{
-								TagName: "v2.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.sig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+						},
+						{
+							TagName: "v2.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
 						},
 					},
 				},
-				outcomes: []finding.Outcome{
-					finding.OutcomePositive,
-					finding.OutcomePositive,
-				},
 			},
-			{
-				name: "Has two unsigned releases.",
-				raw: &checker.RawResults{
-					SignedReleasesResults: checker.SignedReleasesData{
-						Releases: []clients.Release{
-							{
-								TagName: "v1.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.notSig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "Has two unsigned releases.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.notSig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
-							{
-								TagName: "v2.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.notSig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+						},
+						{
+							TagName: "v2.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.notSig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
 						},
 					},
 				},
-				outcomes: []finding.Outcome{
-					finding.OutcomeNegative,
-					finding.OutcomeNegative,
-				},
 			},
-			{
-				name: "Has two unsigned releases and one signed release.",
-				raw: &checker.RawResults{
-					SignedReleasesResults: checker.SignedReleasesData{
-						Releases: []clients.Release{
-							{
-								TagName: "v1.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.notSig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+				finding.OutcomeNegative,
+			},
+		},
+		{
+			name: "Has two unsigned releases and one signed release.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.notSig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
-							{
-								TagName: "v2.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.sig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+						},
+						{
+							TagName: "v2.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
+						},
 
-							{
-								TagName: "v3.0",
-								Assets: []clients.ReleaseAsset{
-									{Name: "binary.tar.gz"},
-									{Name: "binary.tar.gz.notSig"},
-									{Name: "binary.tar.gz.intoto.jsonl"},
-								},
+						{
+							TagName: "v3.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.notSig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
 						},
 					},
 				},
-				outcomes: []finding.Outcome{
-					finding.OutcomeNegative,
-					finding.OutcomePositive,
-					finding.OutcomeNegative,
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+				finding.OutcomePositive,
+				finding.OutcomeNegative,
+			},
+		},
+		{
+			name: "Many releases.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						release("v0.8.5"),
+						release("v0.8.4"),
+						release("v0.8.3"),
+						release("v0.8.2"),
+						release("v0.8.1"),
+						release("v0.8.0"),
+						release("v0.7.0"),
+						release("v0.6.0"),
+						release("v0.5.0"),
+						release("v0.4.0"),
+						release("v0.3.0"),
+						release("v0.2.0"),
+						release("v0.1.0"),
+						release("v0.0.6"),
+						release("v0.0.5"),
+						release("v0.0.4"),
+						release("v0.0.3"),
+						release("v0.0.2"),
+						release("v0.0.1"),
+					},
 				},
-			},*/
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+				finding.OutcomePositive,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -179,5 +215,47 @@ func Test_Run(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func release(version string) clients.Release {
+	return clients.Release{
+		TagName:         version,
+		URL:             fmt.Sprintf("https://github.com/test/test_artifact/releases/tag/%s", version),
+		TargetCommitish: "master",
+		Assets: []clients.ReleaseAsset{
+			{
+				Name: fmt.Sprintf("%s_checksums.txt", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_checksums.txt", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_checksums.txt.sig", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_checksums.txt.sig", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_darwin_x86_64.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_darwin_x86_64.tar.gz", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_Linux_arm64.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_Linux_arm64.tar.gz", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_Linux_i386.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_Linux_i386.tar.gz", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_Linux_x86_64.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_Linux_x86_64.tar.gz", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_windows_i386.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_windows_i386.tar.gz", version, version),
+			},
+			{
+				Name: fmt.Sprintf("%s_windows_x86_64.tar.gz", version),
+				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_windows_x86_64.tar.gz", version, version),
+			},
+		},
 	}
 }

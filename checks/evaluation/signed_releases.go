@@ -60,37 +60,39 @@ func SignedReleases(name string,
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
+			totalPositive++
 			switch f.Probe {
 			case releasesAreSigned.Probe:
 				if _, ok := releaseMap[f.Values["releaseIndex"]]; !ok {
 					releaseMap[f.Values["releaseIndex"]] = 8
 				}
-				totalPositive++
 				totalReleases = f.Values["totalReleases"]
 			case releasesHaveProvenance.Probe:
 				releaseMap[f.Values["releaseIndex"]] = 10
-				totalPositive++
 				totalReleases = f.Values["totalReleases"]
 			}
 		}
-	}
-
-	score := 0
-	for _, s := range releaseMap {
-		score += s
 	}
 
 	if totalPositive == 0 {
 		return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
 	}
 
+	if totalReleases > 5 {
+		totalReleases = 5
+	}
 	if totalReleases == 0 {
 		// This should not happen in production, but it is useful to have
 		// for testing.
 		return checker.CreateInconclusiveResult(name, "no releases found")
 	}
+
+	score := 0
+	for _, s := range releaseMap {
+		score += s
+	}
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
-	reason := fmt.Sprintf("%d/%d releases have signed artifacts. In total %d artifacts are signed or have provenance",
+	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
 		len(releaseMap), totalReleases, totalPositive)
 	return checker.CreateResultWithScore(name, reason, score)
 }

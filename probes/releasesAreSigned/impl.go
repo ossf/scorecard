@@ -49,6 +49,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if len(release.Assets) == 0 {
 			continue
 		}
+
+		if releaseIndex == releaseLookBack {
+			break
+		}
+
 		totalReleases++
 		signed := false
 		for assetIndex, asset := range release.Assets {
@@ -102,10 +107,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			"totalReleases": len(releases),
 		}
 		findings = append(findings, *f)
-
-		if releaseIndex >= releaseLookBack {
-			break
-		}
 	}
 
 	if len(findings) == 0 {
