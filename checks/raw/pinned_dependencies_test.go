@@ -159,14 +159,12 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: true,
 		},
 		{
-			desc: "non-github docker image pinned by digest",
-			//nolint:lll
+			desc:     "non-github docker image pinned by digest",
 			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
 			ispinned: true,
 		},
 		{
-			desc: "non-github docker image pinned to mutable tag",
-			//nolint:lll
+			desc:     "non-github docker image pinned to mutable tag",
 			uses:     "docker://gcr.io/distroless/static-debian11:sha256-3876708467ad6f38f263774aa107d331e8de6558a2874aa223b96fc0d9dfc820.sig",
 			ispinned: false,
 		},
@@ -635,7 +633,7 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name             string
 		filename         string
@@ -829,7 +827,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name     string
 		filename string

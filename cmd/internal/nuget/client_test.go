@@ -390,7 +390,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				resultPackageRegistrationPages: []resultPackagePage{},
 				resultPackageSpec:              "",
 			},
-			//nolint:lll
 			want:    "internal error: failed to parse nuget package registration index json: invalid character 'e' in literal true (expecting 'r')",
 			wantErr: true,
 		},
@@ -443,7 +442,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				},
 				resultPackageSpec: "",
 			},
-			//nolint:lll
 			want:    "internal error: failed to parse nuget package registration page: invalid character 'e' in literal true (expecting 'r')",
 			wantErr: true,
 		},
@@ -514,7 +512,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				resultPackageSpec:              "",
 				version:                        "",
 			},
-			//nolint:lll
 			want:    "internal error: failed to parse nuget package registration index json: failed to unmarshal json: json: cannot unmarshal number into Go struct field Alias.listed of type bool",
 			wantErr: true,
 		},

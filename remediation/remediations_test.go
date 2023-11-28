@@ -75,7 +75,7 @@ func (s stubDigester) Digest(name string) (string, error) {
 func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name     string
 		dep      checker.Dependency

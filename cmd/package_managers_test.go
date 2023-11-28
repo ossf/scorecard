@@ -316,7 +316,6 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			args: args{
 				packageName: "some-package",
-				//nolint:lll
 				result: `
 {
   "info": {
@@ -487,7 +486,6 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "fetchGitRepositoryFromPYPI",
 			args: args{
 				packageName: "npm-package",
-				//nolint:lll
 				result: `
 {
   "name": "color",
@@ -609,7 +607,6 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			name: "empty project url",
 			args: args{
 				packageName: "npm-package",
-				//nolint:lll
 				result: `
 				{
   "name": "color",

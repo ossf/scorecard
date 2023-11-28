@@ -53,7 +53,7 @@ func TestCopyBoolPtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyBoolPtr(tt.src, tt.dest)
-			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) { //nolint:lll
+			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) {
 				t.Errorf("copyBoolPtr() got = %v, want %v", *tt.dest, tt.want)
 			}
 		})
@@ -103,7 +103,7 @@ func TestCopyInt32Ptr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyInt32Ptr(tt.src, tt.dest)
-			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) { //nolint:lll
+			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) {
 				t.Errorf("copyInt32Ptr() got = %v, want %v", *tt.dest, tt.want)
 			}
 		})
@@ -153,7 +153,7 @@ func TestCopyStringPtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyStringPtr(tt.src, tt.dest)
-			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) { //nolint:lll
+			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && **tt.dest != *tt.want) {
 				t.Errorf("copyStringPtr() got = %v, want %v", *tt.dest, tt.want)
 			}
 		})
@@ -201,7 +201,7 @@ func TestCopyTimePtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyTimePtr(tt.src, tt.dest)
-			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && !(*tt.dest).Equal(*tt.want)) { //nolint:lll
+			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && !(*tt.dest).Equal(*tt.want)) {
 				t.Errorf("copyTimePtr() got = %v, want %v", *tt.dest, tt.want)
 			}
 		})
@@ -283,7 +283,7 @@ func TestCopyRepoAssociationPtr(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			copyRepoAssociationPtr(tt.src, tt.dest)
-			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && !reflect.DeepEqual(**tt.dest, *tt.want)) { //nolint:lll
+			if (tt.want == nil && *tt.dest != nil) || (tt.want != nil && *tt.dest == nil) || (tt.want != nil && *tt.dest != nil && !reflect.DeepEqual(**tt.dest, *tt.want)) {
 				t.Errorf("copyRepoAssociationPtr() got = %v, want %v", *tt.dest, tt.want)
 			}
 		})
