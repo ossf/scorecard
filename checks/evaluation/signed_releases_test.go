@@ -43,6 +43,18 @@ const (
 	assetIndex9 = 9
 )
 
+func negativeSignedProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+	return finding.Finding{
+		Probe:   "releasesAreSigned",
+		Outcome: finding.OutcomeNegative,
+		Values: map[string]int{
+			"totalReleases": totalReleases,
+			"releaseIndex":  releaseindex,
+			"assetIndex":    assetIndex,
+		},
+	}
+}
+
 func negativeProvenanceProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
 	return finding.Finding{
 		Probe:   "releasesHaveProvenance",
@@ -159,19 +171,11 @@ func TestSignedReleases(t *testing.T) {
 		},
 
 		{
-			name: "A complex project with 3 releases and different assets in each release.",
+			name: "3 releases. One release has one signed, and one release has two provenance.",
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex0, assetIndex0),
 				negativeProvenanceProbe(3, releaseIndex0, assetIndex0),
 				{
 					Probe:   "releasesAreSigned",
@@ -185,76 +189,100 @@ func TestSignedReleases(t *testing.T) {
 				negativeProvenanceProbe(3, releaseIndex0, assetIndex1),
 				// Release 2:
 				// Release 2, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  1,
-						"assetIndex":    0,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex1, assetIndex0),
 				negativeProvenanceProbe(3, releaseIndex1, assetIndex0),
 				// Release 2, Asset 2:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  1,
-						"assetIndex":    1,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex1, assetIndex1),
 				negativeProvenanceProbe(3, releaseIndex1, assetIndex1),
 				// Release 2, Asset 3:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  1,
-						"assetIndex":    2,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex1, assetIndex2),
 				negativeProvenanceProbe(3, releaseIndex1, assetIndex2),
 				// Release 3, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  2,
-						"assetIndex":    0,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex2, assetIndex0),
 				positiveProvenanceProbe(3, releaseIndex2, assetIndex0),
 				// Release 3, Asset 2:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  2,
-						"assetIndex":    1,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex2, assetIndex1),
 				positiveProvenanceProbe(3, releaseIndex2, assetIndex1),
 				// Release 3, Asset 3:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  2,
-						"assetIndex":    2,
-					},
-				},
+				negativeSignedProbe(3, releaseIndex2, assetIndex2),
 				negativeProvenanceProbe(3, releaseIndex2, assetIndex2),
 			},
 			result: scut.TestReturn{
-				Score:        9,
+				Score:        6,
 				NumberOfInfo: 3,
 				NumberOfWarn: 13,
+			},
+		},
+		{
+			name: "5 releases. Two releases have one signed each, and two releases have one provenance each.",
+			findings: []finding.Finding{
+				// Release 1:
+				// Release 1, Asset 1:
+				negativeSignedProbe(5, releaseIndex0, assetIndex0),
+				negativeProvenanceProbe(5, releaseIndex0, assetIndex0),
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 5,
+						"releaseIndex":  0,
+						"assetIndex":    1,
+					},
+				},
+				negativeProvenanceProbe(5, releaseIndex0, assetIndex1),
+				// Release 2:
+				// Release 2, Asset 1:
+				{
+					Probe:   "releasesAreSigned",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalReleases": 5,
+						"releaseIndex":  1,
+						"assetIndex":    0,
+					},
+				},
+				negativeProvenanceProbe(5, releaseIndex1, assetIndex0),
+				// Release 2, Asset 2:
+				negativeSignedProbe(5, releaseIndex1, assetIndex1),
+				negativeProvenanceProbe(5, releaseIndex1, assetIndex1),
+				// Release 2, Asset 3:
+				negativeSignedProbe(5, releaseIndex1, assetIndex2),
+				negativeProvenanceProbe(5, releaseIndex1, assetIndex2),
+				// Release 3, Asset 1:
+				negativeSignedProbe(5, releaseIndex2, assetIndex0),
+				positiveProvenanceProbe(5, releaseIndex2, assetIndex0),
+				// Release 3, Asset 2:
+				negativeSignedProbe(5, releaseIndex2, assetIndex1),
+				negativeProvenanceProbe(5, releaseIndex2, assetIndex1),
+				// Release 3, Asset 3:
+				negativeSignedProbe(5, releaseIndex2, assetIndex2),
+				negativeProvenanceProbe(5, releaseIndex2, assetIndex2),
+				// Release 4, Asset 1:
+				negativeSignedProbe(5, releaseIndex3, assetIndex0),
+				positiveProvenanceProbe(5, releaseIndex2, assetIndex0),
+				// Release 4, Asset 2:
+				negativeSignedProbe(5, releaseIndex3, assetIndex1),
+				negativeProvenanceProbe(5, releaseIndex2, assetIndex1),
+				// Release 4, Asset 3:
+				negativeSignedProbe(5, releaseIndex3, assetIndex2),
+				negativeProvenanceProbe(5, releaseIndex4, assetIndex2),
+				// Release 5, Asset 1:
+				negativeSignedProbe(5, releaseIndex4, assetIndex0),
+				negativeProvenanceProbe(5, releaseIndex4, assetIndex0),
+				// Release 5, Asset 2:
+				negativeSignedProbe(5, releaseIndex4, assetIndex1),
+				negativeProvenanceProbe(5, releaseIndex4, assetIndex1),
+				// Release 5, Asset 3:
+				negativeSignedProbe(5, releaseIndex4, assetIndex2),
+				negativeProvenanceProbe(5, releaseIndex4, assetIndex2),
+				// Release 5, Asset 4:
+				negativeSignedProbe(5, releaseIndex4, assetIndex3),
+				negativeProvenanceProbe(5, releaseIndex4, assetIndex3),
+			},
+			result: scut.TestReturn{
+				Score:        5,
+				NumberOfInfo: 4,
+				NumberOfWarn: 26,
 			},
 		},
 	}

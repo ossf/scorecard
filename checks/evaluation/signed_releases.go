@@ -26,8 +26,6 @@ import (
 )
 
 // SignedReleases applies the score policy for the Signed-Releases check.
-//
-
 func SignedReleases(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
@@ -54,9 +52,9 @@ func SignedReleases(name string,
 		}
 	}
 
-	score := 0
 	totalPositive := 0
 	totalReleases := 0
+	releaseMap := make(map[int]int)
 	checker.LogFindings(findings, dl)
 
 	for i := range findings {
@@ -64,17 +62,22 @@ func SignedReleases(name string,
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case releasesAreSigned.Probe:
-				totalPositive++
-				if !releaseAlsoHasProvenance(f, findings) {
-					score += 8
+				if _, ok := releaseMap[f.Values["releaseIndex"]]; !ok {
+					releaseMap[f.Values["releaseIndex"]] = 8
 				}
+				totalPositive++
 				totalReleases = f.Values["totalReleases"]
 			case releasesHaveProvenance.Probe:
+				releaseMap[f.Values["releaseIndex"]] = 10
 				totalPositive++
-				score += 10
 				totalReleases = f.Values["totalReleases"]
 			}
 		}
+	}
+
+	score := 0
+	for _, s := range releaseMap {
+		score += s
 	}
 
 	if totalPositive == 0 {
@@ -87,20 +90,7 @@ func SignedReleases(name string,
 		return checker.CreateInconclusiveResult(name, "no releases found")
 	}
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
-	reason := fmt.Sprintf("%d out of %d artifacts are signed or have provenance", totalPositive, totalReleases)
+	reason := fmt.Sprintf("%d/%d releases have signed artifacts. In total %d artifacts are signed or have provenance",
+		len(releaseMap), totalReleases, totalPositive)
 	return checker.CreateResultWithScore(name, reason, score)
-}
-
-func releaseAlsoHasProvenance(f1 *finding.Finding, findings []finding.Finding) bool {
-	for i := range findings {
-		f2 := &findings[i]
-		if f2.Probe == releasesHaveProvenance.Probe && f2.Outcome == finding.OutcomePositive {
-			if f1.Values["releaseIndex"] == f2.Values["releaseIndex"] {
-				if f1.Values["assetIndex"] == f2.Values["assetIndex"] {
-					return true
-				}
-			}
-		}
-	}
-	return false
 }
