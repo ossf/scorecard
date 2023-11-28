@@ -67,8 +67,7 @@ func TestWebhooks(t *testing.T) {
 					Probe:   "webhooksWithoutTokenAuth",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalWebhooks":         1,
-						"webhooksWithoutSecret": 0,
+						"totalWebhooks": 1,
 					},
 				},
 			},
@@ -83,8 +82,7 @@ func TestWebhooks(t *testing.T) {
 					Probe:   "webhooksWithoutTokenAuth",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"totalWebhooks":         2,
-						"webhooksWithoutSecret": 1,
+						"totalWebhooks": 2,
 					},
 				},
 			},
@@ -99,24 +97,121 @@ func TestWebhooks(t *testing.T) {
 					Probe:   "webhooksWithoutTokenAuth",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"totalWebhooks":         5,
-						"webhooksWithoutSecret": 2,
+						"totalWebhooks": 5,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 5,
 					},
 				},
 			},
 			result: scut.TestReturn{
-				Score: 4,
+				Score: 6,
 			},
 		},
 		{
-			name: "Twelve webhooks none of which have secrets",
+			name: "One of 12 webhooks does not have secrets",
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksWithoutTokenAuth",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"totalWebhooks":         12,
-						"webhooksWithoutSecret": 12,
+						"totalWebhooks": 12,
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score: 9,
+			},
+		},
+		{
+			name: "12/12 webhooks do not have secrets",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
+					},
+				},
+				{
+					Probe:   "webhooksWithoutTokenAuth",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"totalWebhooks": 12,
 					},
 				},
 			},

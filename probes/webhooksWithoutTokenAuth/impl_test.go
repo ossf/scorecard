@@ -53,7 +53,7 @@ func Test_Run(t *testing.T) {
 					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
+							ID:             1,
 							UsesAuthSecret: true,
 						},
 					},
@@ -70,7 +70,7 @@ func Test_Run(t *testing.T) {
 					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
+							ID:             1,
 							UsesAuthSecret: false,
 						},
 					},
@@ -87,24 +87,57 @@ func Test_Run(t *testing.T) {
 					Webhooks: []clients.Webhook{
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
+							ID:             1,
 							UsesAuthSecret: false,
 						},
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/12345",
-							ID:             1234,
+							ID:             2,
 							UsesAuthSecret: true,
 						},
 						{
 							Path:           "https://github.com/owner/repo/settings/hooks/12346",
-							ID:             1234,
+							ID:             3,
 							UsesAuthSecret: true,
 						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeNegative, finding.OutcomePositive, finding.OutcomePositive,
+			},
+		},
+		{
+			name: "Multiple webhooks present, two without auth secret",
+			raw: &checker.RawResults{
+				WebhookResults: checker.WebhooksData{
+					Webhooks: []clients.Webhook{
+						{
+							Path:           "https://github.com/owner/repo/settings/hooks/1234",
+							ID:             1,
+							UsesAuthSecret: false,
+						},
+						{
+							Path:           "https://github.com/owner/repo/settings/hooks/12345",
+							ID:             2,
+							UsesAuthSecret: true,
+						},
+						{
+							Path:           "https://github.com/owner/repo/settings/hooks/12346",
+							ID:             3,
+							UsesAuthSecret: true,
+						},
+						{
+							Path:           "https://github.com/owner/repo/settings/hooks/12346",
+							ID:             4,
+							UsesAuthSecret: false,
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomePositive, finding.OutcomeNegative,
 			},
 		},
 	}

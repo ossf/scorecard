@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks all webhooks of a project and checks whether each uses token authentication.
 outcome:
-  - If the project has one or more webhooks without token authorization, the probe returns as many OutcomeNegative (0) as the project has webhooks without token authorization.
+  - If the project has any webhooks without token authorization, the probe returns as many OutcomeNegative (0) as the project has webhooks without token authorization. All findings include the value "totalWebhooks" which is the total number of webhooks that the project has. The finding also includes the path to the webhook.
   - If the project does not have any webhooks without token authorization, the probe returns one OutcomePositive (1).
 remediation:
   effort: Low

@@ -36,8 +36,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.WebhookResults
 	totalWebhooks := len(r.Webhooks)
-	var webhooksWithoutSecret int
-
 	var findings []finding.Finding
 
 	if len(r.Webhooks) == 0 {
@@ -52,36 +50,33 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, hook := range r.Webhooks {
-		if !hook.UsesAuthSecret {
-			webhooksWithoutSecret++
+		if hook.UsesAuthSecret {
+			msg := "Webhook with token authorization found."
+			f, err := finding.NewWith(fs, Probe,
+				msg, nil, finding.OutcomePositive)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithValues(map[string]int{
+				"totalWebhooks": totalWebhooks,
+			}).WithLocation(&finding.Location{
+				Path: hook.Path,
+			})
+			findings = append(findings, *f)
+		} else {
+			msg := "Webhook without token authorization found."
+			f, err := finding.NewWith(fs, Probe,
+				msg, nil, finding.OutcomeNegative)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithValues(map[string]int{
+				"totalWebhooks": totalWebhooks,
+			}).WithLocation(&finding.Location{
+				Path: hook.Path,
+			})
+			findings = append(findings, *f)
 		}
-	}
-
-	if webhooksWithoutSecret != 0 {
-		whWoS, tW := webhooksWithoutSecret, totalWebhooks
-		msg := fmt.Sprintf("Repository has %d webhooks out of %d without token authorization.", whWoS, tW)
-		f, err := finding.NewWith(fs, Probe,
-			msg, nil, finding.OutcomeNegative)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithValues(map[string]int{
-			"totalWebhooks":         totalWebhooks,
-			"webhooksWithoutSecret": webhooksWithoutSecret,
-		})
-		findings = append(findings, *f)
-	} else {
-		f, err := finding.NewWith(fs, Probe,
-			fmt.Sprintf("All of the projects %d webhooks have token authorization.", totalWebhooks), nil,
-			finding.OutcomePositive)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithValues(map[string]int{
-			"totalWebhooks":         totalWebhooks,
-			"webhooksWithoutSecret": webhooksWithoutSecret,
-		})
-		findings = append(findings, *f)
 	}
 
 	return findings, Probe, nil
