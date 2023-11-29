@@ -21,12 +21,13 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name   string
 		r      worklowPinningResult
@@ -239,9 +240,10 @@ func Test_PinningDependencies(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		dependencies []checker.Dependency
-		expected     scut.TestReturn
+		name             string
+		dependencies     []checker.Dependency
+		processingErrors []checker.ElementError
+		expected         scut.TestReturn
 	}{
 		{
 			name: "all dependencies pinned",
@@ -796,6 +798,34 @@ func Test_PinningDependencies(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 		},
+		{
+			name: "Skipped objects and dependencies",
+			dependencies: []checker.Dependency{
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+				{
+					Location: &checker.File{},
+					Type:     checker.DependencyUseTypeNpmCommand,
+					Pinned:   asBoolPointer(false),
+				},
+			},
+			processingErrors: []checker.ElementError{
+				{
+					Err:      sce.ErrJobOSParsing,
+					Location: finding.Location{},
+				},
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         0,
+				NumberOfWarn:  2, // unpinned deps
+				NumberOfInfo:  2, // 1 for npm deps, 1 for processing error
+				NumberOfDebug: 0,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -807,7 +837,8 @@ func Test_PinningDependencies(t *testing.T) {
 			c := checker.CheckRequest{Dlogger: &dl}
 			actual := PinningDependencies("checkname", &c,
 				&checker.PinningDependenciesData{
-					Dependencies: tt.dependencies,
+					Dependencies:     tt.dependencies,
+					ProcessingErrors: tt.processingErrors,
 				})
 
 			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
@@ -815,6 +846,10 @@ func Test_PinningDependencies(t *testing.T) {
 			}
 		})
 	}
+}
+
+func stringAsPointer(s string) *string {
+	return &s
 }
 
 func Test_generateOwnerToDisplay(t *testing.T) {
@@ -849,11 +884,11 @@ func Test_generateOwnerToDisplay(t *testing.T) {
 func Test_addWorkflowPinnedResult(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		dependency *checker.Dependency
-		w          *worklowPinningResult
-		isGitHub   bool
+		w        *worklowPinningResult
+		outcome  finding.Outcome
+		isGitHub bool
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
 		want *worklowPinningResult
 		args args
@@ -861,9 +896,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add pinned GitHub-owned action dependency",
 			args: args{
-				dependency: &checker.Dependency{
-					Pinned: asBoolPointer(true),
-				},
+				outcome:  finding.OutcomePositive,
 				w:        &worklowPinningResult{},
 				isGitHub: true,
 			},
@@ -881,9 +914,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned GitHub-owned action dependency",
 			args: args{
-				dependency: &checker.Dependency{
-					Pinned: asBoolPointer(false),
-				},
+				outcome:  finding.OutcomeNegative,
 				w:        &worklowPinningResult{},
 				isGitHub: true,
 			},
@@ -901,9 +932,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add pinned Third-Party action dependency",
 			args: args{
-				dependency: &checker.Dependency{
-					Pinned: asBoolPointer(true),
-				},
+				outcome:  finding.OutcomePositive,
 				w:        &worklowPinningResult{},
 				isGitHub: false,
 			},
@@ -921,9 +950,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned Third-Party action dependency",
 			args: args{
-				dependency: &checker.Dependency{
-					Pinned: asBoolPointer(false),
-				},
+				outcome:  finding.OutcomeNegative,
 				w:        &worklowPinningResult{},
 				isGitHub: false,
 			},
@@ -943,7 +970,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			addWorkflowPinnedResult(tt.args.dependency, tt.args.w, tt.args.isGitHub)
+			addWorkflowPinnedResult(tt.args.outcome, tt.args.w, tt.args.isGitHub)
 			if tt.want.thirdParties != tt.args.w.thirdParties {
 				t.Errorf("addWorkflowPinnedResult Third-party GitHub actions mismatch (-want +got):"+
 					"\nThird-party pinned: %s\nThird-party total: %s",
@@ -990,7 +1017,7 @@ func TestGenerateText(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := generateText(tc.dependency)
+			result := generateTextUnpinned(tc.dependency)
 			if !cmp.Equal(tc.expectedText, result) {
 				t.Errorf("generateText mismatch (-want +got):\n%s", cmp.Diff(tc.expectedText, result))
 			}
@@ -1001,9 +1028,11 @@ func TestGenerateText(t *testing.T) {
 func TestUpdatePinningResults(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		dependency *checker.Dependency
-		w          *worklowPinningResult
-		pr         map[checker.DependencyUseType]pinnedResult
+		snippet        *string
+		w              *worklowPinningResult
+		pr             map[checker.DependencyUseType]pinnedResult
+		dependencyType checker.DependencyUseType
+		outcome        finding.Outcome
 	}
 	type want struct {
 		w  *worklowPinningResult
@@ -1017,15 +1046,11 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add pinned GitHub-owned action",
 			args: args{
-				dependency: &checker.Dependency{
-					Type: checker.DependencyUseTypeGHAction,
-					Location: &checker.File{
-						Snippet: "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
-					},
-					Pinned: asBoolPointer(true),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypeGHAction,
+				outcome:        finding.OutcomePositive,
+				snippet:        stringAsPointer("actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675"),
+				w:              &worklowPinningResult{},
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{
@@ -1044,15 +1069,11 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add unpinned GitHub-owned action",
 			args: args{
-				dependency: &checker.Dependency{
-					Type: checker.DependencyUseTypeGHAction,
-					Location: &checker.File{
-						Snippet: "actions/checkout@v2",
-					},
-					Pinned: asBoolPointer(false),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypeGHAction,
+				outcome:        finding.OutcomeNegative,
+				snippet:        stringAsPointer("actions/checkout@v2"),
+				w:              &worklowPinningResult{},
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{
@@ -1071,15 +1092,11 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add pinned Third-party action",
 			args: args{
-				dependency: &checker.Dependency{
-					Type: checker.DependencyUseTypeGHAction,
-					Location: &checker.File{
-						Snippet: "other/checkout@ffa6706ff2127a749973072756f83c532e43ed02",
-					},
-					Pinned: asBoolPointer(true),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypeGHAction,
+				outcome:        finding.OutcomePositive,
+				w:              &worklowPinningResult{},
+				snippet:        stringAsPointer("other/checkout@ffa6706ff2127a749973072756f83c532e43ed02"),
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{
@@ -1098,15 +1115,11 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add unpinned Third-party action",
 			args: args{
-				dependency: &checker.Dependency{
-					Type: checker.DependencyUseTypeGHAction,
-					Location: &checker.File{
-						Snippet: "other/checkout@v2",
-					},
-					Pinned: asBoolPointer(false),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypeGHAction,
+				snippet:        stringAsPointer("other/checkout@v2"),
+				outcome:        finding.OutcomeNegative,
+				w:              &worklowPinningResult{},
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{
@@ -1125,12 +1138,10 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add pinned pip install",
 			args: args{
-				dependency: &checker.Dependency{
-					Type:   checker.DependencyUseTypePipCommand,
-					Pinned: asBoolPointer(true),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypePipCommand,
+				outcome:        finding.OutcomePositive,
+				w:              &worklowPinningResult{},
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{},
@@ -1145,12 +1156,10 @@ func TestUpdatePinningResults(t *testing.T) {
 		{
 			name: "add unpinned pip install",
 			args: args{
-				dependency: &checker.Dependency{
-					Type:   checker.DependencyUseTypePipCommand,
-					Pinned: asBoolPointer(false),
-				},
-				w:  &worklowPinningResult{},
-				pr: make(map[checker.DependencyUseType]pinnedResult),
+				dependencyType: checker.DependencyUseTypePipCommand,
+				outcome:        finding.OutcomeNegative,
+				w:              &worklowPinningResult{},
+				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
 				w: &worklowPinningResult{},
@@ -1167,7 +1176,7 @@ func TestUpdatePinningResults(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			updatePinningResults(tc.args.dependency, tc.args.w, tc.args.pr)
+			updatePinningResults(tc.args.dependencyType, tc.args.outcome, tc.args.snippet, tc.args.w, tc.args.pr)
 			if tc.want.w.thirdParties != tc.args.w.thirdParties {
 				t.Errorf("updatePinningResults Third-party GitHub actions mismatch (-want +got):"+
 					"\nThird-party pinned: %s\nThird-party total: %s",

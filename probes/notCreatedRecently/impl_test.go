@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
-package fuzzedWithOneFuzz
+//nolint:stylecheck
+package notCreatedRecently
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
-	// nolint:govet
+	//nolint:govet
 	tests := []struct {
 		name     string
 		raw      *checker.RawResults
@@ -36,66 +36,10 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "fuzzer present",
+			name: "Was created 10 days ago",
 			raw: &checker.RawResults{
-				FuzzingResults: checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "OneFuzz",
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
-		{
-			name: "fuzzer present twice",
-			raw: &checker.RawResults{
-				FuzzingResults: checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "OneFuzz",
-						},
-						{
-							Name: "OneFuzz",
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-			},
-		},
-		{
-			name: "fuzzer present and other present",
-			raw: &checker.RawResults{
-				FuzzingResults: checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "OneFuzz",
-						},
-						{
-							Name: "not-OneFuzz",
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
-		{
-			name: "fuzzer not present",
-			raw: &checker.RawResults{
-				FuzzingResults: checker.FuzzingData{
-					Fuzzers: []checker.Tool{
-						{
-							Name: "not-OneFuzz",
-						},
-					},
+				MaintainedResults: checker.MaintainedData{
+					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -103,15 +47,15 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "no fuzzer",
-			raw:  &checker.RawResults{},
-			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+			name: "Was creted 100 days ago",
+			raw: &checker.RawResults{
+				MaintainedResults: checker.MaintainedData{
+					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -100 /*days*/),
+				},
 			},
-		},
-		{
-			name: "nil raw",
-			err:  uerror.ErrNil,
+			outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
 		},
 	}
 	for _, tt := range tests {

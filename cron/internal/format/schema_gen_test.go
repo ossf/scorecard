@@ -22,10 +22,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//nolint
 func Test_GenerateBQSchema(t *testing.T) {
 	t.Parallel()
 
+	//nolint:govet
 	tests := []struct {
 		name      string
 		path      string
@@ -80,10 +80,10 @@ func Test_GenerateBQSchema(t *testing.T) {
 	}
 }
 
-//nolint
 func Test_GenerateJSONSchema(t *testing.T) {
 	t.Parallel()
 
+	//nolint:govet
 	tests := []struct {
 		name      string
 		path      string

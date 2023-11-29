@@ -26,12 +26,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@1b05615854632b887b69ae1be8cbefe72d3ae423 # v1
+      uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
     - name: Verifier action
       id: verifier
-      uses: kubernetes-sigs/kubebuilder-release-tools@d8367c29de8af903319d3a76de2436672515729b # v0.4.0
+      uses: kubernetes-sigs/kubebuilder-release-tools@3c3411345eedc489d1022288aa844691e92a9c29 # v0.4.2
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}

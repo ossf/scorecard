@@ -1,0 +1,9 @@
+FROM abrarov/msvc-2017:2.11.0
+
+ARG cmake=3.21.4
+RUN choco install --no-progress -r -y cmake
+
+ARG python=3.8
+RUN if "%python%"=="3.8" curl bla | bash
+
+RUN choco install --no-progress -r -y gzip wget ninja

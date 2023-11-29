@@ -129,7 +129,7 @@ func Test_checkDependencyFileExists(t *testing.T) {
 // TestDependencyUpdateTool tests the DependencyUpdateTool function.
 func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name              string
 		wantErr           bool

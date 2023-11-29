@@ -29,7 +29,7 @@ import (
 func TestPolicyRead(t *testing.T) {
 	t.Parallel()
 
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		err      error
 		name     string
@@ -346,7 +346,9 @@ func TestGetEnabled(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var sp *ScorecardPolicy
 			if tt.policyFile != "" {
 				policyBytes, err := os.ReadFile(tt.policyFile)

@@ -15,7 +15,9 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -27,6 +29,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -109,6 +112,21 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 	}, validateDockerfileInsecureDownloads, r)
 }
 
+func fileIsInVendorDir(pathfn string) bool {
+	cleanedPath := filepath.Clean(pathfn)
+	splitCleanedPath := strings.Split(cleanedPath, "/")
+
+	for _, d := range splitCleanedPath {
+		if strings.EqualFold(d, "vendor") {
+			return true
+		}
+		if strings.EqualFold(d, "third_party") {
+			return true
+		}
+	}
+	return false
+}
+
 var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -118,6 +136,10 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return false, fmt.Errorf(
 			"validateDockerfileInsecureDownloads requires exactly 1 arguments: got %v: %w",
 			len(args), errInvalidArgLength)
+	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
 	}
 
 	pdata := dataAsPinnedDependenciesPointer(args[0])
@@ -187,10 +209,22 @@ func isDockerfile(pathfn string, content []byte) bool {
 }
 
 func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
 	}, validateDockerfilesPinning, r)
+	if err != nil {
+		return err
+	}
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remdtion := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+			rr.Remediation = remdtion
+		}
+	}
+	return nil
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -205,6 +239,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, fmt.Errorf(
 			"validateDockerfilesPinning requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 
 	// Return early if this is not a dockerfile.
@@ -309,7 +348,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		}
 	}
 
-	//nolint
+	//nolint:lll
 	// The file need not have a FROM statement,
 	// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/partials/jupyter.partial.Dockerfile.
 
@@ -360,6 +399,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
+
 		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
@@ -382,6 +422,23 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
+				var elementError *checker.ElementError
+				if errors.As(err, &elementError) {
+					// Add the workflow name and step ID to the element
+					lineStart := uint(step.Pos.Line)
+					elementError.Location = finding.Location{
+						Path:      pathfn,
+						Snippet:   elementError.Location.Snippet,
+						LineStart: &lineStart,
+						Type:      finding.FileTypeSource,
+					}
+
+					pdata.ProcessingErrors = append(pdata.ProcessingErrors, *elementError)
+
+					// continue instead of break because other `run` steps may declare
+					// a valid shell we can scan
+					continue
+				}
 				return false, err
 			}
 			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
@@ -405,10 +462,24 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
 	}, validateGitHubActionWorkflow, r)
+	if err != nil {
+		return err
+	}
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remdtion := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			rr.Remediation = remdtion
+		}
+	}
+	return nil
 }
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check

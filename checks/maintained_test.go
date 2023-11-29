@@ -27,9 +27,9 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-// ignoring the linter for cyclomatic complexity because it is a test func
 // TestMaintained tests the maintained check.
-//nolint
+//
+//nolint:gocognit // ignoring the linter for cyclomatic complexity because it is a test func
 func Test_Maintained(t *testing.T) {
 	t.Parallel()
 	threeHundredDaysAgo := time.Now().AddDate(0, 0, -300)
@@ -38,14 +38,13 @@ func Test_Maintained(t *testing.T) {
 	oneDayAgo := time.Now().AddDate(0, 0, -1)
 	ownerAssociation := clients.RepoAssociationOwner
 	noneAssociation := clients.RepoAssociationNone
-	// fieldalignment lint issue. Ignoring it as it is not important for this test.
 	someone := clients.User{
 		Login: "someone",
 	}
 	otheruser := clients.User{
 		Login: "someone-else",
 	}
-	//nolint
+	//nolint:govet,goerr113
 	tests := []struct {
 		err        error
 		name       string
@@ -339,7 +338,7 @@ func Test_Maintained(t *testing.T) {
 				}
 				return tt.isarchived, nil
 			})
-
+			//nolint:nestif
 			if tt.archiveerr == nil {
 				mockRepo.EXPECT().ListCommits().DoAndReturn(
 					func() ([]clients.Commit, error) {

@@ -43,7 +43,8 @@ const (
 )
 
 // Location represents the location of a finding.
-// nolint: govet
+//
+//nolint:govet
 type Location struct {
 	Type      FileType `json:"type"`
 	Path      string   `json:"path"`
@@ -93,7 +94,8 @@ const (
 )
 
 // Finding represents a finding.
-// nolint: govet
+//
+//nolint:govet
 type Finding struct {
 	Probe       string             `json:"probe"`
 	Outcome     Outcome            `json:"outcome"`
@@ -117,7 +119,7 @@ var errInvalid = errors.New("invalid")
 func FromBytes(content []byte, probeID string) (*Finding, error) {
 	p, err := probe.FromBytes(content, probeID)
 	if err != nil {
-		// nolint
+		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{
@@ -221,6 +223,13 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 	return f
 }
 
+// WithValues sets the values to an existing finding.
+// No copy is made.
+func (f *Finding) WithValues(values map[string]int) *Finding {
+	f.Values = values
+	return f
+}
+
 // WithPatch adds a patch to an existing finding.
 // No copy is made.
 func (f *Finding) WithPatch(patch *string) *Finding {
@@ -256,6 +265,16 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
 		}
 	}
+	return f
+}
+
+// WithValue adds a value to f.Values.
+// No copy is made.
+func (f *Finding) WithValue(k string, v int) *Finding {
+	if f.Values == nil {
+		f.Values = make(map[string]int)
+	}
+	f.Values[k] = v
 	return f
 }
 

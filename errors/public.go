@@ -33,6 +33,8 @@ var (
 	ErrorInvalidURL = errors.New("invalid repo flag") //nolint:errname
 	// ErrorShellParsing indicates there was an error when parsing shell code.
 	ErrorShellParsing = errors.New("error parsing shell code") //nolint:errname
+	// ErrJobOSParsing indicates there was an error when detecting a job's operating system.
+	ErrJobOSParsing = errors.New("error parsing job operating system")
 	// ErrorUnsupportedCheck indicates check cannot be run for given request.
 	ErrorUnsupportedCheck = errors.New("check is not supported for this request") //nolint:errname
 	// ErrorCheckRuntime indicates an individual check had a runtime error.

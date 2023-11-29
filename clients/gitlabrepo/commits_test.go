@@ -15,7 +15,13 @@
 package gitlabrepo
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/xanzy/go-gitlab"
+
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 func TestParsingEmail(t *testing.T) {
@@ -52,6 +58,81 @@ func TestParsingEmail(t *testing.T) {
 
 			if tt.expected != result {
 				t.Errorf("Parser didn't work as expected: %s != %s", tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestListRawCommits(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		commitsPath string
+		commitDepth int
+		want        int
+		wantErr     bool
+	}{
+		{
+			name:        "commits to non-default depth",
+			commitsPath: "./testdata/valid-commits",
+			commitDepth: 17,
+			want:        17,
+			wantErr:     false,
+		},
+		{
+			name:        "commits to default depth",
+			commitsPath: "./testdata/valid-commits",
+			commitDepth: 30,
+			want:        30,
+			wantErr:     false,
+		},
+		{
+			name:        "request more commits than exist in the repo",
+			commitsPath: "./testdata/valid-commits",
+			commitDepth: 60,
+			want:        32,
+			wantErr:     false,
+		},
+		{
+			name:        "failure fetching commits",
+			commitsPath: "./testdata/invalid-commits",
+			commitDepth: 30,
+			want:        0,
+			wantErr:     true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			httpClient := &http.Client{
+				Transport: suffixStubTripper{
+					responsePaths: map[string]string{
+						"commits": tt.commitsPath, // corresponds to projects/<id>/repository/commits
+					},
+				},
+			}
+			client, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
+			if err != nil {
+				t.Fatalf("gitlab.NewClient error: %v", err)
+			}
+			handler := &commitsHandler{
+				glClient: client,
+			}
+
+			repoURL := repoURL{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
+			}
+
+			handler.init(&repoURL, tt.commitDepth)
+			commits, err := handler.listRawCommits()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("listIssues error: %v, wantedErr: %t", err, tt.wantErr)
+			}
+			if !cmp.Equal(len(commits), tt.want) {
+				t.Errorf("listCommits() = %v, want %v", len(commits), cmp.Diff(len(commits), tt.want))
 			}
 		})
 	}

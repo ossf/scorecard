@@ -23,7 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
@@ -66,10 +65,10 @@ var (
 )
 
 // DangerousWorkflow retrieves the raw data for the DangerousWorkflow check.
-func DangerousWorkflow(c clients.RepoClient) (checker.DangerousWorkflowData, error) {
+func DangerousWorkflow(c *checker.CheckRequest) (checker.DangerousWorkflowData, error) {
 	// data is shared across all GitHub workflows.
 	var data checker.DangerousWorkflowData
-	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
 	}, validateGitHubActionWorkflowPatterns, &data)

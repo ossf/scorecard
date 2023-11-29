@@ -49,14 +49,13 @@ type Remediation struct {
 	Effort RemediationEffort `json:"effort"`
 }
 
-// nolint: govet
 type jsonRemediation struct {
 	Text     []string          `yaml:"text"`
 	Markdown []string          `yaml:"markdown"`
 	Effort   RemediationEffort `yaml:"effort"`
 }
 
-// nolint: govet
+//nolint:govet
 type jsonRule struct {
 	Short          string          `yaml:"short"`
 	Desc           string          `yaml:"desc"`
@@ -82,7 +81,7 @@ const (
 	RiskCritical
 )
 
-// nolint: govet
+//nolint:govet
 type Rule struct {
 	Name        string
 	Short       string
@@ -98,7 +97,7 @@ var errInvalid = errors.New("invalid")
 func New(loc embed.FS, rule string) (*Rule, error) {
 	content, err := loc.ReadFile(fmt.Sprintf("%s.yml", rule))
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errInvalid, err)
+		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
 	r, err := parseFromJSON(content)
@@ -126,10 +125,10 @@ func New(loc embed.FS, rule string) (*Rule, error) {
 
 func validate(r *jsonRule) error {
 	if err := validateRisk(r.Risk); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 	if err := validateRemediation(r.Remediation); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 	return nil
 }
@@ -157,7 +156,7 @@ func parseFromJSON(content []byte) (*jsonRule, error) {
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errInvalid, err)
+		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
 	return &r, nil
 }
@@ -167,10 +166,10 @@ func parseFromJSON(content []byte) (*jsonRule, error) {
 func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
-	// nolint:goconst
+	//nolint:goconst
 	switch n.Value {
 	case "Low":
 		*r = RemediationEffortLow
@@ -189,7 +188,7 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 func (r *Risk) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
 	switch n.Value {

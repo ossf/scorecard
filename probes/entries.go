@@ -24,18 +24,27 @@ import (
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOneFuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -68,7 +77,6 @@ var (
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzedWithOSSFuzz.Run,
-		fuzzedWithOneFuzz.Run,
 		fuzzedWithGoNative.Run,
 		fuzzedWithPythonAtheris.Run,
 		fuzzedWithCLibFuzzer.Run,
@@ -94,6 +102,24 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
+	}
+	SAST = []ProbeImpl{
+		sastToolCodeQLInstalled.Run,
+		sastToolRunsOnAllCommits.Run,
+		sastToolSonarInstalled.Run,
+	}
+	DangerousWorkflows = []ProbeImpl{
+		hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowUntrustedCheckout.Run,
+	}
+	Maintained = []ProbeImpl{
+		notArchived.Run,
+		hasRecentCommits.Run,
+		issueActivityByProjectMember.Run,
+		notCreatedRecently.Run,
+	}
+	CIIBestPractices = []ProbeImpl{
+		hasOpenSSFBadge.Run,
 	}
 )
 

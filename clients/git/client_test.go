@@ -36,7 +36,7 @@ func createTestRepo(t *testing.T) (path string) {
 		t.Fatalf("Failed to create temporary directory: %v", err)
 	}
 	t.Cleanup(func() {
-		os.RemoveAll(dir) // nolint:errcheck
+		os.RemoveAll(dir)
 	})
 	r, err := gitV5.PlainInit(dir, false)
 	if err != nil {
