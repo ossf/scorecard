@@ -2,6 +2,8 @@
 
 Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: [setting up your project](#1-setting-up-your-project), [accepting contributions from others](#2-manage-contributions-to-your-project), and [packaging the project to release to the world](#3-package-and-release-your-project).
 
+Note: not every Scorecard check or topic mentioned on this page might be relevant to your project. See below for more on [customizing your checks to your needs](#customize-your-checks-to-your-projects-needs). 
+
 ## 1. Setting up your project
 
 Start your project off strong by focusing on Scorecard checks that help you secure your project dependencies and workflows.
@@ -59,7 +61,9 @@ Deciding how to securely share your code can be difficult. Building locally on y
 
 ### Packaging check verifies if a project is published as a package
 
-The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging) assesses whether a project has been published as a package. The check is currently limited to repositories hosted on GitHub. It looks for [GitHub packaging workflows](https://docs.github.com/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, like npm or PyPI. Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
+The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#packaging) assesses whether a project has been published as a package. The check is currently limited to repositories hosted on GitHub. It looks for [GitHub packaging workflows](https://docs.github.com/packages/learn-github-packages/publishing-a-package) and language-specific GitHub Actions that upload the package to a corresponding hub, like npm or PyPI. 
+
+Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
 
 Packaging your projects makes it easier for users to receive security patches as updates. It also provides information about the release details to your users, which opens the door to more collaboration from your open-source peers.
 
