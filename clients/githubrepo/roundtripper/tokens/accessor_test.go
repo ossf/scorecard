@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-//nolint:paralleltest
+//nolint:paralleltest // test uses t.Setenv
 func TestMakeTokenAccessor(t *testing.T) {
 	tests := []struct {
 		name           string

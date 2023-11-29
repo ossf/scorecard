@@ -72,7 +72,6 @@ linters:
     - wrapcheck
   disable:
     - exhaustruct # initializing every struct makes tests longer without much benefit (spencerschrock)
-    - paralleltest # need to investigate rate limit issues before re-enabling? (#2527)
     - testpackage # tests don't need their own package (spencerschrock)
   presets:
     - bugs

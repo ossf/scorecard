@@ -472,6 +472,7 @@ func TestJsonScorecardRawResult_AddMaintainedRawResults(t *testing.T) {
 }
 
 func TestSetDefaultCommitData(t *testing.T) {
+	t.Parallel()
 	// Define some test data.
 	changesets := []checker.Changeset{
 		{
@@ -657,6 +658,7 @@ func TestJsonScorecardRawResult_AddCodeReviewRawResults(t *testing.T) {
 }
 
 func TestAddCodeReviewRawResults(t *testing.T) {
+	t.Parallel()
 	r := &jsonScorecardRawResult{}
 	cr := &checker.CodeReviewData{
 		DefaultBranchChangesets: []checker.Changeset{
@@ -729,6 +731,7 @@ func TestAddCodeReviewRawResults(t *testing.T) {
 }
 
 func TestAddLicenseRawResults(t *testing.T) {
+	t.Parallel()
 	// Create a new jsonScorecardRawResult instance
 	r := &jsonScorecardRawResult{}
 
@@ -793,6 +796,7 @@ func TestAddLicenseRawResults(t *testing.T) {
 }
 
 func TestAddBinaryArtifactRawResults(t *testing.T) {
+	t.Parallel()
 	r := &jsonScorecardRawResult{}
 	ba := &checker.BinaryArtifactData{
 		Files: []checker.File{
@@ -831,6 +835,7 @@ func TestAddBinaryArtifactRawResults(t *testing.T) {
 }
 
 func TestAddSecurityPolicyRawResults(t *testing.T) {
+	t.Parallel()
 	r := &jsonScorecardRawResult{}
 	sp := &checker.SecurityPolicyData{
 		PolicyFiles: []checker.SecurityPolicyFile{
@@ -917,6 +922,7 @@ func TestAddSecurityPolicyRawResults(t *testing.T) {
 }
 
 func TestAddVulnerabilitiesRawResults(t *testing.T) {
+	t.Parallel()
 	r := &jsonScorecardRawResult{}
 	vd := &checker.VulnerabilitiesData{
 		Vulnerabilities: []clients.Vulnerability{
@@ -955,6 +961,7 @@ func TestAddVulnerabilitiesRawResults(t *testing.T) {
 }
 
 func TestAddFuzzingRawResults(t *testing.T) {
+	t.Parallel()
 	r := &jsonScorecardRawResult{}
 	fd := &checker.FuzzingData{
 		Fuzzers: []checker.Tool{
@@ -1040,6 +1047,7 @@ func TestAddFuzzingRawResults(t *testing.T) {
 }
 
 func TestJsonScorecardRawResult(t *testing.T) {
+	t.Parallel()
 	// create a new instance of jsonScorecardRawResult
 	r := &jsonScorecardRawResult{}
 
@@ -1226,6 +1234,7 @@ func intPtr(i int32) *int32 {
 
 //nolint:lll
 func TestScorecardResult_AsRawJSON(t *testing.T) {
+	t.Parallel()
 	type fields struct {
 		Repo       RepoInfo
 		Date       time.Time
@@ -1255,6 +1264,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			r := &ScorecardResult{
 				Repo:       tt.fields.Repo,
 				Date:       tt.fields.Date,
@@ -1344,6 +1354,7 @@ func TestAddBranchProtectionRawResults(t *testing.T) {
 }
 
 func TestFillJSONRawResults(t *testing.T) {
+	t.Parallel()
 	raw := checker.RawResults{
 		LicenseResults: checker.LicenseData{
 			LicenseFiles: []checker.LicenseFile{
