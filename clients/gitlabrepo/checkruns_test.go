@@ -37,7 +37,7 @@ func Test_CheckRuns(t *testing.T) {
 			responsePath: "./testdata/valid-checkruns",
 			want: []clients.CheckRun{
 				{
-					Status:     "pending",
+					Status:     "queued",
 					URL:        "https://example.com/foo/bar/pipelines/48",
 					Conclusion: "",
 				},
