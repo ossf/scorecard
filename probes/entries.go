@@ -39,6 +39,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
@@ -123,6 +124,9 @@ var (
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		notCreatedRecently.Run,
+	}
+	CIIBestPractices = []ProbeImpl{
+		hasOpenSSFBadge.Run,
 	}
 )
 

@@ -16,7 +16,7 @@ jobs:
       pull-requests: write # to create the PR comment
     steps:
       - name: share link to workflow run
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             github.rest.issues.createComment({
@@ -49,16 +49,11 @@ jobs:
           https://gitlab.com/baserow/baserow
           https://gitlab.com/cryptsetup/cryptsetup
           EOF
-      # use shell syntax to escape, since the checks arg goes to CLI when calling scdiff
-      - name: escape comment body
-        id: comment
-        env:
-          BODY: ${{ github.event.comment.body }}
-        run: |
-          echo "body=$BODY" >> $GITHUB_OUTPUT
       - name: configure scdiff
         id: config
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
             const allowedAssociations = ["COLLABORATOR", "CONTRIBUTOR", "MEMBER", "OWNER"];
@@ -76,13 +71,13 @@ jobs:
             core.setOutput('head', response.data.head.sha)
 
             checks = '""'
-            const commentBody = '${{ steps.comment.outputs.body }}'
+            const commentBody = process.env.COMMENT_BODY
             const regex = /\/scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
             if (found && found.length == 2) {
               checks = found[1]
             }
-            core.setOutput('checks', checks)
+            core.exportVariable('SCORECARD_CHECKS', checks)
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ steps.config.outputs.base }}
@@ -98,7 +93,7 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks ${{ steps.config.outputs.checks }} > $HOME/before.json
+            --checks $SCORECARD_CHECKS > $HOME/before.json
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ steps.config.outputs.head }}
@@ -109,7 +104,7 @@ jobs:
         run: |
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
-            --checks ${{ steps.config.outputs.checks }} > $HOME/after.json
+            --checks $SCORECARD_CHECKS > $HOME/after.json
       - name: compare results
         run: |
           go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
