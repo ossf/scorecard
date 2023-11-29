@@ -76,7 +76,6 @@ func Test_checkOSSFuzz(t *testing.T) {
 			mockFuzz.EXPECT().Search(gomock.Any()).
 				DoAndReturn(func(q clients.SearchRequest) (clients.SearchResponse, error) {
 					if tt.wantErr {
-						//nolint:goerr113
 						return clients.SearchResponse{}, errors.New("error")
 					}
 					return tt.response, nil
@@ -138,7 +137,6 @@ func Test_checkCFLite(t *testing.T) {
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
-					//nolint:goerr113
 					return "", errors.New("error")
 				}
 				return tt.fileContent, nil
@@ -490,7 +488,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) ([]byte, error) {
 				if tt.wantErr {
-					//nolint:goerr113
 					return nil, errors.New("error")
 				}
 				return []byte(tt.fileContent), nil

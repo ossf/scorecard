@@ -714,14 +714,14 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 			name: "empty",
 			args: args{
 				name: "",
-				e:    errors.New("runtime error"), //nolint:goerr113
+				e:    errors.New("runtime error"),
 			},
 			want: CheckResult{
 				Name:    "",
 				Reason:  "runtime error",
 				Score:   -1,
 				Version: 2,
-				Error:   errors.New("runtime error"), //nolint:goerr113
+				Error:   errors.New("runtime error"),
 			},
 		},
 	}

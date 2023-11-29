@@ -44,7 +44,7 @@ func Test_Maintained(t *testing.T) {
 	otheruser := clients.User{
 		Login: "someone-else",
 	}
-	//nolint:govet,goerr113
+	//nolint:govet
 	tests := []struct {
 		err        error
 		name       string

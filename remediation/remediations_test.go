@@ -66,7 +66,6 @@ func (s stubDigester) Digest(name string) (string, error) {
 	}
 	hash, ok := m[name]
 	if !ok {
-		//nolint:goerr113
 		return "", fmt.Errorf("no hash for image: %q", name)
 	}
 	return fmt.Sprintf("sha256:%s", hash), nil
