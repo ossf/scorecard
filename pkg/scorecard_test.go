@@ -294,7 +294,6 @@ func TestExperimentalRunProbes(t *testing.T) {
 				}, nil
 			})
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
-			defer ctrl.Finish()
 			got, err := ExperimentalRunProbes(context.Background(),
 				repo,
 				tt.args.commitSHA,
