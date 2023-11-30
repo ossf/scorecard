@@ -237,7 +237,7 @@ func RunScorecard(ctx context.Context,
 	)
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
+// ExperimentalRunProbes is experimental. Do not depend on it, it may be removed at any point.
 func ExperimentalRunProbes(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
