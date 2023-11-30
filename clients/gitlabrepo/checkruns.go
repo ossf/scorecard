@@ -50,10 +50,42 @@ func checkRunsFrom(data []*gitlab.PipelineInfo) []clients.CheckRun {
 	for _, pipelineInfo := range data {
 		// TODO: Can get more info from GitLab API here (e.g. pipeline name, URL)
 		// https://docs.gitlab.com/ee/api/pipelines.html#get-a-pipelines-test-report
-		checkRuns = append(checkRuns, clients.CheckRun{
-			Status: pipelineInfo.Status,
-			URL:    pipelineInfo.WebURL,
-		})
+		checkRuns = append(checkRuns, parseGitlabStatus(pipelineInfo))
 	}
 	return checkRuns
+}
+
+// Conclusion does not exist in the pipelines for gitlab,
+// so we parse the status to determine the conclusion if it exists.
+func parseGitlabStatus(info *gitlab.PipelineInfo) clients.CheckRun {
+	checkrun := clients.CheckRun{
+		URL: info.WebURL,
+	}
+	completed := "completed"
+
+	switch info.Status {
+	case "created", "waiting_for_resource", "preparing", "pending", "scheduled":
+		checkrun.Status = "queued"
+	case "running":
+		checkrun.Status = "in_progress"
+	case "failed":
+		checkrun.Status = completed
+		checkrun.Conclusion = "failure"
+	case "success":
+		checkrun.Status = completed
+		checkrun.Conclusion = "success"
+	case "canceled":
+		checkrun.Status = completed
+		checkrun.Conclusion = "cancelled"
+	case "skipped":
+		checkrun.Status = completed
+		checkrun.Conclusion = "skipped"
+	case "manual":
+		checkrun.Status = completed
+		checkrun.Conclusion = "action_required"
+	default:
+		checkrun.Status = info.Status
+	}
+
+	return checkrun
 }
