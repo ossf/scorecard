@@ -729,7 +729,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					t:         checker.DependencyUseTypePipCommand,
 				},
 				{
-					snippet:   "bash <(curl --silent --show-error \"https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash\")",
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
 					startLine: 68,
 					endLine:   68,
 					t:         checker.DependencyUseTypeDownloadThenRun,
@@ -994,7 +994,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					t:         checker.DependencyUseTypeNugetCommand,
 				},
 				{
-					snippet:   "bash <(curl --silent --show-error \"https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash\")",
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
 					startLine: 69,
 					endLine:   69,
 					t:         checker.DependencyUseTypeDownloadThenRun,

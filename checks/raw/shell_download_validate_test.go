@@ -314,6 +314,7 @@ func Test_isNpmUnpinnedDownload(t *testing.T) {
 }
 
 func Test_hasUnpinnedURLs(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd []string
 	}
@@ -431,6 +432,7 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if actual := hasUnpinnedURLs(tt.args.cmd); actual != tt.expected {
 				t.Errorf("hasUnpinnedURLs() = %v, expected %v for %v", actual, tt.expected, tt.name)
 			}
