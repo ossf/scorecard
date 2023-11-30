@@ -174,6 +174,43 @@ var (
 		notCreatedRecently.Probe:                            notCreatedRecently.Run,
 	}
 
+	ProbeChecks = map[string]string {
+		securityPolicyPresent.Probe:                         "SecurityPolicy",
+		securityPolicyContainsLinks.Probe:                   "SecurityPolicy",
+		securityPolicyContainsVulnerabilityDisclosure.Probe: "SecurityPolicy",
+		securityPolicyContainsText.Probe:                    "SecurityPolicy",
+		toolRenovateInstalled.Probe:                         "DependencyToolUpdates",
+		toolDependabotInstalled.Probe:                       "DependencyToolUpdates",
+		toolPyUpInstalled.Probe:                             "DependencyToolUpdates",
+		fuzzedWithOSSFuzz.Probe:                             "Fuzzing",
+		fuzzedWithGoNative.Probe:                            "Fuzzing",
+		fuzzedWithPythonAtheris.Probe:                       "Fuzzing",
+		fuzzedWithCLibFuzzer.Probe:                          "Fuzzing",
+		fuzzedWithCppLibFuzzer.Probe:                        "Fuzzing",
+		fuzzedWithSwiftLibFuzzer.Probe:                      "Fuzzing",
+		fuzzedWithRustCargofuzz.Probe:                       "Fuzzing",
+		fuzzedWithJavaJazzerFuzzer.Probe:                    "Fuzzing",
+		fuzzedWithClusterFuzzLite.Probe:                     "Fuzzing",
+		fuzzedWithPropertyBasedHaskell.Probe:                "Fuzzing",
+		fuzzedWithPropertyBasedTypescript.Probe:             "Fuzzing",
+		fuzzedWithPropertyBasedJavascript.Probe:             "Fuzzing",
+		packagedWithAutomatedWorkflow.Probe:                 "Packaging",
+		hasLicenseFile.Probe:                                "License",
+		hasFSFOrOSIApprovedLicense.Probe:                    "License",
+		hasLicenseFileAtTopDir.Probe:                        "License",
+		contributorsFromOrgOrCompany.Probe:                  "Contributors",
+		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
+		sastToolCodeQLInstalled.Probe:                       "SAST",
+		sastToolRunsOnAllCommits.Probe:                      "SAST",
+		sastToolSonarInstalled.Probe:                        "SAST",
+		hasDangerousWorkflowScriptInjection.Probe:           "DangerousWorkflows",
+		hasDangerousWorkflowUntrustedCheckout.Probe:         "DangerousWorkflows",
+		notArchived.Probe:                                   "Maintained",
+		hasRecentCommits.Probe:                              "Maintained",
+		issueActivityByProjectMember.Probe:                  "Maintained",
+		notCreatedRecently.Probe:                            "Maintained",
+	}
+
 	errProbeNotFound = errors.New("probe not found")
 )
 

@@ -38,21 +38,11 @@ import (
 // errEmptyRepository indicates the repository is empty.
 var errEmptyRepository = errors.New("repository empty")
 
-func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	resultsCh chan checker.CheckResult,
-) {
-	request := checker.CheckRequest{
-		Ctx:                   ctx,
-		RepoClient:            repoClient,
-		OssFuzzRepo:           ossFuzzRepoClient,
-		CIIClient:             ciiClient,
-		VulnerabilitiesClient: vulnsClient,
-		Repo:                  repo,
-		RawResults:            raw,
-	}
+func runEnabledChecks(ctx context.Context, 
+						repo clients.Repo, 
+						request checker.CheckRequest,
+						checksToRun checker.CheckNameToFnMap,
+						resultsCh chan checker.CheckResult) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName
@@ -150,29 +140,28 @@ func runScorecard(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
+	request := checker.CheckRequest{
+		Ctx:                   ctx,
+		RepoClient:            repoClient,
+		OssFuzzRepo:           ossFuzzRepoClient,
+		CIIClient:             ciiClient,
+		VulnerabilitiesClient: vulnsClient,
+		Repo:                  repo,
+		RawResults:            &ret.RawResults,
+	}
+
+	// If the user runs probes
 	if len(probesToRun) > 0 {
-		probeFindings := make([]finding.Finding, 0)
-		for _, probeName := range probesToRun {
-			probeRunner, err := probes.GetProbeRunner(probeName)
-			if err != nil {
-				msg := fmt.Sprintf("could not find probe: %s", probeName)
-				return ScorecardResult{},
-					sce.WithMessage(sce.ErrScorecardInternal, msg)
-			}
-			findings, _, err := probeRunner(&ret.RawResults)
-			if err != nil {
-				return ScorecardResult{},
-					sce.WithMessage(sce.ErrScorecardInternal, "ending run")
-			}
-			probeFindings = append(probeFindings, findings...)
+		findings, err := runEnabledProbes(request, probesToRun, ret)
+		if err != nil {
+			return ScorecardResult{}, err
 		}
-		ret.Findings = probeFindings
+		ret.Findings = findings
 		return ret, nil
 	}
 
-	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
-		repoClient, ossFuzzRepoClient,
-		ciiClient, vulnsClient, resultsCh)
+	// If the user runs checks
+	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
@@ -195,6 +184,33 @@ func runScorecard(ctx context.Context,
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+func runEnabledProbes(request checker.CheckRequest,
+						probesToRun []string,
+						ret ScorecardResult) ([]finding.Finding, error) {
+	// Add RawResults to request
+	err := addRawResults(request, probesToRun, &ret)
+	if err != nil {
+		return nil, err
+	}		
+
+	probeFindings := make([]finding.Finding, 0)
+	for _, probeName := range probesToRun {
+		// Get the probe Run func
+		probeRunner, err := probes.GetProbeRunner(probeName)
+		if err != nil {
+			msg := fmt.Sprintf("could not find probe: %s", probeName)
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, msg)
+		}
+		// Run probe
+		findings, _, err := probeRunner(&ret.RawResults)
+		if err != nil {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+		}
+		probeFindings = append(probeFindings, findings...)
+	}	
+	return probeFindings, nil
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.

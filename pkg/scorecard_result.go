@@ -29,6 +29,12 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	"github.com/ossf/scorecard/v4/checks/raw/github"
+	"github.com/ossf/scorecard/v4/checks/raw/gitlab"
+	"github.com/ossf/scorecard/v4/probes"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -223,5 +229,90 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	table.SetRowLine(true)
 	table.Render()
 
+	return nil
+}
+
+func addRawResults(request checker.CheckRequest, probesToRun []string, ret *ScorecardResult) error {
+	probeCheckNames := make([]string, 0)
+	for _, probeName := range probesToRun {
+		probeCheckName := probes.ProbeChecks[probeName]
+		if !contains(probeCheckNames, probeCheckName) {
+			probeCheckNames = append(probeCheckNames, probeName)
+			switch probeCheckName {
+			case "SecurityPolicy":
+				rawData, err := raw.SecurityPolicy(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.SecurityPolicyResults = rawData
+			case "DependencyToolUpdates":
+				rawData, err := raw.DependencyUpdateTool(request.RepoClient)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.DependencyUpdateToolResults = rawData
+			case "Fuzzing":
+				rawData, err := raw.Fuzzing(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.FuzzingResults = rawData
+			case "Packaging":
+				switch request.RepoClient.(type) {
+				case *githubrepo.Client:
+					rawData, err := github.Packaging(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.PackagingResults = rawData
+				case *gitlabrepo.Client:
+					rawData, err := gitlab.Packaging(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.PackagingResults = rawData
+				default:
+					return sce.WithMessage(sce.ErrScorecardInternal,
+											"Only github and gitlab are supported")
+				}
+			case "License":
+				rawData, err := raw.License(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.LicenseResults = rawData
+			case "Contributors":
+				rawData, err := raw.Contributors(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.ContributorsResults = rawData
+			case "Vulnerabilities":
+				rawData, err := raw.Vulnerabilities(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.VulnerabilitiesResults = rawData
+			case "SAST":
+				rawData, err := raw.SAST(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.SASTResults = rawData
+			case "DangerousWorkflows":
+				rawData, err := raw.DangerousWorkflow(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.DangerousWorkflowResults = rawData
+			case "Maintained":
+				rawData, err := raw.Maintained(&request)
+				if err != nil {
+					return err
+				}
+				ret.RawResults.MaintainedResults = rawData
+			}
+		}
+	}
 	return nil
 }
