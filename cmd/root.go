@@ -133,32 +133,18 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	if len(enabledProbes) > 0 {
-		repoResult, err = pkg.ExperimentalRunProbes(
-			ctx,
-			repoURI,
-			o.Commit,
-			o.CommitDepth,
-			enabledChecks,
-			enabledProbes,
-			repoClient,
-			ossFuzzRepoClient,
-			ciiClient,
-			vulnsClient,
-		)
-	} else {
-		repoResult, err = pkg.RunScorecard(
-			ctx,
-			repoURI,
-			o.Commit,
-			o.CommitDepth,
-			enabledChecks,
-			repoClient,
-			ossFuzzRepoClient,
-			ciiClient,
-			vulnsClient,
-		)
-	}
+	repoResult, err = pkg.ExperimentalRunProbes(
+		ctx,
+		repoURI,
+		o.Commit,
+		o.CommitDepth,
+		enabledChecks,
+		enabledProbes,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
 	}
