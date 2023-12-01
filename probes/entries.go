@@ -174,14 +174,14 @@ var (
 		notCreatedRecently.Probe:                            notCreatedRecently.Run,
 	}
 
-	ProbeChecks = map[string]string {
-		securityPolicyPresent.Probe:                         "SecurityPolicy",
-		securityPolicyContainsLinks.Probe:                   "SecurityPolicy",
-		securityPolicyContainsVulnerabilityDisclosure.Probe: "SecurityPolicy",
-		securityPolicyContainsText.Probe:                    "SecurityPolicy",
-		toolRenovateInstalled.Probe:                         "DependencyToolUpdates",
-		toolDependabotInstalled.Probe:                       "DependencyToolUpdates",
-		toolPyUpInstalled.Probe:                             "DependencyToolUpdates",
+	ProbeChecks = map[string]string{
+		securityPolicyPresent.Probe:                         "Security-Policy",
+		securityPolicyContainsLinks.Probe:                   "Security-Policy",
+		securityPolicyContainsVulnerabilityDisclosure.Probe: "Security-Policy",
+		securityPolicyContainsText.Probe:                    "Security-Policy",
+		toolRenovateInstalled.Probe:                         "Dependency-Update-Tool",
+		toolDependabotInstalled.Probe:                       "Dependency-Update-Tool",
+		toolPyUpInstalled.Probe:                             "Dependency-Update-Tool",
 		fuzzedWithOSSFuzz.Probe:                             "Fuzzing",
 		fuzzedWithGoNative.Probe:                            "Fuzzing",
 		fuzzedWithPythonAtheris.Probe:                       "Fuzzing",
@@ -203,8 +203,8 @@ var (
 		sastToolCodeQLInstalled.Probe:                       "SAST",
 		sastToolRunsOnAllCommits.Probe:                      "SAST",
 		sastToolSonarInstalled.Probe:                        "SAST",
-		hasDangerousWorkflowScriptInjection.Probe:           "DangerousWorkflows",
-		hasDangerousWorkflowUntrustedCheckout.Probe:         "DangerousWorkflows",
+		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
+		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
 		notArchived.Probe:                                   "Maintained",
 		hasRecentCommits.Probe:                              "Maintained",
 		issueActivityByProjectMember.Probe:                  "Maintained",

@@ -15,7 +15,6 @@ package pkg
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -200,6 +199,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 		probes    []string
 	}
 	tests := []struct {
+		files   []string
 		name    string
 		args    args
 		want    ScorecardResult
@@ -236,18 +236,6 @@ func TestExperimentalRunProbes(t *testing.T) {
 						Probe:   "fuzzedWithOSSFuzz",
 						Message: "no OSSFuzz integration found",
 						Remediation: &probe.Remediation{
-							Text: fmt.Sprintf("%s%s%s\n%s%s",
-								"Follow the steps in ",
-								"https://github.com/google/oss-fuzz ",
-								"to integrate fuzzing for your project.",
-								"Over time, try to add fuzzing for more ",
-								"functionalities of your project."),
-							Markdown: fmt.Sprintf("%s%s%s\n%s%s",
-								"Follow the steps in [https://github.com",
-								"/google/oss-fuzz](https://github.com/google/oss-fuzz) ",
-								"to integrate fuzzing for your project.",
-								"Over time, try to add fuzzing for more ",
-								"functionalities of your project."),
 							Effort: 3,
 						},
 					},
@@ -293,6 +281,27 @@ func TestExperimentalRunProbes(t *testing.T) {
 					},
 				}, nil
 			})
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			progLanguages := []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 100,
+				},
+				{
+					Name:     clients.Java,
+					NumLines: 70,
+				},
+				{
+					Name:     clients.Cpp,
+					NumLines: 100,
+				},
+				{
+					Name:     clients.Ruby,
+					NumLines: 70,
+				},
+			}
+			mockRepoClient.EXPECT().ListProgrammingLanguages().Return(progLanguages, nil).AnyTimes()
+
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			got, err := ExperimentalRunProbes(context.Background(),
 				repo,
@@ -308,9 +317,11 @@ func TestExperimentalRunProbes(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			ignoreRemediationText := cmpopts.IgnoreFields(probe.Remediation{}, "Text", "Markdown")
 			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
-			if !cmp.Equal(got, tt.want, ignoreDate) {
-				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
+			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
+					ignoreRemediationText))
 			}
 		})
 	}

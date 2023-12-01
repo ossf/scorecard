@@ -38,11 +38,12 @@ import (
 // errEmptyRepository indicates the repository is empty.
 var errEmptyRepository = errors.New("repository empty")
 
-func runEnabledChecks(ctx context.Context, 
-						repo clients.Repo, 
-						request checker.CheckRequest,
-						checksToRun checker.CheckNameToFnMap,
-						resultsCh chan checker.CheckResult) {
+func runEnabledChecks(ctx context.Context,
+	repo clients.Repo,
+	request *checker.CheckRequest,
+	checksToRun checker.CheckNameToFnMap,
+	resultsCh chan checker.CheckResult,
+) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName
@@ -53,7 +54,7 @@ func runEnabledChecks(ctx context.Context,
 			runner := checker.NewRunner(
 				checkName,
 				repo.URI(),
-				&request,
+				request,
 			)
 
 			resultsCh <- runner.Run(ctx, checkFn)
@@ -140,7 +141,7 @@ func runScorecard(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
-	request := checker.CheckRequest{
+	request := &checker.CheckRequest{
 		Ctx:                   ctx,
 		RepoClient:            repoClient,
 		OssFuzzRepo:           ossFuzzRepoClient,
@@ -152,7 +153,7 @@ func runScorecard(ctx context.Context,
 
 	// If the user runs probes
 	if len(probesToRun) > 0 {
-		findings, err := runEnabledProbes(request, probesToRun, ret)
+		findings, err := runEnabledProbes(request, probesToRun, &ret)
 		if err != nil {
 			return ScorecardResult{}, err
 		}
@@ -186,14 +187,15 @@ func runScorecard(ctx context.Context,
 	return ret, nil
 }
 
-func runEnabledProbes(request checker.CheckRequest,
-						probesToRun []string,
-						ret ScorecardResult) ([]finding.Finding, error) {
+func runEnabledProbes(request *checker.CheckRequest,
+	probesToRun []string,
+	ret *ScorecardResult,
+) ([]finding.Finding, error) {
 	// Add RawResults to request
-	err := addRawResults(request, probesToRun, &ret)
+	err := populateRawResults(request, probesToRun, ret)
 	if err != nil {
 		return nil, err
-	}		
+	}
 
 	probeFindings := make([]finding.Finding, 0)
 	for _, probeName := range probesToRun {
@@ -209,7 +211,7 @@ func runEnabledProbes(request checker.CheckRequest,
 			return nil, sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}
 		probeFindings = append(probeFindings, findings...)
-	}	
+	}
 	return probeFindings, nil
 }
 
