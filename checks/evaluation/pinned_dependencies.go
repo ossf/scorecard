@@ -95,8 +95,8 @@ func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
 func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Finding, error) {
 	findings := make([]finding.Finding, 0)
 
-	for _, e := range r.ProcessingErrors {
-		e := e
+	for i := range r.ProcessingErrors {
+		e := r.ProcessingErrors[i]
 		f := finding.Finding{
 			Message:  generateTextIncompleteResults(e),
 			Location: &e.Location,
@@ -217,7 +217,8 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 
 	for i := range findings {
 		f := findings[i]
-		if f.Outcome == finding.OutcomeNotApplicable {
+		switch f.Outcome {
+		case finding.OutcomeNotApplicable:
 			if f.Location != nil {
 				dl.Debug(&checker.LogMessage{
 					Path:      f.Location.Path,
@@ -233,7 +234,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				})
 			}
 			continue
-		} else if f.Outcome == finding.OutcomeNegative {
+		case finding.OutcomeNegative:
 			lm := &checker.LogMessage{
 				Path:      f.Location.Path,
 				Type:      f.Location.Type,
@@ -247,11 +248,13 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				lm.Remediation = probeRemToRuleRem(f.Remediation)
 			}
 			dl.Warn(lm)
-		} else if f.Outcome == finding.OutcomeNotAvailable {
+		case finding.OutcomeNotAvailable:
 			dl.Info(&checker.LogMessage{
 				Finding: &f,
 			})
 			continue
+		default:
+			// ignore
 		}
 		updatePinningResults(intToDepType[f.Values["dependencyType"]],
 			f.Outcome, f.Location.Snippet,
