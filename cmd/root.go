@@ -123,15 +123,11 @@ func rootCmd(o *options.Options) error {
 	}
 
 	enabledProbes := o.Probes()
-	 if o.Format == options.FormatDefault {
-	 	if len(enabledProbes) > 0 {
-			for _, probeName := range enabledProbes {
-				fmt.Fprintf(os.Stderr, "Starting probe [%s]\n", probeName)
-			}
+	if o.Format == options.FormatDefault {
+		if len(enabledProbes) > 0 {
+			printProbeStart(enabledProbes)
 		} else {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
-			}
+			printCheckStart(enabledChecks)
 		}
 	}
 
@@ -160,14 +156,9 @@ func rootCmd(o *options.Options) error {
 
 	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
-			for _, probeName := range enabledProbes {
-				fmt.Fprintf(os.Stderr, "Finished probe %s\n", probeName)
-			}
+			printProbeResults(enabledProbes)
 		} else {
-			for checkName := range enabledChecks {
-				fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
-			}
-			fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
+			printCheckResults(enabledChecks)
 		}
 	}
 
@@ -188,4 +179,29 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 	return nil
+}
+
+func printProbeStart(enabledProbes []string) {
+	for _, probeName := range enabledProbes {
+		fmt.Fprintf(os.Stderr, "Starting probe [%s]\n", probeName)
+	}
+}
+
+func printCheckStart(enabledChecks checker.CheckNameToFnMap) {
+	for checkName := range enabledChecks {
+		fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+	}
+}
+
+func printProbeResults(enabledProbes []string) {
+	for _, probeName := range enabledProbes {
+		fmt.Fprintf(os.Stderr, "Finished probe %s\n", probeName)
+	}
+}
+
+func printCheckResults(enabledChecks checker.CheckNameToFnMap) {
+	for checkName := range enabledChecks {
+		fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+	}
+	fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 }
