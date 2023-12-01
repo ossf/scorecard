@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfUntrustedBinaryArtifacts
+package freeOfUnverifiedBinaryArtifacts
 
 import (
 	"testing"

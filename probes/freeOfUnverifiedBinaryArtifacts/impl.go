@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfUntrustedBinaryArtifacts
+package freeOfUnverifiedBinaryArtifacts
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "freeOfUntrustedBinaryArtifacts"
+const Probe = "freeOfUnverifiedBinaryArtifacts"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

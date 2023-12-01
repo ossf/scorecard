@@ -18,7 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/freeOfUntrustedBinaryArtifacts"
+	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
@@ -27,7 +27,7 @@ func BinaryArtifacts(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		freeOfUntrustedBinaryArtifacts.Probe,
+		freeOfUnverifiedBinaryArtifacts.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {

@@ -27,7 +27,7 @@ func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	lineStart := uint(123)
 	negativeFinding := finding.Finding{
-		Probe:   "freeOfUntrustedBinaryArtifacts",
+		Probe:   "freeOfUnverifiedBinaryArtifacts",
 		Outcome: finding.OutcomeNegative,
 
 		Location: &finding.Location{
@@ -46,7 +46,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			name: "no binary artifacts",
 			findings: []finding.Finding{
 				{
-					Probe:   "freeOfUntrustedBinaryArtifacts",
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -68,7 +68,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			name: "two binary artifact",
 			findings: []finding.Finding{
 				{
-					Probe:   "freeOfUntrustedBinaryArtifacts",
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
 					Outcome: finding.OutcomeNegative,
 					Location: &finding.Location{
 						Path:      "path",
@@ -77,7 +77,7 @@ func TestBinaryArtifacts(t *testing.T) {
 					},
 				},
 				{
-					Probe:   "freeOfUntrustedBinaryArtifacts",
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
 					Outcome: finding.OutcomeNegative,
 					Location: &finding.Location{
 						Path:      "path",
