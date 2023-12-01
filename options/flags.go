@@ -181,7 +181,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	allowedFormats := []string{
 		FormatDefault,
 		FormatJSON,
-		FormatPJSON,
 	}
 
 	if o.isSarifEnabled() {
