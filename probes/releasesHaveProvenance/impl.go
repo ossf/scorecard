@@ -111,6 +111,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f.Values = map[string]int{
+			"totalReleases": len(releases),
+			release.TagName: int(ValueTypeRelease),
+		}
 		findings = append(findings, *f)
 
 		if totalReleases >= releaseLookBack {

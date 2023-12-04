@@ -108,9 +108,10 @@ func TestSignedReleases(t *testing.T) {
 				negativeProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
-				Score:        8,
-				NumberOfInfo: 1,
-				NumberOfWarn: 1,
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -120,8 +121,9 @@ func TestSignedReleases(t *testing.T) {
 				positiveProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
-				Score:        10,
-				NumberOfInfo: 2,
+				Score:         10,
+				NumberOfInfo:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -131,9 +133,10 @@ func TestSignedReleases(t *testing.T) {
 				positiveProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
-				Score:        checker.MaxResultScore,
-				NumberOfInfo: 1,
-				NumberOfWarn: 1,
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 
@@ -171,9 +174,10 @@ func TestSignedReleases(t *testing.T) {
 				negativeProvenanceProbe(3, release2, asset2),
 			},
 			result: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 3,
-				NumberOfWarn: 13,
+				Score:         6,
+				NumberOfInfo:  3,
+				NumberOfWarn:  13,
+				NumberOfDebug: 3,
 			},
 		},
 		{
@@ -227,9 +231,10 @@ func TestSignedReleases(t *testing.T) {
 				negativeProvenanceProbe(5, release4, asset3),
 			},
 			result: scut.TestReturn{
-				Score:        7,
-				NumberOfInfo: 4,
-				NumberOfWarn: 26,
+				Score:         7,
+				NumberOfInfo:  4,
+				NumberOfWarn:  26,
+				NumberOfDebug: 5,
 			},
 		},
 		{
@@ -283,9 +288,10 @@ func TestSignedReleases(t *testing.T) {
 				negativeProvenanceProbe(5, release4, asset3),
 			},
 			result: scut.TestReturn{
-				Score:        8,
-				NumberOfInfo: 7,
-				NumberOfWarn: 23,
+				Score:         8,
+				NumberOfInfo:  7,
+				NumberOfWarn:  23,
+				NumberOfDebug: 5,
 			},
 		},
 	}

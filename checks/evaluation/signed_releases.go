@@ -39,10 +39,27 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
 	// releases. Therefore, check for any finding with OutcomeNotApplicable.
+	loggedReleases := make([]string, 0)
 	for i := range findings {
 		f := &findings[i]
+
+		// Debug release name
+		releaseName, err := getReleaseName(f)
+		if err != nil {
+			e := sce.WithMessage(sce.ErrScorecardInternal, "could not get release name")
+			return checker.CreateRuntimeErrorResult(name, e)
+		}
+		if !contains(loggedReleases, releaseName) {
+			dl.Debug(&checker.LogMessage{
+				Text: fmt.Sprintf("GitHub release found: %s", releaseName),
+			})
+			loggedReleases = append(loggedReleases, releaseName)
+		}
+
+		// Check if outcome is NotApplicable
 		if f.Outcome == finding.OutcomeNotApplicable {
 			dl.Warn(&checker.LogMessage{
 				Text: "no GitHub releases found",
@@ -62,23 +79,18 @@ func SignedReleases(name string,
 		if f.Outcome == finding.OutcomePositive {
 			totalPositive++
 
+			releaseName, err := getReleaseName(f)
+			if err != nil {
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+
 			switch f.Probe {
 			case releasesAreSigned.Probe:
-				releaseName, err := getReleaseName(f.Values, int(releasesAreSigned.ValueTypeRelease))
-				if err != nil {
-					return checker.CreateRuntimeErrorResult(name, err)
-				}
-
 				if _, ok := releaseMap[releaseName]; !ok {
 					releaseMap[releaseName] = 8
 				}
 				totalReleases = f.Values["totalReleases"]
 			case releasesHaveProvenance.Probe:
-				releaseName, err := getReleaseName(f.Values, int(releasesHaveProvenance.ValueTypeRelease))
-				if err != nil {
-					return checker.CreateRuntimeErrorResult(name, err)
-				}
-
 				releaseMap[releaseName] = 10
 				totalReleases = f.Values["totalReleases"]
 			}
@@ -108,11 +120,28 @@ func SignedReleases(name string,
 	return checker.CreateResultWithScore(name, reason, score)
 }
 
-func getReleaseName(m map[string]int, value int) (string, error) {
+func getReleaseName(f *finding.Finding) (string, error) {
+	m := f.Values
 	for k, v := range m {
+		var value int
+		switch f.Probe {
+		case releasesAreSigned.Probe:
+			value = int(releasesAreSigned.ValueTypeRelease)
+		case releasesHaveProvenance.Probe:
+			value = int(releasesHaveProvenance.ValueTypeRelease)
+		}
 		if v == value {
 			return k, nil
 		}
 	}
 	return "", sce.WithMessage(sce.ErrScorecardInternal, "could not get release tag")
+}
+
+func contains(releases []string, release string) bool {
+	for _, r := range releases {
+		if r == release {
+			return true
+		}
+	}
+	return false
 }

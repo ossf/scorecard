@@ -116,6 +116,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f.Values = map[string]int{
 			"totalReleases": len(releases),
+			release.TagName: int(ValueTypeRelease),
 		}
 		findings = append(findings, *f)
 	}
