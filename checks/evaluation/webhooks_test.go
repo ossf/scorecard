@@ -39,7 +39,7 @@ func TestWebhooks(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 10,
+				Score: checker.MaxResultScore,
 			},
 		},
 		{
@@ -66,7 +66,7 @@ func TestWebhooks(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 10,
+				Score: checker.MaxResultScore,
 			},
 		},
 		{
