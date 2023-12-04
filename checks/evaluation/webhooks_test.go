@@ -17,6 +17,7 @@ package evaluation
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -209,7 +210,7 @@ func TestWebhooks(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score: checker.MinResultScore,
 			},
 		},
 	}
