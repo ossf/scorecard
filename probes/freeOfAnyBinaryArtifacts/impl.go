@@ -38,7 +38,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 
 	// Apply the policy evaluation.
-	if r.Files == nil || len(r.Files) == 0 {
+	if len(r.Files) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Repository does not have any binary artifacts.", nil,
 			finding.OutcomePositive)
