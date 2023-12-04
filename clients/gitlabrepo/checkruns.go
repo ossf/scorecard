@@ -61,7 +61,7 @@ func parseGitlabStatus(info *gitlab.PipelineInfo) clients.CheckRun {
 	checkrun := clients.CheckRun{
 		URL: info.WebURL,
 	}
-	completed := "completed"
+	const completed = "completed"
 
 	switch info.Status {
 	case "created", "waiting_for_resource", "preparing", "pending", "scheduled":
