@@ -17,6 +17,7 @@ package evaluation
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
@@ -51,7 +52,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 10,
+				Score: checker.MaxResultScore,
 			},
 		},
 		{
@@ -122,7 +123,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				negativeFinding,
 			},
 			result: scut.TestReturn{
-				Score:        0,
+				Score:        checker.MinResultScore,
 				NumberOfWarn: 12,
 			},
 		},
@@ -130,7 +131,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			name:     "invalid findings",
 			findings: []finding.Finding{},
 			result: scut.TestReturn{
-				Score: -1,
+				Score: checker.InconclusiveResultScore,
 				Error: sce.ErrScorecardInternal,
 			},
 		},
