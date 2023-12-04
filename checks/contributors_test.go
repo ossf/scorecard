@@ -143,7 +143,7 @@ func TestContributors(t *testing.T) {
 			},
 		},
 		{
-			err:     errors.New("error"), //nolint:goerr113
+			err:     errors.New("error"),
 			name:    "Error getting contributors",
 			contrib: []clients.User{},
 			expected: checker.CheckResult{

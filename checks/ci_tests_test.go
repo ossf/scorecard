@@ -29,7 +29,6 @@ func TestCITestsRuntimeError(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-	//nolint:goerr113
 	mockRepoClient.EXPECT().ListCommits().Return(nil, fmt.Errorf("some runtime error")).AnyTimes()
 
 	req := checker.CheckRequest{

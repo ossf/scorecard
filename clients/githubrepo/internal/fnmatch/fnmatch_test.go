@@ -19,6 +19,7 @@ import (
 )
 
 func TestMatch(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		pattern string
 		path    string

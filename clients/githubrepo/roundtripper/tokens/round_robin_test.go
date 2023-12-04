@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-//golint:paralleltest
+//nolint:paralleltest // order dependent
 func TestNext(t *testing.T) {
 	tokens := []string{"token1", "token2", "token3", "token4", "token5"}
 	rr := makeRoundRobinAccessor(tokens)
@@ -35,6 +35,7 @@ func TestNext(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.releaseID != nil {
 				rr.Release(*tt.releaseID)

@@ -26,6 +26,7 @@ import (
 )
 
 func TestSignedReleases(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		releases       []clients.Release
@@ -93,7 +94,9 @@ func TestSignedReleases(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			dl := &scut.TestDetailLogger{}
 			data := &checker.SignedReleasesData{Releases: tc.releases}
 			actualResult := SignedReleases("Signed-Releases", dl, data)
