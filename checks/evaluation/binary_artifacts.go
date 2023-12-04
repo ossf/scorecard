@@ -41,6 +41,9 @@ func BinaryArtifacts(name string,
 
 	for i := range findings {
 		f := &findings[i]
+		if f.Outcome != finding.OutcomeNegative {
+			continue
+		}
 		dl.Warn(&checker.LogMessage{
 			Path:   f.Location.Path,
 			Type:   f.Location.Type,
