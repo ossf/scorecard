@@ -15,66 +15,81 @@
 package evaluation
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 const (
-	releaseIndex0 = 0
-	releaseIndex1 = 1
-	releaseIndex2 = 2
-	releaseIndex3 = 3
-	releaseIndex4 = 4
+	release0 = 0
+	release1 = 1
+	release2 = 2
+	release3 = 3
+	release4 = 4
 )
 
 const (
-	assetIndex0 = 0
-	assetIndex1 = 1
-	assetIndex2 = 2
-	assetIndex3 = 3
-	assetIndex4 = 4
-	assetIndex5 = 5
-	assetIndex6 = 6
-	assetIndex7 = 7
-	assetIndex8 = 8
-	assetIndex9 = 9
+	asset0 = 0
+	asset1 = 1
+	asset2 = 2
+	asset3 = 3
+	asset4 = 4
+	asset5 = 5
+	asset6 = 6
+	asset7 = 7
+	asset8 = 8
+	asset9 = 9
 )
 
-func negativeSignedProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+func negativeSignedProbe(totalReleases, release, asset int) finding.Finding {
 	return finding.Finding{
 		Probe:   "releasesAreSigned",
 		Outcome: finding.OutcomeNegative,
 		Values: map[string]int{
-			"totalReleases": totalReleases,
-			"releaseIndex":  releaseindex,
-			"assetIndex":    assetIndex,
+			"totalReleases":                   totalReleases,
+			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
+			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
 		},
 	}
 }
 
-func negativeProvenanceProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+func positiveSignedProbe(totalReleases, release, asset int) finding.Finding {
+	return finding.Finding{
+		Probe:   "releasesAreSigned",
+		Outcome: finding.OutcomePositive,
+		Values: map[string]int{
+			"totalReleases":                   totalReleases,
+			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
+			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
+		},
+	}
+}
+
+func negativeProvenanceProbe(totalReleases, release, asset int) finding.Finding {
 	return finding.Finding{
 		Probe:   "releasesHaveProvenance",
 		Outcome: finding.OutcomeNegative,
 		Values: map[string]int{
-			"totalReleases": totalReleases,
-			"releaseIndex":  releaseindex,
-			"assetIndex":    assetIndex,
+			"totalReleases":                   totalReleases,
+			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
+			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
 		},
 	}
 }
 
-func positiveProvenanceProbe(totalReleases, releaseindex, assetIndex int) finding.Finding {
+func positiveProvenanceProbe(totalReleases, release, asset int) finding.Finding {
 	return finding.Finding{
 		Probe:   "releasesHaveProvenance",
 		Outcome: finding.OutcomePositive,
 		Values: map[string]int{
-			"totalReleases": totalReleases,
-			"releaseIndex":  releaseindex,
-			"assetIndex":    assetIndex,
+			"totalReleases":                   totalReleases,
+			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
+			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
 		},
 	}
 }
@@ -89,24 +104,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed but no provenance",
 			findings: []finding.Finding{
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
-				{
-					Probe:   "releasesHaveProvenance",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
+				positiveSignedProbe(1, 0, 0),
+				negativeProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
 				Score:        8,
@@ -117,24 +116,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed and has provenance",
 			findings: []finding.Finding{
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
-				{
-					Probe:   "releasesHaveProvenance",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
+				positiveSignedProbe(1, 0, 0),
+				positiveProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
 				Score:        10,
@@ -144,24 +127,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is not signed but has provenance",
 			findings: []finding.Finding{
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
-				{
-					Probe:   "releasesHaveProvenance",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 1,
-						"releaseIndex":  0,
-						"assetIndex":    0,
-					},
-				},
+				negativeSignedProbe(1, 0, 0),
+				positiveProvenanceProbe(1, 0, 0),
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -174,38 +141,34 @@ func TestSignedReleases(t *testing.T) {
 			name: "3 releases. One release has one signed, and one release has two provenance.",
 			findings: []finding.Finding{
 				// Release 1:
-				// Release 1, Asset 1:
-				negativeSignedProbe(3, releaseIndex0, assetIndex0),
-				negativeProvenanceProbe(3, releaseIndex0, assetIndex0),
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 3,
-						"releaseIndex":  0,
-						"assetIndex":    1,
-					},
-				},
-				negativeProvenanceProbe(3, releaseIndex0, assetIndex1),
-				// Release 2:
-				// Release 2, Asset 1:
-				negativeSignedProbe(3, releaseIndex1, assetIndex0),
-				negativeProvenanceProbe(3, releaseIndex1, assetIndex0),
-				// Release 2, Asset 2:
-				negativeSignedProbe(3, releaseIndex1, assetIndex1),
-				negativeProvenanceProbe(3, releaseIndex1, assetIndex1),
-				// Release 2, Asset 3:
-				negativeSignedProbe(3, releaseIndex1, assetIndex2),
-				negativeProvenanceProbe(3, releaseIndex1, assetIndex2),
-				// Release 3, Asset 1:
-				negativeSignedProbe(3, releaseIndex2, assetIndex0),
-				positiveProvenanceProbe(3, releaseIndex2, assetIndex0),
-				// Release 3, Asset 2:
-				negativeSignedProbe(3, releaseIndex2, assetIndex1),
-				positiveProvenanceProbe(3, releaseIndex2, assetIndex1),
-				// Release 3, Asset 3:
-				negativeSignedProbe(3, releaseIndex2, assetIndex2),
-				negativeProvenanceProbe(3, releaseIndex2, assetIndex2),
+				//     Asset 1:
+				negativeSignedProbe(3, release0, asset0),
+				negativeProvenanceProbe(3, release0, asset0),
+				//     Asset 2:
+				positiveSignedProbe(3, release0, asset1),
+				negativeProvenanceProbe(3, release0, asset1),
+				// Release 2
+				//     Asset 1:
+				negativeSignedProbe(3, release1, asset0),
+				negativeProvenanceProbe(3, release1, asset0),
+				// Release 2
+				//     Asset 2:
+				negativeSignedProbe(3, release1, asset1),
+				negativeProvenanceProbe(3, release1, asset1),
+				// Release 2
+				//     Asset 3:
+				negativeSignedProbe(3, release1, asset2),
+				negativeProvenanceProbe(3, release1, asset2),
+				// Release 3
+				//     Asset 1:
+				negativeSignedProbe(3, release2, asset0),
+				positiveProvenanceProbe(3, release2, asset0),
+				//     Asset 2:
+				negativeSignedProbe(3, release2, asset1),
+				positiveProvenanceProbe(3, release2, asset1),
+				//     Asset 3:
+				negativeSignedProbe(3, release2, asset2),
+				negativeProvenanceProbe(3, release2, asset2),
 			},
 			result: scut.TestReturn{
 				Score:        6,
@@ -218,66 +181,50 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				negativeSignedProbe(5, releaseIndex0, assetIndex0),
-				negativeProvenanceProbe(5, releaseIndex0, assetIndex0),
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  0,
-						"assetIndex":    1,
-					},
-				},
-				negativeProvenanceProbe(5, releaseIndex0, assetIndex1),
+				negativeSignedProbe(5, release0, asset0),
+				negativeProvenanceProbe(5, release0, asset0),
+				positiveSignedProbe(5, release0, asset1),
+				negativeProvenanceProbe(5, release0, asset1),
 				// Release 2:
 				// Release 2, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  1,
-						"assetIndex":    0,
-					},
-				},
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex0),
+				positiveSignedProbe(5, release1, asset1),
+				negativeProvenanceProbe(5, release1, asset0),
 				// Release 2, Asset 2:
-				negativeSignedProbe(5, releaseIndex1, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex1),
+				negativeSignedProbe(5, release1, asset1),
+				negativeProvenanceProbe(5, release1, asset1),
 				// Release 2, Asset 3:
-				negativeSignedProbe(5, releaseIndex1, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex2),
+				negativeSignedProbe(5, release1, asset2),
+				negativeProvenanceProbe(5, release1, asset2),
 				// Release 3, Asset 1:
-				negativeSignedProbe(5, releaseIndex2, assetIndex0),
-				positiveProvenanceProbe(5, releaseIndex2, assetIndex0),
+				negativeSignedProbe(5, release2, asset0),
+				positiveProvenanceProbe(5, release2, asset0),
 				// Release 3, Asset 2:
-				negativeSignedProbe(5, releaseIndex2, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex2, assetIndex1),
+				negativeSignedProbe(5, release2, asset1),
+				negativeProvenanceProbe(5, release2, asset1),
 				// Release 3, Asset 3:
-				negativeSignedProbe(5, releaseIndex2, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex2, assetIndex2),
+				negativeSignedProbe(5, release2, asset2),
+				negativeProvenanceProbe(5, release2, asset2),
 				// Release 4, Asset 1:
-				negativeSignedProbe(5, releaseIndex3, assetIndex0),
-				positiveProvenanceProbe(5, releaseIndex3, assetIndex0),
+				negativeSignedProbe(5, release3, asset0),
+				positiveProvenanceProbe(5, release3, asset0),
 				// Release 4, Asset 2:
-				negativeSignedProbe(5, releaseIndex3, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex3, assetIndex1),
+				negativeSignedProbe(5, release3, asset1),
+				negativeProvenanceProbe(5, release3, asset1),
 				// Release 4, Asset 3:
-				negativeSignedProbe(5, releaseIndex3, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex3, assetIndex2),
+				negativeSignedProbe(5, release3, asset2),
+				negativeProvenanceProbe(5, release3, asset2),
 				// Release 5, Asset 1:
-				negativeSignedProbe(5, releaseIndex4, assetIndex0),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex0),
+				negativeSignedProbe(5, release4, asset0),
+				negativeProvenanceProbe(5, release4, asset0),
 				// Release 5, Asset 2:
-				negativeSignedProbe(5, releaseIndex4, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex1),
+				negativeSignedProbe(5, release4, asset1),
+				negativeProvenanceProbe(5, release4, asset1),
 				// Release 5, Asset 3:
-				negativeSignedProbe(5, releaseIndex4, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex2),
+				negativeSignedProbe(5, release4, asset2),
+				negativeProvenanceProbe(5, release4, asset2),
 				// Release 5, Asset 4:
-				negativeSignedProbe(5, releaseIndex4, assetIndex3),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex3),
+				negativeSignedProbe(5, release4, asset3),
+				negativeProvenanceProbe(5, release4, asset3),
 			},
 			result: scut.TestReturn{
 				Score:        7,
@@ -290,90 +237,50 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				negativeSignedProbe(5, releaseIndex0, assetIndex0),
-				negativeProvenanceProbe(5, releaseIndex0, assetIndex0),
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  0,
-						"assetIndex":    1,
-					},
-				},
-				negativeProvenanceProbe(5, releaseIndex0, assetIndex1),
+				negativeSignedProbe(5, release0, asset0),
+				negativeProvenanceProbe(5, release0, asset0),
+				positiveSignedProbe(5, release0, asset1),
+				negativeProvenanceProbe(5, release0, asset1),
 				// Release 2:
 				// Release 2, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  1,
-						"assetIndex":    0,
-					},
-				},
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex0),
+				positiveSignedProbe(5, release1, asset0),
+				negativeProvenanceProbe(5, release1, asset0),
 				// Release 2, Asset 2:
-				negativeSignedProbe(5, releaseIndex1, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex1),
+				negativeSignedProbe(5, release1, asset1),
+				negativeProvenanceProbe(5, release1, asset1),
 				// Release 2, Asset 3:
-				negativeSignedProbe(5, releaseIndex1, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex1, assetIndex2),
+				negativeSignedProbe(5, release1, asset2),
+				negativeProvenanceProbe(5, release1, asset2),
 				// Release 3, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  2,
-						"assetIndex":    0,
-					},
-				},
-				positiveProvenanceProbe(5, releaseIndex2, assetIndex0),
+				positiveSignedProbe(5, release2, asset0),
+				positiveProvenanceProbe(5, release2, asset0),
 				// Release 3, Asset 2:
-				negativeSignedProbe(5, releaseIndex2, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex2, assetIndex1),
+				negativeSignedProbe(5, release2, asset1),
+				negativeProvenanceProbe(5, release2, asset1),
 				// Release 3, Asset 3:
-				negativeSignedProbe(5, releaseIndex2, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex2, assetIndex2),
+				negativeSignedProbe(5, release2, asset2),
+				negativeProvenanceProbe(5, release2, asset2),
 				// Release 4, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  3,
-						"assetIndex":    0,
-					},
-				},
-				positiveProvenanceProbe(5, releaseIndex3, assetIndex0),
+				positiveSignedProbe(5, release3, asset0),
+				positiveProvenanceProbe(5, release3, asset0),
 				// Release 4, Asset 2:
-				negativeSignedProbe(5, releaseIndex3, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex3, assetIndex1),
+				negativeSignedProbe(5, release3, asset1),
+				negativeProvenanceProbe(5, release3, asset1),
 				// Release 4, Asset 3:
-				negativeSignedProbe(5, releaseIndex3, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex3, assetIndex2),
+				negativeSignedProbe(5, release3, asset2),
+				negativeProvenanceProbe(5, release3, asset2),
 				// Release 5, Asset 1:
-				{
-					Probe:   "releasesAreSigned",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalReleases": 5,
-						"releaseIndex":  4,
-						"assetIndex":    0,
-					},
-				},
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex0),
+				positiveSignedProbe(5, release4, asset0),
+				negativeProvenanceProbe(5, release4, asset0),
 				// Release 5, Asset 2:
-				negativeSignedProbe(5, releaseIndex4, assetIndex1),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex1),
+				negativeSignedProbe(5, release4, asset1),
+				negativeProvenanceProbe(5, release4, asset1),
 				// Release 5, Asset 3:
-				negativeSignedProbe(5, releaseIndex4, assetIndex2),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex2),
+				negativeSignedProbe(5, release4, asset2),
+				negativeProvenanceProbe(5, release4, asset2),
 				// Release 5, Asset 4:
-				negativeSignedProbe(5, releaseIndex4, assetIndex3),
-				negativeProvenanceProbe(5, releaseIndex4, assetIndex3),
+				negativeSignedProbe(5, release4, asset3),
+				negativeProvenanceProbe(5, release4, asset3),
 			},
 			result: scut.TestReturn{
 				Score:        8,

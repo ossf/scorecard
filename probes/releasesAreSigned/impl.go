@@ -33,6 +33,16 @@ const (
 	releaseLookBack = 5
 )
 
+// ValueType is the type of a value in the finding values.
+type ValueType int
+
+const (
+	// ValueTypeRelease represents a release name.
+	ValueTypeRelease ValueType = iota
+	// ValueTypeReleaseAsset represents a release asset name.
+	ValueTypeReleaseAsset
+)
+
 var signatureExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -56,7 +66,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		totalReleases++
 		signed := false
-		for assetIndex, asset := range release.Assets {
+		for j := range release.Assets {
+			asset := release.Assets[j]
 			for _, suffix := range signatureExtensions {
 				if !strings.HasSuffix(asset.Name, suffix) {
 					continue
@@ -76,8 +87,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				}
 				f.Values = map[string]int{
 					"totalReleases": len(releases),
-					"releaseIndex":  releaseIndex,
-					"assetIndex":    assetIndex,
+					release.TagName: int(ValueTypeRelease),
+					asset.Name:      int(ValueTypeReleaseAsset),
 				}
 				findings = append(findings, *f)
 				signed = true

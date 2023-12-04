@@ -54,21 +54,32 @@ func SignedReleases(name string,
 
 	totalPositive := 0
 	totalReleases := 0
-	releaseMap := make(map[int]int)
+	releaseMap := make(map[string]int)
 	checker.LogFindings(findings, dl)
 
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			totalPositive++
+
 			switch f.Probe {
 			case releasesAreSigned.Probe:
-				if _, ok := releaseMap[f.Values["releaseIndex"]]; !ok {
-					releaseMap[f.Values["releaseIndex"]] = 8
+				releaseName, err := getReleaseName(f.Values, int(releasesAreSigned.ValueTypeRelease))
+				if err != nil {
+					return checker.CreateRuntimeErrorResult(name, err)
+				}
+
+				if _, ok := releaseMap[releaseName]; !ok {
+					releaseMap[releaseName] = 8
 				}
 				totalReleases = f.Values["totalReleases"]
 			case releasesHaveProvenance.Probe:
-				releaseMap[f.Values["releaseIndex"]] = 10
+				releaseName, err := getReleaseName(f.Values, int(releasesHaveProvenance.ValueTypeRelease))
+				if err != nil {
+					return checker.CreateRuntimeErrorResult(name, err)
+				}
+
+				releaseMap[releaseName] = 10
 				totalReleases = f.Values["totalReleases"]
 			}
 		}
@@ -95,4 +106,13 @@ func SignedReleases(name string,
 	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
 		len(releaseMap), totalReleases, totalPositive)
 	return checker.CreateResultWithScore(name, reason, score)
+}
+
+func getReleaseName(m map[string]int, value int) (string, error) {
+	for k, v := range m {
+		if v == value {
+			return k, nil
+		}
+	}
+	return "", sce.WithMessage(sce.ErrScorecardInternal, "could not get release tag")
 }
