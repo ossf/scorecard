@@ -383,18 +383,14 @@ func TestSignedReleases(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			dl := &scut.TestDetailLogger{}
-			data := &checker.SignedReleasesData{Releases: tc.releases}
-			actualResult := SignedReleases("Signed-Releases", dl, data)
-
-			if !cmp.Equal(tc.expectedResult, actualResult,
-				cmpopts.IgnoreFields(checker.CheckResult{}, "Error")) {
-				t.Errorf("SignedReleases() mismatch (-want +got):\n%s", cmp.Diff(tc.expectedResult, actualResult,
-					cmpopts.IgnoreFields(checker.CheckResult{}, "Error")))
+			dl := scut.TestDetailLogger{}
+			got := SignedReleases(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}
