@@ -122,7 +122,7 @@ func TestWebhooks(t *testing.T) {
 			},
 		},
 		{
-			name: "12/12 webhooks do not have secrets",
+			name: "Score should not drop below min score",
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksWithoutSecret",
