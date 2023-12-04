@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: webhooksWithoutSecret
+id: webhooksUseSecrets
 short: This check determines whether the webhooks defined in the repository have secrets configured to authenticate the origins of requests.
 motivation: >
   Webhooks without secret authorization have the potential to make projects accessible to third-parties.

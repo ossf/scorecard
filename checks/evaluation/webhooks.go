@@ -20,7 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/webhooksWithoutSecret"
+	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
@@ -28,7 +28,7 @@ func Webhooks(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		webhooksWithoutSecret.Probe,
+		webhooksUseSecrets.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {

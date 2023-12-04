@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package webhooksWithoutSecret
+package webhooksUseSecrets
 
 import (
 	"testing"
