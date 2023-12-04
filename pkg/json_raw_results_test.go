@@ -583,7 +583,7 @@ func TestJsonScorecardRawResult_AddOssfBestPracticesRawResults(t *testing.T) {
 				t.Errorf("addOssfBestPracticesRawResults() error = %v, wantError %v", err, test.wantError)
 			}
 			if r.Results.OssfBestPractices.Badge != test.input.Badge.String() {
-				t.Errorf("addOssfBestPracticesRawResults() badge = %v, want %v", r.Results.OssfBestPractices.Badge, test.input.Badge.String()) //nolint:lll
+				t.Errorf("addOssfBestPracticesRawResults() badge = %v, want %v", r.Results.OssfBestPractices.Badge, test.input.Badge.String())
 			}
 		})
 	}
@@ -650,7 +650,7 @@ func TestJsonScorecardRawResult_AddCodeReviewRawResults(t *testing.T) {
 				t.Errorf("addCodeReviewRawResults() error = %v, wantError %v", err, test.wantError)
 			}
 			if len(r.Results.DefaultBranchChangesets) != len(test.input.DefaultBranchChangesets) {
-				t.Errorf("addCodeReviewRawResults() changesets length = %v, want %v", len(r.Results.DefaultBranchChangesets), len(test.input.DefaultBranchChangesets)) //nolint:lll
+				t.Errorf("addCodeReviewRawResults() changesets length = %v, want %v", len(r.Results.DefaultBranchChangesets), len(test.input.DefaultBranchChangesets))
 			}
 		})
 	}
@@ -724,7 +724,7 @@ func TestAddCodeReviewRawResults(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(r.Results.DefaultBranchChangesets, expected) {
-		t.Errorf("addCodeReviewRawResults did not produce the expected output. Got: %v, Expected: %v", r.Results.DefaultBranchChangesets, expected) //nolint:lll
+		t.Errorf("addCodeReviewRawResults did not produce the expected output. Got: %v, Expected: %v", r.Results.DefaultBranchChangesets, expected)
 	}
 }
 
@@ -820,12 +820,12 @@ func TestAddBinaryArtifactRawResults(t *testing.T) {
 	}
 
 	if len(r.Results.Binaries) != len(expected) {
-		t.Errorf("addBinaryArtifactRawResults did not add the correct number of files. Expected %d, got %d", len(expected), len(r.Results.Binaries)) //nolint:lll
+		t.Errorf("addBinaryArtifactRawResults did not add the correct number of files. Expected %d, got %d", len(expected), len(r.Results.Binaries))
 	}
 
 	for i, file := range r.Results.Binaries {
 		if file.Path != expected[i].Path {
-			t.Errorf("addBinaryArtifactRawResults did not add the correct file. Expected %s, got %s", expected[i].Path, file.Path) //nolint:lll
+			t.Errorf("addBinaryArtifactRawResults did not add the correct file. Expected %s, got %s", expected[i].Path, file.Path)
 		}
 	}
 }
@@ -892,25 +892,25 @@ func TestAddSecurityPolicyRawResults(t *testing.T) {
 	}
 
 	if len(r.Results.SecurityPolicies) != len(expected) {
-		t.Errorf("addSecurityPolicyRawResults did not add the correct number of policies. Expected %d, got %d", len(expected), len(r.Results.SecurityPolicies)) //nolint:lll
+		t.Errorf("addSecurityPolicyRawResults did not add the correct number of policies. Expected %d, got %d", len(expected), len(r.Results.SecurityPolicies))
 	}
 
 	for i, policy := range r.Results.SecurityPolicies {
 		if policy.Path != expected[i].Path {
-			t.Errorf("addSecurityPolicyRawResults did not add the correct policy. Expected %s, got %s", expected[i].Path, policy.Path) //nolint:lll
+			t.Errorf("addSecurityPolicyRawResults did not add the correct policy. Expected %s, got %s", expected[i].Path, policy.Path)
 		}
 
 		if policy.ContentLength != expected[i].ContentLength {
-			t.Errorf("addSecurityPolicyRawResults did not add the correct content length. Expected %d, got %d", expected[i].ContentLength, policy.ContentLength) //nolint:lll
+			t.Errorf("addSecurityPolicyRawResults did not add the correct content length. Expected %d, got %d", expected[i].ContentLength, policy.ContentLength)
 		}
 
 		if len(policy.Hits) != len(expected[i].Hits) {
-			t.Errorf("addSecurityPolicyRawResults did not add the correct number of hits. Expected %d, got %d", len(expected[i].Hits), len(policy.Hits)) //nolint:lll
+			t.Errorf("addSecurityPolicyRawResults did not add the correct number of hits. Expected %d, got %d", len(expected[i].Hits), len(policy.Hits))
 		}
 
 		for j, hit := range policy.Hits {
 			if hit.Type != expected[i].Hits[j].Type {
-				t.Errorf("addSecurityPolicyRawResults did not add the correct hit type. Expected %s, got %s", expected[i].Hits[j].Type, hit.Type) //nolint:lll
+				t.Errorf("addSecurityPolicyRawResults did not add the correct hit type. Expected %s, got %s", expected[i].Hits[j].Type, hit.Type)
 			}
 		}
 	}
@@ -944,12 +944,12 @@ func TestAddVulnerabilitiesRawResults(t *testing.T) {
 	}
 
 	if len(r.Results.DatabaseVulnerabilities) != len(expected) {
-		t.Errorf("addVulnerbilitiesRawResults did not add the correct number of vulnerabilities. Expected %d, got %d", len(expected), len(r.Results.DatabaseVulnerabilities)) //nolint:lll
+		t.Errorf("addVulnerbilitiesRawResults did not add the correct number of vulnerabilities. Expected %d, got %d", len(expected), len(r.Results.DatabaseVulnerabilities))
 	}
 
 	for i, vuln := range r.Results.DatabaseVulnerabilities {
 		if vuln.ID != expected[i].ID {
-			t.Errorf("addVulnerbilitiesRawResults did not add the correct vulnerability. Expected %s, got %s", expected[i].ID, vuln.ID) //nolint:lll
+			t.Errorf("addVulnerbilitiesRawResults did not add the correct vulnerability. Expected %s, got %s", expected[i].ID, vuln.ID)
 		}
 	}
 }
@@ -1016,24 +1016,24 @@ func TestAddFuzzingRawResults(t *testing.T) {
 	}
 
 	if len(r.Results.Fuzzers) != len(expectedFuzzers) {
-		t.Errorf("addFuzzingRawResults did not add the correct number of fuzzers. Expected %d, got %d", len(expectedFuzzers), len(r.Results.Fuzzers)) //nolint:lll
+		t.Errorf("addFuzzingRawResults did not add the correct number of fuzzers. Expected %d, got %d", len(expectedFuzzers), len(r.Results.Fuzzers))
 	}
 	for i, fuzzer := range r.Results.Fuzzers {
 		if fuzzer.Name != expectedFuzzers[i].Name {
-			t.Errorf("addFuzzingRawResults did not add the correct fuzzer name. Expected %s, got %s", expectedFuzzers[i].Name, fuzzer.Name) //nolint:lll
+			t.Errorf("addFuzzingRawResults did not add the correct fuzzer name. Expected %s, got %s", expectedFuzzers[i].Name, fuzzer.Name)
 		}
 		if *fuzzer.URL != *expectedFuzzers[i].URL {
-			t.Errorf("addFuzzingRawResults did not add the correct fuzzer URL. Expected %s, got %s", *expectedFuzzers[i].URL, *fuzzer.URL) //nolint:lll
+			t.Errorf("addFuzzingRawResults did not add the correct fuzzer URL. Expected %s, got %s", *expectedFuzzers[i].URL, *fuzzer.URL)
 		}
 		if *fuzzer.Desc != *expectedFuzzers[i].Desc {
-			t.Errorf("addFuzzingRawResults did not add the correct fuzzer description. Expected %s, got %s", *expectedFuzzers[i].Desc, *fuzzer.Desc) //nolint:lll
+			t.Errorf("addFuzzingRawResults did not add the correct fuzzer description. Expected %s, got %s", *expectedFuzzers[i].Desc, *fuzzer.Desc)
 		}
 		if len(fuzzer.Files) != len(expectedFuzzers[i].Files) {
-			t.Errorf("addFuzzingRawResults did not add the correct number of files for fuzzer %s. Expected %d, got %d", fuzzer.Name, len(expectedFuzzers[i].Files), len(fuzzer.Files)) //nolint:lll
+			t.Errorf("addFuzzingRawResults did not add the correct number of files for fuzzer %s. Expected %d, got %d", fuzzer.Name, len(expectedFuzzers[i].Files), len(fuzzer.Files))
 		}
 		for j, file := range fuzzer.Files {
 			if file.Path != expectedFuzzers[i].Files[j].Path {
-				t.Errorf("addFuzzingRawResults did not add the correct file path for fuzzer %s. Expected %s, got %s", fuzzer.Name, expectedFuzzers[i].Files[j].Path, file.Path) //nolint:lll
+				t.Errorf("addFuzzingRawResults did not add the correct file path for fuzzer %s. Expected %s, got %s", fuzzer.Name, expectedFuzzers[i].Files[j].Path, file.Path)
 			}
 		}
 	}
@@ -1137,7 +1137,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		{ID: "CVE-2021-5678"},
 	}
 	if cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities) != "" {
-		t.Errorf("addVulnerbilitiesRawResults did not produce the expected results %v", cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities)) //nolint:lll
+		t.Errorf("addVulnerbilitiesRawResults did not produce the expected results %v", cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities))
 	}
 
 	// test addBinaryArtifactRawResults
@@ -1173,7 +1173,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		},
 	}
 	if cmp.Diff(expectedSecurityPolicies, r.Results.SecurityPolicies) != "" {
-		t.Errorf("addSecurityPolicyRawResults did not produce the expected results %v", cmp.Diff(expectedSecurityPolicies, r.Results.SecurityPolicies)) //nolint:lll
+		t.Errorf("addSecurityPolicyRawResults did not produce the expected results %v", cmp.Diff(expectedSecurityPolicies, r.Results.SecurityPolicies))
 	}
 
 	// test addFuzzingRawResults
@@ -1202,7 +1202,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		},
 	}
 	if cmp.Diff(expectedFuzzers, r.Results.Fuzzers, cmpopts.IgnoreFields(jsonTool{}, "URL", "Desc")) != "" {
-		t.Errorf("addFuzzingRawResults did not produce the expected results %v", cmp.Diff(expectedFuzzers, r.Results.Fuzzers)) //nolint:lll
+		t.Errorf("addFuzzingRawResults did not produce the expected results %v", cmp.Diff(expectedFuzzers, r.Results.Fuzzers))
 	}
 
 	// test addBranchProtectionRawResults
@@ -1224,7 +1224,6 @@ func intPtr(i int32) *int32 {
 	return &i
 }
 
-//nolint:lll
 func TestScorecardResult_AsRawJSON(t *testing.T) {
 	type fields struct {
 		Repo       RepoInfo
@@ -1249,7 +1248,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 				},
 			},
 			wantWriter: `{"date":"0001-01-01","repo":{"name":"bar","commit":"1234567890123456789012345678901234567890"},"scorecard":{"version":"","commit":""},"metadata":null,"results":{"workflows":[],"permissions":{},"licenses":[],"issues":null,"openssfBestPracticesBadge":{"badge":"Unknown"},"databaseVulnerabilities":[],"binaries":[],"securityPolicies":[],"dependencyUpdateTools":[],"branchProtections":{"branches":[],"codeownersFiles":null},"Contributors":{"users":null},"defaultBranchChangesets":[],"archived":{"status":false},"createdAt":{"timestamp":"0001-01-01T00:00:00Z"},"fuzzers":[],"releases":[],"packages":[],"dependencyPinning":{"dependencies":null}}}
-`, //nolint:lll
+`,
 		},
 	}
 	for _, tt := range tests {

@@ -545,7 +545,7 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) { //nolint:lll
+			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -714,14 +714,14 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 			name: "empty",
 			args: args{
 				name: "",
-				e:    errors.New("runtime error"), //nolint:goerr113
+				e:    errors.New("runtime error"),
 			},
 			want: CheckResult{
 				Name:    "",
 				Reason:  "runtime error",
 				Score:   -1,
 				Version: 2,
-				Error:   errors.New("runtime error"), //nolint:goerr113
+				Error:   errors.New("runtime error"),
 			},
 		},
 	}

@@ -33,7 +33,6 @@ func (topic *mockSucceedTopic) Send(ctx context.Context, msg *pubsub.Message) er
 type mockFailTopic struct{}
 
 func (topic *mockFailTopic) Send(ctx context.Context, msg *pubsub.Message) error {
-	//nolint:goerr113
 	return fmt.Errorf("mockFailTopic failed to send")
 }
 

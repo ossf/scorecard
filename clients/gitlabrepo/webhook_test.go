@@ -32,7 +32,6 @@ type stubTripper struct {
 func (s stubTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
 	f, err := os.Open(s.responsePath)
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	return &http.Response{

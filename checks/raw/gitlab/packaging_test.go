@@ -136,9 +136,8 @@ func TestGitlabPackagingPackager(t *testing.T) {
 
 			moqRepoClient.EXPECT().GetFileContent(tt.filename).
 				DoAndReturn(func(b string) ([]byte, error) {
-					//nolint:errcheck
-					content, _ := os.ReadFile(b)
-					return content, nil
+					content, err := os.ReadFile(b)
+					return content, err
 				}).AnyTimes()
 
 			if tt.exists {
@@ -150,8 +149,10 @@ func TestGitlabPackagingPackager(t *testing.T) {
 				Repo:       moqRepo,
 			}
 
-			//nolint:errcheck
-			packagingData, _ := Packaging(&req)
+			packagingData, err := Packaging(&req)
+			if err != nil {
+				t.Fatalf("unexpected err: %v", err)
+			}
 
 			if !tt.exists {
 				if len(packagingData.Packages) != 0 {

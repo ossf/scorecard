@@ -21,7 +21,6 @@ import (
 	"testing"
 )
 
-//nolint:lll // results are long
 func Test_compare(t *testing.T) {
 	t.Parallel()
 	//nolint:govet // struct alignment
@@ -97,7 +96,6 @@ func (a alwaysErrorReader) Read(b []byte) (n int, err error) {
 	return 0, io.ErrClosedPipe
 }
 
-//nolint:lll // results are long
 func Test_compare_reader_err(t *testing.T) {
 	t.Parallel()
 	//nolint:govet // struct alignment
