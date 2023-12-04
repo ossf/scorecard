@@ -66,7 +66,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeGradleWrapper,
+							Type: finding.FileTypeBinaryVerified,
 						},
 					},
 				},
@@ -83,7 +83,7 @@ func Test_Run(t *testing.T) {
 					Files: []checker.File{
 						{
 							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeGradleWrapper,
+							Type: finding.FileTypeBinaryVerified,
 						},
 					},
 				},

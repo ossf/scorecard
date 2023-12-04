@@ -104,7 +104,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Path: "gradle-wrapper.jar",
-							Type: finding.FileTypeGradleWrapper,
+							Type: finding.FileTypeBinaryVerified,
 						},
 					},
 				},

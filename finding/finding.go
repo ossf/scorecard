@@ -40,8 +40,8 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
-	// FileTypeGradleWrapper for gradle-wrapper.jar files.
-	FileTypeGradleWrapper
+	// FileTypeBinaryVerified for verified binary files.
+	FileTypeBinaryVerified
 )
 
 // Location represents the location of a finding.

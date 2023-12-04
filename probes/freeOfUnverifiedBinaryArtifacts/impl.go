@@ -40,7 +40,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Files {
 		file := &r.Files[i]
-		if file.Type == finding.FileTypeGradleWrapper {
+		if file.Type == finding.FileTypeBinaryVerified {
 			continue
 		}
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
