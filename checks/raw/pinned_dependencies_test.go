@@ -726,6 +726,24 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   64,
 					t:         checker.DependencyUseTypePipCommand,
 				},
+				{
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
+					startLine: 68,
+					endLine:   68,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin",
+					startLine: 69,
+					endLine:   69,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh | bash /dev/stdin",
+					startLine: 70,
+					endLine:   70,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
 			},
 		},
 		{
@@ -973,6 +991,24 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   64,
 					t:         checker.DependencyUseTypeNugetCommand,
 				},
+				{
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
+					startLine: 69,
+					endLine:   69,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin",
+					startLine: 70,
+					endLine:   70,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh | bash /dev/stdin",
+					startLine: 71,
+					endLine:   71,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
 			},
 		},
 	}
@@ -1077,7 +1113,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-curl-sh",
-			unpinned: 4,
+			unpinned: 5,
 		},
 		{
 			name:     "empty file",
@@ -1094,7 +1130,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "wget | /bin/sh",
 			filename: "./testdata/Dockerfile-wget-bin-sh",
-			unpinned: 3,
+			unpinned: 4,
 		},
 		{
 			name:     "wget no exec",
@@ -1260,7 +1296,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "bash script",
 			filename: "./testdata/script-bash",
-			unpinned: 7,
+			unpinned: 11,
 		},
 		{
 			name:     "sh script 2",
