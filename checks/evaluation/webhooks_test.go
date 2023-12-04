@@ -51,7 +51,7 @@ func TestWebhooks(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score: checker.MinResultScore,
 			},
 		},
 		{
