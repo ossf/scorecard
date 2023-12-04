@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+//nolint:stylecheck
 package testsRunInCI
 
 import (
@@ -37,7 +37,7 @@ const (
 // values of the findings are important to the probe.
 func Test_Run(t *testing.T) {
 	t.Parallel()
-	// nolint:govet
+	//nolint:govet
 	tests := []struct {
 		name     string
 		raw      *checker.RawResults
@@ -255,8 +255,6 @@ func Test_isTest(t *testing.T) {
 func Test_prHasSuccessfulCheck(t *testing.T) {
 	t.Parallel()
 
-	//enabled nolint because this is a test
-	//nolint
 	tests := []struct {
 		name    string
 		args    checker.RevisionCIInfo
@@ -328,10 +326,10 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 
 func Test_prHasSuccessStatus(t *testing.T) {
 	t.Parallel()
-	type args struct { //nolint:govet
+	type args struct {
 		r checker.RevisionCIInfo
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name    string
 		args    args
 		want    bool
@@ -385,13 +383,13 @@ func Test_prHasSuccessStatus(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got, _, err := prHasSuccessStatus(tt.args.r) //nolint:govet
-			if (err != nil) != tt.wantErr {              //nolint:govet
-				t.Errorf("prHasSuccessStatus() error = %v, wantErr %v", err, tt.wantErr) //nolint:govet
+			got, _, err := prHasSuccessStatus(tt.args.r)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("prHasSuccessStatus() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want { //nolint:govet
-				t.Errorf("prHasSuccessStatus() got = %v, want %v", got, tt.want) //nolint:govet
+			if got != tt.want {
+				t.Errorf("prHasSuccessStatus() got = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -482,7 +480,7 @@ func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 				t.Errorf("prHasSuccessfulCheck() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want { //nolint:govet
+			if got != tt.want {
 				t.Errorf("prHasSuccessfulCheck() got = %v, want %v", got, tt.want)
 			}
 		})
