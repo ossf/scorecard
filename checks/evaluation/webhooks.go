@@ -56,11 +56,11 @@ func Webhooks(name string,
 	}
 
 	if webhooksWithNoSecret == 0 {
-		msg := fmt.Sprintf("All %d of the projects webhooks are configure with a secret", totalWebhooks)
+		msg := fmt.Sprintf("All %d of the projects webhooks are configured with a secret", totalWebhooks)
 		return checker.CreateMaxScoreResult(name, msg)
 	}
 
-	msg := fmt.Sprintf("%d out of the projects %d webhooks are configure without a secret",
+	msg := fmt.Sprintf("%d out of the projects %d webhooks are configured without a secret",
 		webhooksWithNoSecret,
 		totalWebhooks)
 
