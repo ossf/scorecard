@@ -40,7 +40,6 @@ func (s suffixStubTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	suffix := pathParts[len(pathParts)-1]
 	f, err := os.Open(s.responsePaths[suffix])
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	return &http.Response{

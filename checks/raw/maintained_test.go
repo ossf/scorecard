@@ -79,7 +79,7 @@ func TestMaintained(t *testing.T) {
 	})
 
 	t.Run("returns error if IsArchived fails", func(t *testing.T) {
-		mockRepoClient.EXPECT().IsArchived().Return(false, fmt.Errorf("some error")) //nolint:goerr113
+		mockRepoClient.EXPECT().IsArchived().Return(false, fmt.Errorf("some error"))
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -89,7 +89,7 @@ func TestMaintained(t *testing.T) {
 
 	t.Run("returns error if ListCommits fails", func(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
-		mockRepoClient.EXPECT().ListCommits().Return(nil, fmt.Errorf("some error")) //nolint:goerr113
+		mockRepoClient.EXPECT().ListCommits().Return(nil, fmt.Errorf("some error"))
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -100,7 +100,7 @@ func TestMaintained(t *testing.T) {
 	t.Run("returns error if ListIssues fails", func(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
 		mockRepoClient.EXPECT().ListCommits().Return([]clients.Commit{}, nil)
-		mockRepoClient.EXPECT().ListIssues().Return(nil, fmt.Errorf("some error")) //nolint:goerr113
+		mockRepoClient.EXPECT().ListIssues().Return(nil, fmt.Errorf("some error"))
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -112,7 +112,7 @@ func TestMaintained(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
 		mockRepoClient.EXPECT().ListCommits().Return([]clients.Commit{}, nil)
 		mockRepoClient.EXPECT().ListIssues().Return([]clients.Issue{}, nil)
-		mockRepoClient.EXPECT().GetCreatedAt().Return(time.Time{}, fmt.Errorf("some error")) //nolint:goerr113
+		mockRepoClient.EXPECT().GetCreatedAt().Return(time.Time{}, fmt.Errorf("some error"))
 
 		_, err := Maintained(req)
 		if err == nil {

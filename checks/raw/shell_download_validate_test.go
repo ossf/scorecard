@@ -324,3 +324,131 @@ func Test_isNpmUnpinnedDownload(t *testing.T) {
 		})
 	}
 }
+
+func Test_hasUnpinnedURLs(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		cmd []string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		expected bool
+	}{
+		{
+			name: "Unpinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"-sSL",
+					"https://dot.net/v1/dotnet-install.sh",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "GitHub content URL but no path",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://raw.githubusercontent.com",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "GitHub content URL but no ref",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://raw.githubusercontent.com/dotnet/install-scripts",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Unpinned GitHub content URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"-sSL",
+					"https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Pinned GitHub content URL but invalid SHA",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://raw.githubusercontent.com/dotnet/install-scripts/zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz/src/dotnet-install.sh", //nolint:lll
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Pinned GitHub content URL but no file path",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Pinned GitHub content URL",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh", //nolint:lll
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Pinned GitHub content URL but HTTP",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"http://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh", //nolint:lll
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Pinned GitHub URL but not raw content",
+			args: args{
+				cmd: []string{
+					"wget",
+					"-0",
+					"-",
+					"https://github.com/dotnet/install-scripts/blob/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh",
+				},
+			},
+			expected: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if actual := hasUnpinnedURLs(tt.args.cmd); actual != tt.expected {
+				t.Errorf("hasUnpinnedURLs() = %v, expected %v for %v", actual, tt.expected, tt.name)
+			}
+		})
+	}
+}

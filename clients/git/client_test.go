@@ -50,7 +50,7 @@ func createTestRepo(t *testing.T) (path string) {
 
 	// Create a new file
 	filePath := filepath.Join(dir, "file")
-	err = os.WriteFile(filePath, []byte("Hello, World!"), 0o644) //nolint:gosec
+	err = os.WriteFile(filePath, []byte("Hello, World!"), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to write a file: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestSearch(t *testing.T) {
 	// Use the same test repo for all test cases.
 	repoPath := createTestRepo(t)
 	filePath := filepath.Join(repoPath, "test.txt")
-	err := os.WriteFile(filePath, []byte("Hello, World!"), 0o644) //nolint:gosec
+	err := os.WriteFile(filePath, []byte("Hello, World!"), 0o600)
 	if err != nil {
 		t.Fatalf("WriteFile() failed: %v", err)
 	}

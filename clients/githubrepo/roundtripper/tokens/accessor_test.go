@@ -85,15 +85,9 @@ func testServer(t *testing.T) {
 	serverURL := strings.TrimPrefix(server.URL, "http://")
 	t.Setenv("GITHUB_AUTH_SERVER", serverURL)
 	t.Cleanup(server.Close)
-	myRPCService := &MyRPCService{}
-	rpc.Register(myRPCService) //nolint:errcheck
 	rpc.HandleHTTP()
 	got := MakeTokenAccessor()
 	if got == nil {
 		t.Errorf("MakeTokenAccessor() = nil, want not nil")
 	}
-}
-
-type MyRPCService struct {
-	// Define your RPC service methods here
 }

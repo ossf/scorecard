@@ -30,7 +30,6 @@ import (
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
-	//nolint:goerr113
 	tests := []struct {
 		err       error
 		name      string

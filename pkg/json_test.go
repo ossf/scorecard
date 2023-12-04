@@ -495,7 +495,7 @@ func TestJSONOutput(t *testing.T) {
 
 func TestExperimentalFromJSON2_time(t *testing.T) {
 	t.Parallel()
-	//nolint:lll,govet // result strings are long
+	//nolint:govet
 	tests := []struct {
 		name    string
 		result  string
