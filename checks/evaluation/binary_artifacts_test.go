@@ -107,7 +107,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			},
 		},
 		{
-			name: "twelve binary artifact",
+			name: "twelve binary artifact - ensure score doesn't drop below min",
 			findings: []finding.Finding{
 				negativeFinding,
 				negativeFinding,
