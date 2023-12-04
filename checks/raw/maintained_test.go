@@ -26,6 +26,7 @@ import (
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 )
 
+//nolint:paralleltest // need to break into separate tests
 func TestMaintained(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -22,6 +22,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+//nolint:paralleltest // avoiding parallel e2e tests due to rate limit concerns (#2527)
 func TestPkg(t *testing.T) {
 	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
 		t.Skip()

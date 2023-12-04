@@ -25,6 +25,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
+	t.Parallel()
 	r := New(nil)
 	if len(r.enabledChecks) == 0 {
 		t.Errorf("runner has no checks to run: %v", r.enabledChecks)
@@ -37,6 +38,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestRunner_Run(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	mockRepo := mockrepo.NewMockRepoClient(ctrl)
 	commit := []clients.Commit{{SHA: "foo"}}

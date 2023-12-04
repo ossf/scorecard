@@ -988,6 +988,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 }
 
 func TestGenerateText(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name         string
 		dependency   *checker.Dependency
@@ -1016,7 +1017,9 @@ func TestGenerateText(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			result := generateTextUnpinned(tc.dependency)
 			if !cmp.Equal(tc.expectedText, result) {
 				t.Errorf("generateText mismatch (-want +got):\n%s", cmp.Diff(tc.expectedText, result))

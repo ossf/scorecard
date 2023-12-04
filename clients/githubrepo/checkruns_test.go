@@ -22,6 +22,7 @@ import (
 )
 
 func Test_init_clearsErr(t *testing.T) {
+	t.Parallel()
 	handler := &checkrunsHandler{errSetup: sce.ErrScorecardInternal}
 	handler.init(context.Background(), nil, 0)
 	if handler.errSetup != nil {

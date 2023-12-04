@@ -21,6 +21,7 @@ import (
 )
 
 func TestCreateInternal(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		e   error
 		msg string
@@ -39,6 +40,7 @@ func TestCreateInternal(t *testing.T) {
 	}
 
 	t.Run(test.name, func(t *testing.T) {
+		t.Parallel()
 		if got := CreateInternal(test.args.e, test.args.msg); got.Error() != test.want.Error() {
 			t.Errorf("CreateInternal() = %v, want %v", got, test.want)
 		}

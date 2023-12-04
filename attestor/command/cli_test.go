@@ -20,43 +20,41 @@ import (
 )
 
 func Test_addSignFlags(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd *cobra.Command
 	}
-	testName := "Test addSignFlags"
 	testArgs := args{
 		cmd: &cobra.Command{},
 	}
 
-	t.Run(testName, func(t *testing.T) {
-		addSignFlags(testArgs.cmd)
-		// persistent flags of Image being set has to be tested in the integration test
-		if testArgs.cmd.PersistentFlags().Lookup("image") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'image'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("attestation-project") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'attestation-project'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("overwrite") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'overwrite'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("kms-key-name") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'kms-key-name'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("kms-digest-alg") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'kms-digest-alg'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("pgp-private-key") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'pgp-private-key'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("pgp-passphrase") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'pgp-passphrase'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("pkix-private-key") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'pkix-private-key'")
-		}
-		if testArgs.cmd.PersistentFlags().Lookup("pkix-alg") == nil {
-			t.Errorf("addSignFlags() did not add persistent flag 'pkix-alg'")
-		}
-	})
+	addSignFlags(testArgs.cmd)
+	// persistent flags of Image being set has to be tested in the integration test
+	if testArgs.cmd.PersistentFlags().Lookup("image") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'image'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("attestation-project") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'attestation-project'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("overwrite") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'overwrite'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("kms-key-name") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'kms-key-name'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("kms-digest-alg") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'kms-digest-alg'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("pgp-private-key") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'pgp-private-key'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("pgp-passphrase") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'pgp-passphrase'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("pkix-private-key") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'pkix-private-key'")
+	}
+	if testArgs.cmd.PersistentFlags().Lookup("pkix-alg") == nil {
+		t.Errorf("addSignFlags() did not add persistent flag 'pkix-alg'")
+	}
 }
