@@ -388,7 +388,7 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 					"wget",
 					"-0",
 					"-",
-					"https://raw.githubusercontent.com/dotnet/install-scripts/zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz/src/dotnet-install.sh", //nolint:lll
+					"https://raw.githubusercontent.com/dotnet/install-scripts/zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz/src/dotnet-install.sh",
 				},
 			},
 			expected: true,
@@ -412,7 +412,7 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 					"wget",
 					"-0",
 					"-",
-					"https://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh", //nolint:lll
+					"https://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh",
 				},
 			},
 			expected: false,
@@ -424,7 +424,7 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 					"wget",
 					"-0",
 					"-",
-					"http://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh", //nolint:lll
+					"http://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh",
 				},
 			},
 			expected: true,
