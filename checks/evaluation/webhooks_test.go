@@ -18,119 +18,208 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TestWebhooks tests the webhooks check.
 func TestWebhooks(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
-	type args struct {
-		name string
-		dl   checker.DetailLogger
-		r    *checker.WebhooksData
-	}
 	tests := []struct {
-		name    string
-		args    args
-		want    checker.CheckResult
-		wantErr bool
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "r nil",
-			args: args{
-				name: "test_webhook_check_pass",
-				dl:   &scut.TestDetailLogger{},
-			},
-			wantErr: true,
-		},
-		{
 			name: "no webhooks",
-			args: args{
-				name: "no webhooks",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.WebhooksData{},
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
-			want: checker.CheckResult{
+			result: scut.TestReturn{
 				Score: checker.MaxResultScore,
 			},
 		},
 		{
-			name: "1 webhook with secret",
-			args: args{
-				name: "1 webhook with secret",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.WebhooksData{
-					Webhooks: []clients.Webhook{
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
-							UsesAuthSecret: true,
-						},
-					},
-				},
-			},
-			want: checker.CheckResult{
-				Score: 10,
-			},
-		},
-		{
 			name: "1 webhook with no secret",
-			args: args{
-				name: "1 webhook with no secret",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.WebhooksData{
-					Webhooks: []clients.Webhook{
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
-							UsesAuthSecret: false,
-						},
-					},
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score: 0,
+			result: scut.TestReturn{
+				Score: checker.MinResultScore,
 			},
 		},
 		{
-			name: "many webhooks with no secret and with secret",
-			args: args{
-				name: "many webhooks with no secret and with secret",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.WebhooksData{
-					Webhooks: []clients.Webhook{
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/1234",
-							ID:             1234,
-							UsesAuthSecret: false,
-						},
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/1111",
-							ID:             1111,
-							UsesAuthSecret: true,
-						},
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/4444",
-							ID:             4444,
-							UsesAuthSecret: true,
-						},
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/3333",
-							ID:             3333,
-							UsesAuthSecret: false,
-						},
-						{
-							Path:           "https://github.com/owner/repo/settings/hooks/2222",
-							ID:             2222,
-							UsesAuthSecret: false,
-						},
-					},
+			name: "1 webhook with secret",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
+			result: scut.TestReturn{
+				Score: checker.MaxResultScore,
+			},
+		},
+		{
+			name: "2 webhooks one of which has secret",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 5,
+			},
+		},
+		{
+			name: "Five webhooks three of which have secrets",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
 				Score: 6,
+			},
+		},
+		{
+			name: "One of 12 webhooks does not have secrets",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+			},
+			result: scut.TestReturn{
+				Score: 9,
+			},
+		},
+		{
+			name: "Score should not drop below min score",
+			findings: []finding.Finding{
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.MinResultScore,
 			},
 		},
 	}
@@ -138,15 +227,10 @@ func TestWebhooks(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := Webhooks(tt.args.name, tt.args.dl, tt.args.r)
-			if tt.wantErr {
-				if got.Error == nil {
-					t.Errorf("Webhooks() error = %v, wantErr %v", got.Error, tt.wantErr)
-				}
-			} else {
-				if got.Score != tt.want.Score {
-					t.Errorf("Webhooks() = %v, want %v", got.Score, tt.want.Score)
-				}
+			dl := scut.TestDetailLogger{}
+			got := Webhooks(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}
