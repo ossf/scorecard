@@ -341,24 +341,19 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews == nil {
-		// If the repo doesn't require PRs, we still have to discount score for not dismissing stale reviews.
+	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
+		branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
+		// Note: we don't increase max possible score for non-admin viewers.
 		max++
-		warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
-	} else {
-		if branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews == nil {
-			// The case of a non-admin run on a repo using the old Branch Protection
-			debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
-		} else {
-			max++
-			switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
-			case true:
-				info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
-				score++
-			case false:
-				warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
-			}
+		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
+		case true:
+			info(dl, log, "stale review dismissal enabled on branch '%s'", *branch.Name)
+			score++
+		case false:
+			warn(dl, log, "stale review dismissal disabled on branch '%s'", *branch.Name)
 		}
+	} else {
+		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
 	}
 
 	// nil typically means we do not have access to the value.

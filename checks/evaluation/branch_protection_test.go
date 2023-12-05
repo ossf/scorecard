@@ -86,9 +86,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  4,
+				NumberOfWarn:  3,
 				NumberOfInfo:  0,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -162,9 +162,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  7,
+				NumberOfWarn:  6,
 				NumberOfInfo:  2,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -189,9 +189,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         4, // Should be 4.2 if we allow decimal puctuation
-				NumberOfWarn:  3,
+				NumberOfWarn:  2,
 				NumberOfInfo:  6,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
@@ -278,9 +278,9 @@ func TestIsBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  4,
+				NumberOfWarn:  3,
 				NumberOfInfo:  2,
-				NumberOfDebug: 3,
+				NumberOfDebug: 4,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
