@@ -340,9 +340,11 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
 		}
 	}
-	if readBoolPtr(src.DismissesStaleReviews) {
+
+	// We're also checking if branch requires PRs because if it doesn't,
+	// the RequiredPullRequestReviews struct should be nil.
+	if src.DismissesStaleReviews != nil && branchRequiresPrs(src) {
 		if dst.RequiredPullRequestReviews == nil {
-			// this shouldn't happen, as it should be always instantiated at copyNonAdminSettings
 			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 		}
 		copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
@@ -358,9 +360,11 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
-		// If RequiredApprovingReviewCount is nil, we let the struct RequiredPullRequestReviews point to nil, as it means
-		// that PRs are not required for making changes at the branch.
-		if v.RequiredApprovingReviewCount != nil {
+		// If branch doesn't require PRs to make changes, we let the struct RequiredPullRequestReviews point to nil
+		if branchRequiresPrs(v) {
+			if dst.RequiredPullRequestReviews == nil {
+				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
+			}
 			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
@@ -382,6 +386,10 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		}
 	}
+}
+
+func branchRequiresPrs(data *branchProtectionRule) bool {
+	return data.RequiredApprovingReviewCount != nil
 }
 
 func getDefaultBranchNameFrom(data *ruleSetData) string {
