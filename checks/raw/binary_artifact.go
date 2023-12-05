@@ -49,7 +49,8 @@ func mustParseConstraint(c string) *semver.Constraints {
 }
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
+func BinaryArtifacts(req *checker.CheckRequest) (checker.BinaryArtifactData, error) {
+	c := req.RepoClient
 	files := []checker.File{}
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       "*",
@@ -87,13 +88,11 @@ func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) 
 	}
 	// It has been confirmed that latest commit has validated JARs!
 	// Remove Gradle wrapper JARs from files.
-	filterFiles := []checker.File{}
-	for _, f := range files {
-		if filepath.Base(f.Path) != "gradle-wrapper.jar" {
-			filterFiles = append(filterFiles, f)
+	for i := range files {
+		if filepath.Base(files[i].Path) == "gradle-wrapper.jar" {
+			files[i].Type = finding.FileTypeBinaryVerified
 		}
 	}
-	files = filterFiles
 	return files, nil
 }
 

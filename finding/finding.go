@@ -40,6 +40,8 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
+	// FileTypeBinaryVerified for verified binary files.
+	FileTypeBinaryVerified
 )
 
 // Location represents the location of a finding.
