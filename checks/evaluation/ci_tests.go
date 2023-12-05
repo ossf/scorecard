@@ -37,7 +37,17 @@ func CITests(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// check whether there are any negative findings
+	// Debug PRs that were merged without CI tests
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			dl.Debug(&checker.LogMessage{
+				Text: f.Message,
+			})
+		}
+	}
+
+	// check that the project has pull requests
 	if noPullRequestsFound(findings) {
 		return checker.CreateInconclusiveResult(CheckCITests, "no pull request found")
 	}
@@ -45,8 +55,8 @@ func CITests(name string,
 	totalMerged := findings[0].Values["totalMerged"]
 	totalTested := findings[0].Values["totalTested"]
 
-	if totalMerged < totalTested || len(findings) != totalTested {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
+	if totalMerged < totalTested || len(findings) < totalTested {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid finding values")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 

@@ -124,6 +124,36 @@ func TestCITests(t *testing.T) {
 				Score:        -1,
 			},
 		},
+		{
+			name: "Tests debugging",
+			findings: []finding.Finding{
+				{
+					Outcome:  finding.OutcomeNegative,
+					Probe:    "testsRunInCI",
+					Message:  "merged PR 1 without CI test at HEAD: 1",
+					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
+					Location: &finding.Location{Type: 4},
+				},
+				{
+					Outcome:  finding.OutcomeNegative,
+					Probe:    "testsRunInCI",
+					Message:  "merged PR 1 without CI test at HEAD: 1",
+					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
+					Location: &finding.Location{Type: 4},
+				},
+				{
+					Outcome:  finding.OutcomeNegative,
+					Probe:    "testsRunInCI",
+					Message:  "merged PR 1 without CI test at HEAD: 1",
+					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
+					Location: &finding.Location{Type: 4},
+				},
+			},
+			result: scut.TestReturn{
+				NumberOfDebug: 3,
+				Score:         0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
