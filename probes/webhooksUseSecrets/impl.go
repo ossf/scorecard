@@ -35,7 +35,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	r := raw.WebhookResults
-	totalWebhooks := len(r.Webhooks)
 	var findings []finding.Finding
 
 	if len(r.Webhooks) == 0 {
@@ -57,9 +56,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValues(map[string]int{
-				"totalWebhooks": totalWebhooks,
-			}).WithLocation(&finding.Location{
+			f = f.WithLocation(&finding.Location{
 				Path: hook.Path,
 			})
 			findings = append(findings, *f)
@@ -70,9 +67,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValues(map[string]int{
-				"totalWebhooks": totalWebhooks,
-			}).WithLocation(&finding.Location{
+			f = f.WithLocation(&finding.Location{
 				Path: hook.Path,
 			})
 			findings = append(findings, *f)

@@ -60,9 +60,6 @@ func TestWebhooks(t *testing.T) {
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"totalWebhooks": 1,
-					},
 				},
 			},
 			result: scut.TestReturn{
@@ -75,9 +72,10 @@ func TestWebhooks(t *testing.T) {
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 2,
-					},
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
@@ -90,16 +88,22 @@ func TestWebhooks(t *testing.T) {
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 5,
-					},
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 5,
-					},
 				},
 			},
 			result: scut.TestReturn{
@@ -112,9 +116,50 @@ func TestWebhooks(t *testing.T) {
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "webhooksUseSecrets",
+					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
@@ -127,86 +172,50 @@ func TestWebhooks(t *testing.T) {
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 				{
 					Probe:   "webhooksUseSecrets",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"totalWebhooks": 12,
-					},
 				},
 			},
 			result: scut.TestReturn{

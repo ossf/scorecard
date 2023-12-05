@@ -42,7 +42,7 @@ func Webhooks(name string,
 
 	var webhooksWithNoSecret int
 
-	totalWebhooks := findings[0].Values["totalWebhooks"]
+	totalWebhooks := len(findings)
 
 	for i := range findings {
 		f := &findings[i]
