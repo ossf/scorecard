@@ -92,7 +92,7 @@ func TestGetName(t *testing.T) {
 		{
 			name: "unknown error",
 			args: args{
-				err: errors.New("unknown error"), //nolint:goerr113
+				err: errors.New("unknown error"),
 			},
 			want: "ErrUnknown",
 		},

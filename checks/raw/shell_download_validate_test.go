@@ -112,6 +112,7 @@ func TestValidateShellFile(t *testing.T) {
 }
 
 func Test_isDotNetUnpinnedDownload(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd []string
 	}
@@ -206,7 +207,9 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isNugetUnpinnedDownload(tt.args.cmd); got != tt.want {
 				t.Errorf("isNugetUnpinnedDownload() = %v, want %v", got, tt.want)
 			}
@@ -215,6 +218,7 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 }
 
 func Test_isGoUnpinnedDownload(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd []string
 	}
@@ -239,7 +243,9 @@ func Test_isGoUnpinnedDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isGoUnpinnedDownload(tt.args.cmd); got != tt.want {
 				t.Errorf("isGoUnpinnedDownload() = %v, want %v", got, tt.want)
 			}
@@ -248,6 +254,7 @@ func Test_isGoUnpinnedDownload(t *testing.T) {
 }
 
 func Test_isNpmDownload(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd []string
 	}
@@ -272,7 +279,9 @@ func Test_isNpmDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isNpmDownload(tt.args.cmd); got != tt.want {
 				t.Errorf("isNpmDownload() = %v, want %v", got, tt.want)
 			}
@@ -281,6 +290,7 @@ func Test_isNpmDownload(t *testing.T) {
 }
 
 func Test_isNpmUnpinnedDownload(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		cmd []string
 	}
@@ -305,7 +315,9 @@ func Test_isNpmUnpinnedDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := isNpmUnpinnedDownload(tt.args.cmd); got != tt.want {
 				t.Errorf("isNpmUnpinnedDownload() = %v, want %v", got, tt.want)
 			}

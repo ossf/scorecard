@@ -166,6 +166,7 @@ func TestJSON(t *testing.T) {
 }
 
 func Test_normalize_nil_safe(t *testing.T) {
+	t.Parallel()
 	var x, y *pkg.ScorecardResult
 	Normalize(x)
 	Normalize(y)

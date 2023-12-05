@@ -515,7 +515,6 @@ func TestOnMatchingFileContent(t *testing.T) {
 			t.Parallel()
 			x := func(path string, content []byte, args ...interface{}) (bool, error) {
 				if tt.shouldFuncFail {
-					//nolint:goerr113
 					return false, errors.New("test error")
 				}
 				if tt.shouldGetPredicateFail {

@@ -25,6 +25,7 @@ import (
 )
 
 func Test_initRepoAndClientByChecks(t *testing.T) {
+	t.Parallel()
 	//nolint:govet
 	tests := []struct {
 		name                           string
@@ -57,6 +58,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := initRepoAndClientByChecks(&tt.dCtx, tt.srcRepo)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("initClientByChecks() error = {%v}, want error: %v", err, tt.wantErr)
@@ -83,6 +85,7 @@ func Test_initRepoAndClientByChecks(t *testing.T) {
 }
 
 func Test_getScorecardCheckResults(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		dCtx    dependencydiffContext
@@ -102,6 +105,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := getScorecardCheckResults(&tt.dCtx)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getScorecardCheckResults() error = {%v}, want error: %v", err, tt.wantErr)
@@ -112,6 +116,7 @@ func Test_getScorecardCheckResults(t *testing.T) {
 }
 
 func Test_mapDependencyEcosystemNaming(t *testing.T) {
+	t.Parallel()
 	//nolint:govet
 	tests := []struct {
 		name      string
@@ -167,6 +172,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := mapDependencyEcosystemNaming(tt.deps)
 			if tt.errWanted != nil && errors.Is(tt.errWanted, err) {
 				t.Errorf("not a wanted error, want:%v, got:%v", tt.errWanted, err)
@@ -177,6 +183,7 @@ func Test_mapDependencyEcosystemNaming(t *testing.T) {
 }
 
 func Test_isSpecifiedByUser(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name               string
 		ct                 pkg.ChangeType
@@ -214,6 +221,7 @@ func Test_isSpecifiedByUser(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := isSpecifiedByUser(tt.ct, tt.changeTypesToCheck)
 			if result != tt.resultWanted {
 				t.Errorf("result (%v) != result wanted (%v)", result, tt.resultWanted)

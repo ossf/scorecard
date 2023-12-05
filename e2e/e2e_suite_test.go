@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
+//nolint:paralleltest // avoiding parallel e2e tests due to rate limit concerns (#2527)
 func TestE2e(t *testing.T) {
 	if val, exists := os.LookupEnv("SKIP_GINKGO"); exists && val == "1" {
 		t.Skip()

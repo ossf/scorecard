@@ -66,7 +66,6 @@ func (s stubDigester) Digest(name string) (string, error) {
 	}
 	hash, ok := m[name]
 	if !ok {
-		//nolint:goerr113
 		return "", fmt.Errorf("no hash for image: %q", name)
 	}
 	return fmt.Sprintf("sha256:%s", hash), nil
@@ -75,7 +74,7 @@ func (s stubDigester) Digest(name string) (string, error) {
 func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name     string
 		dep      checker.Dependency

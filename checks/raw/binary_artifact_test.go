@@ -268,6 +268,7 @@ func TestBinaryArtifacts(t *testing.T) {
 }
 
 func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 	mockRepo := mockrepo.NewMockRepo(ctrl)
