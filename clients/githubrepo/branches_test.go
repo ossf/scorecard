@@ -185,14 +185,14 @@ func Test_applyRepoRules(t *testing.T) {
 
 	testcases := []struct {
 		base       *clients.BranchRef
-		ruleSets   []*repoRuleSet
 		expected   *clients.BranchRef
 		ruleBypass *ruleSetBypass
 		name       string
+		ruleSets   []*repoRuleSet
 	}{
 		{
-			name:    "unchecked checkboxes have consistent values",
-			base:    &clients.BranchRef{},
+			name: "unchecked checkboxes have consistent values",
+			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{
 				ruleSet(),
 			},
@@ -214,8 +214,8 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name:    "block deletion no bypass",
-			base:    &clients.BranchRef{},
+			name: "block deletion no bypass",
+			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{
 				ruleSet(withRules(&repoRule{Type: ruleDeletion})),
 			},
@@ -230,8 +230,8 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name:    "block deletion with bypass",
-			base:    &clients.BranchRef{},
+			name: "block deletion with bypass",
+			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{
 				ruleSet(withRules(&repoRule{Type: ruleDeletion}), withBypass()),
 			},
@@ -310,8 +310,8 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name:    "block force push no bypass",
-			base:    &clients.BranchRef{},
+			name: "block force push no bypass",
+			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{
 				ruleSet(withRules(&repoRule{Type: ruleForcePush})),
 			},
@@ -326,8 +326,8 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
-			name:    "require linear history no bypass",
-			base:    &clients.BranchRef{},
+			name: "require linear history no bypass",
+			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{
 				ruleSet(withRules(&repoRule{Type: ruleLinear})),
 			},
