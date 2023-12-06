@@ -506,9 +506,7 @@ nextRule:
 }
 
 func initializedBoolRef(value bool) *bool {
-	v := new(bool)
-	*v = value
-	return v
+	return &value
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
