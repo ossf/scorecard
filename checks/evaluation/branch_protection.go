@@ -327,8 +327,8 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 	} else {
 		warn(dl, log, "PRs are not required to make changes on branch '%s'; or we don't have data to detect it."+
-			"If you think it might be the last case, make sure you run scorecard with a PAT token or use Repo "+
-			"Rules (that are always public) instead of the old Branch Protection settings", *branch.Name)
+			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo "+
+			"Rules (that are always public) instead of Branch Protection settings", *branch.Name)
 		// Warning it here because since `RequiredPullRequestReviews` is nil, we won't check reviewers count afterwards
 		warn(dl, log, "No reviewers required to merge changes on branch '%s'", *branch.Name)
 	}
