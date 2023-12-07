@@ -70,29 +70,32 @@ func SignedReleases(name string,
 	}
 
 	totalPositive := 0
-	totalReleases := 0
 	releaseMap := make(map[string]int)
+	uniqueReleaseTags := make([]string, 0)
 	checker.LogFindings(findings, dl)
 
 	for i := range findings {
 		f := &findings[i]
+
+		releaseName, err := getReleaseName(f)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(name, err)
+		}
+
+		if !contains(uniqueReleaseTags, releaseName) {
+			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
+		}
+
 		if f.Outcome == finding.OutcomePositive {
 			totalPositive++
-
-			releaseName, err := getReleaseName(f)
-			if err != nil {
-				return checker.CreateRuntimeErrorResult(name, err)
-			}
 
 			switch f.Probe {
 			case releasesAreSigned.Probe:
 				if _, ok := releaseMap[releaseName]; !ok {
 					releaseMap[releaseName] = 8
 				}
-				totalReleases = f.Values["totalReleases"]
 			case releasesHaveProvenance.Probe:
 				releaseMap[releaseName] = 10
-				totalReleases = f.Values["totalReleases"]
 			}
 		}
 	}
@@ -100,6 +103,8 @@ func SignedReleases(name string,
 	if totalPositive == 0 {
 		return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
 	}
+
+	totalReleases := len(uniqueReleaseTags)
 
 	if totalReleases > 5 {
 		totalReleases = 5
@@ -114,6 +119,7 @@ func SignedReleases(name string,
 	for _, s := range releaseMap {
 		score += s
 	}
+
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
 	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
 		len(releaseMap), totalReleases, totalPositive)
