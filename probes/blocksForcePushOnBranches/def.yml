@@ -22,6 +22,6 @@ outcome:
   - The probe returns one OutcomePositive for each branch that is blocked from force pushes, and one OutcomeNegative for branches that allows force push.
   - Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
 remediation:
-  effort: High
+  effort: Low
   text:
     - Disallow force pushes branches in your project to remove negative outcomes.
