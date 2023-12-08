@@ -201,7 +201,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowDeletions:   &trueVal,
 					AllowForcePushes: &trueVal,
 					CheckRules: clients.StatusChecksRule{
-						// nil values mean that this checkbox wasn't checked
+						// nil values mean that the CheckRules checkbox wasn't checked
 						UpToDateBeforeMerge:  nil,
 						RequiresStatusChecks: nil,
 						Contexts:             nil,
@@ -534,7 +534,6 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 		{
 			name: "Non-admin Branch Protection rule with insufficient data about requiring PRs",
 			branch: &branch{
-				Name: nil,
 				RefUpdateRule: &refUpdateRule{
 					AllowsDeletions:              &falseVal,
 					AllowsForcePushes:            &falseVal,
@@ -564,8 +563,6 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 		{
 			name: "Admin Branch Protection rule nothing selected",
 			branch: &branch{
-				Name:          nil,
-				RefUpdateRule: nil,
 				BranchProtectionRule: &branchProtectionRule{
 					DismissesStaleReviews:        &falseVal,
 					IsAdminEnforced:              &falseVal,

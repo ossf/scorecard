@@ -86,7 +86,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			defaultBranch: main,
 			branches: []*clients.BranchRef{
 				{
-					Name:      nil,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
@@ -106,7 +105,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					},
 				},
 				{
-					Name:      nil,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
 						CheckRules: clients.StatusChecksRule{
