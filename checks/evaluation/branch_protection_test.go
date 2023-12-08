@@ -32,7 +32,7 @@ func testScore(branch *clients.BranchRef, codeownersFiles []string, dl checker.D
 	score.scores.adminThoroughReview, score.maxes.adminThoroughReview = adminThoroughReviewProtection(branch, dl)
 	score.scores.codeownerReview, score.maxes.codeownerReview = codeownerBranchProtection(branch, codeownersFiles, dl)
 
-	return computeFinalScore([]levelScore{score}, dl)
+	return computeFinalScore([]levelScore{score})
 }
 
 // TODO: order of tests to have progressive scores.

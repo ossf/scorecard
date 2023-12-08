@@ -49,6 +49,16 @@ type levelScore struct {
 	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
+type Tier uint8
+
+const (
+	Tier1 Tier = iota
+	Tier2
+	Tier3
+	Tier4
+	Tier5
+)
+
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
 	r *checker.BranchProtectionsData,
@@ -85,7 +95,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
 	}
 
-	score, err := computeFinalScore(scores, dl)
+	score, err := computeFinalScore(scores)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -103,24 +113,21 @@ func BranchProtection(name string, dl checker.DetailLogger,
 	}
 }
 
-func sumUpScoreForTier(tier int, scoresData []levelScore, dl checker.DetailLogger) int {
+func sumUpScoreForTier(tier Tier, scoresData []levelScore) int {
 	sum := 0
 	for i := range scoresData {
 		score := scoresData[i]
 		switch tier {
-		case 1:
+		case Tier1:
 			sum += score.scores.basic
-		case 2:
+		case Tier2:
 			sum += score.scores.review + score.scores.adminReview
-		case 3:
+		case Tier3:
 			sum += score.scores.context
-		case 4:
+		case Tier4:
 			sum += score.scores.thoroughReview + score.scores.codeownerReview
-		case 5:
+		case Tier5:
 			sum += score.scores.adminThoroughReview
-		default:
-			debug(dl, true, "Function sumUpScoreForTier called with the invalid parameter: '%d';"+
-				"BranchProtection score won't be accurate.", tier)
 		}
 	}
 	return sum
@@ -133,7 +140,7 @@ func normalizeScore(score, max, level int) float64 {
 	return float64(score*level) / float64(max)
 }
 
-func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error) {
+func computeFinalScore(scores []levelScore) (int, error) {
 	if len(scores) == 0 {
 		return 0, sce.WithMessage(sce.ErrScorecardInternal, "scores are empty")
 	}
@@ -143,7 +150,7 @@ func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error
 
 	// First, check if they all pass the basic (admin and non-admin) checks.
 	maxBasicScore := maxScore.basic * len(scores)
-	basicScore := sumUpScoreForTier(1, scores, dl)
+	basicScore := sumUpScoreForTier(Tier1, scores)
 	score += normalizeScore(basicScore, maxBasicScore, basicLevel)
 	if basicScore < maxBasicScore {
 		return int(score), nil
@@ -152,7 +159,7 @@ func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error
 	// Second, check the (admin and non-admin) reviews.
 	maxReviewScore := maxScore.review * len(scores)
 	maxAdminReviewScore := maxScore.adminReview * len(scores)
-	adminNonAdminReviewScore := sumUpScoreForTier(2, scores, dl)
+	adminNonAdminReviewScore := sumUpScoreForTier(Tier2, scores)
 	score += normalizeScore(adminNonAdminReviewScore, maxReviewScore+maxAdminReviewScore, adminNonAdminReviewLevel)
 	if adminNonAdminReviewScore < maxReviewScore+maxAdminReviewScore {
 		return int(score), nil
@@ -160,7 +167,7 @@ func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error
 
 	// Third, check the use of non-admin context.
 	maxContextScore := maxScore.context * len(scores)
-	contextScore := sumUpScoreForTier(3, scores, dl)
+	contextScore := sumUpScoreForTier(Tier3, scores)
 	score += normalizeScore(contextScore, maxContextScore, nonAdminContextLevel)
 	if contextScore < maxContextScore {
 		return int(score), nil
@@ -170,7 +177,7 @@ func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error
 	// Also check whether this repo requires codeowner review
 	maxThoroughReviewScore := maxScore.thoroughReview * len(scores)
 	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
-	tier4Score := sumUpScoreForTier(4, scores, dl)
+	tier4Score := sumUpScoreForTier(Tier4, scores)
 	score += normalizeScore(tier4Score, maxThoroughReviewScore+maxCodeownerReviewScore, nonAdminThoroughReviewLevel)
 	if tier4Score < maxThoroughReviewScore+maxCodeownerReviewScore {
 		return int(score), nil
@@ -180,7 +187,7 @@ func computeFinalScore(scores []levelScore, dl checker.DetailLogger) (int, error
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	maxAdminThoroughReviewScore := maxScore.adminThoroughReview * len(scores)
-	adminThoroughReviewScore := sumUpScoreForTier(5, scores, dl)
+	adminThoroughReviewScore := sumUpScoreForTier(Tier5, scores)
 	score += normalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
 		return int(score), nil
