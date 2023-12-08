@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package blocksForcePushOnBranches
+package requiresLastPushApproval
 
 import (
 	"testing"

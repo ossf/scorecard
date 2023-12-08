@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package blocksForcePushOnBranches
+package requiresLastPushApproval
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "blocksForcePushOnBranches"
+const Probe = "requiresLastPushApproval"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
