@@ -349,7 +349,7 @@ func Test_applyRepoRules(t *testing.T) {
 					Type: rulePullRequest,
 					Parameters: repoRulesParameters{
 						PullRequestParameters: pullRequestRuleParameters{
-							RequireLastPushApproval:      initializedBoolRef(true),
+							RequireLastPushApproval:      asPtr(true),
 							RequiredApprovingReviewCount: &zeroVal,
 						},
 					},
@@ -411,7 +411,7 @@ func Test_applyRepoRules(t *testing.T) {
 							StrictRequiredStatusChecksPolicy: &trueVal,
 							RequiredStatusChecks: []statusCheck{
 								{
-									Context: stringPtr("foo"),
+									Context: asPtr("foo"),
 								},
 							},
 						},
@@ -448,7 +448,7 @@ func Test_applyRepoRules(t *testing.T) {
 								StrictRequiredStatusChecksPolicy: &trueVal,
 								RequiredStatusChecks: []statusCheck{
 									{
-										Context: stringPtr("foo"),
+										Context: asPtr("foo"),
 									},
 								},
 							},
@@ -617,8 +617,4 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 			}
 		})
 	}
-}
-
-func stringPtr(s string) *string {
-	return &s
 }
