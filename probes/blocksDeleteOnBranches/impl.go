@@ -39,43 +39,30 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		if branch.BranchProtectionRule.AllowDeletions != nil {
-			switch *branch.BranchProtectionRule.AllowDeletions {
-			case true:
-				f, err := finding.NewWith(fs, Probe,
-					fmt.Sprintf("'allow deletion' enabled on branch '%s'", *branch.Name), nil,
-					finding.OutcomeNegative)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				f = f.WithValues(map[string]int{
-					*branch.Name: 1,
-				})
-				findings = append(findings, *f)
-			case false:
-				f, err := finding.NewWith(fs, Probe,
-					fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name), nil,
-					finding.OutcomePositive)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				f = f.WithValues(map[string]int{
-					*branch.Name: 1,
-				})
-				findings = append(findings, *f)
-			}
-		} else {
-			f, err := finding.NewWith(fs, Probe,
-				"could not determine whether branch is protected against deletion",
-				nil, finding.OutcomeNotAvailable)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
-			findings = append(findings, *f)
+
+		var text string
+		var outcome finding.Outcome
+		switch {
+		case branch.BranchProtectionRule.AllowDeletions == nil:
+			text = "could not determine whether branch is protected against deletion"
+			outcome = finding.OutcomeNotAvailable
+		case *branch.BranchProtectionRule.AllowDeletions:
+			text = fmt.Sprintf("'allow deletion' enabled on branch '%s'", *branch.Name)
+			outcome = finding.OutcomeNegative
+		case !*branch.BranchProtectionRule.AllowDeletions:
+			text = fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name)
+			outcome = finding.OutcomePositive
+		default:
+			//foo
 		}
+		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValues(map[string]int{
+			*branch.Name: 1,
+		})
+		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
 }
