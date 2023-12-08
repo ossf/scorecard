@@ -70,10 +70,18 @@ func TestCITests(t *testing.T) {
 					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
 					Location: &finding.Location{Type: 4},
 				},
+				{
+					Outcome:  finding.OutcomeNegative,
+					Probe:    "testsRunInCI",
+					Message:  "CI test found: pr: 1, context: e2e",
+					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
+					Location: &finding.Location{Type: 4},
+				},
 			},
 			result: scut.TestReturn{
-				Score:        7,
-				NumberOfInfo: 3,
+				Score:         7,
+				NumberOfInfo:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
