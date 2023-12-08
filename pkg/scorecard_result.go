@@ -314,7 +314,7 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Sc
 func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *ScorecardResult) error {
 	probeCheckNames := make([]string, 0)
 	for _, probeName := range probesToRun {
-		probeCheckName := probes.ProbeChecks[probeName]
+		probeCheckName := probes.CheckMap[probeName]
 		if !contains(probeCheckNames, probeCheckName) {
 			probeCheckNames = append(probeCheckNames, probeCheckName)
 			err := assignRawData(probeCheckName, request, ret)

@@ -174,7 +174,7 @@ var (
 		notCreatedRecently.Probe:                            notCreatedRecently.Run,
 	}
 
-	ProbeChecks = map[string]string{
+	CheckMap = map[string]string{
 		securityPolicyPresent.Probe:                         "Security-Policy",
 		securityPolicyContainsLinks.Probe:                   "Security-Policy",
 		securityPolicyContainsVulnerabilityDisclosure.Probe: "Security-Policy",
