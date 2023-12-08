@@ -23,4 +23,4 @@ outcome:
 remediation:
   effort: High
   text:
-    - Enable required status checks by following [these guidelines](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).
+    - Enable required status checks by following [these guidelines](https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).
