@@ -192,8 +192,10 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 		tt := tt
 		dl := &scut.TestDetailLogger{}
 
-		//nolint:errcheck
-		got, _ := prHasSuccessfulCheck(tt.args, dl)
+		got, err := prHasSuccessfulCheck(tt.args, dl)
+		if err != nil {
+			t.Fatalf("unexpected err: %v", err)
+		}
 		if got != tt.want {
 			t.Errorf("prHasSuccessfulCheck() = %v, want %v", got, tt.want)
 		}

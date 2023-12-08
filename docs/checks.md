@@ -679,7 +679,7 @@ This check determines whether the webhook defined in the repository has a token 
  
 
 **Remediation steps**
-- Check whether your service supports token authentication.
+- Check if the service your webhooks is configured with supports secrets.
 - If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
 - If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
 

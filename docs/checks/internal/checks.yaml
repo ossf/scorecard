@@ -827,7 +827,7 @@ checks:
       This check determines whether the webhook defined in the repository has a token configured to authenticate the origins of requests.
     remediation:
       - >-
-        Check whether your service supports token authentication.
+        Check if the service your webhooks is configured with supports secrets.
       - >-
         If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
       - >-

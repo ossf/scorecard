@@ -18,6 +18,7 @@ import (
 )
 
 func Test_logger_Info(t *testing.T) {
+	t.Parallel()
 	l := &logger{
 		logs: []CheckDetail{},
 	}
@@ -28,6 +29,7 @@ func Test_logger_Info(t *testing.T) {
 }
 
 func Test_logger_Warn(t *testing.T) {
+	t.Parallel()
 	l := &logger{
 		logs: []CheckDetail{},
 	}
@@ -38,6 +40,7 @@ func Test_logger_Warn(t *testing.T) {
 }
 
 func Test_logger_Flush(t *testing.T) {
+	t.Parallel()
 	l := &logger{
 		logs: []CheckDetail{},
 	}
@@ -52,6 +55,7 @@ func Test_logger_Flush(t *testing.T) {
 }
 
 func Test_logger_Logs(t *testing.T) {
+	t.Parallel()
 	l := &logger{
 		logs: []CheckDetail{},
 	}
@@ -62,6 +66,7 @@ func Test_logger_Logs(t *testing.T) {
 }
 
 func Test_logger_Debug(t *testing.T) {
+	t.Parallel()
 	l := &logger{
 		logs: []CheckDetail{},
 	}
@@ -72,6 +77,7 @@ func Test_logger_Debug(t *testing.T) {
 }
 
 func TestNewLogger(t *testing.T) {
+	t.Parallel()
 	l := NewLogger()
 	if l == nil {
 		t.Errorf("expected non-nil logger, got nil")

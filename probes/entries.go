@@ -18,6 +18,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
@@ -36,6 +37,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
@@ -51,6 +53,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
+	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
 // ProbeImpl is the implementation of a probe.
@@ -116,6 +119,15 @@ var (
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		notCreatedRecently.Run,
+	}
+	CIIBestPractices = []ProbeImpl{
+		hasOpenSSFBadge.Run,
+	}
+	BinaryArtifacts = []ProbeImpl{
+		freeOfUnverifiedBinaryArtifacts.Run,
+	}
+	Webhook = []ProbeImpl{
+		webhooksUseSecrets.Run,
 	}
 )
 

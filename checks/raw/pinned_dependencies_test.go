@@ -159,14 +159,12 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: true,
 		},
 		{
-			desc: "non-github docker image pinned by digest",
-			//nolint:lll
+			desc:     "non-github docker image pinned by digest",
 			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
 			ispinned: true,
 		},
 		{
-			desc: "non-github docker image pinned to mutable tag",
-			//nolint:lll
+			desc:     "non-github docker image pinned to mutable tag",
 			uses:     "docker://gcr.io/distroless/static-debian11:sha256-3876708467ad6f38f263774aa107d331e8de6558a2874aa223b96fc0d9dfc820.sig",
 			ispinned: false,
 		},
@@ -635,7 +633,7 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name             string
 		filename         string
@@ -727,6 +725,24 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 					startLine: 64,
 					endLine:   64,
 					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
+					startLine: 68,
+					endLine:   68,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin",
+					startLine: 69,
+					endLine:   69,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh | bash /dev/stdin",
+					startLine: 70,
+					endLine:   70,
+					t:         checker.DependencyUseTypeDownloadThenRun,
 				},
 			},
 		},
@@ -829,7 +845,7 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 
 func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
-	//nolint:govet,lll
+	//nolint:govet
 	tests := []struct {
 		name     string
 		filename string
@@ -975,6 +991,24 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					endLine:   64,
 					t:         checker.DependencyUseTypeNugetCommand,
 				},
+				{
+					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
+					startLine: 69,
+					endLine:   69,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin",
+					startLine: 70,
+					endLine:   70,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh | bash /dev/stdin",
+					startLine: 71,
+					endLine:   71,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
 			},
 		},
 	}
@@ -1079,7 +1113,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "curl | sh",
 			filename: "./testdata/Dockerfile-curl-sh",
-			unpinned: 4,
+			unpinned: 5,
 		},
 		{
 			name:     "empty file",
@@ -1096,7 +1130,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "wget | /bin/sh",
 			filename: "./testdata/Dockerfile-wget-bin-sh",
-			unpinned: 3,
+			unpinned: 4,
 		},
 		{
 			name:     "wget no exec",
@@ -1262,7 +1296,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "bash script",
 			filename: "./testdata/script-bash",
-			unpinned: 7,
+			unpinned: 11,
 		},
 		{
 			name:     "sh script 2",

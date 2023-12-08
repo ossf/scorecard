@@ -20,6 +20,7 @@ import (
 )
 
 func TestFile_Location(t *testing.T) {
+	t.Parallel()
 	file := File{
 		Type:      finding.FileTypeSource,
 		Path:      "bar.go",

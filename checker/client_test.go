@@ -106,7 +106,7 @@ func TestGetClients(t *testing.T) {
 				t.Setenv("GH_HOST", "github.corp.com")
 				t.Setenv("GH_TOKEN", "PAT")
 			}
-			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
+			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("GetClients() error = %v, wantErr %v", err, tt.wantErr)
 			}

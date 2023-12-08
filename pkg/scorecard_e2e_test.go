@@ -52,7 +52,7 @@ func countDetails(c []checker.CheckDetail) (debug, info, warn int) {
 	return debug, info, warn
 }
 
-//nolint:lll,gocritic // comparison was failing with pointer types
+//nolint:gocritic // comparison was failing with pointer types
 func compareScorecardResults(a, b ScorecardResult) bool {
 	if a.Repo != b.Repo {
 		fmt.Fprintf(GinkgoWriter, "Unequal repo details in results: %v vs %v\n", a.Repo, b.Repo)
