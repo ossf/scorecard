@@ -17,7 +17,7 @@ short: Check that the project requires dedicated code owners to review PRs.
 motivation: >
   Code owners are expected to have deep knowledge about a code; Having experienced reviewers for PRs is expected to prevent security issues.
 implementation: >
-  The probe checks which brances require code owner reviews.
+  The probe checks which branches require code owner reviews. The probe only considers default and release branches.
 outcome:
   - The probe returns one OutcomePositive for each branch that requires code owner review for PRs, and one OutcomeNegative for branches that don't.
 remediation:
