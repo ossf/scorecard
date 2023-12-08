@@ -53,12 +53,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	totalMerged := 0
-	totalTested := 0
 	for i := range c.CIInfo {
 		r := c.CIInfo[i]
-		totalMerged++
-
 		// GitHub Statuses.
 		prSuccessStatus, f, err := prHasSuccessStatus(r)
 		if err != nil {
@@ -66,7 +62,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		if prSuccessStatus {
 			findings = append(findings, *f)
-			totalTested++
 			continue
 		}
 
@@ -77,7 +72,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		if prCheckSuccessful {
 			findings = append(findings, *f)
-			totalTested++
 		}
 
 		if !prSuccessStatus && !prCheckSuccessful {
@@ -89,14 +83,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			findings = append(findings, *f)
 		}
-	}
-
-	for i := range findings {
-		f := &findings[i]
-		f.WithValues(map[string]int{
-			"totalMerged": totalMerged,
-			"totalTested": totalTested,
-		})
 	}
 
 	return findings, Probe, nil

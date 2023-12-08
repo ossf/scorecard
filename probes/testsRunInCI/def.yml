@@ -19,7 +19,7 @@ motivation: >
 implementation: >
  The probe checks for tests in the projects CI jobs in the recent commits (~30).
 outcome:
-  - The probe returns one OutcomePositive for each successful test or check that ran in the projects CI. All findings include the number of merged pull requests as well as how many of these pull requests were tested by tests in the CI. These fields are called "totalMerged" and "totalTested".
+  - The probe returns one OutcomePositive for each PR that ran CI tests and one OutcomeNegative for each PR that did not run CI tests.
   - The probe returns a single OutcomeNotApplicable if the projects has had no pull requests.
 remediation:
   effort: Medium

@@ -16,7 +16,6 @@ package evaluation
 import (
 	"testing"
 
-	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -37,7 +36,6 @@ func TestCITests(t *testing.T) {
 					Outcome:  finding.OutcomePositive,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 1, "totalTested": 1},
 					Location: &finding.Location{Type: 4},
 				},
 			},
@@ -53,28 +51,24 @@ func TestCITests(t *testing.T) {
 					Outcome:  finding.OutcomePositive,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
 					Location: &finding.Location{Type: 4},
 				},
 				{
 					Outcome:  finding.OutcomePositive,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
 					Location: &finding.Location{Type: 4},
 				},
 				{
 					Outcome:  finding.OutcomePositive,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
 					Location: &finding.Location{Type: 4},
 				},
 				{
 					Outcome:  finding.OutcomeNegative,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 4, "totalTested": 3},
 					Location: &finding.Location{Type: 4},
 				},
 			},
@@ -85,75 +79,24 @@ func TestCITests(t *testing.T) {
 			},
 		},
 		{
-			name: "More tested than there are findings = error",
-			findings: []finding.Finding{
-				{
-					Outcome:  finding.OutcomePositive,
-					Probe:    "testsRunInCI",
-					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 2, "totalTested": 2},
-					Location: &finding.Location{Type: 4},
-				},
-			},
-			result: scut.TestReturn{
-				Error:        sce.ErrScorecardInternal,
-				NumberOfInfo: 0,
-				Score:        -1,
-			},
-		},
-		{
-			name: "More tested than merged = error",
-			findings: []finding.Finding{
-				{
-					Outcome:  finding.OutcomePositive,
-					Probe:    "testsRunInCI",
-					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 2, "totalTested": 3},
-					Location: &finding.Location{Type: 4},
-				},
-				{
-					Outcome:  finding.OutcomePositive,
-					Probe:    "testsRunInCI",
-					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 2, "totalTested": 3},
-					Location: &finding.Location{Type: 4},
-				},
-				{
-					Outcome:  finding.OutcomePositive,
-					Probe:    "testsRunInCI",
-					Message:  "CI test found: pr: 1, context: e2e",
-					Values:   map[string]int{"totalMerged": 2, "totalTested": 3},
-					Location: &finding.Location{Type: 4},
-				},
-			},
-			result: scut.TestReturn{
-				Error:        sce.ErrScorecardInternal,
-				NumberOfInfo: 0,
-				Score:        -1,
-			},
-		},
-		{
 			name: "Tests debugging",
 			findings: []finding.Finding{
 				{
 					Outcome:  finding.OutcomeNegative,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
-					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
 					Location: &finding.Location{Type: 4},
 				},
 				{
 					Outcome:  finding.OutcomeNegative,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
-					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
 					Location: &finding.Location{Type: 4},
 				},
 				{
 					Outcome:  finding.OutcomeNegative,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
-					Values:   map[string]int{"totalMerged": 3, "totalTested": 0},
 					Location: &finding.Location{Type: 4},
 				},
 			},

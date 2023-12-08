@@ -52,8 +52,7 @@ func CITests(name string,
 		return checker.CreateInconclusiveResult(CheckCITests, "no pull request found")
 	}
 
-	totalMerged := findings[0].Values["totalMerged"]
-	totalTested := findings[0].Values["totalTested"]
+	totalMerged, totalTested := getMergedAndTested(findings)
 
 	if totalMerged < totalTested || len(findings) < totalTested {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid finding values")
@@ -63,9 +62,23 @@ func CITests(name string,
 	// Log all findings
 	checker.LogFindings(nonNegativeFindings(findings), dl)
 
-	// All findings (should) have "totalMerged" and "totalTested"
 	reason := fmt.Sprintf("%d out of %d merged PRs checked by a CI test", totalTested, totalMerged)
 	return checker.CreateProportionalScoreResult(CheckCITests, reason, totalTested, totalMerged)
+}
+
+func getMergedAndTested(findings []finding.Finding) (int, int) {
+	totalMerged := 0
+	totalTested := 0
+
+	for i := range findings {
+		f := &findings[i]
+		totalMerged++
+		if f.Outcome == finding.OutcomePositive {
+			totalTested++
+		}
+	}
+
+	return totalMerged, totalTested
 }
 
 func noPullRequestsFound(findings []finding.Finding) bool {
