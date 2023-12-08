@@ -153,11 +153,10 @@ func runScorecard(ctx context.Context,
 
 	// If the user runs probes
 	if len(probesToRun) > 0 {
-		findings, err := runEnabledProbes(request, probesToRun, &ret)
+		err = runEnabledProbes(request, probesToRun, &ret)
 		if err != nil {
 			return ScorecardResult{}, err
 		}
-		ret.Findings = findings
 		return ret, nil
 	}
 
@@ -190,11 +189,11 @@ func runScorecard(ctx context.Context,
 func runEnabledProbes(request *checker.CheckRequest,
 	probesToRun []string,
 	ret *ScorecardResult,
-) ([]finding.Finding, error) {
+) error {
 	// Add RawResults to request
 	err := populateRawResults(request, probesToRun, ret)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	probeFindings := make([]finding.Finding, 0)
@@ -203,16 +202,17 @@ func runEnabledProbes(request *checker.CheckRequest,
 		probeRunner, err := probes.GetProbeRunner(probeName)
 		if err != nil {
 			msg := fmt.Sprintf("could not find probe: %s", probeName)
-			return nil, sce.WithMessage(sce.ErrScorecardInternal, msg)
+			return sce.WithMessage(sce.ErrScorecardInternal, msg)
 		}
 		// Run probe
 		findings, _, err := probeRunner(&ret.RawResults)
 		if err != nil {
-			return nil, sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}
 		probeFindings = append(probeFindings, findings...)
 	}
-	return probeFindings, nil
+	ret.Findings = probeFindings
+	return nil
 }
 
 // RunScorecard runs enabled Scorecard checks on a Repo.
