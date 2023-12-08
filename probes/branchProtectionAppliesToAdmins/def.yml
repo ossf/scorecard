@@ -21,6 +21,6 @@ implementation: >
 outcome:
   - The probe returns one OutcomePositive for each branch that enforces branch protection rules on admins, and one OutcomeNegative for branches that don't.
 remediation:
-  effort: High
+  effort: Can be Low to High dependening on other branch protection settings.
   text:
-    - Enforce protectoin rules for admins on all branches.
+    - Enforce protection rules for admins on all branches.
