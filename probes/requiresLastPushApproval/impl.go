@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
@@ -39,43 +40,24 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		//nolint:nestif
-		if branch.BranchProtectionRule.RequireLastPushApproval != nil {
-			if *branch.BranchProtectionRule.RequireLastPushApproval {
-				f, err := finding.NewWith(fs, Probe,
-					fmt.Sprintf("'last push approval' enabled on branch '%s'", *branch.Name),
-					nil, finding.OutcomePositive)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				f = f.WithValues(map[string]int{
-					*branch.Name: 1,
-				})
-				findings = append(findings, *f)
-			} else {
-				f, err := finding.NewWith(fs, Probe,
-					fmt.Sprintf("'last push approval' disabled on branch '%s'", *branch.Name),
-					nil, finding.OutcomeNegative)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				f = f.WithValues(map[string]int{
-					*branch.Name: 1,
-				})
-				findings = append(findings, *f)
-			}
-		} else {
-			f, err := finding.NewWith(fs, Probe,
-				fmt.Sprintf("unable to retrieve whether 'last push approval' is required to merge on branch '%s'", *branch.Name),
-				nil, finding.OutcomeNotAvailable)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
-			findings = append(findings, *f)
+		nilMsg := fmt.Sprintf("unable to retrieve whether 'last push approval' is required to merge on branch '%s'",
+			*branch.Name)
+		trueMsg := fmt.Sprintf("'last push approval' enabled on branch '%s'", *branch.Name)
+		falseMsg := fmt.Sprintf("'last push approval' disabled on branch '%s'", *branch.Name)
+
+		p := branch.BranchProtectionRule.RequireLastPushApproval
+		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValues(map[string]int{
+			*branch.Name: 1,
+		})
+		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
 }
