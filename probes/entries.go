@@ -16,7 +16,6 @@ package probes
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -229,7 +228,7 @@ func GetProbeRunner(probeName string) (func(*checker.RawResults) ([]finding.Find
 	if runner, ok := probeRunners[probeName]; ok {
 		return runner, nil
 	}
-	return nil, fmt.Errorf("%w", errProbeNotFound)
+	return nil, errProbeNotFound
 }
 
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {
