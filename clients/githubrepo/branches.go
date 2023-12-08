@@ -365,7 +365,6 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 			if dst.RequiredPullRequestReviews == nil {
 				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 			}
-			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
 			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		}
