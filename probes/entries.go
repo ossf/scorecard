@@ -50,6 +50,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v4/probes/testsRunInCI"
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
@@ -128,6 +129,9 @@ var (
 	}
 	Webhook = []ProbeImpl{
 		webhooksUseSecrets.Run,
+	}
+	CITests = []ProbeImpl{
+		testsRunInCI.Run,
 	}
 )
 
