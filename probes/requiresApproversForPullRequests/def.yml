@@ -17,10 +17,16 @@ short: Check that the project requires approvers for pull requests.
 motivation: >
   Requiring approvers for pull requests makes it harder to introduce vulnerable code to the project.
 implementation: >
-  The probe checks the number of required approvers in each branch of the project.
+  The probe checks the number of required approvers in default and release branches of the project.
 outcome:
   - The probe returns one OutcomePositive for each branch that requires approval for PRs, and one OutcomeNegative for branches that don't.
 remediation:
   effort: High
   text:
     - Configure the project so that it requires approval to merge PRs.
+    - For GitHub-hosted projects, see ["Approving a pull request with required reviews"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews).
+    - For Gitlab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).
+  markdown:
+    - Configure the project so that it requires approval to merge PRs.
+    - For GitHub-hosted projects, see ["Approving a pull request with required reviews"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews).
+    - For Gitlab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).

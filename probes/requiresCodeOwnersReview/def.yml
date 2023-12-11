@@ -24,3 +24,9 @@ remediation:
   effort: High
   text:
     - Configure the project such that code owners must review PRs.
+    - For GitHub-hosted projects, see [the About code owners documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+    - For Gitlab-hosted projects, see [the Code Owners documentation](https://docs.gitlab.com/ee/user/project/codeowners/).
+  markdown:
+    - Configure the project such that code owners must review PRs.
+    - For GitHub-hosted projects, see [the About code owners documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+    - For Gitlab-hosted projects, see [the Code Owners documentation](https://docs.gitlab.com/ee/user/project/codeowners/).

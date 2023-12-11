@@ -17,7 +17,7 @@ short: Check that the project runs required status checks
 motivation: >
   Required status checks can check for common errors and resolve issues in PRs.
 implementation: >
-  The probe checks the rules for each branch in the projects repository.
+  The probe checks the rules for default and release branches in the projects repository.
 outcome:
   - The probe returns one OutcomePositive for each branch that runs required status checks, and one OutcomeNegative for branches that don't.
 remediation:
