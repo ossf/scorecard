@@ -50,29 +50,24 @@ func TestIsBranchProtected(t *testing.T) {
 		expected        scut.TestReturn
 	}{
 		{
-			// TODO: Naming is inconsistent. We should change this to make it score 0.
-			name: "Nothing is enabled",
+			name: "Configs as they are right after creating new Branch Protection setting",
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         3,
-				NumberOfWarn:  7,
-				NumberOfInfo:  3,
-				NumberOfDebug: 0,
+				NumberOfWarn:  6,
+				NumberOfInfo:  2,
+				NumberOfDebug: 1,
 			},
 			branch: &clients.BranchRef{
 				Name:      &branchVal,
 				Protected: &trueVal,
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:          &falseVal,
-					AllowForcePushes:        &falseVal,
-					RequireLinearHistory:    &falseVal,
-					EnforceAdmins:           &falseVal,
-					RequireLastPushApproval: &falseVal,
-					RequiredPullRequestReviews: &clients.PullRequestReviewRule{
-						DismissStaleReviews:          &falseVal,
-						RequireCodeOwnerReviews:      &falseVal,
-						RequiredApprovingReviewCount: &zeroVal,
-					},
+					AllowDeletions:             &falseVal,
+					AllowForcePushes:           &falseVal,
+					RequireLinearHistory:       &falseVal,
+					EnforceAdmins:              &falseVal,
+					RequireLastPushApproval:    &falseVal,
+					RequiredPullRequestReviews: nil,
 					CheckRules: clients.StatusChecksRule{
 						RequiresStatusChecks: &trueVal,
 						Contexts:             nil,
