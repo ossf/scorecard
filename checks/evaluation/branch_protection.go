@@ -283,7 +283,7 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	max := 0
 
 	// Having at least 1 reviewer is twice as important as the other Tier 2 requirements.
-	reviewerWeight := 2
+	const reviewerWeight = 2
 	max += reviewerWeight
 	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
 		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
