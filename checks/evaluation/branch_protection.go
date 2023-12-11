@@ -49,10 +49,10 @@ type levelScore struct {
 	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
-type Tier uint8
+type tier uint8
 
 const (
-	Tier1 Tier = iota
+	Tier1 tier = iota
 	Tier2
 	Tier3
 	Tier4
@@ -113,11 +113,11 @@ func BranchProtection(name string, dl checker.DetailLogger,
 	}
 }
 
-func sumUpScoreForTier(tier Tier, scoresData []levelScore) int {
+func sumUpScoreForTier(t tier, scoresData []levelScore) int {
 	sum := 0
 	for i := range scoresData {
 		score := scoresData[i]
-		switch tier {
+		switch t {
 		case Tier1:
 			sum += score.scores.basic
 		case Tier2:
