@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Blocks deletions on 1/1 branches",
+			name: "One branch blocks branch deletion should result in one positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -59,7 +59,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Blocks deletions on 2/2 branches",
+			name: "Two branches that block branch deletions should result in two positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -83,7 +83,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Blocks deletions on 1/2 branches - 1",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 positive & 1 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -107,7 +107,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Blocks deletions on 1/2 branches - 2",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 negative & 1 positive",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -131,7 +131,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Blocks deletions on 0/2 branches",
+			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 negative & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

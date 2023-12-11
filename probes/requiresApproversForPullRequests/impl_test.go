@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Request approves for PRs on 1/1 branches",
+			name: "1 branch requires 1 reviewer = 1 positive outcome = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -61,7 +61,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 2/2 branches",
+			name: "2 branch require 1 reviewer each = 2 positive outcomes = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -89,7 +89,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 1/2 branches - 1",
+			name: "1 branch requires 1 reviewer and 1 branch requires 0 reviewers = 1 positive and 1 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -117,7 +117,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 1/2 branches - 2",
+			name: "1 branch requires 0 reviewers and 1 branch requires 1 reviewer = 1 negative and 1 positive",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -145,7 +145,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 0/2 branches",
+			name: "1 branch requires 0 reviewers and 1 branch lacks data = 1 negative and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

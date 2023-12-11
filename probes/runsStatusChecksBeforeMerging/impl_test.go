@@ -39,7 +39,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Request approves for PRs on 1/1 branches",
+			name: "Runs status checks on 1/1 branches with contexts = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -59,7 +59,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 2/2 branches",
+			name: "Runs status checks on 2/2 branches with contexts = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -87,7 +87,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 1/2 branches - 1",
+			name: "Runs status checks on 1/2 branches = 1 positive and 1 negative outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -115,7 +115,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 1/2 branches - 2",
+			name: "Runs status checks on 1/2 branches = 1 negative and 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -143,7 +143,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Request approves for PRs on 0/2 branches",
+			name: "Runs status checks on 0/2 branches = 2 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

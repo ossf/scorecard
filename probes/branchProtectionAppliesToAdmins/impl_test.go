@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Enforces rules on admins on 1/1 branches",
+			name: "1 branch enforces protection rules on admins = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -59,7 +59,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Enforces rules on admins on 2/2 branches",
+			name: "1 branch enforces protection rules on admins = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -83,7 +83,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Enforces rules on admins on 1/2 branches - 1",
+			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 positive & 1 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -107,7 +107,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Enforces rules on admins on 1/2 branches - 2",
+			name: "1 branch does not enforce protection rules on admins and 1 does = 1 negative & 1 positive",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -131,7 +131,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Enforces rules on admins on 0/2 branches",
+			name: "1 branch does not enforce protection rules on admins and 1 doesn't have data = 1 negative & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

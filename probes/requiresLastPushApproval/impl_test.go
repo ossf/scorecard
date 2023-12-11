@@ -40,7 +40,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Last push approval enabled on 1/1 branches",
+			name: "1 branch requires last push approval = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -58,7 +58,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Last push approval enabled on 2/2 branches",
+			name: "2 branches requirs last push approval = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -82,7 +82,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Last push approval enabled on 1/2 branches - 1",
+			name: "Last push approval enabled on 1/2 branches = 1 positive and 1 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -106,7 +106,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Last push approval enabled on 1/2 branches - 2",
+			name: "Last push approval enabled on 1/2 branches = 1 negative and 1 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -130,7 +130,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Last push approval enabled on 0/2 branches",
+			name: "1 branch does not require last push approval and 1 lacks data = 1 negative and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

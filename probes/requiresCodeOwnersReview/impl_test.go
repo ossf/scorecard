@@ -40,7 +40,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Requires code owner reviews on 1/1 branches - with files",
+			name: "1 branch requires code owner reviews with viles = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -61,7 +61,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/1 branches - without files",
+			name: "1 branch requires code owner reviews without files = 1 negative outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -82,7 +82,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 2/2 branches - with files",
+			name: "2 branches require code owner reviews with files = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -111,7 +111,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 2/2 branches - without files",
+			name: "2 branches require code owner reviews with files = 2 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -140,7 +140,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - 1 - with files",
+			name: "1 branches require code owner reviews and 1 branch doesn't with files = 1 positive 1 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -169,7 +169,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - 1 - without files",
+			name: "Requires code owner reviews on 1/2 branches - without files = 2 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -198,7 +198,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - 2 - with files",
+			name: "Requires code owner reviews on 1/2 branches - with files = 1 negative and 1 positive",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -227,7 +227,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - 2 - without files",
+			name: "Requires code owner reviews on 1/2 branches - without files = 2 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -256,7 +256,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 0/2 branches - with files",
+			name: "1 branch does not require code owner review and 1 lacks data = 1 negative and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

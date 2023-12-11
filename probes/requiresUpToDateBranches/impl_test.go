@@ -40,7 +40,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Requires up to date branches on 1/1 branches",
+			name: "1 branch requires up-to-date before merge = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -60,7 +60,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires up to date branches on 2/2 branches",
+			name: "2 branches require up-to-date before merge = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -88,7 +88,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires up to date branches on 1/2 branches - 1",
+			name: "Requires up to date branches on 1/2 branches = 1 positive and 1 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -116,7 +116,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires up to date branches on 1/2 branches - 2",
+			name: "Requires up to date branches on 1/2 branches = 1 negative and 1 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -144,7 +144,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires up to date branches on 0/2 branches",
+			name: "1 branch does no require up-to-date before merge and 1 branch lacks data= 1 positive & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
