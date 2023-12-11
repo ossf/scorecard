@@ -40,7 +40,7 @@ func CITests(name string,
 	// Debug PRs that were merged without CI tests
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
+		if f.Outcome == finding.OutcomeNegative || f.Outcome == finding.OutcomePositive {
 			dl.Debug(&checker.LogMessage{
 				Text: f.Message,
 			})
@@ -58,9 +58,6 @@ func CITests(name string,
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid finding values")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
-
-	// Log all findings
-	checker.LogFindings(nonNegativeFindings(findings), dl)
 
 	reason := fmt.Sprintf("%d out of %d merged PRs checked by a CI test", totalTested, totalMerged)
 	return checker.CreateProportionalScoreResult(CheckCITests, reason, totalTested, totalMerged)

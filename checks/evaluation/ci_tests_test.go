@@ -40,8 +40,8 @@ func TestCITests(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score:        10,
-				NumberOfInfo: 1,
+				Score:         10,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -74,8 +74,7 @@ func TestCITests(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:         7,
-				NumberOfInfo:  3,
-				NumberOfDebug: 1,
+				NumberOfDebug: 4,
 			},
 		},
 		{
