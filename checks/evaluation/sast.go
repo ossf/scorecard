@@ -79,6 +79,12 @@ func SAST(name string,
 		// retun checker.InconclusiveResultScore.
 		return checker.CreateRuntimeErrorResult(name, sce.ErrScorecardInternal)
 	}
+	// Sast inconclusive.
+	if snykScore != checker.InconclusiveResultScore {
+		if snykScore == checker.MaxResultScore {
+			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
+		}
+	}
 
 	// Both scores are conclusive.
 	// We assume the CodeQl config uses a cron and is not enabled as pre-submit.
@@ -103,13 +109,6 @@ func SAST(name string,
 			return checker.CreateResultWithScore(name, "SAST tool detected but not run on all commits", score)
 		default:
 			return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, "contact team"))
-		}
-	}
-
-	// Sast inconclusive.
-	if snykScore != checker.InconclusiveResultScore {
-		if snykScore == checker.MaxResultScore {
-			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
 		}
 	}
 

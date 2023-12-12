@@ -155,6 +155,36 @@ func TestSAST(t *testing.T) {
 				NumberOfInfo: 0,
 			},
 		},
+		{
+			name: "Snyk is installed, Sonar and CodeQL are not installed",
+			findings: []finding.Finding{
+				{
+					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "sastToolRunsOnAllCommits",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   3,
+					},
+				},
+				{
+					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfWarn: 1,
+				NumberOfInfo: 2,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
