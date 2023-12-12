@@ -46,10 +46,10 @@ const (
 	asset9 = 9
 )
 
-func negativeSignedProbe(release, asset int) finding.Finding {
+func signedProbe(release, asset int, outcome finding.Outcome) finding.Finding {
 	return finding.Finding{
 		Probe:   releasesAreSigned.Probe,
-		Outcome: finding.OutcomeNegative,
+		Outcome: outcome,
 		Values: map[string]int{
 			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
@@ -57,32 +57,10 @@ func negativeSignedProbe(release, asset int) finding.Finding {
 	}
 }
 
-func positiveSignedProbe(release, asset int) finding.Finding {
-	return finding.Finding{
-		Probe:   releasesAreSigned.Probe,
-		Outcome: finding.OutcomePositive,
-		Values: map[string]int{
-			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
-			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
-		},
-	}
-}
-
-func negativeProvenanceProbe(release, asset int) finding.Finding {
+func provenanceProbe(release, asset int, outcome finding.Outcome) finding.Finding {
 	return finding.Finding{
 		Probe:   releasesHaveProvenance.Probe,
-		Outcome: finding.OutcomeNegative,
-		Values: map[string]int{
-			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
-			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
-		},
-	}
-}
-
-func positiveProvenanceProbe(release, asset int) finding.Finding {
-	return finding.Finding{
-		Probe:   releasesHaveProvenance.Probe,
-		Outcome: finding.OutcomePositive,
+		Outcome: outcome,
 		Values: map[string]int{
 			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
@@ -100,8 +78,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed but no provenance",
 			findings: []finding.Finding{
-				positiveSignedProbe(0, 0),
-				negativeProvenanceProbe(0, 0),
+				signedProbe(0, 0, finding.OutcomePositive),
+				provenanceProbe(0, 0, finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -113,8 +91,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed and has provenance",
 			findings: []finding.Finding{
-				positiveSignedProbe(0, 0),
-				positiveProvenanceProbe(0, 0),
+				signedProbe(0, 0, finding.OutcomePositive),
+				provenanceProbe(0, 0, finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:         10,
@@ -125,8 +103,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is not signed but has provenance",
 			findings: []finding.Finding{
-				negativeSignedProbe(0, 0),
-				positiveProvenanceProbe(0, 0),
+				signedProbe(0, 0, finding.OutcomeNegative),
+				provenanceProbe(0, 0, finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -141,33 +119,33 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				//     Asset 1:
-				negativeSignedProbe(release0, asset0),
-				negativeProvenanceProbe(release0, asset0),
+				signedProbe(release0, asset0, finding.OutcomeNegative),
+				provenanceProbe(release0, asset0, finding.OutcomeNegative),
 				//     Asset 2:
-				positiveSignedProbe(release0, asset1),
-				negativeProvenanceProbe(release0, asset1),
+				signedProbe(release0, asset1, finding.OutcomePositive),
+				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2
 				//     Asset 1:
-				negativeSignedProbe(release1, asset0),
-				negativeProvenanceProbe(release1, asset0),
+				signedProbe(release1, asset0, finding.OutcomeNegative),
+				provenanceProbe(release1, asset0, finding.OutcomeNegative),
 				// Release 2
 				//     Asset 2:
-				negativeSignedProbe(release1, asset1),
-				negativeProvenanceProbe(release1, asset1),
+				signedProbe(release1, asset1, finding.OutcomeNegative),
+				provenanceProbe(release1, asset1, finding.OutcomeNegative),
 				// Release 2
 				//     Asset 3:
-				negativeSignedProbe(release1, asset2),
-				negativeProvenanceProbe(release1, asset2),
+				signedProbe(release1, asset2, finding.OutcomeNegative),
+				provenanceProbe(release1, asset2, finding.OutcomeNegative),
 				// Release 3
 				//     Asset 1:
-				negativeSignedProbe(release2, asset0),
-				positiveProvenanceProbe(release2, asset0),
+				signedProbe(release2, asset0, finding.OutcomeNegative),
+				provenanceProbe(release2, asset0, finding.OutcomePositive),
 				//     Asset 2:
-				negativeSignedProbe(release2, asset1),
-				positiveProvenanceProbe(release2, asset1),
+				signedProbe(release2, asset1, finding.OutcomeNegative),
+				provenanceProbe(release2, asset1, finding.OutcomePositive),
 				//     Asset 3:
-				negativeSignedProbe(release2, asset2),
-				negativeProvenanceProbe(release2, asset2),
+				signedProbe(release2, asset2, finding.OutcomeNegative),
+				provenanceProbe(release2, asset2, finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         6,
@@ -181,50 +159,50 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				negativeSignedProbe(release0, asset0),
-				negativeProvenanceProbe(release0, asset0),
-				positiveSignedProbe(release0, asset1),
-				negativeProvenanceProbe(release0, asset1),
+				signedProbe(release0, asset0, finding.OutcomeNegative),
+				provenanceProbe(release0, asset0, finding.OutcomeNegative),
+				signedProbe(release0, asset1, finding.OutcomePositive),
+				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2:
 				// Release 2, Asset 1:
-				positiveSignedProbe(release1, asset1),
-				negativeProvenanceProbe(release1, asset0),
+				signedProbe(release1, asset1, finding.OutcomePositive),
+				provenanceProbe(release1, asset0, finding.OutcomeNegative),
 				// Release 2, Asset 2:
-				negativeSignedProbe(release1, asset1),
-				negativeProvenanceProbe(release1, asset1),
+				signedProbe(release1, asset1, finding.OutcomeNegative),
+				provenanceProbe(release1, asset1, finding.OutcomeNegative),
 				// Release 2, Asset 3:
-				negativeSignedProbe(release1, asset2),
-				negativeProvenanceProbe(release1, asset2),
+				signedProbe(release1, asset2, finding.OutcomeNegative),
+				provenanceProbe(release1, asset2, finding.OutcomeNegative),
 				// Release 3, Asset 1:
-				negativeSignedProbe(release2, asset0),
-				positiveProvenanceProbe(release2, asset0),
+				signedProbe(release2, asset0, finding.OutcomeNegative),
+				provenanceProbe(release2, asset0, finding.OutcomePositive),
 				// Release 3, Asset 2:
-				negativeSignedProbe(release2, asset1),
-				negativeProvenanceProbe(release2, asset1),
+				signedProbe(release2, asset1, finding.OutcomeNegative),
+				provenanceProbe(release2, asset1, finding.OutcomeNegative),
 				// Release 3, Asset 3:
-				negativeSignedProbe(release2, asset2),
-				negativeProvenanceProbe(release2, asset2),
+				signedProbe(release2, asset2, finding.OutcomeNegative),
+				provenanceProbe(release2, asset2, finding.OutcomeNegative),
 				// Release 4, Asset 1:
-				negativeSignedProbe(release3, asset0),
-				positiveProvenanceProbe(release3, asset0),
+				signedProbe(release3, asset0, finding.OutcomeNegative),
+				provenanceProbe(release3, asset0, finding.OutcomePositive),
 				// Release 4, Asset 2:
-				negativeSignedProbe(release3, asset1),
-				negativeProvenanceProbe(release3, asset1),
+				signedProbe(release3, asset1, finding.OutcomeNegative),
+				provenanceProbe(release3, asset1, finding.OutcomeNegative),
 				// Release 4, Asset 3:
-				negativeSignedProbe(release3, asset2),
-				negativeProvenanceProbe(release3, asset2),
+				signedProbe(release3, asset2, finding.OutcomeNegative),
+				provenanceProbe(release3, asset2, finding.OutcomeNegative),
 				// Release 5, Asset 1:
-				negativeSignedProbe(release4, asset0),
-				negativeProvenanceProbe(release4, asset0),
+				signedProbe(release4, asset0, finding.OutcomeNegative),
+				provenanceProbe(release4, asset0, finding.OutcomeNegative),
 				// Release 5, Asset 2:
-				negativeSignedProbe(release4, asset1),
-				negativeProvenanceProbe(release4, asset1),
+				signedProbe(release4, asset1, finding.OutcomeNegative),
+				provenanceProbe(release4, asset1, finding.OutcomeNegative),
 				// Release 5, Asset 3:
-				negativeSignedProbe(release4, asset2),
-				negativeProvenanceProbe(release4, asset2),
+				signedProbe(release4, asset2, finding.OutcomeNegative),
+				provenanceProbe(release4, asset2, finding.OutcomeNegative),
 				// Release 5, Asset 4:
-				negativeSignedProbe(release4, asset3),
-				negativeProvenanceProbe(release4, asset3),
+				signedProbe(release4, asset3, finding.OutcomeNegative),
+				provenanceProbe(release4, asset3, finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         7,
@@ -238,50 +216,50 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				negativeSignedProbe(release0, asset0),
-				negativeProvenanceProbe(release0, asset0),
-				positiveSignedProbe(release0, asset1),
-				negativeProvenanceProbe(release0, asset1),
+				signedProbe(release0, asset0, finding.OutcomeNegative),
+				provenanceProbe(release0, asset0, finding.OutcomeNegative),
+				signedProbe(release0, asset1, finding.OutcomePositive),
+				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2:
 				// Release 2, Asset 1:
-				positiveSignedProbe(release1, asset0),
-				negativeProvenanceProbe(release1, asset0),
+				signedProbe(release1, asset0, finding.OutcomePositive),
+				provenanceProbe(release1, asset0, finding.OutcomeNegative),
 				// Release 2, Asset 2:
-				negativeSignedProbe(release1, asset1),
-				negativeProvenanceProbe(release1, asset1),
+				signedProbe(release1, asset1, finding.OutcomeNegative),
+				provenanceProbe(release1, asset1, finding.OutcomeNegative),
 				// Release 2, Asset 3:
-				negativeSignedProbe(release1, asset2),
-				negativeProvenanceProbe(release1, asset2),
+				signedProbe(release1, asset2, finding.OutcomeNegative),
+				provenanceProbe(release1, asset2, finding.OutcomeNegative),
 				// Release 3, Asset 1:
-				positiveSignedProbe(release2, asset0),
-				positiveProvenanceProbe(release2, asset0),
+				signedProbe(release2, asset0, finding.OutcomePositive),
+				provenanceProbe(release2, asset0, finding.OutcomePositive),
 				// Release 3, Asset 2:
-				negativeSignedProbe(release2, asset1),
-				negativeProvenanceProbe(release2, asset1),
+				signedProbe(release2, asset1, finding.OutcomeNegative),
+				provenanceProbe(release2, asset1, finding.OutcomeNegative),
 				// Release 3, Asset 3:
-				negativeSignedProbe(release2, asset2),
-				negativeProvenanceProbe(release2, asset2),
+				signedProbe(release2, asset2, finding.OutcomeNegative),
+				provenanceProbe(release2, asset2, finding.OutcomeNegative),
 				// Release 4, Asset 1:
-				positiveSignedProbe(release3, asset0),
-				positiveProvenanceProbe(release3, asset0),
+				signedProbe(release3, asset0, finding.OutcomePositive),
+				provenanceProbe(release3, asset0, finding.OutcomePositive),
 				// Release 4, Asset 2:
-				negativeSignedProbe(release3, asset1),
-				negativeProvenanceProbe(release3, asset1),
+				signedProbe(release3, asset1, finding.OutcomeNegative),
+				provenanceProbe(release3, asset1, finding.OutcomeNegative),
 				// Release 4, Asset 3:
-				negativeSignedProbe(release3, asset2),
-				negativeProvenanceProbe(release3, asset2),
+				signedProbe(release3, asset2, finding.OutcomeNegative),
+				provenanceProbe(release3, asset2, finding.OutcomeNegative),
 				// Release 5, Asset 1:
-				positiveSignedProbe(release4, asset0),
-				negativeProvenanceProbe(release4, asset0),
+				signedProbe(release4, asset0, finding.OutcomePositive),
+				provenanceProbe(release4, asset0, finding.OutcomeNegative),
 				// Release 5, Asset 2:
-				negativeSignedProbe(release4, asset1),
-				negativeProvenanceProbe(release4, asset1),
+				signedProbe(release4, asset1, finding.OutcomeNegative),
+				provenanceProbe(release4, asset1, finding.OutcomeNegative),
 				// Release 5, Asset 3:
-				negativeSignedProbe(release4, asset2),
-				negativeProvenanceProbe(release4, asset2),
+				signedProbe(release4, asset2, finding.OutcomeNegative),
+				provenanceProbe(release4, asset2, finding.OutcomeNegative),
 				// Release 5, Asset 4:
-				negativeSignedProbe(release4, asset3),
-				negativeProvenanceProbe(release4, asset3),
+				signedProbe(release4, asset3, finding.OutcomeNegative),
+				provenanceProbe(release4, asset3, finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         8,
