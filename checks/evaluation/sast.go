@@ -79,7 +79,6 @@ func SAST(name string,
 		// retun checker.InconclusiveResultScore.
 		return checker.CreateRuntimeErrorResult(name, sce.ErrScorecardInternal)
 	}
-	// Sast inconclusive.
 	if snykScore != checker.InconclusiveResultScore {
 		if snykScore == checker.MaxResultScore {
 			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
@@ -112,6 +111,7 @@ func SAST(name string,
 		}
 	}
 
+	// Sast inconclusive.
 	if codeQlScore != checker.InconclusiveResultScore {
 		if codeQlScore == checker.MaxResultScore {
 			return checker.CreateMaxScoreResult(name, "SAST tool detected: CodeQL")
