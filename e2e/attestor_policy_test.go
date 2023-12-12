@@ -247,6 +247,6 @@ func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
 	if err != nil {
 		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up clients: %w", err)
 	}
-	//nolint:wrapcheck,lll
+
 	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
 }

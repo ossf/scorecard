@@ -19,6 +19,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
@@ -40,11 +42,17 @@ func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
-	// Return raw results.
-	if c.RawResults != nil {
-		c.RawResults.CIIBestPracticesResults = rawData
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.CIIBestPracticesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.CIIBestPractices)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
 	}
 
 	// Return the score evaluation.
-	return evaluation.CIIBestPractices(CheckCIIBestPractices, c.Dlogger, &rawData)
+	return evaluation.CIIBestPractices(CheckCIIBestPractices, findings, c.Dlogger)
 }

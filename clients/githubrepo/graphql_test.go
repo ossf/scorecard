@@ -35,6 +35,7 @@ func (b badGatewayRoundTripper) RoundTrip(*http.Request) (*http.Response, error)
 }
 
 func Test_getCommits_retry(t *testing.T) {
+	t.Parallel()
 	var nRequests int
 	rt := badGatewayRoundTripper{requestCounter: &nRequests}
 	handler := graphqlHandler{

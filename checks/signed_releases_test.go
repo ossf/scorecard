@@ -364,10 +364,10 @@ func TestSignedRelease(t *testing.T) {
 
 		{
 			name: "Error getting releases",
-			err:  errors.New("Error getting releases"), //nolint:goerr113
+			err:  errors.New("Error getting releases"),
 			expected: checker.CheckResult{
 				Score: -1,
-				Error: errors.New("Error getting releases"), //nolint:goerr113
+				Error: errors.New("Error getting releases"),
 			},
 		},
 	}

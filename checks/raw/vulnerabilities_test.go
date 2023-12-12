@@ -47,9 +47,8 @@ func TestVulnerabilities(t *testing.T) {
 			numberofCommits: 1,
 		},
 		{
-			name:    "err response",
-			wantErr: true,
-			//nolint:goerr113
+			name:          "err response",
+			wantErr:       true,
 			err:           errors.New("error"),
 			vulnsResponse: clients.VulnerabilitiesResponse{},
 		},
@@ -93,7 +92,6 @@ func TestVulnerabilities(t *testing.T) {
 			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					if tt.vulnsError {
-						//nolint:goerr113
 						return clients.VulnerabilitiesResponse{}, errors.New("error")
 					}
 					return tt.vulnsResponse, tt.err

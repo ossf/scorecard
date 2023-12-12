@@ -70,6 +70,8 @@ const (
 	ShorthandFlagResultsFile = "o"
 
 	FlagCommitDepth = "commit-depth"
+
+	FlagProbes = "probes"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -166,6 +168,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagChecks,
 		o.ChecksToRun,
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
+	)
+
+	cmd.Flags().StringSliceVar(
+		&o.ProbesToRun,
+		FlagProbes,
+		o.ProbesToRun,
+		"Probes to run.",
 	)
 
 	// TODO(options): Extract logic

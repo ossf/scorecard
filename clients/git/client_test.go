@@ -50,7 +50,7 @@ func createTestRepo(t *testing.T) (path string) {
 
 	// Create a new file
 	filePath := filepath.Join(dir, "file")
-	err = os.WriteFile(filePath, []byte("Hello, World!"), 0o644) //nolint:gosec
+	err = os.WriteFile(filePath, []byte("Hello, World!"), 0o600)
 	if err != nil {
 		t.Fatalf("Failed to write a file: %v", err)
 	}
@@ -77,8 +77,8 @@ func createTestRepo(t *testing.T) (path string) {
 	return dir
 }
 
-//nolint:paralleltest
 func TestInitRepo(t *testing.T) {
+	t.Parallel()
 	tests := []struct { //nolint:govet
 		name        string
 		uri         string
@@ -112,6 +112,7 @@ func TestInitRepo(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			uri := fmt.Sprintf(test.uri, repoPath)
 
 			client := &Client{}
@@ -124,6 +125,7 @@ func TestInitRepo(t *testing.T) {
 }
 
 func TestListCommits(t *testing.T) {
+	t.Parallel()
 	repoPath := createTestRepo(t)
 
 	client := &Client{}
@@ -147,8 +149,8 @@ func TestListCommits(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest
 func TestSearch(t *testing.T) {
+	t.Parallel()
 	testCases := []struct {
 		name     string
 		request  clients.SearchRequest
@@ -185,7 +187,7 @@ func TestSearch(t *testing.T) {
 	// Use the same test repo for all test cases.
 	repoPath := createTestRepo(t)
 	filePath := filepath.Join(repoPath, "test.txt")
-	err := os.WriteFile(filePath, []byte("Hello, World!"), 0o644) //nolint:gosec
+	err := os.WriteFile(filePath, []byte("Hello, World!"), 0o600)
 	if err != nil {
 		t.Fatalf("WriteFile() failed: %v", err)
 	}
@@ -215,7 +217,9 @@ func TestSearch(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
+		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			client := &Client{}
 			uri := fmt.Sprintf("file://%s", repoPath)
 			if err := client.InitRepo(uri, "HEAD", 1); err != nil {

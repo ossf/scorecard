@@ -65,8 +65,7 @@ func TestSubscriber(t *testing.T) {
 		{
 			name:            "ReceiveFails",
 			hasErrOnReceive: true,
-			//nolint:goerr113
-			errOnReceive: errors.New("mock Receive failure"),
+			errOnReceive:    errors.New("mock Receive failure"),
 		},
 		{
 			name: "ShutdownFails",
@@ -78,8 +77,7 @@ func TestSubscriber(t *testing.T) {
 				},
 			},
 			hasErrOnShutdown: true,
-			//nolint:goerr113
-			errOnShutdown: errors.New("mock Shutdown close"),
+			errOnShutdown:    errors.New("mock Shutdown close"),
 		},
 	}
 	for _, testcase := range testcases {
