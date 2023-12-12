@@ -285,8 +285,7 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	// Having at least 1 reviewer is twice as important as the other Tier 2 requirements.
 	const reviewerWeight = 2
 	max += reviewerWeight
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
-		*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0 {
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount) > 0 {
 		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
 		score += reviewerWeight
 	}
@@ -328,8 +327,7 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	}
 
 	max++
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.Required != nil &&
-		*branch.BranchProtectionRule.RequiredPullRequestReviews.Required {
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.Required) {
 		score++
 		info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 	} else {
@@ -388,10 +386,7 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 
 	max++
 
-	var reviewers int32
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		reviewers = *(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-	}
+	reviewers := valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 	if reviewers >= minReviews {
 		info(dl, log, "number of required reviewers is %d on branch '%s'", reviewers, *branch.Name)
 		score++
@@ -426,4 +421,13 @@ func codeownerBranchProtection(
 	}
 
 	return score, max
+}
+
+// returns the pointer's value if it exists, the type's zero-value otherwise.
+func valueOrZero[T any](ptr *T) T {
+	if ptr == nil {
+		var zero T
+		return zero
+	}
+	return *ptr
 }
