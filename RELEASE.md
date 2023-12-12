@@ -37,6 +37,46 @@ be merged before releasing the scorecard GitHub Action.
 
 Check the unit tests and integration tests are passing for the planned release commit, either locally or for the GitHub workflows.
 
+### Validate the changes with scdiff
+1. Create the list of repos to use for the analysis if you don't have it already:
+```console
+cat <<EOF > repos.txt
+https://github.com/airbnb/lottie-web
+https://github.com/apache/tomcat
+https://github.com/Azure/azure-functions-dotnet-worker
+https://github.com/cncf/xds
+https://github.com/google/go-cmp
+https://github.com/google/highwayhash
+https://github.com/googleapis/google-api-php-client
+https://github.com/jacoco/jacoco
+https://github.com/ossf/scorecard
+https://github.com/pallets/jinja
+https://github.com/polymer/polymer
+https://github.com/rust-random/getrandom
+https://github.com/yaml/libyaml
+https://gitlab.com/baserow/baserow
+https://gitlab.com/cryptsetup/cryptsetup
+EOF
+```
+2. Run `scdiff` on the previous release:
+```console
+git checkout <old release tag>
+go run cmd/internal/scdiff/main.go generate --repos repos.txt --output oldRelease.json
+```
+3. Run `scdiff` on the commit to be tagged:
+```console
+git checkout <commit to be tagged>
+go run cmd/internal/scdiff/main.go generate --repos repos.txt --output newRelease.json
+```
+4. Compare the results:
+```console
+go run cmd/internal/scdiff/main.go compare oldRelease.json newRelease.json
+```
+5. Evaluating results:
+There will be differences! That's ok, but please pay attention to what they are and use your judgement when evaluating them.
+Compare the changes against the release notes you're expecting below.
+
+
 ## Drafting release notes
 
 Release notes are a semi-automated process. We often start by opening [drafting a new release on GitHub](https://github.com/ossf/scorecard/releases/new).
