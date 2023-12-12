@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/xanzy/go-gitlab"
 
@@ -32,11 +33,20 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 }
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	commit := regexp.MustCompile("^[a-f0-9]{40}$")
+	options := gitlab.ListProjectPipelinesOptions{
+		ListOptions: gitlab.ListOptions{},
+	}
+
+	// In Gitlab: ref refers to a branch or tag name, and sha refers to commit sha
+	if commit.MatchString(ref) {
+		options.SHA = &ref
+	} else {
+		options.Ref = &ref
+	}
+
 	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{
-			SHA:         &ref,
-			ListOptions: gitlab.ListOptions{},
-		})
+		handler.repourl.projectID, &options)
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}
