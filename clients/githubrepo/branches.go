@@ -364,9 +364,9 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 
 		// we always have the data to know if PRs are required
 		if dst.RequiredPullRequestReviews.Required == nil {
-			dst.RequiredPullRequestReviews.Required = new(bool)
+			dst.RequiredPullRequestReviews.Required = asPtr(false)
 		}
-		// RequiredApprovingReviewCount is nil if PRs aren't required, or &num if PRs are required (including &0)
+		// GitHub returns nil for RequiredApprovingReviewCount when PRs aren't required and non-nil when they are
 		// RequiresCodeOwnerReviews is &false even if PRs aren't required, so we need it to be true
 		if v.RequiredApprovingReviewCount != nil || valueOrZero(v.RequiresCodeOwnerReviews) {
 			dst.RequiredPullRequestReviews.Required = asPtr(true)
