@@ -44,8 +44,7 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 		options.Ref = &ref
 	}
 
-	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.projectID, &options)
+	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(handler.repourl.projectID, &options)
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}
