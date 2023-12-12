@@ -51,7 +51,6 @@ func negativeSignedProbe(totalReleases, release, asset int) finding.Finding {
 		Probe:   "releasesAreSigned",
 		Outcome: finding.OutcomeNegative,
 		Values: map[string]int{
-			"totalReleases":                   totalReleases,
 			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
 		},
@@ -63,7 +62,6 @@ func positiveSignedProbe(totalReleases, release, asset int) finding.Finding {
 		Probe:   "releasesAreSigned",
 		Outcome: finding.OutcomePositive,
 		Values: map[string]int{
-			"totalReleases":                   totalReleases,
 			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
 		},
@@ -75,7 +73,6 @@ func negativeProvenanceProbe(totalReleases, release, asset int) finding.Finding 
 		Probe:   "releasesHaveProvenance",
 		Outcome: finding.OutcomeNegative,
 		Values: map[string]int{
-			"totalReleases":                   totalReleases,
 			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
 		},
@@ -87,7 +84,6 @@ func positiveProvenanceProbe(totalReleases, release, asset int) finding.Finding 
 		Probe:   "releasesHaveProvenance",
 		Outcome: finding.OutcomePositive,
 		Values: map[string]int{
-			"totalReleases":                   totalReleases,
 			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
 			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
 		},
