@@ -53,3 +53,8 @@ githubrepo.tar.gz
 
 # goreleaser
 dist/*
+
+# scdiff, ensure the files detailed in RELEASE.md aren't committed
+repos.txt
+oldRelease.json
+newRelease.json
