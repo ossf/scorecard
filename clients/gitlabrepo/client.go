@@ -180,11 +180,17 @@ func (client *Client) GetFileContent(filename string) ([]byte, error) {
 func (client *Client) ListCommits() ([]clients.Commit, error) {
 	// Get commits from REST API
 	commitsRaw, err := client.commits.listRawCommits()
+	var before *time.Time
+
 	if err != nil {
 		return []clients.Commit{}, err
 	}
 
-	before := commitsRaw[0].CommittedDate
+	if len(commitsRaw) < 1 {
+		return []clients.Commit{}, nil
+	} else {
+		before = commitsRaw[0].CommittedDate
+	}
 	// Get merge request details from GraphQL
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
 	// are within them without making a REST call for each commit (~30 by default)
