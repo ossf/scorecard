@@ -15,7 +15,7 @@
 id: dismissesStaleReviews
 short: Check that the project dismisses stale reviews when new commits are pushed.
 motivation: >
-  Not dismissing the stale status of a PR when it is updated will discourage the community from contributing which could lead to missing out on security contributions.
+  When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make malicious commits.
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:

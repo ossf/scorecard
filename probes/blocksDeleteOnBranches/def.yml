@@ -15,7 +15,7 @@
 id: blocksDeleteOnBranches
 short: Check that the project blocks non-admins from deleting branches.
 motivation: >
-  Allowing non-admins to delete project branches could prevent users from consuming the project.
+  Allowing non-admins to delete project branches has a similar effect to performing force pushes.
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
