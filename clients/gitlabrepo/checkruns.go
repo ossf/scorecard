@@ -23,6 +23,8 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
+var gitCommitHashRegex = regexp.MustCompile(`^[a-fA-F0-9]{40}$`)
+
 type checkrunsHandler struct {
 	glClient *gitlab.Client
 	repourl  *repoURL
@@ -33,13 +35,10 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 }
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	commit := regexp.MustCompile("^[a-f0-9]{40}$")
-	options := gitlab.ListProjectPipelinesOptions{
-		ListOptions: gitlab.ListOptions{},
-	}
+	var options gitlab.ListProjectPipelinesOptions
 
 	// In Gitlab: ref refers to a branch or tag name, and sha refers to commit sha
-	if commit.MatchString(ref) {
+	if gitCommitHashRegex.MatchString(ref) {
 		options.SHA = &ref
 	} else {
 		options.Ref = &ref
