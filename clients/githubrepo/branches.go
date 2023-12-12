@@ -327,6 +327,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
+	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
 		// TODO(#3255): Update when GitHub GraphQL bug is fixed
@@ -340,14 +341,13 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
 		}
 	}
-
-	// We're also checking if branch requires PRs because if it doesn't,
-	// the RequiredPullRequestReviews struct should be nil.
-	if src.DismissesStaleReviews != nil && branchRequiresPrs(src) {
-		if dst.RequiredPullRequestReviews == nil {
-			dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-		}
-		copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
+	// we always have the data to know if PRs are required
+	if dst.RequiredPullRequestReviews.Required == nil {
+		dst.RequiredPullRequestReviews.Required = asPtr(false)
+	}
+	// these values report as &false when PRs aren't required, so if they're true then PRs are required
+	if valueOrZero(src.RequireLastPushApproval) || valueOrZero(src.DismissesStaleReviews) {
+		dst.RequiredPullRequestReviews.Required = asPtr(true)
 	}
 }
 
@@ -358,37 +358,34 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
+		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
-		// If branch doesn't require PRs to make changes, we let the struct RequiredPullRequestReviews point to nil
-		if branchRequiresPrs(v) {
-			if dst.RequiredPullRequestReviews == nil {
-				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-			}
-			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+		// we always have the data to know if PRs are required
+		if dst.RequiredPullRequestReviews.Required == nil {
+			dst.RequiredPullRequestReviews.Required = new(bool)
+		}
+		// RequiredApprovingReviewCount is nil if PRs aren't required, or &num if PRs are required (including &0)
+		// RequiresCodeOwnerReviews is &false even if PRs aren't required, so we need it to be true
+		if v.RequiredApprovingReviewCount != nil || valueOrZero(v.RequiresCodeOwnerReviews) {
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
 		}
 
 	case *refUpdateRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
+		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
 		// Evaluate if we have data to infer that the project requires PRs to make changes. If we don't have data, we let
-		// the struct RequiredPullRequestReviews as nil
+		// Required stay nil
 		if valueOrZero(v.RequiredApprovingReviewCount) > 0 || valueOrZero(v.RequiresCodeOwnerReviews) {
-			if dst.RequiredPullRequestReviews == nil {
-				dst.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-			}
-			copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
-			copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
 		}
 	}
-}
-
-func branchRequiresPrs(data *branchProtectionRule) bool {
-	return data.RequiredApprovingReviewCount != nil
 }
 
 func getDefaultBranchNameFrom(data *ruleSetData) string {
@@ -511,6 +508,9 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 			AllowDeletions:       asPtr(true),
 			AllowForcePushes:     asPtr(true),
 			RequireLinearHistory: asPtr(false),
+			RequiredPullRequestReviews: clients.PullRequestReviewRule{
+				Required: asPtr(false),
+			},
 		}
 
 		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
@@ -534,8 +534,7 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
-	base.RequiredPullRequestReviews = new(clients.PullRequestReviewRule)
-
+	base.RequiredPullRequestReviews.Required = asPtr(true)
 	base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
 	base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
 	base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
@@ -583,7 +582,7 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		base.RequireLinearHistory = translated.RequireLinearHistory
 	}
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
-	mergePullRequestReviews(&base.RequiredPullRequestReviews, translated.RequiredPullRequestReviews)
+	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {
@@ -601,26 +600,19 @@ func mergeCheckRules(base, translated *clients.StatusChecksRule) {
 	}
 }
 
-func mergePullRequestReviews(base **clients.PullRequestReviewRule, translated *clients.PullRequestReviewRule) {
-	switch {
-	case translated == nil:
-		// "translated" have nothing to be merged in base
-		return
-	case *base == nil:
-		// result would be "translated" itself
-		*base = translated
-		return
+func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
+	if base.Required == nil || valueOrZero(translated.Required) {
+		base.Required = translated.Required
 	}
-
-	if (*base).RequiredApprovingReviewCount == nil ||
-		valueOrZero((*base).RequiredApprovingReviewCount) < valueOrZero(translated.RequiredApprovingReviewCount) {
-		(*base).RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
+	if base.RequiredApprovingReviewCount == nil ||
+		valueOrZero(base.RequiredApprovingReviewCount) < valueOrZero(translated.RequiredApprovingReviewCount) {
+		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
 	}
-	if (*base).DismissStaleReviews == nil || valueOrZero(translated.DismissStaleReviews) {
-		(*base).DismissStaleReviews = translated.DismissStaleReviews
+	if base.DismissStaleReviews == nil || valueOrZero(translated.DismissStaleReviews) {
+		base.DismissStaleReviews = translated.DismissStaleReviews
 	}
-	if (*base).RequireCodeOwnerReviews == nil || valueOrZero(translated.RequireCodeOwnerReviews) {
-		(*base).RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
+	if base.RequireCodeOwnerReviews == nil || valueOrZero(translated.RequireCodeOwnerReviews) {
+		base.RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
 	}
 }
 
