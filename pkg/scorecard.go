@@ -39,20 +39,11 @@ import (
 var errEmptyRepository = errors.New("repository empty")
 
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
+	repo clients.Repo,
+	request *checker.CheckRequest,
+	checksToRun checker.CheckNameToFnMap,
 	resultsCh chan checker.CheckResult,
 ) {
-	request := checker.CheckRequest{
-		Ctx:                   ctx,
-		RepoClient:            repoClient,
-		OssFuzzRepo:           ossFuzzRepoClient,
-		CIIClient:             ciiClient,
-		VulnerabilitiesClient: vulnsClient,
-		Repo:                  repo,
-		RawResults:            raw,
-	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName
@@ -63,7 +54,7 @@ func runEnabledChecks(ctx context.Context,
 			runner := checker.NewRunner(
 				checkName,
 				repo.URI(),
-				&request,
+				request,
 			)
 
 			resultsCh <- runner.Run(ctx, checkFn)
@@ -89,12 +80,12 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 	return commits[0].SHA, nil
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
-func RunScorecard(ctx context.Context,
+func runScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -150,9 +141,27 @@ func RunScorecard(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
-	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
-		repoClient, ossFuzzRepoClient,
-		ciiClient, vulnsClient, resultsCh)
+	request := &checker.CheckRequest{
+		Ctx:                   ctx,
+		RepoClient:            repoClient,
+		OssFuzzRepo:           ossFuzzRepoClient,
+		CIIClient:             ciiClient,
+		VulnerabilitiesClient: vulnsClient,
+		Repo:                  repo,
+		RawResults:            &ret.RawResults,
+	}
+
+	// If the user runs probes
+	if len(probesToRun) > 0 {
+		err = runEnabledProbes(request, probesToRun, &ret)
+		if err != nil {
+			return ScorecardResult{}, err
+		}
+		return ret, nil
+	}
+
+	// If the user runs checks
+	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
@@ -175,4 +184,82 @@ func RunScorecard(ctx context.Context,
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+func runEnabledProbes(request *checker.CheckRequest,
+	probesToRun []string,
+	ret *ScorecardResult,
+) error {
+	// Add RawResults to request
+	err := populateRawResults(request, probesToRun, ret)
+	if err != nil {
+		return err
+	}
+
+	probeFindings := make([]finding.Finding, 0)
+	for _, probeName := range probesToRun {
+		// Get the probe Run func
+		probeRunner, err := probes.GetProbeRunner(probeName)
+		if err != nil {
+			msg := fmt.Sprintf("could not find probe: %s", probeName)
+			return sce.WithMessage(sce.ErrScorecardInternal, msg)
+		}
+		// Run probe
+		findings, _, err := probeRunner(&ret.RawResults)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+		}
+		probeFindings = append(probeFindings, findings...)
+	}
+	ret.Findings = probeFindings
+	return nil
+}
+
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func RunScorecard(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		[]string{},
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
+}
+
+// ExperimentalRunProbes is experimental. Do not depend on it, it may be removed at any point.
+func ExperimentalRunProbes(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		probesToRun,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
 }
