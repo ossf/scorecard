@@ -111,7 +111,6 @@ func SAST(name string,
 		if snykScore == checker.MaxResultScore {
 			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
 		}
-		return checker.CreateMinScoreResult(name, "no SAST tool detected")
 	}
 
 	if codeQlScore != checker.InconclusiveResultScore {
