@@ -39,11 +39,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for _, wf := range r.Workflows {
 		if wf.Type == checker.SnykWorkflow {
 			f, err := finding.NewWith(fs, Probe,
-				fmt.Sprintf("SAST tool installed: Snyk at location '%v'", wf.File.Path), nil,
+				"SAST tool installed: Snyk", nil,
 				finding.OutcomePositive)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
+			f = f.WithLocation(&finding.Location{
+				Path: wf.File.Path,
+			})
 			return []finding.Finding{*f}, Probe, nil
 		}
 	}
