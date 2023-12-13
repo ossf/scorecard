@@ -93,7 +93,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -112,7 +113,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -151,7 +153,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -186,7 +189,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -207,7 +211,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -242,7 +247,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -263,7 +269,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
@@ -299,7 +306,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
@@ -337,7 +345,8 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: &clients.PullRequestReviewRule{
+						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
