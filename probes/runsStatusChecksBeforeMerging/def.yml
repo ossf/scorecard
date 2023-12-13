@@ -21,6 +21,6 @@ implementation: >
 outcome:
   - The probe returns one OutcomePositive for each branch that runs required status checks, and one OutcomeNegative for branches that don't.
 remediation:
-  effort: High
+  effort: Medium
   text:
     - Enable required status checks by following [these guidelines](https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).
