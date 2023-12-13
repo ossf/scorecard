@@ -37,13 +37,16 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	var options gitlab.ListProjectPipelinesOptions
 
-	// In Gitlab: ref refers to a branch or tag name, and sha refers to commit sha
 	if gitCommitHashRegex.MatchString(ref) {
 		options.SHA = &ref
 	} else {
 		options.Ref = &ref
 	}
 
+	// Notes for Gitlab ListProjectPipelines endpoint:
+	// Only full SHA works for SHA param, Short SHA does not work
+	// Branch names work for Ref Param, tags and SHAs do not work
+	// Reference: https://docs.gitlab.com/ee/api/pipelines.html#list-project-pipelines
 	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(handler.repourl.projectID, &options)
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
