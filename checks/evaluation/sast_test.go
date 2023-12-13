@@ -87,7 +87,7 @@ func TestSAST(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 3,
-				NumberOfWarn: 1,
+				NumberOfWarn: 0,
 			},
 		},
 		{
@@ -122,7 +122,7 @@ func TestSAST(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -151,7 +151,7 @@ func TestSAST(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        3,
-				NumberOfWarn: 3,
+				NumberOfWarn: 1,
 				NumberOfInfo: 0,
 			},
 		},
@@ -181,7 +181,7 @@ func TestSAST(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        10,
-				NumberOfWarn: 1,
+				NumberOfWarn: 0,
 				NumberOfInfo: 2,
 			},
 		},

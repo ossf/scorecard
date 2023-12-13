@@ -256,7 +256,7 @@ var searchGitHubActionWorkflowSnyk fileparser.DoWhileTrueOnFileContent = func(pa
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			if action == "snyk/actions/setup" {
+			if strings.Contains(action, "snyk/actions/") {
 				*paths = append(*paths, path)
 			}
 		}

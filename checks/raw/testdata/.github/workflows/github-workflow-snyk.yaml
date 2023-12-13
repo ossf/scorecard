@@ -1,6 +1,6 @@
 name: Snyk Scan
 
-on: pull
+on: pull_request
 permissions:
   contents: read
 

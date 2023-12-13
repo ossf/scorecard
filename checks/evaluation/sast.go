@@ -166,9 +166,6 @@ func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
 		})
 		return checker.MaxResultScore
 	case finding.OutcomeNegative:
-		dl.Warn(&checker.LogMessage{
-			Text: f.Message,
-		})
 		return checker.MinResultScore
 	default:
 		panic("Should not happen")
@@ -183,11 +180,8 @@ func getSnykScore(f *finding.Finding, dl checker.DetailLogger) int {
 		})
 		return checker.MaxResultScore
 	case finding.OutcomeNegative:
-		dl.Warn(&checker.LogMessage{
-			Text: f.Message,
-		})
 		return checker.MinResultScore
 	default:
-		panic("Should not happen")
+		return checker.InconclusiveResultScore
 	}
 }
