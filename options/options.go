@@ -42,6 +42,7 @@ type Options struct {
 	PolicyFile  string
 	ResultsFile string
 	ChecksToRun []string
+	ProbesToRun []string
 	Metadata    []string
 	CommitDepth int
 	ShowDetails bool
@@ -238,6 +239,10 @@ func (o *Options) Checks() []string {
 		return l
 	}
 	return o.ChecksToRun
+}
+
+func (o *Options) Probes() []string {
+	return o.ProbesToRun
 }
 
 // isExperimentalEnabled returns true if experimental features were enabled via

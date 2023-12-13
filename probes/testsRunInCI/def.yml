@@ -1,0 +1,28 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: testsRunInCI
+short: Checks that the project runs tests in the CI for example with Github Actions or Prow.
+motivation: >
+  Running tests helps developers catch mistakes early on, which can reduce the number of vulnerabilities that find their way into a project.
+implementation: >
+ The probe checks for tests in the projects CI jobs in the recent commits (~30).
+outcome:
+  - The probe returns one OutcomePositive for each PR that ran CI tests and one OutcomeNegative for each PR that did not run CI tests.
+  - The probe returns a single OutcomeNotApplicable if the projects has had no pull requests.
+remediation:
+  effort: Medium
+  text:
+    - Check-in scripts that run all the tests in your repository.
+    - Integrate those scripts with a CI/CD platform that runs it on every pull request (e.g. if hosted on GitHub, [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
