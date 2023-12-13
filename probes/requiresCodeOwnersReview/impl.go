@@ -39,58 +39,32 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		//nolint:nestif
-		if branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
-			switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
-			case true:
-				if len(r.CodeownersFiles) == 0 {
-					f, err := finding.NewWith(fs, Probe,
-						"codeowners branch protection is being ignored - but no codeowners file found in repo",
-						nil, finding.OutcomeNegative)
-					if err != nil {
-						return nil, Probe, fmt.Errorf("create finding: %w", err)
-					}
-					f = f.WithValues(map[string]int{
-						*branch.Name: 1,
-					})
-					findings = append(findings, *f)
-				} else {
-					f, err := finding.NewWith(fs, Probe,
-						fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name), nil,
-						finding.OutcomePositive)
-					if err != nil {
-						return nil, Probe, fmt.Errorf("create finding: %w", err)
-					}
-					f = f.WithValues(map[string]int{
-						*branch.Name: 1,
-					})
-					findings = append(findings, *f)
-				}
+		reqOwnerReviews := branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
+		var text string
+		var outcome finding.Outcome
 
-			default:
-				f, err := finding.NewWith(fs, Probe,
-					fmt.Sprintf("codeowner review is not required on branch '%s'", *branch.Name),
-					nil, finding.OutcomeNegative)
-				if err != nil {
-					return nil, Probe, fmt.Errorf("create finding: %w", err)
-				}
-				f = f.WithValues(map[string]int{
-					*branch.Name: 1,
-				})
-				findings = append(findings, *f)
-			}
-		} else {
-			f, err := finding.NewWith(fs, Probe,
-				fmt.Sprintf("could not determine whether code owners review is required on branch '%s'", *branch.Name),
-				nil, finding.OutcomeNotAvailable)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
-			findings = append(findings, *f)
+		switch {
+		case reqOwnerReviews == nil:
+			text = "could not determine whether for push is allowed"
+			outcome = finding.OutcomeNotAvailable
+		case *reqOwnerReviews == false:
+			fmt.Sprintf("codeowner review is not required on branch '%s'", *branch.Name)
+			outcome = finding.OutcomeNegative
+		case len(r.CodeownersFiles) == 0:
+			text = "codeowners branch protection is being ignored - but no codeowners file found in repo"
+			outcome = finding.OutcomeNegative
+		default:
+			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
+			outcome = finding.OutcomePositive
 		}
+		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValues(map[string]int{
+			*branch.Name: 1,
+		})
+		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
 }
