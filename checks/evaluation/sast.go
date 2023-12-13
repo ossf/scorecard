@@ -72,17 +72,15 @@ func SAST(name string,
 	if sonarScore == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "SAST tool detected")
 	}
+	if snykScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
+	}
 
 	if sastScore == checker.InconclusiveResultScore &&
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since sastToolInCheckRuns can never
 		// retun checker.InconclusiveResultScore.
 		return checker.CreateRuntimeErrorResult(name, sce.ErrScorecardInternal)
-	}
-	if snykScore != checker.InconclusiveResultScore {
-		if snykScore == checker.MaxResultScore {
-			return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
-		}
 	}
 
 	// Both scores are conclusive.
