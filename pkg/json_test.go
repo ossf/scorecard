@@ -74,11 +74,11 @@ func TestJSONOutput(t *testing.T) {
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
 	scorecardVersion := "1.2.3"
 	repoName := "org/name"
-	date, e := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
-	t.Logf("date: %v", date)
-	if e != nil {
-		panic(fmt.Errorf("time.Parse: %w", e))
+	date, err := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
+	if err != nil {
+		t.Fatalf("time.Parse: %v", err)
 	}
+	t.Logf("date: %v", date)
 
 	checkDocs := jsonMockDocRead()
 

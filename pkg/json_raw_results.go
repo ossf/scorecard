@@ -703,9 +703,9 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
 	branches := []jsonBranchProtection{}
+	//nolint:gocritic
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {

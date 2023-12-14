@@ -45,6 +45,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
@@ -117,6 +119,7 @@ var (
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
+
 	Maintained = []ProbeImpl{
 		notArchived.Run,
 		hasRecentCommits.Run,
@@ -134,6 +137,10 @@ var (
 	}
 	CITests = []ProbeImpl{
 		testsRunInCI.Run,
+	}
+	SignedReleases = []ProbeImpl{
+		releasesAreSigned.Run,
+		releasesHaveProvenance.Run,
 	}
 
 	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
