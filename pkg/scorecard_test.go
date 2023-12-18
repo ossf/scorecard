@@ -21,9 +21,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/log"
 )
 
@@ -183,6 +186,142 @@ func TestRunScorecard(t *testing.T) {
 			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
 			if !cmp.Equal(got, tt.want, ignoreDate) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
+			}
+		})
+	}
+}
+
+func TestExperimentalRunProbes(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		uri       string
+		commitSHA string
+		probes    []string
+	}
+	tests := []struct {
+		files   []string
+		name    string
+		args    args
+		want    ScorecardResult
+		wantErr bool
+	}{
+		{
+			name: "empty commits repos should return repo details but no checks",
+			args: args{
+				uri:       "github.com/ossf/scorecard",
+				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:    []string{"fuzzedWithOSSFuzz"},
+			},
+			want: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      "github.com/ossf/scorecard",
+					CommitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				},
+				RawResults: checker.RawResults{
+					Metadata: checker.MetadataData{
+						Metadata: map[string]string{
+							"repository.defaultBranch": "main",
+							"repository.host":          "github.com",
+							"repository.name":          "ossf/scorecard",
+							"repository.sha1":          "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+							"repository.uri":           "github.com/ossf/scorecard",
+						},
+					},
+				},
+				Scorecard: ScorecardInfo{
+					CommitSHA: "unknown",
+				},
+				Findings: []finding.Finding{
+					{
+						Probe:   "fuzzedWithOSSFuzz",
+						Message: "no OSSFuzz integration found",
+						Remediation: &probe.Remediation{
+							Effort: 3,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Wrong probe",
+			args: args{
+				uri:       "github.com/ossf/scorecard",
+				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:    []string{"nonExistentProbe"},
+			},
+			want:    ScorecardResult{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			repo := mockrepo.NewMockRepo(ctrl)
+
+			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+			repo.EXPECT().Host().Return("github.com").AnyTimes()
+
+			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
+
+			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
+				return nil
+			})
+
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+				if tt.args.commitSHA == "" {
+					return []clients.Commit{}, nil
+				}
+				return []clients.Commit{
+					{
+						SHA: tt.args.commitSHA,
+					},
+				}, nil
+			})
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			progLanguages := []clients.Language{
+				{
+					Name:     clients.Go,
+					NumLines: 100,
+				},
+				{
+					Name:     clients.Java,
+					NumLines: 70,
+				},
+				{
+					Name:     clients.Cpp,
+					NumLines: 100,
+				},
+				{
+					Name:     clients.Ruby,
+					NumLines: 70,
+				},
+			}
+			mockRepoClient.EXPECT().ListProgrammingLanguages().Return(progLanguages, nil).AnyTimes()
+
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			got, err := ExperimentalRunProbes(context.Background(),
+				repo,
+				tt.args.commitSHA,
+				0,
+				nil,
+				tt.args.probes,
+				mockRepoClient,
+				nil,
+				nil,
+				nil)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			ignoreRemediationText := cmpopts.IgnoreFields(probe.Remediation{}, "Text", "Markdown")
+			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
+					ignoreRemediationText))
 			}
 		})
 	}
