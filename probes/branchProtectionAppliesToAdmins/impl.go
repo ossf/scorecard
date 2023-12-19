@@ -40,10 +40,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		nilMsg := fmt.Sprintf("unable to retrieve whether or not settings apply to administrators on branch '%s'",
+		nilMsg := fmt.Sprintf("unable to retrieve whether or not branch protection settings apply to administrators on branch '%s'",
 			*branch.Name)
-		trueMsg := fmt.Sprintf("settings apply to administrators on branch '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name)
+		trueMsg := fmt.Sprintf("branch protection settings apply to administrators on branch '%s'", *branch.Name)
+		falseMsg := fmt.Sprintf("branch protection settings do not apply to administrators on branch '%s'", *branch.Name)
 
 		p := branch.BranchProtectionRule.EnforceAdmins
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
