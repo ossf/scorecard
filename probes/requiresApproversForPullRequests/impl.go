@@ -42,7 +42,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		branch := &r.Branches[i]
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
 		trueMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
+		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
 		text, outcome, err := branchprotection.Uint32LargerThan0(p, nilMsg, trueMsg, falseMsg)
