@@ -40,6 +40,10 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
 					Probe:   "sastToolRunsOnAllCommits",
 					Outcome: finding.OutcomePositive,
 				},
@@ -55,6 +59,10 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   "sastToolCodeQLInstalled",
 					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
 				},
 				{
 					Probe:   "sastToolRunsOnAllCommits",
@@ -79,6 +87,7 @@ func TestSAST(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 3,
+				NumberOfWarn: 0,
 			},
 		},
 		{
@@ -88,6 +97,10 @@ func TestSAST(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -109,7 +122,7 @@ func TestSAST(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 1,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -117,6 +130,10 @@ func TestSAST(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -134,8 +151,38 @@ func TestSAST(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        3,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 				NumberOfInfo: 0,
+			},
+		},
+		{
+			name: "Snyk is installed, Sonar and CodeQL are not installed",
+			findings: []finding.Finding{
+				{
+					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "sastToolRunsOnAllCommits",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   3,
+					},
+				},
+				{
+					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfWarn: 0,
+				NumberOfInfo: 2,
 			},
 		},
 	}

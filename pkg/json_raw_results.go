@@ -703,25 +703,23 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
 	branches := []jsonBranchProtection{}
+	//nolint:gocritic
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
 			bp = &jsonBranchProtectionSettings{
 				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
 				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
+				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
 				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
+				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
 				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
 				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
 				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
+				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
-			}
-			if v.BranchProtectionRule.RequiredPullRequestReviews != nil {
-				bp.DismissesStaleReviews = v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews
-				bp.RequiredApprovingReviewCount = v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
-				bp.RequiresCodeOwnerReviews = v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
 			}
 		}
 		branches = append(branches, jsonBranchProtection{

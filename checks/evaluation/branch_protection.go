@@ -285,9 +285,7 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	// Having at least 1 reviewer is twice as important as the other Tier 2 requirements.
 	const reviewerWeight = 2
 	max += reviewerWeight
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
-		*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0 {
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount) > 0 {
 		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
 		score += reviewerWeight
 	}
@@ -329,15 +327,13 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 	}
 
 	max++
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil {
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.Required) {
 		score++
 		info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
 	} else {
 		warn(dl, log, "PRs are not required to make changes on branch '%s'; or we don't have data to detect it."+
 			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo "+
 			"Rules (that are always public) instead of Branch Protection settings", *branch.Name)
-		// Warning it here because since `RequiredPullRequestReviews` is nil, we won't check reviewers count afterwards
-		warn(dl, log, "No reviewers required to merge changes on branch '%s'", *branch.Name)
 	}
 
 	return score, max
@@ -349,8 +345,7 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	// Only log information if the branch is protected.
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
+	if branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
 		// Note: we don't increase max possible score for non-admin viewers.
 		max++
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
@@ -391,18 +386,13 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 
 	max++
 
-	// On this first check we exclude the case where PRs are not required to make changes,
-	// because it's already covered on adminReviewProtection function.
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		if *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
-			info(dl, log, "number of required reviewers is %d on branch '%s'",
-				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name)
-			score++
-		} else {
-			warn(dl, log, "number of required reviewers is %d on branch '%s', while the ideal suggested is %d",
-				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name, minReviews)
-		}
+	reviewers := valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+	if reviewers >= minReviews {
+		info(dl, log, "number of required reviewers is %d on branch '%s'", reviewers, *branch.Name)
+		score++
+	} else {
+		warn(dl, log, "number of required reviewers is %d on branch '%s', while the ideal suggested is %d",
+			reviewers, *branch.Name, minReviews)
 	}
 
 	return score, max
@@ -416,8 +406,7 @@ func codeownerBranchProtection(
 
 	log := branch.Protected != nil && *branch.Protected
 
-	if branch.BranchProtectionRule.RequiredPullRequestReviews != nil &&
-		branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
+	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews != nil {
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews {
 		case true:
 			info(dl, log, "codeowner review is required on branch '%s'", *branch.Name)
@@ -432,4 +421,13 @@ func codeownerBranchProtection(
 	}
 
 	return score, max
+}
+
+// returns the pointer's value if it exists, the type's zero-value otherwise.
+func valueOrZero[T any](ptr *T) T {
+	if ptr == nil {
+		var zero T
+		return zero
+	}
+	return *ptr
 }
