@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
@@ -33,6 +34,7 @@ func SAST(name string,
 	expectedProbes := []string{
 		sastToolCodeQLInstalled.Probe,
 		sastToolPysaInstalled.Probe,
+		sastToolQodanaInstalled.Probe,
 		sastToolRunsOnAllCommits.Probe,
 		sastToolSonarInstalled.Probe,
 		sastToolSnykInstalled.Probe,
@@ -43,7 +45,7 @@ func SAST(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var sastScore, codeQlScore, pysaScore, snykScore, sonarScore int
+	var sastScore, codeQlScore, pysaScore, qodanaScore, snykScore, sonarScore int
 	// Assign sastScore, codeQlScore and sonarScore
 	for i := range findings {
 		f := &findings[i]
@@ -56,6 +58,8 @@ func SAST(name string,
 			snykScore = getSnykScore(f, dl)
 		case sastToolPysaInstalled.Probe:
 			pysaScore = getPysaScore(f, dl)
+		case sastToolQodanaInstalled.Probe:
+			qodanaScore = getQodanaScore(f, dl)
 		case sastToolSonarInstalled.Probe:
 			if f.Outcome == finding.OutcomePositive {
 				sonarScore = checker.MaxResultScore
@@ -81,6 +85,9 @@ func SAST(name string,
 	}
 	if pysaScore == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "SAST tool detected: Pysa")
+	}
+	if qodanaScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "SAST tool detected: Qodana")
 	}
 
 	if sastScore == checker.InconclusiveResultScore &&
@@ -192,6 +199,20 @@ func getSnykScore(f *finding.Finding, dl checker.DetailLogger) int {
 }
 
 func getPysaScore(f *finding.Finding, dl checker.DetailLogger) int {
+	switch f.Outcome {
+	case finding.OutcomePositive:
+		dl.Info(&checker.LogMessage{
+			Text: f.Message,
+		})
+		return checker.MaxResultScore
+	case finding.OutcomeNegative:
+		return checker.MinResultScore
+	default:
+		return checker.InconclusiveResultScore
+	}
+}
+
+func getQodanaScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{

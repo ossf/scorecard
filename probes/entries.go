@@ -49,6 +49,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
@@ -115,6 +116,7 @@ var (
 	SAST = []ProbeImpl{
 		sastToolCodeQLInstalled.Run,
 		sastToolPysaInstalled.Run,
+		sastToolQodanaInstalled.Run,
 		sastToolSnykInstalled.Run,
 		sastToolRunsOnAllCommits.Run,
 		sastToolSonarInstalled.Run,
