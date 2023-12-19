@@ -17,11 +17,11 @@ package requiresApproversForPullRequests
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
@@ -29,6 +29,8 @@ import (
 var fs embed.FS
 
 const Probe = "requiresApproversForPullRequests"
+
+var errWrongValue = errors.New("wrong value, should not happen")
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -45,9 +47,20 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
-		text, outcome, err := branchprotection.Uint32LargerThan0(p, nilMsg, trueMsg, falseMsg)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		var text string
+		var outcome finding.Outcome
+		switch {
+		case p == nil:
+			text = nilMsg
+			outcome = finding.OutcomeNotAvailable
+		case *p > 0:
+			text = trueMsg
+			outcome = finding.OutcomePositive
+		case *p == 0:
+			text = falseMsg
+			outcome = finding.OutcomeNegative
+		default:
+			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {

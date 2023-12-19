@@ -37,15 +37,3 @@ func GetTextOutcomeFromBool(b *bool, rule, branchName string) (string, finding.O
 	}
 	return "", finding.OutcomeError, errWrongValue
 }
-
-func Uint32LargerThan0(u32 *int32, nilMsg, trueMsg, falseMsg string) (string, finding.Outcome, error) {
-	switch {
-	case u32 == nil:
-		return nilMsg, finding.OutcomeNotAvailable, nil
-	case *u32 > 0:
-		return trueMsg, finding.OutcomePositive, nil
-	case *u32 == 0:
-		return falseMsg, finding.OutcomeNegative, nil
-	}
-	return "", finding.OutcomeError, errWrongValue
-}
