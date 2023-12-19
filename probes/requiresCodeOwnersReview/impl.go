@@ -45,13 +45,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		switch {
 		case reqOwnerReviews == nil:
-			text = "could not determine whether for push is allowed"
+			text = "could not determine whether codeowner review is allowed"
 			outcome = finding.OutcomeNotAvailable
 		case !*reqOwnerReviews:
 			text = fmt.Sprintf("codeowner review is not required on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeNegative
 		case len(r.CodeownersFiles) == 0:
-			text = "codeowners branch protection is being ignored - but no codeowners file found in repo"
+			text = "codeowners branch protection is required - but no codeowners file found in repo"
 			outcome = finding.OutcomeNegative
 		default:
 			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
