@@ -40,13 +40,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		nilMsg := fmt.Sprintf("unable to retrieve whether branch protection settings apply to administrators on branch '%s'",
-			*branch.Name)
-		trueMsg := fmt.Sprintf("branch protection settings apply to administrators on branch '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("branch protection settings do not apply to administrators on branch '%s'", *branch.Name)
 
 		p := branch.BranchProtectionRule.EnforceAdmins
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
+		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
+			"branch protection settings apply to administrators",
+			*branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

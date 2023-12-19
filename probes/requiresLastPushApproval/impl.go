@@ -40,13 +40,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		nilMsg := fmt.Sprintf("unable to retrieve whether 'last push approval' is required to merge on branch '%s'",
-			*branch.Name)
-		trueMsg := fmt.Sprintf("'last push approval' enabled on branch '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("'last push approval' disabled on branch '%s'", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequireLastPushApproval
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
+		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, "last push approval", *branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

@@ -40,12 +40,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		nilMsg := fmt.Sprintf("unable to retrieve review dismissal on branch '%s'", *branch.Name)
-		trueMsg := fmt.Sprintf("stale review dismissal enabled on branch '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("stale review dismissal disabled on branch '%s'", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
+		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
+			"stale review dismissal",
+			*branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

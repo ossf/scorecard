@@ -16,20 +16,24 @@ package branchprotection
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ossf/scorecard/v4/finding"
 )
 
 var errWrongValue = errors.New("wrong value, should not happen")
 
-func GetTextOutcomeFromBool(b *bool, nilMsg, trueMsg, falseMsg string) (string, finding.Outcome, error) {
+func GetTextOutcomeFromBool(b *bool, rule, branchName string) (string, finding.Outcome, error) {
 	switch {
 	case b == nil:
-		return nilMsg, finding.OutcomeNotAvailable, nil
+		msg := fmt.Sprintf("unable to retrieve whether '%s' is required to merge on branch '%s'", rule, branchName)
+		return msg, finding.OutcomeNotAvailable, nil
 	case *b:
-		return trueMsg, finding.OutcomePositive, nil
+		msg := fmt.Sprintf("'%s' is required to merge on branch '%s'", rule, branchName)
+		return msg, finding.OutcomePositive, nil
 	case !*b:
-		return falseMsg, finding.OutcomeNegative, nil
+		msg := fmt.Sprintf("'%s' is disable on branch '%s'", rule, branchName)
+		return msg, finding.OutcomeNegative, nil
 	}
 	return "", finding.OutcomeError, errWrongValue
 }

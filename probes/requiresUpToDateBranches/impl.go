@@ -40,13 +40,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
-		nilMsg := fmt.Sprintf("unable to retrieve whether up-to-date branches are needed to merge on branch '%s'",
-			*branch.Name)
-		trueMsg := fmt.Sprintf("status checks require up-to-date branches for '%s'", *branch.Name)
-		falseMsg := fmt.Sprintf("status checks do not require up-to-date branches for '%s'", *branch.Name)
 
 		p := branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, nilMsg, trueMsg, falseMsg)
+		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
+			"up-to-date branches are needed to merge",
+			*branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
