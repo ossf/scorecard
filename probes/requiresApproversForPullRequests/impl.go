@@ -47,28 +47,33 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
-		var text string
-		var outcome finding.Outcome
-		switch {
-		case p == nil:
-			text = nilMsg
-			outcome = finding.OutcomeNotAvailable
-		case *p > 0:
-			text = trueMsg
-			outcome = finding.OutcomePositive
-		case *p == 0:
-			text = falseMsg
-			outcome = finding.OutcomeNegative
-		default:
-			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
-		}
-		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+
+		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValues(map[string]int{
-			*branch.Name: 1,
-		})
+
+		switch {
+		case p == nil:
+			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
+			f = f.WithValues(map[string]int{
+				*branch.Name: 1,
+			})
+		case *p > 0:
+			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+			f = f.WithValues(map[string]int{
+				*branch.Name:                1,
+				"numberOfRequiredReviewers": int(*p),
+			})
+		case *p == 0:
+			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
+			f = f.WithValues(map[string]int{
+				*branch.Name:                1,
+				"numberOfRequiredReviewers": int(*p),
+			})
+		default:
+			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
+		}
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
