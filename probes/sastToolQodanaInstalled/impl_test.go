@@ -54,7 +54,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Type: checker.QodanaWorkflow,
-						},						
+						},
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Type: checker.PysaWorkflow,
-						},						
+						},
 					},
 				},
 			},

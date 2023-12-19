@@ -411,7 +411,6 @@ var searchGitHubActionWorkflowQodana fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-
 type sonarConfig struct {
 	url  string
 	file checker.File
