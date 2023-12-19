@@ -312,14 +312,14 @@ var searchGitHubActionWorkflowPysa fileparser.DoWhileTrueOnFileContent = func(pa
 
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"searchSnyk requires exactly 1 arguments: %w", errInvalid)
+			"searchPysa requires exactly 1 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchSnyk expects arg[0] of type *[]string: %w", errInvalid)
+			"searchPysa expects arg[0] of type *[]string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
