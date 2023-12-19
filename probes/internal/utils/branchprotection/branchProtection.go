@@ -31,7 +31,7 @@ func GetTextOutcomeFromBool(b *bool, nilMsg, trueMsg, falseMsg string) (string, 
 	case !*b:
 		return falseMsg, finding.OutcomeNegative, nil
 	}
-	return "", finding.OutcomeError , errWrongValue
+	return "", finding.OutcomeError, errWrongValue
 }
 
 func Uint32LargerThan0(u32 *int32, nilMsg, trueMsg, falseMsg string) (string, finding.Outcome, error) {
@@ -43,5 +43,5 @@ func Uint32LargerThan0(u32 *int32, nilMsg, trueMsg, falseMsg string) (string, fi
 	case *u32 == 0:
 		return falseMsg, finding.OutcomeNegative, nil
 	}
-	return "", finding.OutcomeError , errWrongValue
+	return "", finding.OutcomeError, errWrongValue
 }
