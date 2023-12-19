@@ -95,6 +95,40 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
+			name: "Pysa is installed. CodeQL, Snyk and Sonar are not installed.",
+			findings: []finding.Finding{
+				{
+					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "sastToolRunsOnAllCommits",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   2,
+					},
+				},
+				{
+					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 2,
+				NumberOfWarn: 0,
+			},
+		},
+		{
 			name: `Sonar is installed. CodeQL, Snyk, Pysa are not installed.
 					Does not have info about whether SAST runs
 					on every commit.`,
