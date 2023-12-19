@@ -154,7 +154,7 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 
 	switch value.Kind() {
 	case reflect.String:
-		//nolint: wrapcheck, gomnd
+		//nolint:wrapcheck,gomnd
 		return strconv.ParseFloat(value.String(), 64)
 	case reflect.Float32, reflect.Float64:
 		return value.Float(), nil

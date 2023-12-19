@@ -17,12 +17,12 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
-	"golang.org/x/exp/slices"
 
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"
@@ -323,6 +323,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 	return branchRef, nil
 }
 
+// TODO: Move these two functions to below the GetBranchRefFrom functions, the single place they're used.
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
@@ -340,6 +341,14 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
 		}
 	}
+	// we always have the data to know if PRs are required
+	if dst.RequiredPullRequestReviews.Required == nil {
+		dst.RequiredPullRequestReviews.Required = asPtr(false)
+	}
+	// these values report as &false when PRs aren't required, so if they're true then PRs are required
+	if valueOrZero(src.RequireLastPushApproval) || valueOrZero(src.DismissesStaleReviews) {
+		dst.RequiredPullRequestReviews.Required = asPtr(true)
+	}
 }
 
 func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
@@ -353,6 +362,16 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
+		// we always have the data to know if PRs are required
+		if dst.RequiredPullRequestReviews.Required == nil {
+			dst.RequiredPullRequestReviews.Required = asPtr(false)
+		}
+		// GitHub returns nil for RequiredApprovingReviewCount when PRs aren't required and non-nil when they are
+		// RequiresCodeOwnerReviews is &false even if PRs aren't required, so we need it to be true
+		if v.RequiredApprovingReviewCount != nil || valueOrZero(v.RequiresCodeOwnerReviews) {
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
+		}
+
 	case *refUpdateRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
@@ -360,6 +379,12 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+
+		// Evaluate if we have data to infer that the project requires PRs to make changes. If we don't have data, we let
+		// Required stay nil
+		if valueOrZero(v.RequiredApprovingReviewCount) > 0 || valueOrZero(v.RequiresCodeOwnerReviews) {
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
+		}
 	}
 }
 
@@ -411,11 +436,11 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	case data.BranchProtectionRule != nil:
 		rule := data.BranchProtectionRule
 
-		// Admin settings.
-		copyAdminSettings(rule, branchRule)
-
 		// Non-admin settings.
 		copyNonAdminSettings(rule, branchRule)
+
+		// Admin settings.
+		copyAdminSettings(rule, branchRule)
 
 	// Only non-admin settings are available.
 	// https://docs.github.com/en/graphql/reference/objects#refupdaterule.
@@ -477,22 +502,27 @@ nextRule:
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
-	falseVal := false
-	trueVal := true
 	for _, r := range rules {
-		adminEnforced := len(r.BypassActors.Nodes) == 0
+		// Init values of base checkbox as if they're unchecked
 		translated := clients.BranchProtectionRule{
-			EnforceAdmins: &adminEnforced,
+			AllowDeletions:       asPtr(true),
+			AllowForcePushes:     asPtr(true),
+			RequireLinearHistory: asPtr(false),
+			RequiredPullRequestReviews: clients.PullRequestReviewRule{
+				Required: asPtr(false),
+			},
 		}
+
+		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
 
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case ruleDeletion:
-				translated.AllowDeletions = &falseVal
+				translated.AllowDeletions = asPtr(false)
 			case ruleForcePush:
-				translated.AllowForcePushes = &falseVal
+				translated.AllowForcePushes = asPtr(false)
 			case ruleLinear:
-				translated.RequireLinearHistory = &trueVal
+				translated.RequireLinearHistory = asPtr(true)
 			case rulePullRequest:
 				translatePullRequestRepoRule(&translated, rule)
 			case ruleStatusCheck:
@@ -504,18 +534,12 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
-	if readBoolPtr(rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush) {
-		base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
-	}
-	if readBoolPtr(rule.Parameters.PullRequestParameters.RequireCodeOwnerReview) {
-		base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
-	}
-	if readBoolPtr(rule.Parameters.PullRequestParameters.RequireLastPushApproval) {
-		base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
-	}
-	if reviewerCount := readIntPtr(rule.Parameters.PullRequestParameters.RequiredApprovingReviewCount); reviewerCount > 0 {
-		base.RequiredPullRequestReviews.RequiredApprovingReviewCount = &reviewerCount
-	}
+	base.RequiredPullRequestReviews.Required = asPtr(true)
+	base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
+	base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
+	base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
+	base.RequiredPullRequestReviews.RequiredApprovingReviewCount = rule.Parameters.PullRequestParameters.
+		RequiredApprovingReviewCount
 }
 
 func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
@@ -523,8 +547,7 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 	if len(statusParams.RequiredStatusChecks) == 0 {
 		return
 	}
-	enabled := true
-	base.CheckRules.RequiresStatusChecks = &enabled
+	base.CheckRules.RequiresStatusChecks = asPtr(true)
 	base.CheckRules.UpToDateBeforeMerge = statusParams.StrictRequiredStatusChecksPolicy
 	for _, chk := range statusParams.RequiredStatusChecks {
 		if chk.Context == nil {
@@ -534,14 +557,17 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 	}
 }
 
+// Merge strategy:
+//   - if both are nil, keep it nil
+//   - if any of them is not nil, keep the most restrictive one
 func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
-	if base.AllowDeletions == nil || translated.AllowDeletions != nil && !*translated.AllowDeletions {
+	if base.AllowDeletions == nil || (translated.AllowDeletions != nil && !*translated.AllowDeletions) {
 		base.AllowDeletions = translated.AllowDeletions
 	}
-	if base.AllowForcePushes == nil || translated.AllowForcePushes != nil && !*translated.AllowForcePushes {
+	if base.AllowForcePushes == nil || (translated.AllowForcePushes != nil && !*translated.AllowForcePushes) {
 		base.AllowForcePushes = translated.AllowForcePushes
 	}
-	if base.EnforceAdmins == nil || translated.EnforceAdmins != nil && !*translated.EnforceAdmins {
+	if base.EnforceAdmins == nil || (translated.EnforceAdmins != nil && !*translated.EnforceAdmins) {
 		// this is an over simplification to get preliminary support for repo rules merged.
 		// A more complete approach would process all rules without bypass actors first,
 		// then process those with bypass actors. If no settings improve (due to rule layering),
@@ -549,21 +575,21 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		// https://github.com/ossf/scorecard/issues/3480
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
-	if base.RequireLastPushApproval == nil || readBoolPtr(translated.RequireLastPushApproval) {
+	if base.RequireLastPushApproval == nil || valueOrZero(translated.RequireLastPushApproval) {
 		base.RequireLastPushApproval = translated.RequireLastPushApproval
 	}
-	if base.RequireLinearHistory == nil || readBoolPtr(translated.RequireLinearHistory) {
+	if base.RequireLinearHistory == nil || valueOrZero(translated.RequireLinearHistory) {
 		base.RequireLinearHistory = translated.RequireLinearHistory
 	}
-	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
+	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {
-	if base.UpToDateBeforeMerge == nil || readBoolPtr(translated.UpToDateBeforeMerge) {
+	if base.UpToDateBeforeMerge == nil || valueOrZero(translated.UpToDateBeforeMerge) {
 		base.UpToDateBeforeMerge = translated.UpToDateBeforeMerge
 	}
-	if base.RequiresStatusChecks == nil || readBoolPtr(translated.RequiresStatusChecks) {
+	if base.RequiresStatusChecks == nil || valueOrZero(translated.RequiresStatusChecks) {
 		base.RequiresStatusChecks = translated.RequiresStatusChecks
 	}
 	for _, context := range translated.Contexts {
@@ -575,27 +601,31 @@ func mergeCheckRules(base, translated *clients.StatusChecksRule) {
 }
 
 func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
-	if readIntPtr(translated.RequiredApprovingReviewCount) > readIntPtr(base.RequiredApprovingReviewCount) {
+	if base.Required == nil || valueOrZero(translated.Required) {
+		base.Required = translated.Required
+	}
+	if base.RequiredApprovingReviewCount == nil ||
+		valueOrZero(base.RequiredApprovingReviewCount) < valueOrZero(translated.RequiredApprovingReviewCount) {
 		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
 	}
-	if base.DismissStaleReviews == nil || readBoolPtr(translated.DismissStaleReviews) {
+	if base.DismissStaleReviews == nil || valueOrZero(translated.DismissStaleReviews) {
 		base.DismissStaleReviews = translated.DismissStaleReviews
 	}
-	if base.RequireCodeOwnerReviews == nil || readBoolPtr(translated.RequireCodeOwnerReviews) {
+	if base.RequireCodeOwnerReviews == nil || valueOrZero(translated.RequireCodeOwnerReviews) {
 		base.RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
 	}
 }
 
-func readBoolPtr(b *bool) bool {
-	if b == nil {
-		return false
-	}
-	return *b
+// returns a pointer to the given value. Useful for constant values.
+func asPtr[T any](value T) *T {
+	return &value
 }
 
-func readIntPtr(i *int32) int32 {
-	if i == nil {
-		return 0
+// returns the pointer's value if it exists, the type's zero-value otherwise.
+func valueOrZero[T any](ptr *T) T {
+	if ptr == nil {
+		var zero T
+		return zero
 	}
-	return *i
+	return *ptr
 }

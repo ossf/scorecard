@@ -307,7 +307,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 		}
 
 		if t.LocationType == nil {
-			//nolint
+			//nolint:goerr113
 			return errors.New("locationType is nil")
 		}
 
@@ -351,7 +351,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 			continue
 		}
 		if p.File == nil {
-			//nolint
+			//nolint:goerr113
 			return errors.New("file field is nil")
 		}
 
@@ -703,9 +703,9 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
 	branches := []jsonBranchProtection{}
+	//nolint:gocritic
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {

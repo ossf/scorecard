@@ -40,10 +40,13 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
+	// FileTypeBinaryVerified for verified binary files.
+	FileTypeBinaryVerified
 )
 
 // Location represents the location of a finding.
-// nolint: govet
+//
+//nolint:govet
 type Location struct {
 	Type      FileType `json:"type"`
 	Path      string   `json:"path"`
@@ -93,7 +96,8 @@ const (
 )
 
 // Finding represents a finding.
-// nolint: govet
+//
+//nolint:govet
 type Finding struct {
 	Probe       string             `json:"probe"`
 	Outcome     Outcome            `json:"outcome"`
@@ -117,7 +121,7 @@ var errInvalid = errors.New("invalid")
 func FromBytes(content []byte, probeID string) (*Finding, error) {
 	p, err := probe.FromBytes(content, probeID)
 	if err != nil {
-		// nolint
+		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{

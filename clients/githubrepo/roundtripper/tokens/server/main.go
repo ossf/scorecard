@@ -36,13 +36,13 @@ func main() {
 	}
 	rpc.HandleHTTP()
 
-	//nolint: gosec // using `localhost:8080` for gosec102 causes connection refused errors.
+	//nolint:gosec // using `localhost:8080` for gosec102 causes connection refused errors.
 	l, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		panic(err)
 	}
 
-	//nolint: gosec // internal server.
+	//nolint:gosec // internal server.
 	if err := http.Serve(l, nil); err != nil {
 		panic(err)
 	}

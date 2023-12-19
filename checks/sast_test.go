@@ -34,7 +34,7 @@ import (
 func Test_SAST(t *testing.T) {
 	t.Parallel()
 
-	//nolint: govet, goerr113
+	//nolint:govet
 	tests := []struct {
 		name          string
 		err           error

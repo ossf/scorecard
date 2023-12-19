@@ -29,7 +29,7 @@ var errInvalidArg = errors.New("invalid argument")
 
 var (
 	workflowText = "update your workflow using https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s"
-	//nolint
+	//nolint:lll
 	workflowMarkdown  = "update your workflow using [https://app.stepsecurity.io](https://app.stepsecurity.io/secureworkflow/%s/%s/%s?enable=%s)"
 	dockerfilePinText = "pin your Docker image by updating %[1]s to %[1]s@%s"
 )
@@ -61,7 +61,7 @@ func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 	return &RemediationMetadata{Branch: branch, Repo: repo}, nil
 }
 
-// CreateWorkflowPinningRemediation create remediaiton for pinninn GH Actions.
+// CreateWorkflowPinningRemediation create remediation for pinning GH Actions.
 func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *rule.Remediation {
 	return r.createWorkflowRemediation(filepath, "pin")
 }
@@ -100,7 +100,7 @@ func (c CraneDigester) Digest(name string) (string, error) {
 	return crane.Digest(name)
 }
 
-// CreateDockerfilePinningRemediation create remediaiton for pinning Dockerfile images.
+// CreateDockerfilePinningRemediation create remediation for pinning Dockerfile images.
 func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *rule.Remediation {
 	name, ok := dockerImageName(dep)
 	if !ok {

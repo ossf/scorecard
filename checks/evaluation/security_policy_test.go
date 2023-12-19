@@ -25,7 +25,6 @@ import (
 
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name     string
 		findings []finding.Finding

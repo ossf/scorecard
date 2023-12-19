@@ -31,7 +31,6 @@ type resultCounter struct {
 	lines int
 }
 
-//nolint:wrapcheck
 func (rc *resultCounter) Write(p []byte) (n int, err error) {
 	rc.lines += bytes.Count(p, []byte("\n"))
 	return rc.b.Write(p)

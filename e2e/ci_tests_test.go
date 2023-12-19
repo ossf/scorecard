@@ -121,13 +121,13 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         8,
+				Score:         6,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 13,
+				NumberOfDebug: 22,
 			}
 			result := checks.CITests(&req)
-			Expect(result.Score).Should(BeNumerically("==", expected.Score))
+			Expect(scut.ValidateTestReturn(nil, "CI tests at commit - GitLab", &expected, &result, &dl)).Should(BeTrue())
 			Expect(result.Error).Should(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})

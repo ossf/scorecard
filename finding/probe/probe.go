@@ -51,14 +51,12 @@ type Remediation struct {
 	Effort RemediationEffort `json:"effort"`
 }
 
-// nolint: govet
 type yamlRemediation struct {
 	Text     []string          `yaml:"text"`
 	Markdown []string          `yaml:"markdown"`
 	Effort   RemediationEffort `yaml:"effort"`
 }
 
-// nolint: govet
 type yamlProbe struct {
 	ID             string          `yaml:"id"`
 	Short          string          `yaml:"short"`
@@ -67,7 +65,7 @@ type yamlProbe struct {
 	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
-// nolint: govet
+//nolint:govet
 type Probe struct {
 	ID             string
 	Short          string
@@ -141,7 +139,7 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errInvalid, err)
+		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
 	return &r, nil
 }
@@ -151,10 +149,9 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 	var str string
 	if err := n.Decode(&str); err != nil {
-		return fmt.Errorf("%w: %v", errInvalid, err)
+		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
-	// nolint:goconst
 	switch n.Value {
 	case "Low":
 		*r = RemediationEffortLow

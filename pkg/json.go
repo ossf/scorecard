@@ -27,7 +27,6 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-//nolint:govet
 type jsonCheckResult struct {
 	Name       string
 	Details    []string
@@ -49,7 +48,7 @@ type jsonCheckDocumentationV2 struct {
 	// Can be extended if needed.
 }
 
-// nolint: govet
+//nolint:govet
 type jsonCheckResultV2 struct {
 	Details []string                 `json:"details"`
 	Score   int                      `json:"score"`

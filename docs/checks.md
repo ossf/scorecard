@@ -111,7 +111,8 @@ Tier 1 Requirements (3/10 points):
   - Prevent branch deletion
 
 Tier 2 Requirements (6/10 points):
-  - Require at least 1 reviewer for approval before merging
+  - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
+  - For administrators: Require PRs prior to make any code changes
   - For administrators: Require branch to be up to date before merging
   - For administrators: Require approval of the most recent reviewable push
 
@@ -342,7 +343,6 @@ This check tries to determine if the project uses
    - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
    - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
    - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
-4. if it contains a [OneFuzz](https://github.com/microsoft/onefuzz) integration [detection file](https://github.com/microsoft/onefuzz/blob/main/docs/getting-started.md#detecting-the-use-of-onefuzz);
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
 into a program to expose bugs. Regular fuzzing is important to detect
@@ -679,7 +679,7 @@ This check determines whether the webhook defined in the repository has a token 
  
 
 **Remediation steps**
-- Check whether your service supports token authentication.
+- Check if the service your webhooks is configured with supports secrets.
 - If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
 - If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
 

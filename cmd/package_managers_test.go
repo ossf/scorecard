@@ -141,7 +141,6 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
-						//nolint
 						return nil, errors.New("error")
 					}
 
@@ -314,10 +313,8 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 	}{
 		{
 			name: "fetchGitRepositoryFromPYPI",
-			//nolint
 			args: args{
 				packageName: "some-package",
-				//nolint
 				result: `
 {
   "info": {
@@ -451,7 +448,6 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
-						//nolint
 						return nil, errors.New("error")
 					}
 
@@ -486,10 +482,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 	}{
 		{
 			name: "fetchGitRepositoryFromPYPI",
-			//nolint
 			args: args{
 				packageName: "npm-package",
-				//nolint
 				result: `
 {
   "name": "color",
@@ -609,10 +603,8 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 		},
 		{
 			name: "empty project url",
-			//nolint
 			args: args{
 				packageName: "npm-package",
-				//nolint
 				result: `
 				{
   "name": "color",
@@ -720,7 +712,6 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 			p.EXPECT().Get(gomock.Any(), tt.args.packageName).
 				DoAndReturn(func(url, packageName string) (*http.Response, error) {
 					if tt.wantErr && tt.args.result == "" {
-						//nolint
 						return nil, errors.New("error")
 					}
 
@@ -755,22 +746,18 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 	}{
 		{
 			name: "Return repository from nuget client",
-			//nolint
 			args: args{
 				packageName: "nuget-package",
-				//nolint
-				result: "nuget",
+				result:      "nuget",
 			},
 			want:    "nuget",
 			wantErr: false,
 		},
 		{
 			name: "Error from nuget client",
-			//nolint
 			args: args{
 				packageName: "nuget-package",
-				//nolint
-				result: "",
+				result:      "",
 			},
 			want:    "",
 			wantErr: true,
@@ -785,7 +772,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			n.EXPECT().GitRepositoryByPackageName(tt.args.packageName).
 				DoAndReturn(func(packageName string) (string, error) {
 					if tt.wantErr && tt.args.result == "" {
-						//nolint
 						return "", errors.New("error")
 					}
 

@@ -62,7 +62,7 @@ type (
 		options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error)
 )
 
-// nolint: nestif
+//nolint:nestif
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
@@ -194,6 +194,7 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	}
 
 	pullRequestReviewRule := clients.PullRequestReviewRule{
+		// TODO how do we know if they're required?
 		DismissStaleReviews:     newTrue(),
 		RequireCodeOwnerReviews: &protectedBranch.CodeOwnerApprovalRequired,
 	}

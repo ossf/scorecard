@@ -19,7 +19,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/ossf/scorecard/v4/cron/data"
 )
@@ -56,7 +55,6 @@ func main() {
 		repoURLs = append(repoURLs, repo)
 	}
 
-	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(repoURLs), func(i, j int) {
 		repoURLs[i], repoURLs[j] = repoURLs[j], repoURLs[i]
 	})

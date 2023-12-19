@@ -220,7 +220,7 @@ func processRequest(ctx context.Context,
 			}
 			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error)
 			if !(*ignoreRuntimeErrors) {
-				//nolint: goerr113
+				//nolint:goerr113
 				return errors.New(errorMsg)
 			}
 			// TODO(log): Previously Warn. Consider logging an error here.

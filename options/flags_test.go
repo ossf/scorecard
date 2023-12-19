@@ -175,7 +175,7 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 			cmd := &cobra.Command{}
 			tt.opts.AddFlags(cmd)
 			if !cmp.Equal(cmd.Flag(FlagFormat).Value.String(), strings.Join(tt.expected, ", ")) {
-				t.Errorf("expected FlagFormat to be %q, but got %q", strings.Join(tt.expected, ", "), cmd.Flag(FlagFormat).Value.String()) //nolint:lll
+				t.Errorf("expected FlagFormat to be %q, but got %q", strings.Join(tt.expected, ", "), cmd.Flag(FlagFormat).Value.String())
 			}
 		})
 	}

@@ -22,11 +22,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"golang.org/x/exp/slices"
 
 	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
 )
@@ -390,7 +390,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				resultPackageRegistrationPages: []resultPackagePage{},
 				resultPackageSpec:              "",
 			},
-			//nolint
 			want:    "internal error: failed to parse nuget package registration index json: invalid character 'e' in literal true (expecting 'r')",
 			wantErr: true,
 		},
@@ -443,7 +442,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				},
 				resultPackageSpec: "",
 			},
-			//nolint
 			want:    "internal error: failed to parse nuget package registration page: invalid character 'e' in literal true (expecting 'r')",
 			wantErr: true,
 		},
@@ -514,7 +512,6 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 				resultPackageSpec:              "",
 				version:                        "",
 			},
-			//nolint
 			want:    "internal error: failed to parse nuget package registration index json: failed to unmarshal json: json: cannot unmarshal number into Go struct field Alias.listed of type bool",
 			wantErr: true,
 		},
@@ -580,7 +577,6 @@ func nugetIndexOrPageTestResults(url string, test *nugetTest) (*http.Response, e
 	urlResponseIndex := slices.IndexFunc(test.args.resultPackageRegistrationPages,
 		func(page resultPackagePage) bool { return page.url == url })
 	if urlResponseIndex == -1 {
-		//nolint
 		return nil, errors.New("error")
 	}
 	page := test.args.resultPackageRegistrationPages[urlResponseIndex]
@@ -597,13 +593,11 @@ func nugetPackageIndexAndSpecResponse(t *testing.T, url string, test *nugetTest)
 		}
 		t.Errorf("fetchGitRepositoryFromNuget() version = %v, expected version = %v", url, test.args.version)
 	}
-	//nolint
 	return nil, errors.New("error")
 }
 
 func testResult(wantErr bool, responseFileName string) (*http.Response, error) {
 	if wantErr && responseFileName == "" {
-		//nolint
 		return nil, errors.New("error")
 	}
 	if wantErr && responseFileName == "text" {

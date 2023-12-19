@@ -30,7 +30,7 @@ import (
 // TestFuzzing is a test function for Fuzzing.
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name        string
 		langs       []clients.Language
@@ -53,7 +53,7 @@ func TestFuzzing(t *testing.T) {
 			wantErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  13,
+				NumberOfWarn:  12,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -110,7 +110,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  13,
+				NumberOfWarn:  12,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -121,7 +121,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: true,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  13,
+				NumberOfWarn:  12,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -139,7 +139,6 @@ func TestFuzzing(t *testing.T) {
 			mockFuzz.EXPECT().Search(gomock.Any()).
 				DoAndReturn(func(q clients.SearchRequest) (clients.SearchResponse, error) {
 					if tt.wantErr {
-						//nolint
 						return clients.SearchResponse{}, errors.New("error")
 					}
 					return tt.response, nil
@@ -148,7 +147,6 @@ func TestFuzzing(t *testing.T) {
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
-					//nolint
 					return "", errors.New("error")
 				}
 				return tt.fileContent, nil

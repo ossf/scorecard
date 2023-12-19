@@ -45,6 +45,7 @@ func newMockTokenAccessor(tokens []string) *mockTokenAccessor {
 }
 
 func TestTokenOverRPC_Next(t *testing.T) {
+	t.Parallel()
 	mockClient := newMockTokenAccessor([]string{"token1", "token2", "token3"})
 	rpc := NewTokenOverRPC(mockClient)
 	token := &Token{}
@@ -66,6 +67,7 @@ func TestTokenOverRPC_Next(t *testing.T) {
 }
 
 func TestTokenOverRPC_Release(t *testing.T) {
+	t.Parallel()
 	mockClient := newMockTokenAccessor([]string{"token1", "token2", "token3"})
 	rpc := NewTokenOverRPC(mockClient)
 
