@@ -54,7 +54,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and codeQL is installed",
+			name: "Sonar and codeQL is installed. Snyk and Pysa are not installed.",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
@@ -62,6 +62,10 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -91,7 +95,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: `Sonar is installed. CodeQL is not installed.
+			name: `Sonar is installed. CodeQL, Snyk, Pysa are not installed.
 					Does not have info about whether SAST runs
 					on every commit.`,
 			findings: []finding.Finding{
@@ -101,6 +105,10 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -126,7 +134,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and CodeQL are not installed",
+			name: "Sonar, CodeQL, Snyk and Pysa are not installed",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
@@ -134,6 +142,10 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -176,6 +188,10 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 			},

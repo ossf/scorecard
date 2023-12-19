@@ -259,6 +259,8 @@ const (
 	SonarWorkflow SASTWorkflowType = "Sonar"
 	// SnykWorkflow represents a workflow that runs Snyk.
 	SnykWorkflow SASTWorkflowType = "Snyk"
+	// PysaWorkflow represents a workflow that runs Pysa.
+	PysaWorkflow SASTWorkflowType = "Pysa"
 )
 
 // SASTWorkflow represents a SAST workflow.
