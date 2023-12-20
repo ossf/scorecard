@@ -55,11 +55,11 @@ const (
 )
 
 // PermissionLocation represents a declaration type.
-type LocationType int
+type PermissionLocationType int
 
 const (
 	// PermissionLocationNil is in case the permission is nil.
-	PermissionLocationNil LocationType = iota
+	PermissionLocationNil PermissionLocationType = iota
 	// PermissionLocationNotDeclared is for undeclared permission.
 	PermissionLocationNotDeclared
 	// PermissionLocationTop is top-level workflow permission.
@@ -170,7 +170,7 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 				"PermissionLevel": int(PermissionLevelUnknown),
 			})
 		case checker.PermissionLevelUndeclared:
-			var locationType LocationType
+			var locationType PermissionLocationType
 			//nolint:gocritic
 			if r.LocationType == nil {
 				locationType = PermissionLocationNil
@@ -186,7 +186,7 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 				"PermissionType":  int(permissionType),
 			})
 		case checker.PermissionLevelWrite:
-			var locationType LocationType
+			var locationType PermissionLocationType
 			switch *r.LocationType {
 			case checker.PermissionLocationTop:
 				locationType = PermissionLocationTop
@@ -315,7 +315,7 @@ func applyScorePolicy(findings []finding.Finding, c *checker.CheckRequest) (int,
 			})
 
 		case PermissionLevelUndeclared:
-			switch LocationType(f.Values["LocationType"]) {
+			switch PermissionLocationType(f.Values["LocationType"]) {
 			case PermissionLocationNil:
 				return checker.InconclusiveResultScore,
 					sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
@@ -405,7 +405,7 @@ func warnWithRemediation(logger checker.DetailLogger,
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
-	locType LocationType, permType int,
+	locType PermissionLocationType, permType int,
 ) {
 	if _, exists := hm[path]; !exists {
 		hm[path] = permissions{
@@ -442,7 +442,7 @@ func updateWorkflowHashMap(hm map[string]permissions, f *finding.Finding) error 
 		PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelUndeclared {
 		return nil
 	}
-	recordPermissionWrite(hm, f.Location.Path, LocationType(f.Values["LocationType"]), f.Values["PermissionType"])
+	recordPermissionWrite(hm, f.Location.Path, PermissionLocationType(f.Values["LocationType"]), f.Values["PermissionType"])
 
 	return nil
 }
