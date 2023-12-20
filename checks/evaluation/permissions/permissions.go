@@ -140,12 +140,12 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 		}
 		text, err := createText(r)
 		if err != nil {
-			return findings, err
+			return nil, err
 		}
 
 		f, err := createFinding(r.LocationType, text, loc)
 		if err != nil {
-			return findings, err
+			return nil, err
 		}
 
 		switch r.Type {
