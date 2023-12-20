@@ -101,11 +101,6 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 		return checker.CreateInconclusiveResult(name, "no tokens found")
 	}
 
-	if len(r.TokenPermissions) == 0 {
-		text := "no workflows found in the repository"
-		return checker.CreateInconclusiveResult(name, text)
-	}
-
 	// This is a temporary step that should be replaced by probes in ./probes
 	findings, err := rawToFindings(r)
 	if err != nil {
