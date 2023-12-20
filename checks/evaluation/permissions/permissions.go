@@ -163,7 +163,7 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 		case checker.PermissionLevelUnknown:
 			f = f.WithValues(map[string]int{
 				"PermissionLevel": int(PermissionLevelUnknown),
-			})
+			}).WithOutcome(finding.OutcomeError)
 		case checker.PermissionLevelUndeclared:
 			var locationType PermissionLocationType
 			//nolint:gocritic
