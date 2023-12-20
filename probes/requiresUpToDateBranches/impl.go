@@ -43,7 +43,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		p := branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
-			"up-to-date branches are needed to merge",
+			"up-to-date branches",
 			*branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
