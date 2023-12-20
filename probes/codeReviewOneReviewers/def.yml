@@ -18,8 +18,8 @@ motivation: >
   To ensure that the review process works, the proposed changes
   should have a minimum number of approvals.
 implementation: >
-This probe looks for whether all changes over the last `--commit-depth` commits have been approved by a minimum number of reviewers.
-Commits are grouped by the Pull Request they were introduced in.
+  This probe looks for whether all changes over the last `--commit-depth` commits have been approved by a minimum number of reviewers.
+  Commits are grouped by the Pull Request they were introduced in.
   Only unique reviewer logins that aren't the same as the changeset author are counted.
 outcome:
   - If all the changes had at least one reviewers, the probe returns OutcomePositive (1)

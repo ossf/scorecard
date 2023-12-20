@@ -67,6 +67,11 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, sonarWorkflows...)
 
+	snykWorkflows, err := getSnykWorkflows(c)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, snykWorkflows...)
 	return data, nil
 }
 
@@ -185,6 +190,73 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
 			if action == "github/codeql-action/analyze" {
+				*paths = append(*paths, path)
+			}
+		}
+	}
+	return true, nil
+}
+
+func getSnykWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
+	var workflowPaths []string
+	var sastWorkflows []checker.SASTWorkflow
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, searchGitHubActionWorkflowSnyk, &workflowPaths)
+	if err != nil {
+		return sastWorkflows, err
+	}
+	for _, path := range workflowPaths {
+		sastWorkflow := checker.SASTWorkflow{
+			File: checker.File{
+				Path:   path,
+				Offset: checker.OffsetDefault,
+				Type:   finding.FileTypeSource,
+			},
+			Type: checker.SnykWorkflow,
+		}
+
+		sastWorkflows = append(sastWorkflows, sastWorkflow)
+	}
+	return sastWorkflows, nil
+}
+
+var searchGitHubActionWorkflowSnyk fileparser.DoWhileTrueOnFileContent = func(path string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if !fileparser.IsWorkflowFile(path) {
+		return true, nil
+	}
+
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"searchSnyk requires exactly 1 arguments: %w", errInvalid)
+	}
+
+	// Verify the type of the data.
+	paths, ok := args[0].(*[]string)
+	if !ok {
+		return false, fmt.Errorf(
+			"searchSnyk expects arg[0] of type *[]string: %w", errInvalid)
+	}
+
+	workflow, errs := actionlint.Parse(content)
+	if len(errs) > 0 && workflow == nil {
+		return false, fileparser.FormatActionlintError(errs)
+	}
+
+	for _, job := range workflow.Jobs {
+		for _, step := range job.Steps {
+			e, ok := step.Exec.(*actionlint.ExecAction)
+			if !ok || e == nil || e.Uses == nil {
+				continue
+			}
+			// Parse out repo / SHA.
+			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
+			action, _, _ := strings.Cut(uses, "@")
+			if strings.HasPrefix(action, "snyk/actions/") {
 				*paths = append(*paths, path)
 			}
 		}

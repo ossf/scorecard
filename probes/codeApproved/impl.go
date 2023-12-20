@@ -35,6 +35,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.
+
+//nolint:gocognit
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {

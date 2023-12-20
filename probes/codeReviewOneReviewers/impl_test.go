@@ -26,7 +26,7 @@ import (
 
 var errProbeReturned = errors.New("probe run failure")
 
-func TestProbeCodeApproved(t *testing.T) {
+func TestProbeCodeReviewOneReviewers(t *testing.T) {
 	t.Parallel()
 	probeTests := []struct {
 		name             string
@@ -43,6 +43,56 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			err:              errProbeReturned,
 			expectedFindings: nil,
+		},
+		{
+			name: "no changesets no authors",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: ""},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeReviewOneReviewers",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
+		},
+		{
+			name: "no changesets no review authors",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: ""},
+								},
+							},
+							Author: clients.User{Login: "pedro"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeReviewOneReviewers",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
 		},
 		{
 			name: "no reviews",
@@ -144,7 +194,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			expectedFindings: []finding.Finding{
 				{
 					Probe:   "codeReviewOneReviewers",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomePositive,
 				},
 			},
 		},

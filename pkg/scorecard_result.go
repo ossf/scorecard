@@ -23,12 +23,19 @@ import (
 	"github.com/olekukonko/tablewriter"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/docs/checks"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/checks/raw"
+	"github.com/ossf/scorecard/v4/checks/raw/github"
+	"github.com/ossf/scorecard/v4/checks/raw/gitlab"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
+	docChecks "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v4/probes"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -62,7 +69,7 @@ func scoreToString(s float64) string {
 }
 
 // GetAggregateScore returns the aggregate score.
-func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, error) {
+func (r *ScorecardResult) GetAggregateScore(checkDocs docChecks.Doc) (float64, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
 	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
@@ -105,7 +112,7 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs checks.Doc) (float64, erro
 func FormatResults(
 	opts *options.Options,
 	results *ScorecardResult,
-	doc checks.Doc,
+	doc docChecks.Doc,
 	policy *spol.ScorecardPolicy,
 ) error {
 	var err error
@@ -153,7 +160,7 @@ func FormatResults(
 
 // AsString returns ScorecardResult in string format.
 func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
-	checkDocs checks.Doc, writer io.Writer,
+	checkDocs docChecks.Doc, writer io.Writer,
 ) error {
 	data := make([][]string, len(r.Checks))
 
@@ -223,5 +230,98 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 	table.SetRowLine(true)
 	table.Render()
 
+	return nil
+}
+
+func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *ScorecardResult) error {
+	switch probeCheckName {
+	case checks.CheckSecurityPolicy:
+		rawData, err := raw.SecurityPolicy(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.SecurityPolicyResults = rawData
+	case checks.CheckDependencyUpdateTool:
+		rawData, err := raw.DependencyUpdateTool(request.RepoClient)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.DependencyUpdateToolResults = rawData
+	case checks.CheckFuzzing:
+		rawData, err := raw.Fuzzing(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.FuzzingResults = rawData
+	case checks.CheckPackaging:
+		switch request.RepoClient.(type) {
+		case *githubrepo.Client:
+			rawData, err := github.Packaging(request)
+			if err != nil {
+				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			}
+			ret.RawResults.PackagingResults = rawData
+		case *gitlabrepo.Client:
+			rawData, err := gitlab.Packaging(request)
+			if err != nil {
+				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			}
+			ret.RawResults.PackagingResults = rawData
+		default:
+			return sce.WithMessage(sce.ErrScorecardInternal,
+				"Only github and gitlab are supported")
+		}
+	case checks.CheckLicense:
+		rawData, err := raw.License(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.LicenseResults = rawData
+	case checks.CheckContributors:
+		rawData, err := raw.Contributors(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.ContributorsResults = rawData
+	case checks.CheckVulnerabilities:
+		rawData, err := raw.Vulnerabilities(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.VulnerabilitiesResults = rawData
+	case checks.CheckSAST:
+		rawData, err := raw.SAST(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.SASTResults = rawData
+	case checks.CheckDangerousWorkflow:
+		rawData, err := raw.DangerousWorkflow(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.DangerousWorkflowResults = rawData
+	case checks.CheckMaintained:
+		rawData, err := raw.Maintained(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.MaintainedResults = rawData
+	}
+	return nil
+}
+
+func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *ScorecardResult) error {
+	probeCheckNames := make([]string, 0)
+	for _, probeName := range probesToRun {
+		probeCheckName := probes.CheckMap[probeName]
+		if !contains(probeCheckNames, probeCheckName) {
+			probeCheckNames = append(probeCheckNames, probeCheckName)
+			err := assignRawData(probeCheckName, request, ret)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

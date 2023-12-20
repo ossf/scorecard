@@ -198,6 +198,7 @@ func setupServer(t *testing.T) string {
 }
 
 func TestAllClientMethods(t *testing.T) {
+	t.Parallel()
 	c := CreateOSSFuzzClient("testURL")
 
 	// Test InitRepo

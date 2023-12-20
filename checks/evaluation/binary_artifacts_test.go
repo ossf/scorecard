@@ -18,256 +18,121 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TestBinaryArtifacts tests the binary artifacts check.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
-	type args struct {
-		name string
-		dl   checker.DetailLogger
-		r    *checker.BinaryArtifactData
+	lineStart := uint(123)
+	negativeFinding := finding.Finding{
+		Probe:   "freeOfUnverifiedBinaryArtifacts",
+		Outcome: finding.OutcomeNegative,
+
+		Location: &finding.Location{
+			Path:      "path",
+			Type:      finding.FileTypeBinary,
+			LineStart: &lineStart,
+		},
 	}
+
 	tests := []struct {
-		name    string
-		args    args
-		want    checker.CheckResult
-		wantErr bool
+		name     string
+		findings []finding.Finding
+		result   scut.TestReturn
 	}{
 		{
-			name: "r nil",
-			args: args{
-				name: "test_binary_artifacts_check_pass",
-				dl:   &scut.TestDetailLogger{},
-			},
-			wantErr: true,
-		},
-		{
 			name: "no binary artifacts",
-			args: args{
-				name: "no binary artifacts",
-				dl:   &scut.TestDetailLogger{},
-				r:    &checker.BinaryArtifactData{},
+			findings: []finding.Finding{
+				{
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
+					Outcome: finding.OutcomePositive,
+				},
 			},
-			want: checker.CheckResult{
+			result: scut.TestReturn{
 				Score: checker.MaxResultScore,
 			},
 		},
 		{
-			name: "1 binary artifact",
-			args: args{
-				name: "no binary artifacts",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.BinaryArtifactData{
-					Files: []checker.File{
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-					},
-				},
+			name: "one binary artifact",
+			findings: []finding.Finding{
+				negativeFinding,
 			},
-			want: checker.CheckResult{
-				Score: 9,
+			result: scut.TestReturn{
+				Score:        9,
+				NumberOfWarn: 1,
 			},
 		},
 		{
-			name: "many binary artifact",
-			args: args{
-				name: "no binary artifacts",
-				dl:   &scut.TestDetailLogger{},
-				r: &checker.BinaryArtifactData{
-					Files: []checker.File{
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Snippet: `
-								package main
-								import "fmt"
-								func main() {
-									fmt.Println("Hello, world!")
-								}i`,
-							Offset: 0,
-							Type:   0,
-						},
+			name: "two binary artifact",
+			findings: []finding.Finding{
+				{
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Path:      "path",
+						Type:      finding.FileTypeBinary,
+						LineStart: &lineStart,
+					},
+				},
+				{
+					Probe:   "freeOfUnverifiedBinaryArtifacts",
+					Outcome: finding.OutcomeNegative,
+					Location: &finding.Location{
+						Path:      "path",
+						Type:      finding.FileTypeBinary,
+						LineStart: &lineStart,
 					},
 				},
 			},
-			want: checker.CheckResult{
-				Score: 0,
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfWarn: 2,
+			},
+		},
+		{
+			name: "five binary artifact",
+			findings: []finding.Finding{
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+			},
+			result: scut.TestReturn{
+				Score:        5,
+				NumberOfWarn: 5,
+			},
+		},
+		{
+			name: "twelve binary artifact - ensure score doesn't drop below min",
+			findings: []finding.Finding{
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+				negativeFinding,
+			},
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 12,
+			},
+		},
+		{
+			name:     "invalid findings",
+			findings: []finding.Finding{},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
@@ -275,15 +140,10 @@ func TestBinaryArtifacts(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := BinaryArtifacts(tt.args.name, tt.args.dl, tt.args.r)
-			if tt.wantErr {
-				if got.Error == nil {
-					t.Errorf("BinaryArtifacts() error = %v, wantErr %v", got.Error, tt.wantErr)
-				}
-			} else {
-				if got.Score != tt.want.Score {
-					t.Errorf("BinaryArtifacts() = %v, want %v", got.Score, tt.want.Score)
-				}
+			dl := scut.TestDetailLogger{}
+			got := BinaryArtifacts(tt.name, tt.findings, &dl)
+			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
+				t.Errorf("got %v, expected %v", got, tt.result)
 			}
 		})
 	}

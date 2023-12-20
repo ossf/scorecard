@@ -92,10 +92,21 @@ func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
 	}
 }
 
-func dependenciesToFindings(deps []checker.Dependency) ([]finding.Finding, error) {
+func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Finding, error) {
 	findings := make([]finding.Finding, 0)
-	for i := range deps {
-		rr := deps[i]
+
+	for i := range r.ProcessingErrors {
+		e := r.ProcessingErrors[i]
+		f := finding.Finding{
+			Message:  generateTextIncompleteResults(e),
+			Location: &e.Location,
+			Outcome:  finding.OutcomeNotAvailable,
+		}
+		findings = append(findings, f)
+	}
+
+	for i := range r.Dependencies {
+		rr := r.Dependencies[i]
 		if rr.Location == nil {
 			if rr.Msg == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
@@ -199,24 +210,15 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 
-	for _, e := range r.ProcessingErrors {
-		e := e
-		dl.Info(&checker.LogMessage{
-			Finding: &finding.Finding{
-				Message:  generateTextIncompleteResults(e),
-				Location: &e.Location,
-			},
-		})
-	}
-
-	findings, err := dependenciesToFindings(r.Dependencies)
+	findings, err := dependenciesToFindings(r)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
 
 	for i := range findings {
 		f := findings[i]
-		if f.Outcome == finding.OutcomeNotApplicable {
+		switch f.Outcome {
+		case finding.OutcomeNotApplicable:
 			if f.Location != nil {
 				dl.Debug(&checker.LogMessage{
 					Path:      f.Location.Path,
@@ -232,7 +234,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				})
 			}
 			continue
-		} else if f.Outcome == finding.OutcomeNegative {
+		case finding.OutcomeNegative:
 			lm := &checker.LogMessage{
 				Path:      f.Location.Path,
 				Type:      f.Location.Type,
@@ -246,6 +248,13 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				lm.Remediation = probeRemToRuleRem(f.Remediation)
 			}
 			dl.Warn(lm)
+		case finding.OutcomeNotAvailable:
+			dl.Info(&checker.LogMessage{
+				Finding: &f,
+			})
+			continue
+		default:
+			// ignore
 		}
 		updatePinningResults(intToDepType[f.Values["dependencyType"]],
 			f.Outcome, f.Location.Snippet,

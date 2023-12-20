@@ -19,9 +19,10 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// CheckCodeReview is the registered name for DoesCodeReview.
 const CheckCITests = "CI-Tests"
 
 //nolint:gochecknoinits
@@ -35,7 +36,6 @@ func init() {
 	}
 }
 
-// CodeReview will check if the maintainers perform code review.
 func CITests(c *checker.CheckRequest) checker.CheckResult {
 	rawData, err := raw.CITests(c.RepoClient)
 	if err != nil {
@@ -43,11 +43,15 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
-	// Return raw results.
-	if c.RawResults != nil {
-		c.RawResults.CITestResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.CITestResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.CITests)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
-	// Return the score evaluation.
-	return evaluation.CITests(CheckCITests, &rawData, c.Dlogger)
+	return evaluation.CITests(CheckCITests, findings, c.Dlogger)
 }

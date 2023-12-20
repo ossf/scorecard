@@ -32,9 +32,11 @@ var errNew = errors.New("error")
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
-	//fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint:goerr113
-
+	// fieldalignment lint issue. Ignoring it as it is not important for this test.
+	//nolint:gci
+    //nolint:gofmt
+    //nolint:gofumpt
+	//nolint:goimports
 	tests := []struct {
 		err       error
 		name      string

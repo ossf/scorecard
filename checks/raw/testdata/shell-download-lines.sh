@@ -65,3 +65,9 @@ dotnet add SomeProject package some-package
 dotnet build
 dotnet add package some-package -v 1.2.3
 dotnet add package some-package --version 1.2.3
+
+bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin
+curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/main/src/dotnet-install.sh | bash /dev/stdin
+RUN bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/7b75d16d41920ec126e6f3269db0c6f3ab613c38/scripts/download-actionlint.bash")
+RUN curl -sSL https://raw.githubusercontent.com/dotnet/install-scripts/5b142a1e445a6f060d6430b661408989e9580b85/src/dotnet-install.sh | bash /dev/stdin

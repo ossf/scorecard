@@ -137,6 +137,7 @@ func TestPolicyRead(t *testing.T) {
 }
 
 func TestChecksHavePolicies(t *testing.T) {
+	t.Parallel()
 	// Create a sample ScorecardPolicy
 	sp := &ScorecardPolicy{
 		Version: 1,

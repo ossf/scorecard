@@ -20,42 +20,50 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
-func Webhooks(name string, dl checker.DetailLogger,
-	r *checker.WebhooksData,
+func Webhooks(name string,
+	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		webhooksUseSecrets.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if len(r.Webhooks) < 1 {
-		return checker.CreateMaxScoreResult(name, "no webhooks defined")
+	if len(findings) == 1 && findings[0].Outcome == finding.OutcomeNotApplicable {
+		return checker.CreateMaxScoreResult(name, "project does not have webhook")
 	}
 
-	hasNoSecretCount := 0
-	for _, hook := range r.Webhooks {
-		if !hook.UsesAuthSecret {
-			dl.Warn(&checker.LogMessage{
-				Path: hook.Path,
-				Type: finding.FileTypeURL,
-				Text: "Webhook with no secret configured",
-			})
-			hasNoSecretCount++
+	var webhooksWithNoSecret int
+
+	totalWebhooks := len(findings)
+
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNegative {
+			webhooksWithNoSecret++
 		}
 	}
 
-	if hasNoSecretCount == 0 {
-		return checker.CreateMaxScoreResult(name, fmt.Sprintf("all %d hook(s) have a secret configured", len(r.Webhooks)))
+	if totalWebhooks == webhooksWithNoSecret {
+		return checker.CreateMinScoreResult(name, "no hook(s) have a secret configured")
 	}
 
-	if len(r.Webhooks) == hasNoSecretCount {
-		return checker.CreateMinScoreResult(name, fmt.Sprintf("%d hook(s) do not have a secret configured", len(r.Webhooks)))
+	if webhooksWithNoSecret == 0 {
+		msg := fmt.Sprintf("All %d of the projects webhooks are configured with a secret", totalWebhooks)
+		return checker.CreateMaxScoreResult(name, msg)
 	}
+
+	msg := fmt.Sprintf("%d out of the projects %d webhooks are configured without a secret",
+		webhooksWithNoSecret,
+		totalWebhooks)
 
 	return checker.CreateProportionalScoreResult(name,
-		fmt.Sprintf("%d/%d hook(s) with no secrets configured detected",
-			hasNoSecretCount, len(r.Webhooks)), hasNoSecretCount, len(r.Webhooks))
+		msg, totalWebhooks-webhooksWithNoSecret, totalWebhooks)
 }

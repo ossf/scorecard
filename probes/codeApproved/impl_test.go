@@ -45,6 +45,95 @@ func TestProbeCodeApproved(t *testing.T) {
 			expectedFindings: nil,
 		},
 		{
+			name: "no changesets no authors",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: ""},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
+		},
+		{
+			name: "no changesets authors bot",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "Title\nPiperOrigin-RevId: 444529962",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "APPROVED",
+								},
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{
+								Login: "bot",
+								IsBot: true,
+							},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
+		},
+		{
+			name: "no changesets no review authors",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: ""},
+								},
+							},
+							Author: clients.User{Login: "pedro"},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   "codeApproved",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+			},
+		},
+		{
 			name: "no reviews",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{

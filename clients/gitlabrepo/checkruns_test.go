@@ -29,15 +29,17 @@ func Test_CheckRuns(t *testing.T) {
 	tests := []struct {
 		name         string
 		responsePath string
+		ref          string
 		want         []clients.CheckRun
 		wantErr      bool
 	}{
 		{
 			name:         "valid checkruns",
 			responsePath: "./testdata/valid-checkruns",
+			ref:          "main",
 			want: []clients.CheckRun{
 				{
-					Status:     "pending",
+					Status:     "queued",
 					URL:        "https://example.com/foo/bar/pipelines/48",
 					Conclusion: "",
 				},
@@ -47,11 +49,13 @@ func Test_CheckRuns(t *testing.T) {
 		{
 			name:         "valid checkruns with zero results",
 			responsePath: "./testdata/valid-checkruns-1",
+			ref:          "eb94b618fb5865b26e80fdd8ae531b7a63ad851a",
 			wantErr:      false,
 		},
 		{
 			name:         "failure fetching the checkruns",
 			responsePath: "./testdata/invalid-checkruns-result",
+			ref:          "main",
 			wantErr:      true,
 		},
 	}
@@ -77,13 +81,135 @@ func Test_CheckRuns(t *testing.T) {
 				commitSHA: clients.HeadSHA,
 			}
 			handler.init(&repoURL)
-			got, err := handler.listCheckRunsForRef("main")
+			got, err := handler.listCheckRunsForRef(tt.ref)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("checkRuns error: %v, wantedErr: %t", err, tt.wantErr)
 			}
 
 			if !cmp.Equal(got, tt.want) {
 				t.Errorf("checkRuns() = %v, want %v", got, cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+
+func TestParseGitlabStatus(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		status string
+		want   clients.CheckRun
+	}{
+		{
+			status: "created",
+			want: clients.CheckRun{
+				Status:     "queued",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "waiting_for_resource",
+			want: clients.CheckRun{
+				Status:     "queued",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "preparing",
+			want: clients.CheckRun{
+				Status:     "queued",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "pending",
+			want: clients.CheckRun{
+				Status:     "queued",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "scheduled",
+			want: clients.CheckRun{
+				Status:     "queued",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "running",
+			want: clients.CheckRun{
+				Status:     "in_progress",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+		{
+			status: "failed",
+			want: clients.CheckRun{
+				Status:     "completed",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "failure",
+			},
+		},
+		{
+			status: "success",
+			want: clients.CheckRun{
+				Status:     "completed",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "success",
+			},
+		},
+		{
+			status: "canceled",
+			want: clients.CheckRun{
+				Status:     "completed",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "cancelled",
+			},
+		},
+		{
+			status: "skipped",
+			want: clients.CheckRun{
+				Status:     "completed",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "skipped",
+			},
+		},
+		{
+			status: "manual",
+			want: clients.CheckRun{
+				Status:     "completed",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "action_required",
+			},
+		},
+		{
+			status: "invalid_status",
+			want: clients.CheckRun{
+				Status:     "invalid_status",
+				URL:        "https://example.com/foo/bar/pipelines/48",
+				Conclusion: "",
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.status, func(t *testing.T) {
+			t.Parallel()
+
+			info := gitlab.PipelineInfo{
+				WebURL: "https://example.com/foo/bar/pipelines/48",
+				Status: tt.status,
+			}
+
+			got := parseGitlabStatus(&info)
+
+			if !cmp.Equal(got, tt.want) {
+				t.Errorf("parseGitlabStatus() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
