@@ -53,13 +53,13 @@ func SAST(name string,
 		case sastToolRunsOnAllCommits.Probe:
 			sastScore = getSASTScore(f, dl)
 		case sastToolCodeQLInstalled.Probe:
-			codeQlScore = getCodeQLScore(f, dl)
+			codeQlScore = getSastToolScore(f, dl)
 		case sastToolSnykInstalled.Probe:
-			snykScore = getSnykScore(f, dl)
+			snykScore = getSastToolScore(f, dl)
 		case sastToolPysaInstalled.Probe:
-			pysaScore = getPysaScore(f, dl)
+			pysaScore = getSastToolScore(f, dl)
 		case sastToolQodanaInstalled.Probe:
-			qodanaScore = getQodanaScore(f, dl)
+			qodanaScore = getSastToolScore(f, dl)
 		case sastToolSonarInstalled.Probe:
 			if f.Outcome == finding.OutcomePositive {
 				sonarScore = checker.MaxResultScore
@@ -168,51 +168,9 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 	return checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
 }
 
-// getCodeQLScore returns positive the project runs CodeQL and negative
-// if it doesn't.
-func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
-	switch f.Outcome {
-	case finding.OutcomePositive:
-		dl.Info(&checker.LogMessage{
-			Text: f.Message,
-		})
-		return checker.MaxResultScore
-	case finding.OutcomeNegative:
-		return checker.MinResultScore
-	default:
-		panic("Should not happen")
-	}
-}
-
-func getSnykScore(f *finding.Finding, dl checker.DetailLogger) int {
-	switch f.Outcome {
-	case finding.OutcomePositive:
-		dl.Info(&checker.LogMessage{
-			Text: f.Message,
-		})
-		return checker.MaxResultScore
-	case finding.OutcomeNegative:
-		return checker.MinResultScore
-	default:
-		return checker.InconclusiveResultScore
-	}
-}
-
-func getPysaScore(f *finding.Finding, dl checker.DetailLogger) int {
-	switch f.Outcome {
-	case finding.OutcomePositive:
-		dl.Info(&checker.LogMessage{
-			Text: f.Message,
-		})
-		return checker.MaxResultScore
-	case finding.OutcomeNegative:
-		return checker.MinResultScore
-	default:
-		return checker.InconclusiveResultScore
-	}
-}
-
-func getQodanaScore(f *finding.Finding, dl checker.DetailLogger) int {
+// getSastToolScore returns positive if the project runs the Sast tool
+// and negative if it doesn't.
+func getSastToolScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{
