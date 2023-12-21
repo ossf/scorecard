@@ -78,7 +78,7 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, pysaWorkflows...)
 
-    qodanaWorkflows, err := getSastUsesWorkflows(c, "^JetBrains/qodana-action$", checker.QodanaWorkflow)
+	qodanaWorkflows, err := getSastUsesWorkflows(c, "^JetBrains/qodana-action$", checker.QodanaWorkflow)
 	if err != nil {
 		return data, err
 	}
@@ -206,11 +206,11 @@ var searchGitHubActionWorkflowPrefixed fileparser.DoWhileTrueOnFileContent = fun
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			m, err :=  regexp.MatchString(prefix, action)
+			m, err := regexp.MatchString(prefix, action)
 			if err != nil {
 				continue
 			}
-			if (m) {
+			if m {
 				*paths = append(*paths, path)
 			}
 		}
