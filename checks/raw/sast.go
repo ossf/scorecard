@@ -141,7 +141,11 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 	return sastCommits, nil
 }
 
-func getSastUsesWorkflows(c *checker.CheckRequest, prefix string, checkerType checker.SASTWorkflowType) ([]checker.SASTWorkflow, error) {
+func getSastUsesWorkflows(
+	c *checker.CheckRequest,
+	prefix string,
+	checkerType checker.SASTWorkflowType,
+) ([]checker.SASTWorkflow, error) {
 	var workflowPaths []string
 	var sastWorkflows []checker.SASTWorkflow
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
