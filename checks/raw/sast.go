@@ -54,11 +54,10 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Commits = commits
 
-	codeQLWorkflows, err := codeQLInCheckDefinitions(c)
+	codeQLWorkflows, err := getSastUsesWorkflows(c, "^github/codeql-action/analyze$", checker.CodeQLWorkflow)
 	if err != nil {
 		return data, err
 	}
-
 	data.Workflows = append(data.Workflows, codeQLWorkflows...)
 
 	sonarWorkflows, err := getSonarWorkflows(c)
@@ -67,19 +66,19 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, sonarWorkflows...)
 
-	snykWorkflows, err := getSnykWorkflows(c)
+	snykWorkflows, err := getSastUsesWorkflows(c, "^snyk/actions/.*", checker.SnykWorkflow)
 	if err != nil {
 		return data, err
 	}
 	data.Workflows = append(data.Workflows, snykWorkflows...)
 
-	pysaWorkflows, err := getPysaWorkflows(c)
+	pysaWorkflows, err := getSastUsesWorkflows(c, "^facebook/pysa-action$", checker.PysaWorkflow)
 	if err != nil {
 		return data, err
 	}
 	data.Workflows = append(data.Workflows, pysaWorkflows...)
 
-	qodanaWorkflows, err := getQodanaWorkflows(c)
+    qodanaWorkflows, err := getSastUsesWorkflows(c, "^JetBrains/qodana-action$", checker.QodanaWorkflow)
 	if err != nil {
 		return data, err
 	}
@@ -142,13 +141,13 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 	return sastCommits, nil
 }
 
-func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
+func getSastUsesWorkflows(c *checker.CheckRequest, prefix string, checkerType checker.SASTWorkflowType) ([]checker.SASTWorkflow, error) {
 	var workflowPaths []string
 	var sastWorkflows []checker.SASTWorkflow
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, searchGitHubActionWorkflowCodeQL, &workflowPaths)
+	}, searchGitHubActionWorkflowPrefixed, &workflowPaths, prefix)
 	if err != nil {
 		return sastWorkflows, err
 	}
@@ -159,7 +158,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, 
 				Offset: checker.OffsetDefault,
 				Type:   finding.FileTypeSource,
 			},
-			Type: checker.CodeQLWorkflow,
+			Type: checkerType,
 		}
 
 		sastWorkflows = append(sastWorkflows, sastWorkflow)
@@ -167,8 +166,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, 
 	return sastWorkflows, nil
 }
 
-// Check file content.
-var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(path string,
+var searchGitHubActionWorkflowPrefixed fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
 	args ...interface{},
 ) (bool, error) {
@@ -176,16 +174,22 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalid)
+			"searchGitHubActionWorkflowPrefixed requires exactly 1 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL expects arg[0] of type *[]string: %w", errInvalid)
+			"searchGitHubActionWorkflowPrefixed expects arg[0] of type *[]string: %w", errInvalid)
+	}
+
+	prefix, ok := args[1].(string)
+	if !ok {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowPrefixed expects arg[1] of type string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
@@ -202,208 +206,11 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			if action == "github/codeql-action/analyze" {
-				*paths = append(*paths, path)
-			}
-		}
-	}
-	return true, nil
-}
-
-func getSnykWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
-	var workflowPaths []string
-	var sastWorkflows []checker.SASTWorkflow
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       ".github/workflows/*",
-		CaseSensitive: false,
-	}, searchGitHubActionWorkflowSnyk, &workflowPaths)
-	if err != nil {
-		return sastWorkflows, err
-	}
-	for _, path := range workflowPaths {
-		sastWorkflow := checker.SASTWorkflow{
-			File: checker.File{
-				Path:   path,
-				Offset: checker.OffsetDefault,
-				Type:   finding.FileTypeSource,
-			},
-			Type: checker.SnykWorkflow,
-		}
-
-		sastWorkflows = append(sastWorkflows, sastWorkflow)
-	}
-	return sastWorkflows, nil
-}
-
-var searchGitHubActionWorkflowSnyk fileparser.DoWhileTrueOnFileContent = func(path string,
-	content []byte,
-	args ...interface{},
-) (bool, error) {
-	if !fileparser.IsWorkflowFile(path) {
-		return true, nil
-	}
-
-	if len(args) != 1 {
-		return false, fmt.Errorf(
-			"searchSnyk requires exactly 1 arguments: %w", errInvalid)
-	}
-
-	// Verify the type of the data.
-	paths, ok := args[0].(*[]string)
-	if !ok {
-		return false, fmt.Errorf(
-			"searchSnyk expects arg[0] of type *[]string: %w", errInvalid)
-	}
-
-	workflow, errs := actionlint.Parse(content)
-	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
-	}
-
-	for _, job := range workflow.Jobs {
-		for _, step := range job.Steps {
-			e, ok := step.Exec.(*actionlint.ExecAction)
-			if !ok || e == nil || e.Uses == nil {
+			m, err :=  regexp.MatchString(prefix, action)
+			if err != nil {
 				continue
 			}
-			// Parse out repo / SHA.
-			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
-			action, _, _ := strings.Cut(uses, "@")
-			if strings.HasPrefix(action, "snyk/actions/") {
-				*paths = append(*paths, path)
-			}
-		}
-	}
-	return true, nil
-}
-
-func getPysaWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
-	var workflowPaths []string
-	var sastWorkflows []checker.SASTWorkflow
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       ".github/workflows/*",
-		CaseSensitive: false,
-	}, searchGitHubActionWorkflowPysa, &workflowPaths)
-	if err != nil {
-		return sastWorkflows, err
-	}
-	for _, path := range workflowPaths {
-		sastWorkflow := checker.SASTWorkflow{
-			File: checker.File{
-				Path:   path,
-				Offset: checker.OffsetDefault,
-				Type:   finding.FileTypeSource,
-			},
-			Type: checker.PysaWorkflow,
-		}
-
-		sastWorkflows = append(sastWorkflows, sastWorkflow)
-	}
-	return sastWorkflows, nil
-}
-
-var searchGitHubActionWorkflowPysa fileparser.DoWhileTrueOnFileContent = func(path string,
-	content []byte,
-	args ...interface{},
-) (bool, error) {
-	if !fileparser.IsWorkflowFile(path) {
-		return true, nil
-	}
-
-	if len(args) != 1 {
-		return false, fmt.Errorf(
-			"searchPysa requires exactly 1 arguments: %w", errInvalid)
-	}
-
-	// Verify the type of the data.
-	paths, ok := args[0].(*[]string)
-	if !ok {
-		return false, fmt.Errorf(
-			"searchPysa expects arg[0] of type *[]string: %w", errInvalid)
-	}
-
-	workflow, errs := actionlint.Parse(content)
-	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
-	}
-
-	for _, job := range workflow.Jobs {
-		for _, step := range job.Steps {
-			e, ok := step.Exec.(*actionlint.ExecAction)
-			if !ok || e == nil || e.Uses == nil {
-				continue
-			}
-			// Parse out repo / SHA.
-			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
-			action, _, _ := strings.Cut(uses, "@")
-			if strings.HasPrefix(action, "facebook/pysa-action") {
-				*paths = append(*paths, path)
-			}
-		}
-	}
-	return true, nil
-}
-
-func getQodanaWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
-	var workflowPaths []string
-	var sastWorkflows []checker.SASTWorkflow
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
-		Pattern:       ".github/workflows/*",
-		CaseSensitive: false,
-	}, searchGitHubActionWorkflowQodana, &workflowPaths)
-	if err != nil {
-		return sastWorkflows, err
-	}
-	for _, path := range workflowPaths {
-		sastWorkflow := checker.SASTWorkflow{
-			File: checker.File{
-				Path:   path,
-				Offset: checker.OffsetDefault,
-				Type:   finding.FileTypeSource,
-			},
-			Type: checker.QodanaWorkflow,
-		}
-
-		sastWorkflows = append(sastWorkflows, sastWorkflow)
-	}
-	return sastWorkflows, nil
-}
-
-var searchGitHubActionWorkflowQodana fileparser.DoWhileTrueOnFileContent = func(path string,
-	content []byte,
-	args ...interface{},
-) (bool, error) {
-	if !fileparser.IsWorkflowFile(path) {
-		return true, nil
-	}
-
-	if len(args) != 1 {
-		return false, fmt.Errorf(
-			"searchQodana requires exactly 1 arguments: %w", errInvalid)
-	}
-
-	// Verify the type of the data.
-	paths, ok := args[0].(*[]string)
-	if !ok {
-		return false, fmt.Errorf(
-			"searchQodana expects arg[0] of type *[]string: %w", errInvalid)
-	}
-
-	workflow, errs := actionlint.Parse(content)
-	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
-	}
-
-	for _, job := range workflow.Jobs {
-		for _, step := range job.Steps {
-			e, ok := step.Exec.(*actionlint.ExecAction)
-			if !ok || e == nil || e.Uses == nil {
-				continue
-			}
-			// Parse out repo / SHA.
-			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
-			action, _, _ := strings.Cut(uses, "@")
-			if strings.HasPrefix(action, "JetBrains/qodana-action") {
+			if (m) {
 				*paths = append(*paths, path)
 			}
 		}
