@@ -143,7 +143,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 
 func getSastUsesWorkflows(
 	c *checker.CheckRequest,
-	prefix string,
+	useRegex string,
 	checkerType checker.SASTWorkflowType,
 ) ([]checker.SASTWorkflow, error) {
 	var workflowPaths []string
@@ -151,7 +151,7 @@ func getSastUsesWorkflows(
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, searchGitHubActionWorkflowPrefixed, &workflowPaths, prefix)
+	}, searchGitHubActionWorkflowUseRegex, &workflowPaths, useRegex)
 	if err != nil {
 		return sastWorkflows, err
 	}
@@ -170,7 +170,7 @@ func getSastUsesWorkflows(
 	return sastWorkflows, nil
 }
 
-var searchGitHubActionWorkflowPrefixed fileparser.DoWhileTrueOnFileContent = func(path string,
+var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
 	args ...interface{},
 ) (bool, error) {
@@ -180,20 +180,20 @@ var searchGitHubActionWorkflowPrefixed fileparser.DoWhileTrueOnFileContent = fun
 
 	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowPrefixed requires exactly 1 arguments: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex requires exactly 1 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowPrefixed expects arg[0] of type *[]string: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex expects arg[0] of type *[]string: %w", errInvalid)
 	}
 
-	prefix, ok := args[1].(string)
+	useRegex, ok := args[1].(string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowPrefixed expects arg[1] of type string: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex expects arg[1] of type string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
@@ -210,7 +210,7 @@ var searchGitHubActionWorkflowPrefixed fileparser.DoWhileTrueOnFileContent = fun
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			m, err := regexp.MatchString(prefix, action)
+			m, err := regexp.MatchString(useRegex, action)
 			if err != nil {
 				continue
 			}
