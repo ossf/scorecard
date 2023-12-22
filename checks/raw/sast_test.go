@@ -126,6 +126,29 @@ func TestSAST(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Has Snyk",
+			files: []string{".github/workflows/github-workflow-snyk.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.SnykWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-workflow-snyk.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
