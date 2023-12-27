@@ -147,6 +147,9 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		if e != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
+		if doc == nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, errors.New("doc is nil")))
+		}
 
 		tmpResult := jsonCheckResultV2{
 			Name: checkResult.Name,
