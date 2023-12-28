@@ -47,14 +47,22 @@ func SignedReleases(name string,
 		f := &findings[i]
 
 		// Debug release name
-		releaseName := getReleaseName(f)
-		if releaseName == "" {
+		if f.Outcome == finding.OutcomeNotApplicable {
 			dl.Warn(&checker.LogMessage{
-				Text: "no GitHub releases found",
+				Text: "no releases found",
 			})
 			// Generic summary.
 			return checker.CreateInconclusiveResult(name, "no releases found")
 		}
+		releaseName := getReleaseName(f)
+		if releaseName == "" {
+			dl.Warn(&checker.LogMessage{
+				Text: "no releases found",
+			})
+			// Generic summary.
+			return checker.CreateInconclusiveResult(name, "no releases found")
+		}
+
 		if !contains(loggedReleases, releaseName) {
 			dl.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("GitHub release found: %s", releaseName),
@@ -63,13 +71,6 @@ func SignedReleases(name string,
 		}
 
 		// Check if outcome is NotApplicable
-		if f.Outcome == finding.OutcomeNotApplicable {
-			dl.Warn(&checker.LogMessage{
-				Text: "no GitHub releases found",
-			})
-			// Generic summary.
-			return checker.CreateInconclusiveResult(name, "no releases found")
-		}
 	}
 
 	totalPositive := 0
