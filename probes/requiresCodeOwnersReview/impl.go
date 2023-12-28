@@ -40,8 +40,35 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
 
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no braches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	for i := range r.Branches {
 		branch := &r.Branches[i]
+
+		protected := !(branch.Protected != nil && !*branch.Protected)
+		var protectedValue int
+		if protected {
+			protectedValue = 1
+		} else {
+			protectedValue = 0
+		}
+
 		reqOwnerReviews := branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
 		var text string
 		var outcome finding.Outcome
@@ -53,9 +80,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case !*reqOwnerReviews:
 			text = fmt.Sprintf("codeowners review is not required on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeNegative
-		case len(r.CodeownersFiles) == 0:
-			text = "codeowners review is required - but no codeowners file found in repo"
-			outcome = finding.OutcomeNegative
 		default:
 			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
 			outcome = finding.OutcomePositive
@@ -65,6 +89,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithValue(BranchNameKey, *branch.Name)
+		f = f.WithValue("branchProtected", protectedValue)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

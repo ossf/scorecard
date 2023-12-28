@@ -45,8 +45,26 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
 
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	for i := range r.Branches {
 		branch := &r.Branches[i]
+
+		protected := !(branch.Protected != nil && !*branch.Protected)
+		var protectedValue int
+		if protected {
+			protectedValue = 1
+		} else {
+			protectedValue = 0
+		}
+
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
 		trueMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
@@ -70,6 +88,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
+		f = f.WithValue("branchProtected", protectedValue)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

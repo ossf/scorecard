@@ -13,25 +13,24 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package branchProtectionAppliesToAdmins
+package requiresPRsToChangeCode
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
 var fs embed.FS
 
-const (
-	Probe         = "branchProtectionAppliesToAdmins"
-	BranchNameKey = "branchName"
-)
+const Probe = "requiresPRsToChangeCode"
+
+var errWrongValue = errors.New("wrong value, should not happen")
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -61,19 +60,42 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			protectedValue = 0
 		}
 
-		p := branch.BranchProtectionRule.EnforceAdmins
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
-			"branch protection settings apply to administrators",
-			*branch.Name)
+		nilMsg := fmt.Sprintf("could not determine whether branch '%s' requires PRs to change code", *branch.Name)
+		trueMsg := fmt.Sprintf("PRs are required in order to make changes on branch '%s'", *branch.Name)
+		falseMsg := fmt.Sprintf("PRs are not required to make changes on branch '%s'; ", *branch.Name) +
+			"or we don't have data to detect it." +
+			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo " +
+			"Rules (that are always public) instead of Branch Protection settings"
+
+		p := branch.BranchProtectionRule.RequiredPullRequestReviews.Required
+
+		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
+
+		switch {
+		case p == nil:
+			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
+			f = f.WithValues(map[string]int{
+				*branch.Name:      1,
+				"branchProtected": protectedValue,
+			})
+		case *p:
+			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+			f = f.WithValues(map[string]int{
+				*branch.Name:      1,
+				"branchProtected": protectedValue,
+			})
+		case !*p:
+			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
+			f = f.WithValues(map[string]int{
+				*branch.Name:      1,
+				"branchProtected": protectedValue,
+			})
+		default:
+			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
-		f = f.WithValue(BranchNameKey, *branch.Name)
-		f = f.WithValue("branchProtected", protectedValue)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
