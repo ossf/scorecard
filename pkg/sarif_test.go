@@ -872,7 +872,7 @@ func Test_createSARIFRuns(t *testing.T) {
 			want: []run{},
 		},
 		{
-			name: "test with nil run also",
+			name: "nil runs are skipped",
 			args: args{
 				runs: map[string]*run{
 					"run1": nil,

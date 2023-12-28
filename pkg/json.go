@@ -69,6 +69,8 @@ type jsonScorecardV2 struct {
 
 type jsonFloatScore float64
 
+var errNoDoc = errors.New("doc is nil")
+
 func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 	// Note: for integers, this will show as X.0.
 	return []byte(fmt.Sprintf("%.1f", s)), nil
@@ -148,7 +150,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
 		if doc == nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, errors.New("doc is nil")))
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, errNoDoc))
 		}
 
 		tmpResult := jsonCheckResultV2{
