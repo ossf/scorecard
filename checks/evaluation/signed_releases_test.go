@@ -38,12 +38,6 @@ const (
 	asset1 = 1
 	asset2 = 2
 	asset3 = 3
-	asset4 = 4
-	asset5 = 5
-	asset6 = 6
-	asset7 = 7
-	asset8 = 8
-	asset9 = 9
 )
 
 func signedProbe(release, asset int, outcome finding.Outcome) finding.Finding {
@@ -278,6 +272,62 @@ func TestSignedReleases(t *testing.T) {
 			got := SignedReleases(tt.name, tt.findings, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
 				t.Errorf("got %v, expected %v", got, tt.result)
+			}
+		})
+	}
+}
+
+func Test_getReleaseName(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		f *finding.Finding
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "no release",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{},
+				},
+			},
+			want: "",
+		},
+		{
+			name: "release",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{
+						"v1": int(releasesAreSigned.ValueTypeRelease),
+					},
+					Probe: releasesAreSigned.Probe,
+				},
+			},
+			want: "v1",
+		},
+		{
+			name: "release and asset",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{
+						"v1":         int(releasesAreSigned.ValueTypeRelease),
+						"artifact-1": int(releasesAreSigned.ValueTypeReleaseAsset),
+					},
+					Probe: releasesAreSigned.Probe,
+				},
+			},
+			want: "v1",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := getReleaseName(tt.args.f); got != tt.want {
+				t.Errorf("getReleaseName() = %v, want %v", got, tt.want)
 			}
 		})
 	}
