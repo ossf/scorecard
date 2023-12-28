@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/xanzy/go-gitlab"
@@ -278,6 +279,10 @@ func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, e
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
+	if h := os.Getenv("GL_HOST"); h != "" {
+		host = strings.TrimSpace(h)
+	}
+
 	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)

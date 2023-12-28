@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/xanzy/go-gitlab"
@@ -105,7 +106,13 @@ func (r *repoURL) IsValid() error {
 		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
 	}
 
-	client, err := gitlab.NewClient("", gitlab.WithBaseURL(fmt.Sprintf("%s://%s", r.scheme, r.host)))
+	host := r.host
+	if h := os.Getenv("GL_HOST"); h != "" {
+		// avoid duplication of the scheme when constructing baseURL below
+		host = strings.TrimPrefix(h, r.scheme+"://")
+	}
+	baseURL := fmt.Sprintf("%s://%s", r.scheme, host)
+	client, err := gitlab.NewClient("", gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return sce.WithMessage(err,
 			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
