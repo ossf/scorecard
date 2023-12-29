@@ -141,9 +141,12 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 	return sastCommits, nil
 }
 
+// getSastUsesWorkflows matches if the "uses" field of a GitHub action matches
+// a given regex by way of usesRegex. Each workflow that matches the usesRegex
+// is appended to the slice that is returned.
 func getSastUsesWorkflows(
 	c *checker.CheckRequest,
-	useRegex string,
+	usesRegex string,
 	checkerType checker.SASTWorkflowType,
 ) ([]checker.SASTWorkflow, error) {
 	var workflowPaths []string
@@ -151,7 +154,7 @@ func getSastUsesWorkflows(
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, searchGitHubActionWorkflowUseRegex, &workflowPaths, useRegex)
+	}, searchGitHubActionWorkflowUseRegex, &workflowPaths, usesRegex)
 	if err != nil {
 		return sastWorkflows, err
 	}
@@ -190,7 +193,7 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 			"searchGitHubActionWorkflowUseRegex expects arg[0] of type *[]string: %w", errInvalid)
 	}
 
-	useRegex, ok := args[1].(string)
+	usesRegex, ok := args[1].(string)
 	if !ok {
 		return false, fmt.Errorf(
 			"searchGitHubActionWorkflowUseRegex expects arg[1] of type string: %w", errInvalid)
@@ -210,7 +213,7 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			m, err := regexp.MatchString(useRegex, action)
+			m, err := regexp.MatchString(usesRegex, action)
 			if err != nil {
 				continue
 			}
