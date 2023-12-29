@@ -213,11 +213,8 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			m, err := regexp.MatchString(usesRegex, action)
-			if err != nil {
-				continue
-			}
-			if m {
+			re := regexp.MustCompile(usesRegex)
+			if re.MatchString(action) {
 				*paths = append(*paths, path)
 			}
 		}
