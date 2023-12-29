@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -42,7 +43,13 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 
 	commits, err := c.SearchCommits(clients.SearchCommitsOptions{Author: "dependabot[bot]"})
 	if err != nil {
-		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
+		// TODO https://github.com/ossf/scorecard/issues/1709
+		// some repo clients (e.g. local) don't currently have the ability to search commits,
+		// but some data is better than none.
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return checker.DependencyUpdateToolData{Tools: tools}, nil
+		}
+		return checker.DependencyUpdateToolData{}, fmt.Errorf("dependabot commit search: %w", err)
 	}
 
 	for i := range commits {
