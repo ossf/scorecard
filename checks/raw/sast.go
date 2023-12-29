@@ -180,7 +180,7 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 
 	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowUseRegex requires exactly 1 arguments: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex requires exactly 2 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
