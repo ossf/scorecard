@@ -15,6 +15,7 @@
 package evaluation
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -24,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 )
+
+var errNoReleaseFound = errors.New("no release found")
 
 // SignedReleases applies the score policy for the Signed-Releases check.
 func SignedReleases(name string,
@@ -48,19 +51,13 @@ func SignedReleases(name string,
 
 		// Debug release name
 		if f.Outcome == finding.OutcomeNotApplicable {
-			dl.Warn(&checker.LogMessage{
-				Text: "no releases found",
-			})
 			// Generic summary.
 			return checker.CreateInconclusiveResult(name, "no releases found")
 		}
 		releaseName := getReleaseName(f)
 		if releaseName == "" {
-			dl.Warn(&checker.LogMessage{
-				Text: "no releases found",
-			})
 			// Generic summary.
-			return checker.CreateInconclusiveResult(name, "no releases found")
+			return checker.CreateRuntimeErrorResult(name, errNoReleaseFound)
 		}
 
 		if !contains(loggedReleases, releaseName) {
@@ -83,7 +80,7 @@ func SignedReleases(name string,
 
 		releaseName := getReleaseName(f)
 		if releaseName == "" {
-			return checker.CreateInconclusiveResult(name, "no releases found")
+			return checker.CreateRuntimeErrorResult(name, errNoReleaseFound)
 		}
 		if !contains(uniqueReleaseTags, releaseName) {
 			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
