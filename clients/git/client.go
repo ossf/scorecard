@@ -16,6 +16,7 @@
 package git
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -24,6 +25,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -37,6 +39,7 @@ const repoDir = "repo*"
 var (
 	errNilCommitFound = errors.New("nil commit found")
 	errEmptyQuery     = errors.New("query is empty")
+	errNotImplemented = errors.New("not implemented")
 )
 
 type Client struct {
@@ -49,7 +52,7 @@ type Client struct {
 	commitDepth    int
 }
 
-func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
+func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)
@@ -61,7 +64,7 @@ func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
 	}
-
+	uri := repo.URI()
 	// git clone
 	const filePrefix = "file://"
 	if strings.HasPrefix(uri, filePrefix) {
@@ -84,7 +87,7 @@ func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
 	c.tempDir = tempDir
 	c.worktree, err = c.gitRepo.Worktree()
 	if err != nil {
-		return fmt.Errorf("git.Worktree: %w", err)
+		return fmt.Errorf("g.Worktree: %w", err)
 	}
 
 	// git checkout
@@ -188,11 +191,6 @@ func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 	return ret, nil
 }
 
-// TODO(#1709): Implement below fns using go-git.
-func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	return nil, nil
-}
-
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return nil, nil
 }
@@ -201,9 +199,81 @@ func (c *Client) GetFileContent(filename string) ([]byte, error) {
 	return nil, nil
 }
 
+func (c *Client) IsArchived() (bool, error) {
+	return false, nil
+}
+
+func (c *Client) URI() string {
+	return ""
+}
+
 func (c *Client) Close() error {
 	if err := os.RemoveAll(c.tempDir); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("os.RemoveAll: %w", err)
 	}
 	return nil
+}
+
+func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) GetCreatedAt() (time.Time, error) {
+	return time.Time{}, errNotImplemented
+}
+
+func (c *Client) GetDefaultBranchName() (string, error) {
+	return "", errNotImplemented
+}
+
+func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListIssues() ([]clients.Issue, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListLicenses() ([]clients.License, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListReleases() ([]clients.Release, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListContributors() ([]clients.User, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListStatuses(ref string) ([]clients.Status, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return nil, errNotImplemented
+}
+
+func (c *Client) LocalPath() (string, error) {
+	return "", errNotImplemented
 }

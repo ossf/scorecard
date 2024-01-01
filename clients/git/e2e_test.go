@@ -19,6 +19,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 )
 
 var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
@@ -26,31 +27,31 @@ var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 		const commitSHA = clients.HeadSHA
 		const commitDepth = 1
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
 		Expect(err).To(BeNil())
 		Expect(len(commits)).Should(BeEquivalentTo(commitDepth))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	Entry("GitLab", "https://gitlab.haskell.org/haskell/filepath"),
+	Entry("Local", "../../"),
 )
 
 var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 	func(uri, commitSHA string) {
 		const commitDepth = 10
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
 		Expect(err).To(BeNil())
 		Expect(len(commits)).Should(BeEquivalentTo(commitDepth))
 		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
-	Entry("Local", "file://../../", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
-	Entry("GitLab", "https://gitlab.haskell.org/haskell/filepath", "98f8bba9eac8c7183143d290d319be7df76c258b"),
+	Entry("Local", "../../", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 )
 
 var _ = DescribeTable("Test ListCommits without enough commits",
@@ -58,16 +59,16 @@ var _ = DescribeTable("Test ListCommits without enough commits",
 		const commitSHA = "dc1835b7ffe526969d65436b621e171e3386771e"
 		const commitDepth = 10
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
 		Expect(err).To(BeNil())
 		Expect(len(commits)).Should(BeEquivalentTo(3))
 		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	// TODO(#1709): Add equivalent test for GitLab.
+	Entry("Local", "../../"),
 )
 
 var _ = DescribeTable("Test Search across a repo",
@@ -77,7 +78,9 @@ var _ = DescribeTable("Test Search across a repo",
 			commitDepth = 10
 		)
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
 			Query: "github/codeql-action/analyze",
 		})
@@ -85,9 +88,7 @@ var _ = DescribeTable("Test Search across a repo",
 		Expect(resp.Hits).Should(BeNumerically(">=", 1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	// TODO(#1709): Add equivalent test for GitLab.
+	Entry("Local", "../../"),
 )
 
 var _ = DescribeTable("Test Search within a path",
@@ -97,7 +98,9 @@ var _ = DescribeTable("Test Search within a path",
 			commitDepth = 10
 		)
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
 			Query: "github/codeql-action/analyze",
 			Path:  ".github/workflows",
@@ -106,9 +109,7 @@ var _ = DescribeTable("Test Search within a path",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	// TODO(#1709): Add equivalent test for GitLab.
+	Entry("Local", "../../"),
 )
 
 var _ = DescribeTable("Test Search within a filename",
@@ -118,7 +119,9 @@ var _ = DescribeTable("Test Search within a filename",
 			commitDepth = 10
 		)
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
 			Query:    "github/codeql-action/analyze",
 			Filename: "codeql-analysis.yml",
@@ -127,9 +130,7 @@ var _ = DescribeTable("Test Search within a filename",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	// TODO(#1709): Add equivalent test for GitLab.
+	Entry("Local", "../../"),
 )
 
 var _ = DescribeTable("Test Search within path and filename",
@@ -139,7 +140,9 @@ var _ = DescribeTable("Test Search within path and filename",
 			commitDepth = 10
 		)
 		client := &Client{}
-		Expect(client.InitRepo(uri, commitSHA, commitDepth)).To(BeNil())
+		repo, err := localdir.MakeLocalDirRepo(uri)
+		Expect(err).To(BeNil())
+		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
 			Query:    "github/codeql-action/analyze",
 			Path:     ".github/workflows",
@@ -149,7 +152,5 @@ var _ = DescribeTable("Test Search within path and filename",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("GitHub", "https://github.com/ossf/scorecard"),
-	Entry("Local", "file://../../"),
-	// TODO(#1709): Add equivalent test for GitLab.
+	Entry("Local", "../../"),
 )
