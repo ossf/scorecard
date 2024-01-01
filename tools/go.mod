@@ -9,7 +9,7 @@ require (
 	github.com/google/ko v0.15.1
 	github.com/goreleaser/goreleaser v1.23.0
 	github.com/onsi/ginkgo/v2 v2.13.2
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 )
 
 require (
