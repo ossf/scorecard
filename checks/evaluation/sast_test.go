@@ -54,7 +54,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and codeQL is installed",
+			name: "Sonar and codeQL is installed. Snyk, Qodana and Pysa are not installed.",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
@@ -62,6 +62,14 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -91,7 +99,45 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: `Sonar is installed. CodeQL is not installed.
+			name: "Pysa is installed. CodeQL, Snyk, Qodana and Sonar are not installed.",
+			findings: []finding.Finding{
+				{
+					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomePositive,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolRunsOnAllCommits",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   2,
+					},
+				},
+				{
+					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfInfo: 2,
+				NumberOfWarn: 0,
+			},
+		},
+		{
+			name: `Sonar is installed. CodeQL, Snyk, Pysa, Qodana are not installed.
 					Does not have info about whether SAST runs
 					on every commit.`,
 			findings: []finding.Finding{
@@ -101,6 +147,14 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -126,7 +180,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and CodeQL are not installed",
+			name: "Sonar, CodeQL, Snyk, Qodana and Pysa are not installed",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
@@ -134,6 +188,14 @@ func TestSAST(t *testing.T) {
 				},
 				{
 					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -156,7 +218,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Snyk is installed, Sonar and CodeQL are not installed",
+			name: "Snyk is installed, Sonar, Qodana and CodeQL are not installed",
 			findings: []finding.Finding{
 				{
 					Probe:   "sastToolCodeQLInstalled",
@@ -177,6 +239,52 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   "sastToolSonarInstalled",
 					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfWarn: 0,
+				NumberOfInfo: 2,
+			},
+		},
+		{
+			name: "Qodana is installed, Snyk, Sonar, and CodeQL are not installed",
+			findings: []finding.Finding{
+				{
+					Probe:   "sastToolCodeQLInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolSnykInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolRunsOnAllCommits",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"totalPullRequestsAnalyzed": 1,
+						"totalPullRequestsMerged":   3,
+					},
+				},
+				{
+					Probe:   "sastToolSonarInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolPysaInstalled",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "sastToolQodanaInstalled",
+					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
