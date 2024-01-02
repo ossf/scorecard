@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: requiresLastPushApproval
+short: Check that the project requires approval of the most recent push.
+motivation: >
+  Requiring approval of the most recent push prevents contributors from sneaking malicious commits into a PR after it has been approved.
+implementation: >
+  The probe checks the protection rules of default and release branches branches.
+outcome:
+  - The probe returns one OutcomePositive for each branch that requires approval of the most recent push, and one OutcomeNegative for branches that don't.
+remediation:
+  effort: High
+  text:
+    - Configure the project such that it requires approval of the most recent push.
+    - For GitHub-hosted projects, see [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and how to require approval of the last push from someone who did not make the last push.
+    - For Gitlab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
+  markdown:
+    - Configure the project such that it requires approval of the most recent push.
+    - For GitHub-hosted projects, see [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and how to require approval of the last push from someone who did not make the last push.
+    - For Gitlab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
