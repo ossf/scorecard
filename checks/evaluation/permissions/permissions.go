@@ -437,7 +437,8 @@ func updateWorkflowHashMap(hm map[string]permissions, f *finding.Finding) error 
 		PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelUndeclared {
 		return nil
 	}
-	recordPermissionWrite(hm, f.Location.Path, PermissionLocationType(f.Values["LocationType"]), f.Values["PermissionType"])
+	plt := PermissionLocationType(f.Values["LocationType"])
+	recordPermissionWrite(hm, f.Location.Path, plt, f.Values["PermissionType"])
 
 	return nil
 }
