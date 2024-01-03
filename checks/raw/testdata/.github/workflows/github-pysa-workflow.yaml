@@ -1,0 +1,22 @@
+name: Pysa Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+name: Pysa
+
+jobs:
+  pysa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run Pysa Action
+        uses: facebook/pysa-action
+        with:
+          repo-directory: './'
+          requirements-path: 'requirements.txt'
+          infer-types: true

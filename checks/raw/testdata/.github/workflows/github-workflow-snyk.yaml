@@ -1,0 +1,19 @@
+name: Snyk Scan
+
+on: pull_request
+permissions:
+  contents: read
+
+jobs:
+  scan-snyk:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@master
+      - uses: snyk/actions/setup@master
+      - name:  Run Snyk Scanning
+        run: |
+          snyk test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}

@@ -16,11 +16,14 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
+
+var gitCommitHashRegex = regexp.MustCompile(`^[a-fA-F0-9]{40}$`)
 
 type checkrunsHandler struct {
 	glClient *gitlab.Client
@@ -32,11 +35,19 @@ func (handler *checkrunsHandler) init(repourl *repoURL) {
 }
 
 func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(
-		handler.repourl.projectID, &gitlab.ListProjectPipelinesOptions{
-			SHA:         &ref,
-			ListOptions: gitlab.ListOptions{},
-		})
+	var options gitlab.ListProjectPipelinesOptions
+
+	if gitCommitHashRegex.MatchString(ref) {
+		options.SHA = &ref
+	} else {
+		options.Ref = &ref
+	}
+
+	// Notes for Gitlab ListProjectPipelines endpoint:
+	// Only full SHA works for SHA param, Short SHA does not work
+	// Branch names work for Ref Param, tags and SHAs do not work
+	// Reference: https://docs.gitlab.com/ee/api/pipelines.html#list-project-pipelines
+	pipelines, _, err := handler.glClient.Pipelines.ListProjectPipelines(handler.repourl.projectID, &options)
 	if err != nil {
 		return nil, fmt.Errorf("request for pipelines returned error: %w", err)
 	}

@@ -162,3 +162,21 @@ func TestDependencyUpdateTool(t *testing.T) {
 		})
 	}
 }
+
+func TestDependencyUpdateTool_noSearchCommits(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockRepo := mockrepo.NewMockRepoClient(ctrl)
+	files := []string{"README.md"}
+	mockRepo.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
+	mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
+	dl := scut.TestDetailLogger{}
+	c := &checker.CheckRequest{
+		RepoClient: mockRepo,
+		Dlogger:    &dl,
+	}
+	got := DependencyUpdateTool(c)
+	if got.Error != nil {
+		t.Errorf("got: %v, wanted ErrUnsupportedFeature not to propagate", got.Error)
+	}
+}
