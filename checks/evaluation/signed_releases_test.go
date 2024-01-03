@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
@@ -31,6 +32,7 @@ const (
 	release2 = 2
 	release3 = 3
 	release4 = 4
+	release5 = 5
 )
 
 const (
@@ -260,6 +262,37 @@ func TestSignedReleases(t *testing.T) {
 				NumberOfInfo:  7,
 				NumberOfWarn:  23,
 				NumberOfDebug: 5,
+			},
+		},
+		{
+			name: "too many releases (6 when lookback is 5)",
+			findings: []finding.Finding{
+				// Release 1:
+				// Release 1, Asset 1:
+				signedProbe(release0, asset0, finding.OutcomePositive),
+				provenanceProbe(release0, asset0, finding.OutcomePositive),
+				// Release 2:
+				// Release 2, Asset 1:
+				signedProbe(release1, asset0, finding.OutcomePositive),
+				provenanceProbe(release1, asset0, finding.OutcomePositive),
+				// Release 3, Asset 1:
+				signedProbe(release2, asset0, finding.OutcomePositive),
+				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				// Release 4, Asset 1:
+				signedProbe(release3, asset0, finding.OutcomePositive),
+				provenanceProbe(release3, asset0, finding.OutcomePositive),
+				// Release 5, Asset 1:
+				signedProbe(release4, asset0, finding.OutcomePositive),
+				provenanceProbe(release4, asset0, finding.OutcomePositive),
+				// Release 6, Asset 1:
+				signedProbe(release5, asset0, finding.OutcomePositive),
+				provenanceProbe(release5, asset0, finding.OutcomePositive),
+			},
+			result: scut.TestReturn{
+				Score:         checker.InconclusiveResultScore,
+				Error:         sce.ErrScorecardInternal,
+				NumberOfInfo:  12, // 2 (signed + provenance) for each release
+				NumberOfDebug: 6,  // 1 for each release
 			},
 		},
 	}

@@ -106,8 +106,11 @@ func SignedReleases(name string,
 
 	totalReleases := len(uniqueReleaseTags)
 
+	// TODO, the evaluation code should be the one limiting to 5, not assuming the probes have done it already
+	// however there are some ordering issues to consider, so going with the easy way for now
 	if totalReleases > 5 {
-		totalReleases = 5
+		err := sce.CreateInternal(sce.ErrScorecardInternal, "too many releases, please report this")
+		return checker.CreateRuntimeErrorResult(name, err)
 	}
 	if totalReleases == 0 {
 		// This should not happen in production, but it is useful to have

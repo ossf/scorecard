@@ -45,6 +45,7 @@ const (
 
 var provenanceExtensions = []string{".intoto.jsonl"}
 
+//nolint:gocognit // bug hotfix
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
@@ -60,6 +61,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		release := releases[i]
 		if len(release.Assets) == 0 {
 			continue
+		}
+		if i == releaseLookBack {
+			break
 		}
 		totalReleases++
 		hasProvenance := false
