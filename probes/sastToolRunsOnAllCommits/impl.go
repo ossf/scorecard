@@ -27,7 +27,13 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sastToolRunsOnAllCommits" //#nosec
+const (
+	Probe = "sastToolRunsOnAllCommits"
+	// TotalPRsKey is the Values map key which specifies the total number of PRs being evaluated.
+	TotalPRsKey = "totalPullRequestsMerged"
+	// AnalyzedPRsKey is the Values map key which specifies the number of PRs analyzed by a SAST.
+	AnalyzedPRsKey = "totalPullRequestsAnalyzed"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -59,8 +65,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 
-	f = f.WithValue("totalPullRequestsAnalyzed", totalPullRequestsAnalyzed)
-	f = f.WithValue("totalPullRequestsMerged", totalPullRequestsMerged)
+	f = f.WithValue(AnalyzedPRsKey, totalPullRequestsAnalyzed)
+	f = f.WithValue(TotalPRsKey, totalPullRequestsMerged)
 
 	if totalPullRequestsAnalyzed == totalPullRequestsMerged {
 		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalPullRequestsMerged)
