@@ -550,6 +550,9 @@ func computeCategory(checkName string, repos []string) (string, error) {
 	}
 }
 
+// createSARIFRuns takes a map of runs and returns a sorted slice of runs.
+// It sorts the keys of the map, iterates over them, and appends the corresponding run to the result slice.
+// If the run is nil, it is skipped.
 func createSARIFRuns(runs map[string]*run) []run {
 	res := []run{}
 	// Sort keys.
@@ -561,7 +564,9 @@ func createSARIFRuns(runs map[string]*run) []run {
 
 	// Iterate over keys.
 	for _, k := range keys {
-		res = append(res, *runs[k])
+		if runs[k] != nil {
+			res = append(res, *runs[k])
+		}
 	}
 	return res
 }

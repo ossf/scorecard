@@ -46,7 +46,7 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 	}
 
 	if r.NumTokens == 0 {
-		return checker.CreateInconclusiveResult(name, "no github tokens found")
+		return checker.CreateInconclusiveResult(name, "no tokens found")
 	}
 
 	score, err := applyScorePolicy(r, c)
