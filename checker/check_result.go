@@ -176,12 +176,12 @@ func NormalizeReason(reason string, score int) string {
 
 // CreateResultWithScore is used when
 // the check runs without runtime errors, and we want to assign a
-// specific score.
+// specific score. The score must be between [MinResultScore] and [MaxResultScore].
+// Callers who want [InconclusiveResultScore] must use [CreateInconclusiveResult] instead.
 //
-// Note: The score must either be [InconclusiveResultScore] or be between [MinResultScore] and [MaxResultScore].
 // Passing an invalid score results in a runtime error result as if created by [CreateRuntimeErrorResult].
 func CreateResultWithScore(name, reason string, score int) CheckResult {
-	if score != InconclusiveResultScore && (score < MinResultScore || score > MaxResultScore) {
+	if score < MinResultScore || score > MaxResultScore {
 		err := sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("invalid score (%d), please report this", score))
 		return CreateRuntimeErrorResult(name, err)
 	}

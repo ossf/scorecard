@@ -497,7 +497,7 @@ func TestCreateResultWithScore(t *testing.T) {
 			},
 		},
 		{
-			name: "inconclusive score is valid",
+			name: "inconclusive score is not valid",
 			args: args{
 				name:   "name",
 				reason: "reason",
@@ -505,9 +505,10 @@ func TestCreateResultWithScore(t *testing.T) {
 			},
 			want: CheckResult{
 				Name:    "name",
-				Reason:  "reason",
+				Reason:  "internal error: invalid score (-1), please report this",
 				Version: 2,
-				Score:   InconclusiveResultScore,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
 			},
 		},
 		{
