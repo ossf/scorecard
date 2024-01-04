@@ -88,10 +88,40 @@ func Test_Run(t *testing.T) {
 				Probe:   "hasOSVVulnerabilities",
 				Message: "Project is vulnerable to: foo",
 				Remediation: &probe.Remediation{
-					Text: `Fix the foo by following information from https://osv.dev/foo.
+					Text: `Fix the foo by following information from https://osv.dev/foo .
 If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.`,
-					Markdown: `Fix the foo by following information from [OSV](https://osv.dev/foo).
+					Markdown: `Fix the foo by following information from [OSV](https://osv.dev/foo) .
+If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
+If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).`,
+					Effort: 3,
+				},
+			},
+		},
+		{
+			name: "only one vuln ID appears in the findings remediation text.",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{
+						{ID: "foo"},
+						{
+							ID:      "bar",
+							Aliases: []string{"foo"},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+			expectedFinding: &finding.Finding{
+				Probe:   "hasOSVVulnerabilities",
+				Message: "Project is vulnerable to: bar / foo",
+				Remediation: &probe.Remediation{
+					Text: `Fix the bar by following information from https://osv.dev/bar .
+If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
+If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.`,
+					Markdown: `Fix the bar by following information from [OSV](https://osv.dev/bar) .
 If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).`,
 					Effort: 3,
