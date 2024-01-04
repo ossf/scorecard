@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
@@ -31,6 +32,7 @@ const (
 	release2 = 2
 	release3 = 3
 	release4 = 4
+	release5 = 5
 )
 
 const (
@@ -38,12 +40,6 @@ const (
 	asset1 = 1
 	asset2 = 2
 	asset3 = 3
-	asset4 = 4
-	asset5 = 5
-	asset6 = 6
-	asset7 = 7
-	asset8 = 8
-	asset9 = 9
 )
 
 func signedProbe(release, asset int, outcome finding.Outcome) finding.Finding {
@@ -268,6 +264,37 @@ func TestSignedReleases(t *testing.T) {
 				NumberOfDebug: 5,
 			},
 		},
+		{
+			name: "too many releases (6 when lookback is 5)",
+			findings: []finding.Finding{
+				// Release 1:
+				// Release 1, Asset 1:
+				signedProbe(release0, asset0, finding.OutcomePositive),
+				provenanceProbe(release0, asset0, finding.OutcomePositive),
+				// Release 2:
+				// Release 2, Asset 1:
+				signedProbe(release1, asset0, finding.OutcomePositive),
+				provenanceProbe(release1, asset0, finding.OutcomePositive),
+				// Release 3, Asset 1:
+				signedProbe(release2, asset0, finding.OutcomePositive),
+				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				// Release 4, Asset 1:
+				signedProbe(release3, asset0, finding.OutcomePositive),
+				provenanceProbe(release3, asset0, finding.OutcomePositive),
+				// Release 5, Asset 1:
+				signedProbe(release4, asset0, finding.OutcomePositive),
+				provenanceProbe(release4, asset0, finding.OutcomePositive),
+				// Release 6, Asset 1:
+				signedProbe(release5, asset0, finding.OutcomePositive),
+				provenanceProbe(release5, asset0, finding.OutcomePositive),
+			},
+			result: scut.TestReturn{
+				Score:         checker.InconclusiveResultScore,
+				Error:         sce.ErrScorecardInternal,
+				NumberOfInfo:  12, // 2 (signed + provenance) for each release
+				NumberOfDebug: 6,  // 1 for each release
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -278,6 +305,62 @@ func TestSignedReleases(t *testing.T) {
 			got := SignedReleases(tt.name, tt.findings, &dl)
 			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
 				t.Errorf("got %v, expected %v", got, tt.result)
+			}
+		})
+	}
+}
+
+func Test_getReleaseName(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		f *finding.Finding
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "no release",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{},
+				},
+			},
+			want: "",
+		},
+		{
+			name: "release",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{
+						"v1": int(releasesAreSigned.ValueTypeRelease),
+					},
+					Probe: releasesAreSigned.Probe,
+				},
+			},
+			want: "v1",
+		},
+		{
+			name: "release and asset",
+			args: args{
+				f: &finding.Finding{
+					Values: map[string]int{
+						"v1":         int(releasesAreSigned.ValueTypeRelease),
+						"artifact-1": int(releasesAreSigned.ValueTypeReleaseAsset),
+					},
+					Probe: releasesAreSigned.Probe,
+				},
+			},
+			want: "v1",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := getReleaseName(tt.args.f); got != tt.want {
+				t.Errorf("getReleaseName() = %v, want %v", got, tt.want)
 			}
 		})
 	}
