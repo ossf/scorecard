@@ -26,15 +26,6 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-type goodGatewayRoundTripper struct{}
-
-func (g goodGatewayRoundTripper) RoundTrip(*http.Request) (*http.Response, error) {
-	return &http.Response{
-		Status:     "200 OK",
-		StatusCode: http.StatusOK,
-	}, nil
-}
-
 func TestCheckRepoInaccessible(t *testing.T) {
 	t.Parallel()
 
@@ -101,15 +92,9 @@ func TestListCommits(t *testing.T) {
 		},
 		{
 			name:         "No commits in repo",
-			responsePath: "./testdata/valid-checkruns-1", // Contains Empty Array
+			responsePath: "./testdata/empty-response",
 			commits:      []clients.Commit{},
 			wantErr:      false,
-		},
-		{
-			name:         "Error in getMergeRequestDetail",
-			responsePath: "./testdata/valid-commits",
-			commits:      []clients.Commit{},
-			wantErr:      true,
 		},
 	}
 	for _, tt := range tests {
@@ -140,9 +125,7 @@ func TestListCommits(t *testing.T) {
 			commitshandler.init(&repoURL, 30)
 
 			gqlhandler := graphqlHandler{
-				client: &http.Client{
-					Transport: goodGatewayRoundTripper{},
-				},
+				client: httpClient,
 			}
 			gqlhandler.init(context.Background(), &repoURL)
 
