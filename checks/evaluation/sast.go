@@ -163,9 +163,10 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 			Text: f.Message,
 		})
 	default:
-		checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
 	}
-	return checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
+	analyzed := f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey]
+	total := f.Values[sastToolRunsOnAllCommits.TotalPRsKey]
+	return checker.CreateProportionalScore(analyzed, total)
 }
 
 // getSastToolScore returns positive if the project runs the Sast tool
