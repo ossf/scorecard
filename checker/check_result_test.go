@@ -19,6 +19,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 func TestAggregateScores(t *testing.T) {
@@ -493,12 +496,57 @@ func TestCreateResultWithScore(t *testing.T) {
 				Score:   1,
 			},
 		},
+		{
+			name: "inconclusive score is valid",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  InconclusiveResultScore,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "reason",
+				Version: 2,
+				Score:   InconclusiveResultScore,
+			},
+		},
+		{
+			name: "score too low",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  -3,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (-3), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "score too high",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  MaxResultScore + 2,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (12), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score); !cmp.Equal(got, tt.want) {
+			got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score)
+			if !cmp.Equal(got, tt.want, cmpopts.EquateErrors()) {
 				t.Errorf("CreateResultWithScore() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -548,12 +596,29 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 				Version: 2,
 			},
 		},
+		{
+			name: "negative proportion, score too low",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				b:      -2,
+				t:      1,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (-20), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) {
+			got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t)
+			if !cmp.Equal(got, tt.want, cmpopts.EquateErrors()) {
 				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
