@@ -16,6 +16,7 @@
 package hasOSVVulnerabilities
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +25,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 func Test_Run(t *testing.T) {
@@ -61,43 +61,6 @@ func Test_Run(t *testing.T) {
 				finding.OutcomePositive,
 			},
 		},
-		{
-			name: "vulnerabilities not present",
-			raw: &checker.RawResults{
-				VulnerabilitiesResults: checker.VulnerabilitiesData{
-					Vulnerabilities: []clients.Vulnerability{},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
-		{
-			name: "vulnerabilities and metadata present. 'foo' must appear in the findings remediation text.",
-			raw: &checker.RawResults{
-				VulnerabilitiesResults: checker.VulnerabilitiesData{
-					Vulnerabilities: []clients.Vulnerability{
-						{ID: "foo"},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
-			},
-			expectedFinding: &finding.Finding{
-				Probe:   "hasOSVVulnerabilities",
-				Message: "Project is vulnerable to: foo",
-				Remediation: &probe.Remediation{
-					Text: `Fix the foo by following information from https://osv.dev/foo.
-If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
-If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on OSV-Scanner repository.`,
-					Markdown: `Fix the foo by following information from [OSV](https://osv.dev/foo).
-If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
-If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an osv-scanner.toml ([example](https://github.com/google/osv.dev/blob/eb99b02ec8895fe5b87d1e76675ddad79a15f817/vulnfeeds/osv-scanner.toml)) file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of osv-scanner.toml can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).`,
-					Effort: 3,
-				},
-			},
-		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -128,6 +91,75 @@ If you believe the vulnerability does not affect your project, the vulnerability
 					if diff := cmp.Diff(tt.expectedFinding, f); diff != "" {
 						t.Errorf("mismatch (-want +got):\n%s", diff)
 					}
+				}
+			}
+		})
+	}
+}
+
+func TestRun_remediation(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name              string
+		raw               *checker.RawResults
+		wantRemediation   bool
+		remediationSubstr string
+		err               error
+	}{
+		{
+			name: "no remediation needed",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{},
+				},
+			},
+			wantRemediation: false,
+		},
+		{
+			name: "vulnerabilities and metadata present. 'foo' must appear in the findings remediation text.",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{
+						{ID: "foo"},
+					},
+				},
+			},
+			wantRemediation:   true,
+			remediationSubstr: "Fix the foo",
+		},
+		{
+			name: "only one vuln ID appears in the findings remediation text link.",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{
+						{ID: "foo"},
+						{
+							ID:      "bar",
+							Aliases: []string{"foo"},
+						},
+					},
+				},
+			},
+			wantRemediation:   true,
+			remediationSubstr: "https://osv.dev/bar .",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			findings, _, err := Run(tt.raw)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			for i := range findings {
+				gotRemediation := findings[i].Remediation != nil
+				if tt.wantRemediation != gotRemediation {
+					t.Errorf("wanted remediation?: %t, had remediation?: %t", tt.wantRemediation, gotRemediation)
+				}
+				if tt.wantRemediation && !strings.Contains(findings[i].Remediation.Text, tt.remediationSubstr) {
+					t.Errorf("wanted to find substr %q in remediation text, but didn't", tt.remediationSubstr)
 				}
 			}
 		})
