@@ -43,7 +43,7 @@ const (
 	ValueTypeReleaseAsset
 )
 
-var signatureExtensions = []string{".asc", ".minisig", ".sig", ".sign"}
+var signatureExtensions = []string{".asc", ".minisig", ".sig", ".sign", ".sigstore"}
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

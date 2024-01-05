@@ -17,7 +17,7 @@ kind: Deployment
 metadata:
   name: scorecard-batch-worker
 spec:
-  replicas: 12
+  replicas: 14
   selector:
     matchLabels:
       app.kubernetes.io/name: worker
