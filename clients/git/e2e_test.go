@@ -15,10 +15,14 @@
 package git
 
 import (
+	"strings"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo"
+	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v4/clients/localdir"
 )
 
@@ -27,7 +31,8 @@ var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 		const commitSHA = clients.HeadSHA
 		const commitDepth = 1
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		GinkgoT().Logf("URI: %s\n", uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
@@ -36,13 +41,24 @@ var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 		Expect(client.Close()).To(BeNil())
 	},
 	Entry("Local", "../../"),
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 )
+
+func getRepoClient(uri string) (clients.Repo, error) {
+	if strings.Contains(uri, "github.com") {
+		return githubrepo.MakeGithubRepo(uri)
+	} else if strings.Contains(uri, "gitlab.com") {
+		return gitlabrepo.MakeGitlabRepo(uri)
+	}
+	return localdir.MakeLocalDirRepo(uri)
+}
 
 var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 	func(uri, commitSHA string) {
 		const commitDepth = 10
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
+		GinkgoT().Logf("URI: %s\n", uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
@@ -51,6 +67,7 @@ var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
 		Expect(client.Close()).To(BeNil())
 	},
+	Entry("https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 	Entry("Local", "../../", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 )
 
@@ -59,7 +76,7 @@ var _ = DescribeTable("Test ListCommits without enough commits",
 		const commitSHA = "dc1835b7ffe526969d65436b621e171e3386771e"
 		const commitDepth = 10
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		commits, err := client.ListCommits()
@@ -68,6 +85,7 @@ var _ = DescribeTable("Test ListCommits without enough commits",
 		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
 		Expect(client.Close()).To(BeNil())
 	},
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 	Entry("Local", "../../"),
 )
 
@@ -78,7 +96,7 @@ var _ = DescribeTable("Test Search across a repo",
 			commitDepth = 10
 		)
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
@@ -88,6 +106,7 @@ var _ = DescribeTable("Test Search across a repo",
 		Expect(resp.Hits).Should(BeNumerically(">=", 1))
 		Expect(client.Close()).To(BeNil())
 	},
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 	Entry("Local", "../../"),
 )
 
@@ -98,7 +117,7 @@ var _ = DescribeTable("Test Search within a path",
 			commitDepth = 10
 		)
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
@@ -109,6 +128,7 @@ var _ = DescribeTable("Test Search within a path",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 	Entry("Local", "../../"),
 )
 
@@ -119,7 +139,7 @@ var _ = DescribeTable("Test Search within a filename",
 			commitDepth = 10
 		)
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
@@ -130,6 +150,7 @@ var _ = DescribeTable("Test Search within a filename",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 	Entry("Local", "../../"),
 )
 
@@ -140,7 +161,7 @@ var _ = DescribeTable("Test Search within path and filename",
 			commitDepth = 10
 		)
 		client := &Client{}
-		repo, err := localdir.MakeLocalDirRepo(uri)
+		repo, err := getRepoClient(uri)
 		Expect(err).To(BeNil())
 		Expect(client.InitRepo(repo, commitSHA, commitDepth)).To(BeNil())
 		resp, err := client.Search(clients.SearchRequest{
@@ -152,5 +173,6 @@ var _ = DescribeTable("Test Search within path and filename",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("Local", "../../"),
+	Entry("../../"),
+	Entry("GitHub", "https://github.com/ossf/scorecard"),
 )

@@ -41,7 +41,7 @@ func createTestRepo(t *testing.T) (path string) {
 	})
 	r, err := gitV5.PlainInit(dir, false)
 	if err != nil {
-		t.Fatalf("Failed to initialize g repo: %v", err)
+		t.Fatalf("Failed to initialize git repo: %v", err)
 	}
 
 	w, err := r.Worktree()
