@@ -42,12 +42,13 @@ var _ = DescribeTable("Test ListCommits commit-depth for HEAD",
 	},
 	Entry("Local", "../../"),
 	Entry("GitHub", "https://github.com/ossf/scorecard"),
+	Entry("GitLab", "https://gitlab.haskell.org/haskell/filepath"),
 )
 
 func getRepoClient(uri string) (clients.Repo, error) {
 	if strings.Contains(uri, "github.com") {
 		return githubrepo.MakeGithubRepo(uri)
-	} else if strings.Contains(uri, "gitlab.com") {
+	} else if strings.Contains(uri, "gitlab") {
 		return gitlabrepo.MakeGitlabRepo(uri)
 	}
 	return localdir.MakeLocalDirRepo(uri)
@@ -69,6 +70,7 @@ var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 	},
 	Entry("https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 	Entry("Local", "../../", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
+	Entry("GitLab", "https://gitlab.haskell.org/haskell/filepath", "98f8bba9eac8c7183143d290d319be7df76c258b"),
 )
 
 var _ = DescribeTable("Test ListCommits without enough commits",
