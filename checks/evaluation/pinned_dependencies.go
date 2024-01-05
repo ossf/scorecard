@@ -49,6 +49,9 @@ const (
 	gitHubOwnedActionWeight int = 2
 	thirdPartyActionWeight  int = 8
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
+
+	// depTypeKey is the Values map key used to fetch the dependency type.
+	depTypeKey = "dependencyType"
 )
 
 var (
@@ -172,7 +175,7 @@ func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Findi
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}
 			f = f.WithValues(map[string]int{
-				"dependencyType": dependencyTypes[rr.Type],
+				depTypeKey: dependencyTypes[rr.Type],
 			})
 			findings = append(findings, *f)
 		} else {
@@ -189,7 +192,7 @@ func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Findi
 				Location: loc,
 			}
 			f = f.WithValues(map[string]int{
-				"dependencyType": dependencyTypes[rr.Type],
+				depTypeKey: dependencyTypes[rr.Type],
 			})
 			findings = append(findings, *f)
 		}
@@ -256,7 +259,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		default:
 			// ignore
 		}
-		updatePinningResults(intToDepType[f.Values["dependencyType"]],
+		updatePinningResults(intToDepType[f.Values[depTypeKey]],
 			f.Outcome, f.Location.Snippet,
 			&wp, pr)
 	}

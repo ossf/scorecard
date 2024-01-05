@@ -19,7 +19,10 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
 	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 )
 
@@ -30,8 +33,11 @@ func SAST(name string,
 	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
 		sastToolCodeQLInstalled.Probe,
+		sastToolPysaInstalled.Probe,
+		sastToolQodanaInstalled.Probe,
 		sastToolRunsOnAllCommits.Probe,
 		sastToolSonarInstalled.Probe,
+		sastToolSnykInstalled.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -39,7 +45,7 @@ func SAST(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var sastScore, codeQlScore, sonarScore int
+	var sastScore, codeQlScore, pysaScore, qodanaScore, snykScore, sonarScore int
 	// Assign sastScore, codeQlScore and sonarScore
 	for i := range findings {
 		f := &findings[i]
@@ -47,7 +53,13 @@ func SAST(name string,
 		case sastToolRunsOnAllCommits.Probe:
 			sastScore = getSASTScore(f, dl)
 		case sastToolCodeQLInstalled.Probe:
-			codeQlScore = getCodeQLScore(f, dl)
+			codeQlScore = getSastToolScore(f, dl)
+		case sastToolSnykInstalled.Probe:
+			snykScore = getSastToolScore(f, dl)
+		case sastToolPysaInstalled.Probe:
+			pysaScore = getSastToolScore(f, dl)
+		case sastToolQodanaInstalled.Probe:
+			qodanaScore = getSastToolScore(f, dl)
 		case sastToolSonarInstalled.Probe:
 			if f.Outcome == finding.OutcomePositive {
 				sonarScore = checker.MaxResultScore
@@ -67,6 +79,15 @@ func SAST(name string,
 
 	if sonarScore == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "SAST tool detected")
+	}
+	if snykScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
+	}
+	if pysaScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "SAST tool detected: Pysa")
+	}
+	if qodanaScore == checker.MaxResultScore {
+		return checker.CreateMaxScoreResult(name, "SAST tool detected: Qodana")
 	}
 
 	if sastScore == checker.InconclusiveResultScore &&
@@ -142,14 +163,15 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 			Text: f.Message,
 		})
 	default:
-		checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
 	}
-	return checker.CreateProportionalScore(f.Values["totalPullRequestsAnalyzed"], f.Values["totalPullRequestsMerged"])
+	analyzed := f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey]
+	total := f.Values[sastToolRunsOnAllCommits.TotalPRsKey]
+	return checker.CreateProportionalScore(analyzed, total)
 }
 
-// getCodeQLScore returns positive the project runs CodeQL and negative
-// if it doesn't.
-func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
+// getSastToolScore returns positive if the project runs the Sast tool
+// and negative if it doesn't.
+func getSastToolScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{
@@ -157,11 +179,8 @@ func getCodeQLScore(f *finding.Finding, dl checker.DetailLogger) int {
 		})
 		return checker.MaxResultScore
 	case finding.OutcomeNegative:
-		dl.Warn(&checker.LogMessage{
-			Text: f.Message,
-		})
 		return checker.MinResultScore
 	default:
-		panic("Should not happen")
+		return checker.InconclusiveResultScore
 	}
 }

@@ -1115,6 +1115,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 					AllowDeletions:   boolPtr(true),
 					AllowForcePushes: boolPtr(false),
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						Required:                     boolPtr(true),
 						RequireCodeOwnerReviews:      boolPtr(true),
 						DismissStaleReviews:          boolPtr(true),
 						RequiredApprovingReviewCount: intPtr(2),

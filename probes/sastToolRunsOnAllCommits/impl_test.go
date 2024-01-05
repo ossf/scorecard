@@ -54,11 +54,11 @@ func Test_Run(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   Probe,
 					Message: "1 commits out of 2 are checked with a SAST tool",
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   2,
+						AnalyzedPRsKey: 1,
+						TotalPRsKey:    2,
 					},
 				},
 			},
@@ -83,12 +83,12 @@ func Test_Run(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   Probe,
 					Message: "all commits (2) are checked with a SAST tool",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 2,
-						"totalPullRequestsMerged":   2,
+						AnalyzedPRsKey: 2,
+						TotalPRsKey:    2,
 					},
 				},
 			},

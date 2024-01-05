@@ -41,6 +41,7 @@ type StatusChecksRule struct {
 
 // PullRequestReviewRule captures settings on a PullRequest.
 type PullRequestReviewRule struct {
+	Required                     *bool // are PRs required
 	RequiredApprovingReviewCount *int32
 	DismissStaleReviews          *bool
 	RequireCodeOwnerReviews      *bool

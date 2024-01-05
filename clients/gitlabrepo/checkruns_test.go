@@ -29,12 +29,14 @@ func Test_CheckRuns(t *testing.T) {
 	tests := []struct {
 		name         string
 		responsePath string
+		ref          string
 		want         []clients.CheckRun
 		wantErr      bool
 	}{
 		{
 			name:         "valid checkruns",
 			responsePath: "./testdata/valid-checkruns",
+			ref:          "main",
 			want: []clients.CheckRun{
 				{
 					Status:     "queued",
@@ -46,12 +48,14 @@ func Test_CheckRuns(t *testing.T) {
 		},
 		{
 			name:         "valid checkruns with zero results",
-			responsePath: "./testdata/valid-checkruns-1",
+			responsePath: "./testdata/empty-response",
+			ref:          "eb94b618fb5865b26e80fdd8ae531b7a63ad851a",
 			wantErr:      false,
 		},
 		{
 			name:         "failure fetching the checkruns",
 			responsePath: "./testdata/invalid-checkruns-result",
+			ref:          "main",
 			wantErr:      true,
 		},
 	}
@@ -77,7 +81,7 @@ func Test_CheckRuns(t *testing.T) {
 				commitSHA: clients.HeadSHA,
 			}
 			handler.init(&repoURL)
-			got, err := handler.listCheckRunsForRef("main")
+			got, err := handler.listCheckRunsForRef(tt.ref)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("checkRuns error: %v, wantedErr: %t", err, tt.wantErr)
 			}

@@ -54,11 +54,10 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Commits = commits
 
-	codeQLWorkflows, err := codeQLInCheckDefinitions(c)
+	codeQLWorkflows, err := getSastUsesWorkflows(c, "^github/codeql-action/analyze$", checker.CodeQLWorkflow)
 	if err != nil {
 		return data, err
 	}
-
 	data.Workflows = append(data.Workflows, codeQLWorkflows...)
 
 	sonarWorkflows, err := getSonarWorkflows(c)
@@ -66,6 +65,24 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 		return data, err
 	}
 	data.Workflows = append(data.Workflows, sonarWorkflows...)
+
+	snykWorkflows, err := getSastUsesWorkflows(c, "^snyk/actions/.*", checker.SnykWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, snykWorkflows...)
+
+	pysaWorkflows, err := getSastUsesWorkflows(c, "^facebook/pysa-action$", checker.PysaWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, pysaWorkflows...)
+
+	qodanaWorkflows, err := getSastUsesWorkflows(c, "^JetBrains/qodana-action$", checker.QodanaWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, qodanaWorkflows...)
 
 	return data, nil
 }
@@ -124,13 +141,20 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 	return sastCommits, nil
 }
 
-func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
+// getSastUsesWorkflows matches if the "uses" field of a GitHub action matches
+// a given regex by way of usesRegex. Each workflow that matches the usesRegex
+// is appended to the slice that is returned.
+func getSastUsesWorkflows(
+	c *checker.CheckRequest,
+	usesRegex string,
+	checkerType checker.SASTWorkflowType,
+) ([]checker.SASTWorkflow, error) {
 	var workflowPaths []string
 	var sastWorkflows []checker.SASTWorkflow
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, searchGitHubActionWorkflowCodeQL, &workflowPaths)
+	}, searchGitHubActionWorkflowUseRegex, &workflowPaths, usesRegex)
 	if err != nil {
 		return sastWorkflows, err
 	}
@@ -141,7 +165,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, 
 				Offset: checker.OffsetDefault,
 				Type:   finding.FileTypeSource,
 			},
-			Type: checker.CodeQLWorkflow,
+			Type: checkerType,
 		}
 
 		sastWorkflows = append(sastWorkflows, sastWorkflow)
@@ -149,8 +173,7 @@ func codeQLInCheckDefinitions(c *checker.CheckRequest) ([]checker.SASTWorkflow, 
 	return sastWorkflows, nil
 }
 
-// Check file content.
-var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(path string,
+var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = func(path string,
 	content []byte,
 	args ...interface{},
 ) (bool, error) {
@@ -158,16 +181,22 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL requires exactly 1 arguments: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex requires exactly 2 arguments: %w", errInvalid)
 	}
 
 	// Verify the type of the data.
 	paths, ok := args[0].(*[]string)
 	if !ok {
 		return false, fmt.Errorf(
-			"searchGitHubActionWorkflowCodeQL expects arg[0] of type *[]string: %w", errInvalid)
+			"searchGitHubActionWorkflowUseRegex expects arg[0] of type *[]string: %w", errInvalid)
+	}
+
+	usesRegex, ok := args[1].(string)
+	if !ok {
+		return false, fmt.Errorf(
+			"searchGitHubActionWorkflowUseRegex expects arg[1] of type string: %w", errInvalid)
 	}
 
 	workflow, errs := actionlint.Parse(content)
@@ -184,7 +213,8 @@ var searchGitHubActionWorkflowCodeQL fileparser.DoWhileTrueOnFileContent = func(
 			// Parse out repo / SHA.
 			uses := strings.TrimPrefix(e.Uses.Value, "actions://")
 			action, _, _ := strings.Cut(uses, "@")
-			if action == "github/codeql-action/analyze" {
+			re := regexp.MustCompile(usesRegex)
+			if re.MatchString(action) {
 				*paths = append(*paths, path)
 			}
 		}

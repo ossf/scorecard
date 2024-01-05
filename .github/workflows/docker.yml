@@ -40,7 +40,7 @@ jobs:
         fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
-      uses: tj-actions/changed-files@1c938490c880156b746568a518594309cfb3f66b #v40.2.1
+      uses: tj-actions/changed-files@716b1e13042866565e00e85fd4ec490e186c4a2f #v41.0.1
       with:
         files_ignore: '**.md'
     - id: docs_only_check
@@ -78,7 +78,7 @@ jobs:
        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
      - name: Setup Go # needed for some of the Makefile evaluations, even if building happens in Docker 
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
