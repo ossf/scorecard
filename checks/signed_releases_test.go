@@ -42,7 +42,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with no assests",
+			name: "Releases with no assets",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -56,7 +56,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests without signed artifacts",
+			name: "Releases with assets without signed artifacts",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -75,7 +75,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with signed artifacts-asc",
+			name: "Releases with assets with signed artifacts-asc",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -94,7 +94,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with intoto SLSA provenance",
+			name: "Releases with assets with intoto SLSA provenance",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -113,7 +113,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with signed artifacts-sig",
+			name: "Releases with assets with signed artifacts-sig",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -132,7 +132,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with signed artifacts-sign",
+			name: "Releases with assets with signed artifacts-sign",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -151,7 +151,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with signed artifacts-minisig",
+			name: "Releases with assets with signed artifacts-minisig",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -170,7 +170,26 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Releases with assests with signed and unsigned artifacts",
+			name: "Releases with assets with signed artifacts-sigstore",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.sigstore",
+							URL:  "http://foo.com/v1.0.0/foo.sigstore",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
+			name: "Releases with assets with signed and unsigned artifacts",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -193,7 +212,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Multiple Releases with assests with signed and unsigned artifacts",
+			name: "Multiple Releases with assets with signed and unsigned artifacts",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -231,7 +250,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "Some releases with assests with signed and unsigned artifacts",
+			name: "Some releases with assets with signed and unsigned artifacts",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -265,7 +284,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "6 Releases with assests with signed artifacts",
+			name: "6 Releases with assets with signed artifacts",
 			releases: []clients.Release{
 				{
 					TagName:         "v1.0.0",
@@ -372,7 +391,7 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
-			name: "9 Releases with assests with signed artifacts",
+			name: "9 Releases with assets with signed artifacts",
 			releases: []clients.Release{
 				release("v0.8.5"),
 				release("v0.8.4"),
