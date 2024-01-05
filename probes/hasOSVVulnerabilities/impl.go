@@ -62,6 +62,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	IDs := grouper.Group(aliasVulnerabilities)
 
 	for _, vuln := range IDs {
+		if len(vuln.IDs) == 0 {
+			return nil, Probe, errNoVulnID
+		}
 		f, err := finding.NewWith(fs, Probe,
 			"Project contains OSV vulnerabilities", nil,
 			finding.OutcomeNegative)
@@ -69,9 +72,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithMessage("Project is vulnerable to: " + strings.Join(vuln.IDs, " / "))
-		if len(vuln.IDs) == 0 {
-			return nil, Probe, errNoVulnID
-		}
 		f = f.WithRemediationMetadata(map[string]string{
 			"osvid": vuln.IDs[0],
 		})
