@@ -162,7 +162,6 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 	// Walk the Dockerfile's AST.
 	taintedFiles := make(map[string]bool)
 	for i := range res.AST.Children {
-		var bytes []byte
 
 		child := res.AST.Children[i]
 		cmdType := child.Value
@@ -172,21 +171,33 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 			continue
 		}
 
-		var valueList []string
-		for n := child.Next; n != nil; n = n.Next {
-			valueList = append(valueList, n.Value)
-		}
+		if len(child.Heredocs) > 0 {
+			startOffset := 1
+			for _, heredoc := range child.Heredocs {
+				cmd := heredoc.Content
+				lineCount := startOffset + strings.Count(cmd, "\n")
+				if err := validateShellFile(pathfn, uint(child.StartLine+startOffset)-1, uint(child.StartLine+lineCount-1)-1,
+					[]byte(cmd), taintedFiles, pdata); err != nil {
+					return false, err
+				}
+				startOffset += lineCount
+			}
+		} else {
+			var valueList []string
+			for n := child.Next; n != nil; n = n.Next {
+				valueList = append(valueList, n.Value)
+			}
 
-		if len(valueList) == 0 {
-			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
-		}
+			if len(valueList) == 0 {
+				return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			}
 
-		// Build a file content.
-		cmd := strings.Join(valueList, " ")
-		bytes = append(bytes, cmd...)
-		if err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
-			bytes, taintedFiles, pdata); err != nil {
-			return false, err
+			// Build a file content.
+			cmd := strings.Join(valueList, " ")
+			if err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
+				[]byte(cmd), taintedFiles, pdata); err != nil {
+				return false, err
+			}
 		}
 	}
 

@@ -843,6 +843,149 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	}
 }
 
+func TestDockerfileWithHeredocsInsecureDownloadsLineNumber(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name             string
+		filename         string
+		processingErrors int
+		expected         []struct {
+			snippet   string
+			startLine uint
+			endLine   uint
+			pinned    bool
+			t         checker.DependencyUseType
+		}
+	}{
+		{
+			name:             "dockerfile heredoc downloads",
+			filename:         "./testdata/Dockerfile-download-heredoc",
+			processingErrors: 1,
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+				pinned    bool
+				t         checker.DependencyUseType
+			}{
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 20,
+					endLine:   20,
+					pinned:    false,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567",
+					startLine: 24,
+					endLine:   24,
+					pinned:    true,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 28,
+					endLine:   28,
+					pinned:    false,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567",
+					startLine: 32,
+					endLine:   32,
+					pinned:    true,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 36,
+					endLine:   36,
+					pinned:    false,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 38,
+					endLine:   38,
+					pinned:    false,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567",
+					startLine: 42,
+					endLine:   43,
+					pinned:    true,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package",
+					startLine: 43,
+					endLine:   44,
+					pinned:    false,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 45,
+					endLine:   45,
+					pinned:    false,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+				{
+					snippet:   "pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567",
+					startLine: 50,
+					endLine:   52,
+					pinned:    true,
+					t:         checker.DependencyUseTypePipCommand,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 51,
+					endLine:   53,
+					pinned:    false,
+					t:         checker.DependencyUseTypeDownloadThenRun,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
+			if err != nil {
+				t.Errorf("error during validateDockerfileInsecureDownloads: %v", err)
+			}
+
+			for _, expectedDep := range tt.expected {
+				isExpectedDep := func(dep checker.Dependency) bool {
+					return dep.Location.Offset == expectedDep.startLine &&
+						dep.Location.EndOffset == expectedDep.endLine &&
+						dep.Location.Path == tt.filename &&
+						dep.Location.Snippet == expectedDep.snippet &&
+						*dep.Pinned == expectedDep.pinned &&
+						dep.Type == expectedDep.t
+				}
+
+				if !scut.ValidatePinningDependencies(isExpectedDep, &r) {
+					t.Errorf("test failed: dependency not present: %+v", tt.expected)
+				}
+			}
+
+			if tt.processingErrors != len(r.ProcessingErrors) {
+				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
+			}
+		})
+	}
+}
+
 func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
