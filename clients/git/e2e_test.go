@@ -68,7 +68,7 @@ var _ = DescribeTable("Test ListCommits commit-depth and latest commit at [0]",
 		Expect(commits[0].SHA).Should(BeEquivalentTo(commitSHA))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
+	Entry("GitHub", "https://github.com/ossf/scorecard", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 	Entry("Local", "../../", "c06ac740cc49fea404c54c036000731d5ea6ebe3"),
 	Entry("GitLab", "https://gitlab.haskell.org/haskell/filepath", "98f8bba9eac8c7183143d290d319be7df76c258b"),
 )
@@ -175,6 +175,6 @@ var _ = DescribeTable("Test Search within path and filename",
 		Expect(resp.Hits).Should(BeEquivalentTo(1))
 		Expect(client.Close()).To(BeNil())
 	},
-	Entry("../../"),
+	Entry("Local", "../../"),
 	Entry("GitHub", "https://github.com/ossf/scorecard"),
 )

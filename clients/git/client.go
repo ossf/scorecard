@@ -29,6 +29,8 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	cp "github.com/otiai10/copy"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -39,21 +41,18 @@ const repoDir = "repo*"
 var (
 	errNilCommitFound = errors.New("nil commit found")
 	errEmptyQuery     = errors.New("query is empty")
+	errDefaultBranch  = errors.New("default branch name could not be determined")
 )
 
-type Client struct { //nolint:govet
-	repo    clients.Repo
-	commits []clients.Commit
-
-	// Pointers and interfaces (8 bytes each)
+type Client struct {
+	repo           clients.Repo
+	errListCommits error
 	gitRepo        *git.Repository
 	worktree       *git.Worktree
 	listCommits    *sync.Once
-	errListCommits error // interface (16 bytes: type + value pointers)
-
-	// Smaller types at the bottom.
-	tempDir     string // String (16 bytes: pointer + len)
-	commitDepth int    // int (depends on architecture, typically 4 or 8 bytes)
+	tempDir        string
+	commits        []clients.Commit
+	commitDepth    int
 }
 
 func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
@@ -202,33 +201,35 @@ func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 }
 
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	ref, err := c.gitRepo.Head()
+	if err != nil {
+		return nil, fmt.Errorf("git.Head: %w", err)
+	}
+
+	commit, err := c.gitRepo.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, fmt.Errorf("git.CommitObject: %w", err)
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, fmt.Errorf("git.Commit.Tree: %w", err)
+	}
+
 	var files []string
-
-	err := filepath.Walk(c.tempDir, func(path string, info os.FileInfo, err error) error {
+	err = tree.Files().ForEach(func(f *object.File) error {
+		shouldInclude, err := predicate(f.Name)
 		if err != nil {
-			return fmt.Errorf("error accessing path %s: %w", path, err)
-		}
-
-		// Skip if it's a directory
-		if info.IsDir() {
-			return nil
-		}
-
-		// Apply the predicate to the file
-		shouldInclude, err := predicate(path)
-		if err != nil {
-			return fmt.Errorf("error applying predicate to file %s: %w", path, err)
+			return fmt.Errorf("error applying predicate to file %s: %w", f.Name, err)
 		}
 
 		if shouldInclude {
-			// Add the file to the list if it satisfies the predicate
-			files = append(files, path)
+			files = append(files, f.Name)
 		}
-
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error walking the path %s: %w", c.tempDir, err)
+		return nil, fmt.Errorf("git.Tree.Files: %w", err)
 	}
 
 	return files, nil
@@ -248,7 +249,7 @@ func (c *Client) GetFileContent(filename string) ([]byte, error) {
 }
 
 func (c *Client) IsArchived() (bool, error) {
-	return false, nil
+	return false, clients.ErrUnsupportedFeature
 }
 
 func (c *Client) URI() string {
@@ -284,14 +285,48 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 }
 
 func (c *Client) GetCreatedAt() (time.Time, error) {
-	return time.Time{}, clients.ErrUnsupportedFeature
+	// Retrieve the first commit of the repository
+	commitIter, err := c.gitRepo.Log(&git.LogOptions{Order: git.LogOrderCommitterTime})
+	if err != nil {
+		return time.Time{}, fmt.Errorf("git.Log: %w", err)
+	}
+	defer commitIter.Close()
+
+	// Iterate through the commits to find the first one
+	var firstCommit *object.Commit
+	err = commitIter.ForEach(func(c *object.Commit) error {
+		firstCommit = c
+		return storer.ErrStop
+	})
+	if err != nil && !errors.Is(err, storer.ErrStop) {
+		return time.Time{}, fmt.Errorf("commitIter.ForEach: %w", err)
+	}
+
+	if firstCommit == nil {
+		return time.Time{}, errNilCommitFound
+	}
+
+	// Return the commit time of the first commit
+	return firstCommit.Committer.When, nil
 }
 
 func (c *Client) GetDefaultBranchName() (string, error) {
-	return "", clients.ErrUnsupportedFeature
+	headRef, err := c.gitRepo.Head()
+	if err != nil {
+		return "", fmt.Errorf("git.Head: %w", err)
+	}
+
+	// Extract the branch name from the Head reference
+	defaultBranch := headRef.Name()
+	if defaultBranch == "" {
+		return "", errDefaultBranch
+	}
+
+	return string(defaultBranch), nil
 }
 
 func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+	// TODO: Implement this
 	return nil, clients.ErrUnsupportedFeature
 }
 
@@ -312,6 +347,7 @@ func (c *Client) ListReleases() ([]clients.Release, error) {
 }
 
 func (c *Client) ListContributors() ([]clients.User, error) {
+	// TODO: Implement this
 	return nil, clients.ErrUnsupportedFeature
 }
 

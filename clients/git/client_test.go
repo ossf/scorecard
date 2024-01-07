@@ -15,7 +15,6 @@
 package git
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -80,22 +79,19 @@ func createTestRepo(t *testing.T) (path string) {
 
 func TestInitRepo(t *testing.T) {
 	t.Parallel()
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name        string
-		uri         string
 		commitSHA   string
-		commitDepth int
 		expectedErr string
+		commitDepth int
 	}{
 		{
 			name:        "Success",
-			uri:         "%s",
 			commitSHA:   "HEAD",
 			commitDepth: 1,
 		},
 		{
 			name:        "NegativeCommitDepth",
-			uri:         "%s",
 			commitSHA:   "HEAD",
 			commitDepth: -1,
 		},
@@ -107,7 +103,7 @@ func TestInitRepo(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			uri := fmt.Sprintf(test.uri, repoPath)
+			uri := repoPath
 
 			client := &Client{}
 			repo, err := localdir.MakeLocalDirRepo(uri)
