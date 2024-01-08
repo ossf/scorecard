@@ -173,7 +173,7 @@ func BranchProtection(name string,
 		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
 	}
 
-	var scores []levelScore
+	scores := make([]levelScore, 0, len(branchScores))
 	for _, v := range branchScores {
 		scores = append(scores, *v)
 	}
