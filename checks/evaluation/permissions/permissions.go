@@ -38,56 +38,56 @@ var (
 	topNoWriteID   = "gitHubWorkflowPermissionsTopNoWrite"
 )
 
-type PermissionLevel int
+type permissionLevel int
 
 const (
-	// PermissionLevelNone is a permission set to `none`.
-	PermissionLevelNone PermissionLevel = iota
-	// PermissionLevelRead is a permission set to `read`.
-	PermissionLevelRead
-	// PermissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
+	// permissionLevelNone is a permission set to `none`.
+	permissionLevelNone permissionLevel = iota
+	// permissionLevelRead is a permission set to `read`.
+	permissionLevelRead
+	// permissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
 	// TODO: remove it once we have implemented severity (#1874).
-	PermissionLevelUnknown
-	// PermissionLevelUndeclared is an undeclared permission.
-	PermissionLevelUndeclared
-	// PermissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
-	PermissionLevelWrite
+	permissionLevelUnknown
+	// permissionLevelUndeclared is an undeclared permission.
+	permissionLevelUndeclared
+	// permissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
+	permissionLevelWrite
 )
 
-// PermissionLocation represents a declaration type.
-type PermissionLocationType int
+// permissionLocation represents a declaration type.
+type permissionLocationType int
 
 const (
-	// PermissionLocationNil is in case the permission is nil.
-	PermissionLocationNil PermissionLocationType = iota
-	// PermissionLocationNotDeclared is for undeclared permission.
-	PermissionLocationNotDeclared
-	// PermissionLocationTop is top-level workflow permission.
-	PermissionLocationTop
-	// PermissionLocationJob is job-level workflow permission.
-	PermissionLocationJob
+	// permissionLocationNil is in case the permission is nil.
+	permissionLocationNil permissionLocationType = iota
+	// permissionLocationNotDeclared is for undeclared permission.
+	permissionLocationNotDeclared
+	// permissionLocationTop is top-level workflow permission.
+	permissionLocationTop
+	// permissionLocationJob is job-level workflow permission.
+	permissionLocationJob
 )
 
-// PermissionLocation represents a declaration type.
-type PermissionType int
+// permissionType represents a permission type.
+type permissionType int
 
 const (
-	// PermissionTypeNone represents none permission type.
-	PermissionTypeNone PermissionType = iota
-	// PermissionTypeNone is the "all" github permission type.
-	PermissionTypeAll
-	// PermissionTypeNone is the "statuses" github permission type.
-	PermissionTypeStatuses
-	// PermissionTypeNone is the "checks" github permission type.
-	PermissionTypeChecks
-	// PermissionTypeNone is the "security-events" github permission type.
-	PermissionTypeSecurityEvents
-	// PermissionTypeNone is the "deployments" github permission type.
-	PermissionTypeDeployments
-	// PermissionTypeNone is the "packages" github permission type.
-	PermissionTypePackages
-	// PermissionTypeNone is the "actions" github permission type.
-	PermissionTypeActions
+	// permissionTypeNone represents none permission type.
+	permissionTypeNone permissionType = iota
+	// permissionTypeNone is the "all" github permission type.
+	permissionTypeAll
+	// permissionTypeNone is the "statuses" github permission type.
+	permissionTypeStatuses
+	// permissionTypeNone is the "checks" github permission type.
+	permissionTypeChecks
+	// permissionTypeNone is the "security-events" github permission type.
+	permissionTypeSecurityEvents
+	// permissionTypeNone is the "deployments" github permission type.
+	permissionTypeDeployments
+	// permissionTypeNone is the "packages" github permission type.
+	permissionTypePackages
+	// permissionTypeNone is the "actions" github permission type.
+	permissionTypeActions
 )
 
 // TokenPermissions applies the score policy for the Token-Permissions check.
@@ -153,49 +153,49 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 		case checker.PermissionLevelNone:
 			f = f.WithOutcome(finding.OutcomePositive)
 			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(PermissionLevelNone),
+				"PermissionLevel": int(permissionLevelNone),
 			})
 		case checker.PermissionLevelRead:
 			f = f.WithOutcome(finding.OutcomePositive)
 			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(PermissionLevelRead),
+				"PermissionLevel": int(permissionLevelRead),
 			})
 
 		case checker.PermissionLevelUnknown:
 			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(PermissionLevelUnknown),
+				"PermissionLevel": int(permissionLevelUnknown),
 			}).WithOutcome(finding.OutcomeError)
 		case checker.PermissionLevelUndeclared:
-			var locationType PermissionLocationType
+			var locationType permissionLocationType
 			//nolint:gocritic
 			if r.LocationType == nil {
-				locationType = PermissionLocationNil
+				locationType = permissionLocationNil
 			} else if *r.LocationType == checker.PermissionLocationTop {
-				locationType = PermissionLocationTop
+				locationType = permissionLocationTop
 			} else {
-				locationType = PermissionLocationNotDeclared
+				locationType = permissionLocationNotDeclared
 			}
-			permissionType := permTypeToEnum(r.Name)
+			permType := permTypeToEnum(r.Name)
 			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(PermissionLevelUndeclared),
+				"PermissionLevel": int(permissionLevelUndeclared),
 				"LocationType":    int(locationType),
-				"PermissionType":  int(permissionType),
+				"PermissionType":  int(permType),
 			})
 		case checker.PermissionLevelWrite:
-			var locationType PermissionLocationType
+			var locationType permissionLocationType
 			switch *r.LocationType {
 			case checker.PermissionLocationTop:
-				locationType = PermissionLocationTop
+				locationType = permissionLocationTop
 			case checker.PermissionLocationJob:
-				locationType = PermissionLocationJob
+				locationType = permissionLocationJob
 			default:
-				locationType = PermissionLocationNotDeclared
+				locationType = permissionLocationNotDeclared
 			}
-			permissionType := permTypeToEnum(r.Name)
+			permType := permTypeToEnum(r.Name)
 			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(PermissionLevelWrite),
+				"PermissionLevel": int(permissionLevelWrite),
 				"LocationType":    int(locationType),
-				"PermissionType":  int(permissionType),
+				"PermissionType":  int(permType),
 			})
 			f = f.WithOutcome(finding.OutcomeNegative)
 		}
@@ -204,47 +204,47 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 	return findings, nil
 }
 
-func permTypeToEnum(tokenName *string) PermissionType {
+func permTypeToEnum(tokenName *string) permissionType {
 	if tokenName == nil {
-		return PermissionTypeNone
+		return permissionTypeNone
 	}
 	switch *tokenName {
 	//nolint:goconst
 	case "all":
-		return PermissionTypeAll
+		return permissionTypeAll
 	case "statuses":
-		return PermissionTypeStatuses
+		return permissionTypeStatuses
 	case "checks":
-		return PermissionTypeChecks
+		return permissionTypeChecks
 	case "security-events":
-		return PermissionTypeSecurityEvents
+		return permissionTypeSecurityEvents
 	case "deployments":
-		return PermissionTypeDeployments
+		return permissionTypeDeployments
 	case "contents":
-		return PermissionTypePackages
+		return permissionTypePackages
 	case "actions":
-		return PermissionTypeActions
+		return permissionTypeActions
 	default:
-		return PermissionTypeNone
+		return permissionTypeNone
 	}
 }
 
 func permTypeToName(permType int) *string {
 	var permName string
-	switch PermissionType(permType) {
-	case PermissionTypeAll:
+	switch permissionType(permType) {
+	case permissionTypeAll:
 		permName = "all"
-	case PermissionTypeStatuses:
+	case permissionTypeStatuses:
 		permName = "statuses"
-	case PermissionTypeChecks:
+	case permissionTypeChecks:
 		permName = "checks"
-	case PermissionTypeSecurityEvents:
+	case permissionTypeSecurityEvents:
 		permName = "security-events"
-	case PermissionTypeDeployments:
+	case permissionTypeDeployments:
 		permName = "deployments"
-	case PermissionTypePackages:
+	case permissionTypePackages:
 		permName = "contents"
-	case PermissionTypeActions:
+	case permissionTypeActions:
 		permName = "actions"
 	default:
 		permName = ""
@@ -299,23 +299,23 @@ func applyScorePolicy(findings []finding.Finding, c *checker.CheckRequest) (int,
 
 	for i := range findings {
 		f := &findings[i]
-		pLevel := PermissionLevel(f.Values["PermissionLevel"])
+		pLevel := permissionLevel(f.Values["PermissionLevel"])
 		switch pLevel {
-		case PermissionLevelNone, PermissionLevelRead:
+		case permissionLevelNone, permissionLevelRead:
 			dl.Info(&checker.LogMessage{
 				Finding: f,
 			})
-		case PermissionLevelUnknown:
+		case permissionLevelUnknown:
 			dl.Debug(&checker.LogMessage{
 				Finding: f,
 			})
 
-		case PermissionLevelUndeclared:
-			switch PermissionLocationType(f.Values["LocationType"]) {
-			case PermissionLocationNil:
+		case permissionLevelUndeclared:
+			switch permissionLocationType(f.Values["LocationType"]) {
+			case permissionLocationNil:
 				return checker.InconclusiveResultScore,
 					sce.WithMessage(sce.ErrScorecardInternal, "locationType is nil")
-			case PermissionLocationTop:
+			case permissionLocationTop:
 				warnWithRemediation(dl, remediationMetadata, f, negativeProbeResults)
 			default:
 				// We warn only for top-level.
@@ -329,7 +329,7 @@ func applyScorePolicy(findings []finding.Finding, c *checker.CheckRequest) (int,
 				return checker.InconclusiveResultScore, err
 			}
 
-		case PermissionLevelWrite:
+		case permissionLevelWrite:
 			warnWithRemediation(dl, remediationMetadata, f, negativeProbeResults)
 
 			// Group results by workflow name for score computation.
@@ -401,7 +401,7 @@ func warnWithRemediation(logger checker.DetailLogger,
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
-	locType PermissionLocationType, permType int,
+	locType permissionLocationType, permType int,
 ) {
 	if _, exists := hm[path]; !exists {
 		hm[path] = permissions{
@@ -412,7 +412,7 @@ func recordPermissionWrite(hm map[string]permissions, path string,
 
 	// Select the hash map to update.
 	m := hm[path].jobLevelWritePermissions
-	if locType == PermissionLocationTop {
+	if locType == permissionLocationTop {
 		m = hm[path].topLevelWritePermissions
 	}
 
@@ -434,11 +434,11 @@ func updateWorkflowHashMap(hm map[string]permissions, f *finding.Finding) error 
 		return sce.WithMessage(sce.ErrScorecardInternal, "path is not set")
 	}
 
-	if PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelWrite &&
-		PermissionLevel(f.Values["PermissionLevel"]) != PermissionLevelUndeclared {
+	if permissionLevel(f.Values["PermissionLevel"]) != permissionLevelWrite &&
+		permissionLevel(f.Values["PermissionLevel"]) != permissionLevelUndeclared {
 		return nil
 	}
-	plt := PermissionLocationType(f.Values["LocationType"])
+	plt := permissionLocationType(f.Values["LocationType"])
 	recordPermissionWrite(hm, f.Location.Path, plt, f.Values["PermissionType"])
 
 	return nil
