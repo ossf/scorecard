@@ -15,6 +15,7 @@
 package evaluation
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
@@ -24,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 )
+
+var errNoReleaseFound = errors.New("no release found")
 
 // SignedReleases applies the score policy for the Signed-Releases check.
 func SignedReleases(name string,
@@ -47,11 +50,16 @@ func SignedReleases(name string,
 		f := &findings[i]
 
 		// Debug release name
-		releaseName, err := getReleaseName(f)
-		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, "could not get release name")
-			return checker.CreateRuntimeErrorResult(name, e)
+		if f.Outcome == finding.OutcomeNotApplicable {
+			// Generic summary.
+			return checker.CreateInconclusiveResult(name, "no releases found")
 		}
+		releaseName := getReleaseName(f)
+		if releaseName == "" {
+			// Generic summary.
+			return checker.CreateRuntimeErrorResult(name, errNoReleaseFound)
+		}
+
 		if !contains(loggedReleases, releaseName) {
 			dl.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("GitHub release found: %s", releaseName),
@@ -60,13 +68,6 @@ func SignedReleases(name string,
 		}
 
 		// Check if outcome is NotApplicable
-		if f.Outcome == finding.OutcomeNotApplicable {
-			dl.Warn(&checker.LogMessage{
-				Text: "no GitHub releases found",
-			})
-			// Generic summary.
-			return checker.CreateInconclusiveResult(name, "no releases found")
-		}
 	}
 
 	totalPositive := 0
@@ -77,11 +78,10 @@ func SignedReleases(name string,
 	for i := range findings {
 		f := &findings[i]
 
-		releaseName, err := getReleaseName(f)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(name, err)
+		releaseName := getReleaseName(f)
+		if releaseName == "" {
+			return checker.CreateRuntimeErrorResult(name, errNoReleaseFound)
 		}
-
 		if !contains(uniqueReleaseTags, releaseName) {
 			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
 		}
@@ -106,8 +106,11 @@ func SignedReleases(name string,
 
 	totalReleases := len(uniqueReleaseTags)
 
+	// TODO, the evaluation code should be the one limiting to 5, not assuming the probes have done it already
+	// however there are some ordering issues to consider, so going with the easy way for now
 	if totalReleases > 5 {
-		totalReleases = 5
+		err := sce.CreateInternal(sce.ErrScorecardInternal, "too many releases, please report this")
+		return checker.CreateRuntimeErrorResult(name, err)
 	}
 	if totalReleases == 0 {
 		// This should not happen in production, but it is useful to have
@@ -126,7 +129,7 @@ func SignedReleases(name string,
 	return checker.CreateResultWithScore(name, reason, score)
 }
 
-func getReleaseName(f *finding.Finding) (string, error) {
+func getReleaseName(f *finding.Finding) string {
 	m := f.Values
 	for k, v := range m {
 		var value int
@@ -137,10 +140,10 @@ func getReleaseName(f *finding.Finding) (string, error) {
 			value = int(releasesHaveProvenance.ValueTypeRelease)
 		}
 		if v == value {
-			return k, nil
+			return k
 		}
 	}
-	return "", sce.WithMessage(sce.ErrScorecardInternal, "could not get release tag")
+	return ""
 }
 
 func contains(releases []string, release string) bool {

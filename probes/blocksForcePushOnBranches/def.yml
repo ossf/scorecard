@@ -1,0 +1,33 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: blocksForcePushOnBranches
+short: Check that the project blocks force push on its branches.
+motivation: >
+  Allowing non-admins to force push to branches could allow untrusted users to make insecure changes to the behavior of the project.
+implementation: >
+  Checks the protection rules of default and release branches.
+outcome:
+  - The probe returns one OutcomePositive for each branch that is blocked from force pushes, and one OutcomeNegative for branches that allows force push.
+  - Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
+remediation:
+  effort: Low
+  text:
+    - Disallow force pushes branches in your project to remove negative outcomes.
+    - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
+    - For Gitlab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
+  markdown:
+    - Disallow force pushes branches in your project to remove negative outcomes.
+    - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
+    - For Gitlab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.

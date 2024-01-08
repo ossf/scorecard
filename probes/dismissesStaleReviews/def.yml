@@ -1,0 +1,28 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: dismissesStaleReviews
+short: Check that the project dismisses stale reviews when new commits are pushed.
+motivation: >
+  When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make malicious commits.
+implementation: >
+  Checks the protection rules of default and release branches.
+outcome:
+  - The probe returns one OutcomePositive for each branch that dismisses the stale status of PRs, and one OutcomeNegative for branches that don't.
+remediation:
+  effort: High
+  text:
+    - Configure your repository so that the stale status of PRs is dismissed when users make new commits.
+    - For GitHub-hosted projects, see ["Require pull request reviews before merging"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-pull-request-reviews-before-merging).
+    - For Gitlab-hosted projects, see ["Remove all approvals when commits are added to the source branch"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
