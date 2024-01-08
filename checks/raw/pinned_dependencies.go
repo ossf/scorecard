@@ -176,7 +176,7 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 			for _, heredoc := range child.Heredocs {
 				cmd := heredoc.Content
 				lineCount := startOffset + strings.Count(cmd, "\n")
-				if err := validateShellFile(pathfn, uint(child.StartLine+startOffset)-1, uint(child.StartLine+lineCount-1)-1,
+				if err := validateShellFile(pathfn, uint(child.StartLine+startOffset)-1, uint(child.StartLine+lineCount)-2,
 					[]byte(cmd), taintedFiles, pdata); err != nil {
 					return false, err
 				}
