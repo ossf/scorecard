@@ -154,10 +154,14 @@ The personal access token need the following scopes:
 
 ## How do I add additional GitHub repositories to be scanned by scorecard weekly?
 
-Scorecard maintains the list of repositories in a file
+Scorecard maintains the list of GitHub repositories in a file
 https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv
 
-Submit a PR for this file and scorecard would start scanning in subsequent runs.
+GitLab repositories are listed in:
+https://github.com/ossf/scorecard/blob/main/cron/internal/data/gitlab-projects.csv
+
+Append your desired repositories to the end of these files, then run `make add-projects`.
+Commit the changes, and submit a PR and scorecard would start scanning in subsequent runs.
 
 ## Adding New Checks
 

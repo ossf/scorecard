@@ -94,11 +94,14 @@ check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
-add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
+add-projects: ## Adds new projects to ./cron/internal/data/projects.csv and ./cron/internal/data/gitlab-projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
-	# Add new projects to ./cron/internal/data/projects.csv
+	# GitHub
 	./cron/internal/data/add/add ./cron/internal/data/projects.csv ./cron/internal/data/projects.new.csv
 	mv ./cron/internal/data/projects.new.csv ./cron/internal/data/projects.csv
+	# GitLab
+	./cron/internal/data/add/add ./cron/internal/data/gitlab-projects.csv ./cron/internal/data/gitlab-projects.new.csv
+	mv ./cron/internal/data/gitlab-projects.new.csv ./cron/internal/data/gitlab-projects.csv
 
 validate-projects: ## Validates ./cron/internal/data/projects.csv
 validate-projects: ./cron/internal/data/projects.csv | build-validate-script
