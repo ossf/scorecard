@@ -119,7 +119,6 @@ func Test_Run(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			// TODO(#https://github.com/ossf/scorecard/issues/3472) Use common validation function.
 			findings, s, err := Run(tt.raw)
 			if !cmp.Equal(tt.err, err, cmpopts.EquateErrors()) {
 				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.err, err, cmpopts.EquateErrors()))
