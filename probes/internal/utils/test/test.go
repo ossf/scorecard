@@ -20,8 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-// AssertOutcomes is a suitable for all probes to compare raw
-// results against expected outcomes.
+// AssertOutcomes compares finding outcomes against expected outcomes.
 func AssertOutcomes(t *testing.T, got []finding.Finding, want []finding.Outcome) {
 	t.Helper()
 	if len(got) != len(want) {
