@@ -342,6 +342,7 @@ jobs:
           command: |
             go env -w GOFLAGS=-mod=mod
             make add-projects
+            git diff --exit-code
   validate-projects:
     name: validate-projects
     runs-on: ubuntu-latest
