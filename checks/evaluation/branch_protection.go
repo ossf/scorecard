@@ -100,12 +100,9 @@ func BranchProtection(name string,
 			return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
 		}
 
-		var branchName string
-		for k := range f.Values {
-			if k == "branchProtected" || k == "numberOfRequiredReviewers" || k == "codeownersFiles" {
-				continue
-			}
-			branchName = k
+		branchName, err := getBranchName(f)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(name, err)
 		}
 		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
@@ -197,6 +194,16 @@ func BranchProtection(name string,
 		return checker.CreateResultWithScore(name,
 			"branch protection is not maximal on development and all release branches", score)
 	}
+}
+
+func getBranchName(f *finding.Finding) (string, error) {
+	for k := range f.Values {
+		if k == "branchProtected" || k == "numberOfRequiredReviewers" || k == "codeownersFiles" {
+			continue
+		}
+		return k, nil
+	}
+	return "", sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
 }
 
 func sumUpScoreForTier(t tier, scoresData []levelScore) int {
