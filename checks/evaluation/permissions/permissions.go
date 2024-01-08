@@ -104,7 +104,8 @@ func TokenPermissions(name string, c *checker.CheckRequest, r *checker.TokenPerm
 	// This is a temporary step that should be replaced by probes in ./probes
 	findings, err := rawToFindings(r)
 	if err != nil {
-		return checker.CreateInconclusiveResult(name, "could not convert raw data to findings")
+		e := sce.WithMessage(sce.ErrScorecardInternal, "could not convert raw data to findings")
+		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	score, err := applyScorePolicy(findings, c)
