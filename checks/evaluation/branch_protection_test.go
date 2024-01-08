@@ -17,6 +17,8 @@ package evaluation
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -28,6 +30,96 @@ func TestBranchProtection(t *testing.T) {
 		findings []finding.Finding
 		result   scut.TestReturn
 	}{
+		{
+			name: "Required status check enabled",
+			findings: []finding.Finding{
+				{
+					Probe:   "blocksDeleteOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "blocksForcePushOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "branchProtectionAppliesToAdmins",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "dismissesStaleReviews",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "requiresApproversForPullRequests",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"":                          1,
+						"numberOfRequiredReviewers": 0,
+						"branchProtected":           1,
+					},
+				},
+				{
+					Probe:   "requiresCodeOwnersReview",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "requiresLastPushApproval",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "requiresUpToDateBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "runsStatusChecksBeforeMerging",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+				{
+					Probe:   "requiresPRsToChangeCode",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"":                1,
+						"branchProtected": 1,
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Error: sce.ErrScorecardInternal,
+				Score: checker.InconclusiveResultScore,
+			},
+		},
 		{
 			name: "Required status check enabled",
 			findings: []finding.Finding{

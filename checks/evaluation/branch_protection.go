@@ -104,6 +104,10 @@ func BranchProtection(name string,
 		if err != nil {
 			return checker.CreateRuntimeErrorResult(name, err)
 		}
+		if branchName == "" {
+			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
+			return checker.CreateRuntimeErrorResult(name, e)
+		}
 		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
 		// so it does not provide any guarantees.
@@ -113,10 +117,6 @@ func BranchProtection(name string,
 				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
 			})
 			warnedBranches = append(warnedBranches, branchName)
-		}
-		if branchName == "" {
-			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
-			return checker.CreateRuntimeErrorResult(name, e)
 		}
 
 		if _, ok := branchScores[branchName]; !ok {
