@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
 
 type User struct {
@@ -156,16 +157,7 @@ func Test_Run(t *testing.T) {
 			if diff := cmp.Diff(Probe, s); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
-			if diff := cmp.Diff(len(tt.outcomes), len(findings)); diff != "" {
-				t.Errorf("mismatch (-want +got):\n%s", diff)
-			}
-			for i := range tt.outcomes {
-				outcome := &tt.outcomes[i]
-				f := &findings[i]
-				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
-					t.Errorf("mismatch (-want +got):\n%s", diff)
-				}
-			}
+			test.AssertOutcomes(t, findings, tt.outcomes)
 		})
 	}
 }
