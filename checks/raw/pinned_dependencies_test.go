@@ -631,6 +631,38 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 	}
 }
 
+func TestDockerfileInsecureDownloadsBrokenCommands(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name     string
+		filename string
+		err      error
+	}{
+		{
+			name:     "dockerfile downloads",
+			filename: "./testdata/Dockerfile-empty-run-array",
+			err:      errInternalInvalidDockerFile,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := os.ReadFile(tt.filename)
+			if err != nil {
+				t.Errorf("cannot read file: %v", err)
+			}
+
+			var r checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads(tt.filename, content, &r)
+			if !strings.Contains(err.Error(), tt.err.Error()) {
+				t.Errorf(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
+			}
+		})
+	}
+}
+
 func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
