@@ -17,28 +17,19 @@ package test
 import (
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-// AssertCorrect is a suitable for all probes to compare raw
+// AssertOutcomes is a suitable for all probes to compare raw
 // results against expected outcomes.
-func AssertCorrect(t *testing.T, probeExpect, probeGot string,
-	findings []finding.Finding, expectedOutcomes []finding.Outcome,
-) {
+func AssertOutcomes(t *testing.T, got []finding.Finding, want []finding.Outcome) {
 	t.Helper()
-	if diff := cmp.Diff(probeExpect, probeGot); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
+	if len(got) != len(want) {
+		t.Fatalf("got %d findings, wanted %d", len(got), len(want))
 	}
-	if diff := cmp.Diff(len(expectedOutcomes), len(findings)); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
-	}
-	for i := range expectedOutcomes {
-		outcome := &expectedOutcomes[i]
-		f := &findings[i]
-		if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
-			t.Errorf("mismatch (-want +got):\n%s", diff)
+	for i := range got {
+		if got[i].Outcome != want[i] {
+			t.Errorf("got outcome %v, wanted %v for finding: %v", got[i].Outcome, want[i], got[i])
 		}
 	}
 }
