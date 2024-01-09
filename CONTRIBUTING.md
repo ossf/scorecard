@@ -139,13 +139,17 @@ Following the targets that can be used to test your changes locally.
 | Command  | Description                                        | Is called in the CI? |
 | -------- | -------------------------------------------------- | -------------------- |
 | make all | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
-| make unit-test | Runs unit tests only. Good to run often when developing locally. `make all` will also run this. | yes                  |
-| make check-linter | Checks linter issues only. Good to run often when developing locally. `make all` will also run this. | yes                  |
 | make e2e-pat | Runs e2e tests                                     | yes                  |
 
 Make sure to signoff your commits before submitting a pull request.
 
 https://docs.pi-hole.net/guides/github/how-to-signoff/
+
+When developing locally, the following commands are useful to run regularly to check unit tests and linting.
+
+| Command  | Description                                        | Is called in the CI? |
+| make unit-test | Runs unit tests only. Good to run often when developing locally. `make all` will also run this. | yes                  |
+| make check-linter | Checks linter issues only. Good to run often when developing locally. `make all` will also run this. | yes                  |
 
 ## Changing Score Results
 
