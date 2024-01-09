@@ -37,32 +37,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
@@ -71,47 +74,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"":                          1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"":                1,
-						"branchProtected": 1,
+						"": 1,
 					},
 				},
 			},
@@ -127,32 +124,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -161,47 +161,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -218,32 +212,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -252,47 +249,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -309,32 +300,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -343,47 +337,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -401,32 +389,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -435,47 +426,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -493,32 +478,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -527,47 +515,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -584,32 +566,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -618,47 +603,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 1,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -675,32 +654,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -709,47 +691,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -767,32 +743,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -801,47 +780,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 1,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomeNotAvailable,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -859,32 +832,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -893,47 +869,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -950,32 +920,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -984,47 +957,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -1041,32 +1008,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1075,47 +1045,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -1132,32 +1096,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1166,47 +1133,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 0,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -1223,32 +1184,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1257,47 +1221,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 1,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -1314,32 +1272,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1348,7 +1309,6 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 1,
-						"branchProtected":           1,
 					},
 				},
 				{
@@ -1356,7 +1316,6 @@ func TestBranchProtection(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
 						"main":            1,
-						"branchProtected": 1,
 						"codeownersFiles": 1,
 					},
 				},
@@ -1364,32 +1323,28 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},
@@ -1406,32 +1361,35 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "blocksDeleteOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "blocksForcePushOnBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "branchProtectionAppliesToAdmins",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "dismissesStaleReviews",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1440,47 +1398,41 @@ func TestBranchProtection(t *testing.T) {
 					Values: map[string]int{
 						"main":                      1,
 						"numberOfRequiredReviewers": 1,
-						"branchProtected":           1,
 					},
 				},
 				{
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresLastPushApproval",
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresUpToDateBranches",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "runsStatusChecksBeforeMerging",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 				{
 					Probe:   "requiresPRsToChangeCode",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"branchProtected": 1,
+						"main": 1,
 					},
 				},
 			},

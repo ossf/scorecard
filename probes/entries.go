@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
 	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
@@ -158,6 +159,7 @@ var (
 	BranchProtection = []ProbeImpl{
 		blocksDeleteOnBranches.Run,
 		blocksForcePushOnBranches.Run,
+		branchesAreProtected.Run,
 		branchProtectionAppliesToAdmins.Run,
 		dismissesStaleReviews.Run,
 		requiresApproversForPullRequests.Run,

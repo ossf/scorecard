@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
 	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
 	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
@@ -76,6 +77,7 @@ func BranchProtection(name string,
 	expectedProbes := []string{
 		blocksDeleteOnBranches.Probe,
 		blocksForcePushOnBranches.Probe,
+		branchesAreProtected.Probe,
 		branchProtectionAppliesToAdmins.Probe,
 		dismissesStaleReviews.Probe,
 		requiresApproversForPullRequests.Probe,
@@ -111,7 +113,12 @@ func BranchProtection(name string,
 		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
 		// so it does not provide any guarantees.
-		protected := (f.Values["branchProtected"] == 1)
+		protected, err := isBranchProtected(findings, branchName)
+		if err != nil {
+			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+			return checker.CreateRuntimeErrorResult(name, e)
+		}
+
 		if !protected && !contains(warnedBranches, branchName) {
 			dl.Warn(&checker.LogMessage{
 				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
@@ -194,6 +201,23 @@ func BranchProtection(name string,
 		return checker.CreateResultWithScore(name,
 			"branch protection is not maximal on development and all release branches", score)
 	}
+}
+
+func isBranchProtected(findings []finding.Finding, branchName string) (bool, error) {
+	for i := range findings {
+		f := &findings[i]
+		if f.Probe != branchesAreProtected.Probe {
+			continue
+		}
+		fBranchName, err := getBranchName(f)
+		if err != nil {
+			return false, sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
+		}
+		if fBranchName == branchName {
+			return f.Outcome == finding.OutcomePositive, nil
+		}
+	}
+	return false, sce.WithMessage(sce.ErrScorecardInternal, "could not determine whether branch is protected")
 }
 
 func getBranchName(f *finding.Finding) (string, error) {
