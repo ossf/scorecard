@@ -259,7 +259,7 @@ func createFinding(loct *checker.PermissionLocation, text string, loc *finding.L
 	}
 	content, err := probes.ReadFile(probe + ".yml")
 	if err != nil {
-		return nil, fmt.Errorf("%w", err) // wrap the error to avoid linter issues
+		return nil, fmt.Errorf("reading %v.yml: %w", probe, err)
 	}
 	f, err := finding.FromBytes(content, probe)
 	if err != nil {
