@@ -94,6 +94,11 @@ check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
+fix-linter: ## Install and run golang linter, with fixes
+fix-linter: | $(GOLANGCI_LINT)
+	# Run golangci-lint linter
+	$(GOLANGCI_LINT) run -c .golangci.yml --fix
+
 add-projects: ## Adds new projects to ./cron/internal/data/projects.csv and ./cron/internal/data/gitlab-projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
 	# GitHub

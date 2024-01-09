@@ -153,17 +153,10 @@ As a general rule of thumb, pull requests that change Scorecard score results wi
 
 ## Linting
 
-Most linter issues can be fixed with `golangci-lint` by following these steps:
+Most linter issues can be fixed with `golangci-lint` with the following command:
 
 ```
-cd /tmp
-git clone https://github.com/my-fork-of/scorecard
-cd /tmp
-git clone --depth=1 https://github.com/golangci/golangci-lint --branch=v1.55.2 # Latest release
-cd golangci-lint/cmd/golangci-lint
-go build .
-cd /tmp/scorecard
-/tmp/golangci-lint/cmd/golangci-lint/golangci-lint run --fix
+make fix-linter
 ```
 
 ## Permission for GitHub personal access tokens
