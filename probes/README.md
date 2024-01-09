@@ -1,6 +1,6 @@
 # Scorecard probes
 
-This subdirectory contains all the Scorecard probes.
+This directory contains all the Scorecard probes.
 
 A probe is an assessment of a focused, specific problem typically isolated to a particular ecosystem. For example, Scorecards fuzzing check consists of many different probes that assess particular ecosystems or aspects of fuzzing.
 
