@@ -52,14 +52,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		var protectedValue int
-		if protected {
-			protectedValue = 1
-		} else {
-			protectedValue = 0
-		}
-
 		reqOwnerReviews := branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
 		var text string
 		var outcome finding.Outcome
