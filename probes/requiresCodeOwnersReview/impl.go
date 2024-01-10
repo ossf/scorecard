@@ -49,15 +49,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	if len(r.Branches) == 0 {
-		f, err := finding.NewWith(fs, Probe, "no braches found", nil, finding.OutcomeNotApplicable)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, Probe, nil
-	}
-
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
