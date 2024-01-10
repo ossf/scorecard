@@ -67,16 +67,16 @@ type yamlProbe struct {
 
 //nolint:govet
 type Probe struct {
+	Remediation    *Remediation
 	ID             string
 	Short          string
 	Motivation     string
 	Implementation string
-	Remediation    *Remediation
 }
 
 // FromBytes creates a probe from a file.
 func FromBytes(content []byte, probeID string) (*Probe, error) {
-	r, err := parseFromYAML(content)
+	r, err := parseYAML[yamlProbe](content)
 	if err != nil {
 		return nil, err
 	}
@@ -134,14 +134,13 @@ func validateRemediation(r yamlRemediation) error {
 	}
 }
 
-func parseFromYAML(content []byte) (*yamlProbe, error) {
-	r := yamlProbe{}
-
-	err := yaml.Unmarshal(content, &r)
+func parseYAML[T any](content []byte) (*T, error) {
+	var result T
+	err := yaml.Unmarshal(content, &result)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", errInvalid, err)
 	}
-	return &r, nil
+	return &result, nil
 }
 
 // UnmarshalYAML is a custom unmarshalling function
