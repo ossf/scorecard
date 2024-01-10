@@ -134,7 +134,7 @@ func BranchProtection(name string,
 
 		switch f.Probe {
 		case blocksDeleteOnBranches.Probe, blocksForcePushOnBranches.Probe:
-			score, max = basicNonAdminProtection(f, dl)
+			score, max = deleteAndForcePushProtection(f, dl)
 			branchScores[branchName].scores.basic += score
 			branchScores[branchName].maxes.basic += max
 
@@ -376,7 +376,7 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 	})
 }
 
-func basicNonAdminProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func deleteAndForcePushProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	logWithoutDebug(f, dl)
 	if f.Outcome == finding.OutcomePositive {
