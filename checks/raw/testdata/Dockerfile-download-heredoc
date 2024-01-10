@@ -51,6 +51,8 @@ pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcd
 curl bla | bash
 EOT
 
+# Here-documents can specify interpreters with shebang headers. This shouldn't cause a fatal error.
+# Example from https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/reference.md
 RUN <<EOT
 #!/usr/bin/env python
 print("hello world")
