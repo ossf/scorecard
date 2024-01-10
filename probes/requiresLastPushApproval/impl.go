@@ -53,14 +53,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		var protectedValue int
-		if protected {
-			protectedValue = 1
-		} else {
-			protectedValue = 0
-		}
-
 		p := branch.BranchProtectionRule.RequireLastPushApproval
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, "last push approval", *branch.Name)
 		if err != nil {

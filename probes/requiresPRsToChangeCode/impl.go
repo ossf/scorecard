@@ -52,14 +52,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		var protectedValue int
-		if protected {
-			protectedValue = 1
-		} else {
-			protectedValue = 0
-		}
-
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' requires PRs to change code", *branch.Name)
 		trueMsg := fmt.Sprintf("PRs are required in order to make changes on branch '%s'", *branch.Name)
 		falseMsg := fmt.Sprintf("PRs are not required to make changes on branch '%s'; ", *branch.Name) +
@@ -78,20 +70,17 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 			f = f.WithValues(map[string]int{
-				*branch.Name:      1,
-				"branchProtected": protectedValue,
+				*branch.Name: 1,
 			})
 		case *p:
 			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
 			f = f.WithValues(map[string]int{
-				*branch.Name:      1,
-				"branchProtected": protectedValue,
+				*branch.Name: 1,
 			})
 		case !*p:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
 			f = f.WithValues(map[string]int{
-				*branch.Name:      1,
-				"branchProtected": protectedValue,
+				*branch.Name: 1,
 			})
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)

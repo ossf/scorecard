@@ -57,14 +57,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		var protectedValue int
-		if protected {
-			protectedValue = 1
-		} else {
-			protectedValue = 0
-		}
-
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
 		trueMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)

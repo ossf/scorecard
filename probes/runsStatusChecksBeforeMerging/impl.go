@@ -52,14 +52,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		var protectedValue int
-		if protected {
-			protectedValue = 1
-		} else {
-			protectedValue = 0
-		}
-
 		switch {
 		case len(branch.BranchProtectionRule.CheckRules.Contexts) > 0:
 			f, err := finding.NewWith(fs, Probe,
