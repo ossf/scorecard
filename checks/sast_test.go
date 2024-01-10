@@ -34,16 +34,15 @@ import (
 func Test_SAST(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet
 	tests := []struct {
-		name          string
 		err           error
-		commits       []clients.Commit
-		searchresult  clients.SearchResponse
-		checkRuns     []clients.CheckRun
 		searchRequest clients.SearchRequest
+		name          string
 		path          string
 		expected      checker.CheckResult
+		commits       []clients.Commit
+		checkRuns     []clients.CheckRun
+		searchresult  clients.SearchResponse
 	}{
 		{
 			name:         "SAST checker should return failed status when no PRs are found",
