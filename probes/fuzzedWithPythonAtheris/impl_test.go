@@ -23,6 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
@@ -42,7 +43,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 					},
 				},
@@ -57,10 +58,10 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 					},
 				},
@@ -76,7 +77,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 						{
 							Name: "not-PythonAtherisFuzzer",

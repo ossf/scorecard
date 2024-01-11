@@ -23,6 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
@@ -42,7 +43,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "JavaJazzerFuzzer",
+							Name: fuzzers.JavaJazzerFuzzer,
 						},
 					},
 				},
@@ -57,10 +58,10 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "JavaJazzerFuzzer",
+							Name: fuzzers.JavaJazzerFuzzer,
 						},
 						{
-							Name: "JavaJazzerFuzzer",
+							Name: fuzzers.JavaJazzerFuzzer,
 						},
 					},
 				},
@@ -76,7 +77,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "JavaJazzerFuzzer",
+							Name: fuzzers.JavaJazzerFuzzer,
 						},
 						{
 							Name: "not-JavaJazzerFuzzer",
