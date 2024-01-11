@@ -44,18 +44,17 @@ func Test_Maintained(t *testing.T) {
 	otheruser := clients.User{
 		Login: "someone-else",
 	}
-	//nolint:govet
 	tests := []struct {
-		err        error
-		name       string
-		isarchived bool
-		archiveerr error
-		commits    []clients.Commit
-		commiterr  error
-		issues     []clients.Issue
-		issueerr   error
 		createdat  time.Time
+		err        error
+		archiveerr error
+		commiterr  error
+		issueerr   error
+		name       string
 		expected   checker.CheckResult
+		commits    []clients.Commit
+		issues     []clients.Issue
+		isarchived bool
 	}{
 		{
 			name:       "archived",
