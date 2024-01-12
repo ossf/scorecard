@@ -25,22 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-)
-
-const (
-	fuzzerOSSFuzz                 = "OSSFuzz"
-	fuzzerClusterFuzzLite         = "ClusterFuzzLite"
-	fuzzerBuiltInGo               = "GoBuiltInFuzzer"
-	fuzzerPropertyBasedHaskell    = "HaskellPropertyBasedTesting"
-	fuzzerPropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
-	fuzzerPropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
-	fuzzerPythonAtheris           = "PythonAtherisFuzzer"
-	fuzzerCLibFuzzer              = "CLibFuzzer"
-	fuzzerCppLibFuzzer            = "CppLibFuzzer"
-	fuzzerSwiftLibFuzzer          = "SwiftLibFuzzer"
-	fuzzerRustCargoFuzz           = "RustCargoFuzzer"
-	fuzzerJavaJazzerFuzzer        = "JavaJazzerFuzzer"
-	// TODO: add more fuzzing check supports.
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
 )
 
 type filesWithPatternStr struct {
@@ -66,7 +51,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	clients.Go: {
 		filePatterns: []string{"*_test.go"},
 		funcPattern:  `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
-		Name:         fuzzerBuiltInGo,
+		Name:         fuzzers.BuiltInGo,
 		URL:          asPointer("https://go.dev/doc/fuzz/"),
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
@@ -89,7 +74,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
 		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
 		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
-		Name:        fuzzerPropertyBasedHaskell,
+		Name:        fuzzers.PropertyBasedHaskell,
 		Desc:        propertyBasedDescription("Haskell"),
 	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
@@ -106,7 +91,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
-		Name: fuzzerPropertyBasedJavaScript,
+		Name: fuzzers.PropertyBasedJavaScript,
 		Desc: propertyBasedDescription("JavaScript"),
 	},
 	clients.TypeScript: {
@@ -114,48 +99,48 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
-		Name: fuzzerPropertyBasedTypeScript,
+		Name: fuzzers.PropertyBasedTypeScript,
 		Desc: propertyBasedDescription("TypeScript"),
 	},
 	clients.Python: {
 		filePatterns: []string{"*.py"},
 		funcPattern:  `import atheris`,
-		Name:         fuzzerPythonAtheris,
+		Name:         fuzzers.PythonAtheris,
 		Desc: asPointer(
 			"Python fuzzing by way of Atheris"),
 	},
 	clients.C: {
 		filePatterns: []string{"*.c"},
 		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzerCLibFuzzer,
+		Name:         fuzzers.CLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with C LibFuzzer"),
 	},
 	clients.Cpp: {
 		filePatterns: []string{"*.cc", "*.cpp"},
 		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzerCppLibFuzzer,
+		Name:         fuzzers.CppLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with cpp LibFuzzer"),
 	},
 	clients.Rust: {
 		filePatterns: []string{"*.rs"},
 		funcPattern:  `libfuzzer_sys`,
-		Name:         fuzzerRustCargoFuzz,
+		Name:         fuzzers.RustCargoFuzz,
 		Desc: asPointer(
 			"Fuzzed with Cargo-fuzz"),
 	},
 	clients.Java: {
 		filePatterns: []string{"*.java"},
 		funcPattern:  `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
-		Name:         fuzzerJavaJazzerFuzzer,
+		Name:         fuzzers.JavaJazzerFuzzer,
 		Desc: asPointer(
 			"Fuzzed with Jazzer fuzzer"),
 	},
 	clients.Swift: {
 		filePatterns: []string{"*.swift"},
 		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzerSwiftLibFuzzer,
+		Name:         fuzzers.SwiftLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with Swift LibFuzzer"),
 	},
@@ -164,15 +149,15 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
-	var fuzzers []checker.Tool
+	var detectedFuzzers []checker.Tool
 	usingCFLite, e := checkCFLite(c)
 	if e != nil {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
 	}
 	if usingCFLite {
-		fuzzers = append(fuzzers,
+		detectedFuzzers = append(detectedFuzzers,
 			checker.Tool{
-				Name: fuzzerClusterFuzzLite,
+				Name: fuzzers.ClusterFuzzLite,
 				URL:  asPointer("https://github.com/google/clusterfuzzlite"),
 				Desc: asPointer("continuous fuzzing solution that runs as part of Continuous Integration (CI) workflows"),
 				// TODO: File.
@@ -185,9 +170,9 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 		return checker.FuzzingData{}, fmt.Errorf("%w", e)
 	}
 	if usingOSSFuzz {
-		fuzzers = append(fuzzers,
+		detectedFuzzers = append(detectedFuzzers,
 			checker.Tool{
-				Name: fuzzerOSSFuzz,
+				Name: fuzzers.OSSFuzz,
 				URL:  asPointer("https://github.com/google/oss-fuzz"),
 				Desc: asPointer("Continuous Fuzzing for Open Source Software"),
 				// TODO: File.
@@ -206,7 +191,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 			return checker.FuzzingData{}, fmt.Errorf("%w", e)
 		}
 		if usingFuzzFunc {
-			fuzzers = append(fuzzers,
+			detectedFuzzers = append(detectedFuzzers,
 				checker.Tool{
 					Name:  languageFuzzSpecs[lang].Name,
 					URL:   languageFuzzSpecs[lang].URL,
@@ -216,7 +201,7 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 			)
 		}
 	}
-	return checker.FuzzingData{Fuzzers: fuzzers}, nil
+	return checker.FuzzingData{Fuzzers: detectedFuzzers}, nil
 }
 
 func checkCFLite(c *checker.CheckRequest) (bool, error) {
