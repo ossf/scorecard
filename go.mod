@@ -30,7 +30,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.36.0
 	golang.org/x/text v0.14.0
-	golang.org/x/tools v0.15.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -45,7 +45,7 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/osv-scanner v1.5.0
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.13.2
+	github.com/onsi/ginkgo/v2 v2.14.0
 	github.com/otiai10/copy v1.14.0
 	sigs.k8s.io/release-utils v0.6.0
 )
