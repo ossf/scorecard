@@ -39,10 +39,10 @@ func Test_SAST(t *testing.T) {
 		searchRequest clients.SearchRequest
 		name          string
 		path          string
-		expected      checker.CheckResult
 		commits       []clients.Commit
 		checkRuns     []clients.CheckRun
 		searchresult  clients.SearchResponse
+		expected      checker.CheckResult
 	}{
 		{
 			name:         "SAST checker should return failed status when no PRs are found",

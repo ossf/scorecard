@@ -56,17 +56,14 @@ const (
 var errSuccessTotal = errors.New("unexpected number of success is higher than total")
 
 // CheckResult captures result from a check run.
-//
-//nolint:govet
 type CheckResult struct {
-	Name    string
-	Version int
 	Error   error
-	Score   int
+	Name    string
 	Reason  string
 	Details []CheckDetail
-	// Structured results.
-	Rules []string // TODO(X): add support.
+	Rules   []string
+	Version int
+	Score   int
 }
 
 // CheckDetail contains information for each detail.
@@ -77,20 +74,21 @@ type CheckDetail struct {
 
 // LogMessage is a structure that encapsulates detail's information.
 // This allows updating the definition easily.
-//
-//nolint:govet
 type LogMessage struct {
 	// Structured results.
 	Finding *finding.Finding
-
+	// Remediation information, if any.
+	Remediation *rule.Remediation
 	// Non-structured results.
-	Text        string            // A short string explaining why the detail was recorded/logged.
-	Path        string            // Fullpath to the file.
-	Type        finding.FileType  // Type of file.
-	Offset      uint              // Offset in the file of Path (line for source/text files).
-	EndOffset   uint              // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string            // Snippet of code
-	Remediation *rule.Remediation // Remediation information, if any.
+	Text string
+	// Full path to the file.
+	Path string
+	// Snippet of the code.
+	Snippet string
+	Type    finding.FileType
+	// StartOffset and EndOffset are the start and end offsets of the snippet in the file.
+	Offset    uint
+	EndOffset uint
 }
 
 // ProportionalScoreWeighted is a structure that contains

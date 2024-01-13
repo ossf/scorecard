@@ -29,11 +29,11 @@ import (
 //nolint:paralleltest // since t.Setenv is used
 func TestWebhooks(t *testing.T) {
 	tests := []struct {
-		expected checker.CheckResult
-		uri      string
 		err      error
+		uri      string
 		name     string
 		webhooks []clients.Webhook
+		expected checker.CheckResult
 	}{
 		{
 			name: "No Webhooks",

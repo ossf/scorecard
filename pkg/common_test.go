@@ -24,11 +24,11 @@ import (
 
 func TestDetailString(t *testing.T) {
 	t.Parallel()
-	tests := []struct {
+	tests := []struct { //nolint:govet
 		name   string
+		want   string
 		detail checker.CheckDetail
 		log    log.Level
-		want   string
 	}{
 		{
 			name: "ignoreDebug",
