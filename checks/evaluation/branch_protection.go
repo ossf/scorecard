@@ -222,7 +222,7 @@ func isBranchProtected(findings []finding.Finding, branchName string) (bool, err
 
 func getBranchName(f *finding.Finding) (string, error) {
 	for k := range f.Values {
-		if k == "branchProtected" || k == "numberOfRequiredReviewers" || k == "codeownersFiles" {
+		if k == "branchProtected" || k == "numberOfRequiredReviewers" {
 			continue
 		}
 		return k, nil
@@ -449,11 +449,7 @@ func codeownerBranchProtection(f *finding.Finding, dl checker.DetailLogger) (int
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
 		info(dl, true, f.Message)
-		if f.Values["codeownersFiles"] == 0 {
-			warn(dl, true, f.Message)
-		} else {
-			score++
-		}
+		score++
 	} else {
 		warn(dl, true, f.Message)
 	}

@@ -79,7 +79,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -104,7 +104,7 @@ func Test_Run(t *testing.T) {
 							},
 						},
 					},
-					CodeownersFiles: []string{"file"},
+					CodeownersFiles: []string{"file1"},
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -133,7 +133,7 @@ func Test_Run(t *testing.T) {
 							},
 						},
 					},
-					CodeownersFiles: []string{},
+					CodeownersFiles: []string{"file1", "file2"},
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -191,7 +191,7 @@ func Test_Run(t *testing.T) {
 							},
 						},
 					},
-					CodeownersFiles: []string{},
+					CodeownersFiles: []string{"file"},
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -228,7 +228,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - without files = 1 negative and 1 positive",
+			name: "Requires code owner reviews on 1/2 branches - without files = 2 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -253,7 +253,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeNegative, finding.OutcomeNegative,
 			},
 		},
 		{

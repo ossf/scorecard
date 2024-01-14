@@ -555,7 +555,7 @@ func TestBranchProtection(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        4,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 				NumberOfInfo: 9,
 			},
 		},
@@ -1261,7 +1261,7 @@ func TestBranchProtection(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        8,
-				NumberOfWarn: 2,
+				NumberOfWarn: 1,
 				NumberOfInfo: 9,
 			},
 		},
@@ -1315,8 +1315,7 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main":            1,
-						"codeownersFiles": 1,
+						"main": 1,
 					},
 				},
 				{
@@ -1438,7 +1437,7 @@ func TestBranchProtection(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        5,
-				NumberOfWarn: 3,
+				NumberOfWarn: 2,
 				NumberOfInfo: 8,
 			},
 		},
