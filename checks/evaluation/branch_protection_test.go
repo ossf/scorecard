@@ -1441,6 +1441,259 @@ func TestBranchProtection(t *testing.T) {
 				NumberOfInfo: 8,
 			},
 		},
+		{
+			name: "2 branches, one is protected, one is not",
+			findings: []finding.Finding{
+				{
+					Probe:   "blocksDeleteOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "blocksForcePushOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchProtectionAppliesToAdmins",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "dismissesStaleReviews",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresApproversForPullRequests",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main":                      1,
+						"numberOfRequiredReviewers": 1,
+					},
+				},
+				{
+					Probe:   "requiresCodeOwnersReview",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresLastPushApproval",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresUpToDateBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "runsStatusChecksBeforeMerging",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresPRsToChangeCode",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "blocksDeleteOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "blocksForcePushOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "branchProtectionAppliesToAdmins",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "dismissesStaleReviews",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "requiresApproversForPullRequests",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2":                     1,
+						"numberOfRequiredReviewers": 1,
+					},
+				},
+				{
+					Probe:   "requiresCodeOwnersReview",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "requiresLastPushApproval",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "requiresUpToDateBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "runsStatusChecksBeforeMerging",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+				{
+					Probe:   "requiresPRsToChangeCode",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main2": 1,
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfWarn: 3,
+				NumberOfInfo: 7,
+			},
+		},
+		{
+			name: "1 branch that is not protected",
+			findings: []finding.Finding{
+				{
+					Probe:   "blocksDeleteOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "blocksForcePushOnBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchesAreProtected",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "branchProtectionAppliesToAdmins",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "dismissesStaleReviews",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresApproversForPullRequests",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main":                      1,
+						"numberOfRequiredReviewers": 1,
+					},
+				},
+				{
+					Probe:   "requiresCodeOwnersReview",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresLastPushApproval",
+					Outcome: finding.OutcomeNegative,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresUpToDateBranches",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "runsStatusChecksBeforeMerging",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+				{
+					Probe:   "requiresPRsToChangeCode",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]int{
+						"main": 1,
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        5,
+				NumberOfWarn: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

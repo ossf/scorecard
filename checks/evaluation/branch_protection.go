@@ -93,8 +93,44 @@ func BranchProtection(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	// Create a map branches and whether theyare protected
+	// Protected field only indates that the branch matches
+	// one `Branch protection rules`. All settings may be disabled,
+	// so it does not provide any guarantees.
+	protectedBranches := make(map[string]bool)
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeNotApplicable {
+			return checker.CreateInconclusiveResult(name,
+				"unable to detect any development/release branches")
+		}
+		branchName, err := getBranchName(f)
+		if err != nil {
+			return checker.CreateRuntimeErrorResult(name, err)
+		}
+		// the order of this switch statement matters.
+		switch {
+		// Sanity check:
+		case f.Probe != branchesAreProtected.Probe:
+			continue
+		// Sanity check:
+		case branchName == "":
+			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
+			return checker.CreateRuntimeErrorResult(name, e)
+		// Now we can check whether the branch is protected:
+		case f.Outcome == finding.OutcomeNegative:
+			protectedBranches[branchName] = false
+			dl.Warn(&checker.LogMessage{
+				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
+			})
+		case f.Outcome == finding.OutcomePositive:
+			protectedBranches[branchName] = true
+		default:
+			continue
+		}
+	}
+
 	branchScores := make(map[string]*levelScore)
-	warnedBranches := make([]string, 0)
 
 	for i := range findings {
 		f := &findings[i]
@@ -110,21 +146,6 @@ func BranchProtection(name string,
 			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
-		// Protected field only indicates that the branch matches
-		// one `Branch protection rules`. All settings may be disabled,
-		// so it does not provide any guarantees.
-		protected, err := isBranchProtected(findings, branchName)
-		if err != nil {
-			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(name, e)
-		}
-
-		if !protected && !contains(warnedBranches, branchName) {
-			dl.Warn(&checker.LogMessage{
-				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
-			})
-			warnedBranches = append(warnedBranches, branchName)
-		}
 
 		if _, ok := branchScores[branchName]; !ok {
 			branchScores[branchName] = &levelScore{}
@@ -132,14 +153,15 @@ func BranchProtection(name string,
 
 		var score, max int
 
+		doLogging := protectedBranches[branchName]
 		switch f.Probe {
 		case blocksDeleteOnBranches.Probe, blocksForcePushOnBranches.Probe:
-			score, max = deleteAndForcePushProtection(f, dl)
+			score, max = deleteAndForcePushProtection(f, doLogging, dl)
 			branchScores[branchName].scores.basic += score
 			branchScores[branchName].maxes.basic += max
 
 		case dismissesStaleReviews.Probe, branchProtectionAppliesToAdmins.Probe:
-			score, max = adminThoroughReviewProtection(f, dl)
+			score, max = adminThoroughReviewProtection(f, doLogging, dl)
 			branchScores[branchName].scores.adminThoroughReview += score
 			branchScores[branchName].maxes.adminThoroughReview += max
 
@@ -147,7 +169,7 @@ func BranchProtection(name string,
 			// Scorecard evaluation scores twice with this probe:
 			// Once if the count is above 0
 			// Once if the count is above 2
-			score, max = nonAdminThoroughReviewProtection(f, dl)
+			score, max = nonAdminThoroughReviewProtection(f, doLogging, dl)
 			branchScores[branchName].scores.thoroughReview += score
 			branchScores[branchName].maxes.thoroughReview += max
 
@@ -159,18 +181,18 @@ func BranchProtection(name string,
 			branchScores[branchName].maxes.review += max
 
 		case requiresCodeOwnersReview.Probe:
-			score, max = codeownerBranchProtection(f, dl)
+			score, max = codeownerBranchProtection(f, doLogging, dl)
 			branchScores[branchName].scores.codeownerReview += score
 			branchScores[branchName].maxes.codeownerReview += max
 
 		case requiresUpToDateBranches.Probe, requiresLastPushApproval.Probe,
 			requiresPRsToChangeCode.Probe:
-			score, max = adminReviewProtection(f, dl)
+			score, max = adminReviewProtection(f, doLogging, dl)
 			branchScores[branchName].scores.adminReview += score
 			branchScores[branchName].maxes.adminReview += max
 
 		case runsStatusChecksBeforeMerging.Probe:
-			score, max = nonAdminContextProtection(f, dl)
+			score, max = nonAdminContextProtection(f, doLogging, dl)
 			branchScores[branchName].scores.context += score
 			branchScores[branchName].maxes.context += max
 		}
@@ -203,23 +225,6 @@ func BranchProtection(name string,
 	}
 }
 
-func isBranchProtected(findings []finding.Finding, branchName string) (bool, error) {
-	for i := range findings {
-		f := &findings[i]
-		if f.Probe != branchesAreProtected.Probe {
-			continue
-		}
-		fBranchName, err := getBranchName(f)
-		if err != nil {
-			return false, sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
-		}
-		if fBranchName == branchName {
-			return f.Outcome == finding.OutcomePositive, nil
-		}
-	}
-	return false, sce.WithMessage(sce.ErrScorecardInternal, "could not determine whether branch is protected")
-}
-
 func getBranchName(f *finding.Finding) (string, error) {
 	for k := range f.Values {
 		if k == "branchProtected" || k == "numberOfRequiredReviewers" {
@@ -250,36 +255,36 @@ func sumUpScoreForTier(t tier, scoresData []levelScore) int {
 	return sum
 }
 
-func logWithDebug(f *finding.Finding, dl checker.DetailLogger) {
+func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
 	case finding.OutcomeNotAvailable:
-		debug(dl, true, f.Message)
+		debug(dl, doLogging, f.Message)
 	case finding.OutcomePositive:
-		info(dl, true, f.Message)
+		info(dl, doLogging, f.Message)
 	case finding.OutcomeNegative:
-		warn(dl, true, f.Message)
+		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
 	}
 }
 
-func logWithoutDebug(f *finding.Finding, dl checker.DetailLogger) {
+func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
 	case finding.OutcomePositive:
-		info(dl, true, f.Message)
+		info(dl, doLogging, f.Message)
 	case finding.OutcomeNegative:
-		warn(dl, true, f.Message)
+		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
 	}
 }
 
-func logInfoOrWarn(f *finding.Finding, dl checker.DetailLogger) {
+func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
 	case finding.OutcomePositive:
-		info(dl, true, f.Message)
+		info(dl, doLogging, f.Message)
 	default:
-		warn(dl, true, f.Message)
+		warn(dl, doLogging, f.Message)
 	}
 }
 
@@ -376,9 +381,9 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 	})
 }
 
-func deleteAndForcePushProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	logWithoutDebug(f, dl)
+	logWithoutDebug(f, doLogging, dl)
 	if f.Outcome == finding.OutcomePositive {
 		score++
 	}
@@ -387,9 +392,9 @@ func deleteAndForcePushProtection(f *finding.Finding, dl checker.DetailLogger) (
 	return score, max
 }
 
-func nonAdminContextProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	logInfoOrWarn(f, dl)
+	logInfoOrWarn(f, doLogging, dl)
 	if f.Outcome == finding.OutcomePositive {
 		score++
 	}
@@ -397,7 +402,7 @@ func nonAdminContextProtection(f *finding.Finding, dl checker.DetailLogger) (int
 	return score, max
 }
 
-func adminReviewProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
 		score++
@@ -405,21 +410,21 @@ func adminReviewProtection(f *finding.Finding, dl checker.DetailLogger) (int, in
 	switch f.Probe {
 	case requiresLastPushApproval.Probe,
 		requiresUpToDateBranches.Probe:
-		logWithDebug(f, dl)
+		logWithDebug(f, doLogging, dl)
 		if f.Outcome != finding.OutcomeNotAvailable {
 			max++
 		}
 	default:
-		logInfoOrWarn(f, dl)
+		logInfoOrWarn(f, doLogging, dl)
 		max++
 	}
 	return score, max
 }
 
-func adminThoroughReviewProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 
-	logWithDebug(f, dl)
+	logWithDebug(f, doLogging, dl)
 	if f.Outcome == finding.OutcomePositive {
 		score++
 	}
@@ -429,29 +434,29 @@ func adminThoroughReviewProtection(f *finding.Finding, dl checker.DetailLogger) 
 	return score, max
 }
 
-func nonAdminThoroughReviewProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
 		if f.Values["numberOfRequiredReviewers"] >= minReviews {
-			info(dl, true, f.Message)
+			info(dl, doLogging, f.Message)
 			score++
 		} else {
-			warn(dl, true, f.Message)
+			warn(dl, doLogging, f.Message)
 		}
 	} else if f.Outcome == finding.OutcomeNegative {
-		warn(dl, true, f.Message)
+		warn(dl, doLogging, f.Message)
 	}
 	max++
 	return score, max
 }
 
-func codeownerBranchProtection(f *finding.Finding, dl checker.DetailLogger) (int, int) {
+func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
-		info(dl, true, f.Message)
+		info(dl, doLogging, f.Message)
 		score++
 	} else {
-		warn(dl, true, f.Message)
+		warn(dl, doLogging, f.Message)
 	}
 	max++
 	return score, max
