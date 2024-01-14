@@ -45,5 +45,26 @@ f = f.WithRemediationMetadata(map[string]string{
 })
 ```
 
+### Example
+Consider a probe with following line in its `def.yml`:
+```
+The project ${{ metadata.oss-fuzz-integration-status }} integrated into OSS-Fuzz.
+```
+
+and the probe sets the following metadata:
+```golang
+f, err := finding.NewWith(fs, Probe,
+	"Message", nil,
+	finding.OutcomePositive)
+f = f.WithRemediationMetadata(map[string]string{
+	"oss-fuzz-integration-status": "is",
+})
+```
+
+The probe will then output the following text:
+```
+The project is integrated into OSS-Fuzz.
+```
+
 ### Should the changes be in the probe or the evaluation?
 The remediation data must be set in the probe. 
