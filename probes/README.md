@@ -45,4 +45,5 @@ f = f.WithRemediationMetadata(map[string]string{
 })
 ```
 
-To display the content to the user, Scorecard needs to print out the findings metadata somewhere in the evaluation part. This can be done with logging.
+### Should the changes be in the probe or the evaluation?
+The remediation data must be set in the probe. 
