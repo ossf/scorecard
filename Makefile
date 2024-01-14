@@ -10,7 +10,7 @@ LDFLAGS=$(shell ./scripts/version-ldflags)
 
 
 ############################### make help #####################################
-.PHONY: help
+.PHONY: help scorecard
 help:  ## Display this help
 	@awk 'BEGIN {FS = ":.*##"; \
 			printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ \
@@ -171,7 +171,7 @@ build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
 scorecard: $(SCORECARD_DEPS)
 	# Run go build and generate scorecard executable
-	CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
+	CGO_ENABLED=0 go build -race -trimpath -a -tags netgo -ldflags '$(LDFLAGS)'
 scorecard-docker: ## Build Scorecard CLI Docker image
 scorecard-docker: scorecard.docker
 scorecard.docker: Dockerfile $(SCORECARD_DEPS)
@@ -193,7 +193,7 @@ build-controller: ## Build cron controller
 build-controller: cron/internal/controller/controller
 cron/internal/controller/controller: $(CRON_CONTROLLER_DEPS)
 	# Run go build on the cron PubSub controller
-	cd cron/internal/controller && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o controller
+	cd cron/internal/controller && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o controller
 cron-controller-docker: ## Build cron controller Docker image
 cron-controller-docker: cron/internal/controller/controller.docker
 cron/internal/controller/controller.docker: cron/internal/controller/Dockerfile $(CRON_CONTROLLER_DEPS)
@@ -203,14 +203,14 @@ cron/internal/controller/controller.docker: cron/internal/controller/Dockerfile 
 
 build-worker: ## Runs go build on the cron PubSub worker
 	# Run go build on the cron PubSub worker
-	cd cron/internal/worker && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o worker
+	cd cron/internal/worker && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o worker
 
 CRON_CII_DEPS = $(shell find cron/internal/ clients/ -iname "*.go")
 build-cii-worker: ## Build cron CII worker
 build-cii-worker: cron/internal/cii/cii-worker
 cron/internal/cii/cii-worker: $(CRON_CII_DEPS)
 	# Run go build on the CII worker
-	cd cron/internal/cii && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
+	cd cron/internal/cii && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o cii-worker
 cron-cii-worker-docker: # Build cron CII worker Docker image
 cron-cii-worker-docker: cron/internal/cii/cii-worker.docker
 cron/internal/cii/cii-worker.docker: cron/internal/cii/Dockerfile $(CRON_CII_DEPS)
@@ -223,14 +223,14 @@ build-shuffler: ## Build cron shuffle script
 build-shuffler: cron/internal/shuffle/shuffle
 cron/internal/shuffle/shuffle: $(CRON_SHUFFLER_DEPS)
 	# Run go build on the cron shuffle script
-	cd cron/internal/shuffle && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
+	cd cron/internal/shuffle && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o shuffle
 
 CRON_TRANSFER_DEPS = $(shell find cron/data/ cron/config/ cron/internal/bq/ -iname "*.go")
 build-bq-transfer: ## Build cron BQ transfer worker
 build-bq-transfer: cron/internal/bq/data-transfer
 cron/internal/bq/data-transfer: $(CRON_TRANSFER_DEPS)
 	# Run go build on the Copier cron job
-	cd cron/internal/bq && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
+	cd cron/internal/bq && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o data-transfer
 cron-bq-transfer-docker: ## Build cron BQ transfer worker Docker image
 cron-bq-transfer-docker: cron/internal/bq/data-transfer.docker
 cron/internal/bq/data-transfer.docker: cron/internal/bq/Dockerfile $(CRON_TRANSFER_DEPS)
@@ -240,7 +240,7 @@ cron/internal/bq/data-transfer.docker: cron/internal/bq/Dockerfile $(CRON_TRANSF
 
 build-attestor: ## Runs go build on scorecard attestor
 	# Run go build on scorecard attestor
-	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
+	cd attestor/; CGO_ENABLED=0 go build -race -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
 
 
 build-attestor-docker: ## Build scorecard-attestor Docker image
@@ -255,7 +255,7 @@ build-github-server: clients/githubrepo/roundtripper/tokens/server/github-auth-s
 clients/githubrepo/roundtripper/tokens/server/github-auth-server: $(TOKEN_SERVER_DEPS)
 	# Run go build on the GitHub auth server
 	cd clients/githubrepo/roundtripper/tokens/server && \
-		CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o github-auth-server
+		CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o github-auth-server
 cron-github-server-docker: ## Build GitHub token server Docker image
 cron-github-server-docker: clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker: \
@@ -270,7 +270,7 @@ build-webhook: ## Build cron webhook server
 build-webhook: cron/internal/webhook/webhook
 cron/internal/webhook/webhook: $(CRON_WEBHOOK_DEPS)
 	# Run go build on the cron webhook
-	cd cron/internal/webhook && CGO_ENABLED=0 go build -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
+	cd cron/internal/webhook && CGO_ENABLED=0 go build -race -trimpath -a -ldflags '$(LDFLAGS)' -o webhook
 cron-webhook-docker: ## Build cron webhook server Docker image
 cron-webhook-docker: cron/internal/webhook/webhook.docker
 cron/internal/webhook/webhook.docker: cron/internal/webhook/Dockerfile $(CRON_WEBHOOK_DEPS)
