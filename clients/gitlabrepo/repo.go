@@ -112,7 +112,8 @@ func (r *repoURL) IsValid() error {
 		host = strings.TrimPrefix(h, r.scheme+"://")
 	}
 	baseURL := fmt.Sprintf("%s://%s", r.scheme, host)
-	client, err := gitlab.NewClient("", gitlab.WithBaseURL(baseURL))
+	token := os.Getenv("GITLAB_AUTH_TOKEN")
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return sce.WithMessage(err,
 			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
