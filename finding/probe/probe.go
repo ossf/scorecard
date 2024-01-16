@@ -21,6 +21,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/ossf/scorecard/v4/clients"
 )
 
 var errInvalid = errors.New("invalid")
@@ -57,11 +59,23 @@ type yamlRemediation struct {
 	Effort   RemediationEffort `yaml:"effort"`
 }
 
+type yamlEcosystem struct {
+	Languages []string `yaml:"languages"`
+	Clients   []string `yaml:"clients"`
+}
+
+var supportedClients = map[string]bool{
+	"github":   true,
+	"gitlab":   true,
+	"localdir": true,
+}
+
 type yamlProbe struct {
 	ID             string          `yaml:"id"`
 	Short          string          `yaml:"short"`
 	Motivation     string          `yaml:"motivation"`
 	Implementation string          `yaml:"implementation"`
+	Ecosystem      yamlEcosystem   `yaml:"ecosystem"`
 	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
@@ -114,6 +128,9 @@ func validate(r *yamlProbe, probeID string) error {
 	if err := validateRemediation(r.Remediation); err != nil {
 		return err
 	}
+	if err := validateEcosystem(r.Ecosystem); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -132,6 +149,42 @@ func validateRemediation(r yamlRemediation) error {
 	default:
 		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("remediation '%v'", r))
 	}
+}
+
+func validateEcosystem(r yamlEcosystem) error {
+	if err := validateSupportedLanguages(r); err != nil {
+		return err
+	}
+	if err := validateSupportedClients(r); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateSupportedLanguages(r yamlEcosystem) error {
+	for _, lang := range r.Languages {
+		switch clients.LanguageName(lang) {
+		case clients.Go, clients.Python, clients.JavaScript,
+			clients.Cpp, clients.C, clients.TypeScript,
+			clients.Java, clients.CSharp, clients.Ruby,
+			clients.PHP, clients.StarLark, clients.Scala,
+			clients.Kotlin, clients.Swift, clients.Rust,
+			clients.Haskell:
+			continue
+		default:
+			return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("language '%v'", r))
+		}
+	}
+	return nil
+}
+
+func validateSupportedClients(r yamlEcosystem) error {
+	for _, lang := range r.Clients {
+		if _, ok := supportedClients[lang]; !ok {
+			return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("client '%v'", r))
+		}
+	}
+	return nil
 }
 
 func parseFromYAML(content []byte) (*yamlProbe, error) {

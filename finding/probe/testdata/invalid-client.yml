@@ -1,4 +1,4 @@
-id: all-fields
+id: invalid-client
 short: short description
 motivation: >
   mot1
@@ -17,8 +17,7 @@ remediation:
 ecosystem:
   languages:
     - c
-    - c++
   clients:
-    - github
+    - githubb
     - gitlab
     - localdir

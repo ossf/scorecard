@@ -1,4 +1,4 @@
-id: all-fields
+id: invalid-language
 short: short description
 motivation: >
   mot1
@@ -16,8 +16,7 @@ remediation:
     - step2 [google.com](https://www.google.com/something)
 ecosystem:
   languages:
-    - c
-    - c++
+    - fortran
   clients:
     - github
     - gitlab
