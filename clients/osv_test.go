@@ -49,6 +49,7 @@ func TestRemoveDuplicate(t *testing.T) {
 }
 
 func TestEmptyProject(t *testing.T) {
+	t.Parallel()
 	var client osvClient
 	var commit string
 	emptyDir := t.TempDir()
