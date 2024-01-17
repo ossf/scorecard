@@ -14,6 +14,7 @@
 package clients
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -44,5 +45,15 @@ func TestRemoveDuplicate(t *testing.T) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestEmptyProject(t *testing.T) {
+	var client osvClient
+	var commit string
+	emptyDir := t.TempDir()
+	_, err := client.ListUnfixedVulnerabilities(context.Background(), commit, emptyDir)
+	if err != nil {
+		t.Fatalf("empty directory shouldn't throw an error: %v", err)
 	}
 }
