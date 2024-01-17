@@ -31,8 +31,28 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionNone"
+	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionRead"
+	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
+	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteActionsJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteActionsTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteChecksJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteChecksTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteContentsJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteContentsTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteDeploymentsJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteDeploymentsTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWritePackagesJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWritePackagesTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteSecurityEventsJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteSecurityEventsTop"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteStatusesJob"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteStatusesTop"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
@@ -149,6 +169,27 @@ var (
 	}
 	PinnedDependencies = []ProbeImpl{
 		pinsDependencies.Run,
+	TokenPermissions = []ProbeImpl{
+		hasNoGitHubWorkflowPermissionWriteActionsTop.Run,
+		hasNoGitHubWorkflowPermissionWriteAllTop.Run,
+		hasNoGitHubWorkflowPermissionWriteChecksTop.Run,
+		hasNoGitHubWorkflowPermissionWriteContentsTop.Run,
+		hasNoGitHubWorkflowPermissionWriteDeploymentsTop.Run,
+		hasNoGitHubWorkflowPermissionWritePackagesTop.Run,
+		hasNoGitHubWorkflowPermissionWriteSecurityEventsTop.Run,
+		hasNoGitHubWorkflowPermissionWriteStatusesTop.Run,
+		hasGitHubWorkflowPermissionUnknown.Run,
+		hasGitHubWorkflowPermissionNone.Run,
+		hasGitHubWorkflowPermissionRead.Run,
+		hasGitHubWorkflowPermissionUndeclared.Run,
+		hasNoGitHubWorkflowPermissionWriteAllJob.Run,
+		hasNoGitHubWorkflowPermissionWriteSecurityEventsJob.Run,
+		hasNoGitHubWorkflowPermissionWriteContentsJob.Run,
+		hasNoGitHubWorkflowPermissionWritePackagesJob.Run,
+		hasNoGitHubWorkflowPermissionWriteActionsJob.Run,
+		hasNoGitHubWorkflowPermissionWriteChecksJob.Run,
+		hasNoGitHubWorkflowPermissionWriteDeploymentsJob.Run,
+		hasNoGitHubWorkflowPermissionWriteStatusesJob.Run,
 	}
 
 	// Probes which aren't included by any checks.

@@ -1,4 +1,4 @@
-# Copyright 2023 OpenSSF Scorecard Authors
+# Copyright 2024 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: gitHubWorkflowPermissionsTopNoWrite
-short: Checks that GitHub workflows do not have default write permissions
+id: hasGitHubWorkflowPermissionNone
+short: Checks that the project has any Workflows with permission level "none".
 motivation: >
-  If no permissions are declared, a workflow's GitHub token's permissions default to write for all scopes.
-  This include write permissions to push to the repository, to read encrypted secrets, etc.
-  For more information, see https://docs.github.com/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token. 
+  Setting permission levels to none if a positive setting if the project does not need any permissions.
+  It prevents read and write actions against the given resource type.
 implementation: >
-  The rule is implemented by checking whether the `permissions` keyword is defined at the top of the workflow,
-  and that no write permissions are given.
+  The probe checks for workflows with "none" set as the permission level.
+outcome:
+  - The probe returns 1 positive outcome per workflow with "none" set as its permission level.
+  - The probe returns 1 OutcomeNotApplicable if no workflows have permission level set to "none"
 remediation:
   effort: Low
   text:

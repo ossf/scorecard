@@ -25,6 +25,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw/github"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/remediation"
+	"github.com/ossf/scorecard/v4/rule"
 )
 
 type permission string
@@ -58,6 +60,17 @@ func TokenPermissions(c *checker.CheckRequest) (checker.TokenPermissionsData, er
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
 	}, validateGitHubActionTokenPermissions, &data)
+
+	for i := range data.results.TokenPermissions {
+		rr := &data.results.TokenPermissions[i]
+		//nolint:errcheck
+		remdtion, _ := remediation.New(c)
+		ruleRemdtion := &rule.Remediation{
+			Branch: remdtion.Branch,
+			Repo:   remdtion.Repo,
+		}
+		rr.Remediation = ruleRemdtion
+	}
 
 	return data.results, err
 }
@@ -104,6 +117,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
 	ignoredPermissions := createIgnoredPermissions(workflow, path, pdata)
+
 	if err := validatejobLevelPermissions(workflow, path, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}

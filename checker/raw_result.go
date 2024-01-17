@@ -420,6 +420,7 @@ const (
 type TokenPermission struct {
 	Job          *WorkflowJob
 	LocationType *PermissionLocation
+	Remediation  *rule.Remediation
 	Name         *string
 	Value        *string
 	File         *File
