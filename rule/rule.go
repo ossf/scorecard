@@ -55,14 +55,13 @@ type jsonRemediation struct {
 	Effort   RemediationEffort `yaml:"effort"`
 }
 
-//nolint:govet
 type jsonRule struct {
 	Short          string          `yaml:"short"`
 	Desc           string          `yaml:"desc"`
 	Motivation     string          `yaml:"motivation"`
 	Implementation string          `yaml:"implementation"`
-	Risk           Risk            `yaml:"risk"`
 	Remediation    jsonRemediation `yaml:"remediation"`
+	Risk           Risk            `yaml:"risk"`
 }
 
 // Risk indicates a risk.
@@ -81,14 +80,13 @@ const (
 	RiskCritical
 )
 
-//nolint:govet
 type Rule struct {
+	Remediation *Remediation
 	Name        string
 	Short       string
 	Desc        string
 	Motivation  string
 	Risk        Risk
-	Remediation *Remediation
 }
 
 var errInvalid = errors.New("invalid")
