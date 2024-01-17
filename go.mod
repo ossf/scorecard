@@ -30,7 +30,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.36.0
 	golang.org/x/text v0.14.0
-	golang.org/x/tools v0.16.1 // indirect
+	golang.org/x/tools v0.17.0 // indirect
 	google.golang.org/genproto v0.0.0-20231120223509-83a465c0220f // indirect
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -43,7 +43,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.5.0
+	github.com/google/osv-scanner v1.6.0
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.14.0
 	github.com/otiai10/copy v1.14.0
@@ -55,9 +55,9 @@ require (
 	cloud.google.com/go/containeranalysis v0.11.3 // indirect
 	cloud.google.com/go/kms v1.15.5 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	deps.dev/api/v3alpha v0.0.0-20231114023923-e40c4d5c34e5 // indirect
+	deps.dev/api/v3alpha v0.0.0-20240109042716-00b51ef52ece // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
-	github.com/CycloneDX/cyclonedx-go v0.7.2 // indirect
+	github.com/CycloneDX/cyclonedx-go v0.8.0 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/apache/arrow/go/v12 v12.0.0 // indirect
@@ -83,7 +83,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20231023195312-e2daf7ba7156 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.4.9 // indirect
+	github.com/jedib0t/go-pretty/v6 v6.5.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/asmfmt v1.3.2 // indirect
@@ -173,14 +173,14 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
+	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0
-	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.151.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/grpc v1.59.0 // indirect
+	google.golang.org/grpc v1.60.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
