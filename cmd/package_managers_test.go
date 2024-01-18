@@ -336,7 +336,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
     "description": "UNKNOWN",
     "description_content_type": null,
     "docs_url": null,
-    "downoad_url": null,
+    "download_url": null,
     "downloads": {
       "last_day": -1,
       "last_month": -1,
