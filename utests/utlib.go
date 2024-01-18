@@ -115,17 +115,15 @@ func ValidateTestReturn(
 	expected *TestReturn,
 	actual *checker.CheckResult,
 	logger *TestDetailLogger,
-) bool {
+) {
 	tb.Helper()
 	actualTestReturn, err := getTestReturn(tb, actual, logger)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	if !cmp.Equal(*expected, *actualTestReturn, cmpopts.EquateErrors()) {
-		tb.Log(name+":", cmp.Diff(*expected, *actualTestReturn))
-		return false
+		tb.Error(name+":", cmp.Diff(*expected, *actualTestReturn))
 	}
-	return true
 }
 
 // ValidatePinningDependencies tests that at least one entry returns true for isExpectedMessage.

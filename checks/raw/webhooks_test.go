@@ -130,9 +130,7 @@ func TestWebhooks(t *testing.T) {
 				}
 			}
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &checker.CheckResult{}, &dl) {
-				t.Fatalf("Test %s failed", tt.name)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &checker.CheckResult{}, &dl)
 		})
 	}
 }

@@ -841,9 +841,7 @@ func Test_PinningDependencies(t *testing.T) {
 					ProcessingErrors: tt.processingErrors,
 				})
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl)
 		})
 	}
 }
