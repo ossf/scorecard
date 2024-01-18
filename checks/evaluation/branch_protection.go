@@ -70,7 +70,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		var score levelScore
 		b := r.Branches[i]
 
-		// Protected field only indates that the branch matches
+		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
 		// so it does not provide any guarantees.
 		protected := !(b.Protected != nil && !*b.Protected)
