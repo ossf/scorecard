@@ -456,7 +456,7 @@ func isNpmDownload(cmd []string) bool {
 
 func isNpmUnpinnedDownload(cmd []string) bool {
 	for i := 1; i < len(cmd); i++ {
-		// `npm ci` wil verify all hashes are present.
+		// `npm ci` will verify all hashes are present.
 		if strings.EqualFold(cmd[i], "ci") {
 			return false
 		}
