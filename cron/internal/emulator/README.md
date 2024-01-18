@@ -41,7 +41,7 @@ cd python-pubsub/samples/snippet
 pip install -r requirements.txt
 ```
 
-### Running the pubsub emulator (needed to do everytime)
+### Running the pubsub emulator (needed to do every time)
 
 In a second window from any directory, run the emulator itself:
 
