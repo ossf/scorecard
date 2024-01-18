@@ -413,7 +413,7 @@ RESULTS
 |         |                        |                                | review dismissal enabled on    |                                                                           |
 |         |                        |                                | branch 'main' Info: Owner      |                                                                           |
 |         |                        |                                | review required on branch      |                                                                           |
-|         |                        |                                | 'main' Info: 'admininistrator' |                                                                           |
+|         |                        |                                | 'main' Info: 'administrator'   |                                                                           |
 |         |                        |                                | PRs need reviews before being  |                                                                           |
 |         |                        |                                | merged on branch 'main'        |                                                                           |
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
