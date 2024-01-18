@@ -147,7 +147,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 	return f, nil
 }
 
-// NewWith create a finding with the desried location and outcome.
+// NewWith create a finding with the desired location and outcome.
 func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	o Outcome,
 ) (*Finding, error) {
