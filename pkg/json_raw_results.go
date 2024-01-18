@@ -614,7 +614,7 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
+func (r *jsonScorecardRawResult) addVulnerabilitiesRawResults(vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
 		r.Results.DatabaseVulnerabilities = append(r.Results.DatabaseVulnerabilities,
@@ -741,7 +741,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 	}
 
 	// Vulnerabilities.
-	if err := r.addVulnerbilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
+	if err := r.addVulnerabilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
