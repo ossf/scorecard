@@ -115,7 +115,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Has two releases without provenace and one with.",
+			name: "Has two releases without provenance and one with.",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{
 					Releases: []clients.Release{
