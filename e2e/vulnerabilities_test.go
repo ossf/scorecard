@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			result := checks.Vulnerabilities(&checkRequest)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return that there are vulnerabilities at commit", func() {
@@ -80,7 +80,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			result := checks.Vulnerabilities(&checkRequest)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return that there are vulnerable packages", func() {
@@ -107,7 +107,7 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			result := checks.Vulnerabilities(&checkRequest)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "osv vulnerabilities", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.DangerousWorkflow(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return dangerous workflow at commit", func() {
 			dl := scut.TestDetailLogger{}
@@ -77,7 +77,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.DangerousWorkflow(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
 		It("Should return dangerous workflow for local repoClient", func() {
 			dl := scut.TestDetailLogger{}
@@ -113,7 +113,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.DangerousWorkflow(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "dangerous workflow", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })

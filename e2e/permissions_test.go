@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.TokenPermissions(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return token permission at commit", func() {
@@ -78,7 +78,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.TokenPermissions(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return token permission for a local repo client", func() {
@@ -115,7 +115,7 @@ var _ = Describe("E2E TEST:"+checks.CheckTokenPermissions, func() {
 			}
 			result := checks.TokenPermissions(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "token permissions", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "token permissions", &expected, &result, &dl)).Should(BeTrue())
 			Expect(x.Close()).Should(BeNil())
 		})
 	})

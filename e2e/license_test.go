@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 		It("Should return license check works at commitSHA", func() {
@@ -79,7 +79,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 		It("Should return license check works for the local repoclient", func() {
@@ -116,7 +116,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 		It("Should return license check works - GitLab", func() {
@@ -142,7 +142,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 		It("Should return license check works for unrecognized license type - GitLab", func() {
@@ -170,7 +170,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 		It("Should return license check works at commitSHA - GitLab", func() {
@@ -196,7 +196,7 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.License(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
 				&dl)).Should(BeTrue())
 		})
 	})

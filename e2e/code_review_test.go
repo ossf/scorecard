@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.CodeReview(&req)
-			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return use of implicit code reviews at commit", func() {
@@ -97,7 +97,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				NumberOfDebug: 18,
 			}
 			result := checks.CodeReview(&req)
-			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return partial score for a single-maintainer project with some unreviewed human changesets", func() {
@@ -119,7 +119,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				NumberOfDebug: 10,
 			}
 			result := checks.CodeReview(&req)
-			Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
@@ -149,7 +149,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			NumberOfDebug: 1,
 		}
 		result := checks.CodeReview(&req)
-		Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+		Expect(scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 		Expect(repoClient.Close()).Should(BeNil())
 	})
 	// GitLab doesn't seem to preserve merge requests (pull requests in github) and some users had data lost in
@@ -179,7 +179,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 			NumberOfDebug: 1,
 		}
 		result := checks.CodeReview(&req)
-		Expect(scut.ValidateTestReturn(nil, "use code reviews", &expected, &result, &dl)).Should(BeTrue())
+		Expect(scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)).Should(BeTrue())
 		Expect(repoClient.Close()).Should(BeNil())
 	})
 })

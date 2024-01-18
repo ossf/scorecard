@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCIIBestPractices, func() {
 			}
 			result := checks.CIIBestPractices(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "passing badge", &expected, &result, &dl)).Should(BeTrue())
+			Expect(scut.ValidateTestReturn(GinkgoTB(), "passing badge", &expected, &result, &dl)).Should(BeTrue())
 		})
 	})
 })
