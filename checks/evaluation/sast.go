@@ -93,7 +93,7 @@ func SAST(name string,
 	if sastScore == checker.InconclusiveResultScore &&
 		codeQlScore == checker.InconclusiveResultScore {
 		// That can never happen since sastToolInCheckRuns can never
-		// retun checker.InconclusiveResultScore.
+		// return checker.InconclusiveResultScore.
 		return checker.CreateRuntimeErrorResult(name, sce.ErrScorecardInternal)
 	}
 
