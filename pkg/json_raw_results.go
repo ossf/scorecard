@@ -146,7 +146,7 @@ type jsonCreatedAtTime struct {
 type jsonComment struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
-	// TODO: add ields if needed, e.g., content.
+	// TODO: add fields if needed, e.g., content.
 }
 
 type jsonIssue struct {
