@@ -76,6 +76,6 @@ var _ = BeforeSuite(func() {
 	case "GITHUB_TOKEN":
 		tokType = githubWorkflowDefaultTokenType
 	default:
-		panic(fmt.Sprintf("invald TOKEN_TYPE: %s", tt))
+		panic(fmt.Sprintf("invalid TOKEN_TYPE: %s", tt))
 	}
 })
