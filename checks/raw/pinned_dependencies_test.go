@@ -449,7 +449,7 @@ func TestFileIsInVendorDir(t *testing.T) {
 		},
 		{
 			name:     "misspelled vendor dir",
-			filename: "a/vendorr/Dockerfile",
+			filename: "a/vendor_/Dockerfile",
 			expected: false,
 		},
 	}
