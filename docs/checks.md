@@ -328,7 +328,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Sign up for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 - Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without additional manual effort.
 
 ## Fuzzing 
