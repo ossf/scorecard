@@ -107,7 +107,7 @@ type Finding struct {
 	Values      map[string]int     `json:"values,omitempty"`
 }
 
-// AnonymousFinding is a finding without a corerpsonding probe ID.
+// AnonymousFinding is a finding without a corresponding probe ID.
 type AnonymousFinding struct {
 	Finding
 	// Remove the probe ID from
