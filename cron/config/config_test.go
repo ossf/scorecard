@@ -510,7 +510,7 @@ func TestGetAdditionalParams(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nonexistant value",
+			name:    "nonexistent value",
 			mapName: "this-value-should-never-exist",
 			want:    map[string]string{},
 			wantErr: true,

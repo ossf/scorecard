@@ -43,14 +43,14 @@ func TestClient(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "non existent project",
+			name:       "nonexistent project",
 			project:    "github.com/not/here",
 			statusFile: "status.json",
 			wantHit:    false,
 			wantErr:    false,
 		},
 		{
-			name:       "non existent project which is a substring of a present project",
+			name:       "nonexistent project which is a substring of a present project",
 			project:    "github.com/ossf/score",
 			statusFile: "status.json",
 			wantHit:    false,
@@ -71,7 +71,7 @@ func TestClient(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "non existent status file",
+			name:       "nonexistent status file",
 			project:    "github.com/ossf/scorecard",
 			statusFile: "not_here.json",
 			wantHit:    false,
@@ -123,7 +123,7 @@ func TestClientEager(t *testing.T) {
 			wantCreateErr: false,
 		},
 		{
-			name:          "non existent project",
+			name:          "nonexistent project",
 			project:       "github.com/not/here",
 			statusFile:    "status.json",
 			wantHit:       false,
@@ -131,7 +131,7 @@ func TestClientEager(t *testing.T) {
 			wantCreateErr: false,
 		},
 		{
-			name:          "non existent project which is a substring of a present project",
+			name:          "nonexistent project which is a substring of a present project",
 			project:       "github.com/ossf/score",
 			statusFile:    "status.json",
 			wantHit:       false,
@@ -139,7 +139,7 @@ func TestClientEager(t *testing.T) {
 			wantCreateErr: false,
 		},
 		{
-			name:          "non existent status file",
+			name:          "nonexistent status file",
 			project:       "github.com/ossf/scorecard",
 			statusFile:    "not_here.json",
 			wantHit:       false,

@@ -82,7 +82,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			name: "non binary file",
 			err:  nil,
 			files: [][]string{
-				{"../doesnotexist"},
+				{"../nonexistent"},
 			},
 			getFileContentCount: 1,
 		},

@@ -53,7 +53,7 @@ func Test_countScores(t *testing.T) {
 			want:    [12]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
 		},
 		{
-			name:    "non existent check",
+			name:    "nonexistent check",
 			check:   "not present",
 			results: common,
 			wantErr: true,
