@@ -570,7 +570,7 @@ Free Form Text (3/10 points):
 Security Policy Specific Text (1/10 points):
   - Specific text providing basic or general information about vulnerability
     and disclosure practices, expectations, and/or timelines
-  - Text should include a total of 2 or more hits which match (case insensitive)
+  - Text should include a total of 2 or more hits which match (case-insensitive)
     `vuln` and as in "Vulnerability" or "vulnerabilities";
     `disclos` as "Disclosure" or "disclose";
     and numbers which convey expectations of times, e.g., 30 days or 90 days

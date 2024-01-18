@@ -64,7 +64,7 @@ func TestClient(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "project case insensitive",
+			name:       "project case-insensitive",
 			project:    "github.com/FFTW/fftw3",
 			statusFile: "status.json",
 			wantHit:    true,

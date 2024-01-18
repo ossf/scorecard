@@ -202,7 +202,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "dockerfile",
@@ -211,7 +211,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "dockerfile",
@@ -220,7 +220,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -229,7 +229,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -238,7 +238,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -247,7 +247,7 @@ func Test_isMatchingPath(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -255,7 +255,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -263,7 +263,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -271,7 +271,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -279,7 +279,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -287,7 +287,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -295,7 +295,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
@@ -303,7 +303,7 @@ func Test_isMatchingPath(t *testing.T) {
 			},
 		},
 		{
-			name: "matching path with case insensitive",
+			name: "matching path with case-insensitive",
 			args: args{
 				pattern:       "Dockerfile",
 				fullpath:      "Dockerfile.template",
