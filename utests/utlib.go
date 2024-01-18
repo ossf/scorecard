@@ -108,7 +108,8 @@ func getTestReturn(tb testing.TB, cr *checker.CheckResult, logger *TestDetailLog
 	return ret, nil
 }
 
-// ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
+// ValidateTestReturn validates expected [TestReturn] with actual [checker.CheckResult] values.
+// All test management is handled by this function.
 func ValidateTestReturn(
 	tb testing.TB,
 	name string,
@@ -121,8 +122,8 @@ func ValidateTestReturn(
 	if err != nil {
 		tb.Fatal(err)
 	}
-	if !cmp.Equal(*expected, *actualTestReturn, cmpopts.EquateErrors()) {
-		tb.Error(name+":", cmp.Diff(*expected, *actualTestReturn))
+	if diff := cmp.Diff(*expected, *actualTestReturn, cmpopts.EquateErrors()); diff != "" {
+		tb.Error(name + ": (-expected +actual)" + diff)
 	}
 }
 
