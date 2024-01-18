@@ -30,7 +30,7 @@ func init() {
 		checker.FileBased,
 		checker.CommitBased,
 	}
-	if err := registerCheck(CheckPinnedDependencies, PinningDependencies, supportedRequestTypes); err != nil {
+	if err := RegisterCheck(CheckPinnedDependencies, PinningDependencies, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}

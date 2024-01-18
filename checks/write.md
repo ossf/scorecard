@@ -34,7 +34,7 @@ The steps to writing a check are as follows:
     const CheckMyCheckName string = "My-Check"
 
     func init() {
-        registerCheck(CheckMyCheckName, EntryPointMyCheck)
+        RegisterCheck(CheckMyCheckName, EntryPointMyCheck)
     }
     ```
 

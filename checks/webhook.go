@@ -32,7 +32,7 @@ const (
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckWebHooks, WebHooks, nil); err != nil {
+	if err := RegisterCheck(CheckWebHooks, WebHooks, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

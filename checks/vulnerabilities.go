@@ -32,7 +32,7 @@ func init() {
 		checker.CommitBased,
 		checker.FileBased,
 	}
-	if err := registerCheck(CheckVulnerabilities, Vulnerabilities, supportedRequestTypes); err != nil {
+	if err := RegisterCheck(CheckVulnerabilities, Vulnerabilities, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

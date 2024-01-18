@@ -54,7 +54,7 @@ func GetAllWithExperimental() checker.CheckNameToFnMap {
 	return getAll(true /*overrideExperimental*/)
 }
 
-func registerCheck(name string, fn checker.CheckFn, supportedRequestTypes []checker.RequestType) error {
+func RegisterCheck(name string, fn checker.CheckFn, supportedRequestTypes []checker.RequestType) error {
 	if name == "" {
 		return errInternalNameCannotBeEmpty
 	}

@@ -21,7 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 )
 
-func Test_registerCheck(t *testing.T) {
+func Test_RegisterCheck(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		fn   checker.CheckFn
@@ -33,7 +33,7 @@ func Test_registerCheck(t *testing.T) {
 		wanterr bool
 	}{
 		{
-			name: "registerCheck",
+			name: "RegisterCheck",
 			args: args{
 				name: "test",
 				fn:   func(x *checker.CheckRequest) checker.CheckResult { return checker.CheckResult{} },
@@ -60,8 +60,8 @@ func Test_registerCheck(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if err := registerCheck(tt.args.name, tt.args.fn, nil /*supportedRequestTypes*/); (err != nil) != tt.wanterr {
-				t.Errorf("registerCheck() error = %v, wantErr %v", err, tt.wanterr)
+			if err := RegisterCheck(tt.args.name, tt.args.fn, nil /*supportedRequestTypes*/); (err != nil) != tt.wanterr {
+				t.Errorf("RegisterCheck() error = %v, wantErr %v", err, tt.wanterr)
 			}
 		})
 	}

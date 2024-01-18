@@ -31,7 +31,7 @@ func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.FileBased,
 	}
-	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
+	if err := RegisterCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}

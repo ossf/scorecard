@@ -28,7 +28,7 @@ const CheckFuzzing = "Fuzzing"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckFuzzing, Fuzzing, nil); err != nil {
+	if err := RegisterCheck(CheckFuzzing, Fuzzing, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

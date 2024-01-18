@@ -28,7 +28,7 @@ const CheckSignedReleases = "Signed-Releases"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSignedReleases, SignedReleases, nil); err != nil {
+	if err := RegisterCheck(CheckSignedReleases, SignedReleases, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

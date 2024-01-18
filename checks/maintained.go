@@ -28,7 +28,7 @@ const CheckMaintained = "Maintained"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckMaintained, Maintained, nil); err != nil {
+	if err := RegisterCheck(CheckMaintained, Maintained, nil); err != nil {
 		// this should never happen
 		panic(err)
 	}

@@ -28,7 +28,7 @@ const CheckSAST = "SAST"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSAST, SAST, nil); err != nil {
+	if err := RegisterCheck(CheckSAST, SAST, nil); err != nil {
 		// This should never happen.
 		panic(err)
 	}
