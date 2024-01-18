@@ -331,7 +331,7 @@ type Run struct {
 	URL string
 }
 
-// ArchivedStatus definess the archived status.
+// ArchivedStatus defines the archived status.
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
