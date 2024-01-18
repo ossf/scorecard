@@ -13,11 +13,11 @@
 # limitations under the License.
 
 id: releasesAreSigned
-short: Check that the projects GitHub and Gitlab releases are signed.
+short: Check that the projects GitHub and GitLab releases are signed.
 motivation: >
   Signed releases allow consumers to verify their artifacts before consuming them.
 implementation: >
-  The implementation checks whether a signature file is present in release assets. The probe checks the last 5 releases on GitHub and Gitlab.
+  The implementation checks whether a signature file is present in release assets. The probe checks the last 5 releases on GitHub and GitLab.
 outcome:
   - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a signature file in the release assets.
   - For each of the last 5 releases, the probe returns OutcomeNegative, if the the release does not have a signature file in the release assets.

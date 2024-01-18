@@ -25,8 +25,8 @@ remediation:
   text:
     - Configure the project so that it requires approval to merge PRs.
     - For GitHub-hosted projects, see ["Approving a pull request with required reviews"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews).
-    - For Gitlab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).
+    - For GitLab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).
   markdown:
     - Configure the project so that it requires approval to merge PRs.
     - For GitHub-hosted projects, see ["Approving a pull request with required reviews"](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews).
-    - For Gitlab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).
+    - For GitLab-hosted projects, see ["Merge request approvals"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/).

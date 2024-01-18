@@ -26,8 +26,8 @@ remediation:
   text:
     - Disallow force pushes branches in your project to remove negative outcomes.
     - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
-    - For Gitlab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
+    - For GitLab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
   markdown:
     - Disallow force pushes branches in your project to remove negative outcomes.
     - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
-    - For Gitlab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
+    - For GitLab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
