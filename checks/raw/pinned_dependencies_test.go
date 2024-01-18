@@ -1220,7 +1220,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	}
 }
 
-func TestDockerfilePinningWihoutHash(t *testing.T) {
+func TestDockerfilePinningWithoutHash(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {
