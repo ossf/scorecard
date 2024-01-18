@@ -303,7 +303,7 @@ func updatePinningResults(dependencyType checker.DependencyUseType,
 	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
 	if dependencyType == checker.DependencyUseTypeGHAction {
-		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
+		// Note: `Snippet` contains `action/name@xxx`, so we can use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(*snippet)
 		addWorkflowPinnedResult(outcome, wp, gitHubOwned)
