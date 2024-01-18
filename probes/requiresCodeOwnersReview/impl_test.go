@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "1 branch requires code owner reviews with viles = 1 positive outcome",
+			name: "1 branch requires code owner reviews with files = 1 positive outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
