@@ -129,7 +129,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
-			// Existing binaries only contain SCII characters and are ignored.
+			// Existing binaries only contain ASCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -157,7 +157,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo.
-			// Existing binaries only contain SCII characters and are ignored.
+			// Existing binaries only contain ASCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
