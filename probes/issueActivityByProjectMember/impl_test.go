@@ -62,17 +62,17 @@ func fiveInThresholdByCollabAndFiveByFirstTimeUser() []clients.Issue {
 	return fiveInThresholdByCollabAndFiveByFirstTimeUser
 }
 
-func twentyIssuesInThresholdAndtwentyNot() []clients.Issue {
-	twentyIssuesInThresholdAndtwentyNot := make([]clients.Issue, 0)
+func twentyIssuesInThresholdAndTwentyNot() []clients.Issue {
+	twentyIssuesInThresholdAndTwentyNot := make([]clients.Issue, 0)
 	for i := 70; i < 111; i++ {
 		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
 		commit := clients.Issue{
 			CreatedAt:         &createdAt,
 			AuthorAssociation: &collab,
 		}
-		twentyIssuesInThresholdAndtwentyNot = append(twentyIssuesInThresholdAndtwentyNot, commit)
+		twentyIssuesInThresholdAndTwentyNot = append(twentyIssuesInThresholdAndTwentyNot, commit)
 	}
-	return twentyIssuesInThresholdAndtwentyNot
+	return twentyIssuesInThresholdAndTwentyNot
 }
 
 func Test_Run(t *testing.T) {
@@ -110,7 +110,7 @@ func Test_Run(t *testing.T) {
 			name: "Has 20 issues in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					Issues: twentyIssuesInThresholdAndtwentyNot(),
+					Issues: twentyIssuesInThresholdAndTwentyNot(),
 				},
 			},
 			values: map[string]int{
