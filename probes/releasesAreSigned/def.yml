@@ -20,7 +20,7 @@ implementation: >
   The implementation checks whether a signature file is present in release assets. The probe checks the last 5 releases on GitHub and GitLab.
 outcome:
   - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a signature file in the release assets.
-  - For each of the last 5 releases, the probe returns OutcomeNegative, if the the release does not have a signature file in the release assets.
+  - For each of the last 5 releases, the probe returns OutcomeNegative, if the release does not have a signature file in the release assets.
   - If the project has no releases, the probe returns OutcomeNotApplicable.
 remediation:
   effort: Medium
