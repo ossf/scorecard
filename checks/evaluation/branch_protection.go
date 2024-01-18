@@ -361,7 +361,7 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 
 	// nil typically means we do not have access to the value.
 	if branch.BranchProtectionRule.EnforceAdmins != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
+		// Note: we don't increase max possible score for non-admin viewers.
 		max++
 		switch *branch.BranchProtectionRule.EnforceAdmins {
 		case true:
