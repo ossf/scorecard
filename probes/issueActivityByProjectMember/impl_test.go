@@ -168,7 +168,7 @@ func Test_Run(t *testing.T) {
 func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 	t.Parallel()
 	r := clients.RepoAssociationCollaborator
-	twentDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
+	twentyDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
 	type args struct {
 		issue     *clients.Issue
 		threshold time.Time
@@ -200,7 +200,7 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 			name: "twentyDaysAgo",
 			args: args{
 				issue: &clients.Issue{
-					CreatedAt:         &twentDaysAgo,
+					CreatedAt:         &twentyDaysAgo,
 					AuthorAssociation: &r,
 				},
 			},
@@ -214,7 +214,7 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 					AuthorAssociation: &r,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         &twentDaysAgo,
+							CreatedAt:         &twentyDaysAgo,
 							AuthorAssociation: &r,
 						},
 					},
