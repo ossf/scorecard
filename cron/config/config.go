@@ -239,7 +239,7 @@ func GetRequestTopicURL() (string, error) {
 	return getStringConfigValue(requestTopicURL, configYAML, "RequestTopicURL", "request-topic-url")
 }
 
-// GetRequestSubscriptionURL returns the subscription name of the PubSub topic for cron job reuests.
+// GetRequestSubscriptionURL returns the subscription name of the PubSub topic for cron job requests.
 func GetRequestSubscriptionURL() (string, error) {
 	return getStringConfigValue(requestSubscriptionURL, configYAML, "RequestSubscriptionURL", "request-subscription-url")
 }
