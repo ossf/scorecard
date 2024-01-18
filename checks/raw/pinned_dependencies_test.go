@@ -1578,7 +1578,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}
 }
 
-func TestGitHubWorflowRunDownload(t *testing.T) {
+func TestGitHubWorkflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {

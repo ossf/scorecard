@@ -30,12 +30,12 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 	//nolint:govet
 	tests := []struct {
 		name   string
-		r      worklowPinningResult
+		r      workflowPinningResult
 		scores []checker.ProportionalScoreWeighted
 	}{
 		{
 			name: "GitHub-owned and Third-Party actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 1,
 					total:  1,
@@ -60,7 +60,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "only GitHub-owned actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 1,
 					total:  1,
@@ -85,7 +85,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "only Third-Party actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 0,
 					total:  1,
@@ -110,7 +110,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "no GitHub actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 0,
 					total:  1,
@@ -135,7 +135,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "no GitHub-owned actions and Third-party actions unpinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 0,
 					total:  0,
@@ -155,7 +155,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "no Third-party actions and GitHub-owned actions unpinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 0,
 					total:  1,
@@ -175,7 +175,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "no GitHub-owned actions and Third-party actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 0,
 					total:  0,
@@ -195,7 +195,7 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 		{
 			name: "no Third-party actions and GitHub-owned actions pinned",
-			r: worklowPinningResult{
+			r: workflowPinningResult{
 				gitHubOwned: pinnedResult{
 					pinned: 1,
 					total:  1,
@@ -884,23 +884,23 @@ func Test_generateOwnerToDisplay(t *testing.T) {
 func Test_addWorkflowPinnedResult(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		w        *worklowPinningResult
+		w        *workflowPinningResult
 		outcome  finding.Outcome
 		isGitHub bool
 	}
 	tests := []struct {
 		name string
-		want *worklowPinningResult
+		want *workflowPinningResult
 		args args
 	}{
 		{
 			name: "add pinned GitHub-owned action dependency",
 			args: args{
 				outcome:  finding.OutcomePositive,
-				w:        &worklowPinningResult{},
+				w:        &workflowPinningResult{},
 				isGitHub: true,
 			},
-			want: &worklowPinningResult{
+			want: &workflowPinningResult{
 				thirdParties: pinnedResult{
 					pinned: 0,
 					total:  0,
@@ -915,10 +915,10 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 			name: "add unpinned GitHub-owned action dependency",
 			args: args{
 				outcome:  finding.OutcomeNegative,
-				w:        &worklowPinningResult{},
+				w:        &workflowPinningResult{},
 				isGitHub: true,
 			},
-			want: &worklowPinningResult{
+			want: &workflowPinningResult{
 				thirdParties: pinnedResult{
 					pinned: 0,
 					total:  0,
@@ -933,10 +933,10 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 			name: "add pinned Third-Party action dependency",
 			args: args{
 				outcome:  finding.OutcomePositive,
-				w:        &worklowPinningResult{},
+				w:        &workflowPinningResult{},
 				isGitHub: false,
 			},
-			want: &worklowPinningResult{
+			want: &workflowPinningResult{
 				thirdParties: pinnedResult{
 					pinned: 1,
 					total:  1,
@@ -951,10 +951,10 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 			name: "add unpinned Third-Party action dependency",
 			args: args{
 				outcome:  finding.OutcomeNegative,
-				w:        &worklowPinningResult{},
+				w:        &workflowPinningResult{},
 				isGitHub: false,
 			},
-			want: &worklowPinningResult{
+			want: &workflowPinningResult{
 				thirdParties: pinnedResult{
 					pinned: 0,
 					total:  1,
@@ -1032,13 +1032,13 @@ func TestUpdatePinningResults(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		snippet        *string
-		w              *worklowPinningResult
+		w              *workflowPinningResult
 		pr             map[checker.DependencyUseType]pinnedResult
 		dependencyType checker.DependencyUseType
 		outcome        finding.Outcome
 	}
 	type want struct {
-		w  *worklowPinningResult
+		w  *workflowPinningResult
 		pr map[checker.DependencyUseType]pinnedResult
 	}
 	tests := []struct { //nolint:govet
@@ -1052,11 +1052,11 @@ func TestUpdatePinningResults(t *testing.T) {
 				dependencyType: checker.DependencyUseTypeGHAction,
 				outcome:        finding.OutcomePositive,
 				snippet:        stringAsPointer("actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675"),
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{
+				w: &workflowPinningResult{
 					thirdParties: pinnedResult{
 						pinned: 0,
 						total:  0,
@@ -1075,11 +1075,11 @@ func TestUpdatePinningResults(t *testing.T) {
 				dependencyType: checker.DependencyUseTypeGHAction,
 				outcome:        finding.OutcomeNegative,
 				snippet:        stringAsPointer("actions/checkout@v2"),
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{
+				w: &workflowPinningResult{
 					thirdParties: pinnedResult{
 						pinned: 0,
 						total:  0,
@@ -1097,12 +1097,12 @@ func TestUpdatePinningResults(t *testing.T) {
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
 				outcome:        finding.OutcomePositive,
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				snippet:        stringAsPointer("other/checkout@ffa6706ff2127a749973072756f83c532e43ed02"),
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{
+				w: &workflowPinningResult{
 					thirdParties: pinnedResult{
 						pinned: 1,
 						total:  1,
@@ -1121,11 +1121,11 @@ func TestUpdatePinningResults(t *testing.T) {
 				dependencyType: checker.DependencyUseTypeGHAction,
 				snippet:        stringAsPointer("other/checkout@v2"),
 				outcome:        finding.OutcomeNegative,
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{
+				w: &workflowPinningResult{
 					thirdParties: pinnedResult{
 						pinned: 0,
 						total:  1,
@@ -1143,11 +1143,11 @@ func TestUpdatePinningResults(t *testing.T) {
 			args: args{
 				dependencyType: checker.DependencyUseTypePipCommand,
 				outcome:        finding.OutcomePositive,
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{},
+				w: &workflowPinningResult{},
 				pr: map[checker.DependencyUseType]pinnedResult{
 					checker.DependencyUseTypePipCommand: {
 						pinned: 1,
@@ -1161,11 +1161,11 @@ func TestUpdatePinningResults(t *testing.T) {
 			args: args{
 				dependencyType: checker.DependencyUseTypePipCommand,
 				outcome:        finding.OutcomeNegative,
-				w:              &worklowPinningResult{},
+				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
 			want: want{
-				w: &worklowPinningResult{},
+				w: &workflowPinningResult{},
 				pr: map[checker.DependencyUseType]pinnedResult{
 					checker.DependencyUseTypePipCommand: {
 						pinned: 0,
