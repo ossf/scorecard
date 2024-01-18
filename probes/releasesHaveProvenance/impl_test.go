@@ -154,7 +154,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "enforece lookback limit of 5 releases",
+			name: "enforce lookback limit of 5 releases",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{
 					Releases: []clients.Release{
