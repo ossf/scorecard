@@ -381,7 +381,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 		return locs
 	}
 
-	detaultLine := checker.OffsetDefault
+	defaultLine := checker.OffsetDefault
 	loc := location{
 		PhysicalLocation: physicalLocation{
 			ArtifactLocation: artifactLocation{
@@ -391,7 +391,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 			Region: region{
 				// TODO: set the line to the check if it's overwritten,
 				// or to the global policy.
-				StartLine: &detaultLine,
+				StartLine: &defaultLine,
 			},
 		},
 	}
