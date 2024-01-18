@@ -86,7 +86,7 @@ type jsonReview struct {
 type jsonUser struct {
 	RepoAssociation *string `json:"repoAssociation,omitempty"`
 	Login           string  `json:"login"`
-	// Orgnization refers to a GitHub org.
+	// Organization refers to a GitHub org.
 	Organizations []jsonOrganization `json:"organization,omitempty"`
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
