@@ -144,12 +144,12 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: false,
 		},
 		{
-			desc:     "checking out specific commmit from github with truncated SHA-1",
+			desc:     "checking out specific commit from github with truncated SHA-1",
 			uses:     "actions/checkout@a81bbbf",
 			ispinned: false,
 		},
 		{
-			desc:     "checking out specific commmit from github with SHA-1",
+			desc:     "checking out specific commit from github with SHA-1",
 			uses:     "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
 			ispinned: true,
 		},
