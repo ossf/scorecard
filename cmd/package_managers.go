@@ -46,7 +46,7 @@ func makeGithubRepo(urlAndPathParts []string) string {
 }
 
 // Both GitHub and GitLab are case-insensitive (and thus we lowercase those URLS)
-// however generic URLs are indeed case sensitive!
+// however generic URLs are indeed case-sensitive!
 var pypiMatchers = []func(string) string{
 	func(url string) string {
 		return makeGithubRepo(githubDomainRegexp.FindStringSubmatch(url))
