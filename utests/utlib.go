@@ -16,12 +16,12 @@
 package utests
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
 )
@@ -74,7 +74,18 @@ func (l *TestDetailLogger) Flush() []checker.CheckDetail {
 	return ret
 }
 
-func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestReturn, error) {
+//nolint:gocritic // not worried about test helper param size
+func logDetail(tb testing.TB, level string, detail checker.CheckDetail) {
+	tb.Helper()
+	if detail.Msg.Finding != nil {
+		tb.Logf("%s: %s", level, detail.Msg.Finding.Message)
+	} else {
+		tb.Logf("%s: %s", level, detail.Msg.Text)
+	}
+}
+
+func getTestReturn(tb testing.TB, cr *checker.CheckResult, logger *TestDetailLogger) (*TestReturn, error) {
+	tb.Helper()
 	ret := new(TestReturn)
 	for _, v := range logger.messages {
 		switch v.Type {
@@ -83,10 +94,13 @@ func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestRetu
 			return nil, fmt.Errorf("invalid type %v", v.Type)
 		case checker.DetailInfo:
 			ret.NumberOfInfo++
+			logDetail(tb, "INFO", v)
 		case checker.DetailDebug:
 			ret.NumberOfDebug++
+			logDetail(tb, "DEBUG", v)
 		case checker.DetailWarn:
 			ret.NumberOfWarn++
+			logDetail(tb, "WARN", v)
 		}
 	}
 	ret.Score = cr.Score
@@ -94,26 +108,21 @@ func getTestReturn(cr *checker.CheckResult, logger *TestDetailLogger) (*TestRetu
 	return ret, nil
 }
 
-func errCmp(e1, e2 error) bool {
-	return errors.Is(e1, e2) || errors.Is(e2, e1)
-}
-
 // ValidateTestReturn validates expected TestReturn with actual checker.CheckResult values.
-//
-//nolint:thelper
 func ValidateTestReturn(
-	t *testing.T,
+	tb testing.TB,
 	name string,
 	expected *TestReturn,
 	actual *checker.CheckResult,
 	logger *TestDetailLogger,
 ) bool {
-	actualTestReturn, err := getTestReturn(actual, logger)
+	tb.Helper()
+	actualTestReturn, err := getTestReturn(tb, actual, logger)
 	if err != nil {
-		panic(err)
+		tb.Fatal(err)
 	}
-	if !cmp.Equal(*expected, *actualTestReturn, cmp.Comparer(errCmp)) {
-		log.Println(name+":", cmp.Diff(*expected, *actualTestReturn))
+	if !cmp.Equal(*expected, *actualTestReturn, cmpopts.EquateErrors()) {
+		tb.Log(name+":", cmp.Diff(*expected, *actualTestReturn))
 		return false
 	}
 	return true
