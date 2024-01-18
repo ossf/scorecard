@@ -124,7 +124,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: false,
 		},
 		{
-			desc:     "hecking out mutable tag",
+			desc:     "checking out mutable tag",
 			uses:     "actions/checkout@v3.2.0",
 			ispinned: false,
 		},
