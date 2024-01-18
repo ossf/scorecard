@@ -269,7 +269,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	// Go through all dependency types
 	// GitHub Actions need to be handled separately since they are not in pr
 	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp, dl)...)
-	// Only exisiting dependencies will be found in pr
+	// Only existing dependencies will be found in pr
 	// We will only score the ecosystem if there are dependencies
 	// This results in only existing ecosystems being included in the final score
 	for t := range pr {
