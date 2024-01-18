@@ -79,7 +79,7 @@ var (
 		securityPolicyContainsText.Run,
 	}
 	// DependencyToolUpdates is all the probes for the
-	// DpendencyUpdateTool check.
+	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,

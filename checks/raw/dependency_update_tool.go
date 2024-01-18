@@ -29,7 +29,7 @@ const (
 	dependabotID = 49699333
 )
 
-// DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
+// DependencyUpdateTool is the exported name for Dependency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
 	err := fileparser.OnAllFilesDo(c, checkDependencyFileExists, &tools)
