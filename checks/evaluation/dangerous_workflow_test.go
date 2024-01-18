@@ -56,7 +56,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
-			name: "DangerousWorkflow - no worklflows",
+			name: "DangerousWorkflow - no workflows",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
