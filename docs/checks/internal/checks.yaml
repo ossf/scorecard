@@ -38,7 +38,7 @@ checks:
       changed. A lack of active maintenance should signal that potential users should
       investigate further to judge the situation.
 
-      This check will only succeed if a Github project is >90 days old. Projects
+      This check will only succeed if a GitHub project is >90 days old. Projects
       that are younger than this are too new to assess whether they are maintained
       or not, and users should inspect the contents of those projects to ensure they
       are as expected.
@@ -544,7 +544,7 @@ checks:
       tools can prevent known classes of bugs from being inadvertently introduced in the
       codebase.
 
-      The checks currently looks for known Github apps such as
+      The checks currently looks for known GitHub apps such as
       [CodeQL](https://codeql.github.com/) (github-code-scanning) or
       [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
       of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
