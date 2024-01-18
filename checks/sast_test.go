@@ -201,7 +201,7 @@ func Test_SAST(t *testing.T) {
 		},
 		{
 			name: `Airflow Workflow has CodeQL and two check runs one of 
-			which has wrong type of conlusion. The other is 'success'`,
+			which has wrong type of conclusion. The other is 'success'`,
 			err: nil,
 			commits: []clients.Commit{
 				{
