@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/docs/checks/internal"
+	"github.com/ossf/scorecard/v4/docs/checks/plugin"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -32,6 +33,7 @@ const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 // contains checks' documentation.
 type DocImpl struct {
 	internaldoc internal.Doc
+	plugindoc   plugin.Doc
 }
 
 // Read loads the checks' documentation.
@@ -42,7 +44,13 @@ func Read() (Doc, error) {
 		return &d, fmt.Errorf("internal.ReadDoc: %w", e)
 	}
 
-	d := DocImpl{internaldoc: m}
+	p, e := plugin.ReadDoc()
+	if e != nil {
+		d := DocImpl{}
+		return &d, fmt.Errorf("plugin.ReadDoc: %w", e)
+	}
+
+	d := DocImpl{internaldoc: m, plugindoc: p}
 	return &d, nil
 }
 
