@@ -38,15 +38,14 @@ func Test_FromBytes(t *testing.T) {
 	positiveOutcome := OutcomePositive
 	negativeOutcome := OutcomeNegative
 	t.Parallel()
-	//nolint:govet
 	tests := []struct {
+		err      error
+		outcome  *Outcome
+		metadata map[string]string
+		finding  *Finding
 		name     string
 		id       string
 		path     string
-		outcome  *Outcome
-		err      error
-		metadata map[string]string
-		finding  *Finding
 	}{
 		{
 			name:    "effort low",
@@ -205,10 +204,10 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 	type args struct {
 		n *yaml.Node
 	}
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		args        args
 		name        string
 		wantOutcome Outcome
-		args        args
 		wantErr     bool
 	}{
 		{

@@ -56,7 +56,9 @@ func (v osvClient) ListUnfixedVulnerabilities(
 
 	response := VulnerabilitiesResponse{}
 
-	if err == nil { // No vulns found
+	// either no vulns found, or no packages detected by osvscanner, which likely means no vulns
+	// while there could still be vulns, not detecting any packages shouldn't be a runtime error.
+	if err == nil || errors.Is(err, osvscanner.NoPackagesFoundErr) {
 		return response, nil
 	}
 
