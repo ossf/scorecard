@@ -72,6 +72,22 @@ func (r *repoURL) parse(input string) error {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
 	}
 
+	// fixup the URL, for situations where GL_HOST contains part of the path
+	// https://github.com/ossf/scorecard/issues/3696
+	if h := os.Getenv("GL_HOST"); h != "" {
+		hostURL, err := url.Parse(h)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse GL_HOST: %v", e))
+		}
+
+		// only modify behavior of repos which fall under GL_HOST
+		if hostURL.Host == u.Host {
+			// without the scheme and without trailing slashes
+			u.Host = hostURL.Host + strings.TrimRight(hostURL.Path, "/")
+			u.Path = strings.TrimPrefix(u.Path, hostURL.Path)
+		}
+	}
+
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
