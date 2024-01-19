@@ -122,13 +122,8 @@ func (r *repoURL) IsValid() error {
 		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
 	}
 
-	host := r.host
-	if h := os.Getenv("GL_HOST"); h != "" {
-		// avoid duplication of the scheme when constructing baseURL below
-		host = strings.TrimPrefix(h, r.scheme+"://")
-	}
-	baseURL := fmt.Sprintf("%s://%s", r.scheme, host)
 	token := os.Getenv("GITLAB_AUTH_TOKEN")
+	baseURL := fmt.Sprintf("%s://%s", r.scheme, r.host)
 	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return sce.WithMessage(err,
