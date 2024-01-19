@@ -8,7 +8,7 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.15.1
 	github.com/goreleaser/goreleaser v1.23.0
-	github.com/onsi/ginkgo/v2 v2.14.0
+	github.com/onsi/ginkgo/v2 v2.15.0
 	google.golang.org/protobuf v1.32.0
 )
 
