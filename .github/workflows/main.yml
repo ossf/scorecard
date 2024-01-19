@@ -298,7 +298,6 @@ jobs:
   add-projects:
     name: add-projects
     runs-on: ubuntu-latest
-    needs: build-proto
     permissions:
       contents: read
     steps:
@@ -306,29 +305,10 @@ jobs:
        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-     - name: Install Protoc
-       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c # v3.3.3
-       with:
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-       with:
-          fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v2.2.0
+       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -342,6 +322,7 @@ jobs:
           command: |
             go env -w GOFLAGS=-mod=mod
             make add-projects
+            git diff --exit-code
   validate-projects:
     name: validate-projects
     runs-on: ubuntu-latest
