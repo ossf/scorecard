@@ -517,7 +517,7 @@ For a guide to the checks you should use when getting started, see the [beginner
 
 [Two-factor Authentication (2FA)](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/about-two-factor-authentication) adds an extra layer of security when logging into websites or apps. 2FA protects your account if your password is compromised by requiring a second form of authentication, such as codes sent via SMS or authentication app, or touching a physical security key.
 
-We strongly recommend that you enable 2FA on GitHub and any important account where it is available. 2FA is not a Scorecard check because GitHub does not make that data about user accounts public. Arguably, this data should always remain private, since accounts without 2FA are so vulnerable to attack.
+We strongly recommend that you enable 2FA on any important accounts where it is available. 2FA is not a Scorecard check because GitHub and GitLab do not make that data about user accounts public. Arguably, this data should always remain private, since accounts without 2FA are so vulnerable to attack.
 
 Though it is not an official check, we urge all project maintainers to enable 2FA to protect their projects from compromise.
 

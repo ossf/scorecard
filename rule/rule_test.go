@@ -34,12 +34,11 @@ var testfs embed.FS
 
 func Test_New(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
 	tests := []struct {
-		name string
-		id   string
 		err  error
 		rule *Rule
+		name string
+		id   string
 	}{
 		{
 			name: "all fields set",
@@ -131,10 +130,10 @@ func TestRisk_GreaterThan(t *testing.T) {
 func TestRisk_String(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
-		r    Risk
 		want string
+		r    Risk
 	}{
 		{
 			name: "RiskNone",
@@ -182,10 +181,10 @@ func TestRisk_String(t *testing.T) {
 func TestRemediationEffort_String(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name   string
-		effort RemediationEffort
 		want   string
+		effort RemediationEffort
 	}{
 		{
 			name:   "RemediationEffortNone",
@@ -228,10 +227,10 @@ func TestRemediationEffort_String(t *testing.T) {
 func TestRisk_UnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		wantErr error
 		name    string
 		input   string
-		wantErr error
 		want    Risk
 	}{
 		{
@@ -283,10 +282,10 @@ func TestRisk_UnmarshalYAML(t *testing.T) {
 func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		wantErr error
 		name    string
 		input   string
-		wantErr error
 		want    RemediationEffort
 	}{
 		{
@@ -328,10 +327,10 @@ func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 func Test_validate(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name    string
-		rule    *jsonRule
+	tests := []struct {
 		wantErr error
+		rule    *jsonRule
+		name    string
 	}{
 		{
 			name: "valid",

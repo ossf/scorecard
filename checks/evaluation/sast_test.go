@@ -19,6 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -44,7 +45,7 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -73,11 +74,11 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   2,
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
+						sastToolRunsOnAllCommits.TotalPRsKey:    2,
 					},
 				},
 				{
@@ -118,11 +119,11 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   2,
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
+						sastToolRunsOnAllCommits.TotalPRsKey:    2,
 					},
 				},
 				{
@@ -158,7 +159,7 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomeNotApplicable,
 				},
 				{
@@ -199,11 +200,11 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomeNegative,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   3,
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
+						sastToolRunsOnAllCommits.TotalPRsKey:    3,
 					},
 				},
 				{
@@ -229,11 +230,11 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   3,
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
+						sastToolRunsOnAllCommits.TotalPRsKey:    3,
 					},
 				},
 				{
@@ -267,11 +268,11 @@ func TestSAST(t *testing.T) {
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   3,
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
+						sastToolRunsOnAllCommits.TotalPRsKey:    3,
 					},
 				},
 				{
