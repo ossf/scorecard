@@ -154,6 +154,7 @@ When developing locally, the following commands are useful to run regularly to c
 ## Changing Score Results
 
 As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged. 
+It is a good idea to discuss such changes in a GitHub issue before implementing them.
 
 ## Linting
 
