@@ -16,7 +16,10 @@ project. This document describes the contribution guidelines for the project.
 * [How to build scorecard locally](#how-to-build-scorecard-locally)
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
+* [Changing Score Results](#changing-score-results)
+* [Linting](#linting)
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
+* [Adding New Probes](#adding-new-probes)
 * [Where the CI Tests are configured](#where-the-ci-tests-are-configured)
 * [dailyscore-cronjob](#dailyscore-cronjob)
   * [Deploying the cron job](#deploying-the-cron-job)
@@ -126,6 +129,9 @@ assumed to match the PR. For instance, if you have a bugfix in with a breaking
 change, it's generally encouraged to submit the bugfix separately, but if you
 must put them in one PR, you should mark the whole PR as breaking.
 
+When a maintainer reviews your code, it is generally preferred to solve each individual
+review with small fixes without rebasing, so the maintainer can assess each fix separately.
+
 ## What to do before submitting a pull request
 
 Following the targets that can be used to test your changes locally.
@@ -138,6 +144,25 @@ Following the targets that can be used to test your changes locally.
 Make sure to signoff your commits before submitting a pull request.
 
 https://docs.pi-hole.net/guides/github/how-to-signoff/
+
+When developing locally, the following commands are useful to run regularly to check unit tests and linting.
+
+| Command  | Description                                        | Is called in the CI? |
+| make unit-test | Runs unit tests only. `make all` will also run this. | yes                  |
+| make check-linter | Checks linter issues only. `make all` will also run this. | yes                  |
+
+## Changing Score Results
+
+As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged. 
+It is a good idea to discuss such changes in a GitHub issue before implementing them.
+
+## Linting
+
+Most linter issues can be fixed with `golangci-lint` with the following command:
+
+```
+make fix-linter
+```
 
 ## Permission for GitHub personal access tokens
 
@@ -167,6 +192,10 @@ Commit the changes, and submit a PR and scorecard would start scanning in subseq
 
 See [checks/write.md](checks/write.md).
 When you add new checks, you need to also update the docs.
+
+## Adding New Probes
+
+See [probes/README.md](probes/README.md) for information about the probes.
 
 ## Updating Docs
 
