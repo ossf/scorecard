@@ -38,3 +38,10 @@ remediation:
     - 'On GitLab:'
     - Add a section in your SECURITY.md indicating the process to disclose vulnerabilities for your project.
     - 'Examples: [OpenSSF Scorecard](https://github.com/ossf/scorecard/blob/main/SECURITY.md), [SLSA builders](https://github.com/slsa-framework/slsa-github-generator/blob/main/SECURITY.md), [Sigstore](https://github.com/sigstore/.github/blob/main/SECURITY.md).'
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir

@@ -27,3 +27,22 @@ remediation:
     - Follow the steps in https://docs.sonarsource.com/sonarqube/latest/setup-and-upgrade/overview/ to integrate Sonar into your project.
   markdown:
     - Follow the steps in https://docs.sonarsource.com/sonarqube/latest/setup-and-upgrade/overview/ to integrate CodeQL into your project.
+ecosystem:
+  languages:
+    - c
+    - c++
+    - c#
+    - go
+    - java
+    - kotlin
+    - javascript
+    - objectivec
+    - php
+    - python
+    - ruby
+    - scala
+    - swift
+    - typescript
+  clients:
+    - github
+    - gitlab

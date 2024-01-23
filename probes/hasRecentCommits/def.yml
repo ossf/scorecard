@@ -25,3 +25,9 @@ remediation:
   effort: Low
   text:
     - The only way to remediate this probe is to make contributions to the project, however, some projects have reached a level of maturity that does require further contributions.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

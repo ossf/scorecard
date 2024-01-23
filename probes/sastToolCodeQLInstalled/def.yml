@@ -27,3 +27,18 @@ remediation:
     - Follow the steps in https://docs.github.com/en/code-security/codeql-cli/getting-started-with-the-codeql-cli/preparing-your-code-for-codeql-analysis to integrate CodeQL for your project.
   markdown:
     - Follow the steps in https://docs.github.com/en/code-security/codeql-cli/getting-started-with-the-codeql-cli/preparing-your-code-for-codeql-analysis to integrate CodeQL for your project.
+ecosystem:
+  languages:
+    - c
+    - c++
+    - go
+    - java
+    - kotlin
+    - javascript
+    - python
+    - ruby
+    - swift
+    - typescript
+  clients:
+    - github
+    - gitlab

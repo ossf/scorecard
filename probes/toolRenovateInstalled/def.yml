@@ -30,3 +30,16 @@ remediation:
     - Follow the instructions from https://docs.renovatebot.com/configuration-options/.
   markdown:
     - Follow the instructions from [the official documentation](https://docs.renovatebot.com/configuration-options/).
+ecosystem:
+  languages:
+    - docker
+    - go
+    - java
+    - javascript
+    - php
+    - python
+    - ruby
+    - rust
+  clients:
+    - github
+    - gitlab

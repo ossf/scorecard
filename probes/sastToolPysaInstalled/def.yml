@@ -27,3 +27,9 @@ remediation:
     - Follow the steps in https://github.com/facebook/pysa-action
   markdown:
     - Follow the steps in https://github.com/facebook/pysa-action
+ecosystem:
+  languages:
+    - python
+  clients:
+    - github
+    - gitlab

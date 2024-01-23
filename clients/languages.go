@@ -44,6 +44,9 @@ const (
 	// C#: https://docs.microsoft.com/en-us/dotnet/csharp/
 	CSharp LanguageName = "c#"
 
+	// ObjectiveC: the objective c language
+	ObjectiveC LanguageName = "objectivec"
+
 	// Ruby: https://www.ruby-lang.org/
 	Ruby LanguageName = "ruby"
 
@@ -76,6 +79,9 @@ const (
 
 	// Other indicates other languages not listed by the GitHub API.
 	Other LanguageName = "other"
+
+	// All indicates all programming languages.
+	All LanguageName = "all"
 
 	// Add more languages here if needed,
 	// please use lowercases for the LanguageName value.

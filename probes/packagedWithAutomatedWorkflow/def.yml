@@ -25,3 +25,9 @@ remediation:
   effort: Low
   text:
     - Use a GitHub action to release your package to language-specific hubs.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

@@ -27,3 +27,9 @@ remediation:
     - Learn about best practices by following [the OpenSSF Best Practices Badge criteria](https://www.bestpractices.dev/en/criteria/0).
   markdown:
     - Learn about best practices by following [the OpenSSF Best Practices Badge criteria](https://www.bestpractices.dev/en/criteria/0).
+ecosystem:
+  languages:
+    - all
+  clients:
+    - cii_blob
+    - cii_http

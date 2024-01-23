@@ -40,3 +40,9 @@ remediation:
     - '[smallcheck](https://hackage.haskell.org/package/smallcheck)'
     - '[hspec](https://hspec.github.io/)'
     - '[tasty](https://hackage.haskell.org/package/tasty)'
+ecosystem:
+  languages:
+    - haskell
+  clients:
+    - github
+    - gitlab
