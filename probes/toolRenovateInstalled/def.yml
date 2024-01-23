@@ -32,7 +32,7 @@ remediation:
     - Follow the instructions from [the official documentation](https://docs.renovatebot.com/configuration-options/).
 ecosystem:
   languages:
-    - docker
+    - dockerfile
     - go
     - java
     - javascript

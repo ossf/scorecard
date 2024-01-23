@@ -68,6 +68,10 @@ var supportedClients = map[string]bool{
 	"github":   true,
 	"gitlab":   true,
 	"localdir": true,
+	"oss-fuzz": true,
+	"osv":      true,
+	"cii_blob": true,
+	"cii_http": true,
 }
 
 type yamlProbe struct {
@@ -169,7 +173,8 @@ func validateSupportedLanguages(r yamlEcosystem) error {
 			clients.Java, clients.CSharp, clients.Ruby,
 			clients.PHP, clients.StarLark, clients.Scala,
 			clients.Kotlin, clients.Swift, clients.Rust,
-			clients.Haskell:
+			clients.Haskell, clients.All, clients.Dockerfile,
+			clients.ObjectiveC:
 			continue
 		default:
 			return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("language '%v'", r))

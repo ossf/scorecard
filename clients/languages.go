@@ -44,7 +44,7 @@ const (
 	// C#: https://docs.microsoft.com/en-us/dotnet/csharp/
 	CSharp LanguageName = "c#"
 
-	// ObjectiveC: the objective c language
+	// ObjectiveC: the objective c language.
 	ObjectiveC LanguageName = "objectivec"
 
 	// Ruby: https://www.ruby-lang.org/
