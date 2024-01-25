@@ -228,6 +228,14 @@ func TestRepoURL_parse_GL_HOST(t *testing.T) {
 			owner:   "ssdlc",
 			project: "scorecard-scanner",
 		},
+		{
+			name:    "GL_HOST has no scheme",
+			glHost:  "foo.com/bar/",
+			url:     "foo.com/bar/ssdlc/scorecard-scanner",
+			host:    "foo.com/bar",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
 	}
 
 	for _, tt := range tests {

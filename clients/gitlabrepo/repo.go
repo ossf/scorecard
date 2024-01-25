@@ -62,20 +62,15 @@ func (r *repoURL) parse(input string) error {
 		t = input
 	}
 
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(t, "://") {
-		t = "https://" + t
-	}
-
-	u, e := url.Parse(t)
-	if e != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
+	u, err := url.Parse(withDefaultScheme(t))
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 	}
 
 	// fixup the URL, for situations where GL_HOST contains part of the path
 	// https://github.com/ossf/scorecard/issues/3696
 	if h := os.Getenv("GL_HOST"); h != "" {
-		hostURL, err := url.Parse(h)
+		hostURL, err := url.Parse(withDefaultScheme(h))
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse GL_HOST: %v", err))
 		}
@@ -97,6 +92,14 @@ func (r *repoURL) parse(input string) error {
 
 	r.scheme, r.host, r.owner, r.project = u.Scheme, u.Host, split[0], split[1]
 	return nil
+}
+
+// Allow skipping scheme for ease-of-use, default to https.
+func withDefaultScheme(uri string) string {
+	if strings.Contains(uri, "://") {
+		return uri
+	}
+	return "https://" + uri
 }
 
 // URI implements Repo.URI().
