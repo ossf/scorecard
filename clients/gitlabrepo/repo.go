@@ -77,13 +77,14 @@ func (r *repoURL) parse(input string) error {
 	if h := os.Getenv("GL_HOST"); h != "" {
 		hostURL, err := url.Parse(h)
 		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse GL_HOST: %v", e))
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse GL_HOST: %v", err))
 		}
 
 		// only modify behavior of repos which fall under GL_HOST
 		if hostURL.Host == u.Host {
 			// without the scheme and without trailing slashes
 			u.Host = hostURL.Host + strings.TrimRight(hostURL.Path, "/")
+			// remove any part of the path which belongs to the host
 			u.Path = strings.TrimPrefix(u.Path, hostURL.Path)
 		}
 	}
@@ -123,7 +124,7 @@ func (r *repoURL) IsValid() error {
 	}
 
 	token := os.Getenv("GITLAB_AUTH_TOKEN")
-	baseURL := fmt.Sprintf("%s://%s", r.scheme, r.host)
+	baseURL := r.Host()
 	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return sce.WithMessage(err,
