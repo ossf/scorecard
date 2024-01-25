@@ -15,7 +15,6 @@
 package git
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -27,6 +26,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/localdir"
 )
 
 func createTestRepo(t *testing.T) (path string) {
@@ -79,29 +79,19 @@ func createTestRepo(t *testing.T) (path string) {
 
 func TestInitRepo(t *testing.T) {
 	t.Parallel()
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name        string
-		uri         string
 		commitSHA   string
-		commitDepth int
 		expectedErr string
+		commitDepth int
 	}{
 		{
 			name:        "Success",
-			uri:         "file://%s",
 			commitSHA:   "HEAD",
 			commitDepth: 1,
 		},
 		{
-			name:        "InvalidUri",
-			uri:         ":",
-			commitSHA:   "",
-			commitDepth: 1,
-			expectedErr: "repository does not exist",
-		},
-		{
 			name:        "NegativeCommitDepth",
-			uri:         "file://%s",
 			commitSHA:   "HEAD",
 			commitDepth: -1,
 		},
@@ -113,10 +103,14 @@ func TestInitRepo(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			uri := fmt.Sprintf(test.uri, repoPath)
+			uri := repoPath
 
 			client := &Client{}
-			err := client.InitRepo(uri, test.commitSHA, test.commitDepth)
+			repo, err := localdir.MakeLocalDirRepo(uri)
+			if err != nil {
+				t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
+			}
+			err = client.InitRepo(repo, test.commitSHA, test.commitDepth)
 			if (test.expectedErr != "") != (err != nil) {
 				t.Errorf("Unexpected error during InitRepo: %v", err)
 			}
@@ -132,8 +126,12 @@ func TestListCommits(t *testing.T) {
 	commitDepth := 1
 	expectedLen := 1
 	commitSHA := "HEAD"
-	uri := fmt.Sprintf("file://%s", repoPath)
-	if err := client.InitRepo(uri, commitSHA, commitDepth); err != nil {
+	uri := repoPath
+	repo, err := localdir.MakeLocalDirRepo(uri)
+	if err != nil {
+		t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
+	}
+	if err := client.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		t.Fatalf("InitRepo(%s) failed: %v", uri, err)
 	}
 
@@ -221,8 +219,12 @@ func TestSearch(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			client := &Client{}
-			uri := fmt.Sprintf("file://%s", repoPath)
-			if err := client.InitRepo(uri, "HEAD", 1); err != nil {
+			uri := repoPath
+			repo, err := localdir.MakeLocalDirRepo(uri)
+			if err != nil {
+				t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
+			}
+			if err := client.InitRepo(repo, "HEAD", 1); err != nil {
 				t.Fatalf("InitRepo(%s) failed: %v", uri, err)
 			}
 

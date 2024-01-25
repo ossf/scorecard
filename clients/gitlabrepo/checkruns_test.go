@@ -48,7 +48,7 @@ func Test_CheckRuns(t *testing.T) {
 		},
 		{
 			name:         "valid checkruns with zero results",
-			responsePath: "./testdata/valid-checkruns-1",
+			responsePath: "./testdata/empty-response",
 			ref:          "eb94b618fb5865b26e80fdd8ae531b7a63ad851a",
 			wantErr:      false,
 		},

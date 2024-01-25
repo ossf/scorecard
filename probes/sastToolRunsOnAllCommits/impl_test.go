@@ -23,6 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -54,11 +55,11 @@ func Test_Run(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   Probe,
 					Message: "1 commits out of 2 are checked with a SAST tool",
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 1,
-						"totalPullRequestsMerged":   2,
+						AnalyzedPRsKey: 1,
+						TotalPRsKey:    2,
 					},
 				},
 			},
@@ -83,12 +84,12 @@ func Test_Run(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "sastToolRunsOnAllCommits",
+					Probe:   Probe,
 					Message: "all commits (2) are checked with a SAST tool",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"totalPullRequestsAnalyzed": 2,
-						"totalPullRequestsMerged":   2,
+						AnalyzedPRsKey: 2,
+						TotalPRsKey:    2,
 					},
 				},
 			},
@@ -109,16 +110,7 @@ func Test_Run(t *testing.T) {
 			if diff := cmp.Diff(Probe, s); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
-			if diff := cmp.Diff(len(tt.outcomes), len(findings)); diff != "" {
-				t.Errorf("mismatch (-want +got):\n%s", diff)
-			}
-			for i := range tt.outcomes {
-				outcome := &tt.outcomes[i]
-				f := &findings[i]
-				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
-					t.Errorf("mismatch (-want +got):\n%s", diff)
-				}
-			}
+			test.AssertOutcomes(t, findings, tt.outcomes)
 			if !cmp.Equal(tt.expectedFindings, findings, cmpopts.EquateErrors()) {
 				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors()))
 			}

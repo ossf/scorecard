@@ -169,5 +169,6 @@ func MakeGitlabRepo(input string) (clients.Repo, error) {
 	if err := repo.IsValid(); err != nil {
 		return nil, fmt.Errorf("error in IsValid: %w", err)
 	}
+
 	return &repo, nil
 }

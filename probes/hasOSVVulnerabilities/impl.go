@@ -17,6 +17,7 @@ package hasOSVVulnerabilities
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -31,6 +32,8 @@ import (
 var fs embed.FS
 
 const Probe = "hasOSVVulnerabilities"
+
+var errNoVulnID = errors.New("no vuln ID")
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -59,16 +62,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	IDs := grouper.Group(aliasVulnerabilities)
 
 	for _, vuln := range IDs {
+		if len(vuln.IDs) == 0 {
+			return nil, Probe, errNoVulnID
+		}
 		f, err := finding.NewWith(fs, Probe,
 			"Project contains OSV vulnerabilities", nil,
 			finding.OutcomeNegative)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithMessage(fmt.Sprintf("Project is vulnerable to: %s",
-			strings.Join(vuln.IDs, " / ")))
+		f = f.WithMessage("Project is vulnerable to: " + strings.Join(vuln.IDs, " / "))
 		f = f.WithRemediationMetadata(map[string]string{
-			"osvid": strings.Join(vuln.IDs[:], ","),
+			"osvid": vuln.IDs[0],
 		})
 		findings = append(findings, *f)
 	}

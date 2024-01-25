@@ -184,6 +184,10 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 		return []clients.Commit{}, err
 	}
 
+	if len(commitsRaw) < 1 {
+		return []clients.Commit{}, nil
+	}
+
 	before := commitsRaw[0].CommittedDate
 	// Get merge request details from GraphQL
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that

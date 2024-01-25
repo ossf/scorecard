@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/fuzzing"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
@@ -35,5 +36,5 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 	//nolint:wrapcheck
-	return fuzzing.Run(raw, fs, Probe, "OSSFuzz")
+	return fuzzing.Run(raw, fs, Probe, fuzzers.OSSFuzz)
 }
