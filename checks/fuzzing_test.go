@@ -30,16 +30,15 @@ import (
 // TestFuzzing is a test function for Fuzzing.
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
 	tests := []struct {
 		name        string
+		fileContent string
 		langs       []clients.Language
+		fileName    []string
 		response    clients.SearchResponse
+		expected    scut.TestReturn
 		wantErr     bool
 		wantFuzzErr bool
-		fileName    []string
-		fileContent string
-		expected    scut.TestReturn
 	}{
 		{
 			name:     "empty response",

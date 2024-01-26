@@ -23,6 +23,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
@@ -41,7 +43,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 					},
 				},
@@ -56,10 +58,10 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 					},
 				},
@@ -75,7 +77,7 @@ func Test_Run(t *testing.T) {
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
 						{
-							Name: "PythonAtherisFuzzer",
+							Name: fuzzers.PythonAtheris,
 						},
 						{
 							Name: "not-PythonAtherisFuzzer",
@@ -118,7 +120,6 @@ func Test_Run(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			// TODO(#https://github.com/ossf/scorecard/issues/3472) Use common validation function.
 			findings, s, err := Run(tt.raw)
 			if !cmp.Equal(tt.err, err, cmpopts.EquateErrors()) {
 				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.err, err, cmpopts.EquateErrors()))
@@ -129,16 +130,7 @@ func Test_Run(t *testing.T) {
 			if diff := cmp.Diff(Probe, s); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
-			if diff := cmp.Diff(len(tt.outcomes), len(findings)); diff != "" {
-				t.Errorf("mismatch (-want +got):\n%s", diff)
-			}
-			for i := range tt.outcomes {
-				outcome := &tt.outcomes[i]
-				f := &findings[i]
-				if diff := cmp.Diff(*outcome, f.Outcome); diff != "" {
-					t.Errorf("mismatch (-want +got):\n%s", diff)
-				}
-			}
+			test.AssertOutcomes(t, findings, tt.outcomes)
 		})
 	}
 }

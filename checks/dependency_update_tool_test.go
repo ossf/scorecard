@@ -32,15 +32,14 @@ const (
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
 func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
 	tests := []struct {
 		name              string
-		wantErr           bool
-		SearchCommits     []clients.Commit
-		CallSearchCommits int
-		files             []string
 		want              checker.CheckResult
+		SearchCommits     []clients.Commit
+		files             []string
 		expected          scut.TestReturn
+		CallSearchCommits int
+		wantErr           bool
 	}{
 		{
 			name:    "dependency yml",
@@ -160,5 +159,23 @@ func TestDependencyUpdateTool(t *testing.T) {
 				t.Fail()
 			}
 		})
+	}
+}
+
+func TestDependencyUpdateTool_noSearchCommits(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockRepo := mockrepo.NewMockRepoClient(ctrl)
+	files := []string{"README.md"}
+	mockRepo.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
+	mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
+	dl := scut.TestDetailLogger{}
+	c := &checker.CheckRequest{
+		RepoClient: mockRepo,
+		Dlogger:    &dl,
+	}
+	got := DependencyUpdateTool(c)
+	if got.Error != nil {
+		t.Errorf("got: %v, wanted ErrUnsupportedFeature not to propagate", got.Error)
 	}
 }

@@ -517,7 +517,7 @@ For a guide to the checks you should use when getting started, see the [beginner
 
 [Two-factor Authentication (2FA)](https://docs.github.com/en/authentication/securing-your-account-with-two-factor-authentication-2fa/about-two-factor-authentication) adds an extra layer of security when logging into websites or apps. 2FA protects your account if your password is compromised by requiring a second form of authentication, such as codes sent via SMS or authentication app, or touching a physical security key.
 
-We strongly recommend that you enable 2FA on GitHub and any important account where it is available. 2FA is not a Scorecard check because GitHub does not make that data about user accounts public. Arguably, this data should always remain private, since accounts without 2FA are so vulnerable to attack.
+We strongly recommend that you enable 2FA on any important accounts where it is available. 2FA is not a Scorecard check because GitHub and GitLab do not make that data about user accounts public. Arguably, this data should always remain private, since accounts without 2FA are so vulnerable to attack.
 
 Though it is not an official check, we urge all project maintainers to enable 2FA to protect their projects from compromise.
 
@@ -585,9 +585,9 @@ Artifact                      | Link
 ----------------------------- | ----
 Scorecard Dev Forum           | [ossf-scorecard-dev@](https://groups.google.com/g/ossf-scorecard-dev)
 Scorecard Announcements Forum | [ossf-scorecard-announce@](https://groups.google.com/g/ossf-scorecard-announce)
-Community Meeting VC          | [Link to z o o m meeting](https://zoom.us/j/98835923979)
-Community Meeting Calendar    | Biweekly Thursdays, 1:00pm-2:00pm PST <br>[Calendar](https://calendar.google.com/calendar?cid=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ)
-Meeting Notes                 | [Notes](https://docs.google.com/document/d/1dB2U7_qZpNW96vtuoG7ShmgKXzIg6R5XT5Tc-0yz6kE/edit#heading=h.4k8ml0qkh7tl)
+Community Meeting VC          | [Link to z o o m meeting](https://zoom-lfx.platform.linuxfoundation.org/meeting/95007214146?password=250040c3-80c0-48c4-80c1-07a373116d54)
+Community Meeting Calendar    | **_APAC-friendly_** Biweekly on Thursdays at 1:00-2:00 PM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA)) <br>Video Call: [LFX Zoom](https://zoom-lfx.platform.linuxfoundation.org/meeting/95007214146?password=250040c3-80c0-48c4-80c1-07a373116d54) <br> **_EMEA-friendly_** Every 4 Mondays at 7:00-8:00 AM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA)) <br> Video Call: [LFX Zoom](https://zoom-lfx.platform.linuxfoundation.org/meeting/93377638314?password=d53af562-d908-4100-8ae1-52686756cc5d)
+Meeting Notes                 | [Notes](https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing)
 Slack Channel                 | [#security_scorecards](https://slack.openssf.org/#security_scorecards)
 
 __Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
@@ -600,7 +600,13 @@ To report a security issue, please follow instructions [here](SECURITY.md).
 
 #### Zoom
 
-We meet every other Thursday - 4p ET on this [zoom link](https://zoom.us/j/98835923979?pwd=RG5JZ3czZEtmRDlGdms0ZktmMFQvUT09).
+**_APAC-friendly_** Biweekly on Thursdays at 1:00-2:00 PM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA)) 
+
+Video Call: [LFX z o o m](https://zoom-lfx.platform.linuxfoundation.org/meeting/95007214146?password=250040c3-80c0-48c4-80c1-07a373116d54)   
+
+**_EMEA-friendly_** Every 4 Mondays at 7:00-8:00 AM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA))
+
+Video Call: [LFX z o o m](https://zoom-lfx.platform.linuxfoundation.org/meeting/93377638314?password=d53af562-d908-4100-8ae1-52686756cc5d)   
 
 #### Agenda
 

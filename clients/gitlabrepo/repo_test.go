@@ -64,14 +64,24 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name: "valid https address with trailing slash",
+			name: "valid gitlab project",
 			expected: repoURL{
-				scheme:  "https",
 				host:    "https://gitlab.com",
 				owner:   "ossf-test",
 				project: "scorecard-check-binary-artifacts-e2e",
 			},
-			inputURL: "https://gitlab.com/ossf-test/scorecard-check-binary-artifacts-e2e/",
+			inputURL: "https://gitlab.com/ossf-test/scorecard-check-binary-artifacts-e2e",
+			wantErr:  false,
+		},
+		{
+			name: "valid https address with trailing slash",
+			expected: repoURL{
+				scheme:  "https",
+				host:    "https://gitlab.haskell.org",
+				owner:   "haskell",
+				project: "filepath",
+			},
+			inputURL: "https://gitlab.haskell.org/haskell/filepath",
 			wantErr:  false,
 		},
 		{
@@ -105,6 +115,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			if err := r.IsValid(); (err != nil) != tt.wantErr {
 				t.Errorf("repoURL.IsValid() error = %v, wantErr %v", err, tt.wantErr)
 			}
+			t.Log(r.URI())
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmpopts.IgnoreUnexported(repoURL{})) {
 				t.Logf("expected: %s GOT: %s", tt.expected.host, r.host)
 				t.Logf("expected: %s GOT: %s", tt.expected.owner, r.owner)
