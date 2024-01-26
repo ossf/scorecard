@@ -19,6 +19,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/codeApproved"
+	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
@@ -112,6 +114,10 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
+	}
+	CodeReview = []ProbeImpl{
+		codeApproved.Run,
+		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
 		sastToolCodeQLInstalled.Run,
@@ -230,6 +236,7 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
+		CodeReview,
 		SecurityPolicy,
 		Fuzzing,
 		License,

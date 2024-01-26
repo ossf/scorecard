@@ -42,7 +42,7 @@ func runEnabledChecks(ctx context.Context,
 	repo clients.Repo,
 	request *checker.CheckRequest,
 	checksToRun checker.CheckNameToFnMap,
-	resultsCh chan checker.CheckResult,
+	resultsCh chan<- checker.CheckResult,
 ) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {

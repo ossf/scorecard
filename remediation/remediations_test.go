@@ -74,11 +74,10 @@ func (s stubDigester) Digest(name string) (string, error) {
 func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet
 	tests := []struct {
-		name     string
-		dep      checker.Dependency
 		expected *rule.Remediation
+		dep      checker.Dependency
+		name     string
 	}{
 		{
 			name:     "no dependency",
@@ -143,12 +142,12 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 func TestCreateWorkflowPinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		expected *rule.Remediation
 		name     string
 		branch   string
 		repo     string
 		filepath string
-		expected *rule.Remediation
 	}{
 		{
 			name:     "valid input",
