@@ -65,7 +65,7 @@ jobs:
     permissions:
       contents: read
     needs: docs_only_check
-    # ideally we put one "if" here, but due to how skipped matrix jobs work, we need one for each each step
+    # ideally we put one "if" here, but due to how skipped matrix jobs work, we need one for each step
     # https://github.com/orgs/community/discussions/9141
     steps:
      - name: Harden Runner

@@ -503,7 +503,7 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "error marhsal entry",
+			name: "error marshal entry",
 			args: nugetTestArgs{
 				inputPackageName:               "nuget-package",
 				resultIndex:                    "index.json",

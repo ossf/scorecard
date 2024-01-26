@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: testsRunInCI
-short: Checks that the project runs tests in the CI for example with Github Actions or Prow.
+short: Checks that the project runs tests in the CI for example with GitHub Actions or Prow.
 motivation: >
   Running tests helps developers catch mistakes early on, which can reduce the number of vulnerabilities that find their way into a project.
 implementation: >

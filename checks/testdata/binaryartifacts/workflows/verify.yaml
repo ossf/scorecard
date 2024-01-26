@@ -2,7 +2,7 @@ name: "GW Validate Workflow"
 on: [push, pull_request]
 
 jobs:
-  gw_validat3:
+  gw_validate:
     name: "GW Validate Job"
     runs-on: ubuntu-latest
     steps:

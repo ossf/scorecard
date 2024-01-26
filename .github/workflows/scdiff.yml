@@ -30,7 +30,7 @@ jobs:
     if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
     runs-on: [ubuntu-latest]
     steps:
-      - name: create file of repos to anlayze
+      - name: create file of repos to analyze
         run: |
           cat <<EOF > $HOME/repos.txt
           https://github.com/airbnb/lottie-web

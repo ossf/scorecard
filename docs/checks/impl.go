@@ -77,7 +77,7 @@ func (d DocImpl) CheckExists(name string) bool {
 	return exists
 }
 
-// CheckDocImpl implementts `CheckDoc` interface and
+// CheckDocImpl implements `CheckDoc` interface and
 // stores documentation about a check.
 type CheckDocImpl struct {
 	internalCheck internal.Check

@@ -25,4 +25,4 @@ outcome:
 remediation:
   effort: Low
   text:
-    - Update the license file format in the Github repository to be of an approved format.
+    - Update the license file format in the GitHub repository to be of an approved format.

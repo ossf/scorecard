@@ -117,7 +117,7 @@ func Test_compare_reader_err(t *testing.T) {
 `),
 		},
 		{
-			name: "error in both readesr",
+			name: "error in both readers",
 			x:    alwaysErrorReader{},
 			y:    alwaysErrorReader{},
 		},

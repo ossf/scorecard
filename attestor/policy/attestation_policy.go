@@ -120,7 +120,7 @@ func (ap *AttestationPolicy) EvaluateResults(raw *checker.RawResults) (PolicyRes
 
 	if ap.EnsureCodeReviewed {
 		// By default, if code review reqs. aren't specified, we assume
-		// the user wants there to be atleast one reviewer
+		// the user wants there to be at least one reviewer
 		if len(ap.CodeReviewRequirements.RequiredApprovers) == 0 &&
 			ap.CodeReviewRequirements.MinReviewers == 0 {
 			ap.CodeReviewRequirements.MinReviewers = 1

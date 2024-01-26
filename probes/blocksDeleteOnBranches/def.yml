@@ -24,4 +24,4 @@ remediation:
   effort: Low
   text:
     - Disallow deletion of branches in your project to remove negative outcomes.
-    - GitHub and Gitlab by default disable deleting a protected branch. 
+    - GitHub and GitLab by default disable deleting a protected branch. 

@@ -331,7 +331,7 @@ type Run struct {
 	URL string
 }
 
-// ArchivedStatus definess the archived status.
+// ArchivedStatus defines the archived status.
 type ArchivedStatus struct {
 	Status bool
 	// TODO: add fields, e.g., date of archival.
@@ -348,7 +348,7 @@ type File struct {
 	// TODO: add hash.
 }
 
-// CIIBestPracticesData contains data foor CIIBestPractices check.
+// CIIBestPracticesData contains data for CIIBestPractices check.
 type CIIBestPracticesData struct {
 	Badge clients.BadgeLevel
 }

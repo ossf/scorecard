@@ -63,7 +63,7 @@ func TestGetPrefix(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "non existent prefix file",
+			name:       "nonexistent prefix file",
 			url:        "testdata/getPrefix",
 			prefix:     "",
 			prefixFile: "baz",

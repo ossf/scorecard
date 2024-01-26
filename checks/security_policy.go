@@ -23,7 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// CheckSecurityPolicy is the registred name for SecurityPolicy.
+// CheckSecurityPolicy is the registered name for SecurityPolicy.
 const CheckSecurityPolicy = "Security-Policy"
 
 //nolint:gochecknoinits

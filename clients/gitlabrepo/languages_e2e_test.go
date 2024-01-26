@@ -39,7 +39,7 @@ var _ = Describe("E2E TEST: gitlabrepo.ListProgrammingLanguages", func() {
 			// Check for the presence of some languages
 			isPythonPresent := false
 			for _, lang := range programmingLang {
-				// compare case insensitive
+				// compare case-insensitive
 				if strings.EqualFold(string(lang.Name), "Python") {
 					isPythonPresent = true
 					break

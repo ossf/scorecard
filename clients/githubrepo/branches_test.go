@@ -290,7 +290,7 @@ func Test_applyRepoRules(t *testing.T) {
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions:       &falseVal,
 					AllowForcePushes:     &falseVal,
-					EnforceAdmins:        &falseVal, // Maintain: deletion enforces but forcepush does not
+					EnforceAdmins:        &falseVal, // Maintain: deletion enforces but force-push does not
 					RequireLinearHistory: &falseVal,
 					RequiredPullRequestReviews: clients.PullRequestReviewRule{
 						Required: &falseVal,

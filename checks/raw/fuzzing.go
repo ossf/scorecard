@@ -44,7 +44,7 @@ type languageFuzzConfig struct {
 	filePatterns []string
 }
 
-// Contains fuzzing speficications for programming languages.
+// Contains fuzzing specifications for programming languages.
 // Please use the type Language defined in clients/languages.go rather than a raw string.
 var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	// Default fuzz patterns for Go.

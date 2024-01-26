@@ -25,8 +25,8 @@ remediation:
   text:
     - Configure the project such that it requires approval of the most recent push.
     - For GitHub-hosted projects, see [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and how to require approval of the last push from someone who did not make the last push.
-    - For Gitlab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
+    - For GitLab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
   markdown:
     - Configure the project such that it requires approval of the most recent push.
     - For GitHub-hosted projects, see [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) and how to require approval of the last push from someone who did not make the last push.
-    - For Gitlab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
+    - For GitLab-hosted projects, see how to [remove all approvals when commits a added to the source branch](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).

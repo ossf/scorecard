@@ -452,7 +452,7 @@ func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 			},
 		},
 		{
-			name: "conclusion is succesls with a valid app slug",
+			name: "conclusion is success with a valid app slug",
 			args: args{
 				r: checker.RevisionCIInfo{
 					CheckRuns: []clients.CheckRun{
