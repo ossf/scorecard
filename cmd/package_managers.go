@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd implements Scorecard commandline.
+// Package cmd implements Scorecard command-line.
 package cmd
 
 import (
@@ -45,8 +45,8 @@ func makeGithubRepo(urlAndPathParts []string) string {
 	return fmt.Sprintf("https://github.com/%s/%s", userOrOrg, repoName)
 }
 
-// Both GitHub and GitLab are case insensitive (and thus we lowercase those URLS)
-// however generic URLs are indeed case sensitive!
+// Both GitHub and GitLab are case-insensitive (and thus we lowercase those URLS)
+// however generic URLs are indeed case-sensitive!
 var pypiMatchers = []func(string) string{
 	func(url string) string {
 		return makeGithubRepo(githubDomainRegexp.FindStringSubmatch(url))

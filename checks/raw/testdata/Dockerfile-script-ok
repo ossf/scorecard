@@ -49,8 +49,8 @@ RUN gsutil gs://file /tmp/file1 && bash /tmp/fileqw
 RUN gsutil gs://file /tmp/file2 ; bash /tmp/file122
 
 RUN gsutil gs://bucket/file . && bash ./file2222
-RUN gsutil gs://bucet/file /path/to/ && bash /path/to/fileqqq
-RUN gsutil gs://bucet/file2 /path/to/ && bash /path/to/file2234
+RUN gsutil gs://bucket/file /path/to/ && bash /path/to/fileqqq
+RUN gsutil gs://bucket/file2 /path/to/ && bash /path/to/file2234
 RUN bash /path/to/fileshsj
 
 RUN bash somescript.sh

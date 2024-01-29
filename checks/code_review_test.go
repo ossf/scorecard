@@ -1,4 +1,4 @@
-// Copyright 2022 OpenSSF Scorecard Authors
+// Copyright 2023 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,9 +27,16 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
+var errNew = errors.New("error")
+
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
+	// fieldalignment lint issue. Ignoring it as it is not important for this test.
+	//nolint:gci
+    //nolint:gofmt
+    //nolint:gofumpt
+	//nolint:goimports
 	tests := []struct {
 		err       error
 		name      string
@@ -45,22 +52,22 @@ func TestCodereview(t *testing.T) {
 		},
 		{
 			name:      "no commits with error",
-			commiterr: errors.New("error"),
+			commiterr: errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
 		},
 		{
 			name: "no PR's with error",
-			err:  errors.New("error"),
+			err:  errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
 		},
 		{
 			name:      "no PR's with error as well as commits",
-			err:       errors.New("error"),
-			commiterr: errors.New("error"),
+			err:       errNew,
+			commiterr: errNew,
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -275,7 +282,7 @@ func TestCodereview(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)

@@ -38,7 +38,7 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 	}
 	query, err := handler.buildQuery(request)
 	if err != nil {
-		return nil, fmt.Errorf("handler.buildQuiery: %w", err)
+		return nil, fmt.Errorf("handler.buildQuery: %w", err)
 	}
 
 	commits, _, err := handler.glClient.Search.CommitsByProject(handler.repourl.projectID, query, &gitlab.SearchOptions{})
@@ -48,7 +48,7 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 
 	// Gitlab returns a list of commits that does not contain the committer's id, unlike in
 	// githubrepo/searchCommits.go so to limit the number of requests we are mapping each unique user
-	// email to thei gitlab user data.
+	// email to their gitlab user data.
 	userMap := make(map[string]*gitlab.User)
 	var ret []clients.Commit
 	for _, commit := range commits {

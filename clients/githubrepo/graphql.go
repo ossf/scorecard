@@ -266,7 +266,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				continue
 			}
 			// ResourcePath: e.g., for dependabot, "/apps/dependabot", or "/apps/renovate"
-			// Path that can be appended to "https://github.com" for a Github resource
+			// Path that can be appended to "https://github.com" for a GitHub resource
 			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
@@ -341,26 +341,26 @@ func getRepoAssociation(association *string) *clients.RepoAssociation {
 	if association == nil {
 		return nil
 	}
-	var repoAssociaton clients.RepoAssociation
+	var repoAssociation clients.RepoAssociation
 	switch *association {
 	case "COLLABORATOR":
-		repoAssociaton = clients.RepoAssociationCollaborator
+		repoAssociation = clients.RepoAssociationCollaborator
 	case "CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationContributor
+		repoAssociation = clients.RepoAssociationContributor
 	case "FIRST_TIMER":
-		repoAssociaton = clients.RepoAssociationFirstTimer
+		repoAssociation = clients.RepoAssociationFirstTimer
 	case "FIRST_TIME_CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationFirstTimeContributor
+		repoAssociation = clients.RepoAssociationFirstTimeContributor
 	case "MANNEQUIN":
-		repoAssociaton = clients.RepoAssociationMannequin
+		repoAssociation = clients.RepoAssociationMannequin
 	case "MEMBER":
-		repoAssociaton = clients.RepoAssociationMember
+		repoAssociation = clients.RepoAssociationMember
 	case "NONE":
-		repoAssociaton = clients.RepoAssociationNone
+		repoAssociation = clients.RepoAssociationNone
 	case "OWNER":
-		repoAssociaton = clients.RepoAssociationOwner
+		repoAssociation = clients.RepoAssociationOwner
 	default:
 		return nil
 	}
-	return &repoAssociaton
+	return &repoAssociation
 }

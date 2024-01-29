@@ -29,7 +29,7 @@ const (
 	dependabotID = 49699333
 )
 
-// DependencyUpdateTool is the exported name for Depdendency-Update-Tool.
+// DependencyUpdateTool is the exported name for Dependency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
 	err := fileparser.OnAllFilesDo(c, checkDependencyFileExists, &tools)
@@ -92,9 +92,16 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 			},
 		})
 
-		// https://docs.renovatebot.com/configuration-options/
-	case ".github/renovate.json", ".github/renovate.json5", ".renovaterc.json", "renovate.json",
-		"renovate.json5", ".renovaterc":
+	// https://docs.renovatebot.com/configuration-options/
+	case "renovate.json",
+		"renovate.json5",
+		".github/renovate.json",
+		".github/renovate.json5",
+		".gitlab/renovate.json",
+		".gitlab/renovate.json5",
+		".renovaterc",
+		".renovaterc.json",
+		".renovaterc.json5":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "RenovateBot",
 			URL:  asPointer("https://github.com/renovatebot/renovate"),

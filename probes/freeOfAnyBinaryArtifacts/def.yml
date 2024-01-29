@@ -17,7 +17,7 @@ short: Checks if the project has any binary files in its source tree.
 motivation: >
   Binary files are not readable so users can't see what they do. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
 implementation: >
-  The implementation looks for the presence of binary files. This is a more restrictive probe than "freeOfUnverifiededBinaryArtifacts" which excludes verified binary files.
+  The implementation looks for the presence of binary files. This is a more restrictive probe than "freeOfUnverifiedBinaryArtifacts" which excludes verified binary files.
 outcome:
   - If the probe finds binary files, it returns a number of negative outcomes equal to the number of binary files found. Each outcome includes a location of the file.
   - If the probe finds no verified binary files, it returns a single positive outcome.

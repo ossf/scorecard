@@ -935,9 +935,9 @@ func TestAddVulnerabilitiesRawResults(t *testing.T) {
 		},
 	}
 
-	err := r.addVulnerbilitiesRawResults(vd)
+	err := r.addVulnerabilitiesRawResults(vd)
 	if err != nil {
-		t.Errorf("addVulnerbilitiesRawResults returned an error: %v", err)
+		t.Errorf("addVulnerabilitiesRawResults returned an error: %v", err)
 	}
 
 	expected := []jsonDatabaseVulnerability{
@@ -950,12 +950,12 @@ func TestAddVulnerabilitiesRawResults(t *testing.T) {
 	}
 
 	if len(r.Results.DatabaseVulnerabilities) != len(expected) {
-		t.Errorf("addVulnerbilitiesRawResults did not add the correct number of vulnerabilities. Expected %d, got %d", len(expected), len(r.Results.DatabaseVulnerabilities))
+		t.Errorf("addVulnerabilitiesRawResults did not add the correct number of vulnerabilities. Expected %d, got %d", len(expected), len(r.Results.DatabaseVulnerabilities))
 	}
 
 	for i, vuln := range r.Results.DatabaseVulnerabilities {
 		if vuln.ID != expected[i].ID {
-			t.Errorf("addVulnerbilitiesRawResults did not add the correct vulnerability. Expected %s, got %s", expected[i].ID, vuln.ID)
+			t.Errorf("addVulnerabilitiesRawResults did not add the correct vulnerability. Expected %s, got %s", expected[i].ID, vuln.ID)
 		}
 	}
 }
@@ -1136,17 +1136,17 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		},
 	}
 
-	// test addVulnerbilitiesRawResults
-	err := r.addVulnerbilitiesRawResults(vd)
+	// test addVulnerabilitiesRawResults
+	err := r.addVulnerabilitiesRawResults(vd)
 	if err != nil {
-		t.Errorf("addVulnerbilitiesRawResults returned an error: %v", err)
+		t.Errorf("addVulnerabilitiesRawResults returned an error: %v", err)
 	}
 	expectedVulnerabilities := []jsonDatabaseVulnerability{
 		{ID: "CVE-2021-1234"},
 		{ID: "CVE-2021-5678"},
 	}
 	if cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities) != "" {
-		t.Errorf("addVulnerbilitiesRawResults did not produce the expected results %v", cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities))
+		t.Errorf("addVulnerabilitiesRawResults did not produce the expected results %v", cmp.Diff(r.Results.DatabaseVulnerabilities, expectedVulnerabilities))
 	}
 
 	// test addBinaryArtifactRawResults

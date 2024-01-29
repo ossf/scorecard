@@ -153,7 +153,7 @@ func TestResults(t *testing.T) {
 			wantEqual: false,
 		},
 		{
-			name: "details have differnet levels",
+			name: "details have different levels",
 			a: &pkg.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{

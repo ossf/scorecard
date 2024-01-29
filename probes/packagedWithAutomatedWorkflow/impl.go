@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		// Presence of a single non-debug message means the
 		// check passes.
 		f, err := finding.NewWith(fs, Probe,
-			"Project packages its releases by way of Github Actions.", nil,
+			"Project packages its releases by way of GitHub Actions.", nil,
 			finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)

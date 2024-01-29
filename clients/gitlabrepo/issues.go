@@ -48,7 +48,7 @@ func (handler *issuesHandler) setup() error {
 		}
 
 		// There doesn't seem to be a good way to get user access_levels in gitlab so the following way may seem incredibly
-		// barberic, however I couldn't find a better way in the docs.
+		// barbaric, however I couldn't find a better way in the docs.
 		projMemberships, resp, err := handler.glClient.ProjectMembers.ListAllProjectMembers(
 			handler.repourl.projectID, &gitlab.ListProjectMembersOptions{})
 		if err != nil && resp.StatusCode != 401 {

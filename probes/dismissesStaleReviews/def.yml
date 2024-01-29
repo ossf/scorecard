@@ -25,4 +25,4 @@ remediation:
   text:
     - Configure your repository so that the stale status of PRs is dismissed when users make new commits.
     - For GitHub-hosted projects, see ["Require pull request reviews before merging"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-pull-request-reviews-before-merging).
-    - For Gitlab-hosted projects, see ["Remove all approvals when commits are added to the source branch"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).
+    - For GitLab-hosted projects, see ["Remove all approvals when commits are added to the source branch"](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/settings.html#remove-all-approvals-when-commits-are-added-to-the-source-branch).

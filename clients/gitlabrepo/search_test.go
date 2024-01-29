@@ -94,7 +94,7 @@ func TestBuildQuery(t *testing.T) {
 			expectedQuery: "testquery project:testowner/1234 in:file filename:filename1.txt path:dir1/dir2",
 		},
 		{
-			name: "WithFilenameAndPathWithSeperator",
+			name: "WithFilenameAndPathWithSeparator",
 			repourl: &repoURL{
 				owner:     "testowner",
 				projectID: "1234",

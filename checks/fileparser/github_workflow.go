@@ -343,7 +343,7 @@ type JobMatcherStep struct {
 	Run string
 }
 
-// JobMatchResult represents the result of a matche.
+// JobMatchResult represents the result of a match.
 type JobMatchResult struct {
 	Msg  string
 	File checker.File

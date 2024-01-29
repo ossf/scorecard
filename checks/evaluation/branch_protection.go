@@ -70,7 +70,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		var score levelScore
 		b := r.Branches[i]
 
-		// Protected field only indates that the branch matches
+		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
 		// so it does not provide any guarantees.
 		protected := !(b.Protected != nil && !*b.Protected)
@@ -361,7 +361,7 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 
 	// nil typically means we do not have access to the value.
 	if branch.BranchProtectionRule.EnforceAdmins != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
+		// Note: we don't increase max possible score for non-admin viewers.
 		max++
 		switch *branch.BranchProtectionRule.EnforceAdmins {
 		case true:

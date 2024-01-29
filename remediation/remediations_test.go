@@ -80,7 +80,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 		name     string
 	}{
 		{
-			name:     "no depdendency",
+			name:     "no dependency",
 			dep:      checker.Dependency{},
 			expected: nil,
 		},

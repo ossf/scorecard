@@ -47,13 +47,13 @@ func Test_countScores(t *testing.T) {
 			want:    [12]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
 		},
 		{
-			name:    "check name case insensitive",
+			name:    "check name case-insensitive",
 			check:   "fOo",
 			results: common,
 			want:    [12]int{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1},
 		},
 		{
-			name:    "non existent check",
+			name:    "nonexistent check",
 			check:   "not present",
 			results: common,
 			wantErr: true,
@@ -96,7 +96,7 @@ func Test_calcStats(t *testing.T) {
 	input := strings.NewReader(`{"date":"0001-01-01T00:00:00Z","repo":{"name":"repo1"},"score":10}`)
 	var output bytes.Buffer
 	if err := calcStats(input, &output); err != nil {
-		t.Fatalf("unexepected error: %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
 	got := output.String()
 	// this is a bit of a simplification, but keeps the test simple

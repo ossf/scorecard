@@ -61,7 +61,7 @@ func TestSecurityPolicy(t *testing.T) {
 		},
 		{
 			name: "docs/security.md",
-			path: "./testdata/securitypolicy/04_textAndDisclosureVuls",
+			path: "./testdata/securitypolicy/04_textAndDisclosureVulns",
 			files: []string{
 				"docs/security.md",
 			},
@@ -133,7 +133,7 @@ func TestSecurityPolicy(t *testing.T) {
 		},
 		{
 			name: ".github/security.adoc",
-			path: "./testdata/securitypolicy/10_linkedContentAndTextAndDisclosureVuls",
+			path: "./testdata/securitypolicy/10_linkedContentAndTextAndDisclosureVulns",
 			files: []string{
 				".github/security.adoc",
 			},
