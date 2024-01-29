@@ -1,0 +1,28 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: pinsDependencies
+short: Check that the project pins dependencies to a specific digest.
+motivation: >
+  Pinned dependencies ensure that checking and deployment are all done with the same software, reducing deployment risks, simplifying debugging, and enabling reproducibility. They can help mitigate compromised dependencies from undermining the security of the project (in the case where you've evaluated the pinned dependency, you are confident it's not compromised, and a later version is released that is compromised).
+implementation: >
+  The probe works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows which are used during the build and release process of a project. Special considerations for Go modules treat full semantic versions as pinned due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
+outcome:
+  - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a signature file in the release assets.
+  - For each of the last 5 releases, the probe returns OutcomeNegative, if the release does not have a signature file in the release assets.
+  - If the project has no releases, the probe returns OutcomeNotApplicable.
+remediation:
+  effort: Medium
+  text:
+    - Pin dependencies by hash.
