@@ -456,7 +456,7 @@ func isNpmDownload(cmd []string) bool {
 
 func isNpmUnpinnedDownload(cmd []string) bool {
 	for i := 1; i < len(cmd); i++ {
-		// `npm ci` wil verify all hashes are present.
+		// `npm ci` will verify all hashes are present.
 		if strings.EqualFold(cmd[i], "ci") {
 			return false
 		}
@@ -805,7 +805,7 @@ func isNugetUnpinnedDownload(cmd []string) bool {
 	return false
 }
 
-func collectUnpinnedPakageManagerDownload(startLine, endLine uint, node syntax.Node,
+func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.Node,
 	cmd, pathfn string, r *checker.PinningDependenciesData,
 ) {
 	ce, ok := node.(*syntax.CallExpr)
@@ -1146,7 +1146,7 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		collectFetchProcSubsExecute(startLine, endLine, node, cmdStr, pathfn, r)
 
 		// Package manager's unpinned installs.
-		collectUnpinnedPakageManagerDownload(startLine, endLine, node, cmdStr, pathfn, r)
+		collectUnpinnedPackageManagerDownload(startLine, endLine, node, cmdStr, pathfn, r)
 
 		// TODO(laurent): add check for cat file | bash.
 		// TODO(laurent): detect downloads of zip/tar files containing scripts.

@@ -25,8 +25,8 @@ remediation:
   text:
     - Configure the repository such that it requires PRs to be in sync with the base branch.
     - For GitHub-hosted projects, followed [these instructions](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging)
-    - For Gitlab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).
+    - For GitLab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).
   markdown:
     - Configure the repository such that it requires PRs to be in sync with the base branch.
     - For GitHub-hosted projects, followed [these instructions](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging)
-    - For Gitlab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).
+    - For GitLab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).

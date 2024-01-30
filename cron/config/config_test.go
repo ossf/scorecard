@@ -343,7 +343,7 @@ func TestGetBigQueryDataset(t *testing.T) {
 		os.Unsetenv(bigqueryDataset)
 		dataset, err := GetBigQueryDataset()
 		if err != nil {
-			t.Errorf("failed to get production BQ datset from config: %v", err)
+			t.Errorf("failed to get production BQ dataset from config: %v", err)
 		}
 		if dataset != prodBigQueryDataset {
 			t.Errorf("test failed: expected - %s, got = %s", prodBigQueryDataset, dataset)
@@ -510,7 +510,7 @@ func TestGetAdditionalParams(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "nonexistant value",
+			name:    "nonexistent value",
 			mapName: "this-value-should-never-exist",
 			want:    map[string]string{},
 			wantErr: true,

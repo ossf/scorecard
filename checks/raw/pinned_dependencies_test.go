@@ -124,7 +124,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: false,
 		},
 		{
-			desc:     "hecking out mutable tag",
+			desc:     "checking out mutable tag",
 			uses:     "actions/checkout@v3.2.0",
 			ispinned: false,
 		},
@@ -144,12 +144,12 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: false,
 		},
 		{
-			desc:     "checking out specific commmit from github with truncated SHA-1",
+			desc:     "checking out specific commit from github with truncated SHA-1",
 			uses:     "actions/checkout@a81bbbf",
 			ispinned: false,
 		},
 		{
-			desc:     "checking out specific commmit from github with SHA-1",
+			desc:     "checking out specific commit from github with SHA-1",
 			uses:     "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
 			ispinned: true,
 		},
@@ -449,7 +449,7 @@ func TestFileIsInVendorDir(t *testing.T) {
 		},
 		{
 			name:     "misspelled vendor dir",
-			filename: "a/vendorr/Dockerfile",
+			filename: "a/vendor_/Dockerfile",
 			expected: false,
 		},
 	}
@@ -1220,7 +1220,7 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	}
 }
 
-func TestDockerfilePinningWihoutHash(t *testing.T) {
+func TestDockerfilePinningWithoutHash(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {
@@ -1578,7 +1578,7 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}
 }
 
-func TestGitHubWorflowRunDownload(t *testing.T) {
+func TestGitHubWorkflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {

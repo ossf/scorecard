@@ -94,11 +94,19 @@ check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
-add-projects: ## Adds new projects to ./cron/internal/data/projects.csv
+fix-linter: ## Install and run golang linter, with fixes
+fix-linter: | $(GOLANGCI_LINT)
+	# Run golangci-lint linter
+	$(GOLANGCI_LINT) run -c .golangci.yml --fix
+
+add-projects: ## Adds new projects to ./cron/internal/data/projects.csv and ./cron/internal/data/gitlab-projects.csv
 add-projects: ./cron/internal/data/projects.csv | build-add-script
-	# Add new projects to ./cron/internal/data/projects.csv
+	# GitHub
 	./cron/internal/data/add/add ./cron/internal/data/projects.csv ./cron/internal/data/projects.new.csv
 	mv ./cron/internal/data/projects.new.csv ./cron/internal/data/projects.csv
+	# GitLab
+	./cron/internal/data/add/add ./cron/internal/data/gitlab-projects.csv ./cron/internal/data/gitlab-projects.new.csv
+	mv ./cron/internal/data/gitlab-projects.new.csv ./cron/internal/data/gitlab-projects.csv
 
 validate-projects: ## Validates ./cron/internal/data/projects.csv
 validate-projects: ./cron/internal/data/projects.csv | build-validate-script
@@ -108,7 +116,7 @@ validate-projects: ./cron/internal/data/projects.csv | build-validate-script
 	./cron/internal/data/validate/validate ./cron/internal/data/gitlab-projects-releasetest.csv
 
 tree-status: | all-targets-update-dependencies ## Verify tree is clean and all changes are committed
-	# Verify the tree is clean and all changes are commited
+	# Verify the tree is clean and all changes are committed
 	./scripts/tree-status
 
 ###############################################################################
@@ -247,7 +255,7 @@ build-attestor-docker: ## Build scorecard-attestor Docker image
 build-attestor-docker:
 	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \
 		--tag scorecard-attestor:latest \
-		--tag scorecard-atttestor:$(GIT_HASH)
+		--tag scorecard-attestor:$(GIT_HASH)
 
 TOKEN_SERVER_DEPS = $(shell find clients/githubrepo/roundtripper/tokens/ -iname "*.go")
 build-github-server: ## Build GitHub token server

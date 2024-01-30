@@ -15,7 +15,7 @@
 id: securityPolicyContainsText
 short: Check that the security policy contains enough text and not just links.
 motivation: >
-  Telling security researchers how to privately dislose problems with your project is important. The more details available, the better.
+  Telling security researchers how to privately disclose problems with your project is important. The more details available, the better.
 implementation: >
   The implementation checks that the content of the SECURITY.md contains more than just a link or an email address. It does this by comparing the length of the content to the lengths of the links and email addresses.
 outcome:

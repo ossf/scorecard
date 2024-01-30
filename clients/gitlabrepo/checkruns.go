@@ -43,7 +43,7 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 		options.Ref = &ref
 	}
 
-	// Notes for Gitlab ListProjectPipelines endpoint:
+	// Notes for GitLab ListProjectPipelines endpoint:
 	// Only full SHA works for SHA param, Short SHA does not work
 	// Branch names work for Ref Param, tags and SHAs do not work
 	// Reference: https://docs.gitlab.com/ee/api/pipelines.html#list-project-pipelines

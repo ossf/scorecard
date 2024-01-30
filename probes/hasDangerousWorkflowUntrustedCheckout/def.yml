@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: hasDangerousWorkflowUntrustedCheckout
-short: Check whether the project has Github Actions workflows that does untrusted checkouts.
+short: Check whether the project has GitHub Actions workflows that does untrusted checkouts.
 motivation: >
   Untrusted Code Checkout: This is the misuse of potentially dangerous triggers. This checks if a pull_request_target or workflow_run workflow trigger was used in conjunction with an explicit pull request checkout. Workflows triggered with pull_request_target / workflow_run have write permission to the target repository and access to target repository secrets. With the PR checkout, PR authors may compromise the repository, for example, by using build scripts controlled by the author of the PR or reading token in memory. This check does not detect whether untrusted code checkouts are used safely, for example, only on pull request that have been assigned a label.
 implementation: >

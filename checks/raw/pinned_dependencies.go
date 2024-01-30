@@ -231,8 +231,8 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
 		if !*rr.Pinned {
-			remdtion := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
-			rr.Remediation = remdtion
+			remediate := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+			rr.Remediation = remediate
 		}
 	}
 	return nil
@@ -486,8 +486,8 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
 		if !*rr.Pinned {
-			remdtion := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
-			rr.Remediation = remdtion
+			remediate := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			rr.Remediation = remediate
 		}
 	}
 	return nil

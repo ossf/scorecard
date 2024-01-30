@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// NOTE: In Gitlab repositories are called projects, however to ensure compatibility,
-// this package will regard to Gitlab projects as repositories.
+// NOTE: In GitLab repositories are called projects, however to ensure compatibility,
+// this package will regard to GitLab projects as repositories.
 package gitlabrepo
 
 import (

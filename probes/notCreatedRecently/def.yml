@@ -15,7 +15,7 @@
 id: notCreatedRecently
 short: Checks that the project was not created in the last 90 days.
 motivation: >
-  When Scorecard checks the activity of a project in the last 90 days, the project may not have been created before the last 90 days. As such, Scorecard cannot give an accurate score. This probe helps Scorecard assess whether it can give an accurrate score when checking the project activity in the last 90 days.
+  When Scorecard checks the activity of a project in the last 90 days, the project may not have been created before the last 90 days. As such, Scorecard cannot give an accurate score. This probe helps Scorecard assess whether it can give an accurate score when checking the project activity in the last 90 days.
 implementation: >
   The implementation checks the creation date is within the last 90 days.
 outcome:

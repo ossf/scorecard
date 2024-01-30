@@ -63,7 +63,7 @@ jobs:
           echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@e12d46a63a90f2fae62d114769bbf2a179198b5c #v3.3.3
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 #v4.0.0
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -87,7 +87,7 @@ jobs:
           command: make e2e-gh-token
 
       - name: codecov
-        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
+        uses: codecov/codecov-action@4fe8c5f003fae66aa5ebb77cfd3e7bfbbda0b6b0 # 3.1.5
         with:
          files: "*e2e-coverage.out"
          verbose: true

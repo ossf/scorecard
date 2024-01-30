@@ -40,7 +40,7 @@ jobs:
         fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
-      uses: tj-actions/changed-files@62f4729b5df35e6e0e01265fa70a82ccaf196b4b #v41.1.1
+      uses: tj-actions/changed-files@90a06d6ba9543371ab4df8eeca0be07ca6054959 #v42.0.2
       with:
         files_ignore: '**.md'
     - id: docs_only_check
@@ -65,7 +65,7 @@ jobs:
     permissions:
       contents: read
     needs: docs_only_check
-    # ideally we put one "if" here, but due to how skipped matrix jobs work, we need one for each each step
+    # ideally we put one "if" here, but due to how skipped matrix jobs work, we need one for each step
     # https://github.com/orgs/community/discussions/9141
     steps:
      - name: Harden Runner

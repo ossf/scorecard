@@ -239,7 +239,7 @@ func isSupportedProjectURL(projectURL string) bool {
 }
 
 // Nuget semver diverges from Semantic Versioning.
-// This method returns the Nuget represntation of version and pre release strings.
+// This method returns the Nuget representation of version and pre release strings.
 //
 //nolint:lll // https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#where-nugetversion-diverges-from-semantic-versioning
 func parseNugetSemVer(versionString string) (base, preReleaseSuffix string) {

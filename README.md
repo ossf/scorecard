@@ -413,7 +413,7 @@ RESULTS
 |         |                        |                                | review dismissal enabled on    |                                                                           |
 |         |                        |                                | branch 'main' Info: Owner      |                                                                           |
 |         |                        |                                | review required on branch      |                                                                           |
-|         |                        |                                | 'main' Info: 'admininistrator' |                                                                           |
+|         |                        |                                | 'main' Info: 'administrator'   |                                                                           |
 |         |                        |                                | PRs need reviews before being  |                                                                           |
 |         |                        |                                | merged on branch 'main'        |                                                                           |
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
@@ -559,7 +559,7 @@ risk level.
 ### Report Problems
 
 If you have what looks like a bug, please use the
-[Github issue tracking system.](https://github.com/ossf/scorecard/issues) Before
+[GitHub issue tracking system.](https://github.com/ossf/scorecard/issues) Before
 you file an issue, please search existing issues to see if your issue is already
 covered.
 

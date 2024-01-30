@@ -21,11 +21,11 @@ RUN /tmp/exe
 RUN gsutil gs://exe /tmp/exe1 && /tmp/exe1
 RUN gsutil gs://exe /tmp/exe2 ; /tmp/exe2
 
-RUN gsutil gs://bucet/exe6 /path/to/
+RUN gsutil gs://bucket/exe6 /path/to/
 
 RUN gsutil gs://bucket/exe . && ./exe
-RUN gsutil gs://bucet/exe3 /path/to/ && /path/to/exe3
-RUN gsutil gs://bucet/exe4 /path/to/ && /path/to/exe4
+RUN gsutil gs://bucket/exe3 /path/to/ && /path/to/exe3
+RUN gsutil gs://bucket/exe4 /path/to/ && /path/to/exe4
 
 RUN /path/to/exe6
 
@@ -35,19 +35,19 @@ RUN bash /tmp/file
 RUN gsutil gs://file /tmp/file1 && bash /tmp/file1
 RUN gsutil gs://file /tmp/file2 ; bash /tmp/file2
 
-RUN gsutil gs://bucet/file6 /path/to/
+RUN gsutil gs://bucket/file6 /path/to/
 
 RUN gsutil gs://bucket/file . && bash ./file
-RUN gsutil gs://bucet/file3 /path/to/ && bash /path/to/file3
-RUN gsutil gs://bucet/file4 /path/to/ && bash /path/to/file4
+RUN gsutil gs://bucket/file3 /path/to/ && bash /path/to/file3
+RUN gsutil gs://bucket/file4 /path/to/ && bash /path/to/file4
 
 RUN bash /path/to/file6
 
 RUN ["gsutil", "gs://exe11", "/tmp/exe11"]
 RUN ["/tmp/exe11"]
 
-RUN ["sh", "-c", "\"gsutil gs://bucet/file3xx /path/to/ && bash /path/to/file3xx\""]
-RUN ["sh", "-c", "\"gsutil gs://bucet/file3yy /path/to/ \""]
+RUN ["sh", "-c", "\"gsutil gs://bucket/file3xx /path/to/ && bash /path/to/file3xx\""]
+RUN ["sh", "-c", "\"gsutil gs://bucket/file3yy /path/to/ \""]
 RUN ["sh", "-c", "\"bash /path/to/file3yy\""]
 
 FROM scratch

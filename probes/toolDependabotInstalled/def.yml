@@ -18,12 +18,12 @@ motivation: >
   Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
   Dependabot automates the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
 implementation: >
-  The implemtation looks for the presence of files named ".github/dependabot.yml" or ".github/dependabot.yaml". If none of these files are found,
+  The implementation looks for the presence of files named ".github/dependabot.yml" or ".github/dependabot.yaml". If none of these files are found,
   the implementation checks whether commits are authored by Dependabot. If none of these succeed, Dependabot is not installed.
   NOTE: if the configuration files are found, the probe does not ensure that the Dependabot is run or that the Dependabot's pull requests are merged.
 outcome:
-  - If dependendabot is installed, the probe returns OutcomePositive (1) for each configuration.
-  - If dependendabot is not installed, the probe returns one OutcomeNegative (0).
+  - If dependabot is installed, the probe returns OutcomePositive (1) for each configuration.
+  - If dependabot is not installed, the probe returns one OutcomeNegative (0).
 remediation:
   effort: Low
   text:

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: hasDangerousWorkflowScriptInjection
-short: Check whether the project has Github Actions workflows that enable script injection.
+short: Check whether the project has GitHub Actions workflows that enable script injection.
 motivation: >
   Script Injection with Untrusted Context Variables: This pattern detects whether a workflow's inline script may execute untrusted input from attackers. This occurs when an attacker adds malicious commands and scripts to a context. When a workflow runs, these strings may be interpreted as code that is executed on the runner. Attackers can add their own content to certain github context variables that are considered untrusted, for example, github.event.issue.title. These values should not flow directly into executable code.
 implementation: >

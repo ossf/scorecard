@@ -43,7 +43,7 @@ var _ = Describe("E2E TEST:SearchCommits", func() {
 			err = repoClient.InitRepo(repo, "123456789", 0)
 			Expect(err).ShouldNot(Not(BeNil()))
 		})
-		It("Should return error as the user does not exists", func() {
+		It("Should return error as the user does not exist", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf/scorecard")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)

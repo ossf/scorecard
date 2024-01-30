@@ -48,7 +48,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Was creted 100 days ago",
+			name: "Was created 100 days ago",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
 					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -100 /*days*/),

@@ -26,7 +26,7 @@ import (
 )
 
 // dependency is a raw dependency fetched from the GitHub Dependency Review API.
-// Fields of a dependnecy correspondings to those of pkg.DependencyCheckResult.
+// Fields of a dependency corresponding to those of pkg.DependencyCheckResult.
 type dependency struct {
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"package_url"`

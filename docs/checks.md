@@ -328,7 +328,7 @@ low score is therefore not a definitive indication that the project is at risk.
  
 
 **Remediation steps**
-- Signup for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
+- Sign up for automatic dependency updates with one of the previously listed dependency update tools and place the config file in the locations that are recommended by these tools. Due to https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can be enabled for forks where security updates have ever been turned on so projects maintaining stable forks should evaluate whether this behavior is satisfactory before turning it on.
 - Unlike Dependabot, Renovate bot has support to migrate dockerfiles' dependencies from version pinning to hash pinning via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without additional manual effort.
 
 ## Fuzzing 
@@ -413,7 +413,7 @@ need maintenance unless an underlying implementation language definition
 changed. A lack of active maintenance should signal that potential users should
 investigate further to judge the situation.
 
-This check will only succeed if a Github project is >90 days old. Projects
+This check will only succeed if a GitHub project is >90 days old. Projects
 that are younger than this are too new to assess whether they are maintained
 or not, and users should inspect the contents of those projects to ensure they
 are as expected.
@@ -526,7 +526,7 @@ SAST is testing run on source code before the application is run. Using SAST
 tools can prevent known classes of bugs from being inadvertently introduced in the
 codebase.
 
-The checks currently looks for known Github apps such as
+The checks currently looks for known GitHub apps such as
 [CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
 of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
@@ -570,7 +570,7 @@ Free Form Text (3/10 points):
 Security Policy Specific Text (1/10 points):
   - Specific text providing basic or general information about vulnerability
     and disclosure practices, expectations, and/or timelines
-  - Text should include a total of 2 or more hits which match (case insensitive)
+  - Text should include a total of 2 or more hits which match (case-insensitive)
     `vuln` and as in "Vulnerability" or "vulnerabilities";
     `disclos` as "Disclosure" or "disclose";
     and numbers which convey expectations of times, e.g., 30 days or 90 days

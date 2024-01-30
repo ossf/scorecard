@@ -278,7 +278,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 	return true, nil
 }
 
-// fileExists checks if a file of name name exists, including within
+// fileExists checks if a file named `name` exists, including within
 // subdirectories.
 func fileExists(files []checker.File, name string) bool {
 	for _, f := range files {

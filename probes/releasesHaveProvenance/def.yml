@@ -13,14 +13,14 @@
 # limitations under the License.
 
 id: releasesHaveProvenance
-short: Check that the projects releases on Github and Gitlab have provenance.
+short: Check that the projects releases on GitHub and GitLab have provenance.
 motivation: >
   Provenance give users security-critical, verifiable information so that consumers can verify their artifacts before consuming them.
 implementation: >
-  The probe checks whether any of the assets in any of the last five releases on Github or Gitlab have a provenance file.
+  The probe checks whether any of the assets in any of the last five releases on GitHub or GitLab have a provenance file.
 outcome:
   - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a provenance file in the release assets.
-  - For each of the last 5 releases, the probe returns OutcomeNegative, if the the release does not have a provenance file in the release assets.
+  - For each of the last 5 releases, the probe returns OutcomeNegative, if the release does not have a provenance file in the release assets.
   - If the project has no releases, the probe returns OutcomeNotApplicable.
 remediation:
   effort: Medium

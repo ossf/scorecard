@@ -32,7 +32,7 @@ type pinnedResult struct {
 
 // Structure to host information about pinned github
 // or third party dependencies.
-type worklowPinningResult struct {
+type workflowPinningResult struct {
 	thirdParties pinnedResult
 	gitHubOwned  pinnedResult
 }
@@ -209,7 +209,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var wp worklowPinningResult
+	var wp workflowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
 	dl := c.Dlogger
 
@@ -269,7 +269,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 	// Go through all dependency types
 	// GitHub Actions need to be handled separately since they are not in pr
 	scores = append(scores, createScoreForGitHubActionsWorkflow(&wp, dl)...)
-	// Only exisiting dependencies will be found in pr
+	// Only existing dependencies will be found in pr
 	// We will only score the ecosystem if there are dependencies
 	// This results in only existing ecosystems being included in the final score
 	for t := range pr {
@@ -300,10 +300,10 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 
 func updatePinningResults(dependencyType checker.DependencyUseType,
 	outcome finding.Outcome, snippet *string,
-	wp *worklowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
+	wp *workflowPinningResult, pr map[checker.DependencyUseType]pinnedResult,
 ) {
 	if dependencyType == checker.DependencyUseTypeGHAction {
-		// Note: `Snippet` contains `action/name@xxx`, so we cna use it to infer
+		// Note: `Snippet` contains `action/name@xxx`, so we can use it to infer
 		// if it's a GitHub-owned action or not.
 		gitHubOwned := fileparser.IsGitHubOwnedAction(*snippet)
 		addWorkflowPinnedResult(outcome, wp, gitHubOwned)
@@ -345,7 +345,7 @@ func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
 	r.total += 1
 }
 
-func addWorkflowPinnedResult(outcome finding.Outcome, w *worklowPinningResult, isGitHub bool) {
+func addWorkflowPinnedResult(outcome finding.Outcome, w *workflowPinningResult, isGitHub bool) {
 	if isGitHub {
 		addPinnedResult(outcome, &w.gitHubOwned)
 	} else {
@@ -359,7 +359,7 @@ func logPinnedResult(dl checker.DetailLogger, p pinnedResult, name string) {
 	})
 }
 
-func createScoreForGitHubActionsWorkflow(wp *worklowPinningResult, dl checker.DetailLogger,
+func createScoreForGitHubActionsWorkflow(wp *workflowPinningResult, dl checker.DetailLogger,
 ) []checker.ProportionalScoreWeighted {
 	if wp.gitHubOwned.total == 0 && wp.thirdParties.total == 0 {
 		return []checker.ProportionalScoreWeighted{}

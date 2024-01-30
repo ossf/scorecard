@@ -103,7 +103,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		},
 		{
 			name:           "shell specified in step",
-			filename:       "../testdata/.github/workflows/github-workflow-shells-speficied-step.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-specified-step.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{

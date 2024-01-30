@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd implements Scorecard commandline.
+// Package cmd implements Scorecard command-line.
 package cmd
 
 import (
@@ -336,7 +336,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
     "description": "UNKNOWN",
     "description_content_type": null,
     "docs_url": null,
-    "downoad_url": null,
+    "download_url": null,
     "downloads": {
       "last_day": -1,
       "last_month": -1,

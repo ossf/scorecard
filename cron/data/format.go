@@ -24,7 +24,7 @@ func (s CSVStrings) MarshalCSV() ([]byte, error) {
 	return []byte(strings.Join(s, ",")), nil
 }
 
-// UnmarshalCSV implements []byte -> []string de-serializtion.
+// UnmarshalCSV implements []byte -> []string de-serialization.
 func (s *CSVStrings) UnmarshalCSV(input []byte) error {
 	if len(input) == 0 {
 		*s = nil
