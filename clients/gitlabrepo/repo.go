@@ -141,15 +141,14 @@ func (r *repoURL) IsValid() error {
 	var errResp *gitlab.ErrorResponse
 	if errors.As(err, &errResp) {
 		if errResp.Response != nil && errResp.Response.StatusCode == 401 {
-			if token, ok := os.LookupEnv("GITLAB_AUTH_TOKEN"); ok {
+			if token := os.Getenv("GITLAB_AUTH_TOKEN"); token != "" {
 				ok, err = listProjects(token, baseURL)
 			}
 		}
 	}
-
 	// otherwise fall back to normal error handling
 	if err != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, "connecting to gitlab instance: "+r.host)
+		return err
 	}
 	if !ok {
 		return sce.WithMessage(sce.ErrRepoUnreachable, "couldn't reach gitlab instance: "+r.host)
@@ -187,5 +186,8 @@ func listProjects(token, baseURL string) (ok bool, err error) {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, "couldn't create gitlab client for "+baseURL)
 	}
 	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-	return (resp != nil && resp.StatusCode == http.StatusOK), err
+	if err != nil {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "connecting to gitlab instance: "+baseURL)
+	}
+	return (resp != nil && resp.StatusCode == http.StatusOK), nil
 }
