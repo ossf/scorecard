@@ -55,7 +55,7 @@ func TestPinningDependencies(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
-            mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
 
 			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
