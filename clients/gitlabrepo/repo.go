@@ -118,6 +118,10 @@ func (r *repoURL) String() string {
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
+	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
+		return sce.WithMessage(sce.ErrorInvalidURL, "expected full project url: "+r.URI())
+	}
+
 	if strings.Contains(r.host, "gitlab.") {
 		return nil
 	}
@@ -147,10 +151,6 @@ func (r *repoURL) IsValid() error {
 		)
 	}
 
-	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
-		return sce.WithMessage(sce.ErrorInvalidURL,
-			fmt.Sprintf("%v. Expected the full project url", r.URI()))
-	}
 	return nil
 }
 
