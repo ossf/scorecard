@@ -42,6 +42,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v4/probes/hasPermissiveLicense"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
@@ -108,6 +109,9 @@ var (
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Run,
+	}
+	PermissiveLicense = []ProbeImpl{
+		hasPermissiveLicense.Run,
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
@@ -177,6 +181,7 @@ var (
 		fuzzedWithPropertyBasedJavascript.Probe:             fuzzedWithPropertyBasedJavascript.Run,
 		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
 		hasLicenseFile.Probe:                                hasLicenseFile.Run,
+		hasPermissiveLicense.Probe:                          hasPermissiveLicense.Run,
 		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
 		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
 		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
@@ -216,6 +221,7 @@ var (
 		hasLicenseFile.Probe:                                "License",
 		hasFSFOrOSIApprovedLicense.Probe:                    "License",
 		hasLicenseFileAtTopDir.Probe:                        "License",
+		hasPermissiveLicense.Probe:                          "PermissiveLicense",
 		contributorsFromOrgOrCompany.Probe:                  "Contributors",
 		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
 		sastToolCodeQLInstalled.Probe:                       "SAST",
