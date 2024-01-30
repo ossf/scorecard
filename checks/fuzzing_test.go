@@ -169,9 +169,7 @@ func TestFuzzing(t *testing.T) {
 				return
 			}
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl) {
-				t.Fatalf(tt.name, tt.expected)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl)
 		})
 	}
 }

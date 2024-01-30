@@ -573,9 +573,7 @@ func TestIsBranchProtected(t *testing.T) {
 				Score: score,
 				Error: err,
 			}
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, actual, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, actual, &dl)
 		})
 	}
 }
