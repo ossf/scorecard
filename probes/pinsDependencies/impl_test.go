@@ -28,6 +28,8 @@ import (
 )
 
 func Test_Run(t *testing.T) {
+	jobName := "jobName"
+	msg := "msg"
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {
@@ -491,6 +493,85 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			err: sce.ErrScorecardInternal,
+		},
+		{
+			name: "dependency missing Location info",
+			raw: &checker.RawResults{
+				PinningDependenciesResults: checker.PinningDependenciesData{
+					Dependencies: []checker.Dependency{
+						{
+							Location: nil,
+							Msg:      &msg,
+							Type:     checker.DependencyUseTypeNpmCommand,
+							Pinned:   asBoolPointer(true),
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
+			},
+		},
+		{
+			name: "neither location nor msg is nil",
+			raw: &checker.RawResults{
+				PinningDependenciesResults: checker.PinningDependenciesData{
+					Dependencies: []checker.Dependency{
+						{
+							Location: &checker.File{},
+							Msg:      &msg,
+							Type:     checker.DependencyUseTypeNpmCommand,
+							Pinned:   asBoolPointer(true),
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
+			},
+		},
+		{
+			name: "pinned = nil",
+			raw: &checker.RawResults{
+				PinningDependenciesResults: checker.PinningDependenciesData{
+					Dependencies: []checker.Dependency{
+						{
+							Location: &checker.File{},
+							Msg:      nil,
+							Type:     checker.DependencyUseTypeNpmCommand,
+							Pinned:   nil,
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
+			},
+		},
+		{
+			name: "2 processing errors",
+			raw: &checker.RawResults{
+				PinningDependenciesResults: checker.PinningDependenciesData{
+					ProcessingErrors: []checker.ElementError{
+						{
+							Location: finding.Location{
+								Snippet: &jobName,
+							},
+							Err: sce.ErrJobOSParsing,
+						},
+						{
+							Location: finding.Location{
+								Snippet: &jobName,
+							},
+							Err: sce.ErrJobOSParsing,
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeError,
+				finding.OutcomeError,
+			},
 		},
 	}
 	for _, tt := range tests {
