@@ -19,6 +19,7 @@ package gitlabrepo
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -130,25 +131,28 @@ func (r *repoURL) IsValid() error {
 		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
 	}
 
-	token := os.Getenv("GITLAB_AUTH_TOKEN")
+	// try without token first, passing an invalid auth token (expired, or for the wrong instance)
+	// can cause errors. for example, passing your gitlab.com token to a self-hosted instance throws a 401
+	var token string
 	baseURL := r.Host()
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
-	if err != nil {
-		return sce.WithMessage(err,
-			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
-		)
+	ok, err := listProjects(token, baseURL)
+
+	// some instances may need auth tokens to list projects, so if auth is required, use the token if we have it.
+	var errResp *gitlab.ErrorResponse
+	if errors.As(err, &errResp) {
+		if errResp.Response != nil && errResp.Response.StatusCode == 401 {
+			if token, ok := os.LookupEnv("GITLAB_AUTH_TOKEN"); ok {
+				ok, err = listProjects(token, baseURL)
+			}
+		}
 	}
 
-	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-	if resp == nil || resp.StatusCode != 200 {
-		return sce.WithMessage(sce.ErrRepoUnreachable,
-			fmt.Sprintf("couldn't reach gitlab instance at %s", r.host),
-		)
-	}
+	// otherwise fall back to normal error handling
 	if err != nil {
-		return sce.WithMessage(err,
-			fmt.Sprintf("error when connecting to gitlab instance at %s", r.host),
-		)
+		return sce.WithMessage(sce.ErrScorecardInternal, "connecting to gitlab instance: "+r.host)
+	}
+	if !ok {
+		return sce.WithMessage(sce.ErrRepoUnreachable, "couldn't reach gitlab instance: "+r.host)
 	}
 
 	return nil
@@ -175,4 +179,13 @@ func MakeGitlabRepo(input string) (clients.Repo, error) {
 	}
 
 	return &repo, nil
+}
+
+func listProjects(token, baseURL string) (ok bool, err error) {
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(baseURL))
+	if err != nil {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "couldn't create gitlab client for "+baseURL)
+	}
+	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
+	return (resp != nil && resp.StatusCode == http.StatusOK), err
 }
