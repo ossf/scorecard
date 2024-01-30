@@ -74,7 +74,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				return findings, Probe, e
 			}
 			f := &finding.Finding{
-				Probe:   "",
+				Probe:   Probe,
 				Outcome: finding.OutcomeNotApplicable,
 				Message: *rr.Msg,
 			}
@@ -90,7 +90,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Snippet:   &rr.Location.Snippet,
 			}
 			f := &finding.Finding{
-				Probe:    "",
+				Probe:    Probe,
 				Outcome:  finding.OutcomeNotApplicable,
 				Message:  *rr.Msg,
 				Location: loc,
@@ -107,7 +107,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Snippet:   &rr.Location.Snippet,
 			}
 			f := &finding.Finding{
-				Probe:    "",
+				Probe:    Probe,
 				Outcome:  finding.OutcomeNotApplicable,
 				Message:  fmt.Sprintf("%s has empty Pinned field", rr.Type),
 				Location: loc,
@@ -124,7 +124,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Snippet:   &rr.Location.Snippet,
 			}
 			f := &finding.Finding{
-				Probe:    "",
+				Probe:    Probe,
 				Outcome:  finding.OutcomeNegative,
 				Message:  generateTextUnpinned(&rr),
 				Location: loc,
@@ -145,7 +145,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Snippet:   &rr.Location.Snippet,
 			}
 			f := &finding.Finding{
-				Probe:    "",
+				Probe:    Probe,
 				Outcome:  finding.OutcomePositive,
 				Location: loc,
 			}
