@@ -18,6 +18,7 @@ package notCreatedRecently
 import (
 	"embed"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -29,10 +30,11 @@ import (
 var fs embed.FS
 
 const (
-	lookBackDays = 90
-)
+	Probe = "notCreatedRecently"
 
-const Probe = "notCreatedRecently"
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -50,9 +52,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 }
 
 func negativeOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository was created in last 90 days.", nil,
-		finding.OutcomeNegative)
+	text := fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+	f, err := finding.NewWith(fs, Probe, text, nil, finding.OutcomeNegative)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
@@ -60,14 +61,11 @@ func negativeOutcome() ([]finding.Finding, string, error) {
 }
 
 func positiveOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository was not created in last 90 days.", nil,
-		finding.OutcomePositive)
+	text := fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+	f, err := finding.NewWith(fs, Probe, text, nil, finding.OutcomePositive)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
-	f = f.WithValues(map[string]int{
-		"lookBackDays": 90,
-	})
+	f = f.WithValue(LookbackDayKey, strconv.Itoa(lookBackDays))
 	return []finding.Finding{*f}, Probe, nil
 }

@@ -16,6 +16,7 @@
 package hasRecentCommits
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -56,7 +57,7 @@ func Test_Run(t *testing.T) {
 		name     string
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
-		values   map[string]int
+		values   map[string]string
 		err      error
 	}{
 		{
@@ -75,9 +76,10 @@ func Test_Run(t *testing.T) {
 					DefaultBranchCommits: fiveCommitsInThreshold(),
 				},
 			},
-			values: map[string]int{
-				"commitsWithinThreshold": 5,
-				"lookBackDays":           90,
+			values: map[string]string{
+
+				CommitsValue:   "5",
+				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -88,9 +90,9 @@ func Test_Run(t *testing.T) {
 					DefaultBranchCommits: twentyCommitsInThresholdAndTwentyNot(),
 				},
 			},
-			values: map[string]int{
-				"commitsWithinThreshold": 20,
-				"lookBackDays":           90,
+			values: map[string]string{
+				CommitsValue:   "20",
+				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
