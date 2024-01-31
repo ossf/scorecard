@@ -19,6 +19,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -28,7 +29,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "requiresApproversForPullRequests"
+const (
+	Probe                = "requiresApproversForPullRequests"
+	BranchNameKey        = "branchName"
+	RequiredReviewersKey = "numberOfRequiredReviewers"
+)
 
 var errWrongValue = errors.New("wrong value, should not happen")
 
@@ -52,25 +57,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-
+		f = f.WithValue(BranchNameKey, *branch.Name)
 		switch {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
 		case *p > 0:
 			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
-			f = f.WithValues(map[string]int{
-				*branch.Name:                1,
-				"numberOfRequiredReviewers": int(*p),
-			})
+			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
-			f = f.WithValues(map[string]int{
-				*branch.Name:                1,
-				"numberOfRequiredReviewers": int(*p),
-			})
+			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
