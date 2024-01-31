@@ -1,6 +1,7 @@
 module github.com/ossf/scorecard/v4
 
 go 1.21
+toolchain go1.21.6
 
 require (
 	cloud.google.com/go/bigquery v1.58.0
@@ -43,7 +44,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.6.1
+	github.com/google/osv-scanner v1.6.2
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/otiai10/copy v1.14.0
@@ -84,7 +85,7 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
-	github.com/ianlancetaylor/demangle v0.0.0-20231023195312-e2daf7ba7156 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20240117034632-964b1d53ca6c // indirect
 	github.com/jedib0t/go-pretty/v6 v6.5.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -180,7 +181,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
-	golang.org/x/exp v0.0.0-20240112132812-db7319d0e0e3 // indirect
+	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0 // indirect
