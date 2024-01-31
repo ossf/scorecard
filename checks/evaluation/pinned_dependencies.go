@@ -54,29 +54,6 @@ const (
 	depTypeKey = "dependencyType"
 )
 
-var (
-	dependencyTypes = map[checker.DependencyUseType]int{
-		checker.DependencyUseTypeGHAction:                 0,
-		checker.DependencyUseTypeDockerfileContainerImage: 1,
-		checker.DependencyUseTypeDownloadThenRun:          2,
-		checker.DependencyUseTypeGoCommand:                3,
-		checker.DependencyUseTypeChocoCommand:             4,
-		checker.DependencyUseTypeNpmCommand:               5,
-		checker.DependencyUseTypePipCommand:               6,
-		checker.DependencyUseTypeNugetCommand:             7,
-	}
-	intToDepType = map[int]checker.DependencyUseType{
-		0: checker.DependencyUseTypeGHAction,
-		1: checker.DependencyUseTypeDockerfileContainerImage,
-		2: checker.DependencyUseTypeDownloadThenRun,
-		3: checker.DependencyUseTypeGoCommand,
-		4: checker.DependencyUseTypeChocoCommand,
-		5: checker.DependencyUseTypeNpmCommand,
-		6: checker.DependencyUseTypePipCommand,
-		7: checker.DependencyUseTypeNugetCommand,
-	}
-)
-
 func ruleRemToProbeRem(rem *rule.Remediation) *probe.Remediation {
 	return &probe.Remediation{
 		Patch:    rem.Patch,
@@ -174,9 +151,7 @@ func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Findi
 			if rr.Remediation != nil {
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}
-			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
-			})
+			f = f.WithValue(depTypeKey, string(rr.Type))
 			findings = append(findings, *f)
 		} else {
 			loc := &finding.Location{
@@ -191,9 +166,7 @@ func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Findi
 				Outcome:  finding.OutcomePositive,
 				Location: loc,
 			}
-			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
-			})
+			f = f.WithValue(depTypeKey, string(rr.Type))
 			findings = append(findings, *f)
 		}
 	}
@@ -259,7 +232,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		default:
 			// ignore
 		}
-		updatePinningResults(intToDepType[f.Values[depTypeKey]],
+		updatePinningResults(checker.DependencyUseType(f.Values[depTypeKey]),
 			f.Outcome, f.Location.Snippet,
 			&wp, pr)
 	}
