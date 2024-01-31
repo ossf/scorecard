@@ -477,7 +477,8 @@ A license can give users information about how the source code may or may
 not be used. The lack of a license will impede any kind of security review
 or audit and creates a legal risk for potential users.
 A permissive license gives the source code user further options to use the 
-source code in his own derivative works without publishing his source code, which is often not wanted in enterprise scenarios.
+source code in his own derivative works without publishing his source code, 
+which is often not wanted in enterprise scenarios.
 
 Scorecard uses the
 [GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
@@ -493,15 +494,14 @@ or `.md`. It will also detect these files in a directory named `LICENSES`.
 appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
 
 Permissive License Requirements:
-  - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
-  - The detected file is at the top-level directory (3/10 points)
-  - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
+  - The detected license is permissive (e.g. Apache 2.0, BSD(0-3 Clause), MIT) (10/10 points)
  
 
 **Remediation steps**
 - Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project. For GitHub hosted projects, follow those instructions to establish a license for your project.
 - For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
 - Alternately, create a `LICENSE` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
+- Declare a permissive license (see for example https://fossa.com/blog/all-about-permissive-licenses/)
 
 ## Pinned-Dependencies 
 
