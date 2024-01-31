@@ -36,6 +36,9 @@ on:
 permissions:
   contents: read
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   analyze:
     permissions:
@@ -58,6 +61,15 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+    # don't use the default version of Go from GitHub runners
+    # https://github.com/github/codeql-action/issues/1842#issuecomment-1704398087
+    - name: Setup Go
+      uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        check-latest: true
+        cache: false # CodeQL needs to build everything itself to do its analysis
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
