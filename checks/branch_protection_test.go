@@ -431,9 +431,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				RepoClient: mockRepoClient,
 			}
 			r := BranchProtection(&req)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
 			ctrl.Finish()
 		})
 	}

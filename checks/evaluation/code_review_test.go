@@ -216,9 +216,7 @@ func TestCodeReview(t *testing.T) {
 
 			dl := &scut.TestDetailLogger{}
 			res := CodeReview(tt.name, dl, tt.rawData)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, dl) {
-				t.Error()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, dl)
 		})
 	}
 }

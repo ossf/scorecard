@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			}
 			result := checks.SignedReleases(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "verified release", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "verified release", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

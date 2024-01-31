@@ -57,7 +57,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
-			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "use fuzzing", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
@@ -89,7 +89,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
-			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "use fuzzing", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
@@ -118,7 +118,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
-			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "use fuzzing", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
@@ -147,7 +147,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
-			Expect(scut.ValidateTestReturn(nil, "use fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "use fuzzing", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})
@@ -197,7 +197,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
-			Expect(scut.ValidateTestReturn(nil, "no fuzzing", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "no fuzzing", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 			Expect(ossFuzzRepoClient.Close()).Should(BeNil())
 		})

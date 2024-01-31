@@ -143,9 +143,7 @@ func TestCIIBestPractices(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			got := CIIBestPractices(tt.name, tt.findings, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Errorf("got %v, expected %v", got, tt.result)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }
