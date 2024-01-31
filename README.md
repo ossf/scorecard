@@ -437,6 +437,17 @@ scorecard --repo gitlab.com/<org>/<project>/<subproject>
 
 For an example of using Scorecard in GitLab CI/CD, see [here](https://gitlab.com/ossf-test/scorecard-pipeline-example).
 
+###### Self Hosted Editions
+While we focus on GitLab.com support, Scorecard also works with self-hosted GitLab installations.
+If your platform is hosted at a subdomain (e.g. `gitlab.foo.com`), Scorecard should work out of the box.
+If your platform is hosted at some slug (e.g. `foo.com/bar/`), you will need to set the `GL_HOST` environment variable.
+
+```bash
+export GITLAB_AUTH_TOKEN=glpat-xxxx
+export GL_HOST=foo.com/bar
+scorecard --repo foo.com/bar/<org>/<project>
+```
+
 ##### Using GitHub Enterprise Server (GHES) based Repository
 
 To use a GitHub Enterprise host `github.corp.com`, use the `GH_HOST` environment variable.
