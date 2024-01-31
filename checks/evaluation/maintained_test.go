@@ -18,6 +18,10 @@ import (
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/notArchived"
+	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -32,22 +36,22 @@ func TestMaintained(t *testing.T) {
 			name: "Two commits in last 90 days",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasRecentCommits",
+					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"commitsWithinThreshold": 2,
+					Values: map[string]string{
+						hasRecentCommits.CommitsValue: "2",
 					},
 				}, {
-					Probe:   "issueActivityByProjectMember",
+					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"numberOfIssuesUpdatedWithinThreshold": 1,
+					Values: map[string]string{
+						issueActivityByProjectMember.NoOfIssuesKey: "1",
 					},
 				}, {
-					Probe:   "notArchived",
+					Probe:   notArchived.Probe,
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedRecently",
+					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -59,16 +63,16 @@ func TestMaintained(t *testing.T) {
 			name: "No issues, no commits and not archived",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasRecentCommits",
+					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "issueActivityByProjectMember",
+					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "notArchived",
+					Probe:   notArchived.Probe,
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedRecently",
+					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -80,16 +84,16 @@ func TestMaintained(t *testing.T) {
 			name: "Wrong probe name",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasRecentCommits",
+					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "issueActivityByProjectMember",
+					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
 					Probe:   "archvied", /*misspelling*/
 					Outcome: finding.OutcomePositive,
 				}, {
-					Probe:   "notCreatedRecently",
+					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -102,16 +106,16 @@ func TestMaintained(t *testing.T) {
 			name: "Project is archived",
 			findings: []finding.Finding{
 				{
-					Probe:   "hasRecentCommits",
+					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "issueActivityByProjectMember",
+					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "notArchived",
+					Probe:   notArchived.Probe,
 					Outcome: finding.OutcomeNegative,
 				}, {
-					Probe:   "notCreatedRecently",
+					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomePositive,
 				},
 			},

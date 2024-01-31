@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -59,17 +60,22 @@ func Maintained(name string,
 		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
 	}
 
-	commitsWithinThreshold := 0
-	numberOfIssuesUpdatedWithinThreshold := 0
-
+	var commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold int
+	var err error
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
-				numberOfIssuesUpdatedWithinThreshold = f.Values[issueActivityByProjectMember.NoOfIssuesValue]
+				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NoOfIssuesKey])
+				if err != nil {
+					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
+				}
 			case hasRecentCommits.Probe:
-				commitsWithinThreshold = f.Values[hasRecentCommits.CommitsValue]
+				commitsWithinThreshold, err = strconv.Atoi(f.Values[hasRecentCommits.CommitsValue])
+				if err != nil {
+					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
+				}
 			}
 		}
 	}
