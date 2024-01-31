@@ -46,7 +46,32 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
 		spdxID := licenseFile.LicenseInformation.SpdxID
-		if spdxID == "Apache-2.0" || spdxID == "MIT" || spdxID == "0BSD" || spdxID == "BSD-1-Clause" || spdxID == "BSD-2-Clause" || spdxID == "BSD-3-Clause" {
+		switch spdxID {
+		case
+			"Unlicense",
+			"Beerware",
+			"Apache-2.0",
+			"MIT",
+			"0BSD",
+			"BSD-1-Clause",
+			"BSD-2-Clause",
+			"BSD-3-Clause",
+			"BSD-4-Clause",
+			"APSL-1.0",
+			"APSL-1.1",
+			"APSL-1.2",
+			"APSL-2.0",
+			"ECL-1.0",
+			"ECL-2.0",
+			"EFL-1.0",
+			"EFL-2.0",
+			"Fair",
+			"FSFAP",
+			"WTFPL",
+			"Zlib",
+			"CNRI-Python",
+			"ISC",
+			"Intel":
 			// Store the license name in the msg
 			msg := licenseFile.LicenseInformation.Name
 

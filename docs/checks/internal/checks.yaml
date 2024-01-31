@@ -849,7 +849,7 @@ checks:
       appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
 
       Permissive License Requirements:
-        - The detected license is permissive (Apache 2.0, BSD(0-3 Clause), MIT) (10/10 points)
+        - The detected license is permissive (e.g. Apache 2.0, BSD(0-3 Clause), MIT) (10/10 points)
 
     remediation:
       - >-
