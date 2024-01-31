@@ -1,7 +1,6 @@
 module github.com/ossf/scorecard/v4
 
-go 1.21
-toolchain go1.21.6
+go 1.21.5
 
 require (
 	cloud.google.com/go/bigquery v1.58.0
