@@ -77,7 +77,6 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]string{
-
 				CommitsValue:   "5",
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
