@@ -33,7 +33,7 @@ func Test_AsPJSON(t *testing.T) {
 		result   ScorecardResult
 	}{
 		{
-			name:     "foo",
+			name:     "multiple findings displayed",
 			expected: "./testdata/probe1.json",
 			result: ScorecardResult{
 				Repo: RepoInfo{
@@ -55,10 +55,16 @@ func Test_AsPJSON(t *testing.T) {
 							Type: finding.FileTypeText,
 						},
 					},
+					{
+						Probe:   "check for Y",
+						Outcome: finding.OutcomeNegative,
+						Message: "did not find Y",
+					},
 				},
 			},
 		},
 	}
+	// pretty print results so the test files are easier to read
 	opt := &ProbeResultOption{Indent: "    "}
 	for _, tt := range tests {
 		tt := tt
