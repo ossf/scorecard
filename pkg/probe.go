@@ -31,7 +31,13 @@ type JSONScorecardProbeResult struct {
 	Findings  []finding.Finding `json:"findings"`
 }
 
-func (r *ScorecardResult) AsPJSON(writer io.Writer) error {
+// ProbeResultOption provides configuration options for the ScorecardResult probe output format.
+type ProbeResultOption struct {
+	// Indent is used to control the JSON indentation. For example, if you want to pretty print.
+	Indent string
+}
+
+func (r *ScorecardResult) AsPJSON(writer io.Writer, o *ProbeResultOption) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{
 		Repo: jsonRepoV2{
@@ -44,6 +50,10 @@ func (r *ScorecardResult) AsPJSON(writer io.Writer) error {
 		},
 		Date:     r.Date.Format("2006-01-02"),
 		Findings: r.Findings,
+	}
+
+	if o != nil {
+		encoder.SetIndent("", o.Indent)
 	}
 
 	if err := encoder.Encode(out); err != nil {
