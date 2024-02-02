@@ -37,6 +37,8 @@ type ProbeResultOption struct {
 	Indent string
 }
 
+// AsPJSON writes results as JSON for flat findings without checks.
+// It accepts an optional argument to configure the output.
 func (r *ScorecardResult) AsPJSON(writer io.Writer, o *ProbeResultOption) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{
