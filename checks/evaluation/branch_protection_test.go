@@ -521,7 +521,8 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main": 1,
+						"main":            1,
+						"CodeownersFiles": 2,
 					},
 				},
 				{
@@ -1227,7 +1228,8 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main": 1,
+						"main":            1,
+						"CodeownersFiles": 2,
 					},
 				},
 				{
@@ -1315,7 +1317,8 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main": 1,
+						"main":            1,
+						"CodeownersFiles": 2,
 					},
 				},
 				{
@@ -1403,7 +1406,8 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main": 1,
+						"main":            1,
+						"CodeownersFiles": 2,
 					},
 				},
 				{
@@ -1481,7 +1485,8 @@ func TestBranchProtection(t *testing.T) {
 					Probe:   "requiresCodeOwnersReview",
 					Outcome: finding.OutcomePositive,
 					Values: map[string]int{
-						"main2": 1,
+						"main2":           1,
+						"CodeownersFiles": 2,
 					},
 				},
 				{

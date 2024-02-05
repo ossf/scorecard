@@ -63,9 +63,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case !*reqOwnerReviews:
 			text = fmt.Sprintf("codeowners review is not required on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeNegative
-		case len(r.CodeownersFiles) == 0:
-			text = "codeowners review is required - but no codeowners file found in repo"
-			outcome = finding.OutcomeNegative
 		default:
 			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
 			outcome = finding.OutcomePositive
