@@ -413,7 +413,7 @@ func Test_PinningDependencies(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			got := PinningDependencies(tt.name, tt.findings, &dl)
-			scut.ValidateTestReturn(t, tt.name, &tt.expected, &actual, &dl)
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }

@@ -76,10 +76,7 @@ func TestPinningDependencies(t *testing.T) {
 			}
 
 			res := PinningDependencies(c)
-
-			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl) {
-				t.Errorf("test failed: log message not present: %+v on %+v", tt.want, res)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl)
 		})
 	}
 }
