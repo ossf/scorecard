@@ -549,7 +549,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "2 processing errors",
+			name: "processing errors result in OutcomeError",
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					ProcessingErrors: []checker.ElementError{
