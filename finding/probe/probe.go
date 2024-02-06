@@ -68,10 +68,6 @@ var supportedClients = map[string]bool{
 	"github":   true,
 	"gitlab":   true,
 	"localdir": true,
-	"oss-fuzz": true,
-	"osv":      true,
-	"cii_blob": true,
-	"cii_http": true,
 }
 
 type yamlProbe struct {

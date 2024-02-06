@@ -30,6 +30,3 @@ remediation:
 ecosystem:
   languages:
     - all
-  clients:
-    - cii_blob
-    - cii_http

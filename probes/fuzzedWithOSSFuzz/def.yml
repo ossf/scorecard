@@ -40,5 +40,3 @@ ecosystem:
     - python
     - rust
     - typescript
-  clients:
-    - oss-fuzz

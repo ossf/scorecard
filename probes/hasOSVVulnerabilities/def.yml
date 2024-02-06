@@ -38,4 +38,3 @@ ecosystem:
     - github
     - gitlab
     - localdir
-    - osv
