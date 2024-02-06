@@ -345,7 +345,7 @@ func Test_PinningDependencies(t *testing.T) {
 			},
 		},
 		{
-			name: "2 unpinned dependencies for 1 ecosystem shows 2 warn messages",
+			name: "2 unpinned dependencies for 2 ecosystems shows 2 warn messages",
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
