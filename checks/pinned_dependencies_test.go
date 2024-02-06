@@ -37,7 +37,7 @@ func TestPinningDependencies(t *testing.T) {
 	}{
 		{
 			name: "Dockerfile",
-			path: "./testdata/pinneddependencies/Dockerfile-script-ok",
+			path: "./raw/testdata/Dockerfile-script-ok",
 			files: []string{
 				"Dockerfile-script-ok",
 			},
