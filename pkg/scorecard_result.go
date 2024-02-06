@@ -138,7 +138,8 @@ func FormatResults(
 	case options.FormatFJSON:
 		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatPJSON:
-		err = results.AsPJSON(output)
+		var opts *ProbeResultOption
+		err = results.AsPJSON(output, opts)
 	case options.FormatRaw:
 		err = results.AsRawJSON(output)
 	default:
