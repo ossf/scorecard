@@ -50,9 +50,6 @@ const (
 	gitHubOwnedActionWeight int = 2
 	thirdPartyActionWeight  int = 8
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
-
-	// depTypeKey is the Values map key used to fetch the dependency type.
-	depTypeKey = "dependencyType"
 )
 
 func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
@@ -124,7 +121,7 @@ func PinningDependencies(name string,
 		default:
 			// ignore
 		}
-		updatePinningResults(checker.DependencyUseType(f.Values[depTypeKey]),
+		updatePinningResults(checker.DependencyUseType(f.Values[pinsDependencies.DepTypeKey]),
 			f.Outcome, f.Location.Snippet,
 			&wp, pr)
 	}

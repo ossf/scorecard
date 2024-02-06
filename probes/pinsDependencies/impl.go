@@ -33,7 +33,7 @@ var fs embed.FS
 
 const (
 	Probe      = "pinsDependencies"
-	depTypeKey = "dependencyType"
+	DepTypeKey = "dependencyType"
 )
 
 var dependencyTypes = map[checker.DependencyUseType]int{
@@ -133,7 +133,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}
 			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
+				DepTypeKey: dependencyTypes[rr.Type],
 			})
 			findings = append(findings, *f)
 		} else {
@@ -150,7 +150,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Location: loc,
 			}
 			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
+				DepTypeKey: dependencyTypes[rr.Type],
 			})
 			findings = append(findings, *f)
 		}
