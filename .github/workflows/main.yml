@@ -26,7 +26,7 @@ on:
       - main
 
 env:
-  PROTOC_VERSION: 3.17.3
+  PROTOC_VERSION: 21.6
   GO_VERSION: 1.21
 
 jobs:
