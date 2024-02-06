@@ -31,7 +31,7 @@ func TestBranchProtection(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Required status check enabled",
+			name: "Branch name is an empty string which is not allowed and will error",
 			findings: []finding.Finding{
 				{
 					Probe:   "blocksDeleteOnBranches",
