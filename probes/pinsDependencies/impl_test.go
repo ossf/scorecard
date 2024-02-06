@@ -375,7 +375,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "GitHub Actions ecosystem with GitHub-owned and third-party pinned",
+			name: "GitHub Actions ecosystem with GitHub-owned and third-party unpinned",
 			raw: &checker.RawResults{
 				PinningDependenciesResults: checker.PinningDependenciesData{
 					Dependencies: []checker.Dependency{
