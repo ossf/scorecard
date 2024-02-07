@@ -21,17 +21,24 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/utils"
 )
+
+func init() {
+	if err := probes.Register(Probe, Run); err != nil {
+		panic(err)
+	}
+}
 
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "codeApproved"
+const Probe = "codeApproved"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
-	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return approvedRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.

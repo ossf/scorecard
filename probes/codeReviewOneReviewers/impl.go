@@ -22,8 +22,15 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/utils"
 )
+
+func init() {
+	if err := probes.Register(Probe, Run); err != nil {
+		panic(err)
+	}
+}
 
 var (
 	//go:embed *.yml
@@ -32,13 +39,13 @@ var (
 )
 
 const (
-	probe            = "codeReviewOneReviewers"
+	Probe            = "codeReviewOneReviewers"
 	minimumReviewers = 1
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
-	return codeReviewRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return codeReviewRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
 // Looks through the data and validates author and reviewers of a changeset

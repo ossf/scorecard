@@ -21,9 +21,16 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	tls "github.com/ossf/scorecard/v4/probes/internal/utils/tools"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+func init() {
+	if err := probes.Register(Probe, Run); err != nil {
+		panic(err)
+	}
+}
 
 //go:embed *.yml
 var fs embed.FS

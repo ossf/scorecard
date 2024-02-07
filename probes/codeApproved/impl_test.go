@@ -331,7 +331,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				t.Errorf("Expected error %v, got nil", tt.err)
 			case res == nil && err == nil:
 				t.Errorf("Probe returned nil for both finding and error")
-			case probeID != probe:
+			case probeID != Probe:
 				t.Errorf("Probe returned the wrong probe ID")
 			default:
 				for i := range tt.expectedFindings {
