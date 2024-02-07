@@ -104,7 +104,7 @@ func Test_Run(t *testing.T) {
 			},
 			values: map[string]string{
 				LookbackDayKey: strconv.Itoa(lookBackDays),
-				NoOfIssuesKey:  "5",
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -117,7 +117,7 @@ func Test_Run(t *testing.T) {
 			},
 			values: map[string]string{
 				LookbackDayKey: strconv.Itoa(lookBackDays),
-				NoOfIssuesKey:  "20",
+				NumIssuesKey:   "20",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -130,7 +130,7 @@ func Test_Run(t *testing.T) {
 			},
 			values: map[string]string{
 				LookbackDayKey: strconv.Itoa(lookBackDays),
-				NoOfIssuesKey:  "5",
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},

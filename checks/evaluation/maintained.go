@@ -67,12 +67,12 @@ func Maintained(name string,
 		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
-				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NoOfIssuesKey])
+				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NumIssuesKey])
 				if err != nil {
 					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
 				}
 			case hasRecentCommits.Probe:
-				commitsWithinThreshold, err = strconv.Atoi(f.Values[hasRecentCommits.CommitsValue])
+				commitsWithinThreshold, err = strconv.Atoi(f.Values[hasRecentCommits.NumCommitsKey])
 				if err != nil {
 					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
 				}

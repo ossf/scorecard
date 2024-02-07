@@ -31,7 +31,7 @@ var fs embed.FS
 
 const (
 	Probe          = "hasRecentCommits"
-	CommitsValue   = "commitsWithinThreshold"
+	NumCommitsKey  = "commitsWithinThreshold"
 	LookbackDayKey = "lookBackDays"
 	lookBackDays   = 90
 )
@@ -68,7 +68,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 	f = f.WithValues(map[string]string{
-		CommitsValue:   strconv.Itoa(commitsWithinThreshold),
+		NumCommitsKey:  strconv.Itoa(commitsWithinThreshold),
 		LookbackDayKey: strconv.Itoa(lookBackDays),
 	})
 	findings = append(findings, *f)

@@ -39,13 +39,13 @@ func TestMaintained(t *testing.T) {
 					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]string{
-						hasRecentCommits.CommitsValue: "2",
+						hasRecentCommits.NumCommitsKey: "2",
 					},
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]string{
-						issueActivityByProjectMember.NoOfIssuesKey: "1",
+						issueActivityByProjectMember.NumIssuesKey: "1",
 					},
 				}, {
 					Probe:   notArchived.Probe,

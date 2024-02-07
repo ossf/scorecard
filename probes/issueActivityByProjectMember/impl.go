@@ -32,7 +32,7 @@ var fs embed.FS
 
 const (
 	Probe          = "issueActivityByProjectMember"
-	NoOfIssuesKey  = "numberOfIssuesUpdatedWithinThreshold"
+	NumIssuesKey   = "numberOfIssuesUpdatedWithinThreshold"
 	LookbackDayKey = "lookBackDays"
 	lookBackDays   = 90
 )
@@ -69,7 +69,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 	f = f.WithValues(map[string]string{
-		NoOfIssuesKey:  strconv.Itoa(numberOfIssuesUpdatedWithinThreshold),
+		NumIssuesKey:   strconv.Itoa(numberOfIssuesUpdatedWithinThreshold),
 		LookbackDayKey: strconv.Itoa(lookBackDays),
 	})
 	findings = append(findings, *f)

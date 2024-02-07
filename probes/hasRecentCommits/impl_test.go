@@ -77,7 +77,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]string{
-				CommitsValue:   "5",
+				NumCommitsKey:  "5",
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
@@ -90,7 +90,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			values: map[string]string{
-				CommitsValue:   "20",
+				NumCommitsKey:  "20",
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
