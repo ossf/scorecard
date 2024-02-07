@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
@@ -68,12 +68,12 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@4fe8c5f003fae66aa5ebb77cfd3e7bfbbda0b6b0 # 3.1.5
+       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 3.1.6
        with:
          files: ./unit-coverage.out
          verbose: true
      - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
           timeout_minutes: 30
           command: make e2e-pat
      - name: codecov
-       uses: codecov/codecov-action@4fe8c5f003fae66aa5ebb77cfd3e7bfbbda0b6b0 # 2.1.0
+       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 2.1.0
        if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
@@ -95,7 +95,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -127,7 +127,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -143,7 +143,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
@@ -155,7 +155,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -172,7 +172,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -192,7 +192,7 @@ jobs:
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -221,7 +221,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Cache builds
@@ -245,7 +245,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -260,7 +260,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -287,7 +287,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -302,7 +302,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
@@ -314,7 +314,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -330,7 +330,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -350,7 +350,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -365,7 +365,7 @@ jobs:
       contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
