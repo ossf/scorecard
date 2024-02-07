@@ -130,20 +130,15 @@ func SignedReleases(name string,
 }
 
 func getReleaseName(f *finding.Finding) string {
-	m := f.Values
-	for k, v := range m {
-		var value int
-		switch f.Probe {
-		case releasesAreSigned.Probe:
-			value = int(releasesAreSigned.ValueTypeRelease)
-		case releasesHaveProvenance.Probe:
-			value = int(releasesHaveProvenance.ValueTypeRelease)
-		}
-		if v == value {
-			return k
-		}
+	var key string
+	// these keys should be the same, but might as handle situations when they're not
+	switch f.Probe {
+	case releasesAreSigned.Probe:
+		key = releasesAreSigned.ReleaseNameKey
+	case releasesHaveProvenance.Probe:
+		key = releasesHaveProvenance.ReleaseNameKey
 	}
-	return ""
+	return f.Values[key]
 }
 
 func contains(releases []string, release string) bool {

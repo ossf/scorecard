@@ -97,7 +97,7 @@ const (
 type Finding struct {
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]int     `json:"values,omitempty"`
+	Values      map[string]string  `json:"values,omitempty"`
 	Probe       string             `json:"probe"`
 	Message     string             `json:"message"`
 	Outcome     Outcome            `json:"outcome"`
@@ -221,7 +221,7 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 
 // WithValues sets the values to an existing finding.
 // No copy is made.
-func (f *Finding) WithValues(values map[string]int) *Finding {
+func (f *Finding) WithValues(values map[string]string) *Finding {
 	f.Values = values
 	return f
 }
@@ -266,9 +266,9 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 
 // WithValue adds a value to f.Values.
 // No copy is made.
-func (f *Finding) WithValue(k string, v int) *Finding {
+func (f *Finding) WithValue(k, v string) *Finding {
 	if f.Values == nil {
-		f.Values = make(map[string]int)
+		f.Values = make(map[string]string)
 	}
 	f.Values[k] = v
 	return f

@@ -76,9 +76,9 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
-						sastToolRunsOnAllCommits.TotalPRsKey:    2,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
 					},
 				},
 				{
@@ -121,9 +121,9 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
-						sastToolRunsOnAllCommits.TotalPRsKey:    2,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
 					},
 				},
 				{
@@ -202,9 +202,9 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
-						sastToolRunsOnAllCommits.TotalPRsKey:    3,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
 				},
 				{
@@ -232,9 +232,9 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
-						sastToolRunsOnAllCommits.TotalPRsKey:    3,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
 				},
 				{
@@ -270,9 +270,9 @@ func TestSAST(t *testing.T) {
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						sastToolRunsOnAllCommits.AnalyzedPRsKey: 1,
-						sastToolRunsOnAllCommits.TotalPRsKey:    3,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
 				},
 				{

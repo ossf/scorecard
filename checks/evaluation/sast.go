@@ -15,6 +15,9 @@
 package evaluation
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
@@ -46,12 +49,16 @@ func SAST(name string,
 	}
 
 	var sastScore, codeQlScore, pysaScore, qodanaScore, snykScore, sonarScore int
+	var err error
 	// Assign sastScore, codeQlScore and sonarScore
 	for i := range findings {
 		f := &findings[i]
 		switch f.Probe {
 		case sastToolRunsOnAllCommits.Probe:
-			sastScore = getSASTScore(f, dl)
+			sastScore, err = getSASTScore(f, dl)
+			if err != nil {
+				return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
+			}
 		case sastToolCodeQLInstalled.Probe:
 			codeQlScore = getSastToolScore(f, dl)
 		case sastToolSnykInstalled.Probe:
@@ -147,13 +154,13 @@ func SAST(name string,
 
 // getSASTScore returns the proportional score of how many commits
 // run SAST tools.
-func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
+func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 	switch f.Outcome {
 	case finding.OutcomeNotApplicable:
 		dl.Warn(&checker.LogMessage{
 			Text: f.Message,
 		})
-		return checker.InconclusiveResultScore
+		return checker.InconclusiveResultScore, nil
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
@@ -164,9 +171,15 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 		})
 	default:
 	}
-	analyzed := f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey]
-	total := f.Values[sastToolRunsOnAllCommits.TotalPRsKey]
-	return checker.CreateProportionalScore(analyzed, total)
+	analyzed, err := strconv.Atoi(f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey])
+	if err != nil {
+		return 0, fmt.Errorf("parsing analyzed PR count: %w", err)
+	}
+	total, err := strconv.Atoi(f.Values[sastToolRunsOnAllCommits.TotalPRsKey])
+	if err != nil {
+		return 0, fmt.Errorf("parsing total PR count: %w", err)
+	}
+	return checker.CreateProportionalScore(analyzed, total), nil
 }
 
 // getSastToolScore returns positive if the project runs the Sast tool
