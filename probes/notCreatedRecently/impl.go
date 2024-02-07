@@ -45,24 +45,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 
+	var text string
+	var outcome finding.Outcome
 	if r.CreatedAt.After(recencyThreshold) {
-		return negativeOutcome()
+		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeNegative
+	} else {
+		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+		outcome = finding.OutcomePositive
 	}
-	return positiveOutcome()
-}
-
-func negativeOutcome() ([]finding.Finding, string, error) {
-	text := fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
-	f, err := finding.NewWith(fs, Probe, text, nil, finding.OutcomeNegative)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-	return []finding.Finding{*f}, Probe, nil
-}
-
-func positiveOutcome() ([]finding.Finding, string, error) {
-	text := fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
-	f, err := finding.NewWith(fs, Probe, text, nil, finding.OutcomePositive)
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
