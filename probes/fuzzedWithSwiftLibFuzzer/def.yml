@@ -30,3 +30,9 @@ remediation:
   markdown:
     - Follow the steps in [https://google.github.io/oss-fuzz/getting-started/new-project-guide/swift-lang/](https://google.github.io/oss-fuzz/getting-started/new-project-guide/swift-lang/) to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - swift
+  clients:
+    - github
+    - gitlab

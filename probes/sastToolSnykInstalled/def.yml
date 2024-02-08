@@ -27,3 +27,19 @@ remediation:
     - Follow the steps in https://github.com/snyk/actions
   markdown:
     - Follow the steps in https://github.com/snyk/actions
+ecosystem:
+  languages:
+    - c
+    - c++
+    - go
+    - java
+    - kotlin
+    - javascript
+    - php
+    - python
+    - swift
+    - objectivec
+    - typescript
+  clients:
+    - github
+    - gitlab

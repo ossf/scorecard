@@ -27,3 +27,15 @@ remediation:
     - Follow the steps in https://github.com/JetBrains/qodana-action
   markdown:
     - Follow the steps in https://github.com/JetBrains/qodana-action
+ecosystem:
+  languages:
+    - java
+    - kotlin
+    - javascript
+    - typescript
+    - c#
+    - php
+    - go
+  clients:
+    - github
+    - gitlab

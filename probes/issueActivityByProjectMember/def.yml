@@ -25,3 +25,9 @@ remediation:
   effort: High
   text:
     - It is not possible for users of a project to affect the issue activity of collaborators, members or owners of a project.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

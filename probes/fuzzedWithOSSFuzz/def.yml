@@ -30,3 +30,16 @@ remediation:
   markdown:
     - Follow the steps in [https://github.com/google/oss-fuzz](https://github.com/google/oss-fuzz) to integrate fuzzing for your project.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - c
+    - c++
+    - go
+    - java
+    - javascript
+    - python
+    - rust
+    - typescript
+  clients:
+    - github
+    - gitlab

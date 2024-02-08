@@ -26,3 +26,10 @@ remediation:
   effort: Low
   text:
     - Update the license file format in the GitHub repository to be of an approved format.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir

@@ -82,6 +82,18 @@ func Test_FromBytes(t *testing.T) {
 			path: "testdata/invalid-effort.yml",
 			err:  errInvalid,
 		},
+		{
+			name: "invalid language",
+			id:   "invalid-language",
+			path: "testdata/invalid-language.yml",
+			err:  errInvalid,
+		},
+		{
+			name: "invalid client",
+			id:   "invalid-client",
+			path: "testdata/invalid-client.yml",
+			err:  errInvalid,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
