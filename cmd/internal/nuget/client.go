@@ -178,7 +178,6 @@ func (c *NugetClient) packageSpec(packageBaseURL, registrationBaseURL, packageNa
 			//nolint:wrapcheck
 			return xml.NewDecoder(rc).Decode(packageSpecResults)
 		}, "nuget package spec")
-
 	if err != nil {
 		return packageNuspec{}, err
 	}

@@ -33,7 +33,6 @@ type jsonCheckResult struct {
 	Pass       bool
 }
 
-//nolint:musttag
 type jsonScorecardResult struct {
 	Repo     string
 	Date     string
