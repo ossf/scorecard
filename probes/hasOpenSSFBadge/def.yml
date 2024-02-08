@@ -30,3 +30,6 @@ remediation:
 ecosystem:
   languages:
     - all
+  clients:
+    - github
+    - gitlab

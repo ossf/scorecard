@@ -40,3 +40,6 @@ ecosystem:
     - python
     - rust
     - typescript
+  clients:
+    - github
+    - gitlab
