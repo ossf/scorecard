@@ -36,17 +36,6 @@ const (
 	DepTypeKey = "dependencyType"
 )
 
-var dependencyTypes = map[checker.DependencyUseType]int{
-	checker.DependencyUseTypeGHAction:                 0,
-	checker.DependencyUseTypeDockerfileContainerImage: 1,
-	checker.DependencyUseTypeDownloadThenRun:          2,
-	checker.DependencyUseTypeGoCommand:                3,
-	checker.DependencyUseTypeChocoCommand:             4,
-	checker.DependencyUseTypeNpmCommand:               5,
-	checker.DependencyUseTypePipCommand:               6,
-	checker.DependencyUseTypeNugetCommand:             7,
-}
-
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
@@ -132,8 +121,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			if rr.Remediation != nil {
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}
-			f = f.WithValues(map[string]int{
-				DepTypeKey: dependencyTypes[rr.Type],
+			f = f.WithValues(map[string]string{
+				DepTypeKey: string(rr.Type),
 			})
 			findings = append(findings, *f)
 		} else {
@@ -149,8 +138,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				Outcome:  finding.OutcomePositive,
 				Location: loc,
 			}
-			f = f.WithValues(map[string]int{
-				DepTypeKey: dependencyTypes[rr.Type],
+			f = f.WithValues(map[string]string{
+				DepTypeKey: string(rr.Type),
 			})
 			findings = append(findings, *f)
 		}

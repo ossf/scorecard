@@ -249,8 +249,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineStart: &testLineStart,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 			},
@@ -272,8 +272,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 			},
@@ -296,8 +296,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 			},
@@ -319,8 +319,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 				{
@@ -333,8 +333,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 			},
@@ -357,8 +357,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 6, // pip type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
 					},
 				},
 				{
@@ -371,8 +371,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 3, // go type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypeGoCommand),
 					},
 				},
 			},
@@ -395,8 +395,8 @@ func Test_PinningDependencies(t *testing.T) {
 						LineEnd:   &testLineEnd,
 						Snippet:   &testSnippet,
 					},
-					Values: map[string]int{
-						"dependencyType": 0, // GH Action type
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypeGHAction),
 					},
 				},
 			},
@@ -699,6 +699,35 @@ func TestUpdatePinningResults(t *testing.T) {
 						cmp.Diff(tc.want.pr[dependencyUseType].pinned, tc.args.pr[dependencyUseType].pinned),
 						cmp.Diff(tc.want.pr[dependencyUseType].total, tc.args.pr[dependencyUseType].total))
 				}
+			}
+		})
+	}
+}
+
+func Test_generateOwnerToDisplay(t *testing.T) {
+	t.Parallel()
+	tests := []struct { //nolint:govet
+		name        string
+		gitHubOwned bool
+		want        string
+	}{
+		{
+			name:        "returns GitHub if gitHubOwned is true",
+			gitHubOwned: true,
+			want:        "GitHub-owned GitHubAction",
+		},
+		{
+			name:        "returns GitHub if gitHubOwned is false",
+			gitHubOwned: false,
+			want:        "third-party GitHubAction",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := generateOwnerToDisplay(tt.gitHubOwned); got != tt.want {
+				t.Errorf("generateOwnerToDisplay() = %v, want %v", got, tt.want)
 			}
 		})
 	}
