@@ -279,10 +279,13 @@ func ExperimentalRunProbes(ctx context.Context,
 }
 
 type runConfig struct {
-	client      clients.RepoClient
-	checks      checker.CheckNameToFnMap
-	commit      string
-	commitDepth int
+	client        clients.RepoClient
+	vulnClient    clients.VulnerabilitiesClient
+	ciiClient     clients.CIIBestPracticesClient
+	ossfuzzClient clients.RepoClient
+	checks        checker.CheckNameToFnMap
+	commit        string
+	commitDepth   int
 }
 
 type Option func(*runConfig) error
@@ -315,16 +318,26 @@ func WithRepoClient(client clients.RepoClient) Option {
 	}
 }
 
-// func RunScorecard(ctx context.Context,
-// 	repo clients.Repo,
-// 	commitSHA string,
-// 	commitDepth int,
-// 	checksToRun checker.CheckNameToFnMap,
-// 	repoClient clients.RepoClient,
-// 	ossFuzzRepoClient clients.RepoClient,
-// 	ciiClient clients.CIIBestPracticesClient,
-// 	vulnsClient clients.VulnerabilitiesClient,
-// )
+func WithOSSFuzzClient(client clients.RepoClient) Option {
+	return func(c *runConfig) error {
+		c.ossfuzzClient = client
+		return nil
+	}
+}
+
+func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
+	return func(c *runConfig) error {
+		c.vulnClient = client
+		return nil
+	}
+}
+
+func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option {
+	return func(c *runConfig) error {
+		c.ciiClient = client
+		return nil
+	}
+}
 
 func Run(ctx context.Context, repo clients.Repo, options ...Option) error {
 	c := runConfig{
