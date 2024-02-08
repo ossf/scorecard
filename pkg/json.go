@@ -113,6 +113,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
+	//nolint:musttag
 	if err := encoder.Encode(out); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}

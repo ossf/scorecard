@@ -83,6 +83,7 @@ type DependencyCheckResult struct {
 
 // AsJSON for DependencyCheckResult exports the DependencyCheckResult as a JSON object.
 func (dr *DependencyCheckResult) AsJSON(writer io.Writer) error {
+	//nolint:musttag
 	if err := json.NewEncoder(writer).Encode(*dr); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("encoder.Encode: %v", err))
 	}
