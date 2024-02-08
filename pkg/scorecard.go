@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
@@ -347,6 +348,18 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) error {
 		if err := option(&c); err != nil {
 			return err
 		}
+	}
+	if c.ciiClient == nil {
+		c.ciiClient = clients.DefaultCIIBestPracticesClient()
+	}
+	if c.ossfuzzClient == nil {
+		c.ossfuzzClient = ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL)
+	}
+	if c.vulnClient == nil {
+		c.vulnClient = clients.DefaultVulnerabilitiesClient()
+	}
+	if c.client == nil {
+		// TODO, need to detect and create here.
 	}
 	return nil
 }
