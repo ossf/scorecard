@@ -22,6 +22,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	_ "github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
