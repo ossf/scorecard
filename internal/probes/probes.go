@@ -54,3 +54,11 @@ func Register(probe Probe) error {
 	registered[probe.Name] = probe
 	return nil
 }
+
+func Get(name string) (Probe, error) {
+	p, ok := registered[name]
+	if !ok {
+		return Probe{}, errors.CreateInternal(errors.ErrorUnsupportedCheck, "probe not found")
+	}
+	return p, nil
+}

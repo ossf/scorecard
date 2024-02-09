@@ -147,76 +147,6 @@ var (
 		releasesHaveProvenance.Run,
 	}
 
-	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
-		securityPolicyPresent.Probe:                         securityPolicyPresent.Run,
-		securityPolicyContainsLinks.Probe:                   securityPolicyContainsLinks.Run,
-		securityPolicyContainsVulnerabilityDisclosure.Probe: securityPolicyContainsVulnerabilityDisclosure.Run,
-		securityPolicyContainsText.Probe:                    securityPolicyContainsText.Run,
-		toolRenovateInstalled.Probe:                         toolRenovateInstalled.Run,
-		toolDependabotInstalled.Probe:                       toolDependabotInstalled.Run,
-		toolPyUpInstalled.Probe:                             toolPyUpInstalled.Run,
-		fuzzedWithOSSFuzz.Probe:                             fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Probe:                            fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Probe:                       fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Probe:                          fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Probe:                        fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Probe:                      fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Probe:                       fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Probe:                    fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Probe:                     fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Probe:                fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Probe:             fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Probe:             fuzzedWithPropertyBasedJavascript.Run,
-		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
-		hasLicenseFile.Probe:                                hasLicenseFile.Run,
-		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
-		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
-		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
-		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
-		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
-		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
-		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
-		notArchived.Probe:                                   notArchived.Run,
-		hasRecentCommits.Probe:                              hasRecentCommits.Run,
-		issueActivityByProjectMember.Probe:                  issueActivityByProjectMember.Run,
-		notCreatedRecently.Probe:                            notCreatedRecently.Run,
-	}
-
-	CheckMap = map[string]string{
-		securityPolicyPresent.Probe:                         "Security-Policy",
-		securityPolicyContainsLinks.Probe:                   "Security-Policy",
-		securityPolicyContainsVulnerabilityDisclosure.Probe: "Security-Policy",
-		securityPolicyContainsText.Probe:                    "Security-Policy",
-		toolRenovateInstalled.Probe:                         "Dependency-Update-Tool",
-		toolDependabotInstalled.Probe:                       "Dependency-Update-Tool",
-		toolPyUpInstalled.Probe:                             "Dependency-Update-Tool",
-		fuzzedWithOSSFuzz.Probe:                             "Fuzzing",
-		fuzzedWithGoNative.Probe:                            "Fuzzing",
-		fuzzedWithPythonAtheris.Probe:                       "Fuzzing",
-		fuzzedWithCLibFuzzer.Probe:                          "Fuzzing",
-		fuzzedWithCppLibFuzzer.Probe:                        "Fuzzing",
-		fuzzedWithSwiftLibFuzzer.Probe:                      "Fuzzing",
-		fuzzedWithRustCargofuzz.Probe:                       "Fuzzing",
-		fuzzedWithJavaJazzerFuzzer.Probe:                    "Fuzzing",
-		fuzzedWithClusterFuzzLite.Probe:                     "Fuzzing",
-		fuzzedWithPropertyBasedHaskell.Probe:                "Fuzzing",
-		fuzzedWithPropertyBasedTypescript.Probe:             "Fuzzing",
-		fuzzedWithPropertyBasedJavascript.Probe:             "Fuzzing",
-		packagedWithAutomatedWorkflow.Probe:                 "Packaging",
-		hasLicenseFile.Probe:                                "License",
-		hasFSFOrOSIApprovedLicense.Probe:                    "License",
-		hasLicenseFileAtTopDir.Probe:                        "License",
-		contributorsFromOrgOrCompany.Probe:                  "Contributors",
-		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
-		sastToolRunsOnAllCommits.Probe:                      "SAST",
-		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
-		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
-		notArchived.Probe:                                   "Maintained",
-		hasRecentCommits.Probe:                              "Maintained",
-		issueActivityByProjectMember.Probe:                  "Maintained",
-		notCreatedRecently.Probe:                            "Maintained",
-	}
-
 	errProbeNotFound = errors.New("probe not found")
 )
 
@@ -230,13 +160,6 @@ func init() {
 		License,
 		Contributors,
 	})
-}
-
-func GetProbeRunner(probeName string) (func(*checker.RawResults) ([]finding.Finding, string, error), error) {
-	if runner, ok := probeRunners[probeName]; ok {
-		return runner, nil
-	}
-	return nil, errProbeNotFound
 }
 
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {

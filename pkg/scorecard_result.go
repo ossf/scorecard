@@ -32,10 +32,10 @@ import (
 	docChecks "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
-	"github.com/ossf/scorecard/v4/probes"
 )
 
 // ScorecardInfo contains information about the scorecard code that was run.
@@ -313,14 +313,20 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Sc
 }
 
 func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *ScorecardResult) error {
-	probeCheckNames := make([]string, 0)
+	seen := map[string]bool{}
 	for _, probeName := range probesToRun {
-		probeCheckName := probes.CheckMap[probeName]
-		if !contains(probeCheckNames, probeCheckName) {
-			probeCheckNames = append(probeCheckNames, probeCheckName)
-			err := assignRawData(probeCheckName, request, ret)
-			if err != nil {
-				return err
+		p, err := proberegistration.Get(probeName)
+		if err != nil {
+			return err
+		}
+		for _, checkName := range p.RequiredRawData {
+			checkName := string(checkName)
+			if !seen[checkName] {
+				err := assignRawData(checkName, request, ret)
+				if err != nil {
+					return err
+				}
+				seen[checkName] = true
 			}
 		}
 	}
