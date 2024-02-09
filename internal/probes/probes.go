@@ -6,10 +6,34 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
+type CheckName string
+
+// Redefining check names here to avoid circular imports
+const (
+	BinaryArtifacts      CheckName = "Binary-Artifacts"
+	BranchProtection     CheckName = "Branch-Protection"
+	CIIBestPractices     CheckName = "CII-Best-Practices"
+	CITests              CheckName = "CI-Tests"
+	CodeReview           CheckName = "Code-Review"
+	Contributors         CheckName = "Contributors"
+	DangerousWorkflow    CheckName = "Dangerous-Workflow"
+	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
+	Fuzzing              CheckName = "Fuzzing"
+	License              CheckName = "License"
+	Maintained           CheckName = "Maintained"
+	Packaging            CheckName = "Packaging"
+	PinnedDependencies   CheckName = "Pinned-Dependencies"
+	SAST                 CheckName = "SAST"
+	SecurityPolicy       CheckName = "Security-Policy"
+	SignedReleases       CheckName = "Signed-Releases"
+	TokenPermissions     CheckName = "Token-Permissions"
+	Vulnerabilities      CheckName = "Vulnerabilities"
+)
+
 type Probe struct {
 	Name            string
 	Implementation  ProbeImpl
-	RequiredRawData []string
+	RequiredRawData []CheckName
 }
 
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
