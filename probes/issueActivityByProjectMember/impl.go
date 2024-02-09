@@ -29,7 +29,11 @@ import (
 )
 
 func init() {
-	if err := probes.Register(Probe, Run); err != nil {
+	err := probes.Register(probes.Probe{
+		Name:           Probe,
+		Implementation: Run,
+	})
+	if err != nil {
 		panic(err)
 	}
 }
