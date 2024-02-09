@@ -27,8 +27,9 @@ import (
 
 func init() {
 	err := probes.Register(probes.Probe{
-		Name:           Probe,
-		Implementation: Run,
+		Name:            Probe,
+		Implementation:  Run,
+		RequiredRawData: []probes.CheckName{probes.DangerousWorkflow},
 	})
 	if err != nil {
 		panic(err)
