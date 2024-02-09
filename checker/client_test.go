@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-//nolint:paralleltest // because we are using t.Setenv.
 func TestGetClients(t *testing.T) {
 	type args struct { //nolint:govet
 		ctx      context.Context
