@@ -124,7 +124,6 @@ var (
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
-
 	Maintained = []ProbeImpl{
 		notArchived.Run,
 		hasRecentCommits.Run,
@@ -157,12 +156,23 @@ var (
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		DependencyToolUpdates,
-		CodeReview,
 		SecurityPolicy,
+		DependencyToolUpdates,
 		Fuzzing,
+		Packaging,
 		License,
 		Contributors,
+		Vulnerabilities,
+		CodeReview,
+		SAST,
+		DangerousWorkflows,
+		Maintained,
+		CIIBestPractices,
+		BinaryArtifacts,
+		Webhook,
+		CITests,
+		SignedReleases,
+		Uncategorized,
 	})
 }
 
