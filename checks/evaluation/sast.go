@@ -61,7 +61,6 @@ func SAST(name string,
 				codeQlScore = score
 			default:
 				otherScore = score
-
 			}
 		}
 	}
