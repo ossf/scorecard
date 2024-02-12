@@ -25,29 +25,27 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//
-//nolint:govet
 type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
+	Metadata                    MetadataData
 	BranchProtectionResults     BranchProtectionsData
-	CIIBestPracticesResults     CIIBestPracticesData
-	CITestResults               CITestData
-	CodeReviewResults           CodeReviewData
+	PinningDependenciesResults  PinningDependenciesData
+	SecurityPolicyResults       SecurityPolicyData
+	PackagingResults            PackagingData
 	ContributorsResults         ContributorsData
-	DangerousWorkflowResults    DangerousWorkflowData
+	WebhookResults              WebhooksData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
-	MaintainedResults           MaintainedData
-	Metadata                    MetadataData
-	PackagingResults            PackagingData
-	PinningDependenciesResults  PinningDependenciesData
-	SASTResults                 SASTData
-	SecurityPolicyResults       SecurityPolicyData
-	SignedReleasesResults       SignedReleasesData
-	TokenPermissionsResults     TokenPermissionsData
 	VulnerabilitiesResults      VulnerabilitiesData
-	WebhookResults              WebhooksData
+	CITestResults               CITestData
+	CodeReviewResults           CodeReviewData
+	SignedReleasesResults       SignedReleasesData
+	BinaryArtifactResults       BinaryArtifactData
+	MaintainedResults           MaintainedData
+	SASTResults                 SASTData
+	TokenPermissionsResults     TokenPermissionsData
+	DangerousWorkflowResults    DangerousWorkflowData
+	CIIBestPracticesResults     CIIBestPracticesData
 }
 
 type MetadataData struct {

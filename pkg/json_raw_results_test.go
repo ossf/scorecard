@@ -1235,7 +1235,7 @@ func intPtr(i int32) *int32 {
 
 func TestScorecardResult_AsRawJSON(t *testing.T) {
 	t.Parallel()
-	type fields struct {
+	type fields struct { //nolint:govet
 		Repo       RepoInfo
 		Date       time.Time
 		Scorecard  ScorecardInfo

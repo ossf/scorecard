@@ -51,9 +51,9 @@ func Test_Maintained(t *testing.T) {
 		commiterr  error
 		issueerr   error
 		name       string
-		expected   checker.CheckResult
 		commits    []clients.Commit
 		issues     []clients.Issue
+		expected   checker.CheckResult
 		isarchived bool
 	}{
 		{
