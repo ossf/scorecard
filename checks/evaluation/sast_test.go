@@ -19,14 +19,15 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func TestSAST(t *testing.T) {
-	snippet := "some code snippet"
-	sline := uint(10)
-	eline := uint(46)
+	// snippet := "some code snippet"
+	// sline := uint(10)
+	// eline := uint(46)
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -34,16 +35,8 @@ func TestSAST(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "SAST - Missing a probe",
+			name: "SAST - Missing a probe (sastToolConfigured)",
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
@@ -55,41 +48,16 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar and codeQL is installed. Snyk, Qodana and Pysa are not installed.",
+			name: "Sonar and codeQL is installed",
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
+				tool(checker.SonarWorkflow),
+				tool(checker.CodeQLWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
-					},
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomePositive,
-					Location: &finding.Location{
-						Type:      finding.FileTypeSource,
-						Path:      "path/to/file.txt",
-						LineStart: &sline,
-						LineEnd:   &eline,
-						Snippet:   &snippet,
 					},
 				},
 			},
@@ -102,22 +70,7 @@ func TestSAST(t *testing.T) {
 		{
 			name: "Pysa is installed. CodeQL, Snyk, Qodana and Sonar are not installed.",
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
+				tool(checker.PysaWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
@@ -125,10 +78,6 @@ func TestSAST(t *testing.T) {
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
 					},
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
@@ -142,36 +91,10 @@ func TestSAST(t *testing.T) {
 					Does not have info about whether SAST runs
 					on every commit.`,
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
+				tool(checker.SonarWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomeNotApplicable,
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomePositive,
-					Location: &finding.Location{
-						Type:      finding.FileTypeSource,
-						Path:      "path/to/file.txt",
-						LineStart: &sline,
-						LineEnd:   &eline,
-						Snippet:   &snippet,
-					},
 				},
 			},
 			result: scut.TestReturn{
@@ -184,19 +107,7 @@ func TestSAST(t *testing.T) {
 			name: "Sonar, CodeQL, Snyk, Qodana and Pysa are not installed",
 			findings: []finding.Finding{
 				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
+					Probe:   sastToolConfigured.Probe,
 					Outcome: finding.OutcomeNegative,
 				},
 				{
@@ -206,10 +117,6 @@ func TestSAST(t *testing.T) {
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
@@ -221,14 +128,7 @@ func TestSAST(t *testing.T) {
 		{
 			name: "Snyk is installed, Sonar, Qodana and CodeQL are not installed",
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomePositive,
-				},
+				tool(checker.SnykWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
@@ -236,18 +136,6 @@ func TestSAST(t *testing.T) {
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
@@ -259,14 +147,7 @@ func TestSAST(t *testing.T) {
 		{
 			name: "Qodana is installed, Snyk, Sonar, and CodeQL are not installed",
 			findings: []finding.Finding{
-				{
-					Probe:   "sastToolCodeQLInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolSnykInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
+				tool(checker.QodanaWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomePositive,
@@ -274,18 +155,6 @@ func TestSAST(t *testing.T) {
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
 					},
-				},
-				{
-					Probe:   "sastToolSonarInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolPysaInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sastToolQodanaInstalled",
-					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
@@ -303,5 +172,15 @@ func TestSAST(t *testing.T) {
 			got := SAST(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
+	}
+}
+
+func tool(name checker.SASTWorkflowType) finding.Finding {
+	return finding.Finding{
+		Probe:   sastToolConfigured.Probe,
+		Outcome: finding.OutcomePositive,
+		Values: map[string]string{
+			sastToolConfigured.ToolKey: string(name),
+		},
 	}
 }
