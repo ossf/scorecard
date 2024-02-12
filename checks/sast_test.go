@@ -46,12 +46,12 @@ func Test_SAST(t *testing.T) {
 		expected      scut.TestReturn
 	}{
 		{
-			name:         "SAST checker should return failed status when no PRs are found",
+			name:         "SAST checker should return min score when no PRs are found",
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
 			expected: scut.TestReturn{
-				Score:        0,
+				Score:        checker.MinResultScore,
 				NumberOfWarn: 1,
 			},
 		},
@@ -62,7 +62,7 @@ func Test_SAST(t *testing.T) {
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
 			expected: scut.TestReturn{
-				Score: -1,
+				Score: checker.InconclusiveResultScore,
 				Error: sce.ErrScorecardInternal,
 			},
 		},
@@ -86,7 +86,7 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
 				NumberOfDebug: 1,
 			},
@@ -111,7 +111,7 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
 				NumberOfDebug: 1,
 			},
@@ -137,7 +137,7 @@ func Test_SAST(t *testing.T) {
 			},
 			path: "",
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
 				NumberOfDebug: 1,
 			},
@@ -162,7 +162,7 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
 				NumberOfDebug: 1,
 			},
@@ -214,7 +214,7 @@ func Test_SAST(t *testing.T) {
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  2,
 				NumberOfDebug: 1,
 			},
@@ -249,7 +249,7 @@ func Test_SAST(t *testing.T) {
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
-				Score:         10,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  2,
 				NumberOfDebug: 1,
 			},
