@@ -25,9 +25,6 @@ import (
 )
 
 func TestSAST(t *testing.T) {
-	// snippet := "some code snippet"
-	// sline := uint(10)
-	// eline := uint(46)
 	t.Parallel()
 	tests := []struct {
 		name     string
