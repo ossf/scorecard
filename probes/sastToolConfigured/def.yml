@@ -24,7 +24,7 @@ outcome:
 remediation:
   effort: Medium
   text:
-    - Setup one of tools we currently detect: https://github.com/ossf/scorecard/blob/main/docs/checks/sast/README.md.
+    - Setup one of tools we currently detect https://github.com/ossf/scorecard/blob/main/docs/checks/sast/README.md.
   markdown:
     - Setup one of [tools we currently detect](https://github.com/ossf/scorecard/blob/main/docs/checks/sast/README.md).
 ecosystem:
