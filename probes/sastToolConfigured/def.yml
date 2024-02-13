@@ -17,10 +17,10 @@ short: Check that the project uses a SAST tool
 motivation: >
   SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.
 implementation: >
-  The implementation checks various configuration files, GitHub Action workflow files, and GitHub PR check annotations.
+  The implementation checks for evidence of various SAST tools. This includes configuration files, GitHub Action workflows, and GitHub PR check annotations.
 outcome:
-  - If the project uses a SAST tool we can detect, the probe returns one finding per tool with OutcomePositive (1).
-  - If the project does not use a SAST tool, or uses a tool we dont currently detect, the probe returns one finding with OutcomeNegative (0).
+  - If the project uses a SAST tool we can detect, the probe returns one finding per tool with OutcomePositive.
+  - If the project does not use a SAST tool, or uses a tool we dont currently detect, the probe returns one finding with OutcomeNegative.
 remediation:
   effort: Medium
   text:
@@ -29,16 +29,7 @@ remediation:
     - Setup one of [tools we currently detect](https://github.com/ossf/scorecard/blob/main/docs/checks/sast/README.md).
 ecosystem:
   languages:
-    - c
-    - c++
-    - go
-    - java
-    - kotlin
-    - javascript
-    - python
-    - ruby
-    - swift
-    - typescript
+    - all
   clients:
     - github
     - gitlab
