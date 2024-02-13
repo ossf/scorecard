@@ -25,7 +25,10 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "fuzzed"
+const (
+	Probe   = "fuzzed"
+	ToolKey = "tool"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	fuzzers := raw.FuzzingResults.Fuzzers
@@ -48,6 +51,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
+			f = f.WithValue(ToolKey, fuzzer.Name)
 			findings = append(findings, *f)
 		}
 
@@ -57,6 +61,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
+			f = f.WithValue(ToolKey, fuzzer.Name)
 			findings = append(findings, *f)
 		}
 	}
