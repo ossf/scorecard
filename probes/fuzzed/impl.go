@@ -15,12 +15,51 @@
 package fuzzed
 
 import (
+	"embed"
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 )
 
+//go:embed *.yml
+var fs embed.FS
+
 const Probe = "fuzzed"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
-	return nil, Probe, nil
+	fuzzers := raw.FuzzingResults.Fuzzers
+
+	if len(fuzzers) == 0 {
+		f, err := finding.NewNegative(fs, Probe, "no fuzzer integrations found", nil)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
+	var findings []finding.Finding
+	for i := range fuzzers {
+		fuzzer := &fuzzers[i]
+		// The current implementation does not provide file location
+		// for all fuzzers. Check this first.
+		if len(fuzzer.Files) == 0 {
+			f, err := finding.NewPositive(fs, Probe, fuzzer.Name+" integration found", nil)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
+		}
+
+		// Files are present. Create one results for each file location.
+		for _, file := range fuzzer.Files {
+			f, err := finding.NewPositive(fs, Probe, fuzzer.Name+" integration found", file.Location())
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
+		}
+	}
+
+	return findings, Probe, nil
 }
