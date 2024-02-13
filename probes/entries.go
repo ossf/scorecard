@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
@@ -85,18 +86,7 @@ var (
 		toolPyUpInstalled.Run,
 	}
 	Fuzzing = []ProbeImpl{
-		fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Run,
+		fuzzed.Run,
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,

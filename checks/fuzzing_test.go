@@ -52,7 +52,7 @@ func TestFuzzing(t *testing.T) {
 			wantErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -109,7 +109,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -120,7 +120,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: true,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,

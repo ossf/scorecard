@@ -18,38 +18,15 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
 func Fuzzing(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 7 unique probes, each should have a finding.
 	expectedProbes := []string{
-		fuzzedWithClusterFuzzLite.Probe,
-		fuzzedWithGoNative.Probe,
-		fuzzedWithPythonAtheris.Probe,
-		fuzzedWithCLibFuzzer.Probe,
-		fuzzedWithCppLibFuzzer.Probe,
-		fuzzedWithRustCargofuzz.Probe,
-		fuzzedWithSwiftLibFuzzer.Probe,
-		fuzzedWithJavaJazzerFuzzer.Probe,
-		fuzzedWithOSSFuzz.Probe,
-		fuzzedWithPropertyBasedHaskell.Probe,
-		fuzzedWithPropertyBasedJavascript.Probe,
-		fuzzedWithPropertyBasedTypescript.Probe,
+		fuzzed.Probe,
 	}
 	// TODO: other packages to consider:
 	// - github.com/google/fuzztest
