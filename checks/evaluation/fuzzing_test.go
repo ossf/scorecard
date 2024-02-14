@@ -19,6 +19,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/fuzzers"
 	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -49,6 +50,9 @@ func TestFuzzing(t *testing.T) {
 				{
 					Probe:   fuzzed.Probe,
 					Outcome: finding.OutcomePositive,
+					Values: map[string]string{
+						fuzzed.ToolKey: fuzzers.BuiltInGo,
+					},
 				},
 			},
 			result: scut.TestReturn{
