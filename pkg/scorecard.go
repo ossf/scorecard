@@ -201,7 +201,7 @@ func runEnabledProbes(request *checker.CheckRequest,
 	for _, probeName := range probesToRun {
 		probe, err := proberegistration.Get(probeName)
 		if err != nil {
-			return err
+			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		// Run probe
 		findings, _, err := probe.Implementation(&ret.RawResults)

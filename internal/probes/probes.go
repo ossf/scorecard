@@ -8,7 +8,7 @@ import (
 
 type CheckName string
 
-// Redefining check names here to avoid circular imports
+// Redefining check names here to avoid circular imports.
 const (
 	BinaryArtifacts      CheckName = "Binary-Artifacts"
 	BranchProtection     CheckName = "Branch-Protection"
@@ -41,15 +41,15 @@ type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 // registered is the mapping of all registered probes.
 var registered = map[string]Probe{}
 
-// TODO: handle raw data and support types
 func Register(probe Probe) error {
 	if probe.Name == "" {
-		//nolint:wrapcheck // fix this in config later
 		return errors.CreateInternal(errors.ErrScorecardInternal, "name cannot be empty")
 	}
 	if probe.Implementation == nil {
-		//nolint:wrapcheck // fix this in config later
 		return errors.CreateInternal(errors.ErrScorecardInternal, "implementation cannot be nil")
+	}
+	if len(probe.RequiredRawData) == 0 {
+		return errors.CreateInternal(errors.ErrScorecardInternal, "probes need some raw data")
 	}
 	registered[probe.Name] = probe
 	return nil

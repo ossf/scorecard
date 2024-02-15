@@ -15,8 +15,6 @@
 package probes
 
 import (
-	"errors"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
@@ -152,8 +150,6 @@ var (
 	Uncategorized = []ProbeImpl{
 		freeOfAnyBinaryArtifacts.Run,
 	}
-
-	errProbeNotFound = errors.New("probe not found")
 )
 
 //nolint:gochecknoinits
