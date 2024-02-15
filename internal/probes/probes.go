@@ -28,6 +28,7 @@ const (
 	SignedReleases       CheckName = "Signed-Releases"
 	TokenPermissions     CheckName = "Token-Permissions"
 	Vulnerabilities      CheckName = "Vulnerabilities"
+	Webhooks             CheckName = "Webhooks"
 )
 
 type Probe struct {
