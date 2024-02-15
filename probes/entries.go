@@ -146,6 +146,9 @@ var (
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
 	}
+
+	// Probes which aren't included by any checks.
+	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
 		freeOfAnyBinaryArtifacts.Run,
 	}
