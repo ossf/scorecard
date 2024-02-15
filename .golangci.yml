@@ -22,7 +22,6 @@ issues:
         - lll
         - wrapcheck
   # probes must register via init
-  exclude-rules:
     - path: 'probes/.+/impl.go'
       linters:
         - gochecknoinits
