@@ -45,19 +45,25 @@ func TestFuzzing(t *testing.T) {
 			},
 		},
 		{
-			name: "uses GoNative fuzzer",
+			name: "single fuzzer gives max score",
 			findings: []finding.Finding{
-				{
-					Probe:   fuzzed.Probe,
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						fuzzed.ToolKey: fuzzers.BuiltInGo,
-					},
-				},
+				fuzzTool(fuzzers.BuiltInGo),
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
 				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "one info per fuzzer",
+			findings: []finding.Finding{
+				fuzzTool(fuzzers.BuiltInGo),
+				fuzzTool(fuzzers.OSSFuzz),
+				fuzzTool(fuzzers.ClusterFuzzLite),
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 3,
 			},
 		},
 		{
@@ -67,10 +73,7 @@ func TestFuzzing(t *testing.T) {
 					Probe:   "someUnrelatedProbe",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   fuzzed.Probe,
-					Outcome: finding.OutcomePositive,
-				},
+				fuzzTool(fuzzers.RustCargoFuzz),
 			},
 			result: scut.TestReturn{
 				Score: checker.InconclusiveResultScore,
@@ -86,5 +89,15 @@ func TestFuzzing(t *testing.T) {
 			got := Fuzzing(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
+	}
+}
+
+func fuzzTool(name string) finding.Finding {
+	return finding.Finding{
+		Probe:   fuzzed.Probe,
+		Outcome: finding.OutcomePositive,
+		Values: map[string]string{
+			fuzzed.ToolKey: name,
+		},
 	}
 }
