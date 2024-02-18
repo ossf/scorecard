@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package hasGitHubWorkflowPermissionUndeclared
+package topLevelWritePermissions
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasGitHubWorkflowPermissionUndeclared"
+const Probe = "topLevelWritePermissions"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -50,41 +50,28 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, r := range results.TokenPermissions {
-		if r.Type != checker.PermissionLevelUndeclared {
+		if r.Name == nil {
 			continue
 		}
-		switch {
-		case r.LocationType == nil:
-			f, err := finding.NewWith(fs, Probe,
-				"could not determine the location type",
-				nil, finding.OutcomeNotAvailable)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
-		case *r.LocationType == checker.PermissionLocationTop,
-			*r.LocationType == checker.PermissionLocationJob:
-			// Create finding
-			f, err := permissions.CreateNegativeFinding(r, Probe, fs)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithValue("permissionLocation", string(*r.LocationType))
-			findings = append(findings, *f)
-		default:
-			f, err := finding.NewWith(fs, Probe,
-				"could not determine the location type",
-				nil, finding.OutcomeNotApplicable)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			findings = append(findings, *f)
+		// We treat 'all' as a special case in a separate probe
+		if *r.Name == "all" {
+			continue
 		}
+		if *r.LocationType != checker.PermissionLocationTop {
+			continue
+		}
+
+		// Create finding
+		f, err := permissions.CreateNegativeFinding(r, Probe, fs)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
 	}
 
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"project has no workflows with undeclared permissions",
+			"no job-level permissions found",
 			nil, finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)

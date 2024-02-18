@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package hasNoGitHubWorkflowPermissionWriteContentsJob
+package jobLevelWritePermissions
 
 import (
 	"testing"
@@ -29,7 +29,13 @@ import (
 func Test_Run(t *testing.T) {
 	t.Parallel()
 
-	tests := permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "contents")
+	tests := permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "actions")
+
+	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "checks")...)
+	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "contents")...)
+	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "deployments")...)
+	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "packages")...)
+	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "security-events")...)
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

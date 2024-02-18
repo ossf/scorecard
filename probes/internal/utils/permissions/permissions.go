@@ -25,7 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
-func CreateText(t checker.TokenPermission) (string, error) {
+func createText(t checker.TokenPermission) (string, error) {
 	// By default, use the message already present.
 	if t.Msg != nil {
 		return *t.Msg, nil
@@ -59,7 +59,7 @@ func CreateNegativeFinding(r checker.TokenPermission,
 	fs embed.FS,
 ) (*finding.Finding, error) {
 	// Create finding
-	text, err := CreateText(r)
+	text, err := createText(r)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
@@ -87,6 +87,13 @@ func CreateNegativeFinding(r checker.TokenPermission,
 			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
 		})
 	}
+	if r.LocationType != nil {
+		f = f.WithValue("permissionLocation", string(*r.LocationType))
+	}
+	if r.Name != nil {
+		f = f.WithValue("tokenName", *r.Name)
+	}
+	f = f.WithValue("permissionLevel", string(r.Type))
 	return f, nil
 }
 
@@ -172,7 +179,6 @@ func GetTests(locationType checker.PermissionLocation,
 	tokenName string,
 ) []TestData {
 	name := tokenName // Should come from each probe test.
-	wrongName := "wrongName"
 	value := "value"
 	var wrongPermissionLocation checker.PermissionLocation
 	if locationType == checker.PermissionLocationTop {
@@ -191,26 +197,6 @@ func GetTests(locationType checker.PermissionLocation,
 			},
 			Outcomes: []finding.Outcome{
 				finding.OutcomeNotAvailable,
-			},
-		},
-		{
-			Name: "Invalid name",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &locationType,
-							Name:         &wrongName,
-							Value:        &value,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
 			},
 		},
 		{
@@ -280,26 +266,6 @@ func GetTests(locationType checker.PermissionLocation,
 				finding.OutcomeNegative,
 			},
 			Err: sce.ErrScorecardInternal,
-		},
-		{
-			Name: "Value is nil - Type is wrong",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &locationType,
-							Name:         &name,
-							Value:        nil,
-							Msg:          nil,
-							Type:         checker.PermissionLevel("999"),
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
 		},
 		{
 			Name: "Wrong locationType wrong type",

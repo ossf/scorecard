@@ -24,22 +24,10 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionRead"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteActionsJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteActionsTop"
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllJob"
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteChecksJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteChecksTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteContentsJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteContentsTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteDeploymentsJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteDeploymentsTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWritePackagesJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWritePackagesTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteSecurityEventsJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteSecurityEventsTop"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteStatusesJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteStatusesTop"
+	"github.com/ossf/scorecard/v4/probes/jobLevelWritePermissions"
+	"github.com/ossf/scorecard/v4/probes/topLevelWritePermissions"
 )
 
 // TokenPermissions applies the score policy for the Token-Permissions check.
@@ -48,26 +36,14 @@ func TokenPermissions(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasNoGitHubWorkflowPermissionWriteActionsTop.Probe,
 		hasNoGitHubWorkflowPermissionWriteAllTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteChecksTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteContentsTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteDeploymentsTop.Probe,
-		hasNoGitHubWorkflowPermissionWritePackagesTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteSecurityEventsTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteStatusesTop.Probe,
 		hasGitHubWorkflowPermissionUnknown.Probe,
 		hasGitHubWorkflowPermissionNone.Probe,
 		hasGitHubWorkflowPermissionRead.Probe,
 		hasGitHubWorkflowPermissionUndeclared.Probe,
 		hasNoGitHubWorkflowPermissionWriteAllJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteSecurityEventsJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteActionsJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteContentsJob.Probe,
-		hasNoGitHubWorkflowPermissionWritePackagesJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteChecksJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteDeploymentsJob.Probe,
-		hasNoGitHubWorkflowPermissionWriteStatusesJob.Probe,
+		jobLevelWritePermissions.Probe,
+		topLevelWritePermissions.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -156,13 +132,7 @@ func TokenPermissions(name string,
 			if undeclaredPermissions["topLevel"][fPath] {
 				score -= 0.5
 			}
-		case hasNoGitHubWorkflowPermissionWriteStatusesJob.Probe,
-			hasNoGitHubWorkflowPermissionWriteDeploymentsJob.Probe,
-			hasNoGitHubWorkflowPermissionWriteSecurityEventsJob.Probe,
-			hasNoGitHubWorkflowPermissionWriteActionsJob.Probe,
-			hasNoGitHubWorkflowPermissionWriteContentsJob.Probe,
-			hasNoGitHubWorkflowPermissionWritePackagesJob.Probe,
-			hasNoGitHubWorkflowPermissionWriteChecksJob.Probe:
+		case jobLevelWritePermissions.Probe:
 			dl.Warn(&checker.LogMessage{
 				Finding: f,
 			})
@@ -247,7 +217,7 @@ func updateScoreAndMapFromUndeclared(undeclaredPermissions map[string]map[string
 	score float32, dl checker.DetailLogger,
 ) float32 {
 	fPath := f.Location.Path
-	if f.Values["jobLevel"] == 1 {
+	if f.Values["permissionLocation"] == string(checker.PermissionLocationJob) {
 		dl.Debug(&checker.LogMessage{
 			Finding: f,
 		})
@@ -256,7 +226,7 @@ func updateScoreAndMapFromUndeclared(undeclaredPermissions map[string]map[string
 			hasWritePermissions,
 			fPath,
 			score)
-	} else if f.Values["topLevel"] == 1 {
+	} else if f.Values["permissionLocation"] == string(checker.PermissionLocationTop) {
 		dl.Warn(&checker.LogMessage{
 			Finding: f,
 		})
@@ -291,25 +261,33 @@ func logAndReduceScore(f *finding.Finding, dl checker.DetailLogger, score float3
 		dl.Debug(&checker.LogMessage{
 			Finding: f,
 		})
-	case hasNoGitHubWorkflowPermissionWriteChecksTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteStatusesTop.Probe:
-		dl.Warn(&checker.LogMessage{
-			Finding: f,
-		})
-		score -= 0.5
-	case hasNoGitHubWorkflowPermissionWriteContentsTop.Probe,
-		hasNoGitHubWorkflowPermissionWritePackagesTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteActionsTop.Probe:
-		dl.Warn(&checker.LogMessage{
-			Finding: f,
-		})
-		score -= checker.MaxResultScore
-	case hasNoGitHubWorkflowPermissionWriteDeploymentsTop.Probe,
-		hasNoGitHubWorkflowPermissionWriteSecurityEventsTop.Probe:
-		dl.Warn(&checker.LogMessage{
-			Finding: f,
-		})
-		score--
+	case topLevelWritePermissions.Probe:
+		score -= reduceBy(f, dl)
 	}
 	return score
+}
+
+func reduceBy(f *finding.Finding, dl checker.DetailLogger) float32 {
+	if f.Values["permissionLevel"] != "write" {
+		return 0
+	}
+	tokenName := f.Values["tokenName"]
+	switch tokenName {
+	case "checks", "statuses":
+		dl.Warn(&checker.LogMessage{
+			Finding: f,
+		})
+		return 0.5
+	case "contents", "packages", "actions":
+		dl.Warn(&checker.LogMessage{
+			Finding: f,
+		})
+		return checker.MaxResultScore
+	case "deployments", "security-events":
+		dl.Warn(&checker.LogMessage{
+			Finding: f,
+		})
+		return 1.0
+	}
+	return 0
 }
