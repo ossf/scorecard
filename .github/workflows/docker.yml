@@ -40,7 +40,7 @@ jobs:
         fetch-depth: 2 # needed to diff changed files
     - id: files
       name: Get changed files
-      uses: tj-actions/changed-files@90a06d6ba9543371ab4df8eeca0be07ca6054959 #v42.0.2
+      uses: tj-actions/changed-files@3f54ebb830831fc121d3263c1857cfbdc310cdb9 #v42.0.4
       with:
         files_ignore: '**.md'
     - id: docs_only_check
