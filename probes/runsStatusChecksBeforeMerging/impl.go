@@ -18,6 +18,7 @@ package runsStatusChecksBeforeMerging
 import (
 	"embed"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -51,29 +52,30 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
+		var f *finding.Finding
+		var err error
 
 		switch {
 		case len(branch.BranchProtectionRule.CheckRules.Contexts) > 0:
-			f, err := finding.NewWith(fs, Probe,
+			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("status check found to merge onto on branch '%s'", *branch.Name), nil,
 				finding.OutcomePositive)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValue(BranchNameKey, *branch.Name)
-			f = f.WithValue("branchProtected", protectedValue)
-			findings = append(findings, *f)
 		default:
-			f, err := finding.NewWith(fs, Probe,
+			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("no status checks found to merge onto branch '%s'", *branch.Name), nil,
 				finding.OutcomeNegative)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValue(BranchNameKey, *branch.Name)
-			f = f.WithValue("branchProtected", protectedValue)
-			findings = append(findings, *f)
 		}
+		f = f.WithValue(BranchNameKey, *branch.Name)
+
+		protected := !(branch.Protected != nil && !*branch.Protected)
+		f = f.WithValue("branchProtected", strconv.FormatBool(protected))
+		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
 }

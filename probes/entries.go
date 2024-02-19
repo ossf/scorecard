@@ -55,6 +55,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
+	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"	
 	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
 	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
 	"github.com/ossf/scorecard/v4/probes/requiresLastPushApproval"

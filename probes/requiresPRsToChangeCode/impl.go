@@ -19,6 +19,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -28,7 +29,10 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "requiresPRsToChangeCode"
+const (
+	Probe = "requiresPRsToChangeCode"
+	BranchNameKey = "branchName"
+)
 
 var errWrongValue = errors.New("wrong value, should not happen")
 
@@ -69,22 +73,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		switch {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
 		case *p:
 			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
 		case !*p:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
+		f = f.WithValue(BranchNameKey, *branch.Name)
+		protected := !(branch.Protected != nil && !*branch.Protected)
+		f = f.WithValue("branchProtected", strconv.FormatBool(protected))
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

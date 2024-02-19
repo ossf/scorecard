@@ -18,6 +18,7 @@ package branchProtectionAppliesToAdmins
 import (
 	"embed"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -65,7 +66,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithValue(BranchNameKey, *branch.Name)
-		f = f.WithValue("branchProtected", protectedValue)
+
+		protected := !(branch.Protected != nil && !*branch.Protected)
+		f = f.WithValue("branchProtected", strconv.FormatBool(protected))
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

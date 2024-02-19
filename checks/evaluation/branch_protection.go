@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -175,7 +176,8 @@ func BranchProtection(name string,
 
 			reviewerWeight := 2
 			max = reviewerWeight
-			if f.Outcome == finding.OutcomePositive && f.Values["numberOfRequiredReviewers"] > 0 {
+			noOfRequiredReviewers, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"])
+			if f.Outcome == finding.OutcomePositive && noOfRequiredReviewers > 0 {
 				branchScores[branchName].scores.review += reviewerWeight
 			}
 			branchScores[branchName].maxes.review += max
@@ -437,7 +439,8 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
-		if f.Values["numberOfRequiredReviewers"] >= minReviews {
+		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"])
+		if noOfRequiredReviews >= minReviews {
 			info(dl, doLogging, f.Message)
 			score++
 		} else {
@@ -454,7 +457,8 @@ func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.De
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
 		info(dl, doLogging, f.Message)
-		if f.Values["CodeownersFiles"] == 0 {
+		noOfFiles, _ := strconv.Atoi(f.Values["CodeownersFiles"])
+		if noOfFiles == 0 {
 			warn(dl, doLogging, "codeowners branch protection is being ignored - but no codeowners file found in repo")
 		} else {
 			score++
