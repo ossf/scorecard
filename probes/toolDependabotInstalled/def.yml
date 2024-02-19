@@ -30,3 +30,18 @@ remediation:
     - Follow the instructions from https://docs.github.com/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates.
   markdown:
     - Follow the instructions from [the official documentation](https://docs.github.com/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates).
+ecosystem:
+  languages:
+    - c#
+    - go
+    - java
+    - javascript
+    - php
+    - python
+    - ruby
+    - scala
+    - swift
+    - typescript
+  clients:
+    - github
+    - gitlab

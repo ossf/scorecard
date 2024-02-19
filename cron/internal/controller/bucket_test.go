@@ -20,7 +20,6 @@ import (
 	"testing"
 )
 
-//nolint:paralleltest // since t.Setenv is used
 func TestGetPrefix(t *testing.T) {
 	testcases := []struct {
 		name       string

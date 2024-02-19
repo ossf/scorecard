@@ -18,6 +18,7 @@ package hasRecentCommits
 import (
 	"embed"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -29,12 +30,11 @@ import (
 var fs embed.FS
 
 const (
-	lookBackDays  = 90
-	CommitsValue  = "commitsWithinThreshold"
-	LookBackValue = "lookBackDays"
+	Probe          = "hasRecentCommits"
+	NumCommitsKey  = "commitsWithinThreshold"
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
 )
-
-const Probe = "hasRecentCommits"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -54,27 +54,24 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 	}
 
+	var text string
+	var outcome finding.Outcome
 	if commitsWithinThreshold > 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"Found a contribution within the threshold.", nil,
-			finding.OutcomePositive)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithValues(map[string]int{
-			CommitsValue:  commitsWithinThreshold,
-			LookBackValue: lookBackDays,
-		})
-		findings = append(findings, *f)
+		text = "Found a contribution within the threshold."
+		outcome = finding.OutcomePositive
 	} else {
-		f, err := finding.NewWith(fs, Probe,
-			"Did not find contribution within the threshold.", nil,
-			finding.OutcomeNegative)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		text = "Did not find contribution within the threshold."
+		outcome = finding.OutcomeNegative
 	}
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+	f = f.WithValues(map[string]string{
+		NumCommitsKey:  strconv.Itoa(commitsWithinThreshold),
+		LookbackDayKey: strconv.Itoa(lookBackDays),
+	})
+	findings = append(findings, *f)
 
 	return findings, Probe, nil
 }

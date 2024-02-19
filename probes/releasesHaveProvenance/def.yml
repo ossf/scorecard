@@ -26,3 +26,9 @@ remediation:
   effort: Medium
   text:
     - Generate provenance and add it alongside the release assets. Use the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) to add SLSA level 3 provenance to releases.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

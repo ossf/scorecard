@@ -28,3 +28,9 @@ remediation:
     - Ensure that your SAST tools run on every commit.
   markdown:
     - Ensure that your SAST tools run on every commit.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

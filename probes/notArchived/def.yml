@@ -25,3 +25,9 @@ remediation:
   effort: High
   text:
     - Non-collaborators, members or owners cannot affect the outcome of this probe.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

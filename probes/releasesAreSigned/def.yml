@@ -28,3 +28,9 @@ remediation:
     - Install Cosign by following https://docs.sigstore.dev/system_config/installation
     - Sign your release artifacts using `cosign sign $YOUR_ARTIFACT`. See more at https://docs.sigstore.dev/signing/quickstart
     - Publish your release and add the certificate and signature produced by Cosign.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

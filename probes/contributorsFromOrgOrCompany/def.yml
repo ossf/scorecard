@@ -30,3 +30,9 @@ remediation:
   text:
     - Encourage community-driven contributions to your project.
     - Ask contributors to join their respective organizations, if they have not already. Otherwise, there is no remediation for this probe; it simply provides insight into how many organizations have contributed so that you can make a trust-based decision based on that information.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

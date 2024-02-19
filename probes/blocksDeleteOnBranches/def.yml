@@ -25,3 +25,9 @@ remediation:
   text:
     - Disallow deletion of branches in your project to remove negative outcomes.
     - GitHub and GitLab by default disable deleting a protected branch. 
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

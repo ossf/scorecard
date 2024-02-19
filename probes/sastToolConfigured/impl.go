@@ -1,4 +1,4 @@
-// Copyright 2023 OpenSSF Scorecard Authors
+// Copyright 2024 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package sastToolQodanaInstalled
+package sastToolConfigured
 
 import (
 	"embed"
@@ -27,7 +27,10 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sastToolQodanaInstalled"
+const (
+	Probe   = "sastToolConfigured"
+	ToolKey = "tool"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -36,25 +39,24 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.SASTResults
 
-	for _, wf := range r.Workflows {
-		if wf.Type == checker.QodanaWorkflow {
-			f, err := finding.NewWith(fs, Probe,
-				"SAST tool installed: Qodana", nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithLocation(&finding.Location{
-				Path: wf.File.Path,
-			})
-			return []finding.Finding{*f}, Probe, nil
+	if len(r.Workflows) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no SAST configuration files detected", nil, finding.OutcomeNegative)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		return []finding.Finding{*f}, Probe, nil
 	}
-	f, err := finding.NewWith(fs, Probe,
-		"Qodana tool not installed", nil,
-		finding.OutcomeNegative)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
+
+	findings := make([]finding.Finding, len(r.Workflows))
+	for i := range r.Workflows {
+		tool := string(r.Workflows[i].Type)
+		loc := r.Workflows[i].File.Location()
+		f, err := finding.NewWith(fs, Probe, "SAST configuration detected: "+tool, loc, finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValue(ToolKey, tool)
+		findings[i] = *f
 	}
-	return []finding.Finding{*f}, Probe, nil
+	return findings, Probe, nil
 }

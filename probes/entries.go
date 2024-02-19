@@ -50,12 +50,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
-	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -124,12 +120,8 @@ var (
 		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
-		sastToolCodeQLInstalled.Run,
-		sastToolPysaInstalled.Run,
-		sastToolQodanaInstalled.Run,
-		sastToolSnykInstalled.Run,
+		sastToolConfigured.Run,
 		sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Run,
 	}
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
@@ -186,9 +178,7 @@ var (
 		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
 		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
 		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
-		sastToolCodeQLInstalled.Probe:                       sastToolCodeQLInstalled.Run,
 		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Probe:                        sastToolSonarInstalled.Run,
 		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
 		notArchived.Probe:                                   notArchived.Run,
@@ -224,9 +214,7 @@ var (
 		hasPermissiveLicense.Probe:                          "PermissiveLicense",
 		contributorsFromOrgOrCompany.Probe:                  "Contributors",
 		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
-		sastToolCodeQLInstalled.Probe:                       "SAST",
 		sastToolRunsOnAllCommits.Probe:                      "SAST",
-		sastToolSonarInstalled.Probe:                        "SAST",
 		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
 		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
 		notArchived.Probe:                                   "Maintained",

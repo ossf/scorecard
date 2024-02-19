@@ -57,9 +57,9 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "1 commits out of 2 are checked with a SAST tool",
-					Values: map[string]int{
-						AnalyzedPRsKey: 1,
-						TotalPRsKey:    2,
+					Values: map[string]string{
+						AnalyzedPRsKey: "1",
+						TotalPRsKey:    "2",
 					},
 				},
 			},
@@ -87,9 +87,9 @@ func Test_Run(t *testing.T) {
 					Probe:   Probe,
 					Message: "all commits (2) are checked with a SAST tool",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						AnalyzedPRsKey: 2,
-						TotalPRsKey:    2,
+					Values: map[string]string{
+						AnalyzedPRsKey: "2",
+						TotalPRsKey:    "2",
 					},
 				},
 			},

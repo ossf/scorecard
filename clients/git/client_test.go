@@ -69,7 +69,6 @@ func createTestRepo(t *testing.T) (path string) {
 			When:  time.Now(),
 		},
 	})
-
 	if err != nil {
 		t.Fatalf("Failed to make initial commit: %v", err)
 	}

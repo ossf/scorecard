@@ -18,6 +18,7 @@ package sastToolRunsOnAllCommits
 import (
 	"embed"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -65,8 +66,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 
-	f = f.WithValue(AnalyzedPRsKey, totalPullRequestsAnalyzed)
-	f = f.WithValue(TotalPRsKey, totalPullRequestsMerged)
+	f = f.WithValue(AnalyzedPRsKey, strconv.Itoa(totalPullRequestsAnalyzed))
+	f = f.WithValue(TotalPRsKey, strconv.Itoa(totalPullRequestsMerged))
 
 	if totalPullRequestsAnalyzed == totalPullRequestsMerged {
 		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalPullRequestsMerged)

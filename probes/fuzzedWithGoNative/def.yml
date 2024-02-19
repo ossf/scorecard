@@ -30,3 +30,9 @@ remediation:
   markdown:
     - Follow the steps in [https://go.dev/doc/fuzz/](https://go.dev/doc/fuzz/) to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - go
+  clients:
+    - github
+    - gitlab

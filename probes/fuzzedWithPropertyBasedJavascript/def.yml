@@ -28,3 +28,9 @@ remediation:
     - 'Use fast-check: https://github.com/dubzzz/fast-check'
   markdown:
     - 'Use [fast-check](https://github.com/dubzzz/fast-check)'
+ecosystem:
+  languages:
+    - javascript
+  clients:
+    - github
+    - gitlab

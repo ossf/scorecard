@@ -30,3 +30,9 @@ remediation:
   markdown:
     - Follow the steps in [https://github.com/google/atheris](https://github.com/google/atheris) to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - python
+  clients:
+    - github
+    - gitlab

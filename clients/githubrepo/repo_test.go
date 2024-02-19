@@ -20,7 +20,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-//nolint:paralleltest // because we are using t.Setenv.
 func TestRepoURL_IsValid(t *testing.T) {
 	tests := []struct {
 		name     string

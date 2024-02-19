@@ -28,6 +28,7 @@ import (
 )
 
 func (ap *AttestationPolicy) ToJSON() string {
+	//nolint:musttag
 	jsonbytes, err := json.Marshal(ap)
 	if err != nil {
 		return ""

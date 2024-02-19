@@ -32,3 +32,9 @@ remediation:
     - Enforce protection rules for admins on all branches.
     - For GitHub-hosted projects, see the ["Do not allow bypassing the above settings"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#do-not-allow-bypassing-the-above-settings) section in the GitHub docs.
     - For GitLab-hosted projects, see the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

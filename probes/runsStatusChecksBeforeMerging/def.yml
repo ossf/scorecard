@@ -24,3 +24,9 @@ remediation:
   effort: Medium
   text:
     - Enable required status checks by following [these guidelines](https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

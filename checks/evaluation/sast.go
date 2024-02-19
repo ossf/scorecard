@@ -15,29 +15,23 @@
 package evaluation
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 )
 
 // SAST applies the score policy for the SAST check.
 func SAST(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
-		sastToolCodeQLInstalled.Probe,
-		sastToolPysaInstalled.Probe,
-		sastToolQodanaInstalled.Probe,
+		sastToolConfigured.Probe,
 		sastToolRunsOnAllCommits.Probe,
-		sastToolSonarInstalled.Probe,
-		sastToolSnykInstalled.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -45,49 +39,34 @@ func SAST(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var sastScore, codeQlScore, pysaScore, qodanaScore, snykScore, sonarScore int
+	var sastScore, codeQlScore, otherScore int
+	var err error
 	// Assign sastScore, codeQlScore and sonarScore
 	for i := range findings {
 		f := &findings[i]
 		switch f.Probe {
 		case sastToolRunsOnAllCommits.Probe:
-			sastScore = getSASTScore(f, dl)
-		case sastToolCodeQLInstalled.Probe:
-			codeQlScore = getSastToolScore(f, dl)
-		case sastToolSnykInstalled.Probe:
-			snykScore = getSastToolScore(f, dl)
-		case sastToolPysaInstalled.Probe:
-			pysaScore = getSastToolScore(f, dl)
-		case sastToolQodanaInstalled.Probe:
-			qodanaScore = getSastToolScore(f, dl)
-		case sastToolSonarInstalled.Probe:
-			if f.Outcome == finding.OutcomePositive {
-				sonarScore = checker.MaxResultScore
-				dl.Info(&checker.LogMessage{
-					Text:      f.Message,
-					Type:      f.Location.Type,
-					Path:      f.Location.Path,
-					Offset:    *f.Location.LineStart,
-					EndOffset: *f.Location.LineEnd,
-					Snippet:   *f.Location.Snippet,
-				})
-			} else if f.Outcome == finding.OutcomeNegative {
-				sonarScore = checker.MinResultScore
+			sastScore, err = getSASTScore(f, dl)
+			if err != nil {
+				return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
+			}
+		case sastToolConfigured.Probe:
+			tool, ok := f.Values[sastToolConfigured.ToolKey]
+			if f.Outcome == finding.OutcomePositive && !ok {
+				return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, "missing SAST tool"))
+			}
+			score := getSastToolScore(f, dl)
+			switch checker.SASTWorkflowType(tool) {
+			case checker.CodeQLWorkflow:
+				codeQlScore = score
+			default:
+				otherScore = score
 			}
 		}
 	}
 
-	if sonarScore == checker.MaxResultScore {
+	if otherScore == checker.MaxResultScore {
 		return checker.CreateMaxScoreResult(name, "SAST tool detected")
-	}
-	if snykScore == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(name, "SAST tool detected: Snyk")
-	}
-	if pysaScore == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(name, "SAST tool detected: Pysa")
-	}
-	if qodanaScore == checker.MaxResultScore {
-		return checker.CreateMaxScoreResult(name, "SAST tool detected: Qodana")
 	}
 
 	if sastScore == checker.InconclusiveResultScore &&
@@ -147,13 +126,13 @@ func SAST(name string,
 
 // getSASTScore returns the proportional score of how many commits
 // run SAST tools.
-func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
+func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 	switch f.Outcome {
 	case finding.OutcomeNotApplicable:
 		dl.Warn(&checker.LogMessage{
 			Text: f.Message,
 		})
-		return checker.InconclusiveResultScore
+		return checker.InconclusiveResultScore, nil
 	case finding.OutcomePositive:
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
@@ -164,9 +143,15 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) int {
 		})
 	default:
 	}
-	analyzed := f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey]
-	total := f.Values[sastToolRunsOnAllCommits.TotalPRsKey]
-	return checker.CreateProportionalScore(analyzed, total)
+	analyzed, err := strconv.Atoi(f.Values[sastToolRunsOnAllCommits.AnalyzedPRsKey])
+	if err != nil {
+		return 0, fmt.Errorf("parsing analyzed PR count: %w", err)
+	}
+	total, err := strconv.Atoi(f.Values[sastToolRunsOnAllCommits.TotalPRsKey])
+	if err != nil {
+		return 0, fmt.Errorf("parsing total PR count: %w", err)
+	}
+	return checker.CreateProportionalScore(analyzed, total), nil
 }
 
 // getSastToolScore returns positive if the project runs the Sast tool

@@ -38,3 +38,10 @@ remediation:
     - 'On GitLab:'
     - Provide a point of contact in your SECURITY.md.
     - 'Examples: [OpenSSF Scorecard](https://github.com/ossf/scorecard/blob/main/SECURITY.md), [SLSA builders](https://github.com/slsa-framework/slsa-github-generator/blob/main/SECURITY.md), [Sigstore](https://github.com/sigstore/.github/blob/main/SECURITY.md).'
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir

@@ -19,7 +19,6 @@ import (
 	"testing"
 )
 
-//nolint:paralleltest // because we are using t.Setenv.
 func TestOptions_Validate(t *testing.T) {
 	type fields struct {
 		Repo              string
