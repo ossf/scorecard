@@ -1,0 +1,39 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasDangerousWorkflowTrigger
+short: Check whether the project has privileged GitHub Actions workflows that can be triggered on workflow_run
+motivation: >
+  Using the workflow_run trigger for a privileged workflow may allow an attacker to open a pull request that executes the
+  triggering workflow, even if the target workflow is not intended to be run on pull requests
+implementation: >
+  The probe looks for any workflows that combine the workflow_run trigger with usage of the GITHUB_TOKEN secret. This
+  is an indirect indicator that the workflow is doing something important, like pushing code, uploading artifacts, or
+  tagging builds. 
+outcome:
+  - If the project has at least one dangerous workflow using the on_worfklow trigger, the probe returns one finding with OutcomeNegative (0).
+  - If the project does not have any dangerous workflows using the on_worfklow trigger, the probe returns one finding with OutcomePositive (1).
+remediation:
+  effort: Low
+  text:
+    - Combine both the source and target of the on_workflow trigger into a single workflow. 
+  markdown:
+    - Combine both the source and target of the `on_workflow` trigger into a single workflow.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir
