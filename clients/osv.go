@@ -52,6 +52,9 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		SkipGit:        true,
 		Recursive:      true,
 		GitCommits:     gitCommits,
+		CallAnalysisStates: map[string]bool{
+			"go": true,
+		},
 	}, nil) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
