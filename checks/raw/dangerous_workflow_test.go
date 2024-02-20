@@ -24,6 +24,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
@@ -187,5 +188,85 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				t.Errorf(cmp.Diff(nb, tt.expected.nb))
 			}
 		})
+	}
+}
+
+func TestUsesGitHubTokenWithWorkflowRun(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		jobID      string
+		numResults uint
+	}{
+		{
+			jobID:      "job0",
+			numResults: 2,
+		},
+		{
+			jobID:      "job1",
+			numResults: 3,
+		},
+		{
+			jobID:      "job2",
+			numResults: 1,
+		},
+		{
+			jobID:      "job3",
+			numResults: 1,
+		},
+		{
+			jobID:      "job4",
+			numResults: 1,
+		},
+		{
+			jobID:      "job5",
+			numResults: 1,
+		},
+		{
+			jobID:      "job6",
+			numResults: 1,
+		},
+		{
+			jobID:      "job7",
+			numResults: 0,
+		},
+	}
+
+	testFile := "./testdata/.github/workflows/github-workflow-workflow-run-unsafe.yml"
+	content, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("readfile: %s\n", testFile)
+	}
+
+	workflow, actionlintErr := actionlint.Parse(content)
+	if actionlintErr != nil {
+		t.Error("actionlint.Parse", actionlintErr)
+	}
+
+	for _, tt := range tests {
+		t.Logf("jobID: %s", tt.jobID)
+		job := workflow.Jobs[tt.jobID]
+		pdata := checker.DangerousWorkflowData{}
+		err := checkUsesGithubToken(job, testFile, &pdata)
+		if err != nil {
+			t.Error("checkUsesGitHubToken", err)
+		}
+
+		if len(pdata.Workflows) != int(tt.numResults) {
+			t.Errorf("incorrect number of workflows (+%d -%d)", len(pdata.Workflows), tt.numResults)
+			t.Logf("workflows: %+v", pdata.Workflows)
+		}
+
+		for i := range pdata.Workflows {
+			actual := pdata.Workflows[i]
+
+			if actual.Type != checker.DangerousWorkflowSecretUsage {
+				t.Errorf("incorrect finding type, (+%s -%s", actual.Type, checker.DangerousWorkflowSecretUsage)
+			}
+
+			if actual.File.Path != testFile {
+				t.Errorf("incorrect finding file path (+%s -%s)", actual.File.Path, testFile)
+			}
+		}
 	}
 }

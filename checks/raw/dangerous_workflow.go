@@ -62,6 +62,8 @@ var (
 	triggerWorkflowRun              = triggerName("workflow_run")
 	checkoutUntrustedPullRequestRef = "github.event.pull_request"
 	checkoutUntrustedWorkflowRunRef = "github.event.workflow_run"
+	//nolint:gosec
+	secretRefGithubToken = "secrets.GITHUB_TOKEN"
 )
 
 // DangerousWorkflow retrieves the raw data for the DangerousWorkflow check.
@@ -115,6 +117,11 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 
 	// 2. Check for script injection in workflow inline scripts.
 	if err := validateScriptInjection(workflow, path, pdata); err != nil {
+		return false, err
+	}
+
+	// 3. Check for usages of GitHub Workflow token combined with workflow_run trigger
+	if err := validateUsesGithubTokenOnWorkflowRun(workflow, path, pdata); err != nil {
 		return false, err
 	}
 
@@ -269,4 +276,143 @@ func checkVariablesInScript(script string, pos *actionlint.Pos,
 		script = script[s+e:]
 	}
 	return nil
+}
+
+func validateUsesGithubTokenOnWorkflowRun(workflow *actionlint.Workflow, path string,
+	pdata *checker.DangerousWorkflowData,
+) error {
+	if !usesEventTrigger(workflow, triggerWorkflowRun) {
+		return nil
+	}
+
+	for _, job := range workflow.Jobs {
+		if err := checkUsesGithubToken(job, path, pdata); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// List every GitHub workflow that's passed the GITHUB_TOKEN,
+// checking all methods for passing a variable to a workflow
+//
+//nolint:gocognit
+func checkUsesGithubToken(
+	job *actionlint.Job, path string,
+	pdata *checker.DangerousWorkflowData,
+) error {
+	// jobs.<job_id>.env
+	if job.Env != nil {
+		for _, v := range job.Env.Vars {
+			if strings.Contains(v.Value.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					v.Value, path, job,
+				))
+			}
+		}
+	}
+
+	// jobs.<job_id>.steps[*].env
+	for _, s := range job.Steps {
+		if s.Env != nil {
+			for _, v := range s.Env.Vars {
+				if strings.Contains(v.Value.Value, secretRefGithubToken) {
+					pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+						v.Value, path, job,
+					))
+				}
+			}
+		}
+
+		// jobs.<job_id>.steps[*].with
+		with := fileparser.GetWith(s)
+		for _, v := range with {
+			if strings.Contains(v.Value.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					v.Value, path, job,
+				))
+			}
+		}
+
+		// jobs.<job_id>.steps[*].with.args
+		args := fileparser.GetArgs(s)
+		if args != nil {
+			if strings.Contains(args.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					args, path, job,
+				))
+			}
+		}
+	}
+
+	// jobs.<job_id>.container.env
+	if job.Container != nil && job.Container.Env != nil {
+		for _, v := range job.Container.Env.Vars {
+			if strings.Contains(v.Value.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					v.Value, path, job,
+				))
+			}
+		}
+	}
+
+	// jobs.<job_id>.services.<service_id>.env
+	for _, s := range job.Services {
+		if s.Container.Env != nil {
+			for _, v := range s.Container.Env.Vars {
+				if strings.Contains(v.Value.Value, secretRefGithubToken) {
+					pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+						v.Value, path, job,
+					))
+				}
+			}
+		}
+	}
+
+	if job.WorkflowCall != nil {
+		// jobs.<job_id>.with
+		for _, v := range job.WorkflowCall.Inputs {
+			if strings.Contains(v.Value.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					v.Value, path, job,
+				))
+			}
+		}
+
+		// jobs.<job_id>.secrets
+		for _, v := range job.WorkflowCall.Secrets {
+			if strings.Contains(v.Value.Value, secretRefGithubToken) {
+				pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+					v.Value, path, job,
+				))
+			}
+		}
+
+		// jobs.<job_id>.secrets.inherit
+		if job.WorkflowCall.InheritSecrets {
+			pdata.Workflows = append(pdata.Workflows, createTokenUsageResult(
+				job.WorkflowCall.Uses, path, job,
+			))
+		}
+	}
+
+	return nil
+}
+
+func createTokenUsageResult(
+	snippet *actionlint.String, path string, job *actionlint.Job,
+) checker.DangerousWorkflow {
+	// Is this the right pos? Or should it be the entire workflow? Or maybe just the step?
+	line := fileparser.GetLineNumber(snippet.Pos)
+	return checker.DangerousWorkflow{
+		File: checker.File{
+			Path:    path,
+			Type:    finding.FileTypeSource,
+			Offset:  line,
+			Snippet: snippet.Value,
+		},
+		Job:  createJob(job),
+		Type: checker.DangerousWorkflowSecretUsage,
+	}
 }

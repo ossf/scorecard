@@ -85,8 +85,8 @@ func GetUses(step *actionlint.Step) *actionlint.String {
 	return execAction.Uses
 }
 
-// getWith returns the 'with' statement in this step or nil if this step does not have one.
-func getWith(step *actionlint.Step) map[string]*actionlint.Input {
+// GetWith returns the 'with' statement in this step or nil if this step does not have one.
+func GetWith(step *actionlint.Step) map[string]*actionlint.Input {
 	if step == nil {
 		return nil
 	}
@@ -98,6 +98,22 @@ func getWith(step *actionlint.Step) map[string]*actionlint.Input {
 		return nil
 	}
 	return execAction.Inputs
+}
+
+// GetWith returns the 'args' statement in this step or nil if this step does not have one.
+// 'args' are what's passed to the Docker container's ENTRYPOINT when a step is a Docker image.
+func GetArgs(step *actionlint.Step) *actionlint.String {
+	if step == nil {
+		return nil
+	}
+	if !IsStepExecKind(step, actionlint.ExecKindAction) {
+		return nil
+	}
+	execAction, ok := step.Exec.(*actionlint.ExecAction)
+	if !ok || execAction == nil {
+		return nil
+	}
+	return execAction.Args
 }
 
 // getRun returns the 'run' statement in this step or nil if this step does not have one.
@@ -421,7 +437,7 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
 
 	// Make sure 'with' matches if present.
 	if len(stepToMatch.With) > 0 {
-		with := getWith(step)
+		with := GetWith(step)
 		if with == nil {
 			return false
 		}
