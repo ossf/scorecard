@@ -69,6 +69,11 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
 		vulns := res.Flatten()
 		for i := range vulns {
+			// skip if call analysis was performed and the vuln is not called
+			// based on the documentation, this wont skip vulns for languages which don't support call analysis
+			if !vulns[i].GroupInfo.IsCalled() {
+				continue
+			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
 				ID:      vulns[i].Vulnerability.ID,
 				Aliases: vulns[i].Vulnerability.Aliases,
