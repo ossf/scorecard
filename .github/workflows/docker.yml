@@ -44,6 +44,7 @@ jobs:
         set +e # dont fail based on grep exit code
         git diff --name-only HEAD~1 | grep --ignore-case --invert-match '.md$'
         if [ $? -eq 1 ]; then
+            # no grep match (all files end in .md) produces exit code 1
             echo "docs_only=true" >> $GITHUB_OUTPUT
         else
             echo "docs_only=false" >> $GITHUB_OUTPUT
