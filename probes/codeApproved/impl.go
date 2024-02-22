@@ -27,11 +27,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "codeApproved"
+const Probe = "codeApproved"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
-	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return approvedRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.
