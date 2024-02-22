@@ -24,18 +24,16 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
-
-var errNew = errors.New("error")
 
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		err       error
 		name      string
-		commiterr error
+		commitErr error
 		commits   []clients.Commit
 		expected  scut.TestReturn
 	}{
@@ -46,25 +44,11 @@ func TestCodereview(t *testing.T) {
 			},
 		},
 		{
-			name:      "no commits with error",
-			commiterr: errNew,
+			name:      "no commits due to error",
+			commitErr: errors.New("error fetching commits"),
 			expected: scut.TestReturn{
 				Score: -1,
-			},
-		},
-		{
-			name: "no PR's with error",
-			err:  errNew,
-			expected: scut.TestReturn{
-				Score: -1,
-			},
-		},
-		{
-			name:      "no PR's with error as well as commits",
-			err:       errNew,
-			commiterr: errNew,
-			expected: scut.TestReturn{
-				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
@@ -286,7 +270,7 @@ func TestCodereview(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
+			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.commitErr).AnyTimes()
 
 			var dl scut.TestDetailLogger
 			req := checker.CheckRequest{
@@ -294,15 +278,9 @@ func TestCodereview(t *testing.T) {
 				Dlogger:    &dl,
 			}
 			res := CodeReview(&req)
-
-			if tt.err != nil {
-				if res.Error == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
-				}
-				// return as we don't need to check the rest of the fields.
-				return
+			if tt.commitErr != nil && res.Error == nil {
+				t.Fatalf("Expected error %v, got nil", tt.commitErr)
 			}
-
 			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
