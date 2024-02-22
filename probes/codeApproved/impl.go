@@ -46,13 +46,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	rawReviewData := &raw.CodeReviewResults
-	return approvedRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return approvedRun(rawReviewData, fs, Probe)
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.
-func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
-	positiveOutcome, negativeOutcome finding.Outcome,
-) ([]finding.Finding, string, error) {
+func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
 	foundHumanActivity := false
@@ -82,33 +80,24 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			nUnapprovedChangesets += 1
 		}
 	}
+	var outcome finding.Outcome
+	var reason string
 	switch {
 	case !foundHumanActivity:
-		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Found no human activity "+
-			"in the last %d changesets", nChangesets), nil)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, probeID, nil
+		outcome = finding.OutcomeNotAvailable
+		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	case nUnapprovedChangesets > 0:
-		// returns NegativeOutcome if not all changesets were approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. "+
-			"Found %d unapproved changesets of %d.", nUnapprovedChangesets, nChanges), nil, negativeOutcome)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		outcome = finding.OutcomeNegative
+		reason = fmt.Sprintf("Found %d/%d unapproved changesets", nUnapprovedChangesets, nChanges)
 	default:
-		// returns PositiveOutcome if all changesets have been approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %d changesets approved.",
-			nChangesets), nil, positiveOutcome)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		outcome = finding.OutcomePositive
+		reason = "All changesets approved"
 	}
+	f, err := finding.NewWith(fs, probeID, reason, nil, outcome)
+	if err != nil {
+		return nil, probeID, fmt.Errorf("create finding: %w", err)
+	}
+	findings = append(findings, *f)
 	return findings, probeID, nil
 }
 
