@@ -69,6 +69,8 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 			findings = append(findings, *f)
 			return findings, probeID, nil
 		}
+		// skip bot authored changesets, which can skew single maintainer projects which otherwise dont code review
+		// https://github.com/ossf/scorecard/issues/2450
 		if approvedChangeset && data.Author.IsBot {
 			continue
 		}
