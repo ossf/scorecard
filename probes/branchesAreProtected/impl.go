@@ -28,7 +28,7 @@ import (
 var fs embed.FS
 
 const (
-	Probe = "branchesAreProtected"
+	Probe         = "branchesAreProtected"
 	BranchNameKey = "branchName"
 )
 

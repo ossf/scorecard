@@ -30,7 +30,7 @@ import (
 var fs embed.FS
 
 const (
-	Probe = "requiresPRsToChangeCode"
+	Probe         = "requiresPRsToChangeCode"
 	BranchNameKey = "branchName"
 )
 
