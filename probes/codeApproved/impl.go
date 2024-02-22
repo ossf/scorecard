@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
@@ -30,6 +31,9 @@ var fs embed.FS
 const Probe = "codeApproved"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+	}
 	rawReviewData := &raw.CodeReviewResults
 	return approvedRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
