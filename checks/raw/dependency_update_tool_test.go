@@ -64,6 +64,18 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    ".gitlab/renovate.json",
+			path:    ".gitlab/renovate.json",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    ".gitlab/renovate.json5",
+			path:    ".gitlab/renovate.json5",
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name:    ".renovaterc.json",
 			path:    ".renovaterc.json",
 			want:    true,

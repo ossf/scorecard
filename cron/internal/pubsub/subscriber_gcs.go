@@ -90,7 +90,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 			MaxMessages:  maxMessagesToPull,
 		})
 		if err != nil {
-			log.Printf("error during Recieive: %v", err)
+			log.Printf("error during Receive: %v", err)
 			return nil, nil
 		}
 		numReceivedMessages = len(result.GetReceivedMessages())

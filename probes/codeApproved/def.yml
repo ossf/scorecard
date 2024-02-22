@@ -1,0 +1,31 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+id: codeApproved
+short: Check that all recent changesets have been approved by someone who is not the author of the changeset.
+motivation: >
+  To ensure that the review process works, the proposed changes
+  should have a minimum number of approvals.
+implementation: >
+  This probe looks for whether all changes over the last `--commit-depth` commits have been approved before merge. Commits are grouped by the Pull Request they were introduced in, and each Pull Request must have at least one approval.
+outcome:
+  - If all commits were approved, the probe returns OutcomePositive (1)
+  - If any commit was not approved, the prove returns OutcomeNegative (0)
+remediation:
+  effort: Low
+  text:
+    - Follow the instructions at https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.
+  markdown:
+    - Follow the instructions [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews) to review pull requests before merge.

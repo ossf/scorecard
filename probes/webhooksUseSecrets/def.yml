@@ -31,3 +31,9 @@ remediation:
     - Check if the service your webhooks is configured with supports secrets.
     - If there is support for secret authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
     - If there is no support for secret authentication, request the webhook service implement secret authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

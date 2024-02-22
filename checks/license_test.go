@@ -92,9 +92,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 
 			res := License(&req)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 
 			ctrl.Finish()
 		})

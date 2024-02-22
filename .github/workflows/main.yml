@@ -26,8 +26,8 @@ on:
       - main
 
 env:
-  PROTOC_VERSION: 3.17.3
-  GO_VERSION: 1.21
+  PROTOC_VERSION: 21.6
+  GO_VERSION: 1.22
 
 jobs:
   unit-test:
@@ -37,7 +37,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
@@ -54,7 +54,7 @@ jobs:
         echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 #v3.3.2
+       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 #v4.0.0
        with:
          path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
@@ -68,12 +68,12 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 3.1.4
+       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 3.1.6
        with:
          files: ./unit-coverage.out
          verbose: true
      - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -83,7 +83,7 @@ jobs:
           timeout_minutes: 30
           command: make e2e-pat
      - name: codecov
-       uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d # 2.1.0
+       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 2.1.0
        if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
@@ -95,18 +95,18 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
+       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
        with:
          path: |
            ~/go/pkg/mod
@@ -127,7 +127,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -143,7 +143,7 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
@@ -155,7 +155,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate docs
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -172,12 +172,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
+       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -192,7 +192,7 @@ jobs:
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -221,12 +221,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
        with:
          path: |
            ~/go/pkg/mod
@@ -245,7 +245,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4 # v2.9.0
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -260,13 +260,13 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
        with:
          path: |
            ~/go/pkg/mod
@@ -287,7 +287,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -298,43 +298,23 @@ jobs:
   add-projects:
     name: add-projects
     runs-on: ubuntu-latest
-    needs: build-proto
     permissions:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-     - name: Install Protoc
-       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Cache builds
-       # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
-       with:
-         path: |
-           ~/go/pkg/mod
-           ~/.cache/go-build
-           ~/Library/Caches/go-build
-           %LocalAppData%\go-build
-         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-         restore-keys: |
-           ${{ runner.os }}-go-
      - name: Clone the code
        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-       with:
-          fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v2.2.0
+       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -342,6 +322,7 @@ jobs:
           command: |
             go env -w GOFLAGS=-mod=mod
             make add-projects
+            git diff --exit-code
   validate-projects:
     name: validate-projects
     runs-on: ubuntu-latest
@@ -349,12 +330,12 @@ jobs:
       contents: read
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Install Protoc
-       uses: arduino/setup-protoc@149f6c87b92550901b26acd1632e11c3662e381f # v1.3.0
+       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
        with:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -369,7 +350,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
+       uses: nick-invision/retry@7152eba30c6575329ac0576536151aca5a72780e
        with:
           max_attempts: 3
           retry_on: error
@@ -384,7 +365,7 @@ jobs:
       contents: read
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v1
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 

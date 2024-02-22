@@ -28,36 +28,43 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func Test_SAST(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet
 	tests := []struct {
-		name          string
 		err           error
-		commits       []clients.Commit
-		searchresult  clients.SearchResponse
-		checkRuns     []clients.CheckRun
 		searchRequest clients.SearchRequest
+		name          string
 		path          string
-		expected      checker.CheckResult
+		commits       []clients.Commit
+		checkRuns     []clients.CheckRun
+		searchresult  clients.SearchResponse
+		expected      scut.TestReturn
 	}{
 		{
-			name:         "SAST checker should return failed status when no PRs are found",
+			name:         "SAST checker should return min score when no PRs are found",
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
+			expected: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfWarn: 1,
+			},
 		},
 		{
-			name:         "SAST checker should return failed status when no PRs are found",
+			name:         "SAST checker should return failed status when an error occurs",
 			err:          errors.New("error"),
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
-			expected:     checker.CheckResult{Score: -1},
+			expected: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
+			},
 		},
 		{
 			name: "Successful SAST checker should return success status for github-advanced-security",
@@ -78,8 +85,10 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -101,8 +110,10 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -125,8 +136,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			path: "",
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -148,8 +161,10 @@ func Test_SAST(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -164,8 +179,10 @@ func Test_SAST(t *testing.T) {
 			},
 			searchresult: clients.SearchResponse{},
 			path:         ".github/workflows/airflow-codeql-workflow.yaml",
-			expected: checker.CheckResult{
-				Score: 7,
+			expected: scut.TestReturn{
+				Score:        7,
+				NumberOfWarn: 1,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -196,13 +213,15 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
 			name: `Airflow Workflow has CodeQL and two check runs one of 
-			which has wrong type of conlusion. The other is 'success'`,
+			which has wrong type of conclusion. The other is 'success'`,
 			err: nil,
 			commits: []clients.Commit{
 				{
@@ -229,8 +248,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -267,8 +288,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
-			expected: checker.CheckResult{
-				Score: 7,
+			expected: scut.TestReturn{
+				Score:        7,
+				NumberOfWarn: 1,
+				NumberOfInfo: 1,
 			},
 		},
 	}
@@ -316,10 +339,7 @@ func Test_SAST(t *testing.T) {
 			}
 			res := SAST(&req)
 
-			if res.Score != tt.expected.Score {
-				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			ctrl.Finish()
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

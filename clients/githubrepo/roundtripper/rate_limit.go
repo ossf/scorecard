@@ -36,7 +36,7 @@ func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *log.Logg
 	}
 }
 
-// rateLimitTransport is a rate-limit aware http.Transport for Github.
+// rateLimitTransport is a rate-limit aware http.Transport for GitHub.
 type rateLimitTransport struct {
 	logger         *log.Logger
 	innerTransport http.RoundTripper

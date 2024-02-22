@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -175,8 +176,15 @@ func NormalizeReason(reason string, score int) string {
 
 // CreateResultWithScore is used when
 // the check runs without runtime errors, and we want to assign a
-// specific score.
+// specific score. The score must be between [MinResultScore] and [MaxResultScore].
+// Callers who want [InconclusiveResultScore] must use [CreateInconclusiveResult] instead.
+//
+// Passing an invalid score results in a runtime error result as if created by [CreateRuntimeErrorResult].
 func CreateResultWithScore(name, reason string, score int) CheckResult {
+	if score < MinResultScore || score > MaxResultScore {
+		err := sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("invalid score (%d), please report this", score))
+		return CreateRuntimeErrorResult(name, err)
+	}
 	return CheckResult{
 		Name:    name,
 		Version: 2,
@@ -193,15 +201,8 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	score := CreateProportionalScore(b, t)
-	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
-		Version: 2,
-		Error:   nil,
-		Score:   score,
-		Reason:  NormalizeReason(reason, score),
-	}
+	reason = NormalizeReason(reason, score)
+	return CreateResultWithScore(name, reason, score)
 }
 
 // CreateMaxScoreResult is used when

@@ -19,6 +19,8 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/codeApproved"
+	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
@@ -47,12 +49,12 @@ import (
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
-	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
+	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
+	"github.com/ossf/scorecard/v4/probes/sbomCICDArtifactExists"
+	"github.com/ossf/scorecard/v4/probes/sbomExists"
+	"github.com/ossf/scorecard/v4/probes/sbomReleaseArtifactExists"
+	"github.com/ossf/scorecard/v4/probes/sbomStandardsFileUsed"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -79,7 +81,7 @@ var (
 		securityPolicyContainsText.Run,
 	}
 	// DependencyToolUpdates is all the probes for the
-	// DpendencyUpdateTool check.
+	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		toolRenovateInstalled.Run,
 		toolDependabotInstalled.Run,
@@ -113,13 +115,13 @@ var (
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
 	}
+	CodeReview = []ProbeImpl{
+		codeApproved.Run,
+		codeReviewOneReviewers.Run,
+	}
 	SAST = []ProbeImpl{
-		sastToolCodeQLInstalled.Run,
-		sastToolPysaInstalled.Run,
-		sastToolQodanaInstalled.Run,
-		sastToolSnykInstalled.Run,
+		sastToolConfigured.Run,
 		sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Run,
 	}
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
@@ -143,6 +145,12 @@ var (
 	}
 	CITests = []ProbeImpl{
 		testsRunInCI.Run,
+	}
+	Sbom = []ProbeImpl{
+		sbomExists.Run,
+		sbomReleaseArtifactExists.Run,
+		sbomStandardsFileUsed.Run,
+		sbomCICDArtifactExists.Run,
 	}
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
@@ -175,9 +183,7 @@ var (
 		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
 		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
 		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
-		sastToolCodeQLInstalled.Probe:                       sastToolCodeQLInstalled.Run,
 		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Probe:                        sastToolSonarInstalled.Run,
 		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
 		notArchived.Probe:                                   notArchived.Run,
@@ -212,9 +218,7 @@ var (
 		hasLicenseFileAtTopDir.Probe:                        "License",
 		contributorsFromOrgOrCompany.Probe:                  "Contributors",
 		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
-		sastToolCodeQLInstalled.Probe:                       "SAST",
 		sastToolRunsOnAllCommits.Probe:                      "SAST",
-		sastToolSonarInstalled.Probe:                        "SAST",
 		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
 		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
 		notArchived.Probe:                                   "Maintained",
@@ -230,6 +234,7 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		DependencyToolUpdates,
+		CodeReview,
 		SecurityPolicy,
 		Fuzzing,
 		License,

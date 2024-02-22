@@ -16,6 +16,7 @@
 package issueActivityByProjectMember
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -62,17 +63,17 @@ func fiveInThresholdByCollabAndFiveByFirstTimeUser() []clients.Issue {
 	return fiveInThresholdByCollabAndFiveByFirstTimeUser
 }
 
-func twentyIssuesInThresholdAndtwentyNot() []clients.Issue {
-	twentyIssuesInThresholdAndtwentyNot := make([]clients.Issue, 0)
+func twentyIssuesInThresholdAndTwentyNot() []clients.Issue {
+	twentyIssuesInThresholdAndTwentyNot := make([]clients.Issue, 0)
 	for i := 70; i < 111; i++ {
 		createdAt := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/)
 		commit := clients.Issue{
 			CreatedAt:         &createdAt,
 			AuthorAssociation: &collab,
 		}
-		twentyIssuesInThresholdAndtwentyNot = append(twentyIssuesInThresholdAndtwentyNot, commit)
+		twentyIssuesInThresholdAndTwentyNot = append(twentyIssuesInThresholdAndTwentyNot, commit)
 	}
-	return twentyIssuesInThresholdAndtwentyNot
+	return twentyIssuesInThresholdAndTwentyNot
 }
 
 func Test_Run(t *testing.T) {
@@ -80,7 +81,7 @@ func Test_Run(t *testing.T) {
 	//nolint:govet
 	tests := []struct {
 		name     string
-		values   map[string]int
+		values   map[string]string
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
 		err      error
@@ -101,8 +102,9 @@ func Test_Run(t *testing.T) {
 					Issues: fiveIssuesInThreshold(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 5,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -110,11 +112,12 @@ func Test_Run(t *testing.T) {
 			name: "Has 20 issues in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					Issues: twentyIssuesInThresholdAndtwentyNot(),
+					Issues: twentyIssuesInThresholdAndTwentyNot(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 20,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "20",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -125,8 +128,9 @@ func Test_Run(t *testing.T) {
 					Issues: fiveInThresholdByCollabAndFiveByFirstTimeUser(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 5,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -168,7 +172,7 @@ func Test_Run(t *testing.T) {
 func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 	t.Parallel()
 	r := clients.RepoAssociationCollaborator
-	twentDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
+	twentyDaysAgo := time.Now().AddDate(0 /*years*/, 0 /*months*/, -20 /*days*/)
 	type args struct {
 		issue     *clients.Issue
 		threshold time.Time
@@ -200,7 +204,7 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 			name: "twentyDaysAgo",
 			args: args{
 				issue: &clients.Issue{
-					CreatedAt:         &twentDaysAgo,
+					CreatedAt:         &twentyDaysAgo,
 					AuthorAssociation: &r,
 				},
 			},
@@ -214,7 +218,7 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 					AuthorAssociation: &r,
 					Comments: []clients.IssueComment{
 						{
-							CreatedAt:         &twentDaysAgo,
+							CreatedAt:         &twentyDaysAgo,
 							AuthorAssociation: &r,
 						},
 					},

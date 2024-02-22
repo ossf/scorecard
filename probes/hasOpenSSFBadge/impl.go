@@ -30,6 +30,7 @@ var fs embed.FS
 
 const (
 	Probe           = "hasOpenSSFBadge"
+	LevelKey        = "badgeLevel"
 	GoldLevel       = "Gold"
 	SilverLevel     = "Silver"
 	PassingLevel    = "Passing"
@@ -73,8 +74,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 
-	f = f.WithValues(map[string]int{
-		badgeLevel: 1,
-	})
+	f = f.WithValue(LevelKey, badgeLevel)
 	return []finding.Finding{*f}, Probe, nil
 }

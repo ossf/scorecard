@@ -21,7 +21,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v59/github"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/shurcooL/githubv4"
@@ -76,6 +76,6 @@ var _ = BeforeSuite(func() {
 	case "GITHUB_TOKEN":
 		tokType = githubWorkflowDefaultTokenType
 	default:
-		panic(fmt.Sprintf("invald TOKEN_TYPE: %s", tt))
+		panic(fmt.Sprintf("invalid TOKEN_TYPE: %s", tt))
 	}
 })

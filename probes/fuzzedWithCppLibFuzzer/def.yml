@@ -30,3 +30,10 @@ remediation:
   markdown:
     - Follow the steps in [https://llvm.org/docs/LibFuzzer.html](https://llvm.org/docs/LibFuzzer.html) to enable fuzzing on your project.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - c
+    - c++
+  clients:
+    - github
+    - gitlab

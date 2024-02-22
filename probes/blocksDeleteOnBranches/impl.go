@@ -27,7 +27,10 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "blocksDeleteOnBranches"
+const (
+	Probe         = "blocksDeleteOnBranches"
+	BranchNameKey = "branchName"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -58,9 +61,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValues(map[string]int{
-			*branch.Name: 1,
-		})
+		f = f.WithValue(BranchNameKey, *branch.Name)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

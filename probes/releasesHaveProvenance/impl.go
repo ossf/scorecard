@@ -30,17 +30,9 @@ var fs embed.FS
 
 const (
 	Probe           = "releasesHaveProvenance"
+	ReleaseNameKey  = "releaseName"
+	AssetNameKey    = "assetName"
 	releaseLookBack = 5
-)
-
-// ValueType is the type of a value in the finding values.
-type ValueType int
-
-const (
-	// ValueTypeRelease represents a release name.
-	ValueTypeRelease ValueType = iota
-	// ValueTypeReleaseAsset represents a release asset name.
-	ValueTypeReleaseAsset
 )
 
 var provenanceExtensions = []string{".intoto.jsonl"}
@@ -86,9 +78,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				if err != nil {
 					return nil, Probe, fmt.Errorf("create finding: %w", err)
 				}
-				f.Values = map[string]int{
-					release.TagName: int(ValueTypeRelease),
-					asset.Name:      int(ValueTypeReleaseAsset),
+				f.Values = map[string]string{
+					ReleaseNameKey: release.TagName,
+					AssetNameKey:   asset.Name,
 				}
 				findings = append(findings, *f)
 				hasProvenance = true
@@ -114,9 +106,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f.Values = map[string]int{
-			release.TagName: int(ValueTypeRelease),
-		}
+		f = f.WithValue(ReleaseNameKey, release.TagName)
 		findings = append(findings, *f)
 
 		if totalReleases >= releaseLookBack {

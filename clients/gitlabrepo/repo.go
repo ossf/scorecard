@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// NOTE: In Gitlab repositories are called projects, however to ensure compatibility,
-// this package will regard to Gitlab projects as repositories.
+// NOTE: In GitLab repositories are called projects, however to ensure compatibility,
+// this package will regard to GitLab projects as repositories.
 package gitlabrepo
 
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/xanzy/go-gitlab"
@@ -61,14 +63,26 @@ func (r *repoURL) parse(input string) error {
 		t = input
 	}
 
-	// Allow skipping scheme for ease-of-use, default to https.
-	if !strings.Contains(t, "://") {
-		t = "https://" + t
+	u, err := url.Parse(withDefaultScheme(t))
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 	}
 
-	u, e := url.Parse(t)
-	if e != nil {
-		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", e))
+	// fixup the URL, for situations where GL_HOST contains part of the path
+	// https://github.com/ossf/scorecard/issues/3696
+	if h := os.Getenv("GL_HOST"); h != "" {
+		hostURL, err := url.Parse(withDefaultScheme(h))
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse GL_HOST: %v", err))
+		}
+
+		// only modify behavior of repos which fall under GL_HOST
+		if hostURL.Host == u.Host {
+			// without the scheme and without trailing slashes
+			u.Host = hostURL.Host + strings.TrimRight(hostURL.Path, "/")
+			// remove any part of the path which belongs to the host
+			u.Path = strings.TrimPrefix(u.Path, hostURL.Path)
+		}
 	}
 
 	const splitLen = 2
@@ -79,6 +93,14 @@ func (r *repoURL) parse(input string) error {
 
 	r.scheme, r.host, r.owner, r.project = u.Scheme, u.Host, split[0], split[1]
 	return nil
+}
+
+// Allow skipping scheme for ease-of-use, default to https.
+func withDefaultScheme(uri string) string {
+	if strings.Contains(uri, "://") {
+		return uri
+	}
+	return "https://" + uri
 }
 
 // URI implements Repo.URI().
@@ -97,6 +119,10 @@ func (r *repoURL) String() string {
 
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
+	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
+		return sce.WithMessage(sce.ErrorInvalidURL, "expected full project url: "+r.URI())
+	}
+
 	if strings.Contains(r.host, "gitlab.") {
 		return nil
 	}
@@ -105,7 +131,10 @@ func (r *repoURL) IsValid() error {
 		return fmt.Errorf("%w: %s", errInvalidGitlabRepoURL, r.host)
 	}
 
-	client, err := gitlab.NewClient("", gitlab.WithBaseURL(fmt.Sprintf("%s://%s", r.scheme, r.host)))
+	// intentionally pass empty token
+	// "When accessed without authentication, only public projects with simple fields are returned."
+	// https://docs.gitlab.com/ee/api/projects.html#list-all-projects
+	client, err := gitlab.NewClient("", gitlab.WithBaseURL(r.Host()))
 	if err != nil {
 		return sce.WithMessage(err,
 			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
@@ -113,7 +142,7 @@ func (r *repoURL) IsValid() error {
 	}
 
 	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
-	if resp == nil || resp.StatusCode != 200 {
+	if resp == nil || resp.StatusCode != http.StatusOK {
 		return sce.WithMessage(sce.ErrRepoUnreachable,
 			fmt.Sprintf("couldn't reach gitlab instance at %s", r.host),
 		)
@@ -124,10 +153,6 @@ func (r *repoURL) IsValid() error {
 		)
 	}
 
-	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
-		return sce.WithMessage(sce.ErrorInvalidURL,
-			fmt.Sprintf("%v. Expected the full project url", r.URI()))
-	}
 	return nil
 }
 

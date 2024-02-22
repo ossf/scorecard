@@ -38,56 +38,56 @@ var (
 	topNoWriteID   = "gitHubWorkflowPermissionsTopNoWrite"
 )
 
-type permissionLevel int
+type permissionLevel string
 
 const (
 	// permissionLevelNone is a permission set to `none`.
-	permissionLevelNone permissionLevel = iota
+	permissionLevelNone permissionLevel = "none"
 	// permissionLevelRead is a permission set to `read`.
-	permissionLevelRead
+	permissionLevelRead permissionLevel = "read"
 	// permissionLevelUnknown is for other kinds of alerts, mostly to support debug messages.
 	// TODO: remove it once we have implemented severity (#1874).
-	permissionLevelUnknown
+	permissionLevelUnknown permissionLevel = "unknown"
 	// permissionLevelUndeclared is an undeclared permission.
-	permissionLevelUndeclared
+	permissionLevelUndeclared permissionLevel = "undeclared"
 	// permissionLevelWrite is a permission set to `write` for a permission we consider potentially dangerous.
-	permissionLevelWrite
+	permissionLevelWrite permissionLevel = "write"
 )
 
 // permissionLocation represents a declaration type.
-type permissionLocationType int
+type permissionLocationType string
 
 const (
 	// permissionLocationNil is in case the permission is nil.
-	permissionLocationNil permissionLocationType = iota
+	permissionLocationNil permissionLocationType = "nil"
 	// permissionLocationNotDeclared is for undeclared permission.
-	permissionLocationNotDeclared
+	permissionLocationNotDeclared permissionLocationType = "not declared"
 	// permissionLocationTop is top-level workflow permission.
-	permissionLocationTop
+	permissionLocationTop permissionLocationType = "top"
 	// permissionLocationJob is job-level workflow permission.
-	permissionLocationJob
+	permissionLocationJob permissionLocationType = "job"
 )
 
 // permissionType represents a permission type.
-type permissionType int
+type permissionType string
 
 const (
 	// permissionTypeNone represents none permission type.
-	permissionTypeNone permissionType = iota
+	permissionTypeNone permissionType = "none"
 	// permissionTypeNone is the "all" github permission type.
-	permissionTypeAll
+	permissionTypeAll permissionType = "all"
 	// permissionTypeNone is the "statuses" github permission type.
-	permissionTypeStatuses
+	permissionTypeStatuses permissionType = "statuses"
 	// permissionTypeNone is the "checks" github permission type.
-	permissionTypeChecks
+	permissionTypeChecks permissionType = "checks"
 	// permissionTypeNone is the "security-events" github permission type.
-	permissionTypeSecurityEvents
+	permissionTypeSecurityEvents permissionType = "security-events"
 	// permissionTypeNone is the "deployments" github permission type.
-	permissionTypeDeployments
+	permissionTypeDeployments permissionType = "deployments"
 	// permissionTypeNone is the "packages" github permission type.
-	permissionTypePackages
+	permissionTypePackages permissionType = "packages"
 	// permissionTypeNone is the "actions" github permission type.
-	permissionTypeActions
+	permissionTypeActions permissionType = "actions"
 )
 
 // TokenPermissions applies the score policy for the Token-Permissions check.
@@ -152,19 +152,13 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 		switch r.Type {
 		case checker.PermissionLevelNone:
 			f = f.WithOutcome(finding.OutcomePositive)
-			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(permissionLevelNone),
-			})
+			f = f.WithValue("PermissionLevel", string(permissionLevelNone))
 		case checker.PermissionLevelRead:
 			f = f.WithOutcome(finding.OutcomePositive)
-			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(permissionLevelRead),
-			})
-
+			f = f.WithValue("PermissionLevel", string(permissionLevelRead))
 		case checker.PermissionLevelUnknown:
-			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(permissionLevelUnknown),
-			}).WithOutcome(finding.OutcomeError)
+			f = f.WithValue("PermissionLevel", string(permissionLevelUnknown))
+			f = f.WithOutcome(finding.OutcomeError)
 		case checker.PermissionLevelUndeclared:
 			var locationType permissionLocationType
 			//nolint:gocritic
@@ -176,10 +170,10 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 				locationType = permissionLocationNotDeclared
 			}
 			permType := permTypeToEnum(r.Name)
-			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(permissionLevelUndeclared),
-				"LocationType":    int(locationType),
-				"PermissionType":  int(permType),
+			f = f.WithValues(map[string]string{
+				"PermissionLevel": string(permissionLevelUndeclared),
+				"LocationType":    string(locationType),
+				"PermissionType":  string(permType),
 			})
 		case checker.PermissionLevelWrite:
 			var locationType permissionLocationType
@@ -192,10 +186,10 @@ func rawToFindings(results *checker.TokenPermissionsData) ([]finding.Finding, er
 				locationType = permissionLocationNotDeclared
 			}
 			permType := permTypeToEnum(r.Name)
-			f = f.WithValues(map[string]int{
-				"PermissionLevel": int(permissionLevelWrite),
-				"LocationType":    int(locationType),
-				"PermissionType":  int(permType),
+			f = f.WithValues(map[string]string{
+				"PermissionLevel": string(permissionLevelWrite),
+				"LocationType":    string(locationType),
+				"PermissionType":  string(permType),
 			})
 			f = f.WithOutcome(finding.OutcomeNegative)
 		}
@@ -229,7 +223,7 @@ func permTypeToEnum(tokenName *string) permissionType {
 	}
 }
 
-func permTypeToName(permType int) *string {
+func permTypeToName(permType string) *string {
 	var permName string
 	switch permissionType(permType) {
 	case permissionTypeAll:
@@ -401,7 +395,7 @@ func warnWithRemediation(logger checker.DetailLogger,
 }
 
 func recordPermissionWrite(hm map[string]permissions, path string,
-	locType permissionLocationType, permType int,
+	locType permissionLocationType, permType string,
 ) {
 	if _, exists := hm[path]; !exists {
 		hm[path] = permissions{

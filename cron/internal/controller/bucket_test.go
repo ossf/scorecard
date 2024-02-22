@@ -20,7 +20,6 @@ import (
 	"testing"
 )
 
-//nolint:paralleltest // since t.Setenv is used
 func TestGetPrefix(t *testing.T) {
 	testcases := []struct {
 		name       string
@@ -63,7 +62,7 @@ func TestGetPrefix(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "non existent prefix file",
+			name:       "nonexistent prefix file",
 			url:        "testdata/getPrefix",
 			prefix:     "",
 			prefixFile: "baz",

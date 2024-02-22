@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			}
 			result := checks.Contributors(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "several contributors", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "several contributors", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 

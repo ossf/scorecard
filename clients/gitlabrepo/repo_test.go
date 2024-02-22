@@ -178,3 +178,83 @@ func TestRepoURL_MakeGitLabRepo(t *testing.T) {
 		}
 	}
 }
+
+//nolint:paralleltest // uses t.Setenv, can't be parallelized
+func TestRepoURL_parse_GL_HOST(t *testing.T) {
+	tests := []struct {
+		name                 string
+		url                  string
+		host, owner, project string
+		glHost               string
+		wantErr              bool
+	}{
+		{
+			name:    "GL_HOST ends with slash",
+			glHost:  "https://foo.com/gitlab/",
+			url:     "foo.com/gitlab/ssdlc/scorecard-scanner",
+			host:    "foo.com/gitlab",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
+		{
+			name:    "GL_HOST doesn't end with slash",
+			glHost:  "https://foo.com/gitlab",
+			url:     "foo.com/gitlab/ssdlc/scorecard-scanner",
+			host:    "foo.com/gitlab",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
+		{
+			name:    "GL_HOST doesn't match url",
+			glHost:  "https://foo.com/gitlab",
+			url:     "bar.com/gitlab/ssdlc/scorecard-scanner",
+			host:    "bar.com",
+			owner:   "gitlab",
+			project: "ssdlc/scorecard-scanner",
+		},
+		{
+			name:    "GL_HOST has no path component",
+			glHost:  "https://foo.com",
+			url:     "foo.com/ssdlc/scorecard-scanner",
+			host:    "foo.com",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
+		{
+			name:    "GL_HOST path has multiple slashes",
+			glHost:  "https://foo.com/bar/baz/",
+			url:     "foo.com/bar/baz/ssdlc/scorecard-scanner",
+			host:    "foo.com/bar/baz",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
+		{
+			name:    "GL_HOST has no scheme",
+			glHost:  "foo.com/bar/",
+			url:     "foo.com/bar/ssdlc/scorecard-scanner",
+			host:    "foo.com/bar",
+			owner:   "ssdlc",
+			project: "scorecard-scanner",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("GL_HOST", tt.glHost)
+			var r repoURL
+			err := r.parse(tt.url)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("wanted err: %t, got: %v", tt.wantErr, err)
+			}
+			if r.host != tt.host {
+				t.Errorf("got host: %s, want: %s", r.host, tt.host)
+			}
+			if r.owner != tt.owner {
+				t.Errorf("got owner: %s, want: %s", r.owner, tt.owner)
+			}
+			if r.project != tt.project {
+				t.Errorf("got project: %s, want: %s", r.project, tt.project)
+			}
+		})
+	}
+}

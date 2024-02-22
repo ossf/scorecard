@@ -46,9 +46,9 @@ func signedProbe(release, asset int, outcome finding.Outcome) finding.Finding {
 	return finding.Finding{
 		Probe:   releasesAreSigned.Probe,
 		Outcome: outcome,
-		Values: map[string]int{
-			fmt.Sprintf("v%d", release):       int(releasesAreSigned.ValueTypeRelease),
-			fmt.Sprintf("artifact-%d", asset): int(releasesAreSigned.ValueTypeReleaseAsset),
+		Values: map[string]string{
+			releasesAreSigned.ReleaseNameKey: fmt.Sprintf("v%d", release),
+			releasesAreSigned.AssetNameKey:   fmt.Sprintf("artifact-%d", asset),
 		},
 	}
 }
@@ -57,9 +57,9 @@ func provenanceProbe(release, asset int, outcome finding.Outcome) finding.Findin
 	return finding.Finding{
 		Probe:   releasesHaveProvenance.Probe,
 		Outcome: outcome,
-		Values: map[string]int{
-			fmt.Sprintf("v%d", release):       int(releasesHaveProvenance.ValueTypeRelease),
-			fmt.Sprintf("artifact-%d", asset): int(releasesHaveProvenance.ValueTypeReleaseAsset),
+		Values: map[string]string{
+			releasesHaveProvenance.ReleaseNameKey: fmt.Sprintf("v%d", release),
+			releasesHaveProvenance.AssetNameKey:   fmt.Sprintf("artifact-%d", asset),
 		},
 	}
 }
@@ -303,9 +303,7 @@ func TestSignedReleases(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			got := SignedReleases(tt.name, tt.findings, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Errorf("got %v, expected %v", got, tt.result)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }
@@ -324,7 +322,7 @@ func Test_getReleaseName(t *testing.T) {
 			name: "no release",
 			args: args{
 				f: &finding.Finding{
-					Values: map[string]int{},
+					Values: map[string]string{},
 				},
 			},
 			want: "",
@@ -333,8 +331,8 @@ func Test_getReleaseName(t *testing.T) {
 			name: "release",
 			args: args{
 				f: &finding.Finding{
-					Values: map[string]int{
-						"v1": int(releasesAreSigned.ValueTypeRelease),
+					Values: map[string]string{
+						releasesAreSigned.ReleaseNameKey: "v1",
 					},
 					Probe: releasesAreSigned.Probe,
 				},
@@ -345,9 +343,9 @@ func Test_getReleaseName(t *testing.T) {
 			name: "release and asset",
 			args: args{
 				f: &finding.Finding{
-					Values: map[string]int{
-						"v1":         int(releasesAreSigned.ValueTypeRelease),
-						"artifact-1": int(releasesAreSigned.ValueTypeReleaseAsset),
+					Values: map[string]string{
+						releasesAreSigned.ReleaseNameKey: "v1",
+						releasesAreSigned.AssetNameKey:   "artifact-1",
 					},
 					Probe: releasesAreSigned.Probe,
 				},

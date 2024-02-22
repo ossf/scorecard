@@ -83,9 +83,7 @@ func TestContributors(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			got := Contributors(tt.name, tt.findings, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Error(tt.name)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }

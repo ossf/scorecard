@@ -16,6 +16,7 @@
 package hasRecentCommits
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -38,15 +39,15 @@ func fiveCommitsInThreshold() []clients.Commit {
 	return fiveCommitsInThreshold
 }
 
-func twentyCommitsInThresholdAndtwentyNot() []clients.Commit {
-	twentyCommitsInThresholdAndtwentyNot := make([]clients.Commit, 0)
+func twentyCommitsInThresholdAndTwentyNot() []clients.Commit {
+	twentyCommitsInThresholdAndTwentyNot := make([]clients.Commit, 0)
 	for i := 70; i < 111; i++ {
 		commit := clients.Commit{
 			CommittedDate: time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*i /*days*/),
 		}
-		twentyCommitsInThresholdAndtwentyNot = append(twentyCommitsInThresholdAndtwentyNot, commit)
+		twentyCommitsInThresholdAndTwentyNot = append(twentyCommitsInThresholdAndTwentyNot, commit)
 	}
-	return twentyCommitsInThresholdAndtwentyNot
+	return twentyCommitsInThresholdAndTwentyNot
 }
 
 func Test_Run(t *testing.T) {
@@ -56,7 +57,7 @@ func Test_Run(t *testing.T) {
 		name     string
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
-		values   map[string]int
+		values   map[string]string
 		err      error
 	}{
 		{
@@ -75,9 +76,9 @@ func Test_Run(t *testing.T) {
 					DefaultBranchCommits: fiveCommitsInThreshold(),
 				},
 			},
-			values: map[string]int{
-				"commitsWithinThreshold": 5,
-				"lookBackDays":           90,
+			values: map[string]string{
+				NumCommitsKey:  "5",
+				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -85,12 +86,12 @@ func Test_Run(t *testing.T) {
 			name: "Has twenty in threshold",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					DefaultBranchCommits: twentyCommitsInThresholdAndtwentyNot(),
+					DefaultBranchCommits: twentyCommitsInThresholdAndTwentyNot(),
 				},
 			},
-			values: map[string]int{
-				"commitsWithinThreshold": 20,
-				"lookBackDays":           90,
+			values: map[string]string{
+				NumCommitsKey:  "20",
+				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},

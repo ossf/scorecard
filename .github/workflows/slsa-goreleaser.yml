@@ -8,7 +8,7 @@ on:
 permissions: read-all
 
 env:
-  GO_VERSION: 1.21
+  GO_VERSION: 1.22
 
 jobs:
   # Generate ldflags dynamically.
@@ -47,12 +47,12 @@ jobs:
         uses: slsa-framework/slsa-verifier/actions/installer@v2.4.1
 
       - name: Download the artifact
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: "${{ needs.build.outputs.go-binary-name }}.intoto.jsonl"
 
       - name: Download the artifact
-        uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+        uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           name: ${{ needs.build.outputs.go-binary-name }}
 

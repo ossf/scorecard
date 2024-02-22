@@ -41,7 +41,7 @@ const (
 )
 
 //nolint:govet
-type graphqlData struct {
+type graphqlMRData struct {
 	Repository struct {
 		IsArchived githubv4.Boolean
 		Object     struct {
@@ -136,7 +136,7 @@ type graphqlData struct {
 
 type graphqlHandler struct {
 	client      *githubv4.Client
-	data        *graphqlData
+	data        *graphqlMRData
 	setupOnce   *sync.Once
 	ctx         context.Context
 	errSetup    error
@@ -150,7 +150,7 @@ type graphqlHandler struct {
 func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
-	handler.data = new(graphqlData)
+	handler.data = new(graphqlMRData)
 	handler.errSetup = nil
 	handler.setupOnce = new(sync.Once)
 	handler.commitDepth = commitDepth
@@ -239,7 +239,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
+func commitsFrom(data *graphqlMRData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
@@ -266,7 +266,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				continue
 			}
 			// ResourcePath: e.g., for dependabot, "/apps/dependabot", or "/apps/renovate"
-			// Path that can be appended to "https://github.com" for a Github resource
+			// Path that can be appended to "https://github.com" for a GitHub resource
 			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
@@ -308,7 +308,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 	return ret, nil
 }
 
-func issuesFrom(data *graphqlData) []clients.Issue {
+func issuesFrom(data *graphqlMRData) []clients.Issue {
 	var ret []clients.Issue
 	for _, issue := range data.Repository.Issues.Nodes {
 		var tmpIssue clients.Issue
@@ -341,26 +341,26 @@ func getRepoAssociation(association *string) *clients.RepoAssociation {
 	if association == nil {
 		return nil
 	}
-	var repoAssociaton clients.RepoAssociation
+	var repoAssociation clients.RepoAssociation
 	switch *association {
 	case "COLLABORATOR":
-		repoAssociaton = clients.RepoAssociationCollaborator
+		repoAssociation = clients.RepoAssociationCollaborator
 	case "CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationContributor
+		repoAssociation = clients.RepoAssociationContributor
 	case "FIRST_TIMER":
-		repoAssociaton = clients.RepoAssociationFirstTimer
+		repoAssociation = clients.RepoAssociationFirstTimer
 	case "FIRST_TIME_CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationFirstTimeContributor
+		repoAssociation = clients.RepoAssociationFirstTimeContributor
 	case "MANNEQUIN":
-		repoAssociaton = clients.RepoAssociationMannequin
+		repoAssociation = clients.RepoAssociationMannequin
 	case "MEMBER":
-		repoAssociaton = clients.RepoAssociationMember
+		repoAssociation = clients.RepoAssociationMember
 	case "NONE":
-		repoAssociaton = clients.RepoAssociationNone
+		repoAssociation = clients.RepoAssociationNone
 	case "OWNER":
-		repoAssociaton = clients.RepoAssociationOwner
+		repoAssociation = clients.RepoAssociationOwner
 	default:
 		return nil
 	}
-	return &repoAssociaton
+	return &repoAssociation
 }

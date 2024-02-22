@@ -32,15 +32,14 @@ const (
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
 func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
-	//nolint:govet
 	tests := []struct {
 		name              string
-		wantErr           bool
-		SearchCommits     []clients.Commit
-		CallSearchCommits int
-		files             []string
 		want              checker.CheckResult
+		SearchCommits     []clients.Commit
+		files             []string
 		expected          scut.TestReturn
+		CallSearchCommits int
+		wantErr           bool
 	}{
 		{
 			name:    "dependency yml",
@@ -156,9 +155,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			}
 			res := DependencyUpdateTool(c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

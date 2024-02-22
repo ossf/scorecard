@@ -86,7 +86,7 @@ type jsonReview struct {
 type jsonUser struct {
 	RepoAssociation *string `json:"repoAssociation,omitempty"`
 	Login           string  `json:"login"`
-	// Orgnization refers to a GitHub org.
+	// Organization refers to a GitHub org.
 	Organizations []jsonOrganization `json:"organization,omitempty"`
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
@@ -146,7 +146,7 @@ type jsonCreatedAtTime struct {
 type jsonComment struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
-	// TODO: add ields if needed, e.g., content.
+	// TODO: add fields if needed, e.g., content.
 }
 
 type jsonIssue struct {
@@ -614,7 +614,7 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
+func (r *jsonScorecardRawResult) addVulnerabilitiesRawResults(vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
 		r.Results.DatabaseVulnerabilities = append(r.Results.DatabaseVulnerabilities,
@@ -741,7 +741,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 	}
 
 	// Vulnerabilities.
-	if err := r.addVulnerbilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
+	if err := r.addVulnerabilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

@@ -95,7 +95,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			Expect(branchRef).ShouldNot(BeNil())
 		})
 
-		It("Should return an error for non-existent branch", func() {
+		It("Should return an error for nonexistent branch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
 			repourl := &repoURL{
@@ -105,7 +105,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 			}
 			brancheshandler.init(context.Background(), repourl)
 
-			branchRef, err := brancheshandler.getBranch("non-existent-branch")
+			branchRef, err := brancheshandler.getBranch("nonexistent-branch")
 			Expect(err).Should(BeNil())
 			Expect(branchRef).Should(BeNil())
 		})

@@ -50,6 +50,7 @@ type RepoClient interface {
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
+	ListSboms() ([]Sbom, error)
 	ListWebhooks() ([]Webhook, error)
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)

@@ -30,3 +30,9 @@ remediation:
     - Follow the instructions from https://docs.pyup.io/docs.
   markdown:
     - Follow the instructions from [the official documentation](https://docs.pyup.io/docs).
+ecosystem:
+  languages:
+    - python
+  clients:
+    - github
+    - gitlab

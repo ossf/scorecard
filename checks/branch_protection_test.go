@@ -64,15 +64,14 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 
 	var oneVal int32 = 1
 
-	//nolint:govet
 	tests := []struct {
 		name          string
-		expected      scut.TestReturn
-		branches      []*clients.BranchRef
 		defaultBranch string
+		branches      []*clients.BranchRef
 		releases      []string
-		nonadmin      bool
 		repoFiles     []string
+		expected      scut.TestReturn
+		nonadmin      bool
 	}{
 		{
 			name: "Nil release and main branch names",
@@ -432,9 +431,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				RepoClient: mockRepoClient,
 			}
 			r := BranchProtection(&req)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &r, &dl)
 			ctrl.Finish()
 		})
 	}

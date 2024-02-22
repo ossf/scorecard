@@ -26,7 +26,6 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-//nolint:paralleltest // since t.Setenv is used
 func TestWebhooks(t *testing.T) {
 	tests := []struct {
 		expected checker.CheckResult
@@ -73,7 +72,7 @@ func TestWebhooks(t *testing.T) {
 			},
 		},
 		{
-			name: "With 2 Webhooks with and whitout secrets configured",
+			name: "With 2 Webhooks with and without secrets configured",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
 				Score: 5,

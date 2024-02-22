@@ -267,6 +267,11 @@ func (c *client) ListLicenses() ([]clients.License, error) {
 	return nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListSboms implements RepoClient.ListSboms.
+func (c *client) ListSboms() ([]clients.Sbom, error) {
+	return nil, fmt.Errorf("ListSboms: %w", clients.ErrUnsupportedFeature)
+}
+
 // GetCreatedAt implements RepoClient.GetCreatedAt.
 func (c *client) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)

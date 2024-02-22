@@ -165,9 +165,7 @@ func TestSecurityPolicy(t *testing.T) {
 
 			res, err := SecurityPolicy(&c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &checker.CheckResult{}, &dl) {
-				t.Errorf("test failed: log message not present: %+v , for test %v", tt.want, tt.name)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.want, &checker.CheckResult{}, &dl)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SecurityPolicy() error = %v, wantErr %v", err, tt.wantErr)

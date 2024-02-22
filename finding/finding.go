@@ -45,14 +45,12 @@ const (
 )
 
 // Location represents the location of a finding.
-//
-//nolint:govet
 type Location struct {
-	Type      FileType `json:"type"`
-	Path      string   `json:"path"`
 	LineStart *uint    `json:"lineStart,omitempty"`
 	LineEnd   *uint    `json:"lineEnd,omitempty"`
 	Snippet   *string  `json:"snippet,omitempty"`
+	Path      string   `json:"path"`
+	Type      FileType `json:"type"`
 }
 
 // Outcome is the result of a finding.
@@ -96,23 +94,19 @@ const (
 )
 
 // Finding represents a finding.
-//
-//nolint:govet
 type Finding struct {
-	Probe       string             `json:"probe"`
-	Outcome     Outcome            `json:"outcome"`
-	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]int     `json:"values,omitempty"`
+	Values      map[string]string  `json:"values,omitempty"`
+	Probe       string             `json:"probe"`
+	Message     string             `json:"message"`
+	Outcome     Outcome            `json:"outcome"`
 }
 
-// AnonymousFinding is a finding without a corerpsonding probe ID.
+// AnonymousFinding is a finding without a corresponding probe ID.
 type AnonymousFinding struct {
-	Finding
-	// Remove the probe ID from
-	// the structure until the probes are GA.
 	Probe string `json:"probe,omitempty"`
+	Finding
 }
 
 var errInvalid = errors.New("invalid")
@@ -147,7 +141,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 	return f, nil
 }
 
-// NewWith create a finding with the desried location and outcome.
+// NewWith create a finding with the desired location and outcome.
 func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	o Outcome,
 ) (*Finding, error) {
@@ -227,7 +221,7 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 
 // WithValues sets the values to an existing finding.
 // No copy is made.
-func (f *Finding) WithValues(values map[string]int) *Finding {
+func (f *Finding) WithValues(values map[string]string) *Finding {
 	f.Values = values
 	return f
 }
@@ -272,9 +266,9 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 
 // WithValue adds a value to f.Values.
 // No copy is made.
-func (f *Finding) WithValue(k string, v int) *Finding {
+func (f *Finding) WithValue(k, v string) *Finding {
 	if f.Values == nil {
-		f.Values = make(map[string]int)
+		f.Values = make(map[string]string)
 	}
 	f.Values[k] = v
 	return f

@@ -48,7 +48,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("%s/api/graphql", repourl.Host()), handler.client)
 }
 
-type graphqlData struct {
+type graphqlMRData struct {
 	Project struct {
 		MergeRequests struct {
 			Nodes []graphqlMergeRequestNode `graphql:"nodes"`
@@ -60,12 +60,11 @@ type graphqlData struct {
 	} `graphql:"queryComplexity"`
 }
 
-//nolint:govet
 type graphqlMergeRequestNode struct {
-	ID       GitlabGID `graphql:"id"`
-	IID      string    `graphql:"iid"`
-	MergedAt time.Time `graphql:"mergedAt"`
-	Author   struct {
+	MergedAt       time.Time `graphql:"mergedAt"`
+	IID            string    `graphql:"iid"`
+	MergeCommitSHA string    `graphql:"mergeCommitSha"`
+	Author         struct {
 		Username string    `graphql:"username"`
 		ID       GitlabGID `graphql:"id"`
 	} `graphql:"author"`
@@ -73,6 +72,7 @@ type graphqlMergeRequestNode struct {
 		Username string    `graphql:"username"`
 		ID       GitlabGID `graphql:"id"`
 	} `graphql:"mergeUser"`
+	ID      GitlabGID `graphql:"id"`
 	Commits struct {
 		Nodes []struct {
 			SHA string `graphql:"sha"`
@@ -80,11 +80,11 @@ type graphqlMergeRequestNode struct {
 	} `graphql:"commits"`
 	Reviewers struct {
 		Nodes []struct {
-			Username                string    `graphql:"username"`
-			ID                      GitlabGID `graphql:"id"`
+			Username                string `graphql:"username"`
 			MergeRequestInteraction struct {
 				ReviewState string `graphql:"reviewState"`
 			} `graphql:"mergeRequestInteraction"`
+			ID GitlabGID `graphql:"id"`
 		} `graphql:"nodes"`
 	} `graphql:"reviewers"`
 	Approvers struct {
@@ -93,12 +93,43 @@ type graphqlMergeRequestNode struct {
 			ID       GitlabGID `graphql:"id"`
 		} `graphql:"nodes"`
 	} `graphql:"approvedBy"`
-	MergeCommitSHA string `graphql:"mergeCommitSha"`
-	// Labels         struct {
-	// 	Nodes []struct {
-	// 		Title string `graphql:"title"`
-	// 	} `graphql:"nodes"`
-	// } `graphql:"labels"`
+}
+
+type graphqlSbomData struct {
+	Project struct {
+		Releases struct {
+			Nodes []graphqlReleaseNode `graphql:"nodes"`
+		} `graphql:"releases(sort: RELEASED_AT_DESC, first: 1)"`
+		Pipelines struct {
+			Nodes []graphqlPipelineNode
+		} `graphql:"pipelines(ref: $defaultBranch, first: 1)"`
+	} `graphql:"project(fullPath: $fullPath)"`
+}
+
+type graphqlReleaseNode struct {
+	Name   string `graphql:"name"`
+	Assets struct {
+		Links struct {
+			Nodes []graphqlReleaseAssetLinksNode `graphql:"nodes"`
+		} `graphql:"links"`
+	} `graphql:"assets"`
+}
+
+type graphqlReleaseAssetLinksNode struct {
+	Name            string `graphql:"name"`
+	URL             string `graphql:"url"`
+	LinkType        string `graphql:"linkType"`
+	DirectAssetPath string `graphql:"directAssetPath"`
+	DirectAssetURL  string `graphql:"directAssetUrl"`
+}
+
+type graphqlPipelineNode struct {
+	Status       string `graphql:"status"`
+	JobArtifacts []struct {
+		Name         string `graphql:"name"`
+		FileType     string `graphql:"fileType"`
+		DownloadPath string `graphql:"downloadPath"`
+	} `graphql:"jobArtifacts"`
 }
 
 type GitlabGID struct {
@@ -125,8 +156,8 @@ func (g *GitlabGID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphqlData, error) {
-	data := graphqlData{}
+func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphqlMRData, error) {
+	data := graphqlMRData{}
 	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
 	params := map[string]interface{}{
 		"fullPath":     path,
@@ -134,7 +165,22 @@ func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphq
 	}
 	err := handler.graphClient.Query(context.Background(), &data, params)
 	if err != nil {
-		return graphqlData{}, fmt.Errorf("couldn't query gitlab graphql for merge requests: %w", err)
+		return graphqlMRData{}, fmt.Errorf("couldn't query gitlab graphql for merge requests: %w", err)
+	}
+
+	return data, nil
+}
+
+func (handler *graphqlHandler) getSbomDetail() (graphqlSbomData, error) {
+	data := graphqlSbomData{}
+	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
+	params := map[string]interface{}{
+		"fullPath":      path,
+		"defaultBranch": graphql.String(handler.repourl.defaultBranch),
+	}
+	err := handler.graphClient.Query(context.Background(), &data, params)
+	if err != nil {
+		return graphqlSbomData{}, fmt.Errorf("couldn't query gitlab graphql for Sbom Detail: %w", err)
 	}
 
 	return data, nil

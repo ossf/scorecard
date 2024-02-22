@@ -25,3 +25,10 @@ remediation:
   effort: Low
   text:
     - Place the license file at the top level of the project source tree.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir

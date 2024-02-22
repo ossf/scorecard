@@ -35,8 +35,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomeNegative,
-					Values: map[string]int{
-						"Unsupported": 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},
 				},
 			},
@@ -50,8 +50,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"Unsupported": 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},
 				},
 			},
@@ -66,8 +66,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						hasOpenSSFBadge.InProgressLevel: 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.InProgressLevel,
 					},
 				},
 			},
@@ -81,8 +81,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						hasOpenSSFBadge.PassingLevel: 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.PassingLevel,
 					},
 				},
 			},
@@ -96,8 +96,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						hasOpenSSFBadge.SilverLevel: 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.SilverLevel,
 					},
 				},
 			},
@@ -111,8 +111,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						hasOpenSSFBadge.GoldLevel: 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.GoldLevel,
 					},
 				},
 			},
@@ -126,8 +126,8 @@ func TestCIIBestPractices(t *testing.T) {
 				{
 					Probe:   "hasOpenSSFBadge",
 					Outcome: finding.OutcomePositive,
-					Values: map[string]int{
-						"Unknown": 1,
+					Values: map[string]string{
+						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.UnknownLevel,
 					},
 				},
 			},
@@ -143,9 +143,7 @@ func TestCIIBestPractices(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
 			got := CIIBestPractices(tt.name, tt.findings, &dl)
-			if !scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl) {
-				t.Errorf("got %v, expected %v", got, tt.result)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }

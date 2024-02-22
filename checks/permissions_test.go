@@ -458,9 +458,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			res := TokenPermissions(&c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Errorf("test failed: log message not present: %+v\n%+v", tt.expected, dl)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

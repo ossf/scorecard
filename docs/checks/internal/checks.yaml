@@ -38,7 +38,7 @@ checks:
       changed. A lack of active maintenance should signal that potential users should
       investigate further to judge the situation.
 
-      This check will only succeed if a Github project is >90 days old. Projects
+      This check will only succeed if a GitHub project is >90 days old. Projects
       that are younger than this are too new to assess whether they are maintained
       or not, and users should inspect the contents of those projects to ensure they
       are as expected.
@@ -77,7 +77,7 @@ checks:
 
     remediation:
       - >-
-        Signup for automatic dependency updates with one of the previously listed dependency update tools and place
+        Sign up for automatic dependency updates with one of the previously listed dependency update tools and place
         the config file in the locations that are recommended by these tools. Due to
         https://github.com/dependabot/dependabot-core/issues/2804 Dependabot can
         be enabled for forks where security updates have ever been turned on so projects
@@ -544,7 +544,7 @@ checks:
       tools can prevent known classes of bugs from being inadvertently introduced in the
       codebase.
 
-      The checks currently looks for known Github apps such as
+      The checks currently looks for known GitHub apps such as
       [CodeQL](https://codeql.github.com/) (github-code-scanning) or
       [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
       of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
@@ -558,6 +558,54 @@ checks:
       - >-
         Run CodeQL checks in your CI/CD by following the instructions
         [here](https://github.com/github/codeql-action#usage).
+
+  Sbom:
+    risk: Medium
+    short: Determines if the project has maintains a Software Bill of Materials.
+    repos: GitHub, Gitlab
+    tags: supply-chain, security, vulnerabilities, sbom
+    description: |
+      Risk: `Medium` (possible inaccurate reporting of dependencies/vulnerabilities)
+
+      This check tries to determine if the project maintains a Software Bill of Materials (Sbom)
+      either as a file in the source or a release artifact. 
+
+      An Sbom can give users information about what dependencies your project has which
+      allows them to identify vulnerabilities in the software supply chain.
+
+      Stadards to be used during checks;
+      - Security insights 1.0.0 spec (SECURITY_INSIGHTS.yaml):
+        - If available, used to locate sbom file.
+        - <https://github.com/ossf/security-insights-spec/blob/v1.0.0/specification.md#dependencies>
+      - Sbom-everywhere naming and directory conventions:
+        - <https://github.com/ossf/sbom-everywhere/blob/main/reference/sbom_naming.md#consistent-naming-conventions>
+
+      This check currently looks for the existence of an sbom in the
+      source of a project, a pipeline artifact, or in a release artifact 
+      and whether or not sbom standards are in use.
+
+      An Sbom Exists (one or more) (3/10 points):
+        - Any sbom found counts for this test either in source. pipeline or release. 
+        - A sbom stored with your source code is not ideal, but is a good first step.
+          It is recommended to publish with your release artifacts. 
+
+      A SECURITY_INSIGHTS.yaml exists with accurate sbom information populated (1/10 points):
+        - An emerging standard for informing users where to find a projects sbom
+          and other useful security information.
+
+      An Sbom is published as a release artifact (6/10 points):
+        - This is the preferred way to store an sbom, and will be awarded full points.
+        - Checks release artifacts for an sbom file matching established standards
+    remediation:
+      - >-
+        Needs updating
+      - >-
+        For Gitlab, see more information
+        [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exporting-a-software-bill-of-materials-for-your-repository).
+      - >-
+        For GitHub, see more information
+        [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
+
   Security-Policy:
     risk: Medium
     short: Determines if the project has published a security policy.
@@ -591,7 +639,7 @@ checks:
       Security Policy Specific Text (1/10 points):
         - Specific text providing basic or general information about vulnerability
           and disclosure practices, expectations, and/or timelines
-        - Text should include a total of 2 or more hits which match (case insensitive)
+        - Text should include a total of 2 or more hits which match (case-insensitive)
           `vuln` and as in "Vulnerability" or "vulnerabilities";
           `disclos` as "Disclosure" or "disclose";
           and numbers which convey expectations of times, e.g., 30 days or 90 days

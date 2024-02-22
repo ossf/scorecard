@@ -59,7 +59,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "2 branches requirs last push approval = 2 positive outcomes",
+			name: "2 branches requires last push approval = 2 positive outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

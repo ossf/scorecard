@@ -30,3 +30,8 @@ remediation:
   markdown:
     - Follow the steps in [https://github.com/google/clusterfuzzlite](https://github.com/google/clusterfuzzlite) to integrate fuzzing as part of CI.
     - Over time, try to add fuzzing for more functionalities of your project.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
