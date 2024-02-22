@@ -22,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
-	"github.com/ossf/scorecard/v4/probes/utils"
 )
 
 //go:embed *.yml
@@ -34,6 +33,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
+	var findings []finding.Finding
+	changesets := raw.CodeReviewResults.DefaultBranchChangesets
+
+	if len(changesets) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no changesets detected", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	rawReviewData := &raw.CodeReviewResults
 	return approvedRun(rawReviewData, fs, Probe, finding.OutcomePositive, finding.OutcomeNegative)
 }
@@ -50,9 +61,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	nChangesets := len(changesets)
 	nChanges := 0
 	nUnapprovedChangesets := 0
-	if nChangesets == 0 {
-		return nil, probeID, utils.ErrNoChangesets
-	}
+
 	for x := range changesets {
 		data := &changesets[x]
 		if data.Author.Login == "" {

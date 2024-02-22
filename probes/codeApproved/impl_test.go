@@ -16,15 +16,12 @@
 package codeApproved
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
 )
-
-var errProbeReturned = errors.New("probe run failure")
 
 func TestProbeCodeApproved(t *testing.T) {
 	t.Parallel()
@@ -41,8 +38,12 @@ func TestProbeCodeApproved(t *testing.T) {
 					DefaultBranchChangesets: []checker.Changeset{},
 				},
 			},
-			err:              errProbeReturned,
-			expectedFindings: nil,
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   Probe,
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
 		},
 		{
 			name: "no changesets no authors",
