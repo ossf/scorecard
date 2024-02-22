@@ -47,26 +47,26 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.ProcessingErrors {
 		e := r.ProcessingErrors[i]
-		f := finding.Finding{
-			Message:  generateTextIncompleteResults(e),
-			Location: &e.Location,
-			Outcome:  finding.OutcomeError,
+		f, err := finding.NewWith(fs, Probe, generateTextIncompleteResults(e),
+			&e.Location, finding.OutcomeError)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		findings = append(findings, f)
+		findings = append(findings, *f)
 	}
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
+		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
 		if rr.Location == nil {
 			if rr.Msg == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
 				return findings, Probe, e
 			}
-			f := &finding.Finding{
-				Probe:   Probe,
-				Outcome: finding.OutcomeNotApplicable,
-				Message: *rr.Msg,
-			}
+			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotApplicable)
 			findings = append(findings, *f)
 			continue
 		}
@@ -78,12 +78,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineEnd:   &rr.Location.EndOffset,
 				Snippet:   &rr.Location.Snippet,
 			}
-			f := &finding.Finding{
-				Probe:    Probe,
-				Outcome:  finding.OutcomeNotApplicable,
-				Message:  *rr.Msg,
-				Location: loc,
-			}
+			f = f.WithMessage(*rr.Msg).WithLocation(loc).WithOutcome(finding.OutcomeNotApplicable)
 			findings = append(findings, *f)
 			continue
 		}
@@ -112,12 +107,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineEnd:   &rr.Location.EndOffset,
 				Snippet:   &rr.Location.Snippet,
 			}
-			f := &finding.Finding{
-				Probe:    Probe,
-				Outcome:  finding.OutcomeNegative,
-				Message:  generateTextUnpinned(&rr),
-				Location: loc,
-			}
+			f = f.WithMessage(generateTextUnpinned(&rr)).
+				WithLocation(loc).
+				WithOutcome(finding.OutcomeNegative)
 			if rr.Remediation != nil {
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}
@@ -133,11 +125,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineEnd:   &rr.Location.EndOffset,
 				Snippet:   &rr.Location.Snippet,
 			}
-			f := &finding.Finding{
-				Probe:    Probe,
-				Outcome:  finding.OutcomePositive,
-				Location: loc,
-			}
+			f = f.WithMessage("").WithLocation(loc).WithOutcome(finding.OutcomePositive)
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})
