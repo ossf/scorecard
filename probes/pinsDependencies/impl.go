@@ -90,12 +90,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineEnd:   &rr.Location.EndOffset,
 				Snippet:   &rr.Location.Snippet,
 			}
-			f := &finding.Finding{
-				Probe:    Probe,
-				Outcome:  finding.OutcomeNotApplicable,
-				Message:  fmt.Sprintf("%s has empty Pinned field", rr.Type),
-				Location: loc,
-			}
+			f = f.WithMessage(fmt.Sprintf("%s has empty Pinned field", rr.Type)).
+				WithLocation(loc).
+				WithOutcome(finding.OutcomeNotApplicable)
 			findings = append(findings, *f)
 			continue
 		}
