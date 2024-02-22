@@ -86,7 +86,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var reason string
 	switch {
 	case !foundHumanActivity:
-		outcome = finding.OutcomeNotAvailable
+		outcome = finding.OutcomeNotApplicable
 		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	case nUnapprovedChangesets > 0:
 		outcome = finding.OutcomeNegative
