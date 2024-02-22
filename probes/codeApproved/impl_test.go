@@ -63,8 +63,8 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
+					Probe:   Probe,
+					Outcome: finding.OutcomeError,
 				},
 			},
 		},
@@ -129,8 +129,8 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 			expectedFindings: []finding.Finding{
 				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
+					Probe:   Probe,
+					Outcome: finding.OutcomeError,
 				},
 			},
 		},

@@ -50,8 +50,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.
-
-//nolint:gocognit
 func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
 	positiveOutcome, negativeOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
@@ -64,28 +62,14 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 
 	for x := range changesets {
 		data := &changesets[x]
-		if data.Author.Login == "" {
-			f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the author of a changeset.", nil)
+		approvedChangeset, err := approved(data)
+		if err != nil {
+			f, err := finding.NewWith(fs, probeID, err.Error(), nil, finding.OutcomeError)
 			if err != nil {
 				return nil, probeID, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
-		}
-		approvedChangeset := false
-		for y := range data.Reviews {
-			if data.Reviews[y].Author.Login == "" {
-				f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the reviewer of a changeset.", nil)
-				if err != nil {
-					return nil, probeID, fmt.Errorf("create finding: %w", err)
-				}
-				findings = append(findings, *f)
-				return findings, probeID, nil
-			}
-			if data.Reviews[y].State == "APPROVED" && data.Reviews[y].Author.Login != data.Author.Login {
-				approvedChangeset = true
-				break
-			}
 		}
 		if approvedChangeset && data.Author.IsBot {
 			continue
@@ -126,4 +110,21 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		findings = append(findings, *f)
 	}
 	return findings, probeID, nil
+}
+
+func approved(c *checker.Changeset) (bool, error) {
+	if c.Author.Login == "" {
+		//nolint:goerr113 // TODO revisit
+		return false, fmt.Errorf("could not retrieve changeset author")
+	}
+	for _, review := range c.Reviews {
+		if review.Author.Login == "" {
+			//nolint:goerr113 // TODO revisit
+			return false, fmt.Errorf("could not retrieve the changeset reviewer")
+		}
+		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
+			return true, nil
+		}
+	}
+	return false, nil
 }
