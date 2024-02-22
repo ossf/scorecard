@@ -32,35 +32,30 @@ var errNew = errors.New("error")
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
-	// fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint:gci
-    //nolint:gofmt
-    //nolint:gofumpt
-	//nolint:goimports
 	tests := []struct {
 		err       error
 		name      string
 		commiterr error
 		commits   []clients.Commit
-		expected  checker.CheckResult
+		expected  scut.TestReturn
 	}{
 		{
 			name: "no commits",
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: -1,
 			},
 		},
 		{
 			name:      "no commits with error",
 			commiterr: errNew,
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: -1,
 			},
 		},
 		{
 			name: "no PR's with error",
 			err:  errNew,
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: -1,
 			},
 		},
@@ -68,7 +63,7 @@ func TestCodereview(t *testing.T) {
 			name:      "no PR's with error as well as commits",
 			err:       errNew,
 			commiterr: errNew,
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: -1,
 			},
 		},
@@ -92,7 +87,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -115,7 +110,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -138,7 +133,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -160,8 +155,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 0,
+			expected: scut.TestReturn{
+				Score:         0,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -190,8 +186,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 5,
+			expected: scut.TestReturn{
+				Score:         5,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -215,8 +212,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 5,
+			expected: scut.TestReturn{
+				Score:         5,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -230,7 +228,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nReviewed By: alice\nDifferential Revision: PHAB234",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -245,8 +243,9 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nReviewed By: alice",
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 0,
+			expected: scut.TestReturn{
+				Score:         0,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -260,7 +259,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nDifferential Revision: PHAB234",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: checker.MaxResultScore,
 			},
 		},
@@ -275,7 +274,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nPiperOrigin-RevId: 444529962",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -289,10 +288,11 @@ func TestCodereview(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
 
+			var dl scut.TestDetailLogger
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
+				Dlogger:    &dl,
 			}
-			req.Dlogger = &scut.TestDetailLogger{}
 			res := CodeReview(&req)
 
 			if tt.err != nil {
@@ -303,10 +303,7 @@ func TestCodereview(t *testing.T) {
 				return
 			}
 
-			if res.Score != tt.expected.Score {
-				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			ctrl.Finish()
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }
