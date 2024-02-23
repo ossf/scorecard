@@ -38,7 +38,7 @@ Members are expected to remain active contributors to the community.
 #### Pre-requisites
 
 - Enabled two-factor authentication on their GitHub account
-- Have made multiple contributions to the project or community
+- Have made multiple contributions to the project or community.
   Contributions may include, but are not limited to:
   - Authoring or reviewing PRs on GitHub. At least one PR must be **merged**.
   - Filing or commenting on issues on GitHub
