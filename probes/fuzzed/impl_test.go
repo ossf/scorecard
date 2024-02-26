@@ -101,3 +101,31 @@ func Test_Run(t *testing.T) {
 		})
 	}
 }
+
+func TestRun_Location(t *testing.T) {
+	t.Parallel()
+	raw := &checker.RawResults{
+		FuzzingResults: checker.FuzzingData{
+			Fuzzers: []checker.Tool{
+				{
+					Name: fuzzers.BuiltInGo,
+					Files: []checker.File{
+						{
+							Path: "foo.go",
+						},
+					},
+				},
+			},
+		},
+	}
+	findings, _, err := Run(raw)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(findings) != 1 {
+		t.Fatalf("expected one finding, got %v", findings)
+	}
+	if diff := cmp.Diff(findings[0].Location.Path, "foo.go"); diff != "" {
+		t.Errorf("incorrect path: %s", diff)
+	}
+}
