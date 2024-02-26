@@ -17,6 +17,7 @@ package codeApproved
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -25,8 +26,13 @@ import (
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
-//go:embed *.yml
-var fs embed.FS
+var (
+	//go:embed *.yml
+	fs embed.FS
+
+	errNoAuthor   = errors.New("could not retrieve changeset author")
+	errNoReviewer = errors.New("could not retrieve the changeset reviewer")
+)
 
 const (
 	Probe          = "codeApproved"
@@ -110,13 +116,11 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 
 func approved(c *checker.Changeset) (bool, error) {
 	if c.Author.Login == "" {
-		//nolint:goerr113 // TODO revisit
-		return false, fmt.Errorf("could not retrieve changeset author")
+		return false, errNoAuthor
 	}
 	for _, review := range c.Reviews {
 		if review.Author.Login == "" {
-			//nolint:goerr113 // TODO revisit
-			return false, fmt.Errorf("could not retrieve the changeset reviewer")
+			return false, errNoReviewer
 		}
 		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
 			return true, nil
