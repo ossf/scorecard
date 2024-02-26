@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
 
 func TestProbeCodeApproved(t *testing.T) {
@@ -29,7 +30,7 @@ func TestProbeCodeApproved(t *testing.T) {
 		name             string
 		rawResults       *checker.RawResults
 		err              error
-		expectedFindings []finding.Finding
+		expectedOutcomes []finding.Outcome
 	}{
 		{
 			name: "no changesets",
@@ -38,11 +39,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					DefaultBranchChangesets: []checker.Changeset{},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   Probe,
-					Outcome: finding.OutcomeNotApplicable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -61,11 +59,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   Probe,
-					Outcome: finding.OutcomeError,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeError,
 			},
 		},
 		{
@@ -100,11 +95,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotApplicable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -127,11 +119,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   Probe,
-					Outcome: finding.OutcomeError,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeError,
 			},
 		},
 		{
@@ -150,11 +139,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNegative,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -210,11 +196,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotApplicable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -241,11 +224,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNegative,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -285,11 +265,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomePositive,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomePositive,
 			},
 		},
 		{
@@ -321,11 +298,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomePositive,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomePositive,
 			},
 		},
 		{
@@ -351,11 +325,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   Probe,
-					Outcome: finding.OutcomeNegative,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 	}
@@ -375,12 +346,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			case probeID != Probe:
 				t.Errorf("Probe returned the wrong probe ID")
 			default:
-				for i := range tt.expectedFindings {
-					if tt.expectedFindings[i].Outcome != res[i].Outcome {
-						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v",
-							res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
-					}
-				}
+				test.AssertOutcomes(t, res, tt.expectedOutcomes)
 			}
 		})
 	}
