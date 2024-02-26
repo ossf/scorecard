@@ -47,6 +47,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
@@ -145,6 +146,9 @@ var (
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
+	}
+	PinnedDependencies = []ProbeImpl{
+		pinsDependencies.Run,
 	}
 
 	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
