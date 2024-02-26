@@ -158,7 +158,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 		},
 		{
-			name: "all authors are bots",
+			name: "only approved bot PRs gives not applicable outcome",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
 					DefaultBranchChangesets: []checker.Changeset{
@@ -174,7 +174,12 @@ func TestProbeCodeApproved(t *testing.T) {
 									Message: "Title\nPiperOrigin-RevId: 444529962",
 								},
 							},
-							Reviews: []clients.Review{},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
 							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
@@ -191,7 +196,12 @@ func TestProbeCodeApproved(t *testing.T) {
 									},
 								},
 							},
-							Reviews: []clients.Review{},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
 							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
@@ -315,6 +325,36 @@ func TestProbeCodeApproved(t *testing.T) {
 				{
 					Probe:   "codeApproved",
 					Outcome: finding.OutcomePositive,
+				},
+			},
+		},
+		{
+			name: "only unreviewed bot changesets gives negative outcome",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "dependabot"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author: clients.User{
+								IsBot: true,
+								Login: "dependabot",
+							},
+						},
+					},
+				},
+			},
+			expectedFindings: []finding.Finding{
+				{
+					Probe:   Probe,
+					Outcome: finding.OutcomeNegative,
 				},
 			},
 		},
