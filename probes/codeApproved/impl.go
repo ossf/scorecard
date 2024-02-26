@@ -33,8 +33,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
+	rawReviewData := &raw.CodeReviewResults
+	return approvedRun(rawReviewData, fs, Probe)
+}
+
+// Looks through the data and validates that each changeset has been approved at least once.
+func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string) ([]finding.Finding, string, error) {
+	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
-	changesets := raw.CodeReviewResults.DefaultBranchChangesets
 
 	if len(changesets) == 0 {
 		f, err := finding.NewWith(fs, Probe, "no changesets detected", nil, finding.OutcomeNotApplicable)
@@ -45,14 +51,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	rawReviewData := &raw.CodeReviewResults
-	return approvedRun(rawReviewData, fs, Probe)
-}
-
-// Looks through the data and validates that each changeset has been approved at least once.
-func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string) ([]finding.Finding, string, error) {
-	changesets := reviewData.DefaultBranchChangesets
-	var findings []finding.Finding
 	foundHumanActivity := false
 	nChangesets := len(changesets)
 	nChanges := 0
