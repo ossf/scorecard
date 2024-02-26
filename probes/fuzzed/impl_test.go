@@ -102,30 +102,85 @@ func Test_Run(t *testing.T) {
 	}
 }
 
-func TestRun_Location(t *testing.T) {
+// for tests that want to check more than just the outcome.
+func TestRun_Detailed(t *testing.T) {
 	t.Parallel()
-	raw := &checker.RawResults{
-		FuzzingResults: checker.FuzzingData{
-			Fuzzers: []checker.Tool{
-				{
-					Name: fuzzers.BuiltInGo,
-					Files: []checker.File{
+	tests := []struct {
+		err      error
+		raw      *checker.RawResults
+		name     string
+		expected []finding.Finding
+	}{
+		{
+			name: "fuzzer file locations are propagated",
+			raw: &checker.RawResults{
+				FuzzingResults: checker.FuzzingData{
+					Fuzzers: []checker.Tool{
 						{
-							Path: "foo.go",
+							Name: fuzzers.BuiltInGo,
+							Files: []checker.File{
+								{
+									Path: "foo.go",
+								},
+							},
 						},
+					},
+				},
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "GoBuiltInFuzzer integration found",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]string{
+						ToolKey: fuzzers.BuiltInGo,
+					},
+					Location: &finding.Location{
+						LineStart: asPtr(uint(0)),
+						Path:      "foo.go",
+					},
+				},
+			},
+		},
+		{
+			name: "fuzzer name is included as tool Value",
+			raw: &checker.RawResults{
+				FuzzingResults: checker.FuzzingData{
+					Fuzzers: []checker.Tool{
+						{
+							Name: "some fuzzer",
+						},
+					},
+				},
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "some fuzzer integration found",
+					Outcome: finding.OutcomePositive,
+					Values: map[string]string{
+						ToolKey: "some fuzzer",
 					},
 				},
 			},
 		},
 	}
-	findings, _, err := Run(raw)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			findings, _, err := Run(tt.raw)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if diff := cmp.Diff(findings, tt.expected); diff != "" {
+				t.Error(diff)
+			}
+		})
 	}
-	if len(findings) != 1 {
-		t.Fatalf("expected one finding, got %v", findings)
-	}
-	if diff := cmp.Diff(findings[0].Location.Path, "foo.go"); diff != "" {
-		t.Errorf("incorrect path: %s", diff)
-	}
+}
+
+func asPtr[T any](x T) *T {
+	return &x
 }
