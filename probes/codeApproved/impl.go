@@ -18,6 +18,7 @@ package codeApproved
 import (
 	"embed"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -27,7 +28,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "codeApproved"
+const (
+	Probe          = "codeApproved"
+	NumApprovedKey = "approvedChangesets"
+	NumTotalKey    = "totalChangesets"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -54,7 +59,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	foundHumanActivity := false
 	nChangesets := len(changesets)
 	nChanges := 0
-	nUnapprovedChangesets := 0
+	nApproved := 0
 
 	for x := range changesets {
 		data := &changesets[x]
@@ -76,8 +81,8 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		if !data.Author.IsBot {
 			foundHumanActivity = true
 		}
-		if !approvedChangeset {
-			nUnapprovedChangesets += 1
+		if approvedChangeset {
+			nApproved += 1
 		}
 	}
 	var outcome finding.Outcome
@@ -86,9 +91,9 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	case !foundHumanActivity:
 		outcome = finding.OutcomeNotApplicable
 		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
-	case nUnapprovedChangesets > 0:
+	case nApproved != nChanges:
 		outcome = finding.OutcomeNegative
-		reason = fmt.Sprintf("Found %d/%d unapproved changesets", nUnapprovedChangesets, nChanges)
+		reason = fmt.Sprintf("Found %d/%d approved changesets", nApproved, nChanges)
 	default:
 		outcome = finding.OutcomePositive
 		reason = "All changesets approved"
@@ -97,6 +102,8 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	if err != nil {
 		return nil, probeID, fmt.Errorf("create finding: %w", err)
 	}
+	f.WithValue(NumApprovedKey, strconv.Itoa(nApproved))
+	f.WithValue(NumTotalKey, strconv.Itoa(nChanges))
 	findings = append(findings, *f)
 	return findings, probeID, nil
 }
