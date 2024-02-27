@@ -174,10 +174,15 @@ type SbomOriginationType string
 
 const (
 	// sources of sbom information.
-	SbomOriginationTypeRelease   SbomOriginationType = "repositoryRelease" // Originating in repository Release Assets (or Sbom api endpoint for GH)
-	SbomOriginationTypeCICD      SbomOriginationType = "repositoryCICD"    // Originating in repository CICD artifacts
-	SbomOriginationTypeOther     SbomOriginationType = "other"             // Originating in source or other non-specific source
-	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"     // Originating from sbom entry in SECURITY_INSIGHTS.yml
+
+	// Originating in repository Release Assets (or Sbom api endpoint for GH).
+	SbomOriginationTypeRelease SbomOriginationType = "repositoryRelease"
+	// Originating in repository CICD artifacts.
+	SbomOriginationTypeCICD SbomOriginationType = "repositoryCICD"
+	// Originating in source or other non-specific source.
+	SbomOriginationTypeOther SbomOriginationType = "other"
+	// Originating from sbom entry in SECURITY_INSIGHTS.yml.
+	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"
 )
 
 // sbom details.
