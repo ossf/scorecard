@@ -457,12 +457,7 @@ func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.De
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
 		info(dl, doLogging, f.Message)
-		noOfFiles, _ := strconv.Atoi(f.Values["CodeownersFiles"]) //nolint:errcheck
-		if noOfFiles == 0 {
-			warn(dl, doLogging, "codeowners branch protection is being ignored - but no codeowners file found in repo")
-		} else {
-			score++
-		}
+		score++
 	} else {
 		warn(dl, doLogging, f.Message)
 	}

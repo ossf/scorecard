@@ -62,7 +62,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "1 branch requires code owner reviews without files = 1 positive outcome",
+			name: "1 branch requires code owner reviews without files = 1 negative outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -79,7 +79,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -253,7 +253,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeNegative, finding.OutcomeNegative,
 			},
 		},
 		{
