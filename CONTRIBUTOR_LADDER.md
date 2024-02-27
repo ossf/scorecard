@@ -83,7 +83,7 @@ and software engineering principles.
 
 #### Pre-requisites
 
-- Community Member for at least 3 months
+- Community Member for at least 1 month
 - Helped to triage issues and pull requests
 - Knowledgeable about the codebase
 
@@ -131,7 +131,7 @@ approval is focused on holistic acceptance of a contribution including:
 
 #### Pre-requisites
 
-- Triager for at least 3 months
+- Triager for at least 1 month
 - Reviewed at least 10 substantial PRs to the codebase
 - Reviewed or got at least 30 PRs merged to the codebase
 
