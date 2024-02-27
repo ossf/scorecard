@@ -228,13 +228,11 @@ func BranchProtection(name string,
 }
 
 func getBranchName(f *finding.Finding) (string, error) {
-	for k := range f.Values {
-		if k == "numberOfRequiredReviewers" || k == "CodeownersFiles" {
-			continue
-		}
-		return k, nil
+	name, ok := f.Values["branchName"]
+	if !ok {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
 	}
-	return "", sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
+	return name, nil
 }
 
 func sumUpScoreForTier(t tier, scoresData []levelScore) int {
