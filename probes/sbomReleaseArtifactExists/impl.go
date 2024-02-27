@@ -27,7 +27,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sbomReleaseArtifactExists"
+const (
+	Probe        = "sbomReleaseArtifactExists"
+	AssetNameKey = "assetName"
+	AssetURLKey  = "assetURL"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -56,7 +60,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range sbomFiles {
 		sbomFile := sbomFiles[i]
 
-		if sbomFile.SbomInformation.Origin != checker.SbomOriginationTypeAPI {
+		if sbomFile.SbomInformation.Origin != checker.SbomOriginationTypeRelease {
 			continue
 		}
 
@@ -74,6 +78,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f.Values = map[string]string{
+			AssetNameKey: sbomFile.SbomInformation.Name,
+			AssetURLKey:  sbomFile.SbomInformation.URL,
 		}
 		findings = append(findings, *f)
 	}

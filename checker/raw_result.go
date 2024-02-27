@@ -173,19 +173,20 @@ type LicenseData struct {
 type SbomOriginationType string
 
 const (
-	// sources of license information used to assert repo's license.
-	SbomOriginationTypeAPI       SbomOriginationType = "repositoryAPI"
-	SbomOriginationTypeCICD      SbomOriginationType = "repositoryCICD"
-	SbomOriginationTypeOther     SbomOriginationType = "other"
-	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"
+	// sources of sbom information.
+	SbomOriginationTypeRelease   SbomOriginationType = "repositoryRelease" // Originating in repository Release Assets (or Sbom api endpoint for GH)
+	SbomOriginationTypeCICD      SbomOriginationType = "repositoryCICD"    // Originating in repository CICD artifacts
+	SbomOriginationTypeOther     SbomOriginationType = "other"             // Originating in source or other non-specific source
+	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"     // Originating from sbom entry in SECURITY_INSIGHTS.yml
 )
 
 // sbom details.
 type Sbom struct {
-	Name          string              // sbom filename
-	Origin        SbomOriginationType // source of sbom
+	Name          string              // Sbom Filename
+	Origin        SbomOriginationType // Sbom Source
 	Schema        string              // Sbom Schema
 	SchemaVersion string              // Sbom Schema Version
+	URL           string              // Sbom Asset URL
 }
 
 // one file contains one sbom.
@@ -194,8 +195,7 @@ type SbomFile struct {
 	File            File
 }
 
-// SbomData contains the raw results
-// for the Sbom check.
+// SbomData contains the raw results for the Sbom check.
 // Some repos may have more than one sbom.
 type SbomData struct {
 	SbomFiles []SbomFile

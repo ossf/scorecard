@@ -84,7 +84,7 @@ func (handler *sbomHandler) checkReleaseArtifacts(assetlinks []graphqlReleaseAss
 			Name:   link.Name,
 			URL:    link.URL,
 			Path:   link.DirectAssetPath,
-			Origin: "repositoryAPI",
+			Origin: "repositoryRelease",
 		})
 	}
 

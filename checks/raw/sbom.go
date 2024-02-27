@@ -51,6 +51,7 @@ func Sbom(c *checker.CheckRequest) (checker.SbomData, error) {
 					Origin:        checker.SbomOriginationType(v.Origin),
 					Schema:        v.Schema,
 					SchemaVersion: v.SchemaVersion,
+					URL:           v.URL,
 				},
 			})
 	}
@@ -131,6 +132,7 @@ func checkSbomStandard(c *checker.CheckRequest, fileList []string) (*checker.Sbo
 	foundSbomInfo.SbomInformation.Name = sbomInfo.Items.AnyOf[0].Properties.SbomFile.Description
 	foundSbomInfo.SbomInformation.Origin = checker.SbomOriginationTypeStandards
 	foundSbomInfo.SbomInformation.Schema = sbomInfo.Items.AnyOf[0].Properties.SbomFormat.Description
+	foundSbomInfo.SbomInformation.URL = sbomInfo.Items.AnyOf[0].Properties.SbomURL.Description
 
 	return &foundSbomInfo, nil
 }

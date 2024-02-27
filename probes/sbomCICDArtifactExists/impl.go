@@ -27,7 +27,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sbomCICDArtifactExists"
+const (
+	Probe           = "sbomCICDArtifactExists"
+	artifactNameKey = "artifactName"
+	artifactURLKey  = "artifactURL"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -74,6 +78,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f.Values = map[string]string{
+			artifactNameKey: sbomFile.SbomInformation.Name,
+			artifactURLKey:  sbomFile.SbomInformation.URL,
 		}
 		findings = append(findings, *f)
 	}

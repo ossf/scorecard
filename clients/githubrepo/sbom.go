@@ -113,7 +113,7 @@ func (handler *sbomHandler) checkReleaseArtifacts() error {
 
 			handler.sboms = append(handler.sboms, clients.Sbom{
 				Name:    asset.GetName(),
-				Origin:  "repositoryAPI",
+				Origin:  "repositoryRelease",
 				URL:     asset.GetBrowserDownloadURL(),
 				Created: asset.CreatedAt.Time,
 				Path:    asset.GetURL(),
@@ -211,7 +211,7 @@ func (handler *sbomHandler) getGithubAPISbom() error {
 	handler.sboms = append(handler.sboms, clients.Sbom{
 		ID:            *ReturnedSbom.SPDXID,
 		Name:          *ReturnedSbom.Name,
-		Origin:        "repositoryAPI",
+		Origin:        "repositoryRelease",
 		URL:           *ReturnedSbom.DocumentNamespace,
 		Created:       ReturnedSbom.CreationInfo.Created.Time,
 		Path:          ReturnedSbom.DocumentDescribes[0],

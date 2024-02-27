@@ -61,7 +61,7 @@ func Test_Run(t *testing.T) {
 					SbomFiles: []checker.SbomFile{
 						{
 							SbomInformation: checker.Sbom{
-								Origin: checker.SbomOriginationTypeAPI,
+								Origin: checker.SbomOriginationTypeRelease,
 							},
 							File: checker.File{
 								Path: "sbom.cdx.json",
