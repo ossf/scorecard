@@ -58,7 +58,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		branch := &r.Branches[i]
 
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
-		trueMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
 		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
@@ -72,7 +71,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 		case *p > 0:
-			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
+			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
