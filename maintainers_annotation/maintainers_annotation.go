@@ -32,12 +32,25 @@ var errNoScorecardYmlFile = errors.New("scorecard.yml doesn't exist or file does
 type AnnotationReason string
 
 const (
-	// AnnotationTestData is to annotate when the target is used only for test purposes.
+	// AnnotationTestData is to annotate when a check or probe is targeting a danger
+	// in files or code snippets only used for test or example purposes.
 	AnnotationTestData AnnotationReason = "test-data"
-	// AnnotationSignedBinaries is to annotate when the targeted binary is signed.
-	AnnotationSignedBinaries AnnotationReason = "signed-binaries"
-
-	// TODO: Complete annotation reasons
+	// AnnotationRemediated is to annotate when a check or probe correctly identified a
+	// danger and, even though the danger is necessary, a remediation was already applied.
+	// E.g. a workflow is dangerous but only run under maintainers verification and approval,
+	// or a binary is needed but it is signed or has provenance.
+	AnnotationRemediated AnnotationReason = "remediated"
+	// AnnotationNotApplicable is to annotate when a check or probe is not applicable for the case.
+	// E.g. the dependencies should not be pinned because the project is a library.
+	AnnotationNotApplicable AnnotationReason = "not-applicable"
+	// AnnotationNotSupported is to annotate when the maintainer fulfills a check or probe in a way
+	// that is not supported by Scorecard. E.g. Clang-Tidy is used as SAST tool but not identified
+	// because its not supported.
+	AnnotationNotSupported AnnotationReason = "not-supported"
+	// AnnotationNotDetected is to annotate when the maintainer fulfills a check or probe in a way
+	// that is supported by Scorecard but not identified. E.g. Dependabot is configured in the
+	// repository settings and not in a file.
+	AnnotationNotDetected AnnotationReason = "not-detected"
 )
 
 // Annotation groups the annotation reason and, in the future, the related probe.
