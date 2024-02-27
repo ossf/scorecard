@@ -229,7 +229,7 @@ func BranchProtection(name string,
 
 func getBranchName(f *finding.Finding) (string, error) {
 	for k := range f.Values {
-		if k == "branchProtected" || k == "numberOfRequiredReviewers" || k == "CodeownersFiles" {
+		if k == "numberOfRequiredReviewers" || k == "CodeownersFiles" {
 			continue
 		}
 		return k, nil

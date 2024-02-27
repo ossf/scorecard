@@ -80,9 +80,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
-
-		protected := !(branch.Protected != nil && !*branch.Protected)
-		f = f.WithValue("branchProtected", strconv.FormatBool(protected))
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
