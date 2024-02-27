@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -138,6 +139,14 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 	return ma, nil
 }
 
-// TODO:
-// Identify which checks are annotated.
-// Do not upload these checks to GitHub security alerts.
+// IsCheckExempted verifies if a given check in the results is exempted in maintainers annotation.
+func IsCheckExempted(check checker.CheckResult, ma MaintainersAnnotation) bool {
+	for _, exemption := range ma.Exemptions {
+		for _, checkName := range exemption.Checks {
+			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
+				return true
+			}
+		}
+	}
+	return false
+}
