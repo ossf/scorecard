@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
@@ -162,6 +163,12 @@ func runScorecard(ctx context.Context,
 
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
+
+	// Get maintainers annotation
+	_, err = ma.GetMaintainersAnnotation(repoClient)
+	if err != nil {
+		return ScorecardResult{}, err
+	}
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
