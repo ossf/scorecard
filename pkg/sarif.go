@@ -32,6 +32,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
+	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -614,7 +615,7 @@ func toolName(opts *options.Options) string {
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
-	opts *options.Options,
+	opts *options.Options, maintainersAnnotation ma.MaintainersAnnotation,
 ) error {
 	//nolint:lll
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.

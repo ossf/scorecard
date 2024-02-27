@@ -34,6 +34,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/log"
+	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -52,13 +53,14 @@ type RepoInfo struct {
 
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
-	Repo       RepoInfo
-	Date       time.Time
-	Scorecard  ScorecardInfo
-	Checks     []checker.CheckResult
-	RawResults checker.RawResults
-	Findings   []finding.Finding
-	Metadata   []string
+	Repo                  RepoInfo
+	Date                  time.Time
+	Scorecard             ScorecardInfo
+	Checks                []checker.CheckResult
+	RawResults            checker.RawResults
+	Findings              []finding.Finding
+	Metadata              []string
+	MaintainersAnnotation ma.MaintainersAnnotation
 }
 
 func scoreToString(s float64) string {
@@ -114,6 +116,7 @@ func FormatResults(
 	results *ScorecardResult,
 	doc docChecks.Doc,
 	policy *spol.ScorecardPolicy,
+	maintainersAnnotation ma.MaintainersAnnotation,
 ) error {
 	var err error
 
@@ -132,7 +135,7 @@ func FormatResults(
 		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
-		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
+		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts, maintainersAnnotation)
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatFJSON:

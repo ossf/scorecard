@@ -166,10 +166,11 @@ func runScorecard(ctx context.Context,
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	// Get maintainers annotation
-	_, err = ma.GetMaintainersAnnotation(repoClient)
+	maintainersAnnotation, err := ma.GetMaintainersAnnotation(repoClient)
 	if err != nil {
 		return ScorecardResult{}, err
 	}
+	ret.MaintainersAnnotation = maintainersAnnotation
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
