@@ -53,14 +53,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, emptyBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, emptyBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, emptyBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                emptyBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", emptyBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, emptyBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, emptyBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, emptyBranchName, finding.OutcomePositive),
@@ -80,14 +76,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -108,14 +100,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -136,14 +124,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNotAvailable),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNotAvailable),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNegative),
@@ -165,14 +149,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNotAvailable),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNotAvailable),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -194,14 +174,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomePositive),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -222,14 +198,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "1",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomePositive),
+					"numberOfRequiredReviewers", "1",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -250,14 +222,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNotAvailable),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNotAvailable),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNotAvailable),
@@ -279,14 +247,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNotAvailable),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "1",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomePositive),
+					"numberOfRequiredReviewers", "1",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNotAvailable),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNotAvailable),
@@ -308,14 +272,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNegative),
@@ -336,14 +296,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNegative),
@@ -364,14 +320,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNegative),
@@ -392,14 +344,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomeNegative),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "0",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomeNegative),
+					"numberOfRequiredReviewers", "0",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomeNegative),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomeNegative),
@@ -420,14 +368,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomePositive),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "1",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomePositive),
+					"numberOfRequiredReviewers", "1",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -448,14 +392,10 @@ func TestBranchProtection(t *testing.T) {
 				branchFinding(branchesAreProtected.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(branchProtectionAppliesToAdmins.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(dismissesStaleReviews.Probe, defaultBranchName, finding.OutcomePositive),
-				{
-					Probe:   "requiresApproversForPullRequests",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName":                defaultBranchName,
-						"numberOfRequiredReviewers": "1",
-					},
-				},
+				withValue(
+					branchFinding("requiresApproversForPullRequests", defaultBranchName, finding.OutcomePositive),
+					"numberOfRequiredReviewers", "1",
+				),
 				branchFinding(requiresCodeOwnersReview.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresLastPushApproval.Probe, defaultBranchName, finding.OutcomePositive),
 				branchFinding(requiresUpToDateBranches.Probe, defaultBranchName, finding.OutcomePositive),
@@ -478,4 +418,20 @@ func TestBranchProtection(t *testing.T) {
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
+}
+
+// helper function to create findings for branch protection probes.
+func branchFinding(probe, branch string, outcome finding.Outcome) finding.Finding {
+	return finding.Finding{
+		Probe:   probe,
+		Outcome: outcome,
+		Values: map[string]string{
+			"branchName": branch,
+		},
+	}
+}
+
+func withValue(f finding.Finding, k, v string) finding.Finding {
+	f.Values[k] = v
+	return f
 }
