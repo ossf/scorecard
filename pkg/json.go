@@ -25,6 +25,7 @@ import (
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
+	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 )
 
 type jsonCheckResult struct {
@@ -49,11 +50,12 @@ type jsonCheckDocumentationV2 struct {
 
 //nolint:govet
 type jsonCheckResultV2 struct {
-	Details []string                 `json:"details"`
-	Score   int                      `json:"score"`
-	Reason  string                   `json:"reason"`
-	Name    string                   `json:"name"`
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
+	Details               []string                 `json:"details"`
+	Score                 int                      `json:"score"`
+	Reason                string                   `json:"reason"`
+	Name                  string                   `json:"name"`
+	Doc                   jsonCheckDocumentationV2 `json:"documentation"`
+	MaintainersAnnotation []string                 `json:"maintainersAnnotation"`
 }
 
 type jsonRepoV2 struct {
@@ -122,7 +124,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+	showMaintainersAnnotation bool, logLevel log.Level,
+	checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
@@ -170,6 +173,12 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 					continue
 				}
 				tmpResult.Details = append(tmpResult.Details, m)
+			}
+		}
+		if showMaintainersAnnotation {
+			exempted, reasons := ma.IsCheckExempted(checkResult, r.MaintainersAnnotation)
+			if exempted {
+				tmpResult.MaintainersAnnotation = reasons
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)
