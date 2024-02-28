@@ -137,7 +137,7 @@ func FormatResults(
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts, maintainersAnnotation)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
+		err = results.AsJSON2(opts.ShowDetails, opts.ShowMaintainersAnnotation, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatFJSON:
 		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatPJSON:

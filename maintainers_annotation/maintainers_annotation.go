@@ -53,12 +53,21 @@ const (
 	AnnotationNotDetected AnnotationReason = "not-detected"
 )
 
+// AnnotationReasonDoc maps the reasons to their human-readable explanations.
+var AnnotationReasonDoc = map[AnnotationReason]string{
+	AnnotationTestData:      "The files or code snippets are only used for test or example purposes.",
+	AnnotationRemediated:    "The dangerous files or code snippets are necessary but remediations were already applied.",
+	AnnotationNotApplicable: "The check or probe is not applicable in this case.",
+	AnnotationNotSupported:  "The check or probe is fulfilled but in a way that is not supported by Scorecard.",
+	AnnotationNotDetected:   "The check or probe is fulfilled but in a way that is supported by Scorecard but it was not detected.",
+}
+
 // Annotation groups the annotation reason and, in the future, the related probe.
 // If there is a probe, the reason applies to the probe.
 // If there is not a probe, the reason applies to the check or group of checks in
 // the exemption.
 type Annotation struct {
-	Annotation AnnotationReason `yaml:"annotation"`
+	AnnotationReason AnnotationReason `yaml:"annotation"`
 }
 
 // Exemption defines a group of checks that are being annotated for various reasons.
@@ -153,13 +162,22 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 }
 
 // IsCheckExempted verifies if a given check in the results is exempted in maintainers annotation.
-func IsCheckExempted(check checker.CheckResult, ma MaintainersAnnotation) bool {
+func IsCheckExempted(check checker.CheckResult, ma MaintainersAnnotation) (bool, []string) {
 	for _, exemption := range ma.Exemptions {
 		for _, checkName := range exemption.Checks {
 			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
-				return true
+				return true, GetAnnotations(exemption.Annotations)
 			}
 		}
 	}
-	return false
+	return false, nil
+}
+
+// GetAnnotations parses a group of annotations into annotation reasons.
+func GetAnnotations(a []Annotation) []string {
+	var annotationReasons []string
+	for _, annotation := range a {
+		annotationReasons = append(annotationReasons, AnnotationReasonDoc[annotation.AnnotationReason])
+	}
+	return annotationReasons
 }
