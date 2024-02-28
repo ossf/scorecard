@@ -25,7 +25,6 @@ import (
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
-	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 )
 
 type jsonCheckResult struct {
@@ -176,7 +175,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			}
 		}
 		if showMaintainersAnnotation {
-			exempted, reasons := ma.IsCheckExempted(checkResult, r.MaintainersAnnotation)
+			exempted, reasons := r.MaintainersAnnotation.IsCheckExempted(checkResult)
 			if exempted {
 				tmpResult.MaintainersAnnotation = reasons
 			}

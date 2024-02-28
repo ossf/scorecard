@@ -32,7 +32,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
-	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -629,7 +628,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		check := check
 
 		// If check is exempted, skip
-		exempted, _ := ma.IsCheckExempted(check, r.MaintainersAnnotation)
+		exempted, _ := r.MaintainersAnnotation.IsCheckExempted(check)
 		if exempted {
 			continue
 		}
