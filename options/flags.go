@@ -63,7 +63,15 @@ const (
 	// FlagFormat is the flag name for specifying output format.
 	FlagFormat = "format"
 
+	// FlagResultsFile is the flag name for specifying output file.
+	FlagResultsFile = "output"
+
+	// ShorthandFlagResultsFile is the shorthand flag name for specifying output file.
+	ShorthandFlagResultsFile = "o"
+
 	FlagCommitDepth = "commit-depth"
+
+	FlagProbes = "probes"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -162,6 +170,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
 	)
 
+	cmd.Flags().StringSliceVar(
+		&o.ProbesToRun,
+		FlagProbes,
+		o.ProbesToRun,
+		"Probes to run.",
+	)
+
 	// TODO(options): Extract logic
 	allowedFormats := []string{
 		FormatDefault,
@@ -187,5 +202,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 			"output format. Possible values are: %s",
 			strings.Join(allowedFormats, ", "),
 		),
+	)
+
+	cmd.Flags().StringVarP(
+		&o.ResultsFile,
+		FlagResultsFile,
+		ShorthandFlagResultsFile,
+		o.ResultsFile,
+		"output file",
 	)
 }

@@ -21,8 +21,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
+	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 func strptr(s string) *string {
@@ -80,7 +82,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			name: "non binary file",
 			err:  nil,
 			files: [][]string{
-				{"../doesnotexist"},
+				{"../nonexistent"},
 			},
 			getFileContentCount: 1,
 		},
@@ -126,7 +128,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 			},
 			getFileContentCount: 3,
-			expect:              0,
+			expect:              1,
 		},
 		{
 			name: "gradle-wrapper.jar with non-verification action",
@@ -210,7 +212,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 			},
 			getFileContentCount: 3,
-			expect:              0,
+			expect:              1,
 		},
 	}
 	for _, tt := range tests {
@@ -220,6 +222,7 @@ func TestBinaryArtifacts(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo := mockrepo.NewMockRepo(ctrl)
 			for _, files := range tt.files {
 				mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
 			}
@@ -240,7 +243,14 @@ func TestBinaryArtifacts(t *testing.T) {
 				mockRepoClient.EXPECT().ListCommits().Return(tt.commits, nil)
 			}
 
-			f, err := BinaryArtifacts(mockRepoClient)
+			dl := scut.TestDetailLogger{}
+			c := &checker.CheckRequest{
+				RepoClient: mockRepoClient,
+				Repo:       mockRepo,
+				Dlogger:    &dl,
+			}
+
+			f, err := BinaryArtifacts(c)
 
 			if tt.err != nil {
 				// If we expect an error, make sure it is the same
@@ -254,5 +264,45 @@ func TestBinaryArtifacts(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepo := mockrepo.NewMockRepo(ctrl)
+	const jarFile = "gradle-wrapper.jar"
+	const verifyWorkflow = ".github/workflows/verify.yaml"
+	files := []string{jarFile, verifyWorkflow}
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil).AnyTimes()
+	mockRepoClient.EXPECT().GetFileContent(jarFile).DoAndReturn(func(file string) ([]byte, error) {
+		content, err := os.ReadFile("../testdata/binaryartifacts/jars/gradle-wrapper.jar")
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		return content, nil
+	}).AnyTimes()
+	mockRepoClient.EXPECT().GetFileContent(verifyWorkflow).DoAndReturn(func(file string) ([]byte, error) {
+		content, err := os.ReadFile("../testdata/binaryartifacts/workflows/verify.yaml")
+		if err != nil {
+			return nil, fmt.Errorf("%w", err)
+		}
+		return content, nil
+	}).AnyTimes()
+
+	mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature).AnyTimes()
+	dl := scut.TestDetailLogger{}
+	c := &checker.CheckRequest{
+		RepoClient: mockRepoClient,
+		Repo:       mockRepo,
+		Dlogger:    &dl,
+	}
+	got, err := BinaryArtifacts(c)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(got.Files) != 1 {
+		t.Errorf("expected 1 file, got %d", len(got.Files))
 	}
 }

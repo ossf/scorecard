@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -61,7 +62,7 @@ type (
 		options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error)
 )
 
-// nolint: nestif
+//nolint:nestif
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
@@ -84,10 +85,10 @@ func (handler *branchesHandler) setup() error {
 		if branch.Protected {
 			protectedBranch, resp, err := handler.getProtectedBranch(
 				handler.repourl.projectID, branch.Name)
-			if err != nil && resp.StatusCode != 403 {
+			if err != nil && resp.StatusCode != http.StatusForbidden {
 				handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
 				return
-			} else if resp.StatusCode == 403 {
+			} else if resp.StatusCode == http.StatusForbidden {
 				handler.errSetup = fmt.Errorf("incorrect permissions to fully check branch protection %w", err)
 				return
 			}
@@ -193,6 +194,7 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	}
 
 	pullRequestReviewRule := clients.PullRequestReviewRule{
+		// TODO how do we know if they're required?
 		DismissStaleReviews:     newTrue(),
 		RequireCodeOwnerReviews: &protectedBranch.CodeOwnerApprovalRequired,
 	}

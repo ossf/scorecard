@@ -32,15 +32,14 @@ const (
 // TestDependencyUpdateTool tests the DependencyUpdateTool checker.
 func TestDependencyUpdateTool(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name              string
-		wantErr           bool
-		SearchCommits     []clients.Commit
-		CallSearchCommits int
-		files             []string
 		want              checker.CheckResult
+		SearchCommits     []clients.Commit
+		files             []string
 		expected          scut.TestReturn
+		CallSearchCommits int
+		wantErr           bool
 	}{
 		{
 			name:    "dependency yml",
@@ -51,7 +50,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -64,7 +63,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -77,7 +76,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 4,
+				NumberOfWarn: 3,
 			},
 		},
 		{
@@ -89,7 +88,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 4,
+				NumberOfWarn: 3,
 			},
 		},
 
@@ -103,7 +102,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -118,7 +117,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -136,7 +135,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				NumberOfWarn: 0,
 				Score:        10,
 			},
 		},
@@ -150,17 +149,31 @@ func TestDependencyUpdateTool(t *testing.T) {
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
 			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 			dl := scut.TestDetailLogger{}
-			raw := checker.RawResults{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			res := DependencyUpdateTool(c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
+	}
+}
+
+func TestDependencyUpdateTool_noSearchCommits(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockRepo := mockrepo.NewMockRepoClient(ctrl)
+	files := []string{"README.md"}
+	mockRepo.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
+	mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
+	dl := scut.TestDetailLogger{}
+	c := &checker.CheckRequest{
+		RepoClient: mockRepo,
+		Dlogger:    &dl,
+	}
+	got := DependencyUpdateTool(c)
+	if got.Error != nil {
+		t.Errorf("got: %v, wanted ErrUnsupportedFeature not to propagate", got.Error)
 	}
 }

@@ -47,11 +47,11 @@ var _ = Describe("E2E TEST:"+checks.CheckSAST, func() {
 				Score:         10,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
-				NumberOfDebug: 1,
+				NumberOfDebug: 0,
 			}
 			result := checks.SAST(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "sast used", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "sast used", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

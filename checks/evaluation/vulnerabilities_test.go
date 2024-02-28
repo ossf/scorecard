@@ -17,62 +17,119 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
 // TestVulnerabilities tests the vulnerabilities checker.
 func TestVulnerabilities(t *testing.T) {
 	t.Parallel()
-	//nolint
-	type args struct {
-		name string
-		r    *checker.VulnerabilitiesData
-	}
+	//nolint:govet
 	tests := []struct {
 		name     string
-		args     args
-		want     checker.CheckResult
+		findings []finding.Finding
+		result   scut.TestReturn
 		expected []struct {
 			lineNumber uint
 		}
 	}{
 		{
 			name: "no vulnerabilities",
-			args: args{
-				name: "vulnerabilities_test.go",
-				r: &checker.VulnerabilitiesData{
-					Vulnerabilities: []clients.Vulnerability{},
+			findings: []finding.Finding{
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomePositive,
 				},
 			},
-			want: checker.CheckResult{
+			result: scut.TestReturn{
 				Score: 10,
 			},
 		},
 		{
-			name: "one vulnerability",
-			args: args{
-				name: "vulnerabilities_test.go",
-				r: &checker.VulnerabilitiesData{
-					Vulnerabilities: []clients.Vulnerability{
-						{
-							ID: "CVE-2019-1234",
-						},
-					},
+			name: "three vulnerabilities",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
 				},
 			},
-			want: checker.CheckResult{
-				Score: 9,
+			result: scut.TestReturn{
+				Score:        7,
+				NumberOfWarn: 3,
 			},
 		},
 		{
-			name: "one vulnerability",
-			args: args{
-				name: "vulnerabilities_test.go",
+			name: "twelve vulnerabilities to check that score is not less than 0",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
+				{
+					Probe:   "hasOSVVulnerabilities",
+					Outcome: finding.OutcomeNegative,
+				},
 			},
-			want: checker.CheckResult{
+			result: scut.TestReturn{
+				Score:        0,
+				NumberOfWarn: 12,
+			},
+		},
+		{
+			name:     "invalid findings",
+			findings: []finding.Finding{},
+			result: scut.TestReturn{
 				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
@@ -81,10 +138,8 @@ func TestVulnerabilities(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			res := Vulnerabilities(tt.args.name, &dl, tt.args.r)
-			if res.Score != tt.want.Score {
-				t.Errorf("Vulnerabilities() = %v, want %v", res.Score, tt.want.Score)
-			}
+			got := Vulnerabilities(tt.name, tt.findings, &dl)
+			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
 }

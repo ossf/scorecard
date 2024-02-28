@@ -49,13 +49,13 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  1,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
-			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "dependencies check", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return dependencies check at commit", func() {
@@ -74,13 +74,13 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  1,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
-			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "dependencies check", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return dependencies check for a local repoClient", func() {
@@ -110,13 +110,13 @@ var _ = Describe("E2E TEST:"+checks.CheckPinnedDependencies, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         1,
+				Score:         2,
 				NumberOfWarn:  139,
-				NumberOfInfo:  1,
+				NumberOfInfo:  5,
 				NumberOfDebug: 0,
 			}
 			result := checks.PinningDependencies(&req)
-			Expect(scut.ValidateTestReturn(nil, "dependencies check", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "dependencies check", &expected, &result, &dl)
 			Expect(x.Close()).Should(BeNil())
 		})
 	})

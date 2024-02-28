@@ -58,6 +58,19 @@ type Client struct {
 	commitDepth   int
 }
 
+var errRepoAccess = errors.New("repo inaccessible")
+
+// Raise an error if repository access level is private or disabled.
+func checkRepoInaccessible(repo *gitlab.Project) error {
+	if repo.RepositoryAccessLevel == gitlab.DisabledAccessControl {
+		return fmt.Errorf("%w: %s access level %s",
+			errRepoAccess, repo.PathWithNamespace, string(repo.RepositoryAccessLevel),
+		)
+	}
+
+	return nil
+}
+
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	glRepo, ok := inputRepo.(*repoURL)
@@ -67,10 +80,16 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Sanity check.
 	proj := fmt.Sprintf("%s/%s", glRepo.owner, glRepo.project)
-	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{})
+	license := true // Get project license information. Used for licenses client.
+	repo, _, err := client.glClient.Projects.GetProject(proj, &gitlab.GetProjectOptions{License: &license})
 	if err != nil {
 		return sce.WithMessage(sce.ErrRepoUnreachable, proj+"\t"+err.Error())
 	}
+
+	if err = checkRepoInaccessible(repo); err != nil {
+		return sce.WithMessage(sce.ErrRepoUnreachable, err.Error())
+	}
+
 	if commitDepth <= 0 {
 		client.commitDepth = 30 // default
 	} else {
@@ -88,14 +107,14 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 
 	if repo.Owner != nil {
-		client.repourl.owner = repo.Owner.Name
+		client.repourl.owner = repo.Owner.Username
 	}
 
 	// Init contributorsHandler
 	client.contributors.init(client.repourl)
 
 	// Init commitsHandler
-	client.commits.init(client.repourl)
+	client.commits.init(client.repourl, client.commitDepth)
 
 	// Init branchesHandler
 	client.branches.init(client.repourl)
@@ -143,7 +162,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 }
 
 func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.projectID)
+	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
 }
 
 func (client *Client) LocalPath() (string, error) {
@@ -165,11 +184,17 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 		return []clients.Commit{}, err
 	}
 
+	if len(commitsRaw) < 1 {
+		return []clients.Commit{}, nil
+	}
+
 	before := commitsRaw[0].CommittedDate
 	// Get merge request details from GraphQL
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
 	// are within them without making a REST call for each commit (~30 by default)
 	// Making 1 GraphQL query to combine the results of 2 REST calls, we avoid this
+	// TODO(#3193): Fix the way graphql retrieves merge details to more closely
+	// line up with commits from listRawCommits
 	mrDetails, err := client.graphql.getMergeRequestsDetail(before)
 	if err != nil {
 		return []clients.Commit{}, err

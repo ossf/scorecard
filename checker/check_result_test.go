@@ -19,6 +19,9 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 func TestAggregateScores(t *testing.T) {
@@ -50,7 +53,7 @@ func TestAggregateScores(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := AggregateScores(tt.args.scores...); got != tt.want { //nolint:govet
+			if got := AggregateScores(tt.args.scores...); got != tt.want {
 				t.Errorf("AggregateScores() = %v, want %v", got, tt.want)
 			}
 		})
@@ -86,7 +89,7 @@ func TestAggregateScoresWithWeight(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := AggregateScoresWithWeight(tt.args.scores); got != tt.want { //nolint:govet
+			if got := AggregateScoresWithWeight(tt.args.scores); got != tt.want {
 				t.Errorf("AggregateScoresWithWeight() = %v, want %v", got, tt.want)
 			}
 		})
@@ -127,13 +130,288 @@ func TestCreateProportionalScore(t *testing.T) {
 			},
 			want: 5,
 		},
+		{
+			name: "2 and 5",
+			args: args{
+				success: 2,
+				total:   5,
+			},
+			want: 4,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScore(tt.args.success, tt.args.total); got != tt.want { //nolint:govet
-				t.Errorf("CreateProportionalScore() = %v, want %v", got, tt.want) //nolint:govet
+			if got := CreateProportionalScore(tt.args.success, tt.args.total); got != tt.want {
+				t.Errorf("CreateProportionalScore() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateProportionalScoreWeighted(t *testing.T) {
+	t.Parallel()
+	type want struct {
+		score int
+		err   bool
+	}
+	tests := []struct {
+		name   string
+		scores []ProportionalScoreWeighted
+		want   want
+	}{
+		{
+			name: "max result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+		{
+			name: "min result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   1,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 0,
+			},
+		},
+		{
+			name: "partial result with 1 group and normal weight",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 2,
+			},
+		},
+		{
+			name: "partial result with 2 groups and normal weights",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 5,
+			},
+		},
+		{
+			name: "partial result with 2 groups and odd weights",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "all groups with 0 weight, no groups matter for the score, results in max score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+		{
+			name: "not all groups with 0 weight, only groups with weight matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "no total, results in inconclusive score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: -1,
+			},
+		},
+		{
+			name: "some groups with 0 total, only groups with total matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 2,
+			},
+		},
+		{
+			name: "any group with number of successes higher than total, results in inconclusive score and error",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: -1,
+				err:   true,
+			},
+		},
+		{
+			name: "only groups with weight and total matter to the score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 2,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 8,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 3,
+			},
+		},
+		{
+			name: "only groups with weight and total matter to the score but no groups have success, results in min score",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 1,
+					Total:   1,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+				{
+					Success: 0,
+					Total:   10,
+					Weight:  8,
+				},
+				{
+					Success: 0,
+					Total:   10,
+					Weight:  2,
+				},
+			},
+			want: want{
+				score: 0,
+			},
+		},
+		{
+			name: "group with 0 weight counts as max score and group with 0 total does not count",
+			scores: []ProportionalScoreWeighted{
+				{
+					Success: 2,
+					Total:   8,
+					Weight:  0,
+				},
+				{
+					Success: 0,
+					Total:   0,
+					Weight:  10,
+				},
+			},
+			want: want{
+				score: 10,
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := CreateProportionalScoreWeighted(tt.scores...)
+			if err != nil && !tt.want.err {
+				t.Errorf("CreateProportionalScoreWeighted unexpected error '%v'", err)
+				t.Fail()
+			}
+			if err == nil && tt.want.err {
+				t.Errorf("CreateProportionalScoreWeighted expected error and got none")
+				t.Fail()
+			}
+			if got != tt.want.score {
+				t.Errorf("CreateProportionalScoreWeighted() = %v, want %v", got, tt.want.score)
 			}
 		})
 	}
@@ -171,8 +449,8 @@ func TestNormalizeReason(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := NormalizeReason(tt.args.reason, tt.args.score); got != tt.want { //nolint:govet
-				t.Errorf("NormalizeReason() = %v, want %v", got, tt.want) //nolint:govet
+			if got := NormalizeReason(tt.args.reason, tt.args.score); got != tt.want {
+				t.Errorf("NormalizeReason() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -218,13 +496,59 @@ func TestCreateResultWithScore(t *testing.T) {
 				Score:   1,
 			},
 		},
+		{
+			name: "inconclusive score is not valid",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  InconclusiveResultScore,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (-1), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "score too low",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  -3,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (-3), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
+		{
+			name: "score too high",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				score:  MaxResultScore + 2,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (12), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score); !cmp.Equal(got, tt.want) { //nolint:lll,govet
-				t.Errorf("CreateResultWithScore() = %v, want %v", got, cmp.Diff(got, tt.want)) //nolint:govet
+			got := CreateResultWithScore(tt.args.name, tt.args.reason, tt.args.score)
+			if !cmp.Equal(got, tt.want, cmpopts.EquateErrors()) {
+				t.Errorf("CreateResultWithScore() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
@@ -273,13 +597,30 @@ func TestCreateProportionalScoreResult(t *testing.T) {
 				Version: 2,
 			},
 		},
+		{
+			name: "negative proportion, score too low",
+			args: args{
+				name:   "name",
+				reason: "reason",
+				b:      -2,
+				t:      1,
+			},
+			want: CheckResult{
+				Name:    "name",
+				Reason:  "internal error: invalid score (-20), please report this",
+				Version: 2,
+				Score:   -1,
+				Error:   sce.ErrScorecardInternal,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t); !cmp.Equal(got, tt.want) { //nolint:govet,lll
-				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want)) //nolint:govet
+			got := CreateProportionalScoreResult(tt.args.name, tt.args.reason, tt.args.b, tt.args.t)
+			if !cmp.Equal(got, tt.want, cmpopts.EquateErrors()) {
+				t.Errorf("CreateProportionalScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
 	}
@@ -327,7 +668,7 @@ func TestCreateMaxScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateMaxScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
+			if got := CreateMaxScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateMaxScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -376,7 +717,7 @@ func TestCreateMinScoreResult(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) { //nolint:govet
+			if got := CreateMinScoreResult(tt.args.name, tt.args.reason); !cmp.Equal(got, tt.want) {
 				t.Errorf("CreateMinScoreResult() = %v, want %v", got, cmp.Diff(got, tt.want))
 			}
 		})
@@ -447,14 +788,14 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 			name: "empty",
 			args: args{
 				name: "",
-				e:    errors.New("runtime error"), //nolint:goerr113
+				e:    errors.New("runtime error"),
 			},
 			want: CheckResult{
 				Name:    "",
 				Reason:  "runtime error",
 				Score:   -1,
 				Version: 2,
-				Error:   errors.New("runtime error"), //nolint:goerr113
+				Error:   errors.New("runtime error"),
 			},
 		},
 	}

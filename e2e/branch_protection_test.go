@@ -48,7 +48,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Error:         nil,
 				Score:         6,
 				NumberOfWarn:  2,
-				NumberOfInfo:  4,
+				NumberOfInfo:  5,
 				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
@@ -56,7 +56,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			// Old version.
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "branch protection accessible", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories", func() {
@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible none", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "branch protection accessible none", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should fail to return branch protection on other repositories patch", func() {
@@ -106,13 +106,13 @@ var _ = Describe("E2E TEST PAT:"+checks.CheckBranchProtection, func() {
 				Error:         nil,
 				Score:         1,
 				NumberOfWarn:  3,
-				NumberOfInfo:  3,
+				NumberOfInfo:  4,
 				NumberOfDebug: 4,
 			}
 			result := checks.BranchProtection(&req)
 
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "branch protection accessible patch", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "branch protection accessible patch", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
@@ -138,7 +138,38 @@ var _ = Describe("E2E TEST GITHUB_TOKEN:"+checks.CheckBranchProtection, func() {
 			result := checks.BranchProtection(&req)
 			Expect(result.Error).ShouldNot(BeNil())
 			// There should be an error with the GITHUB_TOKEN, until it's supported
-			// byt GitHub.
+			// by GitHub.
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+	})
+})
+
+var _ = Describe("E2E TEST:"+checks.CheckBranchProtection+" (repo rules)", func() {
+	Context("E2E TEST:Validating branch protection with repo rules", func() {
+		It("Should be able to read repo rules", func() {
+			dl := scut.TestDetailLogger{}
+			// no force push, no deletion, no bypass, dismiss stale reviews
+			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-repo-rules-e2e")
+			Expect(err).Should(BeNil())
+			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			expected := scut.TestReturn{
+				Error:         nil,
+				Score:         3,
+				NumberOfWarn:  4,
+				NumberOfInfo:  5,
+				NumberOfDebug: 1,
+			}
+			result := checks.BranchProtection(&req)
+			Expect(result.Error).Should(BeNil())
+			scut.ValidateTestReturn(GinkgoTB(), "repo rules accessible", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

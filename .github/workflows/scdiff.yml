@@ -1,0 +1,110 @@
+name: scdiff PR evaluation
+on:
+  issue_comment:
+    types: [created]
+
+permissions: read-all
+
+env:
+  GO_VERSION: 1.21
+
+jobs:
+  share-link:
+    if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
+    runs-on: [ubuntu-latest]
+    permissions:
+      pull-requests: write # to create the PR comment
+    steps:
+      - name: share link to workflow run
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `[Here's a link to the scdiff run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            })
+
+  golden-test:
+    if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: create file of repos to analyze
+        run: |
+          cat <<EOF > $HOME/repos.txt
+          https://github.com/airbnb/lottie-web
+          https://github.com/apache/tomcat
+          https://github.com/Azure/azure-functions-dotnet-worker
+          https://github.com/cncf/xds
+          https://github.com/google/go-cmp
+          https://github.com/google/highwayhash
+          https://github.com/googleapis/google-api-php-client
+          https://github.com/jacoco/jacoco
+          https://github.com/ossf/scorecard
+          https://github.com/pallets/jinja
+          https://github.com/polymer/polymer
+          https://github.com/rust-random/getrandom
+          https://github.com/yaml/libyaml
+          https://gitlab.com/baserow/baserow
+          https://gitlab.com/cryptsetup/cryptsetup
+          EOF
+      - name: configure scdiff
+        id: config
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const allowedAssociations = ["COLLABORATOR", "CONTRIBUTOR", "MEMBER", "OWNER"];
+            authorAssociation = '${{ github.event.comment.author_association }}'
+            if (!allowedAssociations.includes(authorAssociation)) {
+              core.setFailed("You don't have access to run scdiff");
+            }
+
+            const response = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            })
+            core.setOutput('base', response.data.base.sha)
+            core.setOutput('head', response.data.head.sha)
+
+            checks = '""'
+            const commentBody = process.env.COMMENT_BODY
+            const regex = /\/scdiff generate ([^ ]+)/;
+            const found = commentBody.match(regex);
+            if (found && found.length == 2) {
+              checks = found[1]
+            }
+            core.exportVariable('SCORECARD_CHECKS', checks)
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ steps.config.outputs.base }}
+      - name: Setup Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
+      - name: generate before results
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          go run cmd/internal/scdiff/main.go generate \
+            --repos $HOME/repos.txt \
+            --checks $SCORECARD_CHECKS > $HOME/before.json
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ steps.config.outputs.head }}
+      - name: generate after results
+        env:
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          go run cmd/internal/scdiff/main.go generate \
+            --repos $HOME/repos.txt \
+            --checks $SCORECARD_CHECKS > $HOME/after.json
+      - name: compare results
+        run: |
+          go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json

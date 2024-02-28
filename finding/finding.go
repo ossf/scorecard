@@ -18,6 +18,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -39,16 +40,17 @@ const (
 	FileTypeText
 	// FileTypeURL for URLs.
 	FileTypeURL
+	// FileTypeBinaryVerified for verified binary files.
+	FileTypeBinaryVerified
 )
 
 // Location represents the location of a finding.
-// nolint: govet
 type Location struct {
-	Type      FileType `json:"type"`
-	Path      string   `json:"path"`
 	LineStart *uint    `json:"lineStart,omitempty"`
 	LineEnd   *uint    `json:"lineEnd,omitempty"`
 	Snippet   *string  `json:"snippet,omitempty"`
+	Path      string   `json:"path"`
+	Type      FileType `json:"type"`
 }
 
 // Outcome is the result of a finding.
@@ -83,24 +85,28 @@ const (
 	_
 	// OutcomeNotSupported indicates a non-supported outcome.
 	OutcomeNotSupported
+	_
+	_
+	_
+	// OutcomeNotApplicable indicates if a finding should not
+	// be considered in evaluation.
+	OutcomeNotApplicable
 )
 
 // Finding represents a finding.
-// nolint: govet
 type Finding struct {
-	Probe       string             `json:"probe"`
-	Outcome     Outcome            `json:"outcome"`
-	Message     string             `json:"message"`
 	Location    *Location          `json:"location,omitempty"`
 	Remediation *probe.Remediation `json:"remediation,omitempty"`
+	Values      map[string]int     `json:"values,omitempty"`
+	Probe       string             `json:"probe"`
+	Message     string             `json:"message"`
+	Outcome     Outcome            `json:"outcome"`
 }
 
-// AnonymousFinding is a finding without a corerpsonding probe ID.
+// AnonymousFinding is a finding without a corresponding probe ID.
 type AnonymousFinding struct {
-	Finding
-	// Remove the probe ID from
-	// the structure until the probes are GA.
 	Probe string `json:"probe,omitempty"`
+	Finding
 }
 
 var errInvalid = errors.New("invalid")
@@ -109,7 +115,7 @@ var errInvalid = errors.New("invalid")
 func FromBytes(content []byte, probeID string) (*Finding, error) {
 	p, err := probe.FromBytes(content, probeID)
 	if err != nil {
-		// nolint
+		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{
@@ -135,7 +141,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 	return f, nil
 }
 
-// NewWith create a finding with the desried location and outcome.
+// NewWith create a finding with the desired location and outcome.
 func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	o Outcome,
 ) (*Finding, error) {
@@ -148,19 +154,19 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-// NewWith create a negative finding with the desried location.
+// NewWith create a negative finding with the desired location.
 func NewNegative(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNegative)
 }
 
-// NewNotAvailable create a finding with a NotAvailable outcome and the desried location.
+// NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
 func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desried location.
+// NewPositive create a positive finding with the desired location.
 func NewPositive(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomePositive)
@@ -181,6 +187,24 @@ func (f *Finding) WithMessage(text string) *Finding {
 	return f
 }
 
+// UniqueProbesEqual checks the probe names present in a list of findings
+// and compare them against an expected list.
+func UniqueProbesEqual(findings []Finding, probes []string) bool {
+	// Collect unique probes from findings.
+	fm := make(map[string]bool)
+	for i := range findings {
+		f := &findings[i]
+		fm[f.Probe] = true
+	}
+	// Collect probes from list.
+	pm := make(map[string]bool)
+	for i := range probes {
+		p := &probes[i]
+		pm[*p] = true
+	}
+	return reflect.DeepEqual(pm, fm)
+}
+
 // WithLocation adds a location to an existing finding.
 // No copy is made.
 func (f *Finding) WithLocation(loc *Location) *Finding {
@@ -192,6 +216,13 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
 			"${{ finding.location.path }}", f.Location.Path, -1)
 	}
+	return f
+}
+
+// WithValues sets the values to an existing finding.
+// No copy is made.
+func (f *Finding) WithValues(values map[string]int) *Finding {
+	f.Values = values
 	return f
 }
 
@@ -233,6 +264,16 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 	return f
 }
 
+// WithValue adds a value to f.Values.
+// No copy is made.
+func (f *Finding) WithValue(k string, v int) *Finding {
+	if f.Values == nil {
+		f.Values = make(map[string]int)
+	}
+	f.Values[k] = v
+	return f
+}
+
 // UnmarshalYAML is a custom unmarshalling function
 // to transform the string into an enum.
 func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
@@ -250,6 +291,8 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 		*o = OutcomeNotAvailable
 	case "NotSupported":
 		*o = OutcomeNotSupported
+	case "NotApplicable":
+		*o = OutcomeNotApplicable
 	case "Error":
 		*o = OutcomeError
 	default:

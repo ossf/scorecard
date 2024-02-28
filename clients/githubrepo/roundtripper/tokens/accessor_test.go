@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-//nolint:paralleltest
+//nolint:paralleltest // test uses t.Setenv
 func TestMakeTokenAccessor(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -40,16 +40,17 @@ func TestMakeTokenAccessor(t *testing.T) {
 			useServer: true,
 		},
 	}
-	t.Setenv("GITHUB_AUTH_TOKEN", "")
-	t.Setenv("GITHUB_TOKEN", "")
+	// clear all env variables devs may have defined, or the test will fail locally
+	for _, envVar := range githubAuthTokenEnvVars {
+		t.Setenv(envVar, "")
+	}
+	t.Setenv(githubAuthServer, "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			switch {
 			case tt.useGitHubToken:
-				t.Helper()
 				testToken(t)
 			case tt.useServer:
-				t.Helper()
 				testServer(t)
 			default:
 				got := MakeTokenAccessor()
@@ -84,15 +85,9 @@ func testServer(t *testing.T) {
 	serverURL := strings.TrimPrefix(server.URL, "http://")
 	t.Setenv("GITHUB_AUTH_SERVER", serverURL)
 	t.Cleanup(server.Close)
-	myRPCService := &MyRPCService{}
-	rpc.Register(myRPCService) //nolint:errcheck
 	rpc.HandleHTTP()
 	got := MakeTokenAccessor()
 	if got == nil {
 		t.Errorf("MakeTokenAccessor() = nil, want not nil")
 	}
-}
-
-type MyRPCService struct {
-	// Define your RPC service methods here
 }

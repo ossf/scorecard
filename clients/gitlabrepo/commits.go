@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -26,32 +27,63 @@ import (
 )
 
 type commitsHandler struct {
-	glClient   *gitlab.Client
-	once       *sync.Once
-	errSetup   error
-	repourl    *repoURL
-	commitsRaw []*gitlab.Commit
+	glClient    *gitlab.Client
+	once        *sync.Once
+	errSetup    error
+	repourl     *repoURL
+	commitsRaw  []*gitlab.Commit
+	commitDepth int
 }
 
-func (handler *commitsHandler) init(repourl *repoURL) {
+func (handler *commitsHandler) init(repourl *repoURL, commitDepth int) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
+	handler.commitDepth = commitDepth
 }
 
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
-		commits, _, err := handler.glClient.Commits.ListCommits(
-			handler.repourl.projectID,
-			&gitlab.ListCommitsOptions{
-				RefName: &handler.repourl.commitSHA,
-			},
-		)
-		if err != nil {
-			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
-			return
+		var commits []*gitlab.Commit
+		opt := gitlab.ListOptions{
+			Page:    1,
+			PerPage: handler.commitDepth,
 		}
+
+		for {
+			c, resp, err := handler.glClient.Commits.ListCommits(handler.repourl.projectID,
+				&gitlab.ListCommitsOptions{
+					RefName:     &handler.repourl.commitSHA,
+					ListOptions: opt,
+				})
+			if err != nil {
+				handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
+				return
+			}
+
+			commits = append(commits, c...)
+
+			if len(commits) >= handler.commitDepth {
+				commits = commits[:handler.commitDepth]
+				break
+			}
+
+			// Exit the loop when we've seen all pages.
+			if resp.NextPage == 0 {
+				break
+			}
+
+			// Update the page number to get the next page.
+			opt.Page = resp.NextPage
+		}
+
 		handler.commitsRaw = commits
+		if handler.repourl.commitSHA != clients.HeadSHA {
+			//nolint:lll
+			// TODO(#3193): Fix the way graphql retrieves merge details to more closely
+			// line up with commits from listRawCommits
+			fmt.Fprintln(os.Stderr, "Scorecard may be missing merge requests when running on non-HEAD of a GitLab repo. Code-Review scores may be lower.")
+		}
 	})
 
 	return handler.errSetup

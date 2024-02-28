@@ -20,9 +20,8 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 )
 
-// nolint:paralleltest
-// because we are using t.Setenv.
-func TestGetClients(t *testing.T) { //nolint:gocognit
+//nolint:paralleltest // because we are using t.Setenv.
+func TestGetClients(t *testing.T) {
 	type args struct { //nolint:govet
 		ctx      context.Context
 		repoURI  string
@@ -68,32 +67,17 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 			wantErr:               true,
 		},
 		{
-			name: "repoURI is gitlab which is not supported",
+			name: "repoURI is gitlab which is supported",
 			args: args{
 				ctx:      context.Background(),
-				repoURI:  "https://gitlab.com/ossf/scorecard",
+				repoURI:  "https://gitlab.com/ossf-test/scorecard",
 				localURI: "",
 			},
 			shouldOSSFuzzBeNil:    false,
 			shouldRepoClientBeNil: false,
 			shouldVulnClientBeNil: false,
-			shouldRepoBeNil:       true,
-			wantErr:               true,
-		},
-		{
-			name: "repoURI is gitlab and experimental is true",
-			args: args{
-				ctx:      context.Background(),
-				repoURI:  "https://gitlab.com/ossf/scorecard",
-				localURI: "",
-			},
-			shouldOSSFuzzBeNil:    false,
 			shouldRepoBeNil:       false,
-			shouldRepoClientBeNil: false,
-			shouldVulnClientBeNil: false,
-			shouldCIIBeNil:        false,
 			wantErr:               false,
-			experimental:          true,
 		},
 		{
 			name: "repoURI is corp github host",
@@ -122,7 +106,7 @@ func TestGetClients(t *testing.T) { //nolint:gocognit
 				t.Setenv("GH_HOST", "github.corp.com")
 				t.Setenv("GH_TOKEN", "PAT")
 			}
-			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger) //nolint:lll
+			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("GetClients() error = %v, wantErr %v", err, tt.wantErr)
 			}

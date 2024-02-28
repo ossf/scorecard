@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
@@ -33,7 +33,6 @@ type stubTripper struct {
 func (s stubTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
 	f, err := os.Open(s.responsePath)
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	return &http.Response{

@@ -200,7 +200,7 @@ func GetEnabled(
 
 func checksHavePolicies(sp *ScorecardPolicy, enabledChecks checker.CheckNameToFnMap) bool {
 	for checkName := range enabledChecks {
-		_, exists := sp.Policies[checkName]
+		_, exists := sp.GetPolicies()[checkName]
 		if !exists {
 			log.Printf("check %s has no policy declared", checkName)
 			return false

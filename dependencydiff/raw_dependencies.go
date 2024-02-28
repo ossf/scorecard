@@ -19,14 +19,14 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 
 	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v4/pkg"
 )
 
 // dependency is a raw dependency fetched from the GitHub Dependency Review API.
-// Fields of a dependnecy correspondings to those of pkg.DependencyCheckResult.
+// Fields of a dependency corresponding to those of pkg.DependencyCheckResult.
 type dependency struct {
 	// Package URL is a short link for a package.
 	PackageURL *string `json:"package_url"`

@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			}
 			result := checks.Maintained(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "active repo", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "active repo", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid maintained status - GitLab", func() {
@@ -82,7 +82,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			}
 			result := checks.Maintained(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "active repo", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "active repo", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

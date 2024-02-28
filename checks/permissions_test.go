@@ -28,7 +28,6 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-// nolint
 func TestGithubTokenPermissions(t *testing.T) {
 	t.Parallel()
 
@@ -53,7 +52,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-run-no-codeql-write.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
@@ -280,8 +279,30 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:      "release workflow contents write semantic-release",
+			name:      "release workflow contents write semantic-release with npx",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-semantic-release.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:      "release workflow contents write semantic-release with yarn command",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-semantic-release-yarn.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
+			},
+		},
+		{
+			name:      "release workflow contents write semantic-release with pnpm and dlx",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-semantic-release-pnpm.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -302,11 +323,11 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
-			name:      "workflow jobs only",
+			name:      "penalize job-level read without top level permissions",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-jobs-only.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         9,
+				Score:         checker.MaxResultScore - 1,
 				NumberOfWarn:  1,
 				NumberOfInfo:  4,
 				NumberOfDebug: 4,
@@ -317,7 +338,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-run-write-codeql-comment.yaml"},
 			expected: scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 1,
+				Score:         checker.MaxResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  1,
 				NumberOfDebug: 4,
@@ -389,6 +410,19 @@ func TestGithubTokenPermissions(t *testing.T) {
 				NumberOfDebug: 5,
 			},
 		},
+		{
+			name: "don't penalize job-level writes",
+			filenames: []string{
+				"./testdata/.github/workflows/github-workflow-permissions-run-multiple-writes.yaml",
+			},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  7, // number of job-level write permissions
+				NumberOfInfo:  1, // read-only top-level permissions
+				NumberOfDebug: 4, // This is 4 + (number of actions = 0)
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -424,9 +458,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			res := TokenPermissions(&c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Errorf("test failed: log message not present: %+v\n%+v", tt.expected, dl)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

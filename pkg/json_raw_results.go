@@ -86,7 +86,7 @@ type jsonReview struct {
 type jsonUser struct {
 	RepoAssociation *string `json:"repoAssociation,omitempty"`
 	Login           string  `json:"login"`
-	// Orgnization refers to a GitHub org.
+	// Organization refers to a GitHub org.
 	Organizations []jsonOrganization `json:"organization,omitempty"`
 	// Companies refer to a claim by a user in their profile.
 	Companies        []jsonCompany `json:"company,omitempty"`
@@ -146,7 +146,7 @@ type jsonCreatedAtTime struct {
 type jsonComment struct {
 	CreatedAt *time.Time `json:"createdAt"`
 	Author    *jsonUser  `json:"author"`
-	// TODO: add ields if needed, e.g., content.
+	// TODO: add fields if needed, e.g., content.
 }
 
 type jsonIssue struct {
@@ -307,7 +307,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 		}
 
 		if t.LocationType == nil {
-			//nolint
+			//nolint:goerr113
 			return errors.New("locationType is nil")
 		}
 
@@ -331,7 +331,7 @@ func (r *jsonScorecardRawResult) addTokenPermissionsRawResults(tp *checker.Token
 				Offset: t.File.Offset,
 			}
 			if t.File.Snippet != "" {
-				p.File.Snippet = &t.File.Snippet
+				p.File.Snippet = asPointer(t.File.Snippet)
 			}
 		}
 
@@ -351,7 +351,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 			continue
 		}
 		if p.File == nil {
-			//nolint
+			//nolint:goerr113
 			return errors.New("file field is nil")
 		}
 
@@ -361,7 +361,7 @@ func (r *jsonScorecardRawResult) addPackagingRawResults(pk *checker.PackagingDat
 		}
 
 		if p.File.Snippet != "" {
-			jpk.File.Snippet = &p.File.Snippet
+			jpk.File.Snippet = asPointer(p.File.Snippet)
 		}
 
 		for _, run := range p.Runs {
@@ -419,7 +419,7 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 			Type: string(e.Type),
 		}
 		if e.File.Snippet != "" {
-			v.File.Snippet = &e.File.Snippet
+			v.File.Snippet = asPointer(e.File.Snippet)
 		}
 		if e.Job != nil {
 			v.Job = &jsonWorkflowJob{
@@ -614,7 +614,7 @@ func (r *jsonScorecardRawResult) addLicenseRawResults(ld *checker.LicenseData) e
 }
 
 //nolint:unparam
-func (r *jsonScorecardRawResult) addVulnerbilitiesRawResults(vd *checker.VulnerabilitiesData) error {
+func (r *jsonScorecardRawResult) addVulnerabilitiesRawResults(vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
 		r.Results.DatabaseVulnerabilities = append(r.Results.DatabaseVulnerabilities,
@@ -703,9 +703,9 @@ func (r *jsonScorecardRawResult) addDependencyUpdateToolRawResults(dut *checker.
 	return nil
 }
 
-//nolint:unparam
 func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.BranchProtectionsData) error {
 	branches := []jsonBranchProtection{}
+	//nolint:gocritic
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
@@ -741,7 +741,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 	}
 
 	// Vulnerabilities.
-	if err := r.addVulnerbilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
+	if err := r.addVulnerabilitiesRawResults(&raw.VulnerabilitiesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

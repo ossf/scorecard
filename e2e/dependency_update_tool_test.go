@@ -39,25 +39,23 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  3,
+				NumberOfWarn:  0,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 
 			result := checks.DependencyUpdateTool(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "dependabot", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "dependabot", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return repo uses renovatebot", func() {
@@ -68,24 +66,22 @@ var _ = Describe("E2E TEST:"+checks.CheckDependencyUpdateTool, func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
 				RepoClient: repoClient,
 				Repo:       repo,
 				Dlogger:    &dl,
-				RawResults: &raw,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
-				NumberOfWarn:  3,
+				NumberOfWarn:  0,
 				NumberOfInfo:  1,
 				NumberOfDebug: 0,
 			}
 			result := checks.DependencyUpdateTool(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "renovatebot", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "renovatebot", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

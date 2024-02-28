@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.CITests(&req)
-			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "CI tests run", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return use of CI tests at commit", func() {
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.CITests(&req)
-			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "CI tests run", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return absence of CI tests in a repo with unsquashed merges", func() {
@@ -99,7 +99,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 				NumberOfDebug: 12,
 			}
 			result := checks.CITests(&req)
-			Expect(scut.ValidateTestReturn(nil, "CI tests run", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "CI tests run", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return use of CI tests at commit - GitLab", func() {
@@ -121,13 +121,13 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         8,
+				Score:         6,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 13,
+				NumberOfDebug: 22,
 			}
 			result := checks.CITests(&req)
-			Expect(result.Score).Should(BeNumerically("==", expected.Score))
+			scut.ValidateTestReturn(GinkgoTB(), "CI tests at commit - GitLab", &expected, &result, &dl)
 			Expect(result.Error).Should(BeNil())
 			Expect(repoClient.Close()).Should(BeNil())
 		})

@@ -23,7 +23,7 @@ fake-gcs-server -scheme http -public-host 0.0.0.0:4443 \
 ```
 
 ## pubsub emulator:
-Google Cloud has a [pubsub emulator](https://cloud.google.com/pubsub/docs/emulator) with complete install ininstructions.
+Google Cloud has a [pubsub emulator](https://cloud.google.com/pubsub/docs/emulator) with complete install instructions.
 I've summarized some of them below.
 
 
@@ -41,7 +41,7 @@ cd python-pubsub/samples/snippet
 pip install -r requirements.txt
 ```
 
-### Running the pubsub emulator (needed to do everytime)
+### Running the pubsub emulator (needed to do every time)
 
 In a second window from any directory, run the emulator itself:
 

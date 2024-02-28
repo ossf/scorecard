@@ -13,7 +13,7 @@ Note: `relaxed` is a more  tolerant, predefined config which ignores things like
 
 Follow instructions
 [here](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl)
-to configure `kubectl` and set the deafult cluster.
+to configure `kubectl` and set the default cluster.
 
 The cluster name is `openssf` which is in zone `us-central1-c`.
 

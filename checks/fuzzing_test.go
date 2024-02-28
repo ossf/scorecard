@@ -30,17 +30,15 @@ import (
 // TestFuzzing is a test function for Fuzzing.
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name        string
-		want        checker.CheckResult
+		fileContent string
 		langs       []clients.Language
+		fileName    []string
 		response    clients.SearchResponse
+		expected    scut.TestReturn
 		wantErr     bool
 		wantFuzzErr bool
-		fileName    []string
-		fileContent string
-		expected    scut.TestReturn
 	}{
 		{
 			name:     "empty response",
@@ -52,6 +50,13 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: false,
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  12,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 		{
 			name: "hits 1",
@@ -69,11 +74,10 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: false,
-			want:    checker.CheckResult{Score: 10},
 			expected: scut.TestReturn{
 				NumberOfWarn:  0,
 				NumberOfDebug: 0,
-				NumberOfInfo:  0,
+				NumberOfInfo:  1,
 				Score:         10,
 			},
 		},
@@ -86,7 +90,6 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			want:    checker.CheckResult{Score: -1},
 			expected: scut.TestReturn{
 				Error:         sce.ErrScorecardInternal,
 				NumberOfWarn:  0,
@@ -104,12 +107,24 @@ func TestFuzzing(t *testing.T) {
 				},
 			},
 			wantFuzzErr: false,
-			want:        checker.CheckResult{Score: 0},
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  12,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 		{
 			name:        "error",
 			wantFuzzErr: true,
-			want:        checker.CheckResult{},
+			expected: scut.TestReturn{
+				Error:         nil,
+				NumberOfWarn:  12,
+				NumberOfDebug: 0,
+				NumberOfInfo:  0,
+				Score:         0,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -123,7 +138,6 @@ func TestFuzzing(t *testing.T) {
 			mockFuzz.EXPECT().Search(gomock.Any()).
 				DoAndReturn(func(q clients.SearchRequest) (clients.SearchResponse, error) {
 					if tt.wantErr {
-						//nolint
 						return clients.SearchResponse{}, errors.New("error")
 					}
 					return tt.response, nil
@@ -132,17 +146,19 @@ func TestFuzzing(t *testing.T) {
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
 			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
 				if tt.wantErr {
-					//nolint
 					return "", errors.New("error")
 				}
 				return tt.fileContent, nil
 			}).AnyTimes()
 			dl := scut.TestDetailLogger{}
+			raw := checker.RawResults{}
 			req := checker.CheckRequest{
 				RepoClient:  mockFuzz,
 				OssFuzzRepo: mockFuzz,
 				Dlogger:     &dl,
+				RawResults:  &raw,
 			}
+
 			if tt.wantFuzzErr {
 				req.OssFuzzRepo = nil
 			}
@@ -153,9 +169,7 @@ func TestFuzzing(t *testing.T) {
 				return
 			}
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl) {
-				t.Fatalf(tt.name, tt.expected)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl)
 		})
 	}
 }

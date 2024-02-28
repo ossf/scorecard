@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -65,7 +66,7 @@ func jsonMockDocRead() *mockDoc {
 	return &m
 }
 
-// nolint
+//nolint:gocognit
 func TestJSONOutput(t *testing.T) {
 	t.Parallel()
 
@@ -73,14 +74,15 @@ func TestJSONOutput(t *testing.T) {
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
 	scorecardVersion := "1.2.3"
 	repoName := "org/name"
-	date, e := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
-	t.Logf("date: %v", date)
-	if e != nil {
-		panic(fmt.Errorf("time.Parse: %w", e))
+	date, err := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
+	if err != nil {
+		t.Fatalf("time.Parse: %v", err)
 	}
+	t.Logf("date: %v", date)
 
 	checkDocs := jsonMockDocRead()
 
+	//nolint:govet
 	tests := []struct {
 		name        string
 		expected    string
@@ -486,6 +488,46 @@ func TestJSONOutput(t *testing.T) {
 					s += fmt.Sprintf("- %s\n", desc)
 				}
 				t.Fatalf("%s: invalid format: %s", tt.name, s)
+			}
+		})
+	}
+}
+
+func TestExperimentalFromJSON2_time(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name    string
+		result  string
+		want    time.Time
+		wantErr bool
+	}{
+		{
+			name:   "main RFC3339 format",
+			result: `{"date":"2006-01-02T15:04:05+00:00","repo":{"name":"github.com/foo/bar","commit":"HEAD"},"score":-1.0,"metadata":null}`,
+			want:   time.Date(2006, time.January, 2, 15, 4, 5, 0, time.UTC),
+		},
+		{
+			name:   "backup 2006-01-02 format",
+			result: `{"date":"2023-09-26","repo":{"name":"github.com/foo/bar","commit":"HEAD"},"score":-1.0,"metadata":null}`,
+			want:   time.Date(2023, time.September, 26, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:    "not RFC3339 or 2006-01-02 format",
+			result:  `{"date":"January 1, 2023","repo":{"name":"github.com/foo/bar","commit":"HEAD"},"score":-1.0,"metadata":null}`,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, _, err := ExperimentalFromJSON2(strings.NewReader(tt.result))
+			if tt.wantErr != (err != nil) {
+				t.Fatalf("got: %v, wantedErr: %v", err, tt.wantErr)
+			}
+			if !got.Date.Equal(tt.want) {
+				t.Errorf("got: %v, wanted: %v", got.Date, tt.want)
 			}
 		})
 	}

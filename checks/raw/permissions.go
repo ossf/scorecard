@@ -93,7 +93,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	}
 
 	// 1. Top-level permission definitions.
-	//nolint
+	//nolint:lll
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#example-1-passing-the-github_token-as-an-input,
 	// https://github.blog/changelog/2021-04-20-github-actions-control-permissions-for-github_token/,
 	// https://docs.github.com/en/actions/reference/authentication-in-a-workflow#modifying-the-permissions-for-the-github_token.
@@ -352,21 +352,20 @@ func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
 
 // Scanning tool run externally and SARIF file uploaded.
 func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
-	// TODO: some third party tools may upload directly thru their actions.
+	// TODO: some third party tools may upload directly through their actions.
 	// Very unlikely.
 	// See https://github.com/marketplace for tools.
 	return isAllowedWorkflow(workflow, fp, pdata)
 }
 
 func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+	//nolint:lll
 	allowlist := map[string]bool{
-		//nolint
 		// CodeQl analysis workflow automatically sends sarif file to GitHub.
 		// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#about-sarif-file-uploads-for-code-scanning.
 		// `The CodeQL action uploads the SARIF file automatically when it completes analysis`.
 		"github/codeql-action/analyze": true,
 
-		//nolint
 		// Third-party scanning tools use the SARIF-upload action from code-ql.
 		// https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/uploading-a-sarif-file-to-github#uploading-a-code-scanning-analysis-with-github-actions
 		// We only support CodeQl today.
@@ -473,7 +472,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 			// Commonly JavaScript packages, but supports multiple ecosystems
 			Steps: []*fileparser.JobMatcherStep{
 				{
-					Run: "npx.*semantic-release",
+					Run: "(npx|pnpm|yarn).*semantic-release",
 				},
 			},
 			LogText: "candidate publishing workflow using semantic-release",

@@ -59,12 +59,15 @@ const (
 )
 
 var (
+	// some of these errors didn't follow naming conventions when they were introduced.
+	// for backward compatibility reasons, they can't be changed and have nolint directives.
+
 	// ErrorEmptyConfigValue indicates the value for the configuration option was empty.
-	ErrorEmptyConfigValue = errors.New("config value set to empty")
+	ErrorEmptyConfigValue = errors.New("config value set to empty") //nolint:errname
 	// ErrorValueConversion indicates an unexpected type was found for the value of the config option.
-	ErrorValueConversion = errors.New("unexpected type, cannot convert value")
+	ErrorValueConversion = errors.New("unexpected type, cannot convert value") //nolint:errname
 	// ErrorNoConfig indicates no config file was provided, or flag.Parse() was not called.
-	ErrorNoConfig = errors.New("no configuration file provided with --" + configFlag)
+	ErrorNoConfig = errors.New("no configuration file provided with --" + configFlag) //nolint:errname
 	//go:embed config.yaml
 	configYAML     []byte
 	configFilename = flag.String(configFlag, configDefault, configUsage)
@@ -151,7 +154,7 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 
 	switch value.Kind() {
 	case reflect.String:
-		//nolint: wrapcheck, gomnd
+		//nolint:wrapcheck,gomnd
 		return strconv.ParseFloat(value.String(), 64)
 	case reflect.Float32, reflect.Float64:
 		return value.Float(), nil
@@ -236,7 +239,7 @@ func GetRequestTopicURL() (string, error) {
 	return getStringConfigValue(requestTopicURL, configYAML, "RequestTopicURL", "request-topic-url")
 }
 
-// GetRequestSubscriptionURL returns the subscription name of the PubSub topic for cron job reuests.
+// GetRequestSubscriptionURL returns the subscription name of the PubSub topic for cron job requests.
 func GetRequestSubscriptionURL() (string, error) {
 	return getStringConfigValue(requestSubscriptionURL, configYAML, "RequestSubscriptionURL", "request-subscription-url")
 }

@@ -1,0 +1,59 @@
+
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Add tab
+    FROM python:3.7
+
+RUN <<-EOT
+	pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+EOT
+
+RUN <<EOT
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+EOT
+
+RUN <<"EOT"
+	curl bla | bash
+EOT
+
+RUN <<EOT1 bash
+	pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+EOT1
+
+RUN <<EOT1 <<EOT2
+	pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+EOT1
+	curl bla | bash
+EOT2
+
+RUN <<EOT1 <<EOT2
+	pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+	pip install --no-deps -e git+https://github.com/username/repo.git@v1.0#egg=package
+EOT1
+	curl bla | bash
+EOT2
+
+RUN <<EOT
+#!/bin/sh
+pip install --no-deps -e git+https://github.com/username/repo.git@0123456789abcdef0123456789abcdef01234567
+curl bla | bash
+EOT
+
+# Here-documents can specify interpreters with shebang headers. This shouldn't cause a fatal error.
+# Example from https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/reference.md
+RUN <<EOT
+#!/usr/bin/env python
+print("hello world")
+EOT

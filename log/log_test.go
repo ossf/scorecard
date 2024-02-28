@@ -55,6 +55,7 @@ func TestNewLogger(t *testing.T) {
 }
 
 func TestParseLevel(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		levelStr      string

@@ -25,7 +25,7 @@ import (
 const (
 	minReviews = 2
 	// Points incremented at each level.
-	adminNonAdminBasicLevel     = 3 // Level 1.
+	basicLevel                  = 3 // Level 1.
 	adminNonAdminReviewLevel    = 3 // Level 2.
 	nonAdminContextLevel        = 2 // Level 3.
 	nonAdminThoroughReviewLevel = 1 // Level 4.
@@ -35,7 +35,6 @@ const (
 
 type scoresInfo struct {
 	basic               int
-	adminBasic          int
 	review              int
 	adminReview         int
 	context             int
@@ -50,6 +49,16 @@ type levelScore struct {
 	maxes  scoresInfo // Maximum possible score for a branch.
 }
 
+type tier uint8
+
+const (
+	Tier1 tier = iota
+	Tier2
+	Tier3
+	Tier4
+	Tier5
+)
+
 // BranchProtection runs Branch-Protection check.
 func BranchProtection(name string, dl checker.DetailLogger,
 	r *checker.BranchProtectionsData,
@@ -61,7 +70,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		var score levelScore
 		b := r.Branches[i]
 
-		// Protected field only indates that the branch matches
+		// Protected field only indicates that the branch matches
 		// one `Branch protection rules`. All settings may be disabled,
 		// so it does not provide any guarantees.
 		protected := !(b.Protected != nil && !*b.Protected)
@@ -71,7 +80,6 @@ func BranchProtection(name string, dl checker.DetailLogger,
 			})
 		}
 		score.scores.basic, score.maxes.basic = basicNonAdminProtection(&b, dl)
-		score.scores.adminBasic, score.maxes.adminBasic = basicAdminProtection(&b, dl)
 		score.scores.review, score.maxes.review = nonAdminReviewProtection(&b)
 		score.scores.adminReview, score.maxes.adminReview = adminReviewProtection(&b, dl)
 		score.scores.context, score.maxes.context = nonAdminContextProtection(&b, dl)
@@ -87,7 +95,7 @@ func BranchProtection(name string, dl checker.DetailLogger,
 		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
 	}
 
-	score, err := computeScore(scores)
+	score, err := computeFinalScore(scores)
 	if err != nil {
 		return checker.CreateRuntimeErrorResult(name, err)
 	}
@@ -105,86 +113,34 @@ func BranchProtection(name string, dl checker.DetailLogger,
 	}
 }
 
-func computeNonAdminBasicScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.basic
+func sumUpScoreForTier(t tier, scoresData []levelScore) int {
+	sum := 0
+	for i := range scoresData {
+		score := scoresData[i]
+		switch t {
+		case Tier1:
+			sum += score.scores.basic
+		case Tier2:
+			sum += score.scores.review + score.scores.adminReview
+		case Tier3:
+			sum += score.scores.context
+		case Tier4:
+			sum += score.scores.thoroughReview + score.scores.codeownerReview
+		case Tier5:
+			sum += score.scores.adminThoroughReview
+		}
 	}
-	return score
+	return sum
 }
 
-func computeAdminBasicScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.adminBasic
-	}
-	return score
-}
-
-func computeNonAdminReviewScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.review
-	}
-	return score
-}
-
-func computeAdminReviewScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.adminReview
-	}
-	return score
-}
-
-func computeNonAdminThoroughReviewScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.thoroughReview
-	}
-	return score
-}
-
-func computeAdminThoroughReviewScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.adminThoroughReview
-	}
-	return score
-}
-
-func computeNonAdminContextScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.context
-	}
-	return score
-}
-
-func computeCodeownerThoroughReviewScore(scores []levelScore) int {
-	score := 0
-	for i := range scores {
-		s := scores[i]
-		score += s.scores.codeownerReview
-	}
-	return score
-}
-
-func noarmalizeScore(score, max, level int) float64 {
+func normalizeScore(score, max, level int) float64 {
 	if max == 0 {
 		return float64(level)
 	}
 	return float64(score*level) / float64(max)
 }
 
-func computeScore(scores []levelScore) (int, error) {
+func computeFinalScore(scores []levelScore) (int, error) {
 	if len(scores) == 0 {
 		return 0, sce.WithMessage(sce.ErrScorecardInternal, "scores are empty")
 	}
@@ -194,31 +150,26 @@ func computeScore(scores []levelScore) (int, error) {
 
 	// First, check if they all pass the basic (admin and non-admin) checks.
 	maxBasicScore := maxScore.basic * len(scores)
-	maxAdminBasicScore := maxScore.adminBasic * len(scores)
-	basicScore := computeNonAdminBasicScore(scores)
-	adminBasicScore := computeAdminBasicScore(scores)
-	score += noarmalizeScore(basicScore+adminBasicScore, maxBasicScore+maxAdminBasicScore, adminNonAdminBasicLevel)
-	if basicScore != maxBasicScore ||
-		adminBasicScore != maxAdminBasicScore {
+	basicScore := sumUpScoreForTier(Tier1, scores)
+	score += normalizeScore(basicScore, maxBasicScore, basicLevel)
+	if basicScore < maxBasicScore {
 		return int(score), nil
 	}
 
 	// Second, check the (admin and non-admin) reviews.
 	maxReviewScore := maxScore.review * len(scores)
 	maxAdminReviewScore := maxScore.adminReview * len(scores)
-	reviewScore := computeNonAdminReviewScore(scores)
-	adminReviewScore := computeAdminReviewScore(scores)
-	score += noarmalizeScore(reviewScore+adminReviewScore, maxReviewScore+maxAdminReviewScore, adminNonAdminReviewLevel)
-	if reviewScore != maxReviewScore ||
-		adminReviewScore != maxAdminReviewScore {
+	adminNonAdminReviewScore := sumUpScoreForTier(Tier2, scores)
+	score += normalizeScore(adminNonAdminReviewScore, maxReviewScore+maxAdminReviewScore, adminNonAdminReviewLevel)
+	if adminNonAdminReviewScore < maxReviewScore+maxAdminReviewScore {
 		return int(score), nil
 	}
 
 	// Third, check the use of non-admin context.
 	maxContextScore := maxScore.context * len(scores)
-	contextScore := computeNonAdminContextScore(scores)
-	score += noarmalizeScore(contextScore, maxContextScore, nonAdminContextLevel)
-	if contextScore != maxContextScore {
+	contextScore := sumUpScoreForTier(Tier3, scores)
+	score += normalizeScore(contextScore, maxContextScore, nonAdminContextLevel)
+	if contextScore < maxContextScore {
 		return int(score), nil
 	}
 
@@ -226,11 +177,9 @@ func computeScore(scores []levelScore) (int, error) {
 	// Also check whether this repo requires codeowner review
 	maxThoroughReviewScore := maxScore.thoroughReview * len(scores)
 	maxCodeownerReviewScore := maxScore.codeownerReview * len(scores)
-	thoroughReviewScore := computeNonAdminThoroughReviewScore(scores)
-	codeownerReviewScore := computeCodeownerThoroughReviewScore(scores)
-	score += noarmalizeScore(thoroughReviewScore+codeownerReviewScore, maxThoroughReviewScore+maxCodeownerReviewScore,
-		nonAdminThoroughReviewLevel)
-	if thoroughReviewScore != maxThoroughReviewScore {
+	tier4Score := sumUpScoreForTier(Tier4, scores)
+	score += normalizeScore(tier4Score, maxThoroughReviewScore+maxCodeownerReviewScore, nonAdminThoroughReviewLevel)
+	if tier4Score < maxThoroughReviewScore+maxCodeownerReviewScore {
 		return int(score), nil
 	}
 
@@ -238,8 +187,8 @@ func computeScore(scores []levelScore) (int, error) {
 	// This one is controversial and has usability issues
 	// https://github.com/ossf/scorecard/issues/1027, so we may remove it.
 	maxAdminThoroughReviewScore := maxScore.adminThoroughReview * len(scores)
-	adminThoroughReviewScore := computeAdminThoroughReviewScore(scores)
-	score += noarmalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
+	adminThoroughReviewScore := sumUpScoreForTier(Tier5, scores)
+	score += normalizeScore(adminThoroughReviewScore, maxAdminThoroughReviewScore, adminThoroughReviewLevel)
 	if adminThoroughReviewScore != maxAdminThoroughReviewScore {
 		return int(score), nil
 	}
@@ -308,30 +257,6 @@ func basicNonAdminProtection(branch *clients.BranchRef, dl checker.DetailLogger)
 	return score, max
 }
 
-func basicAdminProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
-	score := 0
-	max := 0
-	// Only log information if the branch is protected.
-	log := branch.Protected != nil && *branch.Protected
-
-	// nil typically means we do not have access to the value.
-	if branch.BranchProtectionRule.EnforceAdmins != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
-		max++
-		switch *branch.BranchProtectionRule.EnforceAdmins {
-		case true:
-			info(dl, log, "settings apply to administrators on branch '%s'", *branch.Name)
-			score++
-		case false:
-			warn(dl, log, "settings do not apply to administrators on branch '%s'", *branch.Name)
-		}
-	} else {
-		debug(dl, log, "unable to retrieve whether or not settings apply to administrators on branch '%s'", *branch.Name)
-	}
-
-	return score, max
-}
-
 func nonAdminContextProtection(branch *clients.BranchRef, dl checker.DetailLogger) (int, int) {
 	score := 0
 	max := 0
@@ -357,11 +282,12 @@ func nonAdminReviewProtection(branch *clients.BranchRef) (int, int) {
 	score := 0
 	max := 0
 
-	max++
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil &&
-		*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount > 0 {
+	// Having at least 1 reviewer is twice as important as the other Tier 2 requirements.
+	const reviewerWeight = 2
+	max += reviewerWeight
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount) > 0 {
 		// We do not display anything here, it's done in nonAdminThoroughReviewProtection()
-		score++
+		score += reviewerWeight
 	}
 	return score, max
 }
@@ -400,6 +326,16 @@ func adminReviewProtection(branch *clients.BranchRef, dl checker.DetailLogger) (
 		}
 	}
 
+	max++
+	if valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.Required) {
+		score++
+		info(dl, log, "PRs are required in order to make changes on branch '%s'", *branch.Name)
+	} else {
+		warn(dl, log, "PRs are not required to make changes on branch '%s'; or we don't have data to detect it."+
+			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo "+
+			"Rules (that are always public) instead of Branch Protection settings", *branch.Name)
+	}
+
 	return score, max
 }
 
@@ -410,7 +346,7 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	log := branch.Protected != nil && *branch.Protected
 
 	if branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews != nil {
-		// Note: we don't inrecase max possible score for non-admin viewers.
+		// Note: we don't increase max possible score for non-admin viewers.
 		max++
 		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews {
 		case true:
@@ -422,6 +358,22 @@ func adminThoroughReviewProtection(branch *clients.BranchRef, dl checker.DetailL
 	} else {
 		debug(dl, log, "unable to retrieve review dismissal on branch '%s'", *branch.Name)
 	}
+
+	// nil typically means we do not have access to the value.
+	if branch.BranchProtectionRule.EnforceAdmins != nil {
+		// Note: we don't increase max possible score for non-admin viewers.
+		max++
+		switch *branch.BranchProtectionRule.EnforceAdmins {
+		case true:
+			info(dl, log, "settings apply to administrators on branch '%s'", *branch.Name)
+			score++
+		case false:
+			warn(dl, log, "settings do not apply to administrators on branch '%s'", *branch.Name)
+		}
+	} else {
+		debug(dl, log, "unable to retrieve whether or not settings apply to administrators on branch '%s'", *branch.Name)
+	}
+
 	return score, max
 }
 
@@ -433,19 +385,16 @@ func nonAdminThoroughReviewProtection(branch *clients.BranchRef, dl checker.Deta
 	log := branch.Protected != nil && *branch.Protected
 
 	max++
-	if branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount != nil {
-		switch *branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount >= minReviews {
-		case true:
-			info(dl, log, "number of required reviewers is %d on branch '%s'",
-				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name)
-			score++
-		default:
-			warn(dl, log, "number of required reviewers is only %d on branch '%s'",
-				*branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount, *branch.Name)
-		}
+
+	reviewers := valueOrZero(branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount)
+	if reviewers >= minReviews {
+		info(dl, log, "number of required reviewers is %d on branch '%s'", reviewers, *branch.Name)
+		score++
 	} else {
-		warn(dl, log, "number of required reviewers is 0 on branch '%s'", *branch.Name)
+		warn(dl, log, "number of required reviewers is %d on branch '%s', while the ideal suggested is %d",
+			reviewers, *branch.Name, minReviews)
 	}
+
 	return score, max
 }
 
@@ -472,4 +421,13 @@ func codeownerBranchProtection(
 	}
 
 	return score, max
+}
+
+// returns the pointer's value if it exists, the type's zero-value otherwise.
+func valueOrZero[T any](ptr *T) T {
+	if ptr == nil {
+		var zero T
+		return zero
+	}
+	return *ptr
 }

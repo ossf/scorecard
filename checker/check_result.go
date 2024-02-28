@@ -16,9 +16,11 @@
 package checker
 
 import (
+	"errors"
 	"fmt"
 	"math"
 
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
 )
@@ -49,6 +51,10 @@ const (
 	// DetailDebug is debug log.
 	DetailDebug
 )
+
+// errSuccessTotal indicates a runtime error because number of success cases should
+// be smaller than the total cases to create a proportional score.
+var errSuccessTotal = errors.New("unexpected number of success is higher than total")
 
 // CheckResult captures result from a check run.
 //
@@ -88,13 +94,55 @@ type LogMessage struct {
 	Remediation *rule.Remediation // Remediation information, if any.
 }
 
+// ProportionalScoreWeighted is a structure that contains
+// the fields to calculate weighted proportional scores.
+type ProportionalScoreWeighted struct {
+	Success int
+	Total   int
+	Weight  int
+}
+
 // CreateProportionalScore creates a proportional score.
 func CreateProportionalScore(success, total int) int {
 	if total == 0 {
 		return 0
 	}
 
-	return int(math.Min(float64(MaxResultScore*success/total), float64(MaxResultScore)))
+	return min(MaxResultScore*success/total, MaxResultScore)
+}
+
+// CreateProportionalScoreWeighted creates the proportional score
+// between multiple successes over the total, but some proportions
+// are worth more.
+func CreateProportionalScoreWeighted(scores ...ProportionalScoreWeighted) (int, error) {
+	var ws, wt int
+	allWeightsZero := true
+	noScoreGroups := true
+	for _, score := range scores {
+		if score.Success > score.Total {
+			return InconclusiveResultScore, fmt.Errorf("%w: %d, %d", errSuccessTotal, score.Success, score.Total)
+		}
+		if score.Total == 0 {
+			continue // Group with 0 total, does not count for score
+		}
+		noScoreGroups = false
+		if score.Weight != 0 {
+			allWeightsZero = false
+		}
+		// Group with zero weight, adds nothing to the score
+
+		ws += score.Success * score.Weight
+		wt += score.Total * score.Weight
+	}
+	if noScoreGroups {
+		return InconclusiveResultScore, nil
+	}
+	// If has score groups but no groups matter to the score, result in max score
+	if allWeightsZero {
+		return MaxResultScore, nil
+	}
+
+	return min(MaxResultScore*ws/wt, MaxResultScore), nil
 }
 
 // AggregateScores adds up all scores
@@ -128,8 +176,15 @@ func NormalizeReason(reason string, score int) string {
 
 // CreateResultWithScore is used when
 // the check runs without runtime errors, and we want to assign a
-// specific score.
+// specific score. The score must be between [MinResultScore] and [MaxResultScore].
+// Callers who want [InconclusiveResultScore] must use [CreateInconclusiveResult] instead.
+//
+// Passing an invalid score results in a runtime error result as if created by [CreateRuntimeErrorResult].
 func CreateResultWithScore(name, reason string, score int) CheckResult {
+	if score < MinResultScore || score > MaxResultScore {
+		err := sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("invalid score (%d), please report this", score))
+		return CreateRuntimeErrorResult(name, err)
+	}
 	return CheckResult{
 		Name:    name,
 		Version: 2,
@@ -146,15 +201,8 @@ func CreateResultWithScore(name, reason string, score int) CheckResult {
 // the number of tests that succeeded.
 func CreateProportionalScoreResult(name, reason string, b, t int) CheckResult {
 	score := CreateProportionalScore(b, t)
-	return CheckResult{
-		Name: name,
-		// Old structure.
-		// New structure.
-		Version: 2,
-		Error:   nil,
-		Score:   score,
-		Reason:  NormalizeReason(reason, score),
-	}
+	reason = NormalizeReason(reason, score)
+	return CreateResultWithScore(name, reason, score)
 }
 
 // CreateMaxScoreResult is used when
@@ -190,12 +238,12 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 		Version: 2,
 		Error:   e,
 		Score:   InconclusiveResultScore,
-		Reason:  e.Error(), // Note: message already accessible by caller thru `Error`.
+		Reason:  e.Error(), // Note: message already accessible by caller through `Error`.
 	}
 }
 
 // LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, dl DetailLogger) error {
+func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
@@ -213,6 +261,4 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) error {
 			})
 		}
 	}
-
-	return nil
 }

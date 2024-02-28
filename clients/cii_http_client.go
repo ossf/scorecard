@@ -38,7 +38,7 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 	for i := 0; i < int(transport.numRetries); i++ {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil || resp.StatusCode != http.StatusTooManyRequests {
-			//nolint: wrapcheck
+			//nolint:wrapcheck
 			return resp, err
 		}
 		time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
@@ -49,8 +49,8 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 // GetBadgeLevel implements CIIBestPracticesClient.GetBadgeLevel.
 func (client *httpClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error) {
 	repoURI := fmt.Sprintf("https://%s", uri)
-	url := fmt.Sprintf("https://bestpractices.coreinfrastructure.org/projects.json?url=%s", repoURI)
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	url := fmt.Sprintf("https://www.bestpractices.dev/projects.json?url=%s", repoURI)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return Unknown, fmt.Errorf("error during http.NewRequestWithContext: %w", err)
 	}

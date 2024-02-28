@@ -144,7 +144,7 @@ func addCodeReviewRawResults(r *jsonScorecardRawResult, cr *checker.CodeReviewDa
 }
 
 //nolint:unparam
-func addVulnerbilitiesRawResults(r *jsonScorecardRawResult, vd *checker.VulnerabilitiesData) error {
+func addVulnerabilitiesRawResults(r *jsonScorecardRawResult, vd *checker.VulnerabilitiesData) error {
 	r.Results.DatabaseVulnerabilities = []jsonDatabaseVulnerability{}
 	for _, v := range vd.Vulnerabilities {
 		r.Results.DatabaseVulnerabilities = append(r.Results.DatabaseVulnerabilities,
@@ -201,9 +201,9 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 	return nil
 }
 
-//nolint:unparam
 func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.BranchProtectionsData) error {
 	r.Results.BranchProtections = []jsonBranchProtection{}
+	//nolint:gocritic
 	for _, v := range bp.Branches {
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
@@ -229,8 +229,8 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 }
 
 func fillJSONRawResults(r *jsonScorecardRawResult, raw *checker.RawResults) error {
-	// Vulnerabiliries.
-	if err := addVulnerbilitiesRawResults(r, &raw.VulnerabilitiesResults); err != nil {
+	// Vulnerabilities.
+	if err := addVulnerabilitiesRawResults(r, &raw.VulnerabilitiesResults); err != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 

@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -29,7 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/cron/data"
 )
 
-const ciiBaseURL = "https://bestpractices.coreinfrastructure.org/projects.json"
+const ciiBaseURL = "https://www.bestpractices.dev/projects.json"
 
 type ciiPageResp struct {
 	RepoURL    string `json:"repo_url"`
@@ -46,7 +47,7 @@ func writeToCIIDataBucket(ctx context.Context, pageResp []ciiPageResp, bucketURL
 		if err != nil {
 			return fmt.Errorf("error during AsJSON: %w", err)
 		}
-		fmt.Printf("Writing result for: %s\n", projectURL)
+		log.Printf("Writing result for: %s\n", projectURL)
 		if err := data.WriteToBlobStore(ctx, bucketURL,
 			fmt.Sprintf("%s/result.json", projectURL), jsonData); err != nil {
 			return fmt.Errorf("error during data.WriteToBlobStore: %w", err)
@@ -82,7 +83,7 @@ func getPage(ctx context.Context, pageNum int) ([]ciiPageResp, error) {
 
 func main() {
 	ctx := context.Background()
-	fmt.Println("Starting...")
+	log.Println("Starting...")
 
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {
@@ -107,5 +108,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Job completed")
+	log.Println("Job completed")
 }

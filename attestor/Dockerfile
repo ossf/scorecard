@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang@sha256:ea3d912d500b1ae0a691b2e53eb8a6345b579d42d7e6a64acca83d274b949740 AS base
+FROM golang:1.21.6@sha256:76aadd914a29a2ee7a6b0f3389bb2fdb87727291d688e1d972abe6c0fa6f2ee0 AS base
 WORKDIR /src/scorecard
 COPY . ./
 
@@ -21,7 +21,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN make build-attestor
 
-FROM gcr.io/google-appengine/debian11@sha256:fed7dd5b2c4bbfb70bd26a277cdaff98dced71f113632ccd5451dcc013fce0a4
+FROM gcr.io/google-appengine/debian11@sha256:97dc4fbf18419ef928bcddb865ccf0536d4cc39ae3ace5a2b4273c11aedbea82
 COPY --from=build /src/scorecard/attestor /
 ENTRYPOINT [ "/scorecard-attestor" ]
 

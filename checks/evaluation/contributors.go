@@ -16,60 +16,67 @@ package evaluation
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 )
 
 const (
-	minContributionsPerUser    = 5
 	numberCompaniesForTopScore = 3
 )
 
 // Contributors applies the score policy for the Contributors check.
-func Contributors(name string, dl checker.DetailLogger,
-	r *checker.ContributorsData,
+func Contributors(name string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		contributorsFromOrgOrCompany.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	entities := make(map[string]bool)
+	numberOfPositives := getNumberOfPositives(findings)
+	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfPositives)
 
-	for _, user := range r.Users {
-		if user.NumContributions < minContributionsPerUser {
-			continue
-		}
-
-		for _, org := range user.Organizations {
-			entities[org.Login] = true
-		}
-
-		for _, comp := range user.Companies {
-			entities[comp] = true
-		}
+	if numberOfPositives > 0 {
+		logFindings(findings, dl)
+	}
+	if numberOfPositives > numberCompaniesForTopScore {
+		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	names := []string{}
-	for c := range entities {
-		names = append(names, c)
+	return checker.CreateProportionalScoreResult(name, reason, numberOfPositives, numberCompaniesForTopScore)
+}
+
+func getNumberOfPositives(findings []finding.Finding) int {
+	var numberOfPositives int
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			if f.Probe == contributorsFromOrgOrCompany.Probe {
+				numberOfPositives++
+			}
+		}
 	}
+	return numberOfPositives
+}
 
-	sort.Strings(names)
-
-	if len(names) > 0 {
-		dl.Info(&checker.LogMessage{
-			Text: fmt.Sprintf("contributors work for %v", strings.Join(names, ",")),
-		})
-	} else {
-		dl.Warn(&checker.LogMessage{
-			Text: "no contributors have an org or company",
-		})
+func logFindings(findings []finding.Finding, dl checker.DetailLogger) {
+	var sb strings.Builder
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomePositive {
+			sb.WriteString(fmt.Sprintf("%s, ", f.Message))
+		}
 	}
-
-	reason := fmt.Sprintf("%d different organizations found", len(entities))
-	return checker.CreateProportionalScoreResult(name, reason, len(entities), numberCompaniesForTopScore)
+	dl.Info(&checker.LogMessage{
+		Text: sb.String(),
+	})
 }

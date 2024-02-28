@@ -18,30 +18,31 @@ package options
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v4/log"
 )
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo       string
-	Local      string
-	Commit     string
-	LogLevel   string
-	Format     string
-	NPM        string
-	PyPI       string
-	RubyGems   string
-	Nuget      string
-	PolicyFile string
-	// TODO(action): Add logic for writing results to file
+	Repo        string
+	Local       string
+	Commit      string
+	LogLevel    string
+	Format      string
+	NPM         string
+	PyPI        string
+	RubyGems    string
+	Nuget       string
+	PolicyFile  string
 	ResultsFile string
 	ChecksToRun []string
+	ProbesToRun []string
 	Metadata    []string
 	CommitDepth int
 	ShowDetails bool
@@ -55,7 +56,7 @@ type Options struct {
 func New() *Options {
 	opts := &Options{}
 	if err := env.Parse(opts); err != nil {
-		fmt.Printf("could not parse env vars, using default options: %v", err)
+		log.Printf("could not parse env vars, using default options: %v", err)
 	}
 	// Defaulting.
 	// TODO(options): Consider moving this to a separate function/method.
@@ -106,7 +107,7 @@ const (
 
 var (
 	// DefaultLogLevel retrieves the default log level.
-	DefaultLogLevel = log.DefaultLevel.String()
+	DefaultLogLevel = sclog.DefaultLevel.String()
 
 	errCommitIsEmpty                   = errors.New("commit should be non-empty")
 	errFormatNotSupported              = errors.New("unsupported format")
@@ -238,6 +239,10 @@ func (o *Options) Checks() []string {
 		return l
 	}
 	return o.ChecksToRun
+}
+
+func (o *Options) Probes() []string {
+	return o.ProbesToRun
 }
 
 // isExperimentalEnabled returns true if experimental features were enabled via

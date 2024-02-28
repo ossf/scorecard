@@ -17,7 +17,6 @@ package policy
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -171,7 +170,7 @@ func TestCheckPreventBinaryArtifacts(t *testing.T) {
 func TestCheckCodeReviewed(t *testing.T) {
 	t.Parallel()
 
-	// nolint
+	//nolint:govet
 	tests := []struct {
 		err      error
 		raw      *checker.RawResults
@@ -386,7 +385,7 @@ func asPointer(s string) *string {
 func TestNoUnpinnedDependencies(t *testing.T) {
 	t.Parallel()
 
-	// nolint
+	//nolint:govet
 	tests := []struct {
 		err      error
 		raw      *checker.RawResults
@@ -533,8 +532,8 @@ func TestAttestationPolicyRead(t *testing.T) {
 			// Compare outputs only if the error is nil.
 			// TODO: compare objects.
 			if p.ToJSON() != tt.result.ToJSON() {
-				fmt.Printf("p.ToJSON(): %v\n", p.ToJSON())
-				fmt.Printf("tt.result.ToJSON(): %v\n", tt.result.ToJSON())
+				t.Logf("p.ToJSON(): %v\n", p.ToJSON())
+				t.Logf("tt.result.ToJSON(): %v\n", tt.result.ToJSON())
 				t.Fatalf("%s: invalid result", tt.name)
 			}
 		})

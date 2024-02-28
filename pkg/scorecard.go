@@ -35,21 +35,15 @@ import (
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
+// errEmptyRepository indicates the repository is empty.
+var errEmptyRepository = errors.New("repository empty")
+
 func runEnabledChecks(ctx context.Context,
-	repo clients.Repo, raw *checker.RawResults, checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient, ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	resultsCh chan checker.CheckResult,
+	repo clients.Repo,
+	request *checker.CheckRequest,
+	checksToRun checker.CheckNameToFnMap,
+	resultsCh chan<- checker.CheckResult,
 ) {
-	request := checker.CheckRequest{
-		Ctx:                   ctx,
-		RepoClient:            repoClient,
-		OssFuzzRepo:           ossFuzzRepoClient,
-		CIIClient:             ciiClient,
-		VulnerabilitiesClient: vulnsClient,
-		Repo:                  repo,
-		RawResults:            raw,
-	}
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
 		checkName := checkName
@@ -60,7 +54,7 @@ func runEnabledChecks(ctx context.Context,
 			runner := checker.NewRunner(
 				checkName,
 				repo.URI(),
-				&request,
+				request,
 			)
 
 			resultsCh <- runner.Run(ctx, checkFn)
@@ -80,18 +74,18 @@ func getRepoCommitHash(r clients.RepoClient) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCommits:%v", err.Error()))
 	}
 
-	if len(commits) > 0 {
-		return commits[0].SHA, nil
+	if len(commits) == 0 {
+		return "", errEmptyRepository
 	}
-	return "", nil
+	return commits[0].SHA, nil
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
-func RunScorecard(ctx context.Context,
+func runScorecard(ctx context.Context,
 	repo clients.Repo,
 	commitSHA string,
 	commitDepth int,
 	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
 	repoClient clients.RepoClient,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
@@ -103,19 +97,6 @@ func RunScorecard(ctx context.Context,
 		return ScorecardResult{}, err
 	}
 	defer repoClient.Close()
-
-	commitSHA, err := getRepoCommitHash(repoClient)
-	if err != nil || commitSHA == "" {
-		return ScorecardResult{}, err
-	}
-	defaultBranch, err := repoClient.GetDefaultBranchName()
-	if err != nil {
-		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			return ScorecardResult{},
-				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
-		}
-		defaultBranch = "unknown"
-	}
 
 	versionInfo := version.GetVersionInfo()
 	ret := ScorecardResult{
@@ -129,6 +110,25 @@ func RunScorecard(ctx context.Context,
 		},
 		Date: time.Now(),
 	}
+
+	commitSHA, err := getRepoCommitHash(repoClient)
+
+	if errors.Is(err, errEmptyRepository) {
+		return ret, nil
+	} else if err != nil {
+		return ScorecardResult{}, err
+	}
+	ret.Repo.CommitSHA = commitSHA
+
+	defaultBranch, err := repoClient.GetDefaultBranchName()
+	if err != nil {
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			return ScorecardResult{},
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
+		}
+		defaultBranch = "unknown"
+	}
+
 	resultsCh := make(chan checker.CheckResult)
 
 	// Set metadata for all checks to use. This is necessary
@@ -141,9 +141,27 @@ func RunScorecard(ctx context.Context,
 		"repository.defaultBranch": defaultBranch,
 	}
 
-	go runEnabledChecks(ctx, repo, &ret.RawResults, checksToRun,
-		repoClient, ossFuzzRepoClient,
-		ciiClient, vulnsClient, resultsCh)
+	request := &checker.CheckRequest{
+		Ctx:                   ctx,
+		RepoClient:            repoClient,
+		OssFuzzRepo:           ossFuzzRepoClient,
+		CIIClient:             ciiClient,
+		VulnerabilitiesClient: vulnsClient,
+		Repo:                  repo,
+		RawResults:            &ret.RawResults,
+	}
+
+	// If the user runs probes
+	if len(probesToRun) > 0 {
+		err = runEnabledProbes(request, probesToRun, &ret)
+		if err != nil {
+			return ScorecardResult{}, err
+		}
+		return ret, nil
+	}
+
+	// If the user runs checks
+	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
@@ -157,15 +175,91 @@ func RunScorecard(ctx context.Context,
 		// - `--probes X,Y`
 		// - `--check-definitions-file path/to/config.yml
 		// NOTE: we discard the returned error because the errors are
-		// already cotained in the findings and we want to return the findings
+		// already contained in the findings and we want to return the findings
 		// to users.
 		// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
-		// Note: we discard the error because each probe's error is reported within
-		// the probe and we don't want the entire scorecard run to fail if a single error
-		// is encountered.
+		// We also don't want the entire scorecard run to fail if a single error is encountered.
 		//nolint:errcheck
 		findings, _ = zrunner.Run(&ret.RawResults, probes.All)
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+func runEnabledProbes(request *checker.CheckRequest,
+	probesToRun []string,
+	ret *ScorecardResult,
+) error {
+	// Add RawResults to request
+	err := populateRawResults(request, probesToRun, ret)
+	if err != nil {
+		return err
+	}
+
+	probeFindings := make([]finding.Finding, 0)
+	for _, probeName := range probesToRun {
+		// Get the probe Run func
+		probeRunner, err := probes.GetProbeRunner(probeName)
+		if err != nil {
+			msg := fmt.Sprintf("could not find probe: %s", probeName)
+			return sce.WithMessage(sce.ErrScorecardInternal, msg)
+		}
+		// Run probe
+		findings, _, err := probeRunner(&ret.RawResults)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+		}
+		probeFindings = append(probeFindings, findings...)
+	}
+	ret.Findings = probeFindings
+	return nil
+}
+
+// RunScorecard runs enabled Scorecard checks on a Repo.
+func RunScorecard(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		[]string{},
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
+}
+
+// ExperimentalRunProbes is experimental. Do not depend on it, it may be removed at any point.
+func ExperimentalRunProbes(ctx context.Context,
+	repo clients.Repo,
+	commitSHA string,
+	commitDepth int,
+	checksToRun checker.CheckNameToFnMap,
+	probesToRun []string,
+	repoClient clients.RepoClient,
+	ossFuzzRepoClient clients.RepoClient,
+	ciiClient clients.CIIBestPracticesClient,
+	vulnsClient clients.VulnerabilitiesClient,
+) (ScorecardResult, error) {
+	return runScorecard(ctx,
+		repo,
+		commitSHA,
+		commitDepth,
+		checksToRun,
+		probesToRun,
+		repoClient,
+		ossFuzzRepoClient,
+		ciiClient,
+		vulnsClient,
+	)
 }

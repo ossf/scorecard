@@ -21,6 +21,9 @@ on:
     branches:
       - main
 
+env:
+  GO_VERSION: 1.21
+
 jobs:
   publishimage:
     runs-on: ubuntu-latest
@@ -32,23 +35,23 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@55d479fb1c5bcad5a4f9099a5d9f37c8857b2845
+       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Clone the code
-       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
+       uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
        with:
-         go-version-file: go.mod # use version from go.mod so it stays in sync
+         go-version: ${{ env.GO_VERSION }}
          check-latest: true
      - name: install ko
        uses: ko-build/setup-ko@ace48d793556083a76f1e3e6068850c1f4a369aa # v0.6
      - name: publishimage
-       uses: nick-invision/retry@943e742917ac94714d2f408a0e8320f2d1fcafcd
+       uses: nick-invision/retry@14672906e672a08bd6eeb15720e9ed3ce869cdd4
        with:
           max_attempts: 3
           retry_on: error
@@ -58,7 +61,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@dd6b2e2b610a11fd73dd187a43d57cc1394e35f9
+       uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149
      - name: Sign image
        run: |
           cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}

@@ -52,7 +52,11 @@ spec:
           containers:
             - name: controller
               image: gcr.io/openssf/scorecard-batch-controller:stable
-              args: ["--config=/etc/scorecard/config.yaml", "cron/internal/data/projects.csv"]
+              args: [
+                "--config=/etc/scorecard/config.yaml",
+                "cron/internal/data/projects.csv",
+                "cron/internal/data/gitlab-projects.csv",
+              ]
               imagePullPolicy: Always
               env:
                 - name: GOMEMLIMIT

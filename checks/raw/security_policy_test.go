@@ -63,7 +63,7 @@ func Test_isSecurityPolicyFilename(t *testing.T) {
 // TestSecurityPolicy tests the security policy.
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name    string
 		files   []string
@@ -165,9 +165,7 @@ func TestSecurityPolicy(t *testing.T) {
 
 			res, err := SecurityPolicy(&c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &checker.CheckResult{}, &dl) {
-				t.Errorf("test failed: log message not present: %+v , for test %v", tt.want, tt.name)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.want, &checker.CheckResult{}, &dl)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SecurityPolicy() error = %v, wantErr %v", err, tt.wantErr)

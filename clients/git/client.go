@@ -16,6 +16,7 @@
 package git
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -24,9 +25,12 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	cp "github.com/otiai10/copy"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -37,19 +41,21 @@ const repoDir = "repo*"
 var (
 	errNilCommitFound = errors.New("nil commit found")
 	errEmptyQuery     = errors.New("query is empty")
+	errDefaultBranch  = errors.New("default branch name could not be determined")
 )
 
 type Client struct {
+	repo           clients.Repo
+	errListCommits error
 	gitRepo        *git.Repository
 	worktree       *git.Worktree
 	listCommits    *sync.Once
 	tempDir        string
-	errListCommits error
 	commits        []clients.Commit
 	commitDepth    int
 }
 
-func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
+func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)
@@ -61,10 +67,10 @@ func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
 	}
-
-	// git clone
+	uri := repo.URI()
+	c.tempDir = tempDir
 	const filePrefix = "file://"
-	if strings.HasPrefix(uri, filePrefix) {
+	if strings.HasPrefix(uri, filePrefix) { //nolint:nestif
 		if err := cp.Copy(strings.TrimPrefix(uri, filePrefix), tempDir); err != nil {
 			return fmt.Errorf("cp.Copy: %w", err)
 		}
@@ -73,13 +79,19 @@ func (c *Client) InitRepo(uri, commitSHA string, commitDepth int) error {
 			return fmt.Errorf("git.PlainOpen: %w", err)
 		}
 	} else {
+		if !strings.HasPrefix(uri, "https://") && !strings.HasPrefix(uri, "ssh://") {
+			uri = "https://" + uri
+		}
+		if !strings.HasSuffix(uri, ".git") {
+			uri = uri + ".git"
+		}
 		c.gitRepo, err = git.PlainClone(tempDir, false /*isBare*/, &git.CloneOptions{
 			URL:      uri,
 			Progress: os.Stdout,
 		})
-		if err != nil {
-			return fmt.Errorf("git.PlainClone: %w", err)
-		}
+	}
+	if err != nil {
+		return fmt.Errorf("git.PlainClone: %w %s", err, uri)
 	}
 	c.tempDir = tempDir
 	c.worktree, err = c.gitRepo.Worktree()
@@ -188,17 +200,60 @@ func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 	return ret, nil
 }
 
-// TODO(#1709): Implement below fns using go-git.
-func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	return nil, nil
-}
-
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return nil, nil
+	ref, err := c.gitRepo.Head()
+	if err != nil {
+		return nil, fmt.Errorf("git.Head: %w", err)
+	}
+
+	commit, err := c.gitRepo.CommitObject(ref.Hash())
+	if err != nil {
+		return nil, fmt.Errorf("git.CommitObject: %w", err)
+	}
+
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, fmt.Errorf("git.Commit.Tree: %w", err)
+	}
+
+	var files []string
+	err = tree.Files().ForEach(func(f *object.File) error {
+		shouldInclude, err := predicate(f.Name)
+		if err != nil {
+			return fmt.Errorf("error applying predicate to file %s: %w", f.Name, err)
+		}
+
+		if shouldInclude {
+			files = append(files, f.Name)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("git.Tree.Files: %w", err)
+	}
+
+	return files, nil
 }
 
 func (c *Client) GetFileContent(filename string) ([]byte, error) {
-	return nil, nil
+	// Create the full path of the file
+	fullPath := filepath.Join(c.tempDir, filename)
+
+	// Read the file
+	content, err := os.ReadFile(fullPath)
+	if err != nil {
+		return nil, fmt.Errorf("os.ReadFile: %w", err)
+	}
+
+	return content, nil
+}
+
+func (c *Client) IsArchived() (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) URI() string {
+	return c.repo.URI()
 }
 
 func (c *Client) Close() error {
@@ -206,4 +261,120 @@ func (c *Client) Close() error {
 		return fmt.Errorf("os.RemoveAll: %w", err)
 	}
 	return nil
+}
+
+func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+	// Get the branch reference
+	ref, err := c.gitRepo.Branch(branch)
+	if err != nil {
+		return nil, fmt.Errorf("git.Branch: %w", err)
+	}
+
+	// Get the commit object
+	if err != nil {
+		return nil, fmt.Errorf("git.CommitObject: %w", err)
+	}
+	f := false
+	// Create the BranchRef object
+	branchRef := &clients.BranchRef{
+		Name:      &ref.Name,
+		Protected: &f,
+	}
+
+	return branchRef, nil
+}
+
+func (c *Client) GetCreatedAt() (time.Time, error) {
+	// Retrieve the first commit of the repository
+	commitIter, err := c.gitRepo.Log(&git.LogOptions{Order: git.LogOrderCommitterTime})
+	if err != nil {
+		return time.Time{}, fmt.Errorf("git.Log: %w", err)
+	}
+	defer commitIter.Close()
+
+	// Iterate through the commits to find the first one
+	var firstCommit *object.Commit
+	err = commitIter.ForEach(func(c *object.Commit) error {
+		firstCommit = c
+		return storer.ErrStop
+	})
+	if err != nil && !errors.Is(err, storer.ErrStop) {
+		return time.Time{}, fmt.Errorf("commitIter.ForEach: %w", err)
+	}
+
+	if firstCommit == nil {
+		return time.Time{}, errNilCommitFound
+	}
+
+	// Return the commit time of the first commit
+	return firstCommit.Committer.When, nil
+}
+
+func (c *Client) GetDefaultBranchName() (string, error) {
+	headRef, err := c.gitRepo.Head()
+	if err != nil {
+		return "", fmt.Errorf("git.Head: %w", err)
+	}
+
+	// Extract the branch name from the Head reference
+	defaultBranch := headRef.Name()
+	if defaultBranch == "" {
+		return "", errDefaultBranch
+	}
+
+	return string(defaultBranch), nil
+}
+
+func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+	// TODO: Implement this
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListIssues() ([]clients.Issue, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListLicenses() ([]clients.License, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListReleases() ([]clients.Release, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListContributors() ([]clients.User, error) {
+	// TODO: Implement this
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListStatuses(ref string) ([]clients.Status, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) LocalPath() (string, error) {
+	return c.tempDir, nil
 }

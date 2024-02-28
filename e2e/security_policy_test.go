@@ -55,7 +55,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "policy found", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy at commitSHA", func() {
@@ -81,7 +81,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "policy found", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy for local repoClient at head", func() {
@@ -118,7 +118,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "policy found", &expected, &result, &dl)
 			Expect(x.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy - GitLab", func() {
@@ -149,7 +149,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "policy found", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return valid security policy at commitSHA - GitLab", func() {
@@ -181,7 +181,7 @@ var _ = Describe("E2E TEST:"+checks.CheckSecurityPolicy, func() {
 			}
 			result := checks.SecurityPolicy(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "policy found", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "policy found", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

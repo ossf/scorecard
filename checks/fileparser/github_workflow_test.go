@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/rhysd/actionlint"
-	"gotest.tools/assert/cmp"
 )
 
 func TestGitHubWorkflowShell(t *testing.T) {
@@ -103,7 +103,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 		},
 		{
 			name:           "shell specified in step",
-			filename:       "../testdata/.github/workflows/github-workflow-shells-speficied-step.yaml",
+			filename:       "../testdata/.github/workflows/github-workflow-shells-specified-step.yaml",
 			expectedShells: []string{"pwsh"},
 		},
 		{
@@ -142,7 +142,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 					actualShells = append(actualShells, shell)
 				}
 			}
-			if !cmp.DeepEqual(tt.expectedShells, actualShells)().Success() {
+			if !cmp.Equal(tt.expectedShells, actualShells) {
 				t.Errorf("%v: Got (%v) expected (%v)", tt.name, actualShells, tt.expectedShells)
 			}
 		})
@@ -401,7 +401,7 @@ func TestGetLineNumber(t *testing.T) {
 	type args struct {
 		pos *actionlint.Pos
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -488,7 +488,7 @@ func TestGetUses(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -562,7 +562,7 @@ func Test_getWith(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -648,7 +648,7 @@ func Test_getRun(t *testing.T) {
 	type args struct {
 		step *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args
@@ -746,7 +746,7 @@ func Test_stepsMatch(t *testing.T) {
 		stepToMatch *JobMatcherStep
 		step        *actionlint.Step
 	}
-	//nolint
+	//nolint:govet
 	tests := []struct {
 		name string
 		args args

@@ -43,6 +43,7 @@ func TestOptions_AddFlags(t *testing.T) {
 				ChecksToRun: []string{"check1", "check2"},
 				PolicyFile:  "policy-file",
 				Format:      "json",
+				ResultsFile: "result.json",
 			},
 		},
 	}
@@ -102,11 +103,24 @@ func TestOptions_AddFlags(t *testing.T) {
 			if cmd.Flag(FlagFormat).Value.String() != tt.opts.Format {
 				t.Errorf("expected FlagFormat to be %q, but got %q", tt.opts.Format, cmd.Flag(FlagFormat).Value.String())
 			}
+
+			// check FlagResultsFile
+			if cmd.Flag(FlagResultsFile).Value.String() != tt.opts.ResultsFile {
+				t.Errorf("expected FlagResultsFile to be %q, but got %q", tt.opts.ResultsFile,
+					cmd.Flag(FlagResultsFile).Value.String())
+			}
+
+			// check ShorthandFlagResultsFile
+			if cmd.Flag(FlagResultsFile).Shorthand != ShorthandFlagResultsFile {
+				t.Errorf("expected ShorthandFlagResultsFile to be %q, but got %q", ShorthandFlagResultsFile,
+					cmd.Flag(FlagResultsFile).Shorthand)
+			}
 		})
 	}
 }
 
 func TestOptions_AddFlags_ChecksToRun(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		opts     *Options
@@ -161,7 +175,7 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 			cmd := &cobra.Command{}
 			tt.opts.AddFlags(cmd)
 			if !cmp.Equal(cmd.Flag(FlagFormat).Value.String(), strings.Join(tt.expected, ", ")) {
-				t.Errorf("expected FlagFormat to be %q, but got %q", strings.Join(tt.expected, ", "), cmd.Flag(FlagFormat).Value.String()) //nolint:lll
+				t.Errorf("expected FlagFormat to be %q, but got %q", strings.Join(tt.expected, ", "), cmd.Flag(FlagFormat).Value.String())
 			}
 		})
 	}

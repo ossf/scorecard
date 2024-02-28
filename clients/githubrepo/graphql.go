@@ -34,6 +34,10 @@ const (
 	issueCommentsToAnalyze = 30
 	reviewsToAnalyze       = 30
 	labelsToAnalyze        = 30
+
+	// https://docs.github.com/en/graphql/overview/rate-limits-and-node-limits-for-the-graphql-api#node-limit
+	defaultPageLimit = 100
+	retryLimit       = 3
 )
 
 //nolint:govet
@@ -106,7 +110,7 @@ type graphqlData struct {
 		} `graphql:"object(expression: $commitExpression)"`
 		Issues struct {
 			Nodes []struct {
-				//nolint: revive,stylecheck // naming according to githubv4 convention.
+				//nolint:revive,stylecheck // naming according to githubv4 convention.
 				Url               *string
 				AuthorAssociation *string
 				Author            struct {
@@ -155,28 +159,35 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commi
 }
 
 func populateCommits(handler *graphqlHandler, vars map[string]interface{}) ([]clients.Commit, error) {
-	var allCommits []clients.Commit
-	var commitsLeft githubv4.Int
+	var commits []clients.Commit
 	commitsLeft, ok := vars["commitsToAnalyze"].(githubv4.Int)
 	if !ok {
-		return nil, nil
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, "unexpected type")
 	}
-	for vars["commitsToAnalyze"] = githubv4.Int(100); commitsLeft > 0; commitsLeft = commitsLeft - 100 {
-		if commitsLeft < 100 {
-			vars["commitsToAnalyze"] = commitsLeft
-		}
-		err := handler.client.Query(handler.ctx, handler.data, vars)
-		if err != nil {
-			return nil, fmt.Errorf("failed to populate commits: %w", err)
+	commitsRequested := min(defaultPageLimit, commitsLeft)
+	var retries int
+	for commitsLeft > 0 {
+		vars["commitsToAnalyze"] = commitsRequested
+		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
+			// 502 usually indicate timeouts, where we're requesting too much data
+			// so make our requests smaller and try again
+			if retries < retryLimit && strings.Contains(err.Error(), "502 Bad Gateway") {
+				retries++
+				commitsRequested /= 2
+				continue
+			}
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		vars["historyCursor"] = handler.data.Repository.Object.Commit.History.PageInfo.EndCursor
 		tmp, err := commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
 		if err != nil {
 			return nil, fmt.Errorf("failed to populate commits: %w", err)
 		}
-		allCommits = append(allCommits, tmp...)
+		commits = append(commits, tmp...)
+		commitsLeft -= commitsRequested
+		commitsRequested = min(commitsRequested, commitsLeft)
 	}
-	return allCommits, nil
+	return commits, nil
 }
 
 func (handler *graphqlHandler) setup() error {
@@ -194,18 +205,7 @@ func (handler *graphqlHandler) setup() error {
 			"commitExpression":       githubv4.String(commitExpression),
 			"historyCursor":          (*githubv4.String)(nil),
 		}
-		// if NumberOfCommits set to < 99 we are required by the graphql to page by 100 commits.
-		if handler.commitDepth > 99 {
-			handler.commits, handler.errSetup = populateCommits(handler, vars)
-			handler.issues = issuesFrom(handler.data)
-			handler.archived = bool(handler.data.Repository.IsArchived)
-			return
-		}
-		if err := handler.client.Query(handler.ctx, handler.data, vars); err != nil {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-			return
-		}
-		handler.commits, handler.errSetup = commitsFrom(handler.data, handler.repourl.owner, handler.repourl.repo)
+		handler.commits, handler.errSetup = populateCommits(handler, vars)
 		handler.issues = issuesFrom(handler.data)
 		handler.archived = bool(handler.data.Repository.IsArchived)
 	})
@@ -239,7 +239,6 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-// nolint
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
@@ -267,7 +266,7 @@ func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commi
 				continue
 			}
 			// ResourcePath: e.g., for dependabot, "/apps/dependabot", or "/apps/renovate"
-			// Path that can be appended to "https://github.com" for a Github resource
+			// Path that can be appended to "https://github.com" for a GitHub resource
 			openedByBot := strings.HasPrefix(string(pr.Author.ResourcePath), "/apps/")
 			associatedPR = clients.PullRequest{
 				Number:   int(pr.Number),
@@ -342,26 +341,26 @@ func getRepoAssociation(association *string) *clients.RepoAssociation {
 	if association == nil {
 		return nil
 	}
-	var repoAssociaton clients.RepoAssociation
+	var repoAssociation clients.RepoAssociation
 	switch *association {
 	case "COLLABORATOR":
-		repoAssociaton = clients.RepoAssociationCollaborator
+		repoAssociation = clients.RepoAssociationCollaborator
 	case "CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationContributor
+		repoAssociation = clients.RepoAssociationContributor
 	case "FIRST_TIMER":
-		repoAssociaton = clients.RepoAssociationFirstTimer
+		repoAssociation = clients.RepoAssociationFirstTimer
 	case "FIRST_TIME_CONTRIBUTOR":
-		repoAssociaton = clients.RepoAssociationFirstTimeContributor
+		repoAssociation = clients.RepoAssociationFirstTimeContributor
 	case "MANNEQUIN":
-		repoAssociaton = clients.RepoAssociationMannequin
+		repoAssociation = clients.RepoAssociationMannequin
 	case "MEMBER":
-		repoAssociaton = clients.RepoAssociationMember
+		repoAssociation = clients.RepoAssociationMember
 	case "NONE":
-		repoAssociaton = clients.RepoAssociationNone
+		repoAssociation = clients.RepoAssociationNone
 	case "OWNER":
-		repoAssociaton = clients.RepoAssociationOwner
+		repoAssociation = clients.RepoAssociationOwner
 	default:
 		return nil
 	}
-	return &repoAssociaton
+	return &repoAssociation
 }

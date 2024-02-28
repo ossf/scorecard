@@ -62,10 +62,8 @@ func structuredResultString(d *checker.CheckDetail) string {
 		}
 	}
 
-	// Effort to remediate.
-	if f.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s (%s effort)", f.Remediation.Text, f.Remediation.Effort.String()))
-	}
+	// TODO(#3349) revisit remediation details later
+
 	return sb.String()
 }
 
@@ -108,5 +106,30 @@ func typeToString(cd checker.DetailType) string {
 		return "Warn"
 	case checker.DetailDebug:
 		return "Debug"
+	}
+}
+
+func stringToDetailType(s string) checker.DetailType {
+	switch s {
+	case "Debug":
+		return checker.DetailDebug
+	case "Info":
+		return checker.DetailInfo
+	case "Warn":
+		return checker.DetailWarn
+	}
+	return checker.DetailType(-1) // Uhhh todo err, at least for now return an unofficial DetailUnknown
+}
+
+func stringToDetail(s string) checker.CheckDetail {
+	parts := strings.SplitN(s, ":", 3)
+	if len(parts) < 2 {
+		return checker.CheckDetail{} // err?
+	}
+	return checker.CheckDetail{
+		Type: stringToDetailType(parts[0]),
+		Msg: checker.LogMessage{
+			Text: parts[1],
+		},
 	}
 }

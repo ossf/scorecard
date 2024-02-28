@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -99,17 +100,8 @@ func sarifMockDocRead() *mockDoc {
 	return &m
 }
 
-// nolint
 func TestSARIFOutput(t *testing.T) {
 	t.Parallel()
-
-	type Check struct {
-		Risk        string   `yaml:"-"`
-		Short       string   `yaml:"short"`
-		Description string   `yaml:"description"`
-		Remediation []string `yaml:"remediation"`
-		Tags        string   `yaml:"tags"`
-	}
 
 	repoCommit := "68bc59901773ab4c051dfcea0cc4201a1567ab32"
 	scorecardCommit := "ccbc59901773ab4c051dfcea0cc4201a1567abdd"
@@ -122,6 +114,7 @@ func TestSARIFOutput(t *testing.T) {
 
 	checkDocs := sarifMockDocRead()
 
+	//nolint:govet
 	tests := []struct {
 		name        string
 		expected    string
@@ -856,6 +849,82 @@ func TestSARIFOutput(t *testing.T) {
 			r := bytes.Compare(expected.Bytes(), result.Bytes())
 			if r != 0 {
 				t.Fatalf("%s: invalid result: %d, %s", tt.name, r, cmp.Diff(expected.Bytes(), result.Bytes()))
+			}
+		})
+	}
+}
+
+func Test_createSARIFRuns(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		runs map[string]*run
+	}
+	tests := []struct {
+		name string
+		args args
+		want []run
+	}{
+		{
+			name: "empty runs",
+			args: args{
+				runs: map[string]*run{},
+			},
+			want: []run{},
+		},
+		{
+			name: "nil runs are skipped",
+			args: args{
+				runs: map[string]*run{
+					"run1": nil,
+					"run2": {
+						Tool: tool{
+							Driver: driver{
+								Name: "name",
+							},
+						},
+					},
+				},
+			},
+			want: []run{
+				{
+					Tool: tool{
+						Driver: driver{
+							Name: "name",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "one run",
+			args: args{
+				runs: map[string]*run{
+					"run1": {
+						Tool: tool{
+							Driver: driver{
+								Name: "name",
+							},
+						},
+					},
+				},
+			},
+			want: []run{
+				{
+					Tool: tool{
+						Driver: driver{
+							Name: "name",
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := createSARIFRuns(tt.args.runs); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("createSARIFRuns() = %v, want %v", got, tt.want)
 			}
 		})
 	}

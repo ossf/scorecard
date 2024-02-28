@@ -20,8 +20,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// nolint:paralleltest
-// because we are using t.Setenv.
+//nolint:paralleltest // because we are using t.Setenv.
 func TestRepoURL_IsValid(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -51,7 +50,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name: "Non github repository",
+			name: "Non GitHub repository",
 			expected: repoURL{
 				host:  "gitlab.com",
 				owner: "foo",
@@ -61,7 +60,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  true,
 		},
 		{
-			name: "Github repository",
+			name: "GitHub repository",
 			expected: repoURL{
 				host:  "github.com",
 				owner: "foo",
@@ -71,7 +70,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			wantErr:  false,
 		},
 		{
-			name: "Github repository with host",
+			name: "GitHub repository with host",
 			expected: repoURL{
 				host:  "github.com",
 				owner: "foo",

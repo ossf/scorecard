@@ -40,7 +40,6 @@ type text struct {
 	Text string `json:"text,omitempty"`
 }
 
-// nolint
 type region struct {
 	StartLine   *uint `json:"startLine,omitempty"`
 	EndLine     *uint `json:"endLine,omitempty"`
@@ -62,16 +61,15 @@ type physicalLocation struct {
 	ArtifactLocation artifactLocation `json:"artifactLocation"`
 }
 
-//nolint:govet
+//nolint:govet,lll
 type location struct {
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
-	//nolint
 	// This is optional https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#location-object.
 	Message        *text `json:"message,omitempty"`
 	HasRemediation bool  `json:"-"`
 }
 
-// nolint
+//nolint:govet
 type relatedLocation struct {
 	ID               int              `json:"id"`
 	PhysicalLocation physicalLocation `json:"physicalLocation"`
@@ -124,7 +122,7 @@ type tool struct {
 	Driver driver `json:"driver"`
 }
 
-// nolint
+//nolint:govet
 type result struct {
 	RuleID           string            `json:"ruleId"`
 	Kind             string            `json:"kind"`
@@ -157,13 +155,6 @@ type sarif210 struct {
 	Schema  string `json:"$schema"`
 	Version string `json:"version"`
 	Runs    []run  `json:"runs"`
-}
-
-func maxOffset(x, y uint) uint {
-	if x < y {
-		return y
-	}
-	return x
 }
 
 func calculateSeverityLevel(risk string) string {
@@ -274,7 +265,7 @@ func detailToRegion(details *checker.CheckDetail) region {
 	default:
 		panic("invalid")
 	case finding.FileTypeURL:
-		line := maxOffset(checker.OffsetDefault, getStartLine(details))
+		line := max(checker.OffsetDefault, getStartLine(details))
 		reg = region{
 			StartLine: &line,
 			Snippet:   snippet,
@@ -282,8 +273,8 @@ func detailToRegion(details *checker.CheckDetail) region {
 	case finding.FileTypeNone:
 		// Do nothing.
 	case finding.FileTypeSource:
-		startLine := maxOffset(checker.OffsetDefault, getStartLine(details))
-		endLine := maxOffset(startLine, getEndLine(details))
+		startLine := max(checker.OffsetDefault, getStartLine(details))
+		endLine := max(startLine, getEndLine(details))
 		reg = region{
 			StartLine: &startLine,
 			EndLine:   &endLine,
@@ -346,7 +337,7 @@ func detailsToLocations(details []checker.CheckDetail,
 ) []location {
 	locs := []location{}
 
-	//nolint
+	//nolint:lll
 	// Populate the locations.
 	// Note https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#result-object
 	// "Only the first value of this array is used. All other values are ignored."
@@ -391,7 +382,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 		return locs
 	}
 
-	detaultLine := checker.OffsetDefault
+	defaultLine := checker.OffsetDefault
 	loc := location{
 		PhysicalLocation: physicalLocation{
 			ArtifactLocation: artifactLocation{
@@ -401,7 +392,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 			Region: region{
 				// TODO: set the line to the check if it's overwritten,
 				// or to the global policy.
-				StartLine: &detaultLine,
+				StartLine: &defaultLine,
 			},
 		},
 	}
@@ -437,7 +428,7 @@ func createSARIFRun(uri, toolName, version, commit string, t time.Time,
 	return run{
 		Tool:    createSARIFTool(uri, toolName, version),
 		Results: []result{},
-		//nolint
+		//nolint:lll
 		// See https://docs.github.com/en/code-security/code-scanning/integrating-with-code-scanning/sarif-support-for-code-scanning#runautomationdetails-object.
 		AutomationDetails: automationDetails{
 			// Time formatting: https://pkg.go.dev/time#pkg-constants.
@@ -566,6 +557,9 @@ func computeCategory(checkName string, repos []string) (string, error) {
 	}
 }
 
+// createSARIFRuns takes a map of runs and returns a sorted slice of runs.
+// It sorts the keys of the map, iterates over them, and appends the corresponding run to the result slice.
+// If the run is nil, it is skipped.
 func createSARIFRuns(runs map[string]*run) []run {
 	res := []run{}
 	// Sort keys.
@@ -577,7 +571,9 @@ func createSARIFRuns(runs map[string]*run) []run {
 
 	// Iterate over keys.
 	for _, k := range keys {
-		res = append(res, *runs[k])
+		if runs[k] != nil {
+			res = append(res, *runs[k])
+		}
 	}
 	return res
 }
@@ -627,7 +623,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
 	opts *options.Options,
 ) error {
-	//nolint
+	//nolint:lll
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
 	// We only support GitHub-supported properties:
 	// see https://docs.github.com/en/code-security/secure-coding/integrating-with-code-scanning/sarif-support-for-code-scanning#supported-sarif-output-file-properties,
@@ -635,8 +631,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	sarif := createSARIFHeader()
 	runs := make(map[string]*run)
 
-	//nolint
 	for _, check := range r.Checks {
+		check := check
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
@@ -701,6 +697,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
+				loc := loc
 				// Use the location's message (check's detail's message) as message.
 				msg := messageWithScore(loc.Message.Text, check.Score)
 				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc, minScore, check.Score)

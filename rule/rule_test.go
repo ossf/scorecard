@@ -34,12 +34,11 @@ var testfs embed.FS
 
 func Test_New(t *testing.T) {
 	t.Parallel()
-	// nolint: govet
 	tests := []struct {
-		name string
-		id   string
 		err  error
 		rule *Rule
+		name string
+		id   string
 	}{
 		{
 			name: "all fields set",
@@ -120,6 +119,7 @@ func TestRisk_GreaterThan(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.r.GreaterThan(tt.rr); got != tt.want {
 				t.Errorf("Risk.GreaterThan() = %v, want %v", got, tt.want)
 			}
@@ -130,10 +130,10 @@ func TestRisk_GreaterThan(t *testing.T) {
 func TestRisk_String(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name string
-		r    Risk
 		want string
+		r    Risk
 	}{
 		{
 			name: "RiskNone",
@@ -170,6 +170,7 @@ func TestRisk_String(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.r.String(); got != tt.want {
 				t.Errorf("Risk.String() = %v, want %v", got, tt.want)
 			}
@@ -180,10 +181,10 @@ func TestRisk_String(t *testing.T) {
 func TestRemediationEffort_String(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
 		name   string
-		effort RemediationEffort
 		want   string
+		effort RemediationEffort
 	}{
 		{
 			name:   "RemediationEffortNone",
@@ -215,6 +216,7 @@ func TestRemediationEffort_String(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.effort.String(); got != tt.want {
 				t.Errorf("RemediationEffort.String() = %v, want %v", got, tt.want)
 			}
@@ -225,10 +227,10 @@ func TestRemediationEffort_String(t *testing.T) {
 func TestRisk_UnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		wantErr error
 		name    string
 		input   string
-		wantErr error
 		want    Risk
 	}{
 		{
@@ -261,6 +263,7 @@ func TestRisk_UnmarshalYAML(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var r Risk
 			err := yaml.Unmarshal([]byte(tt.input), &r)
 			if err != nil {
@@ -279,10 +282,10 @@ func TestRisk_UnmarshalYAML(t *testing.T) {
 func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		wantErr error
 		name    string
 		input   string
-		wantErr error
 		want    RemediationEffort
 	}{
 		{
@@ -305,6 +308,7 @@ func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			var r RemediationEffort
 			err := yaml.Unmarshal([]byte(tt.input), &r)
 			if err != nil {
@@ -323,10 +327,10 @@ func TestRemediationEffort_UnmarshalYAML(t *testing.T) {
 func Test_validate(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
-		name    string
-		rule    *jsonRule
+	tests := []struct {
 		wantErr error
+		rule    *jsonRule
+		name    string
 	}{
 		{
 			name: "valid",
@@ -353,6 +357,7 @@ func Test_validate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := validate(tt.rule)
 			if err != nil {
 				if tt.wantErr == nil || !cmp.Equal(tt.wantErr.Error(), err.Error()) {

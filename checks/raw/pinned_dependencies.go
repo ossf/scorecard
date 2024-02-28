@@ -15,7 +15,9 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
@@ -27,6 +29,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/remediation"
 )
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -109,6 +112,21 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 	}, validateDockerfileInsecureDownloads, r)
 }
 
+func fileIsInVendorDir(pathfn string) bool {
+	cleanedPath := filepath.Clean(pathfn)
+	splitCleanedPath := strings.Split(cleanedPath, "/")
+
+	for _, d := range splitCleanedPath {
+		if strings.EqualFold(d, "vendor") {
+			return true
+		}
+		if strings.EqualFold(d, "third_party") {
+			return true
+		}
+	}
+	return false
+}
+
 var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -118,6 +136,10 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return false, fmt.Errorf(
 			"validateDockerfileInsecureDownloads requires exactly 1 arguments: got %v: %w",
 			len(args), errInvalidArgLength)
+	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
 	}
 
 	pdata := dataAsPinnedDependenciesPointer(args[0])
@@ -140,7 +162,6 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 	// Walk the Dockerfile's AST.
 	taintedFiles := make(map[string]bool)
 	for i := range res.AST.Children {
-		var bytes []byte
 
 		child := res.AST.Children[i]
 		cmdType := child.Value
@@ -150,21 +171,33 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 			continue
 		}
 
-		var valueList []string
-		for n := child.Next; n != nil; n = n.Next {
-			valueList = append(valueList, n.Value)
-		}
+		if len(child.Heredocs) > 0 {
+			startOffset := 1
+			for _, heredoc := range child.Heredocs {
+				cmd := heredoc.Content
+				lineCount := startOffset + strings.Count(cmd, "\n")
+				if err := validateShellFile(pathfn, uint(child.StartLine+startOffset)-1, uint(child.StartLine+lineCount)-2,
+					[]byte(cmd), taintedFiles, pdata); err != nil {
+					return false, err
+				}
+				startOffset += lineCount
+			}
+		} else {
+			var valueList []string
+			for n := child.Next; n != nil; n = n.Next {
+				valueList = append(valueList, n.Value)
+			}
 
-		if len(valueList) == 0 {
-			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
-		}
+			if len(valueList) == 0 {
+				return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
+			}
 
-		// Build a file content.
-		cmd := strings.Join(valueList, " ")
-		bytes = append(bytes, cmd...)
-		if err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
-			bytes, taintedFiles, pdata); err != nil {
-			return false, err
+			// Build a file content.
+			cmd := strings.Join(valueList, " ")
+			if err := validateShellFile(pathfn, uint(child.StartLine)-1, uint(child.EndLine)-1,
+				[]byte(cmd), taintedFiles, pdata); err != nil {
+				return false, err
+			}
 		}
 	}
 
@@ -187,10 +220,22 @@ func isDockerfile(pathfn string, content []byte) bool {
 }
 
 func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*Dockerfile*",
 		CaseSensitive: false,
 	}, validateDockerfilesPinning, r)
+	if err != nil {
+		return err
+	}
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remediate := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
+			rr.Remediation = remediate
+		}
+	}
+	return nil
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -205,6 +250,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, fmt.Errorf(
 			"validateDockerfilesPinning requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
+
+	if fileIsInVendorDir(pathfn) {
+		return true, nil
+	}
+
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 
 	// Return early if this is not a dockerfile.
@@ -261,7 +311,6 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			if pinned || regex.MatchString(name) {
 				// Record the asName.
 				pinnedAsNames[asName] = true
-				continue
 			}
 
 			pdata.Dependencies = append(pdata.Dependencies,
@@ -275,6 +324,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 					},
 					Name:     asPointer(name),
 					PinnedAt: asPointer(asName),
+					Pinned:   asBoolPointer(pinnedAsNames[asName]),
 					Type:     checker.DependencyUseTypeDockerfileContainerImage,
 				},
 			)
@@ -283,34 +333,33 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		case len(valueList) == 1:
 			name := valueList[0]
 			pinned := pinnedAsNames[name]
-			if !pinned && !regex.MatchString(name) {
-				dep := checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(child.StartLine),
-						EndOffset: uint(child.EndLine),
-						Snippet:   child.Original,
-					},
-					Type: checker.DependencyUseTypeDockerfileContainerImage,
-				}
-				parts := strings.SplitN(name, ":", 2)
-				if len(parts) > 0 {
-					dep.Name = asPointer(parts[0])
-					if len(parts) > 1 {
-						dep.PinnedAt = asPointer(parts[1])
-					}
-				}
-				pdata.Dependencies = append(pdata.Dependencies, dep)
-			}
 
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Snippet:   child.Original,
+				},
+				Pinned: asBoolPointer(pinned || regex.MatchString(name)),
+				Type:   checker.DependencyUseTypeDockerfileContainerImage,
+			}
+			parts := strings.SplitN(name, ":", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 		default:
 			// That should not happen.
 			return false, sce.WithMessage(sce.ErrScorecardInternal, errInternalInvalidDockerFile.Error())
 		}
 	}
 
-	//nolint
+	//nolint:lll
 	// The file need not have a FROM statement,
 	// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/tools/dockerfiles/partials/jupyter.partial.Dockerfile.
 
@@ -361,6 +410,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
+
 		for _, step := range job.Steps {
 			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
@@ -383,6 +433,23 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 			// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idstepsrun.
 			shell, err := fileparser.GetShellForStep(step, job)
 			if err != nil {
+				var elementError *checker.ElementError
+				if errors.As(err, &elementError) {
+					// Add the workflow name and step ID to the element
+					lineStart := uint(step.Pos.Line)
+					elementError.Location = finding.Location{
+						Path:      pathfn,
+						Snippet:   elementError.Location.Snippet,
+						LineStart: &lineStart,
+						Type:      finding.FileTypeSource,
+					}
+
+					pdata.ProcessingErrors = append(pdata.ProcessingErrors, *elementError)
+
+					// continue instead of break because other `run` steps may declare
+					// a valid shell we can scan
+					continue
+				}
 				return false, err
 			}
 			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
@@ -406,10 +473,24 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
 	}, validateGitHubActionWorkflow, r)
+	if err != nil {
+		return err
+	}
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(c)
+
+	for i := range r.Dependencies {
+		rr := &r.Dependencies[i]
+		if !*rr.Pinned {
+			remediate := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			rr.Remediation = remediate
+		}
+	}
+	return nil
 }
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
@@ -470,26 +551,25 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			if !isActionDependencyPinned(execAction.Uses.Value) {
-				dep := checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(execAction.Uses.Pos.Line),
-						EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-						Snippet:   execAction.Uses.Value,
-					},
-					Type: checker.DependencyUseTypeGHAction,
-				}
-				parts := strings.SplitN(execAction.Uses.Value, "@", 2)
-				if len(parts) > 0 {
-					dep.Name = asPointer(parts[0])
-					if len(parts) > 1 {
-						dep.PinnedAt = asPointer(parts[1])
-					}
-				}
-				pdata.Dependencies = append(pdata.Dependencies, dep)
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(execAction.Uses.Pos.Line),
+					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
+					Snippet:   execAction.Uses.Value,
+				},
+				Pinned: asBoolPointer(isActionDependencyPinned(execAction.Uses.Value)),
+				Type:   checker.DependencyUseTypeGHAction,
 			}
+			parts := strings.SplitN(execAction.Uses.Value, "@", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
 

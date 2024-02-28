@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// nolint:stylecheck
+//nolint:stylecheck
 package toolRenovateInstalled
 
 import (
 	"embed"
+	"fmt"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	tls "github.com/ossf/scorecard/v4/probes/internal/utils/tools"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
 var fs embed.FS
 
-const probe = "toolRenovateInstalled"
+const Probe = "toolRenovateInstalled"
 
 type renovate struct{}
 
@@ -39,12 +41,15 @@ func (t renovate) Matches(tool *checker.Tool) bool {
 }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+	}
 	tools := raw.DependencyUpdateToolResults.Tools
 	var matcher renovate
 	// Check whether Renovate tool is installed on the repo,
 	// and create the corresponding findings.
 	//nolint:wrapcheck
-	return utils.ToolsRun(tools, fs, probe,
+	return tls.Run(tools, fs, Probe,
 		// Tool found will generate a positive result.
 		finding.OutcomePositive,
 		// Tool not found will generate a negative result.

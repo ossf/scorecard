@@ -57,7 +57,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			}
 
 			result := checks.BinaryArtifacts(&req)
-			Expect(scut.ValidateTestReturn(nil, "no binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "no binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return binary artifacts present in source code", func() {
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
-			// There are 24 dummy binaries that are ignoreed because they only contain ASCII characters.
+			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
@@ -84,7 +84,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
-			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return binary artifacts present at commit in source code", func() {
@@ -102,7 +102,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
-			// There are 24 dummy binaries that are ignoreed because they only contain ASCII characters.
+			// There are 24 dummy binaries that are ignored because they only contain ASCII characters.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore - 1,
@@ -111,7 +111,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				NumberOfDebug: 0,
 			}
 			result := checks.BinaryArtifacts(&req)
-			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return no binary artifacts present in source code", func() {
@@ -129,7 +129,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo as well.
-			// Existing binaries only contain SCII characters and are ignored.
+			// Existing binaries only contain ASCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -139,7 +139,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			}
 			result := checks.BinaryArtifacts(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return binary artifacts present at commit in source code", func() {
@@ -157,7 +157,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 				Dlogger:    &dl,
 			}
 			// TODO: upload real binaries to the repo.
-			// Existing binaries only contain SCII characters and are ignored.
+			// Existing binaries only contain ASCII characters and are ignored.
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MaxResultScore,
@@ -167,7 +167,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			}
 			result := checks.BinaryArtifacts(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should return binary artifacts present at commit in source code when using local repoClient", func() {
@@ -206,7 +206,7 @@ var _ = Describe("E2E TEST:"+checks.CheckBinaryArtifacts, func() {
 			}
 			result := checks.BinaryArtifacts(&req)
 			// New version.
-			Expect(scut.ValidateTestReturn(nil, "binary artifacts", &expected, &result, &dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "binary artifacts", &expected, &result, &dl)
 			Expect(x.Close()).Should(BeNil())
 		})
 	})

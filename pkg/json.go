@@ -16,16 +16,17 @@ package pkg
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
 
+	"github.com/ossf/scorecard/v4/checker"
 	docs "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 )
 
-// nolint: govet
 type jsonCheckResult struct {
 	Name       string
 	Details    []string
@@ -33,6 +34,7 @@ type jsonCheckResult struct {
 	Pass       bool
 }
 
+//nolint:musttag
 type jsonScorecardResult struct {
 	Repo     string
 	Date     string
@@ -46,7 +48,7 @@ type jsonCheckDocumentationV2 struct {
 	// Can be extended if needed.
 }
 
-// nolint: govet
+//nolint:govet
 type jsonCheckResultV2 struct {
 	Details []string                 `json:"details"`
 	Score   int                      `json:"score"`
@@ -66,6 +68,8 @@ type jsonScorecardV2 struct {
 }
 
 type jsonFloatScore float64
+
+var errNoDoc = errors.New("doc is nil")
 
 func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 	// Note: for integers, this will show as X.0.
@@ -145,6 +149,9 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 		if e != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
 		}
+		if doc == nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, errNoDoc))
+		}
 
 		tmpResult := jsonCheckResultV2{
 			Name: checkResult.Name,
@@ -173,6 +180,54 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 	}
 
 	return nil
+}
+
+// ExperimentalFromJSON2 is experimental. Do not depend on it, it may be removed at any point.
+// Also returns the aggregate score, as the ScorecardResult field does not contain it.
+func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, err error) {
+	var jsr JSONScorecardResultV2
+	decoder := json.NewDecoder(r)
+	if err := decoder.Decode(&jsr); err != nil {
+		return ScorecardResult{}, 0, fmt.Errorf("decode json: %w", err)
+	}
+
+	var parseErr *time.ParseError
+	date, err := time.Parse(time.RFC3339, jsr.Date)
+	if errors.As(err, &parseErr) {
+		date, err = time.Parse("2006-01-02", jsr.Date)
+	}
+	if err != nil {
+		return ScorecardResult{}, 0, fmt.Errorf("parse scorecard analysis time: %w", err)
+	}
+
+	sr := ScorecardResult{
+		Repo: RepoInfo{
+			Name:      jsr.Repo.Name,
+			CommitSHA: jsr.Repo.Commit,
+		},
+		Scorecard: ScorecardInfo{
+			Version:   jsr.Scorecard.Version,
+			CommitSHA: jsr.Scorecard.Commit,
+		},
+		Date:     date,
+		Metadata: jsr.Metadata,
+		Checks:   make([]checker.CheckResult, 0, len(jsr.Checks)),
+	}
+
+	for _, check := range jsr.Checks {
+		cr := checker.CheckResult{
+			Name:   check.Name,
+			Score:  check.Score,
+			Reason: check.Reason,
+		}
+		cr.Details = make([]checker.CheckDetail, 0, len(check.Details))
+		for _, detail := range check.Details {
+			cr.Details = append(cr.Details, stringToDetail(detail))
+		}
+		sr.Checks = append(sr.Checks, cr)
+	}
+
+	return sr, float64(jsr.AggregateScore), nil
 }
 
 func (r *ScorecardResult) AsFJSON(showDetails bool,

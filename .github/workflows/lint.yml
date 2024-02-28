@@ -1,0 +1,37 @@
+name: golangci-lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read # Use with `only-new-issues` option.
+
+env:
+  GO_VERSION: 1.21
+
+jobs:
+  golangci:
+    name: check-linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: false # golangci-lint maintains its own cache
+      - name: set golangci-lint version # keep in sync with tools/go.mod
+        run: |
+          echo "GOLANGCI_LINT_VERSION=$(cd tools; go list -m -f '{{ .Version }}' github.com/golangci/golangci-lint)" >> "$GITHUB_ENV"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          only-new-issues: true

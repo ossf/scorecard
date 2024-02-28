@@ -36,13 +36,13 @@ func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *log.Logg
 	}
 }
 
-// rateLimitTransport is a rate-limit aware http.Transport for Github.
+// rateLimitTransport is a rate-limit aware http.Transport for GitHub.
 type rateLimitTransport struct {
 	logger         *log.Logger
 	innerTransport http.RoundTripper
 }
 
-// Roundtrip handles caching and ratelimiting of responses from GitHub.
+// RoundTrip handles caching and rate-limiting of responses from GitHub.
 func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, err := gh.innerTransport.RoundTrip(r)
 	if err != nil {
@@ -62,6 +62,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	rateLimit := resp.Header.Get("X-RateLimit-Remaining")
 	remaining, err := strconv.Atoi(rateLimit)
 	if err != nil {
+		//nolint:nilerr // just an error in metadata, response may still be useful?
 		return resp, nil
 	}
 	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
@@ -73,6 +74,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 	if remaining <= 0 {
 		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))
 		if err != nil {
+			//nolint:nilerr // just an error in metadata, response may still be useful?
 			return resp, nil
 		}
 

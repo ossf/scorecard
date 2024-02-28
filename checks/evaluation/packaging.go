@@ -15,75 +15,46 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 )
 
 // Packaging applies the score policy for the Packaging check.
-func Packaging(name string, dl checker.DetailLogger, r *checker.PackagingData) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+func Packaging(name string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
+) checker.CheckResult {
+	expectedProbes := []string{
+		packagedWithAutomatedWorkflow.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	pass := false
-	for _, p := range r.Packages {
-		if p.Msg != nil {
-			// This is a debug message. Let's just replay the message.
-			dl.Debug(&checker.LogMessage{
-				Text: *p.Msg,
+	// Currently there is only a single packaging probe that returns
+	// a single positive or negative outcome. As such, in this evaluation,
+	// we return max score if the outcome is positive and lowest score if
+	// the outcome is negative.
+	maxScore := false
+	for _, f := range findings {
+		f := f
+		if f.Outcome == finding.OutcomePositive {
+			maxScore = true
+			// Log all findings except the negative ones.
+			dl.Info(&checker.LogMessage{
+				Finding: &f,
 			})
-			continue
 		}
-
-		// Presence of a single non-debug message means the
-		// check passes.
-		pass = true
-
-		msg, err := createLogMessage(p)
-		if err != nil {
-			return checker.CreateRuntimeErrorResult(name, err)
-		}
-		dl.Info(&msg)
+	}
+	if maxScore {
+		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
 	}
 
-	if pass {
-		return checker.CreateMaxScoreResult(name,
-			"publishing workflow detected")
-	}
-
-	dl.Warn(&checker.LogMessage{
-		Text: "no GitHub/GitLab publishing workflow detected",
-	})
-
+	checker.LogFindings(negativeFindings(findings), dl)
 	return checker.CreateInconclusiveResult(name,
-		"no published package detected")
-}
-
-func createLogMessage(p checker.Package) (checker.LogMessage, error) {
-	var msg checker.LogMessage
-
-	if p.Msg != nil {
-		return msg, sce.WithMessage(sce.ErrScorecardInternal, "Msg should be nil")
-	}
-
-	if p.File == nil {
-		return msg, sce.WithMessage(sce.ErrScorecardInternal, "File field is nil")
-	}
-
-	if p.File != nil {
-		msg.Path = p.File.Path
-		msg.Type = p.File.Type
-		msg.Offset = p.File.Offset
-	}
-
-	if len(p.Runs) == 0 {
-		return msg, sce.WithMessage(sce.ErrScorecardInternal, "no run data")
-	}
-
-	msg.Text = fmt.Sprintf("GitHub/GitLab publishing workflow used in run %s", p.Runs[0].URL)
-
-	return msg, nil
+		"packaging workflow not detected")
 }

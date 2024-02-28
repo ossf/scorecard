@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -48,7 +49,8 @@ func mustParseConstraint(c string) *semver.Constraints {
 }
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
-func BinaryArtifacts(c clients.RepoClient) (checker.BinaryArtifactData, error) {
+func BinaryArtifacts(req *checker.CheckRequest) (checker.BinaryArtifactData, error) {
+	c := req.RepoClient
 	files := []checker.File{}
 	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
 		Pattern:       "*",
@@ -86,13 +88,11 @@ func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) 
 	}
 	// It has been confirmed that latest commit has validated JARs!
 	// Remove Gradle wrapper JARs from files.
-	filterFiles := []checker.File{}
-	for _, f := range files {
-		if filepath.Base(f.Path) != "gradle-wrapper.jar" {
-			filterFiles = append(filterFiles, f)
+	for i := range files {
+		if filepath.Base(files[i].Path) == "gradle-wrapper.jar" {
+			files[i].Type = finding.FileTypeBinaryVerified
 		}
 	}
-	files = filterFiles
 	return files, nil
 }
 
@@ -116,6 +116,7 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"dey":    true,
 		"elf":    true,
 		"o":      true,
+		"a":      true,
 		"so":     true,
 		"macho":  true,
 		"iso":    true,
@@ -201,26 +202,35 @@ func gradleWrapperValidated(c clients.RepoClient) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
-	if gradleWrapperValidatingWorkflowFile != "" {
-		// If validated, check that latest commit has a relevant successful run
-		runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
-		if err != nil {
-			return false, fmt.Errorf("failure listing workflow runs: %w", err)
-		}
-		commits, err := c.ListCommits()
-		if err != nil {
-			return false, fmt.Errorf("failure listing commits: %w", err)
-		}
-		if len(commits) < 1 || len(runs) < 1 {
+	// no matching files, validation failed
+	if gradleWrapperValidatingWorkflowFile == "" {
+		return false, nil
+	}
+
+	// If validated, check that latest commit has a relevant successful run
+	runs, err := c.ListSuccessfulWorkflowRuns(gradleWrapperValidatingWorkflowFile)
+	if err != nil {
+		// some clients, such as the local file client, don't support this feature
+		// claim unvalidated, so that other parts of the check can still be used.
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
 			return false, nil
 		}
-		for _, r := range runs {
-			if *r.HeadSHA == commits[0].SHA {
-				// Commit has corresponding successful run!
-				return true, nil
-			}
+		return false, fmt.Errorf("failure listing workflow runs: %w", err)
+	}
+	commits, err := c.ListCommits()
+	if err != nil {
+		return false, fmt.Errorf("failure listing commits: %w", err)
+	}
+	if len(commits) < 1 || len(runs) < 1 {
+		return false, nil
+	}
+	for _, r := range runs {
+		if *r.HeadSHA == commits[0].SHA {
+			// Commit has corresponding successful run!
+			return true, nil
 		}
 	}
+
 	return false, nil
 }
 
@@ -268,7 +278,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 	return true, nil
 }
 
-// fileExists checks if a file of name name exists, including within
+// fileExists checks if a file named `name` exists, including within
 // subdirectories.
 func fileExists(files []checker.File, name string) bool {
 	for _, f := range files {

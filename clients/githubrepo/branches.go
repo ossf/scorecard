@@ -17,13 +17,15 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -33,23 +35,23 @@ const (
 
 // See https://github.community/t/graphql-api-protected-branch/14380
 /* Example of query:
-	query {
+query {
   repository(owner: "laurentsimon", name: "test3") {
     branchProtectionRules(first: 100) {
-		edges{
-			node{
-				allowsDeletions
-				allowsForcePushes
-				dismissesStaleReviews
-				isAdminEnforced
-				...
-				pattern
-				matchingRefs(first: 100) {
-				nodes {
-					name
-				}
-			}
-		}
+      edges {
+        node {
+          allowsDeletions
+          allowsForcePushes
+          dismissesStaleReviews
+          isAdminEnforced
+          pattern
+          matchingRefs(first: 100) {
+            nodes {
+              name
+            }
+          }
+        }
+      }
     }
     refs(first: 100, refPrefix: "refs/heads/") {
       nodes {
@@ -57,7 +59,56 @@ const (
         refUpdateRule {
           requiredApprovingReviewCount
           allowsForcePushes
-		  ...
+        }
+      }
+    }
+    rulesets(first: 100) {
+      edges {
+        node {
+          name
+          enforcement
+          target
+          conditions {
+            refName {
+              exclude
+              include
+            }
+          }
+          bypassActors(first: 100) {
+            nodes {
+              actor {
+                __typename
+                ... on App {
+                  name
+                  databaseId
+                }
+              }
+              bypassMode
+              organizationAdmin
+              repositoryRoleName
+            }
+          }
+          rules(first: 100) {
+            nodes {
+              type
+              parameters {
+                ... on PullRequestParameters {
+                  dismissStaleReviewsOnPush
+                  requireCodeOwnerReview
+                  requireLastPushApproval
+                  requiredApprovingReviewCount
+                  requiredReviewThreadResolution
+                }
+                ... on RequiredStatusChecksParameters {
+                  requiredStatusChecks {
+                    context
+                    integrationId
+                  }
+                  strictRequiredStatusChecksPolicy
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -107,6 +158,63 @@ type defaultBranchData struct {
 	}
 }
 
+type pullRequestRuleParameters struct {
+	DismissStaleReviewsOnPush      *bool
+	RequireCodeOwnerReview         *bool
+	RequireLastPushApproval        *bool
+	RequiredApprovingReviewCount   *int32
+	RequiredReviewThreadResolution *bool
+}
+type requiredStatusCheckParameters struct {
+	StrictRequiredStatusChecksPolicy *bool
+	RequiredStatusChecks             []statusCheck
+}
+type statusCheck struct {
+	Context       *string
+	IntegrationID *int64
+}
+type repoRule struct {
+	Type       string
+	Parameters repoRulesParameters
+}
+type repoRulesParameters struct {
+	PullRequestParameters pullRequestRuleParameters     `graphql:"... on PullRequestParameters"`
+	StatusCheckParameters requiredStatusCheckParameters `graphql:"... on RequiredStatusChecksParameters"`
+}
+type ruleSetConditionRefs struct {
+	Include []string
+	Exclude []string
+}
+type ruleSetCondition struct {
+	RefName ruleSetConditionRefs
+}
+type ruleSetBypass struct {
+	BypassMode         *string
+	OrganizationAdmin  *bool
+	RepositoryRoleName *string
+}
+type repoRuleSet struct {
+	Name         *string
+	Enforcement  *string
+	Conditions   ruleSetCondition
+	BypassActors struct {
+		Nodes []*ruleSetBypass
+	} `graphql:"bypassActors(first: 100)"`
+	Rules struct {
+		Nodes []*repoRule
+	} `graphql:"rules(first: 100)"`
+}
+type ruleSetData struct {
+	Repository struct {
+		DefaultBranchRef struct {
+			Name *string
+		}
+		Rulesets struct {
+			Nodes []*repoRuleSet
+		} `graphql:"rulesets(first: 100)"`
+	} `graphql:"repository(owner: $owner, name: $name)"`
+}
+
 type branchData struct {
 	Repository struct {
 		Ref *branch `graphql:"ref(qualifiedName: $branchRefName)"`
@@ -114,14 +222,16 @@ type branchData struct {
 }
 
 type branchesHandler struct {
-	ghClient         *github.Client
-	graphClient      *githubv4.Client
-	data             *defaultBranchData
-	once             *sync.Once
-	ctx              context.Context
-	errSetup         error
-	repourl          *repoURL
-	defaultBranchRef *clients.BranchRef
+	ghClient          *github.Client
+	graphClient       *githubv4.Client
+	data              *defaultBranchData
+	once              *sync.Once
+	ctx               context.Context
+	errSetup          error
+	repourl           *repoURL
+	defaultBranchRef  *clients.BranchRef
+	defaultBranchName string
+	ruleSets          []*repoRuleSet
 }
 
 func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
@@ -130,6 +240,8 @@ func (handler *branchesHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 	handler.defaultBranchRef = nil
+	handler.defaultBranchName = ""
+	handler.ruleSets = nil
 	handler.data = nil
 }
 
@@ -143,12 +255,31 @@ func (handler *branchesHandler) setup() error {
 			"owner": githubv4.String(handler.repourl.owner),
 			"name":  githubv4.String(handler.repourl.repo),
 		}
-		handler.data = new(defaultBranchData)
-		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
+
+		// Fetch default branch name and any repository rulesets, which are available with basic read permission.
+		rulesData := new(ruleSetData)
+		if err := handler.graphClient.Query(handler.ctx, rulesData, vars); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
-		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef)
+		handler.defaultBranchName = getDefaultBranchNameFrom(rulesData)
+		handler.ruleSets = getActiveRuleSetsFrom(rulesData)
+
+		// Attempt to fetch branch protection rules, which require admin permission.
+		// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
+		handler.data = new(defaultBranchData)
+		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil &&
+			(!isPermissionsError(err) || len(handler.ruleSets) == 0) {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
+		}
+
+		rules, err := rulesMatchingBranch(handler.ruleSets, handler.defaultBranchName, true)
+		if err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
+			return
+		}
+		handler.defaultBranchRef = getBranchRefFrom(handler.data.Repository.DefaultBranchRef, rules)
 	})
 	return handler.errSetup
 }
@@ -156,6 +287,10 @@ func (handler *branchesHandler) setup() error {
 func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	// Call setup(), so we know if branchName == handler.defaultBranchName.
+	if err := handler.setup(); err != nil {
+		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
 	}
 	vars := map[string]interface{}{
 		"owner":         githubv4.String(handler.repourl.owner),
@@ -166,7 +301,11 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	return getBranchRefFrom(queryData.Repository.Ref), nil
+	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
+	if err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
+	}
+	return getBranchRefFrom(queryData.Repository.Ref, rules), nil
 }
 
 func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
@@ -184,13 +323,31 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 	return branchRef, nil
 }
 
+// TODO: Move these two functions to below the GetBranchRefFrom functions, the single place they're used.
 func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.RequiredPullRequestReviews.DismissStaleReviews)
 	if src.RequiresStatusChecks != nil {
 		copyBoolPtr(src.RequiresStatusChecks, &dst.CheckRules.RequiresStatusChecks)
-		copyBoolPtr(src.RequiresStrictStatusChecks, &dst.CheckRules.UpToDateBeforeMerge)
+		// TODO(#3255): Update when GitHub GraphQL bug is fixed
+		// Workaround for GitHub GraphQL bug https://github.com/orgs/community/discussions/59471
+		// The setting RequiresStrictStatusChecks should tell if the branch is required
+		// to be up to date before merge, but it only returns the correct value if
+		// RequiresStatusChecks is true. If RequiresStatusChecks is false, RequiresStrictStatusChecks
+		// is wrongly retrieved as true.
+		if src.RequiresStrictStatusChecks != nil {
+			upToDateBeforeMerge := *src.RequiresStatusChecks && *src.RequiresStrictStatusChecks
+			copyBoolPtr(&upToDateBeforeMerge, &dst.CheckRules.UpToDateBeforeMerge)
+		}
+	}
+	// we always have the data to know if PRs are required
+	if dst.RequiredPullRequestReviews.Required == nil {
+		dst.RequiredPullRequestReviews.Required = asPtr(false)
+	}
+	// these values report as &false when PRs aren't required, so if they're true then PRs are required
+	if valueOrZero(src.RequireLastPushApproval) || valueOrZero(src.DismissesStaleReviews) {
+		dst.RequiredPullRequestReviews.Required = asPtr(true)
 	}
 }
 
@@ -205,6 +362,16 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
+		// we always have the data to know if PRs are required
+		if dst.RequiredPullRequestReviews.Required == nil {
+			dst.RequiredPullRequestReviews.Required = asPtr(false)
+		}
+		// GitHub returns nil for RequiredApprovingReviewCount when PRs aren't required and non-nil when they are
+		// RequiresCodeOwnerReviews is &false even if PRs aren't required, so we need it to be true
+		if v.RequiredApprovingReviewCount != nil || valueOrZero(v.RequiresCodeOwnerReviews) {
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
+		}
+
 	case *refUpdateRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
@@ -212,10 +379,34 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyInt32Ptr(v.RequiredApprovingReviewCount, &dst.RequiredPullRequestReviews.RequiredApprovingReviewCount)
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.RequiredPullRequestReviews.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
+
+		// Evaluate if we have data to infer that the project requires PRs to make changes. If we don't have data, we let
+		// Required stay nil
+		if valueOrZero(v.RequiredApprovingReviewCount) > 0 || valueOrZero(v.RequiresCodeOwnerReviews) {
+			dst.RequiredPullRequestReviews.Required = asPtr(true)
+		}
 	}
 }
 
-func getBranchRefFrom(data *branch) *clients.BranchRef {
+func getDefaultBranchNameFrom(data *ruleSetData) string {
+	if data == nil || data.Repository.DefaultBranchRef.Name == nil {
+		return ""
+	}
+	return *data.Repository.DefaultBranchRef.Name
+}
+
+func getActiveRuleSetsFrom(data *ruleSetData) []*repoRuleSet {
+	ret := make([]*repoRuleSet, 0)
+	for _, rule := range data.Repository.Rulesets.Nodes {
+		if rule.Enforcement == nil || *rule.Enforcement != "ACTIVE" {
+			continue
+		}
+		ret = append(ret, rule)
+	}
+	return ret
+}
+
+func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	if data == nil {
 		return nil
 	}
@@ -229,7 +420,8 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 	// It says nothing about what protection is enabled at all.
 	branchRef.Protected = new(bool)
 	if data.RefUpdateRule == nil &&
-		data.BranchProtectionRule == nil {
+		data.BranchProtectionRule == nil &&
+		len(rules) == 0 {
 		*branchRef.Protected = false
 		return branchRef
 	}
@@ -244,11 +436,11 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 	case data.BranchProtectionRule != nil:
 		rule := data.BranchProtectionRule
 
-		// Admin settings.
-		copyAdminSettings(rule, branchRule)
-
 		// Non-admin settings.
 		copyNonAdminSettings(rule, branchRule)
+
+		// Admin settings.
+		copyAdminSettings(rule, branchRule)
 
 	// Only non-admin settings are available.
 	// https://docs.github.com/en/graphql/reference/objects#refupdaterule.
@@ -257,5 +449,183 @@ func getBranchRefFrom(data *branch) *clients.BranchRef {
 		copyNonAdminSettings(rule, branchRule)
 	}
 
+	applyRepoRules(branchRef, rules)
+
 	return branchRef
+}
+
+func isPermissionsError(err error) bool {
+	return strings.Contains(err.Error(), "Resource not accessible")
+}
+
+const (
+	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
+	ruleConditionAllBranches   = "~ALL"
+	ruleDeletion               = "DELETION"
+	ruleForcePush              = "NON_FAST_FORWARD"
+	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
+	rulePullRequest            = "PULL_REQUEST"
+	ruleStatusCheck            = "REQUIRED_STATUS_CHECKS"
+)
+
+func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
+	refName := refPrefix + name
+	ret := make([]*repoRuleSet, 0)
+nextRule:
+	for _, rule := range rules {
+		for _, cond := range rule.Conditions.RefName.Exclude {
+			if match, err := fnmatch.Match(cond, refName); err != nil {
+				return nil, fmt.Errorf("exclude match error: %w", err)
+			} else if match {
+				continue nextRule
+			}
+		}
+
+		for _, cond := range rule.Conditions.RefName.Include {
+			if cond == ruleConditionAllBranches {
+				ret = append(ret, rule)
+				break
+			}
+			if cond == ruleConditionDefaultBranch && defaultRef {
+				ret = append(ret, rule)
+				break
+			}
+
+			if match, err := fnmatch.Match(cond, refName); err != nil {
+				return nil, fmt.Errorf("include match error: %w", err)
+			} else if match {
+				ret = append(ret, rule)
+			}
+		}
+	}
+	return ret, nil
+}
+
+func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
+	for _, r := range rules {
+		// Init values of base checkbox as if they're unchecked
+		translated := clients.BranchProtectionRule{
+			AllowDeletions:       asPtr(true),
+			AllowForcePushes:     asPtr(true),
+			RequireLinearHistory: asPtr(false),
+			RequiredPullRequestReviews: clients.PullRequestReviewRule{
+				Required: asPtr(false),
+			},
+		}
+
+		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
+
+		for _, rule := range r.Rules.Nodes {
+			switch rule.Type {
+			case ruleDeletion:
+				translated.AllowDeletions = asPtr(false)
+			case ruleForcePush:
+				translated.AllowForcePushes = asPtr(false)
+			case ruleLinear:
+				translated.RequireLinearHistory = asPtr(true)
+			case rulePullRequest:
+				translatePullRequestRepoRule(&translated, rule)
+			case ruleStatusCheck:
+				translateRequiredStatusRepoRule(&translated, rule)
+			}
+		}
+		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
+	}
+}
+
+func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
+	base.RequiredPullRequestReviews.Required = asPtr(true)
+	base.RequiredPullRequestReviews.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
+	base.RequiredPullRequestReviews.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
+	base.RequireLastPushApproval = rule.Parameters.PullRequestParameters.RequireLastPushApproval
+	base.RequiredPullRequestReviews.RequiredApprovingReviewCount = rule.Parameters.PullRequestParameters.
+		RequiredApprovingReviewCount
+}
+
+func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
+	statusParams := rule.Parameters.StatusCheckParameters
+	if len(statusParams.RequiredStatusChecks) == 0 {
+		return
+	}
+	base.CheckRules.RequiresStatusChecks = asPtr(true)
+	base.CheckRules.UpToDateBeforeMerge = statusParams.StrictRequiredStatusChecksPolicy
+	for _, chk := range statusParams.RequiredStatusChecks {
+		if chk.Context == nil {
+			continue
+		}
+		base.CheckRules.Contexts = append(base.CheckRules.Contexts, *chk.Context)
+	}
+}
+
+// Merge strategy:
+//   - if both are nil, keep it nil
+//   - if any of them is not nil, keep the most restrictive one
+func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
+	if base.AllowDeletions == nil || (translated.AllowDeletions != nil && !*translated.AllowDeletions) {
+		base.AllowDeletions = translated.AllowDeletions
+	}
+	if base.AllowForcePushes == nil || (translated.AllowForcePushes != nil && !*translated.AllowForcePushes) {
+		base.AllowForcePushes = translated.AllowForcePushes
+	}
+	if base.EnforceAdmins == nil || (translated.EnforceAdmins != nil && !*translated.EnforceAdmins) {
+		// this is an over simplification to get preliminary support for repo rules merged.
+		// A more complete approach would process all rules without bypass actors first,
+		// then process those with bypass actors. If no settings improve (due to rule layering),
+		// then we can ignore the bypass actors.
+		// https://github.com/ossf/scorecard/issues/3480
+		base.EnforceAdmins = translated.EnforceAdmins
+	}
+	if base.RequireLastPushApproval == nil || valueOrZero(translated.RequireLastPushApproval) {
+		base.RequireLastPushApproval = translated.RequireLastPushApproval
+	}
+	if base.RequireLinearHistory == nil || valueOrZero(translated.RequireLinearHistory) {
+		base.RequireLinearHistory = translated.RequireLinearHistory
+	}
+	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
+	mergePullRequestReviews(&base.RequiredPullRequestReviews, &translated.RequiredPullRequestReviews)
+}
+
+func mergeCheckRules(base, translated *clients.StatusChecksRule) {
+	if base.UpToDateBeforeMerge == nil || valueOrZero(translated.UpToDateBeforeMerge) {
+		base.UpToDateBeforeMerge = translated.UpToDateBeforeMerge
+	}
+	if base.RequiresStatusChecks == nil || valueOrZero(translated.RequiresStatusChecks) {
+		base.RequiresStatusChecks = translated.RequiresStatusChecks
+	}
+	for _, context := range translated.Contexts {
+		// this isn't optimal, but probably not a bottleneck.
+		if !slices.Contains(base.Contexts, context) {
+			base.Contexts = append(base.Contexts, context)
+		}
+	}
+}
+
+func mergePullRequestReviews(base, translated *clients.PullRequestReviewRule) {
+	if base.Required == nil || valueOrZero(translated.Required) {
+		base.Required = translated.Required
+	}
+	if base.RequiredApprovingReviewCount == nil ||
+		valueOrZero(base.RequiredApprovingReviewCount) < valueOrZero(translated.RequiredApprovingReviewCount) {
+		base.RequiredApprovingReviewCount = translated.RequiredApprovingReviewCount
+	}
+	if base.DismissStaleReviews == nil || valueOrZero(translated.DismissStaleReviews) {
+		base.DismissStaleReviews = translated.DismissStaleReviews
+	}
+	if base.RequireCodeOwnerReviews == nil || valueOrZero(translated.RequireCodeOwnerReviews) {
+		base.RequireCodeOwnerReviews = translated.RequireCodeOwnerReviews
+	}
+}
+
+// returns a pointer to the given value. Useful for constant values.
+func asPtr[T any](value T) *T {
+	return &value
+}
+
+// returns the pointer's value if it exists, the type's zero-value otherwise.
+func valueOrZero[T any](ptr *T) T {
+	if ptr == nil {
+		var zero T
+		return zero
+	}
+	return *ptr
 }

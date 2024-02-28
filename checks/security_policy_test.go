@@ -28,13 +28,12 @@ import (
 
 func TestSecurityPolicy(t *testing.T) {
 	t.Parallel()
-	//nolint
 	tests := []struct {
 		name    string
 		path    string
 		files   []string
-		wantErr bool
 		want    scut.TestReturn
+		wantErr bool
 	}{
 		{
 			name: "security.md",
@@ -62,7 +61,7 @@ func TestSecurityPolicy(t *testing.T) {
 		},
 		{
 			name: "docs/security.md",
-			path: "./testdata/securitypolicy/04_textAndDisclosureVuls",
+			path: "./testdata/securitypolicy/04_textAndDisclosureVulns",
 			files: []string{
 				"docs/security.md",
 			},
@@ -134,7 +133,7 @@ func TestSecurityPolicy(t *testing.T) {
 		},
 		{
 			name: ".github/security.adoc",
-			path: "./testdata/securitypolicy/10_linkedContentAndTextAndDisclosureVuls",
+			path: "./testdata/securitypolicy/10_linkedContentAndTextAndDisclosureVulns",
 			files: []string{
 				".github/security.adoc",
 			},
@@ -191,16 +190,14 @@ func TestSecurityPolicy(t *testing.T) {
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}
-			c := checker.CheckRequest{
+			c := &checker.CheckRequest{
 				RepoClient: mockRepo,
 				Dlogger:    &dl,
 			}
 
-			res := SecurityPolicy(&c)
+			res := SecurityPolicy(c)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl) {
-				t.Errorf("test failed: log message not present: %+v on %+v", tt.want, res)
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl)
 		})
 	}
 }

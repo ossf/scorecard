@@ -8,7 +8,6 @@ clients/githubrepo/roundtripper/tokens/server/github-auth-server
 clients/githubrepo/roundtripper/tokens/server/github-auth-server.docker
 cron/internal/data/add/add
 cron/internal/data/validate/validate
-cron/internal/data/update/projects-update
 cron/internal/controller/controller
 cron/internal/controller/controller.docker
 cron/internal/worker/worker
@@ -54,3 +53,8 @@ githubrepo.tar.gz
 
 # goreleaser
 dist/*
+
+# scdiff, ensure the files detailed in RELEASE.md aren't committed
+repos.txt
+oldRelease.json
+newRelease.json

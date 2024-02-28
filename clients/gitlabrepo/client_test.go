@@ -16,39 +16,128 @@ package gitlabrepo
 
 import (
 	"context"
+	"errors"
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"github.com/xanzy/go-gitlab"
+
+	"github.com/ossf/scorecard/v4/clients"
 )
 
-func Test_InitRepo(t *testing.T) {
+func TestCheckRepoInaccessible(t *testing.T) {
 	t.Parallel()
-	tcs := []struct {
-		name    string
-		repourl string
-		commit  string
-		depth   int
+
+	tests := []struct {
+		want error
+		repo *gitlab.Project
+		name string
 	}{
 		{
-			repourl: "https://gitlab.com/fdroid/fdroidclient",
-			commit:  "a4bbef5c70fd2ac7c15437a22ef0f9ef0b447d08",
-			depth:   20,
+			name: "if repo is enabled then it is accessible",
+			repo: &gitlab.Project{
+				RepositoryAccessLevel: gitlab.EnabledAccessControl,
+			},
+		},
+		{
+			name: "repo should not have public access in this case, but if it does it is accessible",
+			repo: &gitlab.Project{
+				RepositoryAccessLevel: gitlab.PublicAccessControl,
+			},
+		},
+		{
+			name: "if repo is disabled then is inaccessible",
+			repo: &gitlab.Project{
+				RepositoryAccessLevel: gitlab.DisabledAccessControl,
+			},
+			want: errRepoAccess,
+		},
+		{
+			name: "if repo is private then it is accessible",
+			repo: &gitlab.Project{
+				RepositoryAccessLevel: gitlab.PrivateAccessControl,
+			},
 		},
 	}
 
-	for _, tt := range tcs {
+	for _, tt := range tests {
+		tt := tt
+
 		t.Run(tt.name, func(t *testing.T) {
-			repo, err := MakeGitlabRepo(tt.repourl)
+			t.Parallel()
+
+			got := checkRepoInaccessible(tt.repo)
+			if !errors.Is(got, tt.want) {
+				t.Errorf("checkRepoInaccessible() got %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestListCommits(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		responsePath string
+		commits      []clients.Commit
+		wantErr      bool
+	}{
+		{
+			name:         "Error in ListRawCommits",
+			responsePath: "./testdata/invalid-commits",
+			commits:      []clients.Commit{},
+			wantErr:      true,
+		},
+		{
+			name:         "No commits in repo",
+			responsePath: "./testdata/empty-response",
+			commits:      []clients.Commit{},
+			wantErr:      false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			httpClient := &http.Client{
+				Transport: suffixStubTripper{
+					responsePaths: map[string]string{
+						"commits": tt.responsePath, // corresponds to projects/<id>/repository/commits
+					},
+				},
+			}
+			glclient, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
 			if err != nil {
-				t.Error("couldn't make gitlab repo", err)
+				t.Fatalf("gitlab.NewClient error: %v", err)
+			}
+			commitshandler := &commitsHandler{
+				glClient: glclient,
 			}
 
-			client, err := CreateGitlabClient(context.Background(), repo.Host())
-			if err != nil {
-				t.Error("couldn't make gitlab client", err)
+			repoURL := repoURL{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
 			}
 
-			err = client.InitRepo(repo, tt.commit, tt.depth)
-			if err != nil {
-				t.Error("couldn't init gitlab repo", err)
+			commitshandler.init(&repoURL, 30)
+
+			gqlhandler := graphqlHandler{
+				client: httpClient,
+			}
+			gqlhandler.init(context.Background(), &repoURL)
+
+			client := &Client{glClient: glclient, commits: commitshandler, graphql: &gqlhandler}
+
+			got, Err := client.ListCommits()
+
+			if (Err != nil) != tt.wantErr {
+				t.Fatalf("ListCommits, wanted Error: %v, got Error: %v", tt.wantErr, Err)
+			}
+			if !cmp.Equal(got, tt.commits) {
+				t.Errorf("ListCommits() got %v, want %v", got, tt.commits)
 			}
 		})
 	}

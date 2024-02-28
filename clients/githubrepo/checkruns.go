@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v38/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -67,7 +67,7 @@ type checkRunsGraphqlData struct {
 
 type checkRunsByRef = map[string][]clients.CheckRun
 
-// nolint: govet
+//nolint:govet
 type checkrunsHandler struct {
 	client         *github.Client
 	graphClient    *githubv4.Client

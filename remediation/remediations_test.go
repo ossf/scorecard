@@ -66,7 +66,6 @@ func (s stubDigester) Digest(name string) (string, error) {
 	}
 	hash, ok := m[name]
 	if !ok {
-		//nolint:goerr113
 		return "", fmt.Errorf("no hash for image: %q", name)
 	}
 	return fmt.Sprintf("sha256:%s", hash), nil
@@ -75,14 +74,13 @@ func (s stubDigester) Digest(name string) (string, error) {
 func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	//nolint:govet,lll
 	tests := []struct {
-		name     string
-		dep      checker.Dependency
 		expected *rule.Remediation
+		dep      checker.Dependency
+		name     string
 	}{
 		{
-			name:     "no depdendency",
+			name:     "no dependency",
 			dep:      checker.Dependency{},
 			expected: nil,
 		},
@@ -144,12 +142,12 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 func TestCreateWorkflowPinningRemediation(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct { //nolint:govet
+	tests := []struct {
+		expected *rule.Remediation
 		name     string
 		branch   string
 		repo     string
 		filepath string
-		expected *rule.Remediation
 	}{
 		{
 			name:     "valid input",

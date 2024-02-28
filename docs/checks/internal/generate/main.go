@@ -23,7 +23,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		//nolint: goerr113
+		//nolint:goerr113
 		panic(fmt.Errorf("usage: %s filename", os.Args[0]))
 	}
 	yamlFile := os.Args[1]
