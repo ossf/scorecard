@@ -33,41 +33,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Branch name is an empty string which is not allowed and will error",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -76,41 +46,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Error: sce.ErrScorecardInternal,
@@ -120,41 +60,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Required status check enabled",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -163,41 +73,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        4,
@@ -208,41 +88,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Required status check enabled without checking for status string",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -251,41 +101,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        4,
@@ -296,41 +116,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Admin run only preventing force pushes and deletions",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNotAvailable),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNotAvailable,
@@ -339,41 +129,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNegative),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomeNegative),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         3,
@@ -385,41 +145,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Admin run with all tier 2 requirements except require PRs and reviewers",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNotAvailable),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNotAvailable,
@@ -428,41 +158,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomePositive),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
 				Score:         4,
@@ -474,41 +174,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Admin run on project requiring pull requests but without approver -- best a single maintainer can do",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomePositive),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -517,41 +187,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomePositive),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomePositive),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        4,
@@ -562,41 +202,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Admin run on project with all tier 2 requirements",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomePositive,
@@ -605,41 +215,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "1",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomePositive),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomeNegative),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        6,
@@ -650,41 +230,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Non-admin run on project that require zero reviewer (or don't require PRs at all, we can't differentiate it)",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNotAvailable),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNotAvailable),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNotAvailable,
@@ -693,41 +243,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNotAvailable),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomeNotAvailable),
 			},
 			result: scut.TestReturn{
 				Score:         3,
@@ -739,41 +259,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Non-admin run on project that require 1 reviewer",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNotAvailable),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNotAvailable),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomePositive,
@@ -782,41 +272,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "1",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomeNotAvailable,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNotAvailable),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomeNotAvailable),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:         6,
@@ -828,41 +288,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Required admin enforcement enabled",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -871,41 +301,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNegative),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        3,
@@ -916,41 +316,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Required linear history enabled",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -959,41 +329,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNegative),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        3,
@@ -1004,41 +344,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Allow force push enabled",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomeNegative),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -1047,41 +357,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNegative),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        1,
@@ -1092,41 +372,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Allow deletions enabled",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomeNegative),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomeNegative),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomeNegative),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomeNegative,
@@ -1135,41 +385,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "0",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomeNegative,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomeNegative),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomeNegative),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomeNegative),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        1,
@@ -1180,41 +400,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Branches are protected",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomePositive),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomePositive,
@@ -1223,41 +413,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "1",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomePositive),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomePositive),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        8,
@@ -1268,41 +428,11 @@ func TestBranchProtection(t *testing.T) {
 		{
 			name: "Branches are protected and require codeowner review",
 			findings: []finding.Finding{
-				{
-					Probe:   "blocksDeleteOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "blocksForcePushOnBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchesAreProtected",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "branchProtectionAppliesToAdmins",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "dismissesStaleReviews",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("blocksDeleteOnBranches", "main", finding.OutcomePositive),
+				branchFinding("blocksForcePushOnBranches", "main", finding.OutcomePositive),
+				branchFinding("branchesAreProtected", "main", finding.OutcomePositive),
+				branchFinding("branchProtectionAppliesToAdmins", "main", finding.OutcomePositive),
+				branchFinding("dismissesStaleReviews", "main", finding.OutcomePositive),
 				{
 					Probe:   "requiresApproversForPullRequests",
 					Outcome: finding.OutcomePositive,
@@ -1311,41 +441,11 @@ func TestBranchProtection(t *testing.T) {
 						"numberOfRequiredReviewers": "1",
 					},
 				},
-				{
-					Probe:   "requiresCodeOwnersReview",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresLastPushApproval",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresUpToDateBranches",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "runsStatusChecksBeforeMerging",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
-				{
-					Probe:   "requiresPRsToChangeCode",
-					Outcome: finding.OutcomePositive,
-					Values: map[string]string{
-						"branchName": "main",
-					},
-				},
+				branchFinding("requiresCodeOwnersReview", "main", finding.OutcomePositive),
+				branchFinding("requiresLastPushApproval", "main", finding.OutcomePositive),
+				branchFinding("requiresUpToDateBranches", "main", finding.OutcomePositive),
+				branchFinding("runsStatusChecksBeforeMerging", "main", finding.OutcomePositive),
+				branchFinding("requiresPRsToChangeCode", "main", finding.OutcomePositive),
 			},
 			result: scut.TestReturn{
 				Score:        8,
