@@ -196,7 +196,7 @@ func (r *ScorecardResult) AsString(showDetails bool,
 		}
 		x = append(x, doc)
 		if showMaintainersAnnotation {
-			_, reasons := ma.IsCheckExempted(row, r.MaintainersAnnotation)
+			_, reasons := r.MaintainersAnnotation.IsCheckExempted(row)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
 		data[i] = x
