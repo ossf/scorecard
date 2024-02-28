@@ -173,15 +173,15 @@ func (ma *MaintainersAnnotation) IsCheckExempted(check checker.CheckResult) (boo
 	for _, exemption := range ma.Exemptions {
 		for _, checkName := range exemption.Checks {
 			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
-				return true, GetAnnotations(exemption.Annotations)
+				return true, getAnnotations(exemption.Annotations)
 			}
 		}
 	}
 	return false, nil
 }
 
-// GetAnnotations parses a group of annotations into annotation reasons.
-func GetAnnotations(a []Annotation) []string {
+// getAnnotations parses a group of annotations into annotation reasons.
+func getAnnotations(a []Annotation) []string {
 	var annotationReasons []string
 	for _, annotation := range a {
 		annotationReasons = append(annotationReasons, AnnotationReasonDoc[annotation.AnnotationReason])
