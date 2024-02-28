@@ -615,7 +615,7 @@ func toolName(opts *options.Options) string {
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
 func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
-	opts *options.Options, maintainersAnnotation ma.MaintainersAnnotation,
+	opts *options.Options,
 ) error {
 	//nolint:lll
 	// https://docs.oasis-open.org/sarif/sarif/v2.1.0/cs01/sarif-v2.1.0-cs01.html.
@@ -629,7 +629,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		check := check
 
 		// If check is exempted, skip
-		exempted, _ := ma.IsCheckExempted(check, maintainersAnnotation)
+		exempted, _ := ma.IsCheckExempted(check, r.MaintainersAnnotation)
 		if exempted {
 			continue
 		}
