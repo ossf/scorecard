@@ -54,6 +54,9 @@ const (
 	// FlagShowDetails is the flag name for outputting additional check info.
 	FlagShowDetails = "show-details"
 
+	// FlagShowMaintainersAnnotation is the flag name for outputting maintainers annotations on checks.
+	FlagShowMaintainersAnnotation = "show-ma"
+
 	// FlagChecks is the flag name for specifying which checks to run.
 	FlagChecks = "checks"
 
@@ -150,6 +153,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagShowDetails,
 		o.ShowDetails,
 		"show extra details about each check",
+	)
+
+	cmd.Flags().BoolVar(
+		&o.ShowMaintainersAnnotation,
+		FlagShowMaintainersAnnotation,
+		o.ShowMaintainersAnnotation,
+		"show maintainers annotations for checks",
 	)
 
 	cmd.Flags().IntVar(
