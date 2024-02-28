@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -132,7 +133,7 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
+		err = results.AsString(opts.ShowDetails, opts.ShowMaintainersAnnotation, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
@@ -163,27 +164,20 @@ func FormatResults(
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
+func (r *ScorecardResult) AsString(showDetails bool,
+	showMaintainersAnnotation bool, logLevel log.Level,
 	checkDocs docChecks.Doc, writer io.Writer,
 ) error {
 	data := make([][]string, len(r.Checks))
 
 	for i, row := range r.Checks {
-		const withdetails = 5
-		const withoutdetails = 4
 		var x []string
-
-		if showDetails {
-			x = make([]string, withdetails)
-		} else {
-			x = make([]string, withoutdetails)
-		}
 
 		// UPGRADEv2: rename variable.
 		if row.Score == checker.InconclusiveResultScore {
-			x[0] = "?"
+			x = append(x, "?")
 		} else {
-			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
+			x = append(x, fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore))
 		}
 
 		cdoc, e := checkDocs.GetCheck(row.Name)
@@ -192,18 +186,19 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 		}
 
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
-		x[1] = row.Name
-		x[2] = row.Reason
+		x = append(x, row.Name)
+		x = append(x, row.Reason)
 		if showDetails {
 			details, show := detailsToString(row.Details, logLevel)
 			if show {
-				x[3] = details
+				x = append(x, details)
 			}
-			x[4] = doc
-		} else {
-			x[3] = doc
 		}
-
+		x = append(x, doc)
+		if showMaintainersAnnotation {
+			_, reasons := ma.IsCheckExempted(row, r.MaintainersAnnotation)
+			x = append(x, strings.Join(reasons, "\n"))
+		}
 		data[i] = x
 	}
 
@@ -224,6 +219,9 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 		header = append(header, "Details")
 	}
 	header = append(header, "Documentation/Remediation")
+	if showMaintainersAnnotation {
+		header = append(header, "Maintainers Annotation")
+	}
 	table.SetHeader(header)
 	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
 	table.SetRowSeparator("-")
