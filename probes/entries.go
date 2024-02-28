@@ -19,9 +19,14 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
+	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
+	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
 	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
@@ -50,6 +55,12 @@ import (
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
+	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
+	"github.com/ossf/scorecard/v4/probes/requiresLastPushApproval"
+	"github.com/ossf/scorecard/v4/probes/requiresPRsToChangeCode"
+	"github.com/ossf/scorecard/v4/probes/requiresUpToDateBranches"
+	"github.com/ossf/scorecard/v4/probes/runsStatusChecksBeforeMerging"
 	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
@@ -146,6 +157,19 @@ var (
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
+	}
+	BranchProtection = []ProbeImpl{
+		blocksDeleteOnBranches.Run,
+		blocksForcePushOnBranches.Run,
+		branchesAreProtected.Run,
+		branchProtectionAppliesToAdmins.Run,
+		dismissesStaleReviews.Run,
+		requiresApproversForPullRequests.Run,
+		requiresCodeOwnersReview.Run,
+		requiresLastPushApproval.Run,
+		requiresUpToDateBranches.Run,
+		runsStatusChecksBeforeMerging.Run,
+		requiresPRsToChangeCode.Run,
 	}
 	PinnedDependencies = []ProbeImpl{
 		pinsDependencies.Run,
