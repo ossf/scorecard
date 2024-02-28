@@ -163,6 +163,13 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 
 // IsCheckExempted verifies if a given check in the results is exempted in maintainers annotation.
 func IsCheckExempted(check checker.CheckResult, ma MaintainersAnnotation) (bool, []string) {
+	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
+	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
+	// or on the maintainers side
+	if check.Score == checker.MaxResultScore {
+		return false, nil
+	}
+
 	for _, exemption := range ma.Exemptions {
 		for _, checkName := range exemption.Checks {
 			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
