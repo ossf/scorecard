@@ -43,7 +43,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/jobLevelWritePermissions"
+	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
@@ -66,7 +66,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
-	"github.com/ossf/scorecard/v4/probes/topLevelWritePermissions"
+	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
@@ -164,8 +164,8 @@ var (
 		hasGitHubWorkflowPermissionRead.Run,
 		hasGitHubWorkflowPermissionUndeclared.Run,
 		hasNoGitHubWorkflowPermissionWriteAllJob.Run,
-		jobLevelWritePermissions.Run,
-		topLevelWritePermissions.Run,
+		jobLevelPermissions.Run,
+		topLevelPermissions.Run,
 	}
 
 	// Probes which aren't included by any checks.

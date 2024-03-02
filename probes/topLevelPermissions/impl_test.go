@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package topLevelWritePermissions
+package topLevelPermissions
 
 import (
 	"testing"

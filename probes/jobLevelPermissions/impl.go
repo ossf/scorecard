@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package jobLevelWritePermissions
+package jobLevelPermissions
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "jobLevelWritePermissions"
+const Probe = "jobLevelPermissions"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -53,13 +53,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if r.Name == nil {
 			continue
 		}
-		// We treat 'all' as a special case in a separate probe
-		if *r.Name == "all" {
-			continue
-		}
-		if r.Type != checker.PermissionLevelWrite {
-			continue
-		}
 		if *r.LocationType != checker.PermissionLocationJob {
 			continue
 		}
@@ -69,6 +62,12 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		if r.Type == checker.PermissionLevelWrite {
+			f = f.WithValue("level", "write")
+		} else if r.Type == checker.PermissionLevelWrite {
+			f = f.WithValue("level", "read")
+		}
+		f = f.WithValue("tokenName", *r.Name)
 		findings = append(findings, *f)
 	}
 

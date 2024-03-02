@@ -26,8 +26,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllJob"
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllTop"
-	"github.com/ossf/scorecard/v4/probes/jobLevelWritePermissions"
-	"github.com/ossf/scorecard/v4/probes/topLevelWritePermissions"
+	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
+	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 )
 
 // TokenPermissions applies the score policy for the Token-Permissions check.
@@ -42,8 +42,8 @@ func TokenPermissions(name string,
 		hasGitHubWorkflowPermissionRead.Probe,
 		hasGitHubWorkflowPermissionUndeclared.Probe,
 		hasNoGitHubWorkflowPermissionWriteAllJob.Probe,
-		jobLevelWritePermissions.Probe,
-		topLevelWritePermissions.Probe,
+		jobLevelPermissions.Probe,
+		topLevelPermissions.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -132,11 +132,13 @@ func TokenPermissions(name string,
 			if undeclaredPermissions["topLevel"][fPath] {
 				score -= 0.5
 			}
-		case jobLevelWritePermissions.Probe:
-			dl.Warn(&checker.LogMessage{
-				Finding: f,
-			})
-			hasWritePermissions["jobLevel"][fPath] = true
+		case jobLevelPermissions.Probe:
+			if f.Values["level"] == "write" {
+				dl.Warn(&checker.LogMessage{
+					Finding: f,
+				})
+				hasWritePermissions["jobLevel"][fPath] = true
+			}
 		default:
 			score = logAndReduceScore(f, dl, score)
 		}
@@ -261,8 +263,10 @@ func logAndReduceScore(f *finding.Finding, dl checker.DetailLogger, score float3
 		dl.Debug(&checker.LogMessage{
 			Finding: f,
 		})
-	case topLevelWritePermissions.Probe:
-		score -= reduceBy(f, dl)
+	case topLevelPermissions.Probe:
+		if f.Values["level"] == "write" {
+			score -= reduceBy(f, dl)
+		}
 	}
 	return score
 }

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package jobLevelWritePermissions
+package jobLevelPermissions
 
 import (
 	"testing"
