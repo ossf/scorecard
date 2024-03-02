@@ -157,6 +157,7 @@ var (
 	}
 	PinnedDependencies = []ProbeImpl{
 		pinsDependencies.Run,
+	}
 	TokenPermissions = []ProbeImpl{
 		hasNoGitHubWorkflowPermissionWriteAllTop.Run,
 		hasGitHubWorkflowPermissionUnknown.Run,
