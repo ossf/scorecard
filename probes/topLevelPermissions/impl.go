@@ -50,10 +50,20 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, r := range results.TokenPermissions {
-		if r.Name == nil {
+		if r.Name == nil && r.Value == nil {
 			continue
 		}
 		if *r.LocationType != checker.PermissionLocationTop {
+			continue
+		}
+
+		tokenName := ""
+		switch {
+		case r.Value != nil && *r.Value == "write-all":
+			tokenName = *r.Value
+		case r.Name != nil:
+			tokenName = *r.Name
+		default:
 			continue
 		}
 
@@ -62,12 +72,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f = f.WithValue("permissionLocation", string(checker.PermissionLocationTop))
+
 		if r.Type == checker.PermissionLevelWrite {
-			f = f.WithValue("level", "write")
-		} else if r.Type == checker.PermissionLevelWrite {
-			f = f.WithValue("level", "read")
+			f = f.WithValue("permissionLevel", "write")
+		} else if r.Type == checker.PermissionLevelRead {
+			f = f.WithValue("permissionLevel", "read")
 		}
-		f = f.WithValue("tokenName", *r.Name)
+		f = f.WithValue("tokenName", tokenName)
 		findings = append(findings, *f)
 	}
 

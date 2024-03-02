@@ -24,8 +24,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionRead"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllTop"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 )
@@ -36,12 +34,10 @@ func TokenPermissions(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasNoGitHubWorkflowPermissionWriteAllTop.Probe,
 		hasGitHubWorkflowPermissionUnknown.Probe,
 		hasGitHubWorkflowPermissionNone.Probe,
 		hasGitHubWorkflowPermissionRead.Probe,
 		hasGitHubWorkflowPermissionUndeclared.Probe,
-		hasNoGitHubWorkflowPermissionWriteAllJob.Probe,
 		jobLevelPermissions.Probe,
 		topLevelPermissions.Probe,
 	}
@@ -107,37 +103,43 @@ func TokenPermissions(name string,
 		case hasGitHubWorkflowPermissionUndeclared.Probe:
 			score = updateScoreAndMapFromUndeclared(undeclaredPermissions,
 				hasWritePermissions, f, score, dl)
-		case hasNoGitHubWorkflowPermissionWriteAllTop.Probe:
-			// If no top level permissions are defined, all the permissions
-			// are enabled by default.
-			dl.Warn(&checker.LogMessage{
-				Finding: f,
-			})
+		case topLevelPermissions.Probe:
+			if f.Values["permissionLevel"] != "write" {
+				continue
+			}
 			hasWritePermissions["topLevel"][fPath] = true
 
-			if hasWritePermissions["jobLevel"][fPath] ||
-				undeclaredPermissions["jobLevel"][fPath] {
-				return checker.CreateMinScoreResult(name, "detected GitHub workflow tokens with excessive permissions")
+			// "all" is evaluated separately
+			if f.Values["tokenName"] == "all" || f.Values["tokenName"] == "write-all" {
+				dl.Warn(&checker.LogMessage{
+					Finding: f,
+				})
+				if hasWritePermissions["jobLevel"][fPath] ||
+					undeclaredPermissions["jobLevel"][fPath] {
+					return checker.CreateMinScoreResult(name, "detected GitHub workflow tokens with excessive permissions")
+				}
+				score -= 0.5
+			} else if f.Values["permissionLevel"] == "write" {
+				score -= reduceBy(f, dl)
 			}
-			score -= 0.5
-		case hasNoGitHubWorkflowPermissionWriteAllJob.Probe:
+		case jobLevelPermissions.Probe:
+			if f.Values["permissionLevel"] != "write" {
+				continue
+			}
+
 			dl.Warn(&checker.LogMessage{
 				Finding: f,
 			})
 			hasWritePermissions["jobLevel"][fPath] = true
+
+			// If project has "all" writepermissions too at top level:
 			if hasWritePermissions["topLevel"][fPath] {
 				score = checker.MinResultScore
 				break
 			}
+			// If project has not declared permissions at top level::
 			if undeclaredPermissions["topLevel"][fPath] {
 				score -= 0.5
-			}
-		case jobLevelPermissions.Probe:
-			if f.Values["level"] == "write" {
-				dl.Warn(&checker.LogMessage{
-					Finding: f,
-				})
-				hasWritePermissions["jobLevel"][fPath] = true
 			}
 		default:
 			score = logAndReduceScore(f, dl, score)
@@ -237,6 +239,7 @@ func updateScoreAndMapFromUndeclared(undeclaredPermissions map[string]map[string
 			fPath,
 			score)
 	}
+
 	return score
 }
 
@@ -258,15 +261,10 @@ func addProbeToMaps(fPath string, hasWritePermissions, undeclaredPermissions map
 // Some probes with negative outcomes triggers logging and simple reduce in score.
 // logAndReduceScore represents these cases.
 func logAndReduceScore(f *finding.Finding, dl checker.DetailLogger, score float32) float32 {
-	switch f.Probe {
-	case hasGitHubWorkflowPermissionUnknown.Probe:
+	if f.Probe == hasGitHubWorkflowPermissionUnknown.Probe {
 		dl.Debug(&checker.LogMessage{
 			Finding: f,
 		})
-	case topLevelPermissions.Probe:
-		if f.Values["level"] == "write" {
-			score -= reduceBy(f, dl)
-		}
 	}
 	return score
 }

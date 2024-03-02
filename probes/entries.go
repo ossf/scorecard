@@ -37,8 +37,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllJob"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionWriteAllTop"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
@@ -159,12 +157,11 @@ var (
 		pinsDependencies.Run,
 	}
 	TokenPermissions = []ProbeImpl{
-		hasNoGitHubWorkflowPermissionWriteAllTop.Run,
 		hasGitHubWorkflowPermissionUnknown.Run,
 		hasGitHubWorkflowPermissionNone.Run,
 		hasGitHubWorkflowPermissionRead.Run,
 		hasGitHubWorkflowPermissionUndeclared.Run,
-		hasNoGitHubWorkflowPermissionWriteAllJob.Run,
+
 		jobLevelPermissions.Run,
 		topLevelPermissions.Run,
 	}
