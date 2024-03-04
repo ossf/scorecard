@@ -340,6 +340,7 @@ type ArchivedStatus struct {
 // File represents a file.
 type File struct {
 	Path      string
+	LocalPath string
 	Snippet   string           // Snippet of code
 	Offset    uint             // Offset in the file of Path (line for source/text files).
 	EndOffset uint             // End of offset in the file, e.g. if the command spans multiple lines.

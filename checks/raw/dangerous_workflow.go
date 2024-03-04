@@ -68,10 +68,14 @@ var (
 func DangerousWorkflow(c *checker.CheckRequest) (checker.DangerousWorkflowData, error) {
 	// data is shared across all GitHub workflows.
 	var data checker.DangerousWorkflowData
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	localPath, err := c.RepoClient.LocalPath()
+	if err != nil {
+		return checker.DangerousWorkflowData{}, fmt.Errorf("RepoClient.LocalPath: %w", err)
+	}
+	err = fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubActionWorkflowPatterns, &data)
+	}, validateGitHubActionWorkflowPatterns, &data, localPath)
 
 	return data, err
 }
@@ -85,22 +89,27 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflowPatterns requires exactly 2 arguments: %w", errInvalidArgLength)
+			"validateGitHubActionWorkflowPatterns requires exactly 4 arguments: %w", errInvalidArgLength)
 	}
 
 	// Verify the type of the data.
 	pdata, ok := args[0].(*checker.DangerousWorkflowData)
 	if !ok {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflowPatterns expects arg[0] of type *patternCbData: %w", errInvalidArgType)
+			"validateGitHubActionWorkflowPatterns expects arg[0] of type *DangerousWorkflowData: %w", errInvalidArgType)
+	}
+
+	localPath, ok := args[1].(string)
+	if !ok {
+		return false, fmt.Errorf(
+			"validateGitHubActionWorkflowPatterns expects args[1] of type string: %w", errInvalidArgType)
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
-
 	pdata.NumWorkflows += 1
 
 	workflow, errs := actionlint.Parse(content)
@@ -114,7 +123,7 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 	}
 
 	// 2. Check for script injection in workflow inline scripts.
-	if err := validateScriptInjection(workflow, path, pdata); err != nil {
+	if err := validateScriptInjection(workflow, path, localPath, pdata); err != nil {
 		return false, err
 	}
 
@@ -210,7 +219,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	return nil
 }
 
-func validateScriptInjection(workflow *actionlint.Workflow, path string,
+func validateScriptInjection(workflow *actionlint.Workflow, path string, localPath string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for _, job := range workflow.Jobs {
@@ -226,7 +235,7 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 				continue
 			}
 			// Check Run *String for user-controllable (untrustworthy) properties.
-			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, job, path, pdata); err != nil {
+			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, job, path, localPath, pdata); err != nil {
 				return err
 			}
 		}
@@ -235,7 +244,7 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 }
 
 func checkVariablesInScript(script string, pos *actionlint.Pos,
-	job *actionlint.Job, path string,
+	job *actionlint.Job, path string, localPath string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for {
@@ -256,10 +265,11 @@ func checkVariablesInScript(script string, pos *actionlint.Pos,
 			pdata.Workflows = append(pdata.Workflows,
 				checker.DangerousWorkflow{
 					File: checker.File{
-						Path:    path,
-						Type:    finding.FileTypeSource,
-						Offset:  line,
-						Snippet: variable,
+						Path:      path,
+						LocalPath: localPath,
+						Type:      finding.FileTypeSource,
+						Offset:    line,
+						Snippet:   variable,
 					},
 					Job:  createJob(job),
 					Type: checker.DangerousWorkflowScriptInjection,

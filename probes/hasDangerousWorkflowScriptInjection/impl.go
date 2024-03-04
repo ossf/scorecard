@@ -18,9 +18,12 @@ package hasDangerousWorkflowScriptInjection
 import (
 	"embed"
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection/patch"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
@@ -47,6 +50,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
+	contents := make(map[string][]byte)
 	for _, e := range r.Workflows {
 		e := e
 		if e.Type == checker.DangerousWorkflowScriptInjection {
@@ -62,10 +66,18 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineStart: &e.File.Offset,
 				Snippet:   &e.File.Snippet,
 			})
+
+			wp := path.Join(e.File.LocalPath, e.File.Path)
+			if ok := contents[wp]; ok == nil {
+				contents[wp], _ = os.ReadFile(wp)
+			}
+			if contents[wp] != nil {
+				patch := patch.GeneratePatch(e.File, contents[wp])
+				f.WithPatch(&patch)
+			}
 			findings = append(findings, *f)
 		}
 	}
-
 	if len(findings) == 0 {
 		return positiveOutcome()
 	}
