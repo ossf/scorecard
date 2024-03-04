@@ -175,7 +175,7 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			}
 		}
 		if showMaintainersAnnotation {
-			exempted, reasons := r.MaintainersAnnotation.IsCheckExempted(checkResult)
+			exempted, reasons := checkResult.IsExempted(r.MaintainersAnnotation)
 			if exempted {
 				tmpResult.MaintainersAnnotation = reasons
 			}
