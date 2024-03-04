@@ -17,6 +17,7 @@ package maintainers_annotation
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
@@ -94,6 +95,9 @@ func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotat
 	// Find scorecard.yml file in the repository's root
 	content, err := repoClient.GetFileContent("scorecard.yml")
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return ma, errNoScorecardYmlFile
+		}
 		return ma, fmt.Errorf("%w", err)
 	}
 
