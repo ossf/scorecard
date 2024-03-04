@@ -54,7 +54,7 @@ jobs:
         echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 #v4.0.0
+       uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 #v4.0.1
        with:
          path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
@@ -68,7 +68,7 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 3.1.6
+       uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # 4.1.0
        with:
          files: ./unit-coverage.out
          verbose: true
@@ -83,7 +83,7 @@ jobs:
           timeout_minutes: 30
           command: make e2e-pat
      - name: codecov
-       uses: codecov/codecov-action@ab904c41d6ece82784817410c45d8b8c02684457 # 2.1.0
+       uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab # 2.1.0
        if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
@@ -106,7 +106,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+       uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
        with:
          path: |
            ~/go/pkg/mod
@@ -226,7 +226,7 @@ jobs:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+       uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
        with:
          path: |
            ~/go/pkg/mod
@@ -266,7 +266,7 @@ jobs:
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4.0.0
+       uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
        with:
          path: |
            ~/go/pkg/mod
