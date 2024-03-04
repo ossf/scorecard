@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
@@ -91,47 +90,16 @@ func parseScorecardYmlFile(ma *MaintainersAnnotation, content []byte) error {
 	return nil
 }
 
-// validateAndParseScorecardYmlFile takes the scorecard.yml files found, validates if its the correct
-// configuration file and parse its configurations.
-func validateAndParseScorecardYmlFile(path string, content []byte, args ...interface{}) (bool, error) {
-	// Verify if received the necessary parameters to save the scorecard YML configurations
-	if len(args) != 1 {
-		return false, fmt.Errorf(
-			"validateAndParseScorecardYmlFile requires exactly one argument to save maintainers annotation data")
-	}
-	ma, ok := args[0].(*MaintainersAnnotation)
-	if !ok {
-		return false, fmt.Errorf(
-			"validateAndParseScorecardYmlFile requires argument of type *MaintainersAnnotation")
-	}
-
-	// Exclude scorecard GitHub Action file
-	if strings.Contains(path, ".github") {
-		return true, nil
-	}
-
-	// Keep looking for files if content is empty
-	if len(content) == 0 {
-		return true, nil
-	}
-
-	// Found scorecard.yml file, parse file
-	err := parseScorecardYmlFile(ma, content)
-	if err != nil {
-		return false, err
-	}
-
-	return false, nil
-}
-
 // readScorecardYmlFromRepo reads the scorecard.yml file from the repo and returns its configurations.
 func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
 	ma := MaintainersAnnotation{}
-	err := fileparser.OnMatchingFileContentDo(repoClient, fileparser.PathMatcher{
-		Pattern:       "scorecard.yml",
-		CaseSensitive: false,
-	}, validateAndParseScorecardYmlFile, &ma)
+	// Find scorecard.yml file in the repository's root
+	content, err := repoClient.GetFileContent("scorecard.yml")
+	if err != nil {
+		return ma, fmt.Errorf("%w", err)
+	}
 
+	err = parseScorecardYmlFile(&ma, content)
 	if err != nil {
 		return ma, fmt.Errorf("%w", err)
 	}
