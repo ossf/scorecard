@@ -155,12 +155,14 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"show extra details about each check",
 	)
 
-	cmd.Flags().BoolVar(
-		&o.ShowMaintainersAnnotation,
-		FlagShowMaintainersAnnotation,
-		o.ShowMaintainersAnnotation,
-		"show maintainers annotations for checks",
-	)
+	if o.isExperimentalEnabled() {
+		cmd.Flags().BoolVar(
+			&o.ShowMaintainersAnnotation,
+			FlagShowMaintainersAnnotation,
+			o.ShowMaintainersAnnotation,
+			"show maintainers annotations for checks",
+		)
+	}
 
 	cmd.Flags().IntVar(
 		&o.CommitDepth,
