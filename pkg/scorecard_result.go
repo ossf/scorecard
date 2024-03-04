@@ -117,7 +117,6 @@ func FormatResults(
 	results *ScorecardResult,
 	doc docChecks.Doc,
 	policy *spol.ScorecardPolicy,
-	maintainersAnnotation ma.MaintainersAnnotation,
 ) error {
 	var err error
 

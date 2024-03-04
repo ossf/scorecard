@@ -167,7 +167,6 @@ func rootCmd(o *options.Options) error {
 		&repoResult,
 		checkDocs,
 		pol,
-		repoResult.MaintainersAnnotation,
 	)
 	if resultsErr != nil {
 		return fmt.Errorf("failed to format results: %w", resultsErr)
