@@ -17,6 +17,7 @@ package localdir
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -189,12 +190,18 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 
 			// Test GetFileContent API.
 			for _, getcontenttest := range testcase.getcontentTests {
-				content, err := getFileContent(testcase.inputFolder, getcontenttest.filename)
+				f, err := getFile(testcase.inputFolder, getcontenttest.filename)
 				if getcontenttest.err != nil && !errors.Is(err, getcontenttest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", getcontenttest.err, err)
 				}
-				if getcontenttest.err == nil && !cmp.Equal(getcontenttest.output, content) {
-					t.Errorf("test failed: expected - %s, got - %s", string(getcontenttest.output), string(content))
+				if err == nil {
+					content, err := io.ReadAll(f)
+					if err != nil {
+						t.Fatalf("unexpected error: %v", err)
+					}
+					if !cmp.Equal(getcontenttest.output, content) {
+						t.Errorf("test failed: expected - %s, got - %s", string(getcontenttest.output), string(content))
+					}
 				}
 			}
 		})
