@@ -19,9 +19,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/rule"
 )
 
@@ -261,4 +263,23 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 			})
 		}
 	}
+}
+
+// IsExempted verifies if a given check in the results is exempted in maintainers annotation.
+func (check *CheckResult) IsExempted(maintainersAnnotation ma.MaintainersAnnotation) (bool, []string) {
+	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
+	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
+	// or on the maintainers side
+	if check.Score == MaxResultScore {
+		return false, nil
+	}
+
+	for _, exemption := range maintainersAnnotation.Exemptions {
+		for _, checkName := range exemption.Checks {
+			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
+				return true, ma.GetAnnotations(exemption.Annotations)
+			}
+		}
+	}
+	return false, nil
 }

@@ -17,9 +17,7 @@ package maintainers_annotation
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
@@ -129,27 +127,8 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 	return ma, nil
 }
 
-// IsCheckExempted verifies if a given check in the results is exempted in maintainers annotation.
-func (ma *MaintainersAnnotation) IsCheckExempted(check checker.CheckResult) (bool, []string) {
-	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
-	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
-	// or on the maintainers side
-	if check.Score == checker.MaxResultScore {
-		return false, nil
-	}
-
-	for _, exemption := range ma.Exemptions {
-		for _, checkName := range exemption.Checks {
-			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
-				return true, getAnnotations(exemption.Annotations)
-			}
-		}
-	}
-	return false, nil
-}
-
 // getAnnotations parses a group of annotations into annotation reasons.
-func getAnnotations(a []Annotation) []string {
+func GetAnnotations(a []Annotation) []string {
 	var annotationReasons []string
 	for _, annotation := range a {
 		annotationReasons = append(annotationReasons, AnnotationReasonDoc[annotation.AnnotationReason])
