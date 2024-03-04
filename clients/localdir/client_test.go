@@ -120,6 +120,7 @@ func isSortedString(x, y string) bool {
 	return x < y
 }
 
+//nolint:gocognit
 func TestClient_GetFileListAndContent(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
