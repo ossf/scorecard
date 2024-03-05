@@ -118,7 +118,7 @@ func TokenPermissions(name string,
 					return checker.CreateMinScoreResult(name, "detected GitHub workflow tokens with excessive permissions")
 				}
 				score -= 0.5
-			} else if f.Values["permissionLevel"] == "write" {
+			} else {
 				score -= reduceBy(f, dl)
 			}
 		case jobLevelPermissions.Probe:
