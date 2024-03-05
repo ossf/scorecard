@@ -51,15 +51,6 @@ const (
 	NotDetected Reason = "not-detected"
 )
 
-// AnnotationReasonDoc maps the reasons to their human-readable explanations.
-var AnnotationReasonDoc = map[Reason]string{
-	TestData:      "The files or code snippets are only used for test or example purposes.",
-	Remediated:    "The dangerous files or code snippets are necessary but remediations were already applied.",
-	NotApplicable: "The check or probe is not applicable in this case.",
-	NotSupported:  "The check or probe is fulfilled but in a way that is not supported by Scorecard.",
-	NotDetected:   "The check or probe is fulfilled but in a way that is supported by Scorecard but it was not detected.",
-}
-
 // Annotation groups the annotation reason and, in the future, the related probe.
 // If there is a probe, the reason applies to the probe.
 // If there is not a probe, the reason applies to the check or group of checks in
@@ -135,7 +126,25 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 func GetAnnotations(a []Annotation) []string {
 	var reasons []string
 	for _, annotation := range a {
-		reasons = append(reasons, AnnotationReasonDoc[annotation.Reason])
+		reasons = append(reasons, annotation.Reason.Doc())
 	}
 	return reasons
+}
+
+// Doc maps a reason to its human-readable explanation.
+func (r *Reason) Doc() string {
+	switch *r {
+	case TestData:
+		return "The files or code snippets are only used for test or example purposes."
+	case Remediated:
+		return "The dangerous files or code snippets are necessary but remediations were already applied."
+	case NotApplicable:
+		return "The check or probe is not applicable in this case."
+	case NotSupported:
+		return "The check or probe is fulfilled but in a way that is not supported by Scorecard."
+	case NotDetected:
+		return "The check or probe is fulfilled but in a way that is supported by Scorecard but it was not detected."
+	default:
+		return string(*r)
+	}
 }
