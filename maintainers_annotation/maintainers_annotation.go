@@ -70,8 +70,8 @@ type MaintainersAnnotation struct {
 	Exemptions []Exemption `yaml:"exemptions"`
 }
 
-// parseScorecardYmlFile takes the scorecard.yml file content and returns a `MaintainersAnnotation`.
-func parseScorecardYmlFile(ma *MaintainersAnnotation, content []byte) error {
+// parseScorecardConfigFile takes the scorecard.yml file content and returns a `MaintainersAnnotation`.
+func parseScorecardConfigFile(ma *MaintainersAnnotation, content []byte) error {
 	unmarshalErr := yaml.Unmarshal(content, ma)
 	if unmarshalErr != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, unmarshalErr.Error())
@@ -80,8 +80,8 @@ func parseScorecardYmlFile(ma *MaintainersAnnotation, content []byte) error {
 	return nil
 }
 
-// readScorecardYmlFromRepo reads the scorecard.yml file from the repo and returns its configurations.
-func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
+// readScorecardConfigFromRepo reads the scorecard.yml file from the repo and returns its configurations.
+func readScorecardConfigFromRepo(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
 	ma := MaintainersAnnotation{}
 	// Find scorecard.yml file in the repository's root
 	content, err := repoClient.GetFileContent("scorecard.yml")
@@ -89,12 +89,12 @@ func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotat
 		if errors.Is(err, os.ErrNotExist) {
 			return ma, errNoScorecardYmlFile
 		}
-		return ma, fmt.Errorf("fail to read scorecard.yml: %w", err)
+		return ma, fmt.Errorf("fail to read scorecard configuration file: %w", err)
 	}
 
-	err = parseScorecardYmlFile(&ma, content)
+	err = parseScorecardConfigFile(&ma, content)
 	if err != nil {
-		return ma, fmt.Errorf("fail to parse scorecard.yml: %w", err)
+		return ma, fmt.Errorf("fail to parse scorecard configuration file: %w", err)
 	}
 
 	if ma.Exemptions == nil {
@@ -107,7 +107,7 @@ func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotat
 // GetMaintainersAnnotation reads the maintainers annotation from the repo, stored in scorecard.yml, and returns it.
 func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
 	// Read the scorecard.yml file and parse it into maintainers annotation
-	ma, err := readScorecardYmlFromRepo(repoClient)
+	ma, err := readScorecardConfigFromRepo(repoClient)
 
 	// If scorecard.yml doesn't exist or file doesn't contain exemptions, ignore
 	if err == errNoScorecardYmlFile {
