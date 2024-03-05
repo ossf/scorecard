@@ -32,7 +32,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionNone"
-	//"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionRead"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"

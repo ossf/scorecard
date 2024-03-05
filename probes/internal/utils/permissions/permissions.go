@@ -22,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 func createText(t checker.TokenPermission) (string, error) {
@@ -97,66 +96,6 @@ func CreateNegativeFinding(r checker.TokenPermission,
 	return f, nil
 }
 
-func CreateFindings(fs embed.FS,
-	raw *checker.RawResults,
-	locationType checker.PermissionLocation,
-	permissionLevel checker.PermissionLevel,
-	probe, tokenName string,
-) ([]finding.Finding, string, error) {
-	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
-	}
-
-	results := raw.TokenPermissionsResults
-	var findings []finding.Finding
-
-	if results.NumTokens == 0 {
-		f, err := finding.NewWith(fs, probe,
-			"No token permissions found",
-			nil, finding.OutcomeNotAvailable)
-		if err != nil {
-			return nil, probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, probe, nil
-	}
-
-	for _, r := range results.TokenPermissions {
-		if r.Name == nil {
-			continue
-		}
-		if *r.Name != tokenName {
-			continue
-		}
-		if r.Type != permissionLevel {
-			continue
-		}
-		if *r.LocationType != locationType {
-			continue
-		}
-
-		// Create finding
-		f, err := CreateNegativeFinding(r, probe, fs)
-		if err != nil {
-			return nil, probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-	}
-
-	if len(findings) == 0 {
-		f, err := finding.NewWith(fs, probe,
-			fmt.Sprintf("no workflows with write permissions for '%v' at '%v'",
-				tokenName,
-				permissionLevel),
-			nil, finding.OutcomePositive)
-		if err != nil {
-			return nil, probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-	}
-	return findings, probe, nil
-}
-
 // avoid memory aliasing by returning a new copy.
 func newUint(u uint) *uint {
 	return &u
@@ -167,145 +106,30 @@ func newStr(s string) *string {
 	return &s
 }
 
-type TestData struct {
-	Name     string
-	Err      error
-	Raw      *checker.RawResults
-	Outcomes []finding.Outcome
-}
-
-func GetTests(locationType checker.PermissionLocation,
-	permissionType checker.PermissionLevel,
-	tokenName string,
-) []TestData {
-	name := tokenName // Should come from each probe test.
-	value := "value"
-	var wrongPermissionLocation checker.PermissionLocation
-	if locationType == checker.PermissionLocationTop {
-		wrongPermissionLocation = checker.PermissionLocationJob
-	} else {
-		wrongPermissionLocation = checker.PermissionLocationTop
+func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+	f, err := finding.NewWith(fs, probe,
+		"no workflows with 'read' permissions",
+		nil, finding.OutcomePositive)
+	if err != nil {
+		return nil, fmt.Errorf("%w", err)
 	}
-
-	return []TestData{
-		{
-			Name: "No Tokens",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 0,
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomeNotAvailable,
-			},
-		},
-		{
-			Name: "Correct name",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &locationType,
-							Name:         &name,
-							Value:        &value,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
-			},
-		},
-		{
-			Name: "Two tokens",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 2,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &locationType,
-							Name:         &name,
-							Value:        &value,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-						{
-							LocationType: &locationType,
-							Name:         &name,
-							Value:        &value,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNegative,
-			},
-		},
-		{
-			Name: "Value is nil - Everything else correct",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &locationType,
-							Name:         &name,
-							Value:        nil,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
-			},
-			Err: sce.ErrScorecardInternal,
-		},
-		{
-			Name: "Wrong locationType wrong type",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &wrongPermissionLocation,
-							Name:         &name,
-							Value:        nil,
-							Msg:          nil,
-							Type:         checker.PermissionLevel("999"),
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
-		{
-			Name: "Wrong locationType correct type",
-			Raw: &checker.RawResults{
-				TokenPermissionsResults: checker.TokenPermissionsData{
-					NumTokens: 1,
-					TokenPermissions: []checker.TokenPermission{
-						{
-							LocationType: &wrongPermissionLocation,
-							Name:         &name,
-							Value:        nil,
-							Msg:          nil,
-							Type:         permissionType,
-						},
-					},
-				},
-			},
-			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-			},
-		},
+	var loc *finding.Location
+	if r.File != nil {
+		loc = &finding.Location{
+			Type:      r.File.Type,
+			Path:      r.File.Path,
+			LineStart: newUint(r.File.Offset),
+		}
+		if r.File.Snippet != "" {
+			loc.Snippet = newStr(r.File.Snippet)
+		}
+		f = f.WithLocation(loc)
+		f = f.WithRemediationMetadata(map[string]string{
+			"repo":     r.Remediation.Repo,
+			"branch":   r.Remediation.Branch,
+			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
+		})
 	}
+	f = f.WithValue("permissionLevel", "read")
+	return f, nil
 }

@@ -18,7 +18,6 @@ package topLevelPermissions
 import (
 	"embed"
 	"fmt"
-	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -51,37 +50,17 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, r := range results.TokenPermissions {
-		if r.LocationType == nil { 
+		if r.LocationType == nil {
 			continue
 		}
 		if *r.LocationType != checker.PermissionLocationTop {
 			continue
 		}
 		if r.Type == checker.PermissionLevelRead {
-			f, err := finding.NewWith(fs, Probe,
-			"no workflows with 'read' permissions",
-			nil, finding.OutcomePositive)
+			f, err := permissions.ReadPositiveLevelFinding(Probe, fs, r)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			var loc *finding.Location
-			if r.File != nil {
-				loc = &finding.Location{
-					Type:      r.File.Type,
-					Path:      r.File.Path,
-					LineStart: newUint(r.File.Offset),
-				}
-				if r.File.Snippet != "" {
-					loc.Snippet = newStr(r.File.Snippet)
-				}
-				f = f.WithLocation(loc)
-				f = f.WithRemediationMetadata(map[string]string{
-					"repo":     r.Remediation.Repo,
-					"branch":   r.Remediation.Branch,
-					"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
-				})
-			}
-			f = f.WithValue("permissionLevel", "read")
 			findings = append(findings, *f)
 			continue
 		}
@@ -105,14 +84,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithValue("permissionLocation", string(checker.PermissionLocationTop))
-
-		if r.Type == checker.PermissionLevelWrite {
-			f = f.WithValue("permissionLevel", "write")
-		} else if r.Type == checker.PermissionLevelRead {
-			f = f.WithValue("permissionLevel", "read")
-		} else if r.Type == checker.PermissionLevelUnknown {
-			f = f.WithValue("permissionLevel", "unknown")			
-		}
+		f = f.WithValue("permissionLevel", string(r.Type))
 		f = f.WithValue("tokenName", tokenName)
 		findings = append(findings, *f)
 	}
@@ -127,15 +99,4 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
-}
-
-
-// avoid memory aliasing by returning a new copy.
-func newUint(u uint) *uint {
-	return &u
-}
-
-// avoid memory aliasing by returning a new copy.
-func newStr(s string) *string {
-	return &s
 }

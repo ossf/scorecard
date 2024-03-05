@@ -17,6 +17,8 @@ package test
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v4/checker"
+	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 )
 
@@ -30,5 +32,149 @@ func AssertOutcomes(t *testing.T, got []finding.Finding, want []finding.Outcome)
 		if got[i].Outcome != want[i] {
 			t.Errorf("got outcome %v, wanted %v for finding: %v", got[i].Outcome, want[i], got[i])
 		}
+	}
+}
+
+// Tests for permissions-probes.
+type TestData struct {
+	Name     string
+	Err      error
+	Raw      *checker.RawResults
+	Outcomes []finding.Outcome
+}
+
+func GetTests(locationType checker.PermissionLocation,
+	permissionType checker.PermissionLevel,
+	tokenName string,
+) []TestData {
+	name := tokenName // Should come from each probe test.
+	value := "value"
+	var wrongPermissionLocation checker.PermissionLocation
+	if locationType == checker.PermissionLocationTop {
+		wrongPermissionLocation = checker.PermissionLocationJob
+	} else {
+		wrongPermissionLocation = checker.PermissionLocationTop
+	}
+
+	return []TestData{
+		{
+			Name: "No Tokens",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 0,
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomeNotAvailable,
+			},
+		},
+		{
+			Name: "Correct name",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 1,
+					TokenPermissions: []checker.TokenPermission{
+						{
+							LocationType: &locationType,
+							Name:         &name,
+							Value:        &value,
+							Msg:          nil,
+							Type:         permissionType,
+						},
+					},
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+		},
+		{
+			Name: "Two tokens",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 2,
+					TokenPermissions: []checker.TokenPermission{
+						{
+							LocationType: &locationType,
+							Name:         &name,
+							Value:        &value,
+							Msg:          nil,
+							Type:         permissionType,
+						},
+						{
+							LocationType: &locationType,
+							Name:         &name,
+							Value:        &value,
+							Msg:          nil,
+							Type:         permissionType,
+						},
+					},
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomeNegative, finding.OutcomeNegative,
+			},
+		},
+		{
+			Name: "Value is nil - Everything else correct",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 1,
+					TokenPermissions: []checker.TokenPermission{
+						{
+							LocationType: &locationType,
+							Name:         &name,
+							Value:        nil,
+							Msg:          nil,
+							Type:         permissionType,
+						},
+					},
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+			Err: sce.ErrScorecardInternal,
+		},
+		{
+			Name: "Wrong locationType wrong type",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 1,
+					TokenPermissions: []checker.TokenPermission{
+						{
+							LocationType: &wrongPermissionLocation,
+							Name:         &name,
+							Value:        nil,
+							Msg:          nil,
+							Type:         checker.PermissionLevel("999"),
+						},
+					},
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
+		{
+			Name: "Wrong locationType correct type",
+			Raw: &checker.RawResults{
+				TokenPermissionsResults: checker.TokenPermissionsData{
+					NumTokens: 1,
+					TokenPermissions: []checker.TokenPermission{
+						{
+							LocationType: &wrongPermissionLocation,
+							Name:         &name,
+							Value:        nil,
+							Msg:          nil,
+							Type:         permissionType,
+						},
+					},
+				},
+			},
+			Outcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
 	}
 }

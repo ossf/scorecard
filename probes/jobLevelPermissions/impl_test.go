@@ -22,20 +22,19 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/permissions"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
 
-	tests := permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "actions")
+	tests := test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "actions")
 
-	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "checks")...)
-	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "contents")...)
-	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "deployments")...)
-	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "packages")...)
-	tests = append(tests, permissions.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "security-events")...)
+	tests = append(tests, test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "checks")...)
+	tests = append(tests, test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "contents")...)
+	tests = append(tests, test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "deployments")...)
+	tests = append(tests, test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "packages")...)
+	tests = append(tests, test.GetTests(checker.PermissionLocationJob, checker.PermissionLevelWrite, "security-events")...)
 
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

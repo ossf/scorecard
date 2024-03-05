@@ -23,7 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/permissions"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
 
@@ -31,7 +30,7 @@ func Test_Run(t *testing.T) {
 	t.Parallel()
 	permLoc := checker.PermissionLocationTop
 	value := "value"
-	tests := []permissions.TestData{
+	tests := []test.TestData{
 		{
 			Name: "No Tokens",
 			Raw: &checker.RawResults{
