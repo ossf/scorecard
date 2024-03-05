@@ -98,12 +98,12 @@ func readScorecardYmlFromRepo(repoClient clients.RepoClient) (MaintainersAnnotat
 		if errors.Is(err, os.ErrNotExist) {
 			return ma, errNoScorecardYmlFile
 		}
-		return ma, fmt.Errorf("%w", err)
+		return ma, fmt.Errorf("fail to read scorecard.yml: %w", err)
 	}
 
 	err = parseScorecardYmlFile(&ma, content)
 	if err != nil {
-		return ma, fmt.Errorf("%w", err)
+		return ma, fmt.Errorf("fail to parse scorecard.yml: %w", err)
 	}
 
 	if ma.Exemptions == nil {
@@ -124,7 +124,7 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 	}
 	// If an error happened while finding or parsing scorecard.yml file, then raise error
 	if err != nil {
-		return MaintainersAnnotation{}, fmt.Errorf("%w", err)
+		return MaintainersAnnotation{}, fmt.Errorf("fail to get maintainers annotation: %w", err)
 	}
 
 	// Return maintainers annotation
