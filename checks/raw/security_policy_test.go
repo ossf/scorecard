@@ -15,8 +15,9 @@
 package raw
 
 import (
-	"fmt"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -142,18 +143,14 @@ func TestSecurityPolicy(t *testing.T) {
 			// file contents once found. This test will return that
 			// mock file, but this specific unit test is not testing
 			// for content. As such, this test will crash without
-			// a mock GetFileContent, so this will return no content
+			// a mock GetFileReader, so this will return no content
 			// for the existing file. content test are in overall check
 			//
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {
-					return nil, nil
+					return io.NopCloser(strings.NewReader("")), nil
 				}
-				content, err := os.ReadFile(tt.path)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+				return os.Open(tt.path)
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}

@@ -13,13 +13,11 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package requiresApproversForPullRequests
+package branchesAreProtected
 
 import (
 	"embed"
-	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -30,12 +28,9 @@ import (
 var fs embed.FS
 
 const (
-	Probe                = "requiresApproversForPullRequests"
-	BranchNameKey        = "branchName"
-	RequiredReviewersKey = "numberOfRequiredReviewers"
+	Probe         = "branchesAreProtected"
+	BranchNameKey = "branchName"
 )
-
-var errWrongValue = errors.New("wrong value, should not happen")
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -57,29 +52,21 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
-		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
-
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
-
-		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
+		protected := (branch.Protected != nil && *branch.Protected)
+		var text string
+		var outcome finding.Outcome
+		if protected {
+			text = fmt.Sprintf("branch '%s' is protected", *branch.Name)
+			outcome = finding.OutcomePositive
+		} else {
+			text = fmt.Sprintf("branch '%s' is not protected", *branch.Name)
+			outcome = finding.OutcomeNegative
+		}
+		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 		f = f.WithValue(BranchNameKey, *branch.Name)
-		switch {
-		case p == nil:
-			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
-		case *p > 0:
-			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
-			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
-			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
-		case *p == 0:
-			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
-			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
-		default:
-			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
-		}
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

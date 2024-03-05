@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path"
@@ -159,19 +160,19 @@ func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([
 	return applyPredicate(client.files, client.errFiles, predicate)
 }
 
-func getFileContent(clientpath, filename string) ([]byte, error) {
+func getFile(clientpath, filename string) (*os.File, error) {
 	// Note: the filenames do not contain the original path - see ListFiles().
 	fn := path.Join(clientpath, filename)
-	content, err := os.ReadFile(fn)
+	f, err := os.Open(fn)
 	if err != nil {
-		return content, fmt.Errorf("%w", err)
+		return nil, fmt.Errorf("open file: %w", err)
 	}
-	return content, nil
+	return f, nil
 }
 
-// GetFileContent implements RepoClient.GetFileContent.
-func (client *localDirClient) GetFileContent(filename string) ([]byte, error) {
-	return getFileContent(client.path, filename)
+// GetFileReader implements RepoClient.GetFileReader.
+func (client *localDirClient) GetFileReader(filename string) (io.ReadCloser, error) {
+	return getFile(client.path, filename)
 }
 
 // GetBranch implements RepoClient.GetBranch.
