@@ -26,38 +26,38 @@ import (
 
 var errNoScorecardYmlFile = errors.New("scorecard.yml doesn't exist or file doesn't contain exemptions")
 
-// AnnotationReason is the reason behind an annotation.
-type AnnotationReason string
+// Reason is the reason behind an annotation.
+type Reason string
 
 const (
-	// AnnotationTestData is to annotate when a check or probe is targeting a danger
+	// TestData is to annotate when a check or probe is targeting a danger
 	// in files or code snippets only used for test or example purposes.
-	AnnotationTestData AnnotationReason = "test-data"
-	// AnnotationRemediated is to annotate when a check or probe correctly identified a
+	TestData Reason = "test-data"
+	// Remediated is to annotate when a check or probe correctly identified a
 	// danger and, even though the danger is necessary, a remediation was already applied.
 	// E.g. a workflow is dangerous but only run under maintainers verification and approval,
 	// or a binary is needed but it is signed or has provenance.
-	AnnotationRemediated AnnotationReason = "remediated"
-	// AnnotationNotApplicable is to annotate when a check or probe is not applicable for the case.
+	Remediated Reason = "remediated"
+	// NotApplicable is to annotate when a check or probe is not applicable for the case.
 	// E.g. the dependencies should not be pinned because the project is a library.
-	AnnotationNotApplicable AnnotationReason = "not-applicable"
-	// AnnotationNotSupported is to annotate when the maintainer fulfills a check or probe in a way
+	NotApplicable Reason = "not-applicable"
+	// NotSupported is to annotate when the maintainer fulfills a check or probe in a way
 	// that is not supported by Scorecard. E.g. Clang-Tidy is used as SAST tool but not identified
 	// because its not supported.
-	AnnotationNotSupported AnnotationReason = "not-supported"
-	// AnnotationNotDetected is to annotate when the maintainer fulfills a check or probe in a way
+	NotSupported Reason = "not-supported"
+	// NotDetected is to annotate when the maintainer fulfills a check or probe in a way
 	// that is supported by Scorecard but not identified. E.g. Dependabot is configured in the
 	// repository settings and not in a file.
-	AnnotationNotDetected AnnotationReason = "not-detected"
+	NotDetected Reason = "not-detected"
 )
 
 // AnnotationReasonDoc maps the reasons to their human-readable explanations.
-var AnnotationReasonDoc = map[AnnotationReason]string{
-	AnnotationTestData:      "The files or code snippets are only used for test or example purposes.",
-	AnnotationRemediated:    "The dangerous files or code snippets are necessary but remediations were already applied.",
-	AnnotationNotApplicable: "The check or probe is not applicable in this case.",
-	AnnotationNotSupported:  "The check or probe is fulfilled but in a way that is not supported by Scorecard.",
-	AnnotationNotDetected:   "The check or probe is fulfilled but in a way that is supported by Scorecard but it was not detected.",
+var AnnotationReasonDoc = map[Reason]string{
+	TestData:      "The files or code snippets are only used for test or example purposes.",
+	Remediated:    "The dangerous files or code snippets are necessary but remediations were already applied.",
+	NotApplicable: "The check or probe is not applicable in this case.",
+	NotSupported:  "The check or probe is fulfilled but in a way that is not supported by Scorecard.",
+	NotDetected:   "The check or probe is fulfilled but in a way that is supported by Scorecard but it was not detected.",
 }
 
 // Annotation groups the annotation reason and, in the future, the related probe.
@@ -65,7 +65,7 @@ var AnnotationReasonDoc = map[AnnotationReason]string{
 // If there is not a probe, the reason applies to the check or group of checks in
 // the exemption.
 type Annotation struct {
-	AnnotationReason AnnotationReason `yaml:"annotation"`
+	Reason Reason `yaml:"annotation"`
 }
 
 // Exemption defines a group of checks that are being annotated for various reasons.
@@ -133,9 +133,9 @@ func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotat
 
 // getAnnotations parses a group of annotations into annotation reasons.
 func GetAnnotations(a []Annotation) []string {
-	var annotationReasons []string
+	var reasons []string
 	for _, annotation := range a {
-		annotationReasons = append(annotationReasons, AnnotationReasonDoc[annotation.AnnotationReason])
+		reasons = append(reasons, AnnotationReasonDoc[annotation.Reason])
 	}
-	return annotationReasons
+	return reasons
 }
