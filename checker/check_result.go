@@ -276,7 +276,7 @@ func (check *CheckResult) IsExempted(maintainersAnnotation ma.MaintainersAnnotat
 
 	for _, exemption := range maintainersAnnotation.Exemptions {
 		for _, checkName := range exemption.Checks {
-			if strings.EqualFold(checkName, strings.ToLower(check.Name)) {
+			if strings.EqualFold(checkName, check.Name) {
 				return true, ma.GetAnnotations(exemption.Annotations)
 			}
 		}
