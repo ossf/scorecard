@@ -54,7 +54,7 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	findings, err := zrunner.Run(pRawResults, probes.TokenPermissions)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
 	}
 
 	// Return the score evaluation.
