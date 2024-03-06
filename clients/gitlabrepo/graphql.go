@@ -102,7 +102,7 @@ type graphqlSbomData struct {
 		} `graphql:"releases(sort: RELEASED_AT_DESC, first: 1)"`
 		Pipelines struct {
 			Nodes []graphqlPipelineNode
-		} `graphql:"pipelines(ref: $defaultBranch, first: 1)"`
+		} `graphql:"pipelines(ref: $defaultBranch, first: 20)"`
 	} `graphql:"project(fullPath: $fullPath)"`
 }
 

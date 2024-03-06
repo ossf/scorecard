@@ -39,7 +39,7 @@ func (handler *sbomHandler) init(repourl *repoURL) {
 
 func (handler *sbomHandler) setup(sbomData graphqlSbomData) error {
 	handler.once.Do(func() {
-		latestPipeline := sbomData.Project.Pipelines.Nodes
+		latestPipelines := sbomData.Project.Pipelines.Nodes
 		ReleaseAssetLinks := sbomData.Project.Releases.Nodes[0].Assets.Links.Nodes
 
 		// Check for sboms in release artifacts
@@ -50,7 +50,7 @@ func (handler *sbomHandler) setup(sbomData graphqlSbomData) error {
 		}
 
 		// Check for sboms in pipeline artifacts
-		err = handler.checkCICDArtifacts(latestPipeline)
+		err = handler.checkCICDArtifacts(latestPipelines)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("failed searching for Sbom in CICD artifacts: %w", err)
 			return
@@ -91,10 +91,9 @@ func (handler *sbomHandler) checkReleaseArtifacts(assetlinks []graphqlReleaseAss
 	return nil
 }
 
-func (handler *sbomHandler) checkCICDArtifacts(latestpipelines []graphqlPipelineNode) error {
-	// Originally intended to check artifacts from latest release pipeline,
-	// but changed to check latest default branch pipeline to align with github check
-	for _, pipeline := range latestpipelines {
+func (handler *sbomHandler) checkCICDArtifacts(latestPipelines []graphqlPipelineNode) error {
+	// Checks latest 20 pipelines in default branch for appropriate artifacts
+	for _, pipeline := range latestPipelines {
 		if pipeline.Status != "SUCCESS" {
 			continue
 		}
