@@ -19,6 +19,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/evaluation"
 	"github.com/ossf/scorecard/v4/checks/raw"
 	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -45,9 +47,16 @@ func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Set the raw results.
-	if c.RawResults != nil {
-		c.RawResults.PinningDependenciesResults = rawData
+	pRawResults := getRawResults(c)
+	pRawResults.PinningDependenciesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.PinnedDependencies)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
 	}
 
-	return evaluation.PinningDependencies(CheckPinnedDependencies, c, &rawData)
+	// Return the score evaluation.
+	return evaluation.PinningDependencies(CheckPinnedDependencies, findings, c.Dlogger)
 }

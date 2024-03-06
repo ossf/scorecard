@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -177,8 +178,8 @@ func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string,
 	return client.tarball.listFiles(predicate)
 }
 
-func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return client.tarball.getFileContent(filename)
+func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
+	return client.tarball.getFile(filename)
 }
 
 func (client *Client) ListCommits() ([]clients.Commit, error) {

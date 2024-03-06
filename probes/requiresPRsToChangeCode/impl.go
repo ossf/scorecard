@@ -13,13 +13,12 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package requiresApproversForPullRequests
+package requiresPRsToChangeCode
 
 import (
 	"embed"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -30,9 +29,8 @@ import (
 var fs embed.FS
 
 const (
-	Probe                = "requiresApproversForPullRequests"
-	BranchNameKey        = "branchName"
-	RequiredReviewersKey = "numberOfRequiredReviewers"
+	Probe         = "requiresPRsToChangeCode"
+	BranchNameKey = "branchName"
 )
 
 var errWrongValue = errors.New("wrong value, should not happen")
@@ -57,29 +55,31 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
-		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
+		nilMsg := fmt.Sprintf("could not determine whether branch '%s' requires PRs to change code", *branch.Name)
+		trueMsg := fmt.Sprintf("PRs are required in order to make changes on branch '%s'", *branch.Name)
+		falseMsg := fmt.Sprintf("PRs are not required to make changes on branch '%s'; ", *branch.Name) +
+			"or we don't have data to detect it." +
+			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo " +
+			"Rules (that are always public) instead of Branch Protection settings"
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
+		p := branch.BranchProtectionRule.RequiredPullRequestReviews.Required
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue(BranchNameKey, *branch.Name)
+
 		switch {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
-		case *p > 0:
-			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
-			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
-			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
-		case *p == 0:
+		case *p:
+			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+		case !*p:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
-			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
+		f = f.WithValue(BranchNameKey, *branch.Name)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

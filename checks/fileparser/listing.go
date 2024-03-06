@@ -17,6 +17,7 @@ package fileparser
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"path"
 	"strings"
 
@@ -63,6 +64,21 @@ type PathMatcher struct {
 	CaseSensitive bool
 }
 
+// DoWhileTrueOnFileReader takes a filepath, its reader and
+// optional variadic args. It returns a boolean indicating whether
+// iterating over next files should continue.
+type DoWhileTrueOnFileReader func(path string, reader io.Reader, args ...interface{}) (bool, error)
+
+// OnMatchingFileReaderDo matches all files listed by `repoClient` against `matchPathTo`
+// and on every successful match, runs onFileReader fn on the file's reader.
+// Continues iterating along the matched files until onFileReader returns
+// either a false value or an error.
+func OnMatchingFileReaderDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
+	onFileReader DoWhileTrueOnFileReader, args ...interface{},
+) error {
+	return onMatchingFileDo(repoClient, matchPathTo, onFileReader, args...)
+}
+
 // DoWhileTrueOnFileContent takes a filepath, its content and
 // optional variadic args. It returns a boolean indicating whether
 // iterating over next files should continue.
@@ -74,6 +90,12 @@ type DoWhileTrueOnFileContent func(path string, content []byte, args ...interfac
 // either a false value or an error.
 func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
 	onFileContent DoWhileTrueOnFileContent, args ...interface{},
+) error {
+	return onMatchingFileDo(repoClient, matchPathTo, onFileContent, args...)
+}
+
+func onMatchingFileDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
+	onFile any, args ...interface{},
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
@@ -94,12 +116,28 @@ func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatc
 	}
 
 	for _, file := range matchedFiles {
-		content, err := repoClient.GetFileContent(file)
+		reader, err := repoClient.GetFileReader(file)
 		if err != nil {
-			return fmt.Errorf("error during GetFileContent: %w", err)
+			return fmt.Errorf("error during GetFileReader: %w", err)
 		}
 
-		continueIter, err := onFileContent(file, content, args...)
+		var continueIter bool
+		switch f := onFile.(type) {
+		case DoWhileTrueOnFileReader:
+			continueIter, err = f(file, reader, args...)
+			reader.Close()
+		case DoWhileTrueOnFileContent:
+			var content []byte
+			content, err = io.ReadAll(reader)
+			reader.Close()
+			if err != nil {
+				return fmt.Errorf("reading from file: %w", err)
+			}
+			continueIter, err = f(file, content, args...)
+		default:
+			msg := fmt.Sprintf("invalid type (%T) passed to onMatchingFileDo", f)
+			return sce.WithMessage(sce.ErrScorecardInternal, msg)
+		}
 		if err != nil {
 			return err
 		}

@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -152,9 +153,9 @@ func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string,
 	return client.tarball.listFiles(predicate)
 }
 
-// GetFileContent implements RepoClient.GetFileContent.
-func (client *Client) GetFileContent(filename string) ([]byte, error) {
-	return client.tarball.getFileContent(filename)
+// GetFileReader implements RepoClient.GetFileReader.
+func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
+	return client.tarball.getFile(filename)
 }
 
 // ListCommits implements RepoClient.ListCommits.

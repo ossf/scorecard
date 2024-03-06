@@ -182,9 +182,9 @@ func (c *client) ListFiles(predicate func(string) (bool, error)) ([]string, erro
 	return nil, fmt.Errorf("ListFiles: %w", clients.ErrUnsupportedFeature)
 }
 
-// GetFileContent implements RepoClient.GetFileContent.
-func (c *client) GetFileContent(filename string) ([]byte, error) {
-	return nil, fmt.Errorf("GetFileContent: %w", clients.ErrUnsupportedFeature)
+// GetFileReader implements RepoClient.GetFileReader.
+func (c *client) GetFileReader(filename string) (io.ReadCloser, error) {
+	return nil, fmt.Errorf("GetFileReader: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetBranch implements RepoClient.GetBranch.
