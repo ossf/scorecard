@@ -16,6 +16,7 @@ package raw
 
 import (
 	"fmt"
+	"io"
 	"regexp"
 	"slices"
 
@@ -110,12 +111,18 @@ func checkSbomStandard(c *checker.CheckRequest, fileList []string) (*checker.Sbo
 
 	standardsFileName := fileList[idx]
 
-	contents, err := c.RepoClient.GetFileContent(standardsFileName)
+	reader, err := c.RepoClient.GetFileReader(standardsFileName)
 	if err != nil {
-		return nil, fmt.Errorf("error getting fileContent in checkSbomStandard: %w", err)
+		return nil, fmt.Errorf("error getting filereader in checkSbomStandard: %w", err)
 	}
 
 	securityInsightsFile := clients.SecurityInsightsSchema{}
+
+	contents, err := io.ReadAll(reader)
+	reader.Close()
+	if err != nil {
+		return nil, fmt.Errorf("error getting fileContent in checkSbomStandard: %w", err)
+	}
 
 	err = yaml.Unmarshal(contents, &securityInsightsFile)
 	if err != nil {
