@@ -15,7 +15,7 @@
 package raw
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1895,13 +1895,8 @@ func TestCollectDockerfilePinning(t *testing.T) {
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
-				// This will read the file and return the content
-				content, err := os.ReadFile(file)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open(file)
 			})
 
 			req := checker.CheckRequest{
@@ -1994,13 +1989,8 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{tt.filename}, nil).AnyTimes()
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
-				// This will read the file and return the content
-				content, err := os.ReadFile(filepath.Join("testdata", file))
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open(filepath.Join("testdata", file))
 			})
 
 			req := checker.CheckRequest{
