@@ -17,6 +17,7 @@ package fileparser
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"path"
 	"strings"
 
@@ -94,9 +95,14 @@ func OnMatchingFileContentDo(repoClient clients.RepoClient, matchPathTo PathMatc
 	}
 
 	for _, file := range matchedFiles {
-		content, err := repoClient.GetFileContent(file)
+		rc, err := repoClient.GetFileReader(file)
 		if err != nil {
-			return fmt.Errorf("error during GetFileContent: %w", err)
+			return fmt.Errorf("error during GetFileReader: %w", err)
+		}
+		content, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			return fmt.Errorf("reading from file: %w", err)
 		}
 
 		continueIter, err := onFileContent(file, content, args...)
