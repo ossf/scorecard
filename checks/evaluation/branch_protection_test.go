@@ -731,9 +731,9 @@ func TestBranchProtection(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:         3,
-				NumberOfWarn:  3,
+				NumberOfWarn:  2,
 				NumberOfInfo:  2,
-				NumberOfDebug: 4,
+				NumberOfDebug: 5,
 			},
 		},
 		{
