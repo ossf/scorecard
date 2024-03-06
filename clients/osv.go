@@ -66,6 +66,11 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
 		vulns := res.Flatten()
 		for i := range vulns {
+			// ignore Go stdlib vulns. The go directive from the go.mod isn't a perfect metric
+			// of which version of Go will be used to build a project.
+			if vulns[i].Package.Ecosystem == "Go" && vulns[i].Package.Name == "stdlib" {
+				continue
+			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
 				ID:      vulns[i].Vulnerability.ID,
 				Aliases: vulns[i].Vulnerability.Aliases,
