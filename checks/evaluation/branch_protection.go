@@ -407,15 +407,8 @@ func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.Detail
 	if f.Outcome == finding.OutcomePositive {
 		score++
 	}
-	switch f.Probe {
-	case requiresLastPushApproval.Probe,
-		requiresUpToDateBranches.Probe:
-		logWithDebug(f, doLogging, dl)
-		if f.Outcome != finding.OutcomeNotAvailable {
-			max++
-		}
-	default:
-		logInfoOrWarn(f, doLogging, dl)
+	logWithDebug(f, doLogging, dl)
+	if f.Outcome != finding.OutcomeNotAvailable {
 		max++
 	}
 	return score, max

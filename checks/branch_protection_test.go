@@ -363,9 +363,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  6,
+				NumberOfWarn:  4,
 				NumberOfInfo:  0,
-				NumberOfDebug: 8,
+				NumberOfDebug: 10,
 			},
 			nonadmin:      true,
 			defaultBranch: main,
