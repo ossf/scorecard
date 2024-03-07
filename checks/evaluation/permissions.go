@@ -113,9 +113,6 @@ func TokenPermissions(name string,
 		}
 
 		switch f.Probe {
-		/*case hasGitHubWorkflowPermissionUndeclared.Probe:
-		score = updateScoreAndMapFromUndeclared(undeclaredPermissions,
-			hasWritePermissions, f, score, dl)*/
 		case hasGitHubWorkflowPermissionUnknown.Probe:
 			dl.Debug(&checker.LogMessage{
 				Finding: f,
