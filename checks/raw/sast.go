@@ -314,12 +314,11 @@ func findLine(content, data []byte) (uint, error) {
 	r := bytes.NewReader(content)
 	scanner := bufio.NewScanner(r)
 
-	line := 0
-	// https://golang.org/pkg/bufio/#Scanner.Scan
+	var line uint
 	for scanner.Scan() {
 		line++
-		if strings.Contains(scanner.Text(), string(data)) {
-			return uint(line), nil
+		if bytes.Contains(scanner.Bytes(), data) {
+			return line, nil
 		}
 	}
 
