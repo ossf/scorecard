@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionNone"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
@@ -40,7 +39,6 @@ func TokenPermissions(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		hasGitHubWorkflowPermissionUnknown.Probe,
-		hasGitHubWorkflowPermissionNone.Probe,
 		hasGitHubWorkflowPermissionUndeclared.Probe,
 		jobLevelPermissions.Probe,
 		topLevelPermissions.Probe,
@@ -78,10 +76,16 @@ func TokenPermissions(name string,
 	for i := range findings {
 		f := &findings[i]
 
-		// Log workflows with "none" and "read" permissions.
-		if (f.Outcome == finding.OutcomePositive &&
-			f.Probe == hasGitHubWorkflowPermissionNone.Probe) ||
-			f.Values["permissionLevel"] == string(checker.PermissionLevelRead) {
+		// Log workflows with "none" permissions
+		if f.Values["permissionLevel"] == string(checker.PermissionLevelNone) {
+			dl.Info(&checker.LogMessage{
+				Finding: f,
+			})
+			continue
+		}
+
+		// Log workflows with "read" permissions
+		if f.Values["permissionLevel"] == string(checker.PermissionLevelRead) {
 			dl.Info(&checker.LogMessage{
 				Finding: f,
 			})

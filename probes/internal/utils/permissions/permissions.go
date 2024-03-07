@@ -133,3 +133,32 @@ func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermissi
 	f = f.WithValue("permissionLevel", "read")
 	return f, nil
 }
+
+func CreateNoneFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+	// Create finding
+	f, err := finding.NewWith(fs, probe,
+		"no workflows with 'none' permissions",
+		nil, finding.OutcomeNegative)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
+	}
+	var loc *finding.Location
+	if r.File != nil {
+		loc = &finding.Location{
+			Type:      r.File.Type,
+			Path:      r.File.Path,
+			LineStart: newUint(r.File.Offset),
+		}
+		if r.File.Snippet != "" {
+			loc.Snippet = newStr(r.File.Snippet)
+		}
+		f = f.WithLocation(loc)
+		f = f.WithRemediationMetadata(map[string]string{
+			"repo":     r.Remediation.Repo,
+			"branch":   r.Remediation.Branch,
+			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
+		})
+	}
+	f = f.WithValue("permissionLevel", string(r.Type))
+	return f, nil
+}
