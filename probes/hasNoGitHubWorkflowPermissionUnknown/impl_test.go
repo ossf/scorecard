@@ -39,7 +39,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomeNotAvailable,
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{

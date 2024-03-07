@@ -41,7 +41,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if results.NumTokens == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"No token permissions found",
-			nil, finding.OutcomeNotAvailable)
+			nil, finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
