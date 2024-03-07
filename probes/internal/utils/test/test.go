@@ -65,7 +65,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomeNotAvailable,
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
