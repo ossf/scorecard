@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package hasGitHubWorkflowPermissionUnknown
+package hasNoGitHubWorkflowPermissionUnknown
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasGitHubWorkflowPermissionUnknown"
+const Probe = "hasNoGitHubWorkflowPermissionUnknown"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

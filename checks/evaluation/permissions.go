@@ -20,7 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 )
@@ -37,8 +37,7 @@ func TokenPermissions(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		hasGitHubWorkflowPermissionUnknown.Probe,
-
+		hasNoGitHubWorkflowPermissionUnknown.Probe,
 		jobLevelPermissions.Probe,
 		topLevelPermissions.Probe,
 	}
@@ -113,7 +112,7 @@ func TokenPermissions(name string,
 		}
 
 		switch f.Probe {
-		case hasGitHubWorkflowPermissionUnknown.Probe:
+		case hasNoGitHubWorkflowPermissionUnknown.Probe:
 			dl.Debug(&checker.LogMessage{
 				Finding: f,
 			})
