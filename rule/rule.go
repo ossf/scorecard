@@ -45,9 +45,11 @@ type Remediation struct {
 	Text string `json:"text"`
 	// Text in markdown format for humans.
 	Markdown string `json:"markdown"`
+	// Reference to branch
+	Branch string `json:"branch"`
+	// Reference to repo
+	Repo string `json:"repo"`
 	// Effort to remediate.
-	Branch string            `json:"branch"`
-	Repo   string            `json:"repo"`
 	Effort RemediationEffort `json:"effort"`
 }
 
