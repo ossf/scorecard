@@ -88,7 +88,7 @@ func CreateNegativeFinding(r checker.TokenPermission,
 
 func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
 	f, err := finding.NewWith(fs, probe,
-		"no workflows with 'read' permissions",
+		"found token with 'read' permissions",
 		nil, finding.OutcomePositive)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
@@ -108,7 +108,7 @@ func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermissi
 func CreateNoneFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
 	// Create finding
 	f, err := finding.NewWith(fs, probe,
-		"no workflows with 'none' permissions",
+		"found token with 'none' permissions",
 		nil, finding.OutcomeNegative)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
