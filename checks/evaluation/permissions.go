@@ -101,6 +101,9 @@ func TokenPermissions(name string,
 		if f.Outcome != finding.OutcomeNegative {
 			continue
 		}
+		if f.Location == nil {
+			continue
+		}
 		fPath := f.Location.Path
 
 		addProbeToMaps(fPath, undeclaredPermissions, hasWritePermissions)
