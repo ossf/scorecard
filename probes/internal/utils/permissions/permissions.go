@@ -147,7 +147,7 @@ func CreateUndeclaredFinding(probe string, fs embed.FS, r checker.TokenPermissio
 	default:
 		f, err = finding.NewWith(fs, probe,
 			"could not determine the location type",
-			nil, finding.OutcomeNotApplicable)
+			nil, finding.OutcomeError)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}
