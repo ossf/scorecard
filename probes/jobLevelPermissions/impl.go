@@ -50,13 +50,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, r := range results.TokenPermissions {
+		if r.LocationType == nil {
+			continue
+		}
+		if *r.LocationType != checker.PermissionLocationJob {
+			continue
+		}
+
 		if r.Type == checker.PermissionLevelNone {
-			if r.LocationType == nil {
-				continue
-			}
-			if *r.LocationType != checker.PermissionLocationJob {
-				continue
-			}
 			f, err := permissions.CreateNoneFinding(Probe, fs, r)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -64,10 +65,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			findings = append(findings, *f)
 			continue
 		}
-		if r.LocationType == nil {
-			continue
-		}
-		if *r.LocationType != checker.PermissionLocationJob {
+
+		if r.Type == checker.PermissionLevelUndeclared {
+			f, err := permissions.CreateUndeclaredFinding(Probe, fs, r)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			findings = append(findings, *f)
 			continue
 		}
 		if r.Type == checker.PermissionLevelRead {

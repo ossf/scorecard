@@ -31,7 +31,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
-	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUndeclared"
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
@@ -156,8 +155,6 @@ var (
 	}
 	TokenPermissions = []ProbeImpl{
 		hasGitHubWorkflowPermissionUnknown.Run,
-		hasGitHubWorkflowPermissionUndeclared.Run,
-
 		jobLevelPermissions.Run,
 		topLevelPermissions.Run,
 	}

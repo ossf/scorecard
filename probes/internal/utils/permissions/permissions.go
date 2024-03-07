@@ -162,3 +162,34 @@ func CreateNoneFinding(probe string, fs embed.FS, r checker.TokenPermission) (*f
 	f = f.WithValue("permissionLevel", string(r.Type))
 	return f, nil
 }
+
+func CreateUndeclaredFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+	var f *finding.Finding
+	var err error
+	switch {
+	case r.LocationType == nil:
+		f, err = finding.NewWith(fs, probe,
+			"could not determine the location type",
+			nil, finding.OutcomeNotAvailable)
+		if err != nil {
+			return nil, fmt.Errorf("create finding: %w", err)
+		}
+	case *r.LocationType == checker.PermissionLocationTop,
+		*r.LocationType == checker.PermissionLocationJob:
+		// Create finding
+		f, err = CreateNegativeFinding(r, probe, fs)
+		if err != nil {
+			return nil, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValue("permissionLocation", string(*r.LocationType))
+	default:
+		f, err = finding.NewWith(fs, probe,
+			"could not determine the location type",
+			nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, fmt.Errorf("create finding: %w", err)
+		}
+	}
+	f = f.WithValue("permissionLevel", string(r.Type))
+	return f, nil
+}
