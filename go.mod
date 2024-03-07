@@ -160,6 +160,7 @@ require (
 	github.com/google/wire v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
+	github.com/hexops/gotextdiff v1.0.3
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect

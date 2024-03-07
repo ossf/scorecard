@@ -29,108 +29,88 @@ package patch
 
 import (
 	"fmt"
-	"os"
-	"path"
 	"regexp"
 	"slices"
 	"strings"
 
-	"github.com/google/go-cmp/cmp"
-
 	"github.com/ossf/scorecard/v5/checker"
-	sce "github.com/ossf/scorecard/v5/errors"
+
+	"github.com/hexops/gotextdiff"
+	"github.com/hexops/gotextdiff/myers"
+	"github.com/hexops/gotextdiff/span"
 )
 
 const (
 	assumedIndent = 2
 )
 
-func parseDiff(diff string) string {
-	i := strings.Index(diff, "\"\"\"\n")
-	if i == -1 {
-		return diff
-	}
+func GeneratePatch(f checker.File, content string) string {
+	unsafeVar := strings.Trim(f.Snippet, " ")
+	runCmdIndex := f.Offset - 1
 
-	diff = diff[i+4:]
-	i = strings.LastIndex(diff, "\"\"\"")
-	if i == -1 {
-		return diff
-	}
+	lines := strings.Split(string(content), "\n")
 
-	return diff[:i]
-}
-
-// Placeholder function that should receive the file of a workflow and
-// return the end result of the Script Injection patch
-//
-// TODO: Receive the dangerous workflow as parameter.
-func GeneratePatch(f checker.File) string {
-	// TODO: Implement
-	// example:
-	// type scriptInjection
-	// path {.github/workflows/active-elastic-job~active-elastic-job~build.yml  github.head_ref  91 0 0 1}
-	// snippet github.head_ref
-
-	// for testing, while we figure out how to get the full path
-	path := path.Join("/home/pnacht_google_com/temp_test", f.Path)
-
-	blob, err := os.ReadFile(path)
-
-	if err != nil {
+	unsafePattern, envvar, ok := getReplacementRegexAndEnvvarName(unsafeVar)
+	if !ok {
 		return ""
 	}
 
-	lines := strings.Split(string(blob), "\n")
+	replaceUnsafeVarWithEnvvar(lines, unsafePattern, envvar, runCmdIndex)
 
+	lines, ok = addEnvvarsToGlobalEnv(lines, envvar, unsafeVar)
+	if !ok {
+		return ""
+	}
+
+	fixedWorkflow := strings.Join(lines, "\n")
+
+	return getDiff(f.Path, content, fixedWorkflow)
+}
+
+func addEnvvarsToGlobalEnv(lines []string, envvar string, unsafeVar string) ([]string, bool) {
 	globalIndentation, ok := findGlobalIndentation(lines)
 
 	if !ok {
 		// invalid workflow, could not determine global indentation
-		return ""
+		return nil, false
 	}
 
 	envPos, envvarIndent, exists := findExistingEnv(lines, globalIndentation)
 
 	if !exists {
-		envPos, ok = findNewEnvPos(lines, globalIndentation)
-
+		lines, envPos, ok = addNewGlobalEnv(lines, globalIndentation)
 		if !ok {
-			// invalid workflow, could not determine location for new environment
-			return ""
+			return nil, ok
 		}
 
-		label := strings.Repeat(" ", globalIndentation) + "env:"
-		lines = slices.Insert(lines, envPos, []string{label, ""}...)
-		envPos += 1 // position now points to `env:`, insert variables below it
+		// position now points to `env:`, insert variables below it
+		envPos += 1
 		envvarIndent = globalIndentation + assumedIndent
 	}
+	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", envvar, unsafeVar)
+	lines = slices.Insert(lines, envPos,
+		strings.Repeat(" ", envvarIndent)+envvarDefinition)
+	return lines, ok
+}
 
-	envvar, err := convertUnsafeVarToEnvvar(f.Snippet)
-	if err != nil {
-		fmt.Printf("%v", err)
+func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, bool) {
+	envPos, ok := findNewEnvPos(lines, globalIndentation)
+
+	if !ok {
+		// invalid workflow, could not determine location for new environment
+		return nil, envPos, ok
 	}
-	lines = slices.Insert(lines, envPos, strings.Repeat(" ", envvarIndent)+envvar)
 
-	for _, line := range lines {
-		fmt.Println(line)
-	}
-
-	src := `asasas
-hello """ola"""
-	message=$(echo "${{ github.event.head_commit.message }}" | tail -n +3)
-adios`
-	dst := `asasas
-hello """ola"""
-	message=$(echo $COMMIT | tail -n +3)
-adios`
-	return parseDiff(cmp.Diff(src, dst))
+	label := strings.Repeat(" ", globalIndentation) + "env:"
+	lines = slices.Insert(lines, envPos, []string{label, ""}...)
+	return lines, envPos, ok
 }
 
 func findGlobalIndentation(lines []string) (int, bool) {
 	r := regexp.MustCompile(`^\W*on:`)
 	for _, line := range lines {
 		if r.MatchString(line) {
-			return len(line) - len(strings.TrimLeft(line, " ")), true
+			return getIndent(line), true
 		}
 	}
 
@@ -157,7 +137,7 @@ func findExistingEnv(lines []string, globalIndent int) (int, int, bool) {
 	}
 
 	i++ // move to line after `env:`
-	envvarIndent := len(lines[i]) - len(strings.TrimLeft(lines[i], " "))
+	envvarIndent := getIndent(lines[i])
 	// regex to detect envvars belonging to the global `env:` block
 	envvarRegex := regexp.MustCompile(indent + `\W+[^#]`)
 	for ; i < num_lines; i++ {
@@ -184,40 +164,86 @@ func findNewEnvPos(lines []string, globalIndent int) (int, bool) {
 	return -1, false
 }
 
-var unsafeVarToEnvvar = map[*regexp.Regexp]string{
-	regexp.MustCompile(`issue\.title`):                             "ISSUE_TITLE",
-	regexp.MustCompile(`issue\.body`):                              "ISSUE_BODY",
-	regexp.MustCompile(`pull_request\.title`):                      "PR_TITLE",
-	regexp.MustCompile(`pull_request\.body`):                       "PR_BODY",
-	regexp.MustCompile(`comment\.body`):                            "COMMENT_BODY",
-	regexp.MustCompile(`review\.body`):                             "REVIEW_BODY",
-	regexp.MustCompile(`review_comment\.body`):                     "REVIEW_COMMENT_BODY",
-	regexp.MustCompile(`pages.*\.page_name`):                       "PAGE_NAME",
-	regexp.MustCompile(`commits.*\.message`):                       "COMMIT_MESSAGE",
-	regexp.MustCompile(`head_commit\.message`):                     "COMMIT_MESSAGE",
-	regexp.MustCompile(`head_commit\.author\.email`):               "AUTHOR_EMAIL",
-	regexp.MustCompile(`head_commit\.author\.name`):                "AUTHOR_NAME",
-	regexp.MustCompile(`commits.*\.author\.email`):                 "AUTHOR_EMAIL",
-	regexp.MustCompile(`commits.*\.author\.name`):                  "AUTHOR_NAME",
-	regexp.MustCompile(`pull_request\.head\.ref`):                  "PR_HEAD_REF",
-	regexp.MustCompile(`pull_request\.head\.label`):                "PR_HEAD_LABEL",
-	regexp.MustCompile(`pull_request\.head\.repo\.default_branch`): "PR_DEFAULT_BRANCH",
-	regexp.MustCompile(`github\.head_ref`):                         "HEAD_REF",
+type unsafePattern struct {
+	envvarName   string
+	idRegex      *regexp.Regexp
+	replaceRegex *regexp.Regexp
 }
 
-func convertUnsafeVarToEnvvar(unsafeVar string) (string, error) {
-	for regex, envvar := range unsafeVarToEnvvar {
-		if regex.MatchString(unsafeVar) {
-			return fmt.Sprintf("%s: %s", envvar, unsafeVar), nil
+func newUnsafePattern(e, p string) unsafePattern {
+	return unsafePattern{
+		envvarName:   e,
+		idRegex:      regexp.MustCompile(p),
+		replaceRegex: regexp.MustCompile(`{{\W*.*?` + p + `.*?\W*}}`),
+	}
+}
+
+var unsafePatterns = []unsafePattern{
+	newUnsafePattern("AUTHOR_EMAIL", `github\.event\.commits.*?\.author\.email`),
+	newUnsafePattern("AUTHOR_EMAIL", `github\.event\.head_commit\.author\.email`),
+	newUnsafePattern("AUTHOR_NAME", `github\.event\.commits.*?\.author\.name`),
+	newUnsafePattern("AUTHOR_NAME", `github\.event\.head_commit\.author\.name`),
+	newUnsafePattern("COMMENT_BODY", `github\.event\.comment\.body`),
+	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.commits.*?\.message`),
+	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.head_commit\.message`),
+	newUnsafePattern("ISSUE_BODY", `github\.event\.issue\.body`),
+	newUnsafePattern("ISSUE_TITLE", `github\.event\.issue\.title`),
+	newUnsafePattern("PAGE_NAME", `github\.event\.pages.*?\.page_name`),
+	newUnsafePattern("PR_BODY", `github\.event\.pull_request\.body`),
+	newUnsafePattern("PR_DEFAULT_BRANCH", `github\.event\.pull_request\.head\.repo\.default_branch`),
+	newUnsafePattern("PR_HEAD_LABEL", `github\.event\.pull_request\.head\.label`),
+	newUnsafePattern("PR_HEAD_REF", `github\.event\.pull_request\.head\.ref`),
+	newUnsafePattern("PR_TITLE", `github\.event\.pull_request\.title`),
+	newUnsafePattern("REVIEW_BODY", `github\.event\.review\.body`),
+	newUnsafePattern("REVIEW_COMMENT_BODY", `github\.event\.review_comment\.body`),
+
+	newUnsafePattern("HEAD_REF", `github\.head_ref`),
+}
+
+func getReplacementRegexAndEnvvarName(unsafeVar string) (*regexp.Regexp, string, bool) {
+	for _, p := range unsafePatterns {
+		if p.idRegex.MatchString(unsafeVar) {
+			return p.replaceRegex, p.envvarName, true
 		}
 	}
-	return "", sce.WithMessage(sce.ErrScorecardInternal,
-		fmt.Sprintf(
-			"Detected unsafe variable '%s', but could not find a compatible envvar name",
-			unsafeVar))
+	return nil, "", false
 }
 
-func replaceUnsafeVarWithEnvvar(line string, unsafeVar string, envvar string) string {
-	r := regexp.MustCompile(`${{\W*` + unsafeVar + `\W*}}`)
-	return r.ReplaceAllString(line, "$"+envvar)
+func replaceUnsafeVarWithEnvvar(lines []string, replaceRegex *regexp.Regexp, envvar string, runIndex uint) {
+	runIndent := getIndent(lines[runIndex])
+	for i := int(runIndex); i < len(lines) && isParentLevelIndent(lines[i], runIndent); i++ {
+		lines[i] = replaceRegex.ReplaceAllString(lines[i], envvar)
+	}
+}
+
+func getIndent(line string) int {
+	return len(line) - len(strings.TrimLeft(line, " -"))
+}
+
+func isBlankOrComment(line string) bool {
+	blank := regexp.MustCompile(`^\W*$`)
+	comment := regexp.MustCompile(`^\W*#`)
+
+	return blank.MatchString(line) || comment.MatchString(line)
+}
+
+func isParentLevelIndent(line string, parentIndent int) bool {
+	if isBlankOrComment(line) {
+		return false
+	}
+	return getIndent(line) >= parentIndent
+}
+
+// gets the changes as a git-diff. Following the standard used in git diff, the
+// path to the "old" version is prefixed with a/, and the "new" with b/:
+//
+// --- a/.github/workflows/foo.yml
+// +++ b/.github/workflows/foo.yml
+// @@ -42,13 +42,22 @@
+// ...
+func getDiff(path, original, patched string) string {
+	edits := myers.ComputeEdits(span.URIFromPath(path), original, patched)
+	aPath := "a/" + path
+	bPath := "b/" + path
+	return fmt.Sprint(gotextdiff.ToUnified(aPath, bPath, original, edits))
 }
