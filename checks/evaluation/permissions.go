@@ -20,8 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-
-
 	"github.com/ossf/scorecard/v4/probes/hasGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"

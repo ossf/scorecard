@@ -82,6 +82,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			findings = append(findings, *f)
 			continue
 		}
+
 		if r.Name == nil {
 			continue
 		}
