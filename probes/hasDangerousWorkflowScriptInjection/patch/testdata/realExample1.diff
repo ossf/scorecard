@@ -1,0 +1,23 @@
+diff --git a/testdata/realExample1.yaml b/testdata/realExample1_fixed.yaml
+index 843d0c71..cced3454 100644
+--- a/testdata/realExample1.yaml
++++ b/testdata/realExample1_fixed.yaml
+@@ -6,6 +6,9 @@ on:
+ 
+ permissions: read-all
+ 
++env:
++  COMMENT_BODY: ${{ github.event.comment.body }}
++
+ jobs:
+   benchmark-compare:
+     runs-on: ubuntu-latest
+@@ -39,7 +42,7 @@ jobs:
+ 
+       - name: Preparing benchmark for GitHub action
+         id: info
+-        run: yarn benchmarks prepare-for-github-action "${{github.event.comment.body}}"
++        run: yarn benchmarks prepare-for-github-action "$COMMENT_BODY"
+ 
+       - run: yarn benchmarks run-compare ${{steps.info.outputs.compareSha}} ${{steps.info.outputs.benchmarkTarget}}
+         id: benchmark
