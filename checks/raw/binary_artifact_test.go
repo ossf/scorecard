@@ -15,7 +15,7 @@
 package raw
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -227,13 +227,8 @@ func TestBinaryArtifacts(t *testing.T) {
 				mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
 			}
 			for i := 0; i < tt.getFileContentCount; i++ {
-				mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
-					// This will read the file and return the content
-					content, err := os.ReadFile(file)
-					if err != nil {
-						return content, fmt.Errorf("%w", err)
-					}
-					return content, nil
+				mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+					return os.Open(file)
 				})
 			}
 			if tt.successfulWorkflowRuns != nil {
@@ -276,19 +271,11 @@ func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
 	const verifyWorkflow = ".github/workflows/verify.yaml"
 	files := []string{jarFile, verifyWorkflow}
 	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(files, nil).AnyTimes()
-	mockRepoClient.EXPECT().GetFileContent(jarFile).DoAndReturn(func(file string) ([]byte, error) {
-		content, err := os.ReadFile("../testdata/binaryartifacts/jars/gradle-wrapper.jar")
-		if err != nil {
-			return nil, fmt.Errorf("%w", err)
-		}
-		return content, nil
+	mockRepoClient.EXPECT().GetFileReader(jarFile).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open("../testdata/binaryartifacts/jars/gradle-wrapper.jar")
 	}).AnyTimes()
-	mockRepoClient.EXPECT().GetFileContent(verifyWorkflow).DoAndReturn(func(file string) ([]byte, error) {
-		content, err := os.ReadFile("../testdata/binaryartifacts/workflows/verify.yaml")
-		if err != nil {
-			return nil, fmt.Errorf("%w", err)
-		}
-		return content, nil
+	mockRepoClient.EXPECT().GetFileReader(verifyWorkflow).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open("../testdata/binaryartifacts/workflows/verify.yaml")
 	}).AnyTimes()
 
 	mockRepoClient.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature).AnyTimes()

@@ -16,6 +16,7 @@ package gitlabrepo
 
 import (
 	"context"
+	"io"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -39,7 +40,10 @@ var _ = Describe("E2E TEST: gitlabrepo.ListFiles", func() {
 			Expect(err).Should(BeNil())
 			Expect(len(files)).ShouldNot(BeZero())
 
-			data, err := client.GetFileContent("README.md")
+			r, err := client.GetFileReader("README.md")
+			Expect(err).Should(BeNil())
+			defer r.Close()
+			data, err := io.ReadAll(r)
 			Expect(err).Should(BeNil())
 			Expect(len(data)).ShouldNot(BeZero())
 		})

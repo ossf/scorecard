@@ -15,7 +15,7 @@
 package raw
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -207,13 +207,8 @@ func TestSAST(t *testing.T) {
 			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
 				return tt.commits, nil
 			})
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(file string) ([]byte, error) {
-				// This will read the file and return the content
-				content, err := os.ReadFile("./testdata/" + file)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open("./testdata/" + file)
 			}).AnyTimes()
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,

@@ -45,6 +45,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
 
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 

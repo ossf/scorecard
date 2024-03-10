@@ -244,7 +244,7 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Sc
 		}
 		ret.RawResults.BinaryArtifactResults = rawData
 	case checks.CheckBranchProtection:
-		rawData, err := raw.BranchProtection(request.RepoClient)
+		rawData, err := raw.BranchProtection(request)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}

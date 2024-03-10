@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package blocksForcePushOnBranches
+package branchesAreProtected
 
 import (
 	"embed"
@@ -21,19 +21,14 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
-
-func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
-}
 
 //go:embed *.yml
 var fs embed.FS
 
 const (
-	Probe         = "blocksForcePushOnBranches"
+	Probe         = "branchesAreProtected"
 	BranchNameKey = "branchName"
 )
 
@@ -57,19 +52,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
+		protected := (branch.Protected != nil && *branch.Protected)
 		var text string
 		var outcome finding.Outcome
-		switch {
-		case branch.BranchProtectionRule.AllowForcePushes == nil:
-			text = "could not determine whether for push is allowed"
-			outcome = finding.OutcomeNotAvailable
-		case *branch.BranchProtectionRule.AllowForcePushes:
-			text = fmt.Sprintf("'force pushes' enabled on branch '%s'", *branch.Name)
-			outcome = finding.OutcomeNegative
-		case !*branch.BranchProtectionRule.AllowForcePushes:
-			text = fmt.Sprintf("'force pushes' disabled on branch '%s'", *branch.Name)
+		if protected {
+			text = fmt.Sprintf("branch '%s' is protected", *branch.Name)
 			outcome = finding.OutcomePositive
-		default:
+		} else {
+			text = fmt.Sprintf("branch '%s' is not protected", *branch.Name)
+			outcome = finding.OutcomeNegative
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {

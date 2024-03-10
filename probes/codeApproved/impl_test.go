@@ -16,15 +16,13 @@
 package codeApproved
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
 )
-
-var errProbeReturned = errors.New("probe run failure")
 
 func TestProbeCodeApproved(t *testing.T) {
 	t.Parallel()
@@ -32,7 +30,7 @@ func TestProbeCodeApproved(t *testing.T) {
 		name             string
 		rawResults       *checker.RawResults
 		err              error
-		expectedFindings []finding.Finding
+		expectedOutcomes []finding.Outcome
 	}{
 		{
 			name: "no changesets",
@@ -41,8 +39,9 @@ func TestProbeCodeApproved(t *testing.T) {
 					DefaultBranchChangesets: []checker.Changeset{},
 				},
 			},
-			err:              errProbeReturned,
-			expectedFindings: nil,
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
+			},
 		},
 		{
 			name: "no changesets no authors",
@@ -60,11 +59,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeError,
 			},
 		},
 		{
@@ -99,11 +95,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -126,11 +119,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeError,
 			},
 		},
 		{
@@ -149,15 +139,12 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNegative,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 		{
-			name: "all authors are bots",
+			name: "only approved bot PRs gives not applicable outcome",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
 					DefaultBranchChangesets: []checker.Changeset{
@@ -173,7 +160,12 @@ func TestProbeCodeApproved(t *testing.T) {
 									Message: "Title\nPiperOrigin-RevId: 444529962",
 								},
 							},
-							Reviews: []clients.Review{},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
 							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
@@ -190,7 +182,12 @@ func TestProbeCodeApproved(t *testing.T) {
 									},
 								},
 							},
-							Reviews: []clients.Review{},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "baldur"},
+									State:  "APPROVED",
+								},
+							},
 							Author: clients.User{
 								Login: "bot",
 								IsBot: true,
@@ -199,11 +196,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNotAvailable,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -230,11 +224,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomeNegative,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -274,11 +265,8 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomePositive,
-				},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomePositive,
 			},
 		},
 		{
@@ -310,11 +298,35 @@ func TestProbeCodeApproved(t *testing.T) {
 					},
 				},
 			},
-			expectedFindings: []finding.Finding{
-				{
-					Probe:   "codeApproved",
-					Outcome: finding.OutcomePositive,
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomePositive,
+			},
+		},
+		{
+			name: "only unreviewed bot changesets gives negative outcome",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGitHub,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "dependabot"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author: clients.User{
+								IsBot: true,
+								Login: "dependabot",
+							},
+						},
+					},
 				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeNegative,
 			},
 		},
 	}
@@ -334,12 +346,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			case probeID != Probe:
 				t.Errorf("Probe returned the wrong probe ID")
 			default:
-				for i := range tt.expectedFindings {
-					if tt.expectedFindings[i].Outcome != res[i].Outcome {
-						t.Errorf("Code-review probe: %v error: test name: \"%v\", wanted outcome %v, got %v",
-							res[i].Probe, tt.name, tt.expectedFindings[i].Outcome, res[i].Outcome)
-					}
-				}
+				test.AssertOutcomes(t, res, tt.expectedOutcomes)
 			}
 		})
 	}
