@@ -27,14 +27,7 @@ import (
 )
 
 func init() {
-	err := probes.Register(probes.Probe{
-		Name:            Probe,
-		Implementation:  Run,
-		RequiredRawData: []probes.CheckName{probes.SignedReleases},
-	})
-	if err != nil {
-		panic(err)
-	}
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.SignedReleases})
 }
 
 //go:embed *.yml

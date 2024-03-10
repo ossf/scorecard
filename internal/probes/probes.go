@@ -42,17 +42,28 @@ type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 // registered is the mapping of all registered probes.
 var registered = map[string]Probe{}
 
-func Register(probe Probe) error {
-	if probe.Name == "" {
+func MustRegister(name string, impl ProbeImpl, requiredRawData []CheckName) {
+	err := register(Probe{
+		Name:            name,
+		Implementation:  impl,
+		RequiredRawData: requiredRawData,
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func register(p Probe) error {
+	if p.Name == "" {
 		return errors.CreateInternal(errors.ErrScorecardInternal, "name cannot be empty")
 	}
-	if probe.Implementation == nil {
+	if p.Implementation == nil {
 		return errors.CreateInternal(errors.ErrScorecardInternal, "implementation cannot be nil")
 	}
-	if len(probe.RequiredRawData) == 0 {
+	if len(p.RequiredRawData) == 0 {
 		return errors.CreateInternal(errors.ErrScorecardInternal, "probes need some raw data")
 	}
-	registered[probe.Name] = probe
+	registered[p.Name] = p
 	return nil
 }
 
