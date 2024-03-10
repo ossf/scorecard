@@ -166,6 +166,3 @@ linters-settings:
   wrapcheck:
     ignorePackageGlobs:
       - github.com/ossf/scorecard/v4/checks/fileparser
-      # we use this to create errors which get surfaced to users
-      # they already include a message, so we don't need to wrap further
-      - github.com/ossf/scorecard/v4/errors
