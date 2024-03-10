@@ -15,6 +15,8 @@
 package probes
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
@@ -69,13 +71,13 @@ func MustRegister(name string, impl ProbeImpl, requiredRawData []CheckName) {
 
 func register(p Probe) error {
 	if p.Name == "" {
-		return errors.CreateInternal(errors.ErrScorecardInternal, "name cannot be empty")
+		return errors.WithMessage(errors.ErrScorecardInternal, "name cannot be empty")
 	}
 	if p.Implementation == nil {
-		return errors.CreateInternal(errors.ErrScorecardInternal, "implementation cannot be nil")
+		return errors.WithMessage(errors.ErrScorecardInternal, "implementation cannot be nil")
 	}
 	if len(p.RequiredRawData) == 0 {
-		return errors.CreateInternal(errors.ErrScorecardInternal, "probes need some raw data")
+		return errors.WithMessage(errors.ErrScorecardInternal, "probes need some raw data")
 	}
 	registered[p.Name] = p
 	return nil
@@ -84,7 +86,8 @@ func register(p Probe) error {
 func Get(name string) (Probe, error) {
 	p, ok := registered[name]
 	if !ok {
-		return Probe{}, errors.CreateInternal(errors.ErrorUnsupportedCheck, "probe not found")
+		msg := fmt.Sprintf("probe %q not found", name)
+		return Probe{}, errors.WithMessage(errors.ErrScorecardInternal, msg)
 	}
 	return p, nil
 }
