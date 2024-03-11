@@ -28,18 +28,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
@@ -96,18 +85,7 @@ var (
 		toolPyUpInstalled.Run,
 	}
 	Fuzzing = []ProbeImpl{
-		fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Run,
+		fuzzed.Run,
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
@@ -183,18 +161,7 @@ var (
 		toolRenovateInstalled.Probe:                         toolRenovateInstalled.Run,
 		toolDependabotInstalled.Probe:                       toolDependabotInstalled.Run,
 		toolPyUpInstalled.Probe:                             toolPyUpInstalled.Run,
-		fuzzedWithOSSFuzz.Probe:                             fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Probe:                            fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Probe:                       fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Probe:                          fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Probe:                        fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Probe:                      fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Probe:                       fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Probe:                    fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Probe:                     fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Probe:                fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Probe:             fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Probe:             fuzzedWithPropertyBasedJavascript.Run,
+		fuzzed.Probe:                                        fuzzed.Run,
 		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
 		hasLicenseFile.Probe:                                hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
@@ -218,18 +185,7 @@ var (
 		toolRenovateInstalled.Probe:                         "Dependency-Update-Tool",
 		toolDependabotInstalled.Probe:                       "Dependency-Update-Tool",
 		toolPyUpInstalled.Probe:                             "Dependency-Update-Tool",
-		fuzzedWithOSSFuzz.Probe:                             "Fuzzing",
-		fuzzedWithGoNative.Probe:                            "Fuzzing",
-		fuzzedWithPythonAtheris.Probe:                       "Fuzzing",
-		fuzzedWithCLibFuzzer.Probe:                          "Fuzzing",
-		fuzzedWithCppLibFuzzer.Probe:                        "Fuzzing",
-		fuzzedWithSwiftLibFuzzer.Probe:                      "Fuzzing",
-		fuzzedWithRustCargofuzz.Probe:                       "Fuzzing",
-		fuzzedWithJavaJazzerFuzzer.Probe:                    "Fuzzing",
-		fuzzedWithClusterFuzzLite.Probe:                     "Fuzzing",
-		fuzzedWithPropertyBasedHaskell.Probe:                "Fuzzing",
-		fuzzedWithPropertyBasedTypescript.Probe:             "Fuzzing",
-		fuzzedWithPropertyBasedJavascript.Probe:             "Fuzzing",
+		fuzzed.Probe:                                        "Fuzzing",
 		packagedWithAutomatedWorkflow.Probe:                 "Packaging",
 		hasLicenseFile.Probe:                                "License",
 		hasFSFOrOSIApprovedLicense.Probe:                    "License",

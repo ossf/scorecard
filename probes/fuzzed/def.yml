@@ -1,4 +1,4 @@
-# Copyright 2023 OpenSSF Scorecard Authors
+# Copyright 2024 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,27 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: fuzzedWithJavaJazzerFuzzer
-short: Check that the project is fuzzed using the Jazzer Java fuzzing framework
+id: fuzzed
+short: Check that the project is fuzzed
 motivation: >
   Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data into a program to expose bugs.
   Regular fuzzing is important to detect vulnerabilities that may be exploited by others, especially since attackers can also use fuzzing to find the same flaws.
 implementation: >
- The implementation checks whether fo the presence of an import of 'com.code_intelligence.jazzer.api.FuzzedDataProvider' in .java files.
+  The implementation looks for various fuzzing function signatures, imports, configuration files, and external integration data.
 outcome:
-  - If fuzzing functions are found, each finding is returned with OutcomePositive (1).
-  - If no fuzzing is detected, one finding with OutcomeNegative (0) is returned.
+  - If a fuzzing tool is found, one finding per tool with OutcomePositive is returned.
+  - If no fuzzing tool is found, or the project uses a tool we don't detect, one finding with OutcomeNegative is returned.
 remediation:
-  effort: Medium
+  effort: High
   text:
-    - Follow the steps in https://github.com/CodeIntelligenceTesting/jazzer to enable fuzzing on your project.
-    - Over time, try to add fuzzing for more functionalities of your project.
+    - Setup one of tools we currently detect https://github.com/ossf/scorecard/blob/main/docs/checks/fuzzing/README.md.
   markdown:
-    - Follow the steps in [https://github.com/CodeIntelligenceTesting/jazzer](https://github.com/CodeIntelligenceTesting/jazzer) to enable fuzzing on your project.
-    - Over time, try to add fuzzing for more functionalities of your project.
+    - Setup one of [tools we currently detect](https://github.com/ossf/scorecard/blob/main/docs/checks/fuzzing/README.md).
 ecosystem:
   languages:
-    - java
+    - all
   clients:
     - github
     - gitlab
+    - localdir
