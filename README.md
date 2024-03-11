@@ -20,9 +20,10 @@
 -   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
-**ATTENTION:** OpenSSF Scorecard has opened a survey to better understand user expectations and needs from the project. The survey will remain open through OSS NA and the results will help steer the roadmap. **_[Survey link](https://forms.gle/6poWj6gQ15chxTDH8)_**
-
-Please let us know what is working, what is not, and what you would like to see from the project. **Thank you for participating!**
+> [!IMPORTANT]
+> OpenSSF Scorecard has opened a survey to better understand user expectations and needs from the project. The survey will remain open through OSS NA and the results will help steer the roadmap. **_[Survey link](https://forms.gle/6poWj6gQ15chxTDH8)_**
+> 
+> Please let us know what is working, what is not, and what you would like to see from the project. **Thank you for participating!**
 
 -   [Scorecard GitHub Action](#scorecard-github-action)
 -   [Scorecard REST API](#scorecard-rest-api)
