@@ -40,28 +40,38 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
 
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	for i := range r.Branches {
 		branch := &r.Branches[i]
+		var f *finding.Finding
+		var err error
+
 		switch {
 		case len(branch.BranchProtectionRule.CheckRules.Contexts) > 0:
-			f, err := finding.NewWith(fs, Probe,
+			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("status check found to merge onto on branch '%s'", *branch.Name), nil,
 				finding.OutcomePositive)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValue(BranchNameKey, *branch.Name)
-			findings = append(findings, *f)
 		default:
-			f, err := finding.NewWith(fs, Probe,
+			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("no status checks found to merge onto branch '%s'", *branch.Name), nil,
 				finding.OutcomeNegative)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
-			f = f.WithValue(BranchNameKey, *branch.Name)
-			findings = append(findings, *f)
 		}
+		f = f.WithValue(BranchNameKey, *branch.Name)
+		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
 }

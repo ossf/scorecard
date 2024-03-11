@@ -8,8 +8,8 @@ require (
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.15.2
 	github.com/goreleaser/goreleaser v1.24.0
-	github.com/onsi/ginkgo/v2 v2.15.0
-	google.golang.org/protobuf v1.32.0
+	github.com/onsi/ginkgo/v2 v2.16.0
+	google.golang.org/protobuf v1.33.0
 )
 
 require (
@@ -392,7 +392,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240116215550-a9fa1716bcac // indirect
 	google.golang.org/grpc v1.61.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/go-jose/go-jose.v2 v2.6.1 // indirect
+	gopkg.in/go-jose/go-jose.v2 v2.6.3 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

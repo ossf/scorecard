@@ -16,6 +16,7 @@ package gitlab
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/ossf/scorecard/v4/checker"
@@ -32,9 +33,14 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	}
 
 	for _, fp := range matchedFiles {
-		fc, err := c.RepoClient.GetFileContent(fp)
+		fr, err := c.RepoClient.GetFileReader(fp)
 		if err != nil {
-			return data, fmt.Errorf("RepoClient.GetFileContent: %w", err)
+			return data, fmt.Errorf("RepoClient.GetFileReader: %w", err)
+		}
+		fc, err := io.ReadAll(fr)
+		fr.Close()
+		if err != nil {
+			return data, fmt.Errorf("reading from file: %w", err)
 		}
 
 		file, found := isGitlabPackagingWorkflow(fc, fp)
