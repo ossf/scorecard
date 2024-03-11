@@ -76,9 +76,6 @@ func CreateNegativeFinding(r checker.TokenPermission,
 			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
 		})
 	}
-	if r.LocationType != nil {
-		f = f.WithValue("permissionLocation", string(*r.LocationType))
-	}
 	if r.Name != nil {
 		f = f.WithValue("tokenName", *r.Name)
 	}
@@ -143,7 +140,6 @@ func CreateUndeclaredFinding(probe string, fs embed.FS, r checker.TokenPermissio
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue("permissionLocation", string(*r.LocationType))
 	default:
 		f, err = finding.NewWith(fs, probe,
 			"could not determine the location type",

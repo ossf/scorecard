@@ -240,7 +240,7 @@ func updateScoreAndMapFromUndeclared(undeclaredPermissions map[string]map[string
 	score float32, dl checker.DetailLogger,
 ) float32 {
 	fPath := f.Location.Path
-	if f.Values["permissionLocation"] == string(checker.PermissionLocationJob) {
+	if f.Probe == jobLevelPermissions.Probe {
 		dl.Debug(&checker.LogMessage{
 			Finding: f,
 		})
@@ -249,7 +249,7 @@ func updateScoreAndMapFromUndeclared(undeclaredPermissions map[string]map[string
 			hasWritePermissions,
 			fPath,
 			score)
-	} else if f.Values["permissionLocation"] == string(checker.PermissionLocationTop) {
+	} else if f.Probe == topLevelPermissions.Probe {
 		dl.Warn(&checker.LogMessage{
 			Finding: f,
 		})

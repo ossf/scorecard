@@ -91,7 +91,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue("permissionLocation", string(checker.PermissionLocationJob))
 		f = f.WithValue("permissionLevel", string(r.Type))
 		f = f.WithValue("tokenName", *r.Name)
 		findings = append(findings, *f)
