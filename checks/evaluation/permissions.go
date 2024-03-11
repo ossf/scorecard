@@ -89,7 +89,7 @@ func TokenPermissions(name string,
 			})
 		}
 
-		if checkAndLogNotAvailableOrNotApplicable(f, dl) {
+		if isBothUndeclaredAndNotAvailableOrNotApplicable(f, dl) {
 			return checker.CreateInconclusiveResult(name, "Token permissions are not available")
 		}
 
@@ -220,7 +220,7 @@ func updateScoreFromUndeclaredTop(undeclaredPermissions map[string]map[string]bo
 	return score
 }
 
-func checkAndLogNotAvailableOrNotApplicable(f *finding.Finding, dl checker.DetailLogger) bool {
+func isBothUndeclaredAndNotAvailableOrNotApplicable(f *finding.Finding, dl checker.DetailLogger) bool {
 	if f.Values["permissionLevel"] == string(checker.PermissionLevelUndeclared) {
 		if f.Outcome == finding.OutcomeNotAvailable {
 			return true
