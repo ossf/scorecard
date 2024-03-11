@@ -183,23 +183,23 @@ var (
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		SecurityPolicy,
+		BinaryArtifacts,
+		CIIBestPractices,
+		CITests,
+		CodeReview,
+		Contributors,
+		DangerousWorkflows,
 		DependencyToolUpdates,
 		Fuzzing,
-		Packaging,
 		License,
-		Contributors,
-		Vulnerabilities,
-		CodeReview,
-		SAST,
-		DangerousWorkflows,
 		Maintained,
-		CIIBestPractices,
-		BinaryArtifacts,
-		Webhook,
-		CITests,
+		Packaging,
+		SAST,
+		SecurityPolicy,
 		SignedReleases,
 		Uncategorized,
+		Vulnerabilities,
+		Webhook,
 	})
 }
 
