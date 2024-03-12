@@ -54,7 +54,7 @@ type jsonCheckResultV2 struct {
 	Reason      string                   `json:"reason"`
 	Name        string                   `json:"name"`
 	Doc         jsonCheckDocumentationV2 `json:"documentation"`
-	Annotations []string                 `json:"annotations"`
+	Annotations []string                 `json:"annotations,omitempty"`
 }
 
 type jsonRepoV2 struct {
