@@ -1,10 +1,10 @@
-# Maintainers Annotation
+# Maintainers Annotations
 
-Maintainers Annotation is an experimental feature to let maintainers add annotations to Scorecard checks.
+Maintainers Annotations is an experimental feature to let maintainers add annotations to Scorecard checks.
 
-## Showing Maintainers Annotation
+## Showing Maintainers Annotations
 
-To see maintainers annotations for each check on Scorecard results, use the `--show-ma` option.
+To see the maintainers annotations for each check on Scorecard results, use the `--show-annotations` option.
 
 ## Adding Annotations
 

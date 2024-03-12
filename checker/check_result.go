@@ -265,7 +265,7 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	}
 }
 
-// IsExempted verifies if a given check in the results is exempted in maintainers annotation.
+// IsExempted verifies if a given check in the results is exempted in annotations.
 func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
 	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
 	// This may happen if the check score was once low but then the problem was fixed on Scorecard side

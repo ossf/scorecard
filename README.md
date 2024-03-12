@@ -423,9 +423,9 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-##### Showing Maintainers Annotation
+##### Showing Maintainers Annotations
 
-To see maintainers annotations for each check, use the `--show-ma` option.
+To see the maintainers annotations for each check, use the `--show-annotations` option.
 
 ##### Using a GitLab Repository
 

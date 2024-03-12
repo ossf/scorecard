@@ -49,12 +49,12 @@ type jsonCheckDocumentationV2 struct {
 
 //nolint:govet
 type jsonCheckResultV2 struct {
-	Details               []string                 `json:"details"`
-	Score                 int                      `json:"score"`
-	Reason                string                   `json:"reason"`
-	Name                  string                   `json:"name"`
-	Doc                   jsonCheckDocumentationV2 `json:"documentation"`
-	MaintainersAnnotation []string                 `json:"maintainersAnnotation"`
+	Details     []string                 `json:"details"`
+	Score       int                      `json:"score"`
+	Reason      string                   `json:"reason"`
+	Name        string                   `json:"name"`
+	Doc         jsonCheckDocumentationV2 `json:"documentation"`
+	Annotations []string                 `json:"annotations"`
 }
 
 type jsonRepoV2 struct {
@@ -123,7 +123,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 
 // AsJSON2 exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON2(showDetails bool,
-	showMaintainersAnnotation bool, logLevel log.Level,
+	showAnnotations bool, logLevel log.Level,
 	checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
@@ -174,10 +174,10 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 				tmpResult.Details = append(tmpResult.Details, m)
 			}
 		}
-		if showMaintainersAnnotation {
-			exempted, reasons := checkResult.IsExempted(r.MaintainersAnnotation)
+		if showAnnotations {
+			exempted, reasons := checkResult.IsExempted(r.Config)
 			if exempted {
-				tmpResult.MaintainersAnnotation = reasons
+				tmpResult.Annotations = reasons
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)

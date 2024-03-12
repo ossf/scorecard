@@ -30,12 +30,12 @@ import (
 	"github.com/ossf/scorecard/v4/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v4/clients/githubrepo"
 	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v4/config"
 	docChecks "github.com/ossf/scorecard/v4/docs/checks"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/log"
-	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
 )
@@ -54,14 +54,14 @@ type RepoInfo struct {
 
 // ScorecardResult struct is returned on a successful Scorecard run.
 type ScorecardResult struct {
-	Repo                  RepoInfo
-	Date                  time.Time
-	Scorecard             ScorecardInfo
-	Checks                []checker.CheckResult
-	RawResults            checker.RawResults
-	Findings              []finding.Finding
-	Metadata              []string
-	MaintainersAnnotation ma.MaintainersAnnotation
+	Repo       RepoInfo
+	Date       time.Time
+	Scorecard  ScorecardInfo
+	Checks     []checker.CheckResult
+	RawResults checker.RawResults
+	Findings   []finding.Finding
+	Metadata   []string
+	Config     config.Config
 }
 
 func scoreToString(s float64) string {
@@ -132,12 +132,12 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, opts.ShowMaintainersAnnotation, log.ParseLevel(opts.LogLevel), doc, output)
+		err = results.AsString(opts.ShowDetails, opts.ShowAnnotations, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, opts.ShowMaintainersAnnotation, log.ParseLevel(opts.LogLevel), doc, output)
+		err = results.AsJSON2(opts.ShowDetails, opts.ShowAnnotations, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatFJSON:
 		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatPJSON:
@@ -164,7 +164,7 @@ func FormatResults(
 
 // AsString returns ScorecardResult in string format.
 func (r *ScorecardResult) AsString(showDetails bool,
-	showMaintainersAnnotation bool, logLevel log.Level,
+	showAnnotations bool, logLevel log.Level,
 	checkDocs docChecks.Doc, writer io.Writer,
 ) error {
 	data := make([][]string, len(r.Checks))
@@ -194,8 +194,8 @@ func (r *ScorecardResult) AsString(showDetails bool,
 			}
 		}
 		x = append(x, doc)
-		if showMaintainersAnnotation {
-			_, reasons := row.IsExempted(r.MaintainersAnnotation)
+		if showAnnotations {
+			_, reasons := row.IsExempted(r.Config)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
 		data[i] = x
@@ -218,8 +218,8 @@ func (r *ScorecardResult) AsString(showDetails bool,
 		header = append(header, "Details")
 	}
 	header = append(header, "Documentation/Remediation")
-	if showMaintainersAnnotation {
-		header = append(header, "Maintainers Annotation")
+	if showAnnotations {
+		header = append(header, "Annotation")
 	}
 	table.SetHeader(header)
 	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
