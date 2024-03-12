@@ -628,7 +628,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		check := check
 
 		// If check is exempted, skip
-		exempted, _ := check.IsExempted(r.MaintainersAnnotation)
+		exempted, _ := check.IsExempted(r.Config)
 		if exempted {
 			continue
 		}
