@@ -21,9 +21,9 @@ import (
 	"math"
 	"strings"
 
+	"github.com/ossf/scorecard/v4/config"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	ma "github.com/ossf/scorecard/v4/maintainers_annotation"
 	"github.com/ossf/scorecard/v4/rule"
 )
 
@@ -266,7 +266,7 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 }
 
 // IsExempted verifies if a given check in the results is exempted in maintainers annotation.
-func (check *CheckResult) IsExempted(maintainersAnnotation ma.MaintainersAnnotation) (bool, []string) {
+func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
 	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
 	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
 	// or on the maintainers side
@@ -274,16 +274,22 @@ func (check *CheckResult) IsExempted(maintainersAnnotation ma.MaintainersAnnotat
 		return false, nil
 	}
 
-	for _, exemption := range maintainersAnnotation.Exemptions {
-		for _, checkName := range exemption.Checks {
+	// Collect all annotation reasons for this check
+	var reasons []string
+
+	// For all annotations
+	for _, annotation := range c.Annotations {
+		for _, checkName := range annotation.Checks {
+			// If check is in this annotation
 			if strings.EqualFold(checkName, check.Name) {
-				var reasons []string
-				for _, annotation := range exemption.Annotations {
-					reasons = append(reasons, annotation.Reason.Doc())
+				// Get all the reasons for this annotation
+				for _, reasonGroup := range annotation.Reasons {
+					reasons = append(reasons, reasonGroup.Reason.Doc())
 				}
-				return true, reasons
 			}
 		}
 	}
-	return false, nil
+
+	// A check is considered exempted if it has annotation reasons
+	return (len(reasons) > 0), reasons
 }
