@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package maintainers_annotation
+package config
 
 import (
 	"errors"
@@ -23,8 +23,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
 )
-
-var errNoScorecardYmlFile = errors.New("scorecard.yml doesn't exist or file doesn't contain exemptions")
 
 // Reason is the reason behind an annotation.
 type Reason string
@@ -51,28 +49,28 @@ const (
 	NotDetected Reason = "not-detected"
 )
 
-// Annotation groups the annotation reason and, in the future, the related probe.
+// ReasonGroup groups the annotation reason and, in the future, the related probe.
 // If there is a probe, the reason applies to the probe.
-// If there is not a probe, the reason applies to the check or group of checks in
-// the exemption.
-type Annotation struct {
-	Reason Reason `yaml:"annotation"`
+// If there is not a probe, the reason applies to the check or checks in
+// the group.
+type ReasonGroup struct {
+	Reason Reason `yaml:"reason"`
 }
 
-// Exemption defines a group of checks that are being annotated for various reasons.
-type Exemption struct {
-	Checks      []string     `yaml:"checks"`
+// Annotation defines a group of checks that are being annotated for various reasons.
+type Annotation struct {
+	Checks  []string      `yaml:"checks"`
+	Reasons []ReasonGroup `yaml:"reasons"`
+}
+
+// Config contains configurations defined by maintainers.
+type Config struct {
 	Annotations []Annotation `yaml:"annotations"`
 }
 
-// MaintainersAnnotation is a group of exemptions.
-type MaintainersAnnotation struct {
-	Exemptions []Exemption `yaml:"exemptions"`
-}
-
-// parseScorecardConfigFile takes the scorecard.yml file content and returns a `MaintainersAnnotation`.
-func parseScorecardConfigFile(ma *MaintainersAnnotation, content []byte) error {
-	unmarshalErr := yaml.Unmarshal(content, ma)
+// parseFile takes the scorecard.yml file content and returns a `Config`.
+func parseFile(c *Config, content []byte) error {
+	unmarshalErr := yaml.Unmarshal(content, c)
 	if unmarshalErr != nil {
 		return sce.WithMessage(sce.ErrScorecardInternal, unmarshalErr.Error())
 	}
@@ -80,55 +78,26 @@ func parseScorecardConfigFile(ma *MaintainersAnnotation, content []byte) error {
 	return nil
 }
 
-// readScorecardConfigFromRepo reads the scorecard.yml file from the repo and returns its configurations.
-func readScorecardConfigFromRepo(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
-	ma := MaintainersAnnotation{}
+// Parse reads the configuration file from the repo, stored in scorecard.yml, and returns a `Config`.
+func Parse(repoClient clients.RepoClient) (Config, error) {
+	c := Config{}
 	// Find scorecard.yml file in the repository's root
 	content, err := repoClient.GetFileContent("scorecard.yml")
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return ma, errNoScorecardYmlFile
+			// If scorecard.yml doesn't exist, ignore
+			return c, nil
 		}
-		return ma, fmt.Errorf("fail to read scorecard configuration file: %w", err)
+		return c, fmt.Errorf("fail to read configuration file: %w", err)
 	}
 
-	err = parseScorecardConfigFile(&ma, content)
+	err = parseFile(&c, content)
 	if err != nil {
-		return ma, fmt.Errorf("fail to parse scorecard configuration file: %w", err)
+		return c, fmt.Errorf("fail to parse configuration file: %w", err)
 	}
 
-	if ma.Exemptions == nil {
-		return ma, errNoScorecardYmlFile
-	}
-
-	return ma, nil
-}
-
-// GetMaintainersAnnotation reads the maintainers annotation from the repo, stored in scorecard.yml, and returns it.
-func GetMaintainersAnnotation(repoClient clients.RepoClient) (MaintainersAnnotation, error) {
-	// Read the scorecard.yml file and parse it into maintainers annotation
-	ma, err := readScorecardConfigFromRepo(repoClient)
-
-	// If scorecard.yml doesn't exist or file doesn't contain exemptions, ignore
-	if err == errNoScorecardYmlFile {
-		return MaintainersAnnotation{}, nil
-	}
-	// If an error happened while finding or parsing scorecard.yml file, then raise error
-	if err != nil {
-		return MaintainersAnnotation{}, fmt.Errorf("fail to get maintainers annotation: %w", err)
-	}
-
-	// Return maintainers annotation
-	return ma, nil
-}
-
-// getAnnotations parses a group of annotations into annotation reasons.
-func GetAnnotations(a []Annotation) []string {
-	var reasons []string
-	for _, annotation := range a {
-		reasons = append(reasons, annotation.Reason.Doc())
-	}
-	return reasons
+	// Return configuration
+	return c, nil
 }
 
 // Doc maps a reason to its human-readable explanation.
