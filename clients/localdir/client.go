@@ -80,7 +80,6 @@ func isDir(p string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("%w", err)
 	}
-
 	return fileInfo.IsDir(), nil
 }
 
@@ -103,6 +102,11 @@ func listFiles(clientPath string) ([]string, error) {
 			return err
 		}
 		if d {
+			// Check if the directory is .git. Use filepath.Base for compatibility across different OS path separators.
+			// ignoring the .git folder.
+			if filepath.Base(pathfn) == ".git" {
+				return fs.SkipDir
+			}
 			return nil
 		}
 
