@@ -166,11 +166,16 @@ func runScorecard(ctx context.Context,
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	// Get configuration
-	c, err := config.Parse(repoClient)
-	if err != nil {
-		return ScorecardResult{}, err
+	rc, err := repoClient.GetFileReader("scorecard.yml")
+	// If configuration file exists, continue. Otherwise, ignore
+	if err == nil {
+		defer rc.Close()
+		c, err := config.Parse(rc)
+		if err != nil {
+			return ScorecardResult{}, err
+		}
+		ret.Config = c
 	}
-	ret.Config = c
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
@@ -193,6 +198,10 @@ func runScorecard(ctx context.Context,
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+func yaml(content []byte) {
+	panic("unimplemented")
 }
 
 func runEnabledProbes(request *checker.CheckRequest,
