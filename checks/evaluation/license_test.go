@@ -40,10 +40,6 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomePositive,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -58,10 +54,6 @@ func TestLicense(t *testing.T) {
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -80,10 +72,6 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        6,
@@ -95,10 +83,6 @@ func TestLicense(t *testing.T) {
 				{
 					Probe:   "hasLicenseFile",
 					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
@@ -116,10 +100,6 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomePositive,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        9,
@@ -136,10 +116,6 @@ func TestLicense(t *testing.T) {
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{

@@ -60,29 +60,14 @@ func License(name string,
 					Text:   "FSF or OSI recognized license",
 				})
 				score += scoreProbeOnce(f.Probe, m, 1)
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Info(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in expected location",
-				})
-				score += scoreProbeOnce(f.Probe, m, 3)
 			case hasLicenseFile.Probe:
-				score += scoreProbeOnce(f.Probe, m, 6)
+				score += scoreProbeOnce(f.Probe, m, 9)
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		case finding.OutcomeNegative:
 			switch f.Probe {
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in unexpected location",
-				})
 			case hasFSFOrOSIApprovedLicense.Probe:
 				dl.Warn(&checker.LogMessage{
 					Type:   finding.FileTypeSource,
