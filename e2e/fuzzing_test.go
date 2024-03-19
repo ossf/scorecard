@@ -192,7 +192,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.MinResultScore,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}

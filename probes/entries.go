@@ -27,18 +27,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
@@ -95,18 +84,7 @@ var (
 		toolPyUpInstalled.Run,
 	}
 	Fuzzing = []ProbeImpl{
-		fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Run,
+		fuzzed.Run,
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
