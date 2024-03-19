@@ -448,7 +448,11 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			err = tt.result.AsJSON2(tt.showDetails, tt.logLevel, checkDocs, &result)
+			o := AsJSON2ResultOption{
+				Details:  tt.showDetails,
+				LogLevel: tt.logLevel,
+			}
+			err = tt.result.AsJSON2(&result, checkDocs, o)
 			if err != nil {
 				t.Fatalf("%s: AsJSON2: %v", tt.name, err)
 			}

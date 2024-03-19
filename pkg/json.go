@@ -88,6 +88,13 @@ type JSONScorecardResultV2 struct {
 	Metadata       []string            `json:"metadata"`
 }
 
+// AsJSON2ResultOption provides configuration options for JSON2 Scorecard results.
+type AsJSON2ResultOption struct {
+	Details     bool
+	Annotations bool
+	LogLevel    log.Level
+}
+
 // AsJSON exports results as JSON for new detail format.
 func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
@@ -122,9 +129,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool,
-	showAnnotations bool, logLevel log.Level,
-	checkDocs docs.Doc, writer io.Writer,
+func (r *ScorecardResult) AsJSON2(writer io.Writer,
+	checkDocs docs.Doc, o AsJSON2ResultOption,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
@@ -164,17 +170,17 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
-		if showDetails {
+		if o.Details {
 			for i := range checkResult.Details {
 				d := checkResult.Details[i]
-				m := DetailToString(&d, logLevel)
+				m := DetailToString(&d, o.LogLevel)
 				if m == "" {
 					continue
 				}
 				tmpResult.Details = append(tmpResult.Details, m)
 			}
 		}
-		if showAnnotations {
+		if o.Annotations {
 			exempted, reasons := checkResult.IsExempted(r.Config)
 			if exempted {
 				tmpResult.Annotations = reasons
