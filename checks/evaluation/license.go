@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 )
 
 // License applies the score policy for the License check.
@@ -32,7 +31,6 @@ func License(name string,
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
 		hasFSFOrOSIApprovedLicense.Probe,
-		hasLicenseFileAtTopDir.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
