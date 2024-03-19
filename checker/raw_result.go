@@ -38,6 +38,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+	SbomResults                 SbomData
 	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
@@ -167,6 +168,42 @@ type LicenseFile struct {
 // Some repos may have more than one license.
 type LicenseData struct {
 	LicenseFiles []LicenseFile
+}
+
+type SbomOriginationType string
+
+const (
+	// sources of sbom information.
+
+	// Originating in repository Release Assets (or Sbom api endpoint for GH).
+	SbomOriginationTypeRelease SbomOriginationType = "repositoryRelease"
+	// Originating in repository CICD artifacts.
+	SbomOriginationTypeCICD SbomOriginationType = "repositoryCICD"
+	// Originating in source or other non-specific source.
+	SbomOriginationTypeOther SbomOriginationType = "other"
+	// Originating from sbom entry in SECURITY_INSIGHTS.yml.
+	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"
+)
+
+// sbom details.
+type Sbom struct {
+	Name          string              // Sbom Filename
+	Origin        SbomOriginationType // Sbom Source
+	Schema        string              // Sbom Schema
+	SchemaVersion string              // Sbom Schema Version
+	URL           string              // Sbom Asset URL
+}
+
+// one file contains one sbom.
+type SbomFile struct {
+	SbomInformation Sbom
+	File            File
+}
+
+// SbomData contains the raw results for the Sbom check.
+// Some repos may have more than one sbom.
+type SbomData struct {
+	SbomFiles []SbomFile
 }
 
 // CodeReviewData contains the raw results

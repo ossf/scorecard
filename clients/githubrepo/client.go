@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v59/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v4/clients"
@@ -58,6 +58,7 @@ type Client struct {
 	languages     *languagesHandler
 	licenses      *licensesHandler
 	ctx           context.Context
+	sbom          *sbomHandler
 	tarball       tarballHandler
 	commitDepth   int
 }
@@ -126,6 +127,10 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
+
+	// Init sbomHandler
+	client.sbom.init(client.ctx, client.repourl)
+
 	return nil
 }
 
@@ -248,6 +253,11 @@ func (client *Client) ListLicenses() ([]clients.License, error) {
 	return client.licenses.listLicenses()
 }
 
+// ListSboms implements RepoClient.ListSboms.
+func (client *Client) ListSboms() ([]clients.Sbom, error) {
+	return client.sbom.listSboms()
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -278,7 +288,7 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
 
 		var err error
-		client, err = github.NewEnterpriseClient(githubRestURL, githubRestURL, httpClient)
+		client, err = github.NewClient(httpClient).WithEnterpriseURLs(githubRestURL, githubRestURL)
 		if err != nil {
 			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport:EnterpriseClient: %w", err))
 		}
@@ -328,6 +338,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			ghclient: client,
 		},
 		licenses: &licensesHandler{
+			ghclient: client,
+		},
+		sbom: &sbomHandler{
 			ghclient: client,
 		},
 		tarball: tarballHandler{
