@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
@@ -198,14 +199,12 @@ func runEnabledProbes(request *checker.CheckRequest,
 
 	probeFindings := make([]finding.Finding, 0)
 	for _, probeName := range probesToRun {
-		// Get the probe Run func
-		probeRunner, err := probes.GetProbeRunner(probeName)
+		probe, err := proberegistration.Get(probeName)
 		if err != nil {
-			msg := fmt.Sprintf("could not find probe: %s", probeName)
-			return sce.WithMessage(sce.ErrScorecardInternal, msg)
+			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		// Run probe
-		findings, _, err := probeRunner(&ret.RawResults)
+		findings, _, err := probe.Implementation(&ret.RawResults)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}

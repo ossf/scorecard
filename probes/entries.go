@@ -15,8 +15,6 @@
 package probes
 
 import (
-	"errors"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
@@ -27,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
+	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
@@ -113,7 +112,6 @@ var (
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
-
 	Maintained = []ProbeImpl{
 		notArchived.Run,
 		hasRecentCommits.Run,
@@ -153,74 +151,34 @@ var (
 		pinsDependencies.Run,
 	}
 
-	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
-		securityPolicyPresent.Probe:                         securityPolicyPresent.Run,
-		securityPolicyContainsLinks.Probe:                   securityPolicyContainsLinks.Run,
-		securityPolicyContainsVulnerabilityDisclosure.Probe: securityPolicyContainsVulnerabilityDisclosure.Run,
-		securityPolicyContainsText.Probe:                    securityPolicyContainsText.Run,
-		toolRenovateInstalled.Probe:                         toolRenovateInstalled.Run,
-		toolDependabotInstalled.Probe:                       toolDependabotInstalled.Run,
-		toolPyUpInstalled.Probe:                             toolPyUpInstalled.Run,
-		fuzzed.Probe:                                        fuzzed.Run,
-		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
-		hasLicenseFile.Probe:                                hasLicenseFile.Run,
-		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
-		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
-		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
-		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
-		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
-		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
-		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
-		notArchived.Probe:                                   notArchived.Run,
-		hasRecentCommits.Probe:                              hasRecentCommits.Run,
-		issueActivityByProjectMember.Probe:                  issueActivityByProjectMember.Run,
-		notCreatedRecently.Probe:                            notCreatedRecently.Run,
+	// Probes which aren't included by any checks.
+	// These still need to be listed so they can be called with --probes.
+	Uncategorized = []ProbeImpl{
+		freeOfAnyBinaryArtifacts.Run,
 	}
-
-	CheckMap = map[string]string{
-		securityPolicyPresent.Probe:                         "Security-Policy",
-		securityPolicyContainsLinks.Probe:                   "Security-Policy",
-		securityPolicyContainsVulnerabilityDisclosure.Probe: "Security-Policy",
-		securityPolicyContainsText.Probe:                    "Security-Policy",
-		toolRenovateInstalled.Probe:                         "Dependency-Update-Tool",
-		toolDependabotInstalled.Probe:                       "Dependency-Update-Tool",
-		toolPyUpInstalled.Probe:                             "Dependency-Update-Tool",
-		fuzzed.Probe:                                        "Fuzzing",
-		packagedWithAutomatedWorkflow.Probe:                 "Packaging",
-		hasLicenseFile.Probe:                                "License",
-		hasFSFOrOSIApprovedLicense.Probe:                    "License",
-		hasLicenseFileAtTopDir.Probe:                        "License",
-		contributorsFromOrgOrCompany.Probe:                  "Contributors",
-		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
-		sastToolRunsOnAllCommits.Probe:                      "SAST",
-		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
-		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
-		notArchived.Probe:                                   "Maintained",
-		hasRecentCommits.Probe:                              "Maintained",
-		issueActivityByProjectMember.Probe:                  "Maintained",
-		notCreatedRecently.Probe:                            "Maintained",
-	}
-
-	errProbeNotFound = errors.New("probe not found")
 )
 
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		DependencyToolUpdates,
+		BinaryArtifacts,
+		CIIBestPractices,
+		CITests,
 		CodeReview,
-		SecurityPolicy,
+		Contributors,
+		DangerousWorkflows,
+		DependencyToolUpdates,
 		Fuzzing,
 		License,
-		Contributors,
+		Maintained,
+		Packaging,
+		SAST,
+		SecurityPolicy,
+		SignedReleases,
+		Uncategorized,
+		Vulnerabilities,
+		Webhook,
 	})
-}
-
-func GetProbeRunner(probeName string) (func(*checker.RawResults) ([]finding.Finding, string, error), error) {
-	if runner, ok := probeRunners[probeName]; ok {
-		return runner, nil
-	}
-	return nil, errProbeNotFound
 }
 
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {

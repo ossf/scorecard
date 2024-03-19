@@ -24,9 +24,14 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 	"github.com/ossf/scorecard/v4/rule"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.PinnedDependencies})
+}
 
 //go:embed *.yml
 var fs embed.FS
