@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowTrigger"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
@@ -111,6 +112,7 @@ var (
 	}
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowTrigger.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 
@@ -170,6 +172,7 @@ var (
 		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
 		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
 		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
+		hasDangerousWorkflowTrigger.Probe:                   hasDangerousWorkflowTrigger.Run,
 		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
 		notArchived.Probe:                                   notArchived.Run,
 		hasRecentCommits.Probe:                              hasRecentCommits.Run,
@@ -194,6 +197,7 @@ var (
 		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
 		sastToolRunsOnAllCommits.Probe:                      "SAST",
 		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
+		hasDangerousWorkflowTrigger.Probe:                   "Dangerous-Workflow",
 		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
 		notArchived.Probe:                                   "Maintained",
 		hasRecentCommits.Probe:                              "Maintained",

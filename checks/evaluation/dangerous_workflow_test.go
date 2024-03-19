@@ -48,6 +48,9 @@ func TestDangerousWorkflow(t *testing.T) {
 						LineStart: &testLineStart,
 						Snippet:   &testSnippet,
 					},
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
+					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
@@ -64,6 +67,9 @@ func TestDangerousWorkflow(t *testing.T) {
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomeNotApplicable,
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
+					Outcome: finding.OutcomeNotApplicable,
 				},
 			},
 			result: scut.TestReturn{
@@ -78,6 +84,9 @@ func TestDangerousWorkflow(t *testing.T) {
 					Outcome: finding.OutcomePositive,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -100,6 +109,9 @@ func TestDangerousWorkflow(t *testing.T) {
 						LineStart: &testLineStart,
 						Snippet:   &testSnippet,
 					},
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
+					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
@@ -121,6 +133,9 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -152,6 +167,9 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
 					Outcome: finding.OutcomePositive,
 				},
 			},
@@ -237,6 +255,9 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
+					Outcome: finding.OutcomePositive,
+				}, {
+					Probe:   "hasDangerousWorkflowTrigger",
 					Outcome: finding.OutcomePositive,
 				},
 			},

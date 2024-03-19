@@ -1,0 +1,69 @@
+on:
+  workflow_run:
+    branches: [main]
+
+jobs:
+  # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idenv
+  job0:
+    runs-on: linux
+    env:
+      tok_unquoted: ${{ secrets.GITHUB_TOKEN }}
+      tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+      tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+    steps:
+      - name: "dummy"
+        uses: "actions/checkout@main"
+  job1:
+    runs-on: linux
+    steps:
+      - name: "step_using_env_and_with"
+        uses: actions/upload-artifact@v4
+        env:
+          tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          path: "${{ secrets.GITHUB_TOKEN }}"
+      - name: "step_using_with_for_docker_container"
+        uses: actions/hello-world-docker-action@main
+        with:
+          entrypoint: /bin/echo
+          args: A secret arg ${{ secrets.GITHUB_TOKEN }}
+  job2:
+    runs-on: linux
+    container:
+      env:
+        tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+        tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+    steps:
+      - name: "dummy"
+        run: "echo $tok_gh"
+  job3:
+    runs-on: linux
+    services:
+      service0:
+        env:
+          tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+          tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+    steps:
+      - name: "dummy"
+        run: "echo $tok_gh"
+  job4:
+    uses: "./github-workflow-workflow-run-unsafe.yml@main"
+    with:
+      # Apparently you can't use secrets here? 
+      # Run test anyway, in case linter is wrong
+      tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+      tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+  job5:
+    uses: "./github-workflow-workflow-run-unsafe.yml@main"
+    secrets: inherit
+  job6:
+    uses: "./github-workflow-workflow-run-unsafe.yml@main"
+    secrets:
+      tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+      tok_gh: "${{ secrets.GITHUB_TOKEN }}"
+  job7:
+    uses: "./github-workflow-workflow-run-unsafe.yml@main"
+    secrets:
+      tok_not_gh: "${{ secrets.EXTERNAL_AUTH_TOKEN }}"
+
+

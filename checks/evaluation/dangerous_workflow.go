@@ -19,6 +19,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowTrigger"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 )
 
@@ -28,6 +29,7 @@ func DangerousWorkflow(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		hasDangerousWorkflowScriptInjection.Probe,
+		hasDangerousWorkflowTrigger.Probe,
 		hasDangerousWorkflowUntrustedCheckout.Probe,
 	}
 
@@ -58,7 +60,8 @@ func DangerousWorkflow(name string,
 		}
 	}
 
-	if hasDWWithUntrustedCheckout(findings) || hasDWWithScriptInjection(findings) {
+	if hasDWWithUntrustedCheckout(findings) || hasDWWithScriptInjection(findings) ||
+		hasDWWithWorkflowRunTrigger(findings) {
 		return checker.CreateMinScoreResult(name,
 			"dangerous workflow patterns detected")
 	}
@@ -94,6 +97,18 @@ func hasDWWithScriptInjection(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Probe == hasDangerousWorkflowScriptInjection.Probe {
+			if f.Outcome == finding.OutcomeNegative {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func hasDWWithWorkflowRunTrigger(findings []finding.Finding) bool {
+	for i := range findings {
+		f := &findings[i]
+		if f.Probe == hasDangerousWorkflowTrigger.Probe {
 			if f.Outcome == finding.OutcomeNegative {
 				return true
 			}

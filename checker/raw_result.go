@@ -361,6 +361,8 @@ const (
 	DangerousWorkflowScriptInjection DangerousWorkflowType = "scriptInjection"
 	// DangerousWorkflowUntrustedCheckout represents an untrusted checkout.
 	DangerousWorkflowUntrustedCheckout DangerousWorkflowType = "untrustedCheckout"
+	// DangerousWorkflowSecretUsage represents a usage of GITHUB_TOKEN combined with workflow_run.
+	DangerousWorkflowSecretUsage DangerousWorkflowType = "secretOnWorfklowRun"
 )
 
 // DangerousWorkflowData contains raw results
