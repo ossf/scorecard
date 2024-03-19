@@ -15,11 +15,9 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"os"
+	"io"
 
-	"github.com/ossf/scorecard/v4/clients"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -40,15 +38,11 @@ func parseFile(c *Config, content []byte) error {
 }
 
 // Parse reads the configuration file from the repo, stored in scorecard.yml, and returns a `Config`.
-func Parse(repoClient clients.RepoClient) (Config, error) {
+func Parse(r io.Reader) (Config, error) {
 	c := Config{}
 	// Find scorecard.yml file in the repository's root
-	content, err := repoClient.GetFileContent("scorecard.yml")
+	content, err := io.ReadAll(r)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			// If scorecard.yml doesn't exist, ignore
-			return c, nil
-		}
 		return c, fmt.Errorf("fail to read configuration file: %w", err)
 	}
 
