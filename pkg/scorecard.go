@@ -31,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
@@ -91,6 +92,7 @@ func runScorecard(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
@@ -232,6 +234,7 @@ func RunScorecard(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	return runScorecard(ctx,
 		repo,
@@ -243,6 +246,7 @@ func RunScorecard(ctx context.Context,
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 }
 
@@ -257,6 +261,7 @@ func ExperimentalRunProbes(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	return runScorecard(ctx,
 		repo,
@@ -268,5 +273,6 @@ func ExperimentalRunProbes(ctx context.Context,
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 }

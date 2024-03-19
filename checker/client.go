@@ -23,6 +23,7 @@ import (
 	glrepo "github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/log"
 )
 
@@ -34,6 +35,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	clients.RepoClient, // ossFuzzClient
 	clients.CIIBestPracticesClient, // ciiClient
 	clients.VulnerabilitiesClient, // vulnClient
+	packageclient.ProjectPackageClient, // projectClient
 	error,
 ) {
 	var repo clients.Repo
@@ -50,6 +52,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			nil, /*ossFuzzClient*/
 			nil, /*ciiClient*/
 			clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+			nil,
 			retErr
 	}
 
@@ -68,6 +71,7 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 				nil,
 				nil,
 				nil,
+				packageclient.CreateDepsDevClient(),
 				fmt.Errorf("error making github repo: %w", makeRepoError)
 		}
 		repoClient = ghrepo.CreateGithubRepoClient(ctx, logger)
@@ -78,5 +82,6 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 		ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL), /*ossFuzzClient*/
 		clients.DefaultCIIBestPracticesClient(), /*ciiClient*/
 		clients.DefaultVulnerabilitiesClient(), /*vulnClient*/
+		packageclient.CreateDepsDevClient(),
 		nil
 }

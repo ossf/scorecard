@@ -26,6 +26,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/pkg"
 )
@@ -45,6 +46,7 @@ type Runner struct {
 	ossFuzz       clients.RepoClient
 	cii           clients.CIIBestPracticesClient
 	vuln          clients.VulnerabilitiesClient
+	deps          packageclient.ProjectPackageClient
 }
 
 // Creates a Runner which will run the listed checks. If no checks are provided, all will run.
@@ -79,7 +81,9 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 	if err != nil {
 		return pkg.ScorecardResult{}, err
 	}
-	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln)
+	return pkg.RunScorecard(
+		r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln, r.deps,
+	)
 }
 
 // logs only if logger is set.
