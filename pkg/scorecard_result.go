@@ -64,6 +64,13 @@ type ScorecardResult struct {
 	Config     config.Config
 }
 
+// AsStringResultOption provides configuration options for string Scorecard results.
+type AsStringResultOption struct {
+	Details     bool
+	Annotations bool
+	LogLevel    log.Level
+}
+
 func scoreToString(s float64) string {
 	if s == checker.InconclusiveResultScore {
 		return "?"
@@ -132,7 +139,12 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, opts.ShowAnnotations, log.ParseLevel(opts.LogLevel), doc, output)
+		o := AsStringResultOption{
+			Details:     opts.ShowDetails,
+			Annotations: opts.ShowAnnotations,
+			LogLevel:    log.ParseLevel(opts.LogLevel),
+		}
+		err = results.AsString(output, doc, o)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
@@ -168,9 +180,8 @@ func FormatResults(
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool,
-	showAnnotations bool, logLevel log.Level,
-	checkDocs docChecks.Doc, writer io.Writer,
+func (r *ScorecardResult) AsString(writer io.Writer,
+	checkDocs docChecks.Doc, o AsStringResultOption,
 ) error {
 	data := make([][]string, len(r.Checks))
 
@@ -192,14 +203,14 @@ func (r *ScorecardResult) AsString(showDetails bool,
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
 		x = append(x, row.Name)
 		x = append(x, row.Reason)
-		if showDetails {
-			details, show := detailsToString(row.Details, logLevel)
+		if o.Details {
+			details, show := detailsToString(row.Details, o.LogLevel)
 			if show {
 				x = append(x, details)
 			}
 		}
 		x = append(x, doc)
-		if showAnnotations {
+		if o.Annotations {
 			_, reasons := row.IsExempted(r.Config)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
@@ -219,11 +230,11 @@ func (r *ScorecardResult) AsString(showDetails bool,
 
 	table := tablewriter.NewWriter(writer)
 	header := []string{"Score", "Name", "Reason"}
-	if showDetails {
+	if o.Details {
 		header = append(header, "Details")
 	}
 	header = append(header, "Documentation/Remediation")
-	if showAnnotations {
+	if o.Annotations {
 		header = append(header, "Annotation")
 	}
 	table.SetHeader(header)
