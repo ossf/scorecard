@@ -54,9 +54,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 		licenseFile := licenseFile
-		msg := fmt.Sprintf("detected %q license", licenseFile.LicenseInformation.Name)
 		loc := licenseFile.File.Location()
-		f, err := finding.NewPositive(fs, Probe, msg, loc)
+		f, err := finding.NewPositive(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
