@@ -18,7 +18,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
-	github.com/moby/buildkit v0.12.5
+	github.com/moby/buildkit v0.13.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.31.1
 	github.com/rhysd/actionlint v1.6.27
@@ -81,7 +81,7 @@ require (
 	github.com/google/pprof v0.0.0-20230926050212-f7f687d19a98 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20240312041847-bd984b5ce465 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.5.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -164,7 +164,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.0-rc3 // indirect
+	github.com/opencontainers/image-spec v1.1.0-rc5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
