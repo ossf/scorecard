@@ -81,9 +81,9 @@ func PinningDependencies(name string,
 	for i := range findings {
 		f := findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNotAvailable:
-			return checker.CreateInconclusiveResult(name, "no dependencies found")
 		case finding.OutcomeNotApplicable:
+			return checker.CreateInconclusiveResult(name, "no dependencies found")
+		case finding.OutcomeNotSupported:
 			if f.Location != nil {
 				dl.Debug(&checker.LogMessage{
 					Path:      f.Location.Path,

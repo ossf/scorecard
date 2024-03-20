@@ -288,7 +288,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNotApplicable,
+					Outcome: finding.OutcomeNotSupported,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",

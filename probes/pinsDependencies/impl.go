@@ -62,7 +62,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
-		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotApplicable)
+		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotSupported)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -71,7 +71,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
 				return findings, Probe, e
 			}
-			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotApplicable)
+			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
@@ -83,7 +83,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineEnd:   &rr.Location.EndOffset,
 				Snippet:   &rr.Location.Snippet,
 			}
-			f = f.WithMessage(*rr.Msg).WithLocation(loc).WithOutcome(finding.OutcomeNotApplicable)
+			f = f.WithMessage(*rr.Msg).WithLocation(loc).WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
@@ -97,7 +97,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			f = f.WithMessage(fmt.Sprintf("%s has empty Pinned field", rr.Type)).
 				WithLocation(loc).
-				WithOutcome(finding.OutcomeNotApplicable)
+				WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
@@ -136,9 +136,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"no dependencies found", nil,
-			finding.OutcomeNotAvailable)
+		f, err := finding.NewWith(fs, Probe, "no dependencies found", nil, finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
