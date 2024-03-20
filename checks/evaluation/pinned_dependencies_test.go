@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -403,6 +404,57 @@ func Test_PinningDependencies(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "no dependencies leads to an inconclusive score",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+			},
+		},
+		{
+			name: "processing errors are logged as info",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeError,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.InconclusiveResultScore,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "processing errors dont affect other dependencies",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeError,
+				},
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomePositive,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "test-file",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2, // 1 for processing error, 1 for pinned pip ecosystem
 			},
 		},
 	}
