@@ -58,7 +58,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews
+		p := branch.BranchProtectionRule.PullRequestRule.DismissStaleReviews
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
 			"stale review dismissal",
 			*branch.Name)

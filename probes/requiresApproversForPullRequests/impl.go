@@ -65,7 +65,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
+		p := branch.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
