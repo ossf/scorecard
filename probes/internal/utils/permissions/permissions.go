@@ -71,12 +71,13 @@ func CreateNegativeFinding(r checker.TokenPermission,
 
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
+		workflowPath := strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(map[string]string{"workflow": workflowPath})
 	}
 	if metadata != nil {
-		updatedMetadata := metadata
-		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
-		f = f.WithRemediationMetadata(updatedMetadata)
+		f = f.WithRemediationMetadata(metadata)
 	}
+
 	if r.Name != nil {
 		f = f.WithValue("tokenName", *r.Name)
 	}
@@ -97,12 +98,13 @@ func ReadPositiveLevelFinding(probe string,
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
+		workflowPath := strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(map[string]string{"workflow": workflowPath})
 	}
 	if metadata != nil {
-		updatedMetadata := metadata
-		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
-		f = f.WithRemediationMetadata(updatedMetadata)
+		f = f.WithRemediationMetadata(metadata)
 	}
+
 	f = f.WithValue("permissionLevel", "read")
 	return f, nil
 }
@@ -121,12 +123,13 @@ func CreateNoneFinding(probe string,
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
+		workflowPath := strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(map[string]string{"workflow": workflowPath})
 	}
 	if metadata != nil {
-		updatedMetadata := metadata
-		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
-		f = f.WithRemediationMetadata(updatedMetadata)
+		f = f.WithRemediationMetadata(metadata)
 	}
+
 	f = f.WithValue("permissionLevel", string(r.Type))
 	return f, nil
 }
