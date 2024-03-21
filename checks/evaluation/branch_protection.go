@@ -235,64 +235,79 @@ func getBranchName(f *finding.Finding) (string, error) {
 	return name, nil
 }
 
-func sumUpScoreForTier(t tier, scoresData []levelScore) int {
-	sum := 0
-	for i := range scoresData {
-		score := scoresData[i]
-		switch t {
-		case Tier1:
-			sum += score.scores.basic
-		case Tier2:
-			sum += score.scores.review + score.scores.adminReview
-		case Tier3:
-			sum += score.scores.context
-		case Tier4:
-			sum += score.scores.thoroughReview + score.scores.codeownerReview
-		case Tier5:
-			sum += score.scores.adminThoroughReview
+func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+	logWithoutDebug(f, doLogging, dl)
+	if f.Outcome == finding.OutcomePositive {
+		score++
+	}
+	max++
+
+	return score, max
+}
+
+func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+
+	logWithDebug(f, doLogging, dl)
+	if f.Outcome == finding.OutcomePositive {
+		score++
+	}
+	if f.Outcome != finding.OutcomeNotAvailable {
+		max++
+	}
+	return score, max
+}
+
+func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+	if f.Outcome == finding.OutcomePositive {
+		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
+		if noOfRequiredReviews >= minReviews {
+			info(dl, doLogging, f.Message)
+			score++
+		} else {
+			warn(dl, doLogging, f.Message)
 		}
-	}
-	return sum
-}
-
-func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
-	switch f.Outcome {
-	case finding.OutcomeNotAvailable:
-		debug(dl, doLogging, f.Message)
-	case finding.OutcomePositive:
-		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
-		warn(dl, doLogging, f.Message)
-	default:
-		// To satisfy linter
-	}
-}
-
-func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
-	switch f.Outcome {
-	case finding.OutcomePositive:
-		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
-		warn(dl, doLogging, f.Message)
-	default:
-		// To satisfy linter
-	}
-}
-
-func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
-	switch f.Outcome {
-	case finding.OutcomePositive:
-		info(dl, doLogging, f.Message)
-	default:
+	} else if f.Outcome == finding.OutcomeNegative {
 		warn(dl, doLogging, f.Message)
 	}
+	max++
+	return score, max
 }
 
-func normalizeScore(score, max, level int) float64 {
-	if max == 0 {
-		return float64(level)
+func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+	if f.Outcome == finding.OutcomePositive {
+		info(dl, doLogging, f.Message)
+		score++
+	} else {
+		warn(dl, doLogging, f.Message)
 	}
-	return float64(score*level) / float64(max)
+	max++
+	return score, max
+}
+
+func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+	if f.Outcome == finding.OutcomePositive {
+		score++
+	}
+	logWithDebug(f, doLogging, dl)
+	if f.Outcome != finding.OutcomeNotAvailable {
+		max++
+	}
+	return score, max
+}
+
+func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+	var score, max int
+	logInfoOrWarn(f, doLogging, dl)
+	if f.Outcome == finding.OutcomePositive {
+		score++
+	}
+	max++
+	return score, max
 }
 
 func computeFinalScore(scores []levelScore) (int, error) {
@@ -351,6 +366,66 @@ func computeFinalScore(scores []levelScore) (int, error) {
 	return int(score), nil
 }
 
+func sumUpScoreForTier(t tier, scoresData []levelScore) int {
+	sum := 0
+	for i := range scoresData {
+		score := scoresData[i]
+		switch t {
+		case Tier1:
+			sum += score.scores.basic
+		case Tier2:
+			sum += score.scores.review + score.scores.adminReview
+		case Tier3:
+			sum += score.scores.context
+		case Tier4:
+			sum += score.scores.thoroughReview + score.scores.codeownerReview
+		case Tier5:
+			sum += score.scores.adminThoroughReview
+		}
+	}
+	return sum
+}
+
+func normalizeScore(score, max, level int) float64 {
+	if max == 0 {
+		return float64(level)
+	}
+	return float64(score*level) / float64(max)
+}
+
+func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
+	switch f.Outcome {
+	case finding.OutcomeNotAvailable:
+		debug(dl, doLogging, f.Message)
+	case finding.OutcomePositive:
+		info(dl, doLogging, f.Message)
+	case finding.OutcomeNegative:
+		warn(dl, doLogging, f.Message)
+	default:
+		// To satisfy linter
+	}
+}
+
+func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
+	switch f.Outcome {
+	case finding.OutcomePositive:
+		info(dl, doLogging, f.Message)
+	case finding.OutcomeNegative:
+		warn(dl, doLogging, f.Message)
+	default:
+		// To satisfy linter
+	}
+}
+
+func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
+	switch f.Outcome {
+	case finding.OutcomePositive:
+		info(dl, doLogging, f.Message)
+	default:
+		warn(dl, doLogging, f.Message)
+	}
+}
+
 func info(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
 	if !doLogging {
 		return
@@ -379,79 +454,4 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 	dl.Warn(&checker.LogMessage{
 		Text: fmt.Sprintf(desc, args...),
 	})
-}
-
-func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-	logWithoutDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
-		score++
-	}
-	max++
-
-	return score, max
-}
-
-func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-	logInfoOrWarn(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
-		score++
-	}
-	max++
-	return score, max
-}
-
-func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-	if f.Outcome == finding.OutcomePositive {
-		score++
-	}
-	logWithDebug(f, doLogging, dl)
-	if f.Outcome != finding.OutcomeNotAvailable {
-		max++
-	}
-	return score, max
-}
-
-func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-
-	logWithDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
-		score++
-	}
-	if f.Outcome != finding.OutcomeNotAvailable {
-		max++
-	}
-	return score, max
-}
-
-func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-	if f.Outcome == finding.OutcomePositive {
-		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
-		if noOfRequiredReviews >= minReviews {
-			info(dl, doLogging, f.Message)
-			score++
-		} else {
-			warn(dl, doLogging, f.Message)
-		}
-	} else if f.Outcome == finding.OutcomeNegative {
-		warn(dl, doLogging, f.Message)
-	}
-	max++
-	return score, max
-}
-
-func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
-	if f.Outcome == finding.OutcomePositive {
-		info(dl, doLogging, f.Message)
-		score++
-	} else {
-		warn(dl, doLogging, f.Message)
-	}
-	max++
-	return score, max
 }
