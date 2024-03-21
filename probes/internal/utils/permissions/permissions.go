@@ -56,6 +56,7 @@ func createText(t checker.TokenPermission) (string, error) {
 func CreateNegativeFinding(r checker.TokenPermission,
 	probe string,
 	fs embed.FS,
+	metadata map[string]string,
 ) (*finding.Finding, error) {
 	// Create finding
 	text, err := createText(r)
@@ -70,11 +71,11 @@ func CreateNegativeFinding(r checker.TokenPermission,
 
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
-		f = f.WithRemediationMetadata(map[string]string{
-			"repo":     r.Remediation.Repo,
-			"branch":   r.Remediation.Branch,
-			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
-		})
+	}
+	if metadata != nil {
+		updatedMetadata := metadata
+		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(updatedMetadata)
 	}
 	if r.Name != nil {
 		f = f.WithValue("tokenName", *r.Name)
@@ -83,7 +84,11 @@ func CreateNegativeFinding(r checker.TokenPermission,
 	return f, nil
 }
 
-func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+func ReadPositiveLevelFinding(probe string,
+	fs embed.FS,
+	r checker.TokenPermission,
+	metadata map[string]string,
+) (*finding.Finding, error) {
 	f, err := finding.NewWith(fs, probe,
 		"found token with 'read' permissions",
 		nil, finding.OutcomePositive)
@@ -92,17 +97,21 @@ func ReadPositiveLevelFinding(probe string, fs embed.FS, r checker.TokenPermissi
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
-		f = f.WithRemediationMetadata(map[string]string{
-			"repo":     r.Remediation.Repo,
-			"branch":   r.Remediation.Branch,
-			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
-		})
+	}
+	if metadata != nil {
+		updatedMetadata := metadata
+		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(updatedMetadata)
 	}
 	f = f.WithValue("permissionLevel", "read")
 	return f, nil
 }
 
-func CreateNoneFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+func CreateNoneFinding(probe string,
+	fs embed.FS,
+	r checker.TokenPermission,
+	metadata map[string]string,
+) (*finding.Finding, error) {
 	// Create finding
 	f, err := finding.NewWith(fs, probe,
 		"found token with 'none' permissions",
@@ -112,17 +121,21 @@ func CreateNoneFinding(probe string, fs embed.FS, r checker.TokenPermission) (*f
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
-		f = f.WithRemediationMetadata(map[string]string{
-			"repo":     r.Remediation.Repo,
-			"branch":   r.Remediation.Branch,
-			"workflow": strings.TrimPrefix(f.Location.Path, ".github/workflows/"),
-		})
+	}
+	if metadata != nil {
+		updatedMetadata := metadata
+		updatedMetadata["workflow"] = strings.TrimPrefix(f.Location.Path, ".github/workflows/")
+		f = f.WithRemediationMetadata(updatedMetadata)
 	}
 	f = f.WithValue("permissionLevel", string(r.Type))
 	return f, nil
 }
 
-func CreateUndeclaredFinding(probe string, fs embed.FS, r checker.TokenPermission) (*finding.Finding, error) {
+func CreateUndeclaredFinding(probe string,
+	fs embed.FS,
+	r checker.TokenPermission,
+	metadata map[string]string,
+) (*finding.Finding, error) {
 	var f *finding.Finding
 	var err error
 	switch {
@@ -136,7 +149,7 @@ func CreateUndeclaredFinding(probe string, fs embed.FS, r checker.TokenPermissio
 	case *r.LocationType == checker.PermissionLocationTop,
 		*r.LocationType == checker.PermissionLocationJob:
 		// Create finding
-		f, err = CreateNegativeFinding(r, probe, fs)
+		f, err = CreateNegativeFinding(r, probe, fs, metadata)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}

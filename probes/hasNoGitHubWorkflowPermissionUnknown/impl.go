@@ -55,7 +55,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 
 		// Create finding
-		f, err := permissions.CreateNegativeFinding(r, Probe, fs)
+		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

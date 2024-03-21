@@ -59,21 +59,21 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		switch r.Type {
 		case checker.PermissionLevelNone:
-			f, err := permissions.CreateNoneFinding(Probe, fs, r)
+			f, err := permissions.CreateNoneFinding(Probe, fs, r, raw.Metadata.Metadata)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 			continue
 		case checker.PermissionLevelUndeclared:
-			f, err := permissions.CreateUndeclaredFinding(Probe, fs, r)
+			f, err := permissions.CreateUndeclaredFinding(Probe, fs, r, raw.Metadata.Metadata)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 			continue
 		case checker.PermissionLevelRead:
-			f, err := permissions.ReadPositiveLevelFinding(Probe, fs, r)
+			f, err := permissions.ReadPositiveLevelFinding(Probe, fs, r, raw.Metadata.Metadata)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -96,7 +96,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 
 		// Create finding
-		f, err := permissions.CreateNegativeFinding(r, Probe, fs)
+		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
