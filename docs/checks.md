@@ -384,7 +384,7 @@ or `.md`. It will also detect these files in a directory named `LICENSES`.
 appropriate file extension, as described in the [REUSE](https://reuse.software/spec/ Specification).)
 
 License Requirements:
-  - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
+  - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename, or license files in a `LICENSES` directory (6/10 points)
   - The detected file is at the top-level directory (3/10 points)
   - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
  
