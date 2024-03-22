@@ -19,7 +19,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
+	"github.com/ossf/scorecard/v4/config"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/rule"
@@ -261,4 +263,33 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 			})
 		}
 	}
+}
+
+// IsExempted verifies if a given check in the results is exempted in annotations.
+func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
+	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
+	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
+	// or on the maintainers side
+	if check.Score == MaxResultScore {
+		return false, nil
+	}
+
+	// Collect all annotation reasons for this check
+	var reasons []string
+
+	// For all annotations
+	for _, annotation := range c.Annotations {
+		for _, checkName := range annotation.Checks {
+			// If check is in this annotation
+			if strings.EqualFold(checkName, check.Name) {
+				// Get all the reasons for this annotation
+				for _, reasonGroup := range annotation.Reasons {
+					reasons = append(reasons, reasonGroup.Reason.Doc())
+				}
+			}
+		}
+	}
+
+	// A check is considered exempted if it has annotation reasons
+	return (len(reasons) > 0), reasons
 }

@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v4/config"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
@@ -164,6 +165,18 @@ func runScorecard(ctx context.Context,
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
+	// Get configuration
+	rc, err := repoClient.GetFileReader("scorecard.yml")
+	// If configuration file exists, continue. Otherwise, ignore
+	if err == nil {
+		defer rc.Close()
+		c, err := config.Parse(rc)
+		if err != nil {
+			return ScorecardResult{}, err
+		}
+		ret.Config = c
+	}
+
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
 	}
@@ -185,6 +198,10 @@ func runScorecard(ctx context.Context,
 		ret.Findings = findings
 	}
 	return ret, nil
+}
+
+func yaml(content []byte) {
+	panic("unimplemented")
 }
 
 func runEnabledProbes(request *checker.CheckRequest,

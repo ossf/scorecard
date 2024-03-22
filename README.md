@@ -423,6 +423,10 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Showing Maintainers Annotations
+
+To see the maintainers annotations for each check, use the `--show-annotations` option.
+
 ##### Using a GitLab Repository
 
 To run Scorecard on a GitLab repository, you must create a [GitLab Access Token](https://gitlab.com/-/profile/personal_access_tokens) with the following permissions:
