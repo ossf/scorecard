@@ -381,7 +381,7 @@ any combination of the following names and extensions:`LICENSE`, `LICENCE`,
 or `.md`. It will also detect these files in a directory named `LICENSES`.
 (Files in a `LICENSES` directory are typically named as their
 [SPDX](https://spdx.org/licenses/) license identifier followed by an
-appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+appropriate file extension, as described in the [REUSE](https://reuse.software/spec/ Specification).)
 
 License Requirements:
   - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
@@ -392,7 +392,7 @@ License Requirements:
 **Remediation steps**
 - Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project. For GitHub hosted projects, follow those instructions to establish a license for your project.
 - For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
-- Alternately, create a `LICENSE` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
+- Alternately, create a `LICENSES` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
 
 ## Maintained 
 
