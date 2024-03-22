@@ -1,4 +1,4 @@
-# Copyright 2023 OpenSSF Scorecard Authors
+# Copyright 2024 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,24 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: gitHubWorkflowPermissionsTopNoWrite
-short: Checks that GitHub workflows do not have default write permissions
+id: topLevelPermissions
+short: Checks that the project does not have any top-level write permissions in its workflows.
 motivation: >
-  If no permissions are declared, a workflow's GitHub token's permissions default to write for all scopes.
-  This include write permissions to push to the repository, to read encrypted secrets, etc.
-  For more information, see https://docs.github.com/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token. 
+  In some circumstances, having "write" permissions at the "top" level may enable attackers to escalate privileges.
 implementation: >
-  The rule is implemented by checking whether the `permissions` keyword is defined at the top of the workflow,
-  and that no write permissions are given.
+  The probe checks the permission level, the workflow type and the permission type of each workflow in the project.
+outcome:
+  - The probe returns 1 negative outcome per workflow with "write" permissions at the "top" level.
+  - The probe returns 1 positive outcome if the project has no workflows "write" permissions a the "top" level.
 remediation:
   effort: Low
   text:
-    - Visit https://app.stepsecurity.io/secureworkflow/${{ metadata.repo }}/${{ metadata.workflow }}/${{ metadata.branch }}?enable=permissions
+    - Visit https://app.stepsecurity.io/secureworkflow/${{ metadata.repository.uri }}/${{ metadata.workflow }}/${{ metadata.repository.defaultBranch }}?enable=permissions
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
     - "NOTE: If you want to resolve multiple issues at once, you can visit https://app.stepsecurity.io/securerepo instead."
   markdown:
-    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ metadata.repo }}/${{ metadata.workflow }}/${{ metadata.branch }}?enable=permissions).
+    - Visit [https://app.stepsecurity.io/secureworkflow](https://app.stepsecurity.io/secureworkflow/${{ metadata.repository.uri }}/${{ metadata.workflow }}/${{ metadata.repository.defaultBranch }}?enable=permissions).
     - Tick the 'Restrict permissions for GITHUB_TOKEN'
     - Untick other options
     - "NOTE: If you want to resolve multiple issues at once, you can visit [https://app.stepsecurity.io/securerepo](https://app.stepsecurity.io/securerepo) instead."

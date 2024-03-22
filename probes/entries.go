@@ -33,10 +33,12 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
@@ -59,6 +61,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
 	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
+	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
@@ -149,6 +152,11 @@ var (
 	}
 	PinnedDependencies = []ProbeImpl{
 		pinsDependencies.Run,
+	}
+	TokenPermissions = []ProbeImpl{
+		hasNoGitHubWorkflowPermissionUnknown.Run,
+		jobLevelPermissions.Run,
+		topLevelPermissions.Run,
 	}
 
 	// Probes which aren't included by any checks.
