@@ -86,7 +86,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			uri = "https://" + uri
 		}
 		if !strings.HasSuffix(uri, ".git") {
-			uri = uri + ".git"
+			uri += ".git"
 		}
 		c.gitRepo, err = git.PlainClone(tempDir, false /*isBare*/, &git.CloneOptions{
 			URL:      uri,
