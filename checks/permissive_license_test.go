@@ -95,9 +95,7 @@ func TestPermissiveLicenseFileSubdirectory(t *testing.T) {
 
 			res := PermissiveLicense(&req)
 
-			if !scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl) {
-				t.Fail()
-			}
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 
 			ctrl.Finish()
 		})
