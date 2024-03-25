@@ -109,7 +109,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 5,
 			},
 		},
