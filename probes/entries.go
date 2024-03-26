@@ -35,6 +35,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v4/probes/hasPermissiveLicense"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
@@ -94,6 +95,9 @@ var (
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
+	}
+	PermissiveLicense = []ProbeImpl{
+		hasPermissiveLicense.Run,
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
