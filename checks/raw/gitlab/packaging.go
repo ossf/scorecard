@@ -75,7 +75,7 @@ func isGitlabPackagingWorkflow(fc []byte, fp string) (checker.File, bool) {
 	}
 
 ParseLines:
-	for idx, val := range strings.Split(string(fc[:]), "\n") {
+	for idx, val := range strings.Split(string(fc), "\n") {
 		for _, element := range packagingStrings {
 			if strings.Contains(val, element) {
 				lineNumber = uint(idx + 1)

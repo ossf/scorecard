@@ -40,10 +40,6 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomePositive,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomePositive,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -60,17 +56,13 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
 				NumberOfWarn: 2,
 			},
 		}, {
-			name: "Has license file but not a top level or in OSI/FSF format",
+			name: "Has license file but not OSI/FSF approved",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
@@ -80,14 +72,11 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomeNegative,
-				},
 			},
 			result: scut.TestReturn{
-				Score:        6,
-				NumberOfWarn: 2,
+				Score:        9,
+				NumberOfWarn: 1,
+				NumberOfInfo: 1,
 			},
 		}, {
 			name: "Findings missing a probe = Error",
@@ -95,10 +84,6 @@ func TestLicense(t *testing.T) {
 				{
 					Probe:   "hasLicenseFile",
 					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
@@ -116,34 +101,9 @@ func TestLicense(t *testing.T) {
 					Probe:   "hasFSFOrOSIApprovedLicense",
 					Outcome: finding.OutcomeNegative,
 				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomePositive,
-				},
 			},
 			result: scut.TestReturn{
 				Score:        9,
-				NumberOfInfo: 1,
-				NumberOfWarn: 1,
-			},
-		}, {
-			name: "Has an OSI/FSF approved license but not at top level dir",
-			findings: []finding.Finding{
-				{
-					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "hasLicenseFileAtTopDir",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        7,
 				NumberOfInfo: 1,
 				NumberOfWarn: 1,
 			},

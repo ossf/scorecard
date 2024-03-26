@@ -48,7 +48,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -69,7 +69,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -90,7 +90,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -98,7 +98,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -119,7 +119,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -127,7 +127,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -148,7 +148,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -156,7 +156,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -177,7 +177,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -185,7 +185,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -206,7 +206,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -214,7 +214,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -235,7 +235,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -243,7 +243,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -264,7 +264,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -272,7 +272,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: nil,
 								},
 							},

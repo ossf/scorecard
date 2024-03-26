@@ -211,10 +211,10 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 	f.Location = loc
 	if f.Remediation != nil && f.Location != nil {
 		// Replace location data.
-		f.Remediation.Text = strings.Replace(f.Remediation.Text,
-			"${{ finding.location.path }}", f.Location.Path, -1)
-		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-			"${{ finding.location.path }}", f.Location.Path, -1)
+		f.Remediation.Text = strings.ReplaceAll(f.Remediation.Text,
+			"${{ finding.location.path }}", f.Location.Path)
+		f.Remediation.Markdown = strings.ReplaceAll(f.Remediation.Markdown,
+			"${{ finding.location.path }}", f.Location.Path)
 	}
 	return f
 }
@@ -255,10 +255,10 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 		// Replace all dynamic values.
 		for k, v := range values {
 			// Replace metadata.
-			f.Remediation.Text = strings.Replace(f.Remediation.Text,
-				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
-			f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
+			f.Remediation.Text = strings.ReplaceAll(f.Remediation.Text,
+				fmt.Sprintf("${{ metadata.%s }}", k), v)
+			f.Remediation.Markdown = strings.ReplaceAll(f.Remediation.Markdown,
+				fmt.Sprintf("${{ metadata.%s }}", k), v)
 		}
 	}
 	return f

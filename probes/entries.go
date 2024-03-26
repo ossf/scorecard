@@ -32,7 +32,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
@@ -95,7 +94,6 @@ var (
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
-		hasLicenseFileAtTopDir.Run,
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,

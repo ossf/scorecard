@@ -20,7 +20,6 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
 )
 
 // License applies the score policy for the License check.
@@ -32,7 +31,6 @@ func License(name string,
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
 		hasFSFOrOSIApprovedLicense.Probe,
-		hasLicenseFileAtTopDir.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -45,58 +43,20 @@ func License(name string,
 	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
-		switch f.Outcome {
-		case finding.OutcomeNotApplicable:
-			dl.Info(&checker.LogMessage{
-				Type:   finding.FileTypeSource,
-				Offset: 1,
-				Text:   f.Message,
-			})
-		case finding.OutcomePositive:
+		if f.Outcome == finding.OutcomePositive {
 			switch f.Probe {
 			case hasFSFOrOSIApprovedLicense.Probe:
-				dl.Info(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "FSF or OSI recognized license",
-				})
 				score += scoreProbeOnce(f.Probe, m, 1)
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Info(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in expected location",
-				})
-				score += scoreProbeOnce(f.Probe, m, 3)
 			case hasLicenseFile.Probe:
-				score += scoreProbeOnce(f.Probe, m, 6)
+				score += scoreProbeOnce(f.Probe, m, 9)
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
-		case finding.OutcomeNegative:
-			switch f.Probe {
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in unexpected location",
-				})
-			case hasFSFOrOSIApprovedLicense.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   "",
-					Text:   f.Message,
-				})
-			}
-		default:
-			continue // for linting
 		}
 	}
+	checker.LogFindings(findings, dl)
+
 	_, defined := m[hasLicenseFile.Probe]
 	if !defined {
 		if score > 0 {

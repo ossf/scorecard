@@ -313,7 +313,7 @@ func validateSpdxIDAndExt(matches []string, spdx, ext string) (string, string) {
 		}
 	} else if ext != "" && spdx != "" && ext != spdx {
 		if ext != matches[reGroupIdxs["ext"]] {
-			spdx = spdx + matches[reGroupIdxs["ext"]]
+			spdx += matches[reGroupIdxs["ext"]]
 		}
 	}
 	return spdx, ext
