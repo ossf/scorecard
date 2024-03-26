@@ -104,6 +104,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
 	ignoredPermissions := createIgnoredPermissions(workflow, path, pdata)
+
 	if err := validatejobLevelPermissions(workflow, path, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}

@@ -1,0 +1,32 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: requiresPRsToChangeCode
+short: Check that the project requires pull requests to change code.
+motivation: >
+  Changing code without pull requests does not leave a traceable trail and can allow malicious actors to sneak in vulnerable code.
+implementation: >
+  The probe checks which branches require pull requests to change the branches' code. The probe only considers default and release branches.
+outcome:
+  - The probe returns one OutcomePositive for each branch that requires pull requests to change code, and one OutcomeNegative for branches that don't.
+remediation:
+  effort: Low
+  text:
+    - Configure the project such that contributors must make PRs to change code.
+    - For GitHub-hosted projects, see [the Pull Requests documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+    - For Gitlab-hosted projects, see [the Merge Requests documentation](https://docs.gitlab.com/ee/user/project/merge_requests/).
+  markdown:
+    - Configure the project such that contributors must make PRs to change code.
+    - For GitHub-hosted projects, see [the Pull Requests documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+    - For Gitlab-hosted projects, see [the Merge Requests documentation](https://docs.gitlab.com/ee/user/project/merge_requests/).

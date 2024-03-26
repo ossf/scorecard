@@ -15,6 +15,7 @@
 package gitlab
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -134,10 +135,9 @@ func TestGitlabPackagingPackager(t *testing.T) {
 			moqRepoClient.EXPECT().ListFiles(gomock.Any()).
 				Return([]string{tt.filename}, nil).AnyTimes()
 
-			moqRepoClient.EXPECT().GetFileContent(tt.filename).
-				DoAndReturn(func(b string) ([]byte, error) {
-					content, err := os.ReadFile(b)
-					return content, err
+			moqRepoClient.EXPECT().GetFileReader(tt.filename).
+				DoAndReturn(func(b string) (io.ReadCloser, error) {
+					return os.Open(b)
 				}).AnyTimes()
 
 			if tt.exists {

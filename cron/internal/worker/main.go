@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"os"
 
 	"go.opencensus.io/stats/view"
 
@@ -129,7 +130,11 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
 	}
 
-	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	if _, enabled := os.LookupEnv("SCORECARD_LOCAL_OSV"); enabled {
+		sw.vulnsClient = clients.ExperimentalLocalOSVClient()
+	} else {
+		sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	}
 
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)

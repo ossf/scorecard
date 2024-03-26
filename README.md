@@ -8,7 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
-[![Slack](https://img.shields.io/badge/slack-openssf/security_scorecards-white.svg?logo=slack)](https://slack.openssf.org/#scorecard)
+[![Slack](https://img.shields.io/badge/slack-openssf/scorecard-white.svg?logo=slack)](https://slack.openssf.org/#scorecard)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -20,6 +20,10 @@
 -   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
+> [!IMPORTANT]
+> OpenSSF Scorecard has opened a survey to better understand user expectations and needs from the project. The survey will remain open through OSS NA and the results will help steer the roadmap. **_[Survey link](https://forms.gle/6poWj6gQ15chxTDH8)_**
+> 
+> Please let us know what is working, what is not, and what you would like to see from the project. **Thank you for participating!**
 
 -   [Scorecard GitHub Action](#scorecard-github-action)
 -   [Scorecard REST API](#scorecard-rest-api)

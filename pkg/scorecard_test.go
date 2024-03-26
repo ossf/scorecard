@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 )
 
 func Test_getRepoCommitHash(t *testing.T) {
@@ -210,7 +211,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 			args: args{
 				uri:       "github.com/ossf/scorecard",
 				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
-				probes:    []string{"fuzzedWithOSSFuzz"},
+				probes:    []string{fuzzed.Probe},
 			},
 			want: ScorecardResult{
 				Repo: RepoInfo{
@@ -233,10 +234,10 @@ func TestExperimentalRunProbes(t *testing.T) {
 				},
 				Findings: []finding.Finding{
 					{
-						Probe:   "fuzzedWithOSSFuzz",
-						Message: "no OSSFuzz integration found",
+						Probe:   fuzzed.Probe,
+						Message: "no fuzzer integrations found",
 						Remediation: &probe.Remediation{
-							Effort: 3,
+							Effort: probe.RemediationEffortHigh,
 						},
 					},
 				},

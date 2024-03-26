@@ -51,7 +51,8 @@ func (set branchSet) contains(branch string) bool {
 }
 
 // BranchProtection retrieves the raw data for the Branch-Protection check.
-func BranchProtection(c clients.RepoClient) (checker.BranchProtectionsData, error) {
+func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, error) {
+	c := cr.RepoClient
 	branches := branchSet{
 		exists: make(map[string]bool),
 	}

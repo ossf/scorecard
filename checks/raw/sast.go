@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"path"
 	"regexp"
 	"strings"
@@ -230,7 +231,8 @@ type sonarConfig struct {
 func getSonarWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) {
 	var config []sonarConfig
 	var sastWorkflows []checker.SASTWorkflow
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	// in the future, we may want to use ListFiles instead, so we don't open every file
+	err := fileparser.OnMatchingFileReaderDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
 	}, validateSonarConfig, &config)
@@ -255,8 +257,8 @@ func getSonarWorkflows(c *checker.CheckRequest) ([]checker.SASTWorkflow, error) 
 }
 
 // Check file content.
-var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string,
-	content []byte,
+var validateSonarConfig fileparser.DoWhileTrueOnFileReader = func(pathfn string,
+	reader io.Reader,
 	args ...interface{},
 ) (bool, error) {
 	if !strings.EqualFold(path.Base(pathfn), "pom.xml") {
@@ -275,6 +277,10 @@ var validateSonarConfig fileparser.DoWhileTrueOnFileContent = func(pathfn string
 			"validateSonarConfig expects arg[0] of type *[]sonarConfig]: %w", errInvalid)
 	}
 
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return false, fmt.Errorf("read file: %w", err)
+	}
 	regex := regexp.MustCompile(`<sonar\.host\.url>\s*(\S+)\s*<\/sonar\.host\.url>`)
 	match := regex.FindSubmatch(content)
 
@@ -308,12 +314,11 @@ func findLine(content, data []byte) (uint, error) {
 	r := bytes.NewReader(content)
 	scanner := bufio.NewScanner(r)
 
-	line := 0
-	// https://golang.org/pkg/bufio/#Scanner.Scan
+	var line uint
 	for scanner.Scan() {
 		line++
-		if strings.Contains(scanner.Text(), string(data)) {
-			return uint(line), nil
+		if bytes.Contains(scanner.Bytes(), data) {
+			return line, nil
 		}
 	}
 

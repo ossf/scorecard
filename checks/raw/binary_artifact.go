@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -39,6 +40,9 @@ var (
 	gradleWrapperValidationActionVersionConstraint = mustParseConstraint(`>= 1.0.0`)
 )
 
+// how many bytes are considered when determining if a file is text or binary.
+const binaryTestLen = 1024
+
 // mustParseConstraint attempts parse of semver constraint, panics if fail.
 func mustParseConstraint(c string) *semver.Constraints {
 	if c, err := semver.NewConstraint(c); err != nil {
@@ -52,10 +56,10 @@ func mustParseConstraint(c string) *semver.Constraints {
 func BinaryArtifacts(req *checker.CheckRequest) (checker.BinaryArtifactData, error) {
 	c := req.RepoClient
 	files := []checker.File{}
-	err := fileparser.OnMatchingFileContentDo(c, fileparser.PathMatcher{
+	err := fileparser.OnMatchingFileReaderDo(c, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
-	}, checkBinaryFileContent, &files)
+	}, checkBinaryFileReader, &files)
 	if err != nil {
 		return checker.BinaryArtifactData{}, fmt.Errorf("%w", err)
 	}
@@ -96,17 +100,17 @@ func excludeValidatedGradleWrappers(c clients.RepoClient, files []checker.File) 
 	return files, nil
 }
 
-var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path string, content []byte,
+var checkBinaryFileReader fileparser.DoWhileTrueOnFileReader = func(path string, reader io.Reader,
 	args ...interface{},
 ) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf(
-			"checkBinaryFileContent requires exactly one argument: %w", errInvalidArgLength)
+			"checkBinaryFileReader requires exactly one argument: %w", errInvalidArgLength)
 	}
 	pfiles, ok := args[0].(*[]checker.File)
 	if !ok {
 		return false, fmt.Errorf(
-			"checkBinaryFileContent requires argument of type *[]checker.File: %w", errInvalidArgType)
+			"checkBinaryFileReader requires argument of type *[]checker.File: %w", errInvalidArgType)
 	}
 
 	binaryFileTypes := map[string]bool{
@@ -138,8 +142,13 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 		"wasm":   true,
 		"whl":    true,
 	}
+
+	content, err := io.ReadAll(io.LimitReader(reader, binaryTestLen))
+	if err != nil {
+		return false, fmt.Errorf("reading file: %w", err)
+	}
+
 	var t types.Type
-	var err error
 	if len(content) == 0 {
 		return true, nil
 	}
@@ -169,12 +178,12 @@ var checkBinaryFileContent fileparser.DoWhileTrueOnFileContent = func(path strin
 	return true, nil
 }
 
-// determines if the first 1024 bytes are text
+// determines if the first binaryTestLen bytes are text
 //
 //	A version of golang.org/x/tools/godoc/util modified to allow carriage returns
 //	and utf8.RuneError (0xFFFD), as the file may not be utf8 encoded.
 func isText(s []byte) bool {
-	const max = 1024 // at least utf8.UTFMax
+	const max = binaryTestLen // at least utf8.UTFMax (4)
 	if len(s) > max {
 		s = s[0:max]
 	}

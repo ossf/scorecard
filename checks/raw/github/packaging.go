@@ -16,6 +16,7 @@ package github
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/rhysd/actionlint"
@@ -37,9 +38,14 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 	}
 
 	for _, fp := range matchedFiles {
-		fc, err := c.RepoClient.GetFileContent(fp)
+		fr, err := c.RepoClient.GetFileReader(fp)
 		if err != nil {
-			return data, fmt.Errorf("RepoClient.GetFileContent: %w", err)
+			return data, fmt.Errorf("RepoClient.GetFileReader: %w", err)
+		}
+		fc, err := io.ReadAll(fr)
+		fr.Close()
+		if err != nil {
+			return data, fmt.Errorf("reading file: %w", err)
 		}
 
 		workflow, errs := actionlint.Parse(fc)

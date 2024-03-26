@@ -16,8 +16,10 @@ package raw
 
 import (
 	"errors"
+	"io"
 	"path"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -135,11 +137,11 @@ func Test_checkCFLite(t *testing.T) {
 			defer ctrl.Finish()
 			mockFuzz := mockrepo.NewMockRepoClient(ctrl)
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
-			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
+			mockFuzz.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(f string) (io.ReadCloser, error) {
 				if tt.wantErr {
-					return "", errors.New("error")
+					return nil, errors.New("error")
 				}
-				return tt.fileContent, nil
+				return io.NopCloser(strings.NewReader(tt.fileContent)), nil
 			}).AnyTimes()
 			req := checker.CheckRequest{
 				RepoClient: mockFuzz,
@@ -486,11 +488,11 @@ func Test_checkFuzzFunc(t *testing.T) {
 			defer ctrl.Finish()
 			mockClient := mockrepo.NewMockRepoClient(ctrl)
 			mockClient.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
-			mockClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) ([]byte, error) {
+			mockClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(f string) (io.ReadCloser, error) {
 				if tt.wantErr {
 					return nil, errors.New("error")
 				}
-				return []byte(tt.fileContent), nil
+				return io.NopCloser(strings.NewReader(tt.fileContent)), nil
 			}).AnyTimes()
 			req := checker.CheckRequest{
 				RepoClient: mockClient,

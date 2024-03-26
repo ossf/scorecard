@@ -273,7 +273,11 @@ func TestBranchProtection(t *testing.T) {
 					return tt.releases, tt.releasesErr
 				})
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
-			rawData, err := BranchProtection(mockRepoClient)
+
+			c := &checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+			rawData, err := BranchProtection(c)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("failed. expected: %v, got: %v", tt.wantErr, err)
 				t.Fail()

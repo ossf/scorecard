@@ -17,7 +17,7 @@ package checks
 import (
 	"context"
 	"errors"
-	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -320,15 +320,11 @@ func Test_SAST(t *testing.T) {
 					}
 					return []string{tt.path}, nil
 				}).AnyTimes()
-			mockRepoClient.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {
-					return nil, nil
+					return io.NopCloser(strings.NewReader("")), nil
 				}
-				content, err := os.ReadFile("./testdata/" + tt.path)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+				return os.Open("./testdata/" + tt.path)
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}

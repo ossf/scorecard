@@ -26,7 +26,9 @@ import (
 
 var _ VulnerabilitiesClient = osvClient{}
 
-type osvClient struct{}
+type osvClient struct {
+	local bool
+}
 
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
 func (v osvClient) ListUnfixedVulnerabilities(
@@ -52,6 +54,9 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		SkipGit:        true,
 		Recursive:      true,
 		GitCommits:     gitCommits,
+		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
+			CompareLocally: v.local,
+		},
 	}, nil) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
@@ -66,6 +71,11 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
 		vulns := res.Flatten()
 		for i := range vulns {
+			// ignore Go stdlib vulns. The go directive from the go.mod isn't a perfect metric
+			// of which version of Go will be used to build a project.
+			if vulns[i].Package.Ecosystem == "Go" && vulns[i].Package.Name == "stdlib" {
+				continue
+			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
 				ID:      vulns[i].Vulnerability.ID,
 				Aliases: vulns[i].Vulnerability.Aliases,

@@ -235,9 +235,9 @@ func TestAllClientMethods(t *testing.T) {
 
 	// Test GetFileContent
 	{
-		_, err := c.GetFileContent("")
+		_, err := c.GetFileReader("")
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			t.Errorf("GetFileContent: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+			t.Errorf("GetFileReader: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
 		}
 	}
 

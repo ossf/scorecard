@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"testing"
 
@@ -178,15 +178,11 @@ func TestSecurityPolicy(t *testing.T) {
 
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
 
-			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
+			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {
 					return nil, nil
 				}
-				content, err := os.ReadFile(tt.path)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+				return os.Open(tt.path)
 			}).AnyTimes()
 
 			dl := scut.TestDetailLogger{}

@@ -16,6 +16,8 @@ package fileparser
 
 import (
 	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -526,7 +528,7 @@ func TestOnMatchingFileContent(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
-			mockRepo.EXPECT().GetFileContent(gomock.Any()).Return(nil, nil).AnyTimes()
+			mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(io.NopCloser(strings.NewReader("")), nil).AnyTimes()
 
 			result := OnMatchingFileContentDo(mockRepo, PathMatcher{
 				Pattern:       tt.shellPattern,

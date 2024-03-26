@@ -17,63 +17,74 @@ package codeApproved
 
 import (
 	"embed"
+	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/utils"
+	"github.com/ossf/scorecard/v4/internal/probes"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
-//go:embed *.yml
-var fs embed.FS
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.CodeReview})
+}
 
-const probe = "codeApproved"
+var (
+	//go:embed *.yml
+	fs embed.FS
+
+	errNoAuthor   = errors.New("could not retrieve changeset author")
+	errNoReviewer = errors.New("could not retrieve the changeset reviewer")
+)
+
+const (
+	Probe          = "codeApproved"
+	NumApprovedKey = "approvedChangesets"
+	NumTotalKey    = "totalChangesets"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+	}
 	rawReviewData := &raw.CodeReviewResults
-	return approvedRun(rawReviewData, fs, probe, finding.OutcomePositive, finding.OutcomeNegative)
+	return approvedRun(rawReviewData, fs, Probe)
 }
 
 // Looks through the data and validates that each changeset has been approved at least once.
-
-//nolint:gocognit
-func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
-	positiveOutcome, negativeOutcome finding.Outcome,
-) ([]finding.Finding, string, error) {
+func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
+
+	if len(changesets) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no changesets detected", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	foundHumanActivity := false
 	nChangesets := len(changesets)
 	nChanges := 0
-	nUnapprovedChangesets := 0
-	if nChangesets == 0 {
-		return nil, probeID, utils.ErrNoChangesets
-	}
+	nApproved := 0
+
 	for x := range changesets {
 		data := &changesets[x]
-		if data.Author.Login == "" {
-			f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the author of a changeset.", nil)
+		approvedChangeset, err := approved(data)
+		if err != nil {
+			f, err := finding.NewWith(fs, probeID, err.Error(), nil, finding.OutcomeError)
 			if err != nil {
 				return nil, probeID, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 			return findings, probeID, nil
 		}
-		approvedChangeset := false
-		for y := range data.Reviews {
-			if data.Reviews[y].Author.Login == "" {
-				f, err := finding.NewNotAvailable(fs, probeID, "Could not retrieve the reviewer of a changeset.", nil)
-				if err != nil {
-					return nil, probeID, fmt.Errorf("create finding: %w", err)
-				}
-				findings = append(findings, *f)
-				return findings, probeID, nil
-			}
-			if data.Reviews[y].State == "APPROVED" && data.Reviews[y].Author.Login != data.Author.Login {
-				approvedChangeset = true
-				break
-			}
-		}
+		// skip bot authored changesets, which can skew single maintainer projects which otherwise dont code review
+		// https://github.com/ossf/scorecard/issues/2450
 		if approvedChangeset && data.Author.IsBot {
 			continue
 		}
@@ -81,36 +92,44 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		if !data.Author.IsBot {
 			foundHumanActivity = true
 		}
-		if !approvedChangeset {
-			nUnapprovedChangesets += 1
+		if approvedChangeset {
+			nApproved += 1
 		}
 	}
+	var outcome finding.Outcome
+	var reason string
 	switch {
+	case nApproved != nChanges:
+		outcome = finding.OutcomeNegative
+		reason = fmt.Sprintf("Found %d/%d approved changesets", nApproved, nChanges)
 	case !foundHumanActivity:
-		// returns a NotAvailable outcome if all changesets were authored by bots
-		f, err := finding.NewNotAvailable(fs, probeID, fmt.Sprintf("Found no human activity "+
-			"in the last %d changesets", nChangesets), nil)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, probeID, nil
-	case nUnapprovedChangesets > 0:
-		// returns NegativeOutcome if not all changesets were approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("Not all changesets approved. "+
-			"Found %d unapproved changesets of %d.", nUnapprovedChangesets, nChanges), nil, negativeOutcome)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		outcome = finding.OutcomeNotApplicable
+		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	default:
-		// returns PositiveOutcome if all changesets have been approved
-		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("All %d changesets approved.",
-			nChangesets), nil, positiveOutcome)
-		if err != nil {
-			return nil, probeID, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		outcome = finding.OutcomePositive
+		reason = "All changesets approved"
 	}
+	f, err := finding.NewWith(fs, probeID, reason, nil, outcome)
+	if err != nil {
+		return nil, probeID, fmt.Errorf("create finding: %w", err)
+	}
+	f.WithValue(NumApprovedKey, strconv.Itoa(nApproved))
+	f.WithValue(NumTotalKey, strconv.Itoa(nChanges))
+	findings = append(findings, *f)
 	return findings, probeID, nil
+}
+
+func approved(c *checker.Changeset) (bool, error) {
+	if c.Author.Login == "" {
+		return false, errNoAuthor
+	}
+	for _, review := range c.Reviews {
+		if review.Author.Login == "" {
+			return false, errNoReviewer
+		}
+		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
+			return true, nil
+		}
+	}
+	return false, nil
 }

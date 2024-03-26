@@ -1,0 +1,30 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: branchesAreProtected
+short: Check that the projects branches are protected.
+motivation: >
+  Branches that are not protected may allow excessive actions that could compromise the projects security. 
+implementation: >
+  Checks the protection rules of default and release branches.
+outcome:
+  - The probe returns one OutcomePositive for each branch that is protected, and one OutcomeNegative for branches that are not protected. Scorecard only considers default and releases branches.
+remediation:
+  effort: Low
+  text:
+    - For Gitlab-hosted project, follow the documentation on how to protect branches, https://docs.gitlab.com/ee/user/project/protected_branches.html
+    - For GitHub-hosted projects, follow [the documentation on protected branches, https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
+  markdown:
+    - For Gitlab-hosted project, follow [the documentation on how to protect branches](https://docs.gitlab.com/ee/user/project/protected_branches.html)
+    - For GitHub-hosted projects, follow [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)

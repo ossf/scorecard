@@ -16,6 +16,8 @@ package checks
 
 import (
 	"errors"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -52,7 +54,7 @@ func TestFuzzing(t *testing.T) {
 			wantErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -109,7 +111,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: false,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -120,7 +122,7 @@ func TestFuzzing(t *testing.T) {
 			wantFuzzErr: true,
 			expected: scut.TestReturn{
 				Error:         nil,
-				NumberOfWarn:  12,
+				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
 				Score:         0,
@@ -144,11 +146,12 @@ func TestFuzzing(t *testing.T) {
 				}).AnyTimes()
 			mockFuzz.EXPECT().ListProgrammingLanguages().Return(tt.langs, nil).AnyTimes()
 			mockFuzz.EXPECT().ListFiles(gomock.Any()).Return(tt.fileName, nil).AnyTimes()
-			mockFuzz.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(f string) (string, error) {
+			mockFuzz.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(f string) (io.ReadCloser, error) {
 				if tt.wantErr {
-					return "", errors.New("error")
+					return nil, errors.New("error")
 				}
-				return tt.fileContent, nil
+				rc := io.NopCloser(strings.NewReader(tt.fileContent))
+				return rc, nil
 			}).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			raw := checker.RawResults{}

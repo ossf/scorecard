@@ -292,15 +292,15 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 	return ret, nil
 }
 
-func (handler *tarballHandler) getFileContent(filename string) ([]byte, error) {
+func (handler *tarballHandler) getFile(filename string) (*os.File, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
 	}
-	content, err := os.ReadFile(filepath.Join(handler.tempDir, filename))
+	f, err := os.Open(filepath.Join(handler.tempDir, filename))
 	if err != nil {
-		return content, fmt.Errorf("os.ReadFile: %w", err)
+		return nil, fmt.Errorf("open file: %w", err)
 	}
-	return content, nil
+	return f, nil
 }
 
 func (handler *tarballHandler) cleanup() error {
