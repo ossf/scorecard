@@ -1,4 +1,4 @@
-// Copyright 2023 OpenSSF Scorecard Authors
+// Copyright 2024 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package dismissesStaleReviews
+package hasNoGitHubWorkflowPermissionUnknown
 
 import (
 	"embed"
@@ -21,33 +21,27 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/permissions"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
-
-func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
-}
 
 //go:embed *.yml
 var fs embed.FS
 
-const (
-	Probe         = "dismissesStaleReviews"
-	BranchNameKey = "branchName"
-)
+const Probe = "hasNoGitHubWorkflowPermissionUnknown"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	r := raw.BranchProtectionResults
+	results := raw.TokenPermissionsResults
 	var findings []finding.Finding
 
-	if len(r.Branches) == 0 {
-		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+	if results.NumTokens == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"No token permissions found",
+			nil, finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -55,21 +49,26 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	for i := range r.Branches {
-		branch := &r.Branches[i]
+	for _, r := range results.TokenPermissions {
+		if r.Type != checker.PermissionLevelUnknown {
+			continue
+		}
 
-		p := branch.BranchProtectionRule.PullRequestRule.DismissStaleReviews
-		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
-			"stale review dismissal",
-			*branch.Name)
+		// Create finding
+		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+		findings = append(findings, *f)
+	}
+
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"no workflows with unknown permissions",
+			nil, finding.OutcomePositive)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue(BranchNameKey, *branch.Name)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

@@ -1114,7 +1114,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions:   boolPtr(true),
 					AllowForcePushes: boolPtr(false),
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     boolPtr(true),
 						RequireCodeOwnerReviews:      boolPtr(true),
 						DismissStaleReviews:          boolPtr(true),

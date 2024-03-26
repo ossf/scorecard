@@ -67,7 +67,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo " +
 			"Rules (that are always public) instead of Branch Protection settings"
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.Required
+		p := branch.BranchProtectionRule.PullRequestRule.Required
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {

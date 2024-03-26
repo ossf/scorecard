@@ -210,13 +210,13 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 			bp = &jsonBranchProtectionSettings{
 				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
 				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
-				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
+				RequiresCodeOwnerReviews:            v.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews,
 				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
-				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
+				DismissesStaleReviews:               v.BranchProtectionRule.PullRequestRule.DismissStaleReviews,
 				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
 				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
 				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
-				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
+				RequiredApprovingReviewCount:        v.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount,
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}
