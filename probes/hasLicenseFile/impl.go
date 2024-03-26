@@ -40,17 +40,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	var outcome finding.Outcome
-	var msg string
 
 	licenseFiles := raw.LicenseResults.LicenseFiles
 
 	if len(licenseFiles) == 0 {
-		outcome = finding.OutcomeNegative
-		msg = "project does not have a license file"
-		f, err := finding.NewWith(fs, Probe,
-			msg, nil,
-			outcome)
+		f, err := finding.NewNegative(fs, Probe, "project does not have a license file", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -59,18 +53,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	} else {
 		for _, licenseFile := range licenseFiles {
 			licenseFile := licenseFile
-			loc := &finding.Location{
-				Type:      licenseFile.File.Type,
-				Path:      licenseFile.File.Path,
-				LineStart: &licenseFile.File.Offset,
-				LineEnd:   &licenseFile.File.EndOffset,
-				Snippet:   &licenseFile.File.Snippet,
-			}
-			msg = "project has a license file"
-			outcome = finding.OutcomePositive
-			f, err := finding.NewWith(fs, Probe,
-				msg, loc,
-				outcome)
+			loc := licenseFile.File.Location()
+			f, err := finding.NewPositive(fs, Probe, "project has a license file", loc)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
