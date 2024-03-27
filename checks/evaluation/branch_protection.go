@@ -167,16 +167,20 @@ func BranchProtection(name string,
 			branchScores[branchName].maxes.adminThoroughReview += max
 
 		case requiresApproversForPullRequests.Probe:
+			noOfRequiredReviewers, err := getReviewerCount(f)
+			if err != nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "unable to get reviewer count")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
 			// Scorecard evaluation scores twice with this probe:
 			// Once if the count is above 0
 			// Once if the count is above 2
-			score, max = nonAdminThoroughReviewProtection(f, doLogging, dl)
+			score, max = logReviewerCount(f, doLogging, dl, noOfRequiredReviewers)
 			branchScores[branchName].scores.thoroughReview += score
 			branchScores[branchName].maxes.thoroughReview += max
 
 			reviewerWeight := 2
 			max = reviewerWeight
-			noOfRequiredReviewers, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
 			if f.Outcome == finding.OutcomePositive && noOfRequiredReviewers > 0 {
 				branchScores[branchName].scores.review += reviewerWeight
 			}
@@ -233,6 +237,22 @@ func getBranchName(f *finding.Finding) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
 	}
 	return name, nil
+}
+
+func getReviewerCount(f *finding.Finding) (int, error) {
+	// assume no review required if data not available
+	if f.Outcome == finding.OutcomeNotAvailable {
+		return 0, nil
+	}
+	countString, ok := f.Values[requiresApproversForPullRequests.RequiredReviewersKey]
+	if !ok {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "no required reviewer count found")
+	}
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "unable to parse required reviewer count")
+	}
+	return count, nil
 }
 
 func sumUpScoreForTier(t tier, scoresData []levelScore) int {
@@ -427,10 +447,9 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 	return score, max
 }
 
-func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+func logReviewerCount(f *finding.Finding, doLogging bool, dl checker.DetailLogger, noOfRequiredReviews int) (int, int) {
 	var score, max int
 	if f.Outcome == finding.OutcomePositive {
-		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
 		if noOfRequiredReviews >= minReviews {
 			info(dl, doLogging, f.Message)
 			score++
