@@ -120,13 +120,12 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 }
 
 func approved(c *checker.Changeset) (bool, error) {
-	if c.Author.Login == "" {
-		return false, errNoAuthor
+	switch c.ReviewPlatform {
+	// reviewed outside GitHub / GitLab
+	case checker.ReviewPlatformProw, checker.ReviewPlatformGerrit, checker.ReviewPlatformPhabricator, checker.ReviewPlatformPiper:
+		return true, nil
 	}
 	for _, review := range c.Reviews {
-		if review.Author.Login == "" {
-			return false, errNoReviewer
-		}
 		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
 			return true, nil
 		}

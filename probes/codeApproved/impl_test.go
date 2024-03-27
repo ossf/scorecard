@@ -44,7 +44,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 		},
 		{
-			name: "no changesets no authors",
+			name: "changesets no reviews",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
 					DefaultBranchChangesets: []checker.Changeset{
@@ -60,7 +60,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeError,
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -100,7 +100,7 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 		},
 		{
-			name: "no changesets no review authors",
+			name: "changesets no review authors",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
 					DefaultBranchChangesets: []checker.Changeset{
@@ -120,7 +120,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeError,
+				finding.OutcomeNegative,
 			},
 		},
 		{

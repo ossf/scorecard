@@ -93,8 +93,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score:         0,
-				NumberOfDebug: 18,
+				Score: 0,
 			}
 			result := checks.CodeReview(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)
@@ -115,8 +114,7 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 				Dlogger:    &dl,
 			}
 			expected := scut.TestReturn{
-				Score:         1,
-				NumberOfDebug: 10,
+				Score: 1,
 			}
 			result := checks.CodeReview(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "use code reviews", &expected, &result, &dl)

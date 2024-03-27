@@ -103,7 +103,6 @@ var (
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
-		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
 		sastToolConfigured.Run,
@@ -161,6 +160,7 @@ var (
 	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
 		freeOfAnyBinaryArtifacts.Run,
+		codeReviewOneReviewers.Run,
 	}
 )
 
