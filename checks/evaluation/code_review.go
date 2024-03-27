@@ -23,15 +23,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 )
 
-type reviewScore int
-
 // TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,
 // number of resolved comments, number of approvers (more eyes on a project).
-const (
-	noReview              reviewScore = 0 // No approving review before merge
-	changesReviewed       reviewScore = 1 // Changes were reviewed
-	reviewedOutsideGithub reviewScore = 1 // Full marks until we can check review platforms outside of GitHub
-)
 
 // CodeReview applies the score policy for the Code-Review check.
 func CodeReview(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
