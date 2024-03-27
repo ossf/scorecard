@@ -21,9 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 type pinnedResult struct {
@@ -51,15 +49,6 @@ const (
 	thirdPartyActionWeight  int = 8
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
 )
-
-func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
-	return &rule.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   rule.RemediationEffort(rem.Effort),
-	}
-}
 
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string,
@@ -110,7 +99,7 @@ func PinningDependencies(name string,
 			}
 
 			if f.Remediation != nil {
-				lm.Remediation = probeRemToRuleRem(f.Remediation)
+				lm.Remediation = f.Remediation
 			}
 			dl.Warn(lm)
 		case finding.OutcomeError:
