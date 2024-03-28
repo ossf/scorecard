@@ -81,7 +81,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name:    "alternate config detected",
+			name:    "alternate renovatebot config detected",
 			wantErr: false,
 			files: []string{
 				".github/renovate.json5",
