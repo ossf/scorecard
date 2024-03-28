@@ -42,7 +42,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 		wantErr           bool
 	}{
 		{
-			name:    "dependency yml",
+			name:    "dependabot config detected",
 			wantErr: false,
 			files: []string{
 				".github/dependabot.yml",
@@ -55,7 +55,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name:    "dependency yaml ",
+			name:    "dependabot alternate yaml extension detected",
 			wantErr: false,
 			files: []string{
 				".github/dependabot.yaml",
@@ -68,19 +68,56 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name:    "foo bar",
+			name:    "renovatebot config detected",
 			wantErr: false,
 			files: []string{
-				".github/foobar.yml",
+				"renovate.json",
 			},
-			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
-			CallSearchCommits: 1,
+			CallSearchCommits: 0,
 			expected: scut.TestReturn{
-				NumberOfWarn: 3,
+				NumberOfInfo: 1,
+				NumberOfWarn: 0,
+				Score:        10,
 			},
 		},
 		{
-			name:    "foo bar 2",
+			name:    "alternate config detected",
+			wantErr: false,
+			files: []string{
+				".github/renovate.json5",
+			},
+			CallSearchCommits: 0,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				NumberOfWarn: 0,
+				Score:        10,
+			},
+		},
+		{
+			name:    "pyup config detected",
+			wantErr: false,
+			files: []string{
+				".pyup.yml",
+			},
+			CallSearchCommits: 0,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				NumberOfWarn: 0,
+				Score:        10,
+			},
+		},
+		{
+			name:              "random committer ID not detected as dependecy tool bot",
+			wantErr:           false,
+			files:             []string{},
+			SearchCommits:     []clients.Commit{{Committer: clients.User{ID: 111111111}}},
+			CallSearchCommits: 1,
+			expected: scut.TestReturn{
+				NumberOfWarn: 1,
+			},
+		},
+		{
+			name:    "random yaml file not detected as update tool config",
 			wantErr: false,
 			files: []string{
 				".github/foobar.yml",
@@ -88,12 +125,11 @@ func TestDependencyUpdateTool(t *testing.T) {
 			SearchCommits:     []clients.Commit{},
 			CallSearchCommits: 1,
 			expected: scut.TestReturn{
-				NumberOfWarn: 3,
+				NumberOfWarn: 1,
 			},
 		},
-
 		{
-			name:    "found in commits",
+			name:    "dependabot found in recent commits",
 			wantErr: false,
 			files: []string{
 				".github/foobar.yaml",
@@ -107,27 +143,9 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name:    "found in commits 2",
+			name:    "dependabot bot found in recent commits 2",
 			wantErr: false,
 			files:   []string{},
-			SearchCommits: []clients.Commit{
-				{Committer: clients.User{ID: 111111111}},
-				{Committer: clients.User{ID: dependabotID}},
-			},
-			CallSearchCommits: 1,
-			expected: scut.TestReturn{
-				NumberOfInfo: 1,
-				NumberOfWarn: 0,
-				Score:        10,
-			},
-		},
-
-		{
-			name:    "many commits",
-			wantErr: false,
-			files: []string{
-				".github/foobar.yml",
-			},
 			SearchCommits: []clients.Commit{
 				{Committer: clients.User{ID: 111111111}},
 				{Committer: clients.User{ID: dependabotID}},
