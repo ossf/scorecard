@@ -35,12 +35,43 @@ func Test_Parse_Checks(t *testing.T) {
 		wantErr    error
 	}{
 		{
-			name:       "Annotation on Binary-Artifacts check",
-			configPath: "testdata/binary_artifacts.yml",
+			name:       "Annotation on a single check",
+			configPath: "testdata/single_check.yml",
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
 						Checks:  []string{"binary-artifacts"},
+						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
+					},
+				},
+			},
+		},
+		{
+			name:       "Annotation on all checks",
+			configPath: "testdata/all_checks.yml",
+			want: config.Config{
+				Annotations: []config.Annotation{
+					{
+						Checks: []string{
+							"binary-artifacts",
+							"branch-protection",
+							"cii-best-practices",
+							"ci-tests",
+							"code-review",
+							"contributors",
+							"dangerous-workflow",
+							"dependency-update-tool",
+							"fuzzing",
+							"license",
+							"maintained",
+							"packaging",
+							"pinned-dependencies",
+							"sast",
+							"security-policy",
+							"signed-releases",
+							"token-permissions",
+							"vulnerabilities",
+						},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 				},
@@ -61,7 +92,7 @@ func Test_Parse_Checks(t *testing.T) {
 			}
 			result, err := config.Parse(r, allChecks)
 			if !errors.Is(err, tt.wantErr) {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
 			}
 			if diff := cmp.Diff(tt.want, result); diff != "" {
 				t.Errorf("Config mismatch (-want +got):\n%s", diff)

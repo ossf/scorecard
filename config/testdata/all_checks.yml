@@ -1,0 +1,22 @@
+annotations:
+  - checks:
+      - binary-artifacts
+      - branch-protection
+      - cii-best-practices
+      - ci-tests
+      - code-review
+      - contributors
+      - dangerous-workflow
+      - dependency-update-tool
+      - fuzzing
+      - license
+      - maintained
+      - packaging
+      - pinned-dependencies
+      - sast
+      - security-policy
+      - signed-releases
+      - token-permissions
+      - vulnerabilities
+    reasons:
+      - reason: test-data
