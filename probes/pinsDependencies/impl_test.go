@@ -206,7 +206,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotAvailable,
+				finding.OutcomeNotApplicable,
 			},
 		},
 		{
@@ -509,7 +509,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNotSupported,
 			},
 		},
 		{
@@ -527,7 +527,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNotSupported,
 			},
 		},
 		{
@@ -545,7 +545,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNotSupported,
 			},
 		},
 		{
