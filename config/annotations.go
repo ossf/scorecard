@@ -70,3 +70,21 @@ func (r *Reason) Doc() string {
 		return string(*r)
 	}
 }
+
+// IsValidReason validates if a reason exists.
+func IsValidReason(r Reason) bool {
+	switch r {
+	case TestData:
+		fallthrough
+	case Remediated:
+		fallthrough
+	case NotApplicable:
+		fallthrough
+	case NotSupported:
+		fallthrough
+	case NotDetected:
+		return true
+	default:
+		return false
+	}
+}
