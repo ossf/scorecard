@@ -17,6 +17,7 @@ package config
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
@@ -37,8 +38,28 @@ func parseFile(c *Config, content []byte) error {
 	return nil
 }
 
+func isValidCheck(check string, checks []string) bool {
+	for _, validCheck := range checks {
+		if strings.EqualFold(check, validCheck) {
+			return true
+		}
+	}
+	return false
+}
+
+func validate(c Config, checks []string) error {
+	for _, annotation := range c.Annotations {
+		for _, check := range annotation.Checks {
+			if !isValidCheck(check, checks) {
+				return fmt.Errorf("check is not valid: %s", check)
+			}
+		}
+	}
+	return nil
+}
+
 // Parse reads the configuration file from the repo, stored in scorecard.yml, and returns a `Config`.
-func Parse(r io.Reader) (Config, error) {
+func Parse(r io.Reader, checks []string) (Config, error) {
 	c := Config{}
 	// Find scorecard.yml file in the repository's root
 	content, err := io.ReadAll(r)
@@ -49,6 +70,11 @@ func Parse(r io.Reader) (Config, error) {
 	err = parseFile(&c, content)
 	if err != nil {
 		return c, fmt.Errorf("fail to parse configuration file: %w", err)
+	}
+
+	err = validate(c, checks)
+	if err != nil {
+		return c, fmt.Errorf("configuration file is not valid: %w", err)
 	}
 
 	// Return configuration

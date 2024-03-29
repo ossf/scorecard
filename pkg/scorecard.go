@@ -170,7 +170,11 @@ func runScorecard(ctx context.Context,
 	// If configuration file exists, continue. Otherwise, ignore
 	if err == nil {
 		defer rc.Close()
-		c, err := config.Parse(rc)
+		checks := []string{}
+		for check := range checksToRun {
+			checks = append(checks, check)
+		}
+		c, err := config.Parse(rc, checks)
 		if err != nil {
 			return ScorecardResult{}, err
 		}

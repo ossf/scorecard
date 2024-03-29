@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+// Warning: config cannot import checks. This is why we declare a different package here
+// and import both config and checks to test config.
+package config_test
 
 import (
 	"errors"
@@ -20,28 +22,26 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"gopkg.in/yaml.v3"
+	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v4/config"
 )
 
 func Test_Parse_Checks(t *testing.T) {
 	t.Parallel()
-	type args struct {
-		n *yaml.Node
-	}
 	tests := []struct {
 		name       string
 		configPath string
-		want       Config
+		want       config.Config
 		wantErr    error
 	}{
 		{
 			name:       "Annotation on Binary-Artifacts check",
 			configPath: "testdata/binary_artifacts.yml",
-			want: Config{
-				Annotations: []Annotation{
+			want: config.Config{
+				Annotations: []config.Annotation{
 					{
 						Checks:  []string{"binary-artifacts"},
-						Reasons: []ReasonGroup{{Reason: "test-data"}},
+						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 				},
 			},
@@ -49,13 +49,17 @@ func Test_Parse_Checks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		allChecks := []string{}
+		for check := range checks.GetAll() {
+			allChecks = append(allChecks, check)
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r, err := os.Open(tt.configPath)
 			if err != nil {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
-			result, err := Parse(r)
+			result, err := config.Parse(r, allChecks)
 			if !errors.Is(err, tt.wantErr) {
 				t.Errorf("Parse() error = %v, wantErr %v", err, tt.wantErr)
 			}
