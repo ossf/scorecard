@@ -92,7 +92,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -112,7 +112,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -152,7 +152,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -188,7 +188,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -210,7 +210,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -246,7 +246,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -268,7 +268,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -305,7 +305,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -344,7 +344,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,

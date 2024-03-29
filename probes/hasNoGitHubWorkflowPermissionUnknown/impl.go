@@ -1,4 +1,4 @@
-// Copyright 2023 OpenSSF Scorecard Authors
+// Copyright 2024 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package hasFSFOrOSIApprovedLicense
+package hasNoGitHubWorkflowPermissionUnknown
 
 import (
 	"embed"
@@ -21,52 +21,55 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
+	"github.com/ossf/scorecard/v4/probes/internal/utils/permissions"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
-
-func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.License})
-}
 
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasFSFOrOSIApprovedLicense"
+const Probe = "hasNoGitHubWorkflowPermissionUnknown"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	if len(raw.LicenseResults.LicenseFiles) == 0 {
+	results := raw.TokenPermissionsResults
+	var findings []finding.Finding
+
+	if results.NumTokens == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"project does not have a license file", nil,
-			finding.OutcomeNotApplicable)
+			"No token permissions found",
+			nil, finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		return []finding.Finding{*f}, Probe, nil
+		findings = append(findings, *f)
+		return findings, Probe, nil
 	}
 
-	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
-		if !licenseFile.LicenseInformation.Approved {
+	for _, r := range results.TokenPermissions {
+		if r.Type != checker.PermissionLevelUnknown {
 			continue
 		}
-		licenseFile := licenseFile
-		loc := licenseFile.File.Location()
-		f, err := finding.NewPositive(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
+
+		// Create finding
+		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		return []finding.Finding{*f}, Probe, nil
+		findings = append(findings, *f)
 	}
 
-	f, err := finding.NewWith(fs, Probe,
-		"project license file does not contain an FSF or OSI license.", nil,
-		finding.OutcomeNegative)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"no workflows with unknown permissions",
+			nil, finding.OutcomePositive)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
 	}
-	return []finding.Finding{*f}, Probe, nil
+	return findings, Probe, nil
 }
