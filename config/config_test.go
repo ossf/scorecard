@@ -77,6 +77,24 @@ func Test_Parse_Checks(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:       "Annotating all reasons",
+			configPath: "testdata/all_reasons.yml",
+			want: config.Config{
+				Annotations: []config.Annotation{
+					{
+						Checks: []string{"binary-artifacts"},
+						Reasons: []config.ReasonGroup{
+							{Reason: "test-data"},
+							{Reason: "remediated"},
+							{Reason: "not-applicable"},
+							{Reason: "not-supported"},
+							{Reason: "not-detected"},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
