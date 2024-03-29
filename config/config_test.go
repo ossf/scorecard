@@ -95,6 +95,22 @@ func Test_Parse_Checks(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:       "Multiple annotations",
+			configPath: "testdata/multiple_annotations.yml",
+			want: config.Config{
+				Annotations: []config.Annotation{
+					{
+						Checks:  []string{"binary-artifacts"},
+						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
+					},
+					{
+						Checks:  []string{"pinned-dependencies"},
+						Reasons: []config.ReasonGroup{{Reason: "not-applicable"}},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
