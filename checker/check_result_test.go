@@ -931,8 +931,8 @@ func TestIsExempted(t *testing.T) {
 			} else {
 				wantReasons = nil
 			}
-			if diff := cmp.Diff(reasons, wantReasons); diff != "" {
-				t.Fatalf("Reasons for IsExempted() = %v, want %v", reasons, diff)
+			if cmp.Equal(reasons, wantReasons) == false {
+				t.Fatalf("Reasons for IsExempted() = %v, want %v", reasons, wantReasons)
 			}
 		})
 	}
