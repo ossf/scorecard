@@ -176,7 +176,8 @@ func runScorecard(ctx context.Context,
 		}
 		c, err := config.Parse(rc, checks)
 		if err != nil {
-			return ScorecardResult{}, err
+			return ScorecardResult{},
+				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Parse configuration:%v", err.Error()))
 		}
 		ret.Config = c
 	}
