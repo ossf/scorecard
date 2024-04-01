@@ -892,6 +892,28 @@ func TestIsExempted(t *testing.T) {
 				isExempted: false,
 			},
 		},
+		{
+			name: "Exemption is outdated",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 10,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
