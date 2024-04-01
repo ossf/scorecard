@@ -27,6 +27,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/config"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 )
@@ -84,11 +85,12 @@ func TestJSONOutput(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		name        string
-		expected    string
-		showDetails bool
-		logLevel    log.Level
-		result      ScorecardResult
+		name            string
+		expected        string
+		showDetails     bool
+		showAnnotations bool
+		logLevel        log.Level
+		result          ScorecardResult
 	}{
 		{
 			name:        "check-1",
@@ -122,6 +124,55 @@ func TestJSONOutput(t *testing.T) {
 						Score:  5,
 						Reason: "half score reason",
 						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:            "check-1 annotations",
+			showDetails:     true,
+			showAnnotations: true,
+			expected:        "./testdata/check1_annotations.json",
+			logLevel:        log.DebugLevel,
+			result: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
+				Checks: []checker.CheckResult{
+					{
+						Details: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    finding.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"Check-Name"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+								{Reason: "remediated"},
+							},
+						},
 					},
 				},
 				Metadata: []string{},
@@ -449,8 +500,9 @@ func TestJSONOutput(t *testing.T) {
 
 			var result bytes.Buffer
 			o := AsJSON2ResultOption{
-				Details:  tt.showDetails,
-				LogLevel: tt.logLevel,
+				Details:     tt.showDetails,
+				LogLevel:    tt.logLevel,
+				Annotations: tt.showAnnotations,
 			}
 			err = tt.result.AsJSON2(&result, checkDocs, o)
 			if err != nil {
