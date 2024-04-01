@@ -201,8 +201,7 @@ func (r *ScorecardResult) AsString(writer io.Writer,
 		}
 
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
-		x = append(x, row.Name)
-		x = append(x, row.Reason)
+		x = append(x, row.Name, row.Reason)
 		if o.Details {
 			details, show := detailsToString(row.Details, o.LogLevel)
 			if show {
