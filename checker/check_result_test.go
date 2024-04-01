@@ -879,6 +879,19 @@ func TestIsExempted(t *testing.T) {
 				isExempted: false,
 			},
 		},
+		{
+			name: "No checks exempted",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
