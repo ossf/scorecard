@@ -117,6 +117,11 @@ func Test_Parse_Checks(t *testing.T) {
 			configPath: "testdata/invalid_check.yml",
 			wantErr:    config.ErrInvalidCheck,
 		},
+		{
+			name:       "Invalid reason",
+			configPath: "testdata/invalid_reason.yml",
+			wantErr:    config.ErrInvalidReason,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
