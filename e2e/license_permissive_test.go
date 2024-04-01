@@ -52,8 +52,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.PermissiveLicense(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
-				&dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
+				&dl)
 		})
 		It("Should return permissive license check works at commitSHA", func() {
 			dl := scut.TestDetailLogger{}
@@ -77,8 +77,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.PermissiveLicense(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
-				&dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
+				&dl)
 		})
 		It("Should return permissive license check works - GitLab", func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
@@ -103,8 +103,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.PermissiveLicense(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
-				&dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
+				&dl)
 		})
 		It("Should return permissive license check works at commitSHA - GitLab", func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
@@ -129,8 +129,8 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			}
 			result := checks.PermissiveLicense(&req)
 
-			Expect(scut.ValidateTestReturn(nil, "license found", &expected, &result,
-				&dl)).Should(BeTrue())
+			scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result,
+				&dl)
 		})
 	})
 })

@@ -74,9 +74,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			"Intel":
 			// Store the license name in the msg
 			msg := licenseFile.LicenseInformation.Name
-
+			loc := &finding.Location{
+				Type:      licenseFile.File.Type,
+				Path:      licenseFile.File.Path,
+				LineStart: &licenseFile.File.Offset,
+				LineEnd:   &licenseFile.File.EndOffset,
+				Snippet:   &licenseFile.File.Snippet,
+			}
 			f, err := finding.NewWith(fs, Probe,
-				msg, nil,
+				msg, loc,
 				finding.OutcomePositive)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
