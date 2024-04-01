@@ -112,6 +112,11 @@ func Test_Parse_Checks(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:       "Invalid check",
+			configPath: "testdata/invalid_check.yml",
+			wantErr:    config.ErrInvalidCheck,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -126,8 +131,11 @@ func Test_Parse_Checks(t *testing.T) {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
 			result, err := config.Parse(r, allChecks)
-			if !errors.Is(err, tt.wantErr) {
-				t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
+				}
+				return
 			}
 			if diff := cmp.Diff(tt.want, result); diff != "" {
 				t.Errorf("Config mismatch (-want +got):\n%s", diff)
