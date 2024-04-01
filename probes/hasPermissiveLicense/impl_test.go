@@ -83,7 +83,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -94,7 +94,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNegative,
 			},
 		},
 		{
@@ -105,7 +105,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNotApplicable,
+				finding.OutcomeNegative,
 			},
 		},
 	}
