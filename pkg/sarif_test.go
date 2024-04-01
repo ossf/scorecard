@@ -25,6 +25,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v4/config"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
@@ -116,12 +117,13 @@ func TestSARIFOutput(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		name        string
-		expected    string
-		showDetails bool
-		logLevel    log.Level
-		result      ScorecardResult
-		policy      spol.ScorecardPolicy
+		name           string
+		expected       string
+		showDetails    bool
+		showAnotations bool
+		logLevel       log.Level
+		result         ScorecardResult
+		policy         spol.ScorecardPolicy
 	}{
 		{
 			name:        "check with detail remediation",
@@ -222,6 +224,63 @@ func TestSARIFOutput(t *testing.T) {
 						Score:  5,
 						Reason: "half score reason",
 						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:           "check-1 annotations",
+			showDetails:    true,
+			showAnotations: true,
+			expected:       "./testdata/check1_annotations.sarif",
+			logLevel:       log.DebugLevel,
+			policy: spol.ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*spol.CheckPolicy{
+					"Check-Name": {
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
+				Checks: []checker.CheckResult{
+					{
+						Details: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    finding.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"Check-Name"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
 					},
 				},
 				Metadata: []string{},
