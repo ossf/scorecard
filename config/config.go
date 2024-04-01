@@ -15,6 +15,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -22,6 +23,11 @@ import (
 	"gopkg.in/yaml.v3"
 
 	sce "github.com/ossf/scorecard/v4/errors"
+)
+
+var (
+	errInvalidCheck  = errors.New("check is not valid")
+	errInvalidReason = errors.New("reason is not valid")
 )
 
 // Config contains configurations defined by maintainers.
@@ -52,12 +58,12 @@ func validate(c Config, checks []string) error {
 	for _, annotation := range c.Annotations {
 		for _, check := range annotation.Checks {
 			if !isValidCheck(check, checks) {
-				return fmt.Errorf("check is not valid: %s", check)
+				return fmt.Errorf("%w: %s", errInvalidCheck, check)
 			}
 		}
 		for _, reasonGroup := range annotation.Reasons {
 			if !IsValidReason(reasonGroup.Reason) {
-				return fmt.Errorf("reason is not valid: %s", reasonGroup.Reason)
+				return fmt.Errorf("%w: %s", errInvalidReason, reasonGroup.Reason)
 			}
 		}
 	}
