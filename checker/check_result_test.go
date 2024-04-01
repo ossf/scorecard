@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v4/config"
 	sce "github.com/ossf/scorecard/v4/errors"
 )
 
@@ -805,6 +806,66 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 			t.Parallel()
 			if got := CreateRuntimeErrorResult(tt.args.name, tt.args.e); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CreateRuntimeErrorResult() = %v, want %v", got, cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+
+func TestIsExempted(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		check  CheckResult
+		config config.Config
+	}
+	type want struct {
+		isExempted bool
+		reasons    []config.Reason
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "Binary-Artifacts exempted for testing",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: true,
+				reasons: []config.Reason{
+					config.TestData,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			isExempted, reasons := tt.args.check.IsExempted(tt.args.config)
+			if isExempted != tt.want.isExempted {
+				t.Fatalf("IsExempted() = %v, want %v", isExempted, tt.want.isExempted)
+			}
+			wantReasons := []string{}
+			for _, r := range tt.want.reasons {
+				wantReasons = append(wantReasons, r.Doc())
+			}
+			if diff := cmp.Diff(reasons, wantReasons); diff != "" {
+				t.Fatalf("Reasons for IsExempted() = %v, want %v", reasons, diff)
 			}
 		})
 	}
