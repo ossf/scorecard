@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /*
-TODO
+TODO:
   - Detects the end of the existing envvars at the first line that does not declare an
     envvar. This can lead to weird insertion positions if there is a comment in the
     middle of the `env:` block.
@@ -24,75 +24,88 @@ TODO
     command to replace all the instances of the unsafe variable. This means we can
     have multiple identical remediations if the same variable is used multiple times
     in the same step... that's just life.
+  - Handle array inputs (i.e. workflow using `github.event.commits[0]` and
+    `github.event.commits[1]`, which would duplicate $COMMIT_MESSAGE).
+  - Handle use of synonyms (i.e `commits.*?\.author\.email` and
+    `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL).
+  - Handle cases where an existing envvar has the same name as what we'd use, but a
+    different definition.
+  - Handle cases where an existing envvar (regardless of name) already covers our
+    dangerous variable, but wasn't used.
+  - Move actionlint.Parse() to the calling function (once per file)
 */
 package patch
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"slices"
 	"strings"
 
-	"github.com/ossf/scorecard/v5/checker"
+	"github.com/rhysd/actionlint"
 
-	"github.com/hexops/gotextdiff"
-	"github.com/hexops/gotextdiff/myers"
-	"github.com/hexops/gotextdiff/span"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+
+	"github.com/go-git/go-billy/v5/memfs"
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/storage/memory"
 )
 
 const (
 	assumedIndent = 2
 )
 
-func GeneratePatch(f checker.File, content string) string {
+var (
+	ymlLabelRegex = regexp.MustCompile(`^\s*[^#]:`)
+)
+
+// Fixes the script injection identified by the finding and returns a unified diff
+// users can apply (with `git apply` or `patch`) to fix the workflow themselves.
+// Should an error occur, it is handled and an empty patch is returned.
+func GeneratePatch(f checker.File, content string) (string, error) {
+	patchedWorkflow, err := patchWorkflow(f, content)
+	if err != nil {
+		return "", err
+	}
+	return getDiff(f.Path, content, patchedWorkflow)
+}
+
+// Returns a patched version of the workflow without the script injection finding.
+func patchWorkflow(f checker.File, content string) (string, error) {
 	unsafeVar := strings.Trim(f.Snippet, " ")
 	runCmdIndex := f.Offset - 1
 
 	lines := strings.Split(string(content), "\n")
 
-	unsafePattern, envvar, ok := getReplacementRegexAndEnvvarName(unsafeVar)
+	unsafePattern, ok := getUnsafePattern(unsafeVar)
 	if !ok {
-		return ""
+		// TODO: return meaningful error for logging, even if we don't throw it.
+		return "", errors.New("AAA")
 	}
 
-	replaceUnsafeVarWithEnvvar(lines, unsafePattern, envvar, runCmdIndex)
-
-	lines, ok = addEnvvarsToGlobalEnv(lines, envvar, unsafeVar)
-	if !ok {
-		return ""
+	workflow, errs := actionlint.Parse([]byte(content))
+	if len(errs) > 0 && workflow == nil {
+		return "", fileparser.FormatActionlintError(errs)
 	}
 
-	fixedWorkflow := strings.Join(lines, "\n")
+	envvars := parseExistingEnvvars(workflow)
 
-	return getDiff(f.Path, content, fixedWorkflow)
+	lines = replaceUnsafeVarWithEnvvar(lines, unsafePattern, runCmdIndex)
+
+	lines, ok = addEnvvarsToGlobalEnv(lines, envvars, unsafePattern, unsafeVar)
+	if !ok {
+		// TODO: return meaningful error for logging, even if we don't throw it.
+		return "", errors.New("AAA")
+	}
+
+	return strings.Join(lines, "\n"), nil
 }
 
-func addEnvvarsToGlobalEnv(lines []string, envvar string, unsafeVar string) ([]string, bool) {
-	globalIndentation, ok := findGlobalIndentation(lines)
-
-	if !ok {
-		// invalid workflow, could not determine global indentation
-		return nil, false
-	}
-
-	envPos, envvarIndent, exists := findExistingEnv(lines, globalIndentation)
-
-	if !exists {
-		lines, envPos, ok = addNewGlobalEnv(lines, globalIndentation)
-		if !ok {
-			return nil, ok
-		}
-
-		// position now points to `env:`, insert variables below it
-		envPos += 1
-		envvarIndent = globalIndentation + assumedIndent
-	}
-	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", envvar, unsafeVar)
-	lines = slices.Insert(lines, envPos,
-		strings.Repeat(" ", envvarIndent)+envvarDefinition)
-	return lines, ok
-}
-
+// Adds a new global environment to a workflow. Assumes a global environment does not
+// yet exist.
 func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, bool) {
 	envPos, ok := findNewEnvPos(lines, globalIndentation)
 
@@ -106,8 +119,10 @@ func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, bool
 	return lines, envPos, ok
 }
 
+// Identifies the "global" indentation, as defined by the indentation on the required
+// `on:` block. Will equal 0 in almost all cases.
 func findGlobalIndentation(lines []string) (int, bool) {
-	r := regexp.MustCompile(`^\W*on:`)
+	r := regexp.MustCompile(`^\s*on:`)
 	for _, line := range lines {
 		if r.MatchString(line) {
 			return getIndent(line), true
@@ -117,40 +132,58 @@ func findGlobalIndentation(lines []string) (int, bool) {
 	return -1, false
 }
 
-func findExistingEnv(lines []string, globalIndent int) (int, int, bool) {
+// Detects whether a global `env:` block already exists.
+//
+// Returns:
+//   - int: the index for the line where the `env:` block is declared
+//   - int: the indentation used for the declared environment variables
+//
+// The first two values return -1 if the `env` block doesn't exist
+func findExistingEnv(lines []string, globalIndent int) (int, int) {
 	num_lines := len(lines)
 	indent := strings.Repeat(" ", globalIndent)
 
 	// regex to detect the global `env:` block
 	labelRegex := regexp.MustCompile(indent + "env:")
-	i := 0
-	for i = 0; i < num_lines; i++ {
-		line := lines[i]
+
+	var currPos int
+	var line string
+	for currPos, line = range lines {
 		if labelRegex.MatchString(line) {
 			break
 		}
 	}
 
-	if i >= num_lines-1 {
+	if currPos >= num_lines-1 {
 		// there must be at least one more line
-		return -1, -1, false
+		return -1, -1
 	}
 
-	i++ // move to line after `env:`
-	envvarIndent := getIndent(lines[i])
-	// regex to detect envvars belonging to the global `env:` block
-	envvarRegex := regexp.MustCompile(indent + `\W+[^#]`)
-	for ; i < num_lines; i++ {
-		line := lines[i]
-		if !envvarRegex.MatchString(line) {
+	currPos++            // move to line after `env:`
+	insertPos := currPos // mark the position where new envvars will be added
+	envvarIndent := getIndent(lines[currPos])
+	for i, line := range lines[currPos:] {
+		if isBlankOrComment(line) {
+			continue
+		}
+
+		if isParentLevelIndent(line, globalIndent) {
 			// no longer declaring envvars
 			break
 		}
+
+		insertPos = currPos + i + 1
 	}
 
-	return i, envvarIndent, true
+	return insertPos, envvarIndent
 }
 
+// Identifies the line where a new `env:` block should be inserted: right above the
+// `jobs:` label.
+//
+// Returns:
+//   - int: the index for the line where the `env:` block should be inserted
+//   - bool: whether the `jobs:` block was found. Should always be `true`
 func findNewEnvPos(lines []string, globalIndent int) (int, bool) {
 	// the new env is added right before `jobs:`
 	indent := strings.Repeat(" ", globalIndent)
@@ -174,8 +207,80 @@ func newUnsafePattern(e, p string) unsafePattern {
 	return unsafePattern{
 		envvarName:   e,
 		idRegex:      regexp.MustCompile(p),
-		replaceRegex: regexp.MustCompile(`{{\W*.*?` + p + `.*?\W*}}`),
+		replaceRegex: regexp.MustCompile(`{{\s*.*?` + p + `.*?\s*}}`),
 	}
+}
+
+func getUnsafePattern(unsafeVar string) (unsafePattern, bool) {
+	for _, p := range unsafePatterns {
+		if p.idRegex.MatchString(unsafeVar) {
+			p := p
+			return p, true
+		}
+	}
+	return unsafePattern{}, false
+}
+
+// Adds the necessary environment variable to the global `env:` block, if it exists.
+// If the `env:` block does not exist, it is created right above the `jobs:` label.
+func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pattern unsafePattern, unsafeVar string) ([]string, bool) {
+	globalIndentation, ok := findGlobalIndentation(lines)
+	if !ok {
+		// invalid workflow, could not determine global indentation
+		return nil, false
+	}
+
+	var insertPos, envvarIndent int
+	if len(existingEnvvars) > 0 {
+		insertPos, envvarIndent = findExistingEnv(lines, globalIndentation)
+	} else {
+		lines, insertPos, ok = addNewGlobalEnv(lines, globalIndentation)
+		if !ok {
+			return nil, ok
+		}
+
+		// position now points to `env:`, insert variables below it
+		insertPos += 1
+		envvarIndent = globalIndentation + assumedIndent
+	}
+
+	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", pattern.envvarName, unsafeVar)
+	lines = slices.Insert(lines, insertPos,
+		strings.Repeat(" ", envvarIndent)+envvarDefinition,
+	)
+
+	return lines, ok
+}
+
+func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
+	envvars := make(map[string]string)
+
+	if workflow.Env == nil {
+		return envvars
+	}
+
+	for _, v := range workflow.Env.Vars {
+		envvars[v.Name.Value] = v.Value.Value
+	}
+
+	return envvars
+}
+
+// Replaces all instances of the given script injection variable with the safe
+// environment variable.
+func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex uint) []string {
+	runIndent := getIndent(lines[runIndex])
+	for i, line := range lines[runIndex:] {
+		currLine := int(runIndex) + i
+		if i > 0 && isParentLevelIndent(lines[currLine], runIndent) {
+			// anything at the same indent as the first line of the  `- run:` block will
+			// mean the end of the run block.
+			break
+		}
+		lines[currLine] = pattern.replaceRegex.ReplaceAllString(line, pattern.envvarName)
+	}
+
+	return lines
 }
 
 var unsafePatterns = []unsafePattern{
@@ -184,8 +289,11 @@ var unsafePatterns = []unsafePattern{
 	newUnsafePattern("AUTHOR_NAME", `github\.event\.commits.*?\.author\.name`),
 	newUnsafePattern("AUTHOR_NAME", `github\.event\.head_commit\.author\.name`),
 	newUnsafePattern("COMMENT_BODY", `github\.event\.comment\.body`),
+	newUnsafePattern("COMMENT_BODY", `github\.event\.issue_comment\.comment\.body`),
 	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.commits.*?\.message`),
 	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.head_commit\.message`),
+	newUnsafePattern("DISCUSSION_TITLE", `github\.event\.discussion\.title`),
+	newUnsafePattern("DISCUSSION_BODY", `github\.event\.discussion\.body`),
 	newUnsafePattern("ISSUE_BODY", `github\.event\.issue\.body`),
 	newUnsafePattern("ISSUE_TITLE", `github\.event\.issue\.title`),
 	newUnsafePattern("PAGE_NAME", `github\.event\.pages.*?\.page_name`),
@@ -200,50 +308,112 @@ var unsafePatterns = []unsafePattern{
 	newUnsafePattern("HEAD_REF", `github\.head_ref`),
 }
 
-func getReplacementRegexAndEnvvarName(unsafeVar string) (*regexp.Regexp, string, bool) {
-	for _, p := range unsafePatterns {
-		if p.idRegex.MatchString(unsafeVar) {
-			return p.replaceRegex, p.envvarName, true
-		}
-	}
-	return nil, "", false
-}
-
-func replaceUnsafeVarWithEnvvar(lines []string, replaceRegex *regexp.Regexp, envvar string, runIndex uint) {
-	runIndent := getIndent(lines[runIndex])
-	for i := int(runIndex); i < len(lines) && isParentLevelIndent(lines[i], runIndent); i++ {
-		lines[i] = replaceRegex.ReplaceAllString(lines[i], envvar)
-	}
-}
-
+// Returns the indentation of the given line. The indentation is all whitespace and
+// dashes before a key or value.
 func getIndent(line string) int {
 	return len(line) - len(strings.TrimLeft(line, " -"))
 }
 
 func isBlankOrComment(line string) bool {
-	blank := regexp.MustCompile(`^\W*$`)
-	comment := regexp.MustCompile(`^\W*#`)
+	blank := regexp.MustCompile(`^\s*$`)
+	comment := regexp.MustCompile(`^\s*#`)
 
 	return blank.MatchString(line) || comment.MatchString(line)
 }
 
+// Returns whether the given line is at the same indentation level as the parent scope.
+// For example, when walking through the document, parsing `job_foo`:
+//
+//	job_foo:
+//	  runs-on: ubuntu-latest  # looping over these lines, we have
+//	  uses: ./actions/foo     # parent_indent = 2 (job_foo's indentation)
+//	  ...                     # we know these lines belong to job_foo because
+//	  ...                     # they all have indent = 4
+//	job_bar:  # this line has job_foo's indentation, so we know job_foo is done
+//
+// Blank lines and those containing only comments are ignored and always return False.
 func isParentLevelIndent(line string, parentIndent int) bool {
 	if isBlankOrComment(line) {
 		return false
 	}
-	return getIndent(line) >= parentIndent
+	return getIndent(line) <= parentIndent
 }
 
-// gets the changes as a git-diff. Following the standard used in git diff, the
-// path to the "old" version is prefixed with a/, and the "new" with b/:
-//
-// --- a/.github/workflows/foo.yml
-// +++ b/.github/workflows/foo.yml
-// @@ -42,13 +42,22 @@
-// ...
-func getDiff(path, original, patched string) string {
-	edits := myers.ComputeEdits(span.URIFromPath(path), original, patched)
-	aPath := "a/" + path
-	bPath := "b/" + path
-	return fmt.Sprint(gotextdiff.ToUnified(aPath, bPath, original, edits))
+// Returns the changes between the original and patched workflows as a unified diff
+// (the same generated by `git diff` or `diff -u`).
+func getDiff(path, original, patched string) (string, error) {
+	// initialize an in-memory repository
+	repo, err := newInMemoryRepo()
+	if err != nil {
+		return "", err
+	}
+
+	// commit original workflow to in-memory repository
+	originalCommit, err := commitWorkflow(path, original, repo)
+	if err != nil {
+		return "", err
+	}
+
+	// commit patched workflow to in-memory repository
+	patchedCommit, err := commitWorkflow(path, patched, repo)
+	if err != nil {
+		return "", err
+	}
+
+	return toUnifiedDiff(originalCommit, patchedCommit)
+}
+
+// Initializes an in-memory repository
+func newInMemoryRepo() (*git.Repository, error) {
+	// initialize an in-memory repository
+	filesystem := memfs.New()
+	repo, err := git.Init(memory.NewStorage(), filesystem)
+	if err != nil {
+		return nil, err
+	}
+
+	return repo, nil
+}
+
+// Commits the workflow at the given path to the in-memory repository
+func commitWorkflow(path, contents string, repo *git.Repository) (*object.Commit, error) {
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return nil, err
+	}
+	filesystem := worktree.Filesystem
+
+	// create (or overwrite) file
+	df, err := filesystem.Create(path)
+	if err != nil {
+		return nil, err
+	}
+
+	df.Write([]byte(contents))
+	df.Close()
+
+	// commit file to in-memory repository
+	worktree.Add(path)
+	hash, err := worktree.Commit("x", &git.CommitOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	commit, err := repo.CommitObject(hash)
+	if err != nil {
+		return nil, err
+	}
+	return commit, nil
+}
+
+// Returns a unified diff describing the difference between the given commits
+func toUnifiedDiff(originalCommit, patchedCommit *object.Commit) (string, error) {
+	patch, err := originalCommit.Patch(patchedCommit)
+	if err != nil {
+		return "", err
+	}
+	builder := strings.Builder{}
+	patch.Encode(&builder)
+
+	return builder.String(), nil
 }
