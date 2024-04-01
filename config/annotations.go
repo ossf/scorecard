@@ -74,15 +74,7 @@ func (r *Reason) Doc() string {
 // IsValidReason validates if a reason exists.
 func IsValidReason(r Reason) bool {
 	switch r {
-	case TestData:
-		fallthrough
-	case Remediated:
-		fallthrough
-	case NotApplicable:
-		fallthrough
-	case NotSupported:
-		fallthrough
-	case NotDetected:
+	case TestData, Remediated, NotApplicable, NotSupported, NotDetected:
 		return true
 	default:
 		return false
