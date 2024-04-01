@@ -204,10 +204,6 @@ func runScorecard(ctx context.Context,
 	return ret, nil
 }
 
-func yaml(content []byte) {
-	panic("unimplemented")
-}
-
 func runEnabledProbes(request *checker.CheckRequest,
 	probesToRun []string,
 	ret *ScorecardResult,
