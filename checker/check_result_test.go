@@ -851,6 +851,34 @@ func TestIsExempted(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Binary-Artifacts not exempted",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"pinned-dependencies"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+						{
+							Checks: []string{"branch-protection"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "not-applicable"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -861,8 +889,12 @@ func TestIsExempted(t *testing.T) {
 				t.Fatalf("IsExempted() = %v, want %v", isExempted, tt.want.isExempted)
 			}
 			wantReasons := []string{}
-			for _, r := range tt.want.reasons {
-				wantReasons = append(wantReasons, r.Doc())
+			if tt.want.reasons != nil {
+				for _, r := range tt.want.reasons {
+					wantReasons = append(wantReasons, r.Doc())
+				}
+			} else {
+				wantReasons = nil
 			}
 			if diff := cmp.Diff(reasons, wantReasons); diff != "" {
 				t.Fatalf("Reasons for IsExempted() = %v, want %v", reasons, diff)
