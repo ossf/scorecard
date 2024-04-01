@@ -8,7 +8,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
-[![Slack](https://img.shields.io/badge/slack-openssf/security_scorecards-white.svg?logo=slack)](https://slack.openssf.org/#security_scorecards)
+[![Slack](https://img.shields.io/badge/slack-openssf/scorecard-white.svg?logo=slack)](https://slack.openssf.org/#scorecard)
 
 <img align="right" src="artwork/openssf_security_compressed.png" width="200" height="400">
 
@@ -20,6 +20,10 @@
 -   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
+> [!IMPORTANT]
+> OpenSSF Scorecard has opened a survey to better understand user expectations and needs from the project. The survey will remain open through OSS NA and the results will help steer the roadmap. **_[Survey link](https://forms.gle/6poWj6gQ15chxTDH8)_**
+> 
+> Please let us know what is working, what is not, and what you would like to see from the project. **Thank you for participating!**
 
 -   [Scorecard GitHub Action](#scorecard-github-action)
 -   [Scorecard REST API](#scorecard-rest-api)
@@ -599,7 +603,7 @@ Scorecard Announcements Forum | [ossf-scorecard-announce@](https://groups.google
 Community Meeting VC          | [Link to z o o m meeting](https://zoom-lfx.platform.linuxfoundation.org/meeting/95007214146?password=250040c3-80c0-48c4-80c1-07a373116d54)
 Community Meeting Calendar    | **_APAC-friendly_** Biweekly on Thursdays at 1:00-2:00 PM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA)) <br>Video Call: [LFX Zoom](https://zoom-lfx.platform.linuxfoundation.org/meeting/95007214146?password=250040c3-80c0-48c4-80c1-07a373116d54) <br> **_EMEA-friendly_** Every 4 Mondays at 7:00-8:00 AM Pacific ([OSSF Public Calendar](https://calendar.google.com/calendar/u/0/embed?height=600&wkst=1&bgcolor=%238E24AA&showTitle=1&mode=WEEK&showCalendars=0&showTabs=1&showPrint=0&title=OpenSSF+Community+Calendar&src=czYzdm9lZmhwNWk5cGZsdGI1cTY3bmdwZXNAZ3JvdXAuY2FsZW5kYXIuZ29vZ2xlLmNvbQ&color=%238E24AA)) <br> Video Call: [LFX Zoom](https://zoom-lfx.platform.linuxfoundation.org/meeting/93377638314?password=d53af562-d908-4100-8ae1-52686756cc5d)
 Meeting Notes                 | [Notes](https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing)
-Slack Channel                 | [#security_scorecards](https://slack.openssf.org/#security_scorecards)
+Slack Channel                 | [#scorecard](https://slack.openssf.org/#scorecard)
 
 __Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
 
@@ -607,7 +611,7 @@ __Maintainers__ are listed in the [CODEOWNERS file](.github/CODEOWNERS).
 
 To report a security issue, please follow instructions [here](SECURITY.md).
 
-### Join the Scorecards Project Meeting
+### Join the Scorecard Project Meeting
 
 #### Zoom
 

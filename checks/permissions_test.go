@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"fmt"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -109,7 +109,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Error:         nil,
 				Score:         checker.MinResultScore,
 				NumberOfWarn:  1,
-				NumberOfInfo:  1,
+				NumberOfInfo:  0,
 				NumberOfDebug: 5,
 			},
 		},
@@ -443,12 +443,8 @@ func TestGithubTokenPermissions(t *testing.T) {
 				}
 				return files, nil
 			}).AnyTimes()
-			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
-				content, err := os.ReadFile("./testdata/" + fn)
-				if err != nil {
-					return content, fmt.Errorf("%w", err)
-				}
-				return content, nil
+			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
+				return os.Open("./testdata/" + fn)
 			}).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{
@@ -499,11 +495,6 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			content, err := os.ReadFile(tt.filename)
-			if err != nil {
-				t.Errorf("cannot read file: %v", err)
-			}
-
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
@@ -514,8 +505,8 @@ func TestGithubTokenPermissionsLineNumber(t *testing.T) {
 			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
 				return []string{p}, nil
 			}).AnyTimes()
-			mockRepo.EXPECT().GetFileContent(gomock.Any()).DoAndReturn(func(fn string) ([]byte, error) {
-				return content, nil
+			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
+				return os.Open(tt.filename)
 			}).AnyTimes()
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{

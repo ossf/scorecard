@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -31,20 +32,9 @@ func TestDependencyUpdateTool(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "dependabot",
+			name: "one update tool is max score",
 			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
+				depUpdateTool("Dependabot"),
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
@@ -52,102 +42,34 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name: "renovate",
+			name: "multiple update tools both logged",
 			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomePositive,
-				},
+				depUpdateTool("RenovateBot"),
+				depUpdateTool("PyUp"),
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
-				NumberOfInfo: 1,
+				NumberOfInfo: 2,
 			},
 		},
 		{
-			name: "pyup",
+			name: "no update tool is min score",
 			findings: []finding.Finding{
 				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        checker.MaxResultScore,
-				NumberOfInfo: 1,
-			},
-		},
-		{
-			name: "none",
-			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
+					Probe:   dependencyUpdateToolConfigured.Probe,
 					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfWarn: 3,
+				NumberOfWarn: 1,
 			},
 		},
 		{
-			name: "missing probes renovate",
+			name: "invalid probe name is an error",
 			findings: []finding.Finding{
 				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score: checker.InconclusiveResultScore,
-				Error: sce.ErrScorecardInternal,
-			},
-		},
-		{
-			name: "invalid probe name",
-			findings: []finding.Finding{
-				{
-					Probe:   "toolDependabotInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolRenovateInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolPyUpInstalled",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "toolInvalidProbeName",
+					Probe:   "notARealProbe",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
@@ -161,10 +83,19 @@ func TestDependencyUpdateTool(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
 			dl := scut.TestDetailLogger{}
 			got := DependencyUpdateTool(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
+	}
+}
+
+func depUpdateTool(name string) finding.Finding {
+	return finding.Finding{
+		Probe:   dependencyUpdateToolConfigured.Probe,
+		Outcome: finding.OutcomePositive,
+		Values: map[string]string{
+			dependencyUpdateToolConfigured.ToolKey: name,
+		},
 	}
 }

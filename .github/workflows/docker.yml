@@ -23,7 +23,7 @@ on:
   - main
 
 env:
-  GO_VERSION: 1.21
+  GO_VERSION: 1.22
 
 jobs:
   docs_only_check:
@@ -38,15 +38,17 @@ jobs:
       uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       with:
         fetch-depth: 2 # needed to diff changed files
-    - id: files
-      name: Get changed files
-      uses: tj-actions/changed-files@90a06d6ba9543371ab4df8eeca0be07ca6054959 #v42.0.2
-      with:
-        files_ignore: '**.md'
     - id: docs_only_check
-      if: steps.files.outputs.any_changed != 'true'
       name: Check for docs-only changes
-      run: echo "docs_only=true" >> $GITHUB_OUTPUT
+      run: |
+        set +e # dont fail based on grep exit code
+        git diff --name-only HEAD~1 | grep --ignore-case --invert-match '.md$'
+        if [ $? -eq 1 ]; then
+            # no grep match (all files end in .md) produces exit code 1
+            echo "docs_only=true" >> $GITHUB_OUTPUT
+        else
+            echo "docs_only=false" >> $GITHUB_OUTPUT
+        fi
 
   docker_matrix:
     strategy:
@@ -70,7 +72,7 @@ jobs:
     steps:
      - name: Harden Runner
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
+       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code

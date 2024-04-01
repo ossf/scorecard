@@ -25,3 +25,9 @@ remediation:
   effort: Low
   text:
     - The only remediation for this probe is to wait until 90 days have passed after a project has been created.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

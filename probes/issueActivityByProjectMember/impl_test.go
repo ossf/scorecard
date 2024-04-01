@@ -16,6 +16,7 @@
 package issueActivityByProjectMember
 
 import (
+	"strconv"
 	"testing"
 	"time"
 
@@ -80,7 +81,7 @@ func Test_Run(t *testing.T) {
 	//nolint:govet
 	tests := []struct {
 		name     string
-		values   map[string]int
+		values   map[string]string
 		raw      *checker.RawResults
 		outcomes []finding.Outcome
 		err      error
@@ -101,8 +102,9 @@ func Test_Run(t *testing.T) {
 					Issues: fiveIssuesInThreshold(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 5,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -113,8 +115,9 @@ func Test_Run(t *testing.T) {
 					Issues: twentyIssuesInThresholdAndTwentyNot(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 20,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "20",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},
@@ -125,8 +128,9 @@ func Test_Run(t *testing.T) {
 					Issues: fiveInThresholdByCollabAndFiveByFirstTimeUser(),
 				},
 			},
-			values: map[string]int{
-				"numberOfIssuesUpdatedWithinThreshold": 5,
+			values: map[string]string{
+				LookbackDayKey: strconv.Itoa(lookBackDays),
+				NumIssuesKey:   "5",
 			},
 			outcomes: []finding.Outcome{finding.OutcomePositive},
 		},

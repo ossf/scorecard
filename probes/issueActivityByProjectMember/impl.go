@@ -18,23 +18,29 @@ package issueActivityByProjectMember
 import (
 	"embed"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Maintained})
+}
 
 //go:embed *.yml
 var fs embed.FS
 
 const (
-	lookBackDays    = 90
-	NoOfIssuesValue = "numberOfIssuesUpdatedWithinThreshold"
+	Probe          = "issueActivityByProjectMember"
+	NumIssuesKey   = "numberOfIssuesUpdatedWithinThreshold"
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
 )
-
-const Probe = "issueActivityByProjectMember"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -53,26 +59,25 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 	}
 
+	var text string
+	var outcome finding.Outcome
 	if numberOfIssuesUpdatedWithinThreshold > 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"Found a issue within the threshold.", nil,
-			finding.OutcomePositive)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithValues(map[string]int{
-			NoOfIssuesValue: numberOfIssuesUpdatedWithinThreshold,
-		})
-		findings = append(findings, *f)
+		text = "Found a issue within the threshold."
+		outcome = finding.OutcomePositive
 	} else {
-		f, err := finding.NewWith(fs, Probe,
-			"Did not find issues within the threshold.", nil,
-			finding.OutcomeNegative)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
+		text = "Did not find issues within the threshold."
+		outcome = finding.OutcomeNegative
 	}
+
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+	f = f.WithValues(map[string]string{
+		NumIssuesKey:   strconv.Itoa(numberOfIssuesUpdatedWithinThreshold),
+		LookbackDayKey: strconv.Itoa(lookBackDays),
+	})
+	findings = append(findings, *f)
 
 	return findings, Probe, nil
 }

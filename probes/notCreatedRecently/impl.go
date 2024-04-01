@@ -18,21 +18,28 @@ package notCreatedRecently
 import (
 	"embed"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Maintained})
+}
 
 //go:embed *.yml
 var fs embed.FS
 
 const (
-	lookBackDays = 90
-)
+	Probe = "notCreatedRecently"
 
-const Probe = "notCreatedRecently"
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -43,31 +50,19 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 
+	var text string
+	var outcome finding.Outcome
 	if r.CreatedAt.After(recencyThreshold) {
-		return negativeOutcome()
+		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeNegative
+	} else {
+		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+		outcome = finding.OutcomePositive
 	}
-	return positiveOutcome()
-}
-
-func negativeOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository was created in last 90 days.", nil,
-		finding.OutcomeNegative)
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
-	return []finding.Finding{*f}, Probe, nil
-}
-
-func positiveOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository was not created in last 90 days.", nil,
-		finding.OutcomePositive)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-	f = f.WithValues(map[string]int{
-		"lookBackDays": 90,
-	})
+	f = f.WithValue(LookbackDayKey, strconv.Itoa(lookBackDays))
 	return []finding.Finding{*f}, Probe, nil
 }

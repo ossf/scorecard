@@ -56,27 +56,26 @@ func CIIBestPractices(name string,
 		text = "no effort to earn an OpenSSF best practices badge detected"
 		return checker.CreateMinScoreResult(name, text)
 	}
-	//nolint:nestif
-	if _, hasKey := f.Values[hasOpenSSFBadge.GoldLevel]; hasKey {
+
+	level, ok := f.Values[hasOpenSSFBadge.LevelKey]
+	if !ok {
+		return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, "no badge level present"))
+	}
+	switch level {
+	case hasOpenSSFBadge.GoldLevel:
 		score = checker.MaxResultScore
 		text = "badge detected: Gold"
-	} else if _, hasKey := f.Values[hasOpenSSFBadge.SilverLevel]; hasKey {
+	case hasOpenSSFBadge.SilverLevel:
 		score = silverScore
 		text = "badge detected: Silver"
-	} else if _, hasKey := f.Values[hasOpenSSFBadge.PassingLevel]; hasKey {
+	case hasOpenSSFBadge.PassingLevel:
 		score = passingScore
 		text = "badge detected: Passing"
-	} else if _, hasKey := f.Values[hasOpenSSFBadge.InProgressLevel]; hasKey {
+	case hasOpenSSFBadge.InProgressLevel:
 		score = inProgressScore
 		text = "badge detected: InProgress"
-	} else if _, hasKey := f.Values[hasOpenSSFBadge.UnknownLevel]; hasKey {
-		text = "unknown badge detected"
-		e := sce.WithMessage(sce.ErrScorecardInternal, text)
-		return checker.CreateRuntimeErrorResult(name, e)
-	} else {
-		text = "unsupported badge detected"
-		e := sce.WithMessage(sce.ErrScorecardInternal, text)
-		return checker.CreateRuntimeErrorResult(name, e)
+	default:
+		return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, "unsupported badge detected"))
 	}
 
 	return checker.CreateResultWithScore(name, text, score)

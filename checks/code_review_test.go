@@ -24,52 +24,31 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	sce "github.com/ossf/scorecard/v4/errors"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
-
-var errNew = errors.New("error")
 
 // TestCodeReview tests the code review checker.
 func TestCodereview(t *testing.T) {
 	t.Parallel()
-	// fieldalignment lint issue. Ignoring it as it is not important for this test.
-	//nolint:gci
-    //nolint:gofmt
-    //nolint:gofumpt
-	//nolint:goimports
 	tests := []struct {
-		err       error
 		name      string
-		commiterr error
+		commitErr error
 		commits   []clients.Commit
-		expected  checker.CheckResult
+		expected  scut.TestReturn
 	}{
 		{
 			name: "no commits",
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: -1,
 			},
 		},
 		{
-			name:      "no commits with error",
-			commiterr: errNew,
-			expected: checker.CheckResult{
+			name:      "no commits due to error",
+			commitErr: errors.New("error fetching commits"),
+			expected: scut.TestReturn{
 				Score: -1,
-			},
-		},
-		{
-			name: "no PR's with error",
-			err:  errNew,
-			expected: checker.CheckResult{
-				Score: -1,
-			},
-		},
-		{
-			name:      "no PR's with error as well as commits",
-			err:       errNew,
-			commiterr: errNew,
-			expected: checker.CheckResult{
-				Score: -1,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 		{
@@ -92,7 +71,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -115,7 +94,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -138,7 +117,7 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -160,8 +139,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 0,
+			expected: scut.TestReturn{
+				Score:         0,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -190,8 +170,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 5,
+			expected: scut.TestReturn{
+				Score:         5,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -215,8 +196,9 @@ func TestCodereview(t *testing.T) {
 					},
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 5,
+			expected: scut.TestReturn{
+				Score:         5,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -230,7 +212,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nReviewed By: alice\nDifferential Revision: PHAB234",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -245,8 +227,9 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nReviewed By: alice",
 				},
 			},
-			expected: checker.CheckResult{
-				Score: 0,
+			expected: scut.TestReturn{
+				Score:         0,
+				NumberOfDebug: 1, // one per un-reviewed change
 			},
 		},
 		{
@@ -260,7 +243,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nDifferential Revision: PHAB234",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: checker.MaxResultScore,
 			},
 		},
@@ -275,7 +258,7 @@ func TestCodereview(t *testing.T) {
 					Message: "Title\nPiperOrigin-RevId: 444529962",
 				},
 			},
-			expected: checker.CheckResult{
+			expected: scut.TestReturn{
 				Score: 10,
 			},
 		},
@@ -287,26 +270,18 @@ func TestCodereview(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.err).AnyTimes()
+			mockRepo.EXPECT().ListCommits().Return(tt.commits, tt.commitErr).AnyTimes()
 
+			var dl scut.TestDetailLogger
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
+				Dlogger:    &dl,
 			}
-			req.Dlogger = &scut.TestDetailLogger{}
 			res := CodeReview(&req)
-
-			if tt.err != nil {
-				if res.Error == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
-				}
-				// return as we don't need to check the rest of the fields.
-				return
+			if tt.commitErr != nil && res.Error == nil {
+				t.Fatalf("Expected error %v, got nil", tt.commitErr)
 			}
-
-			if res.Score != tt.expected.Score {
-				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			ctrl.Finish()
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

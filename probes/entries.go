@@ -15,55 +15,51 @@
 package probes
 
 import (
-	"errors"
-
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
+	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
+	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
+	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
+	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithClusterFuzzLite"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithCppLibFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithGoNative"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithJavaJazzerFuzzer"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithOSSFuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedHaskell"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedJavascript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPropertyBasedTypescript"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithPythonAtheris"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithRustCargofuzz"
-	"github.com/ossf/scorecard/v4/probes/fuzzedWithSwiftLibFuzzer"
+	"github.com/ossf/scorecard/v4/probes/fuzzed"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
 	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasPermissiveLicense"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
-	"github.com/ossf/scorecard/v4/probes/sastToolCodeQLInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolPysaInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolQodanaInstalled"
+	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
+	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
+	"github.com/ossf/scorecard/v4/probes/requiresLastPushApproval"
+	"github.com/ossf/scorecard/v4/probes/requiresPRsToChangeCode"
+	"github.com/ossf/scorecard/v4/probes/requiresUpToDateBranches"
+	"github.com/ossf/scorecard/v4/probes/runsStatusChecksBeforeMerging"
+	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/sastToolSnykInstalled"
-	"github.com/ossf/scorecard/v4/probes/sastToolSonarInstalled"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v4/probes/testsRunInCI"
-	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
+	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
 
@@ -84,23 +80,10 @@ var (
 	// DependencyToolUpdates is all the probes for the
 	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
-		toolRenovateInstalled.Run,
-		toolDependabotInstalled.Run,
-		toolPyUpInstalled.Run,
+		dependencyUpdateToolConfigured.Run,
 	}
 	Fuzzing = []ProbeImpl{
-		fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Run,
+		fuzzed.Run,
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
@@ -108,7 +91,6 @@ var (
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
-		hasLicenseFileAtTopDir.Run,
 	}
 	PermissiveLicense = []ProbeImpl{
 		hasPermissiveLicense.Run,
@@ -124,18 +106,13 @@ var (
 		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
-		sastToolCodeQLInstalled.Run,
-		sastToolPysaInstalled.Run,
-		sastToolQodanaInstalled.Run,
-		sastToolSnykInstalled.Run,
+		sastToolConfigured.Run,
 		sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Run,
 	}
 	DangerousWorkflows = []ProbeImpl{
 		hasDangerousWorkflowScriptInjection.Run,
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
-
 	Maintained = []ProbeImpl{
 		notArchived.Run,
 		hasRecentCommits.Run,
@@ -158,103 +135,56 @@ var (
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
 	}
-
-	probeRunners = map[string]func(*checker.RawResults) ([]finding.Finding, string, error){
-		securityPolicyPresent.Probe:                         securityPolicyPresent.Run,
-		securityPolicyContainsLinks.Probe:                   securityPolicyContainsLinks.Run,
-		securityPolicyContainsVulnerabilityDisclosure.Probe: securityPolicyContainsVulnerabilityDisclosure.Run,
-		securityPolicyContainsText.Probe:                    securityPolicyContainsText.Run,
-		toolRenovateInstalled.Probe:                         toolRenovateInstalled.Run,
-		toolDependabotInstalled.Probe:                       toolDependabotInstalled.Run,
-		toolPyUpInstalled.Probe:                             toolPyUpInstalled.Run,
-		fuzzedWithOSSFuzz.Probe:                             fuzzedWithOSSFuzz.Run,
-		fuzzedWithGoNative.Probe:                            fuzzedWithGoNative.Run,
-		fuzzedWithPythonAtheris.Probe:                       fuzzedWithPythonAtheris.Run,
-		fuzzedWithCLibFuzzer.Probe:                          fuzzedWithCLibFuzzer.Run,
-		fuzzedWithCppLibFuzzer.Probe:                        fuzzedWithCppLibFuzzer.Run,
-		fuzzedWithSwiftLibFuzzer.Probe:                      fuzzedWithSwiftLibFuzzer.Run,
-		fuzzedWithRustCargofuzz.Probe:                       fuzzedWithRustCargofuzz.Run,
-		fuzzedWithJavaJazzerFuzzer.Probe:                    fuzzedWithJavaJazzerFuzzer.Run,
-		fuzzedWithClusterFuzzLite.Probe:                     fuzzedWithClusterFuzzLite.Run,
-		fuzzedWithPropertyBasedHaskell.Probe:                fuzzedWithPropertyBasedHaskell.Run,
-		fuzzedWithPropertyBasedTypescript.Probe:             fuzzedWithPropertyBasedTypescript.Run,
-		fuzzedWithPropertyBasedJavascript.Probe:             fuzzedWithPropertyBasedJavascript.Run,
-		packagedWithAutomatedWorkflow.Probe:                 packagedWithAutomatedWorkflow.Run,
-		hasLicenseFile.Probe:                                hasLicenseFile.Run,
-		hasPermissiveLicense.Probe:                          hasPermissiveLicense.Run,
-		hasFSFOrOSIApprovedLicense.Probe:                    hasFSFOrOSIApprovedLicense.Run,
-		hasLicenseFileAtTopDir.Probe:                        hasLicenseFileAtTopDir.Run,
-		contributorsFromOrgOrCompany.Probe:                  contributorsFromOrgOrCompany.Run,
-		hasOSVVulnerabilities.Probe:                         hasOSVVulnerabilities.Run,
-		sastToolCodeQLInstalled.Probe:                       sastToolCodeQLInstalled.Run,
-		sastToolRunsOnAllCommits.Probe:                      sastToolRunsOnAllCommits.Run,
-		sastToolSonarInstalled.Probe:                        sastToolSonarInstalled.Run,
-		hasDangerousWorkflowScriptInjection.Probe:           hasDangerousWorkflowScriptInjection.Run,
-		hasDangerousWorkflowUntrustedCheckout.Probe:         hasDangerousWorkflowUntrustedCheckout.Run,
-		notArchived.Probe:                                   notArchived.Run,
-		hasRecentCommits.Probe:                              hasRecentCommits.Run,
-		issueActivityByProjectMember.Probe:                  issueActivityByProjectMember.Run,
-		notCreatedRecently.Probe:                            notCreatedRecently.Run,
+	BranchProtection = []ProbeImpl{
+		blocksDeleteOnBranches.Run,
+		blocksForcePushOnBranches.Run,
+		branchesAreProtected.Run,
+		branchProtectionAppliesToAdmins.Run,
+		dismissesStaleReviews.Run,
+		requiresApproversForPullRequests.Run,
+		requiresCodeOwnersReview.Run,
+		requiresLastPushApproval.Run,
+		requiresUpToDateBranches.Run,
+		runsStatusChecksBeforeMerging.Run,
+		requiresPRsToChangeCode.Run,
+	}
+	PinnedDependencies = []ProbeImpl{
+		pinsDependencies.Run,
+	}
+	TokenPermissions = []ProbeImpl{
+		hasNoGitHubWorkflowPermissionUnknown.Run,
+		jobLevelPermissions.Run,
+		topLevelPermissions.Run,
 	}
 
-	CheckMap = map[string]string{
-		securityPolicyPresent.Probe:                         "Security-Policy",
-		securityPolicyContainsLinks.Probe:                   "Security-Policy",
-		securityPolicyContainsVulnerabilityDisclosure.Probe: "Security-Policy",
-		securityPolicyContainsText.Probe:                    "Security-Policy",
-		toolRenovateInstalled.Probe:                         "Dependency-Update-Tool",
-		toolDependabotInstalled.Probe:                       "Dependency-Update-Tool",
-		toolPyUpInstalled.Probe:                             "Dependency-Update-Tool",
-		fuzzedWithOSSFuzz.Probe:                             "Fuzzing",
-		fuzzedWithGoNative.Probe:                            "Fuzzing",
-		fuzzedWithPythonAtheris.Probe:                       "Fuzzing",
-		fuzzedWithCLibFuzzer.Probe:                          "Fuzzing",
-		fuzzedWithCppLibFuzzer.Probe:                        "Fuzzing",
-		fuzzedWithSwiftLibFuzzer.Probe:                      "Fuzzing",
-		fuzzedWithRustCargofuzz.Probe:                       "Fuzzing",
-		fuzzedWithJavaJazzerFuzzer.Probe:                    "Fuzzing",
-		fuzzedWithClusterFuzzLite.Probe:                     "Fuzzing",
-		fuzzedWithPropertyBasedHaskell.Probe:                "Fuzzing",
-		fuzzedWithPropertyBasedTypescript.Probe:             "Fuzzing",
-		fuzzedWithPropertyBasedJavascript.Probe:             "Fuzzing",
-		packagedWithAutomatedWorkflow.Probe:                 "Packaging",
-		hasLicenseFile.Probe:                                "License",
-		hasFSFOrOSIApprovedLicense.Probe:                    "License",
-		hasLicenseFileAtTopDir.Probe:                        "License",
-		hasPermissiveLicense.Probe:                          "PermissiveLicense",
-		contributorsFromOrgOrCompany.Probe:                  "Contributors",
-		hasOSVVulnerabilities.Probe:                         "Vulnerabilities",
-		sastToolCodeQLInstalled.Probe:                       "SAST",
-		sastToolRunsOnAllCommits.Probe:                      "SAST",
-		sastToolSonarInstalled.Probe:                        "SAST",
-		hasDangerousWorkflowScriptInjection.Probe:           "Dangerous-Workflow",
-		hasDangerousWorkflowUntrustedCheckout.Probe:         "Dangerous-Workflow",
-		notArchived.Probe:                                   "Maintained",
-		hasRecentCommits.Probe:                              "Maintained",
-		issueActivityByProjectMember.Probe:                  "Maintained",
-		notCreatedRecently.Probe:                            "Maintained",
+	// Probes which aren't included by any checks.
+	// These still need to be listed so they can be called with --probes.
+	Uncategorized = []ProbeImpl{
+		freeOfAnyBinaryArtifacts.Run,
 	}
-
-	errProbeNotFound = errors.New("probe not found")
 )
 
 //nolint:gochecknoinits
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
-		DependencyToolUpdates,
+		BinaryArtifacts,
+		CIIBestPractices,
+		CITests,
 		CodeReview,
-		SecurityPolicy,
+		Contributors,
+		DangerousWorkflows,
+		DependencyToolUpdates,
 		Fuzzing,
 		License,
-		Contributors,
+		Maintained,
+		Packaging,
+		SAST,
+		SecurityPolicy,
+		SignedReleases,
+		Uncategorized,
+		Vulnerabilities,
+		Webhook,
 	})
-}
-
-func GetProbeRunner(probeName string) (func(*checker.RawResults) ([]finding.Finding, string, error), error) {
-	if runner, ok := probeRunners[probeName]; ok {
-		return runner, nil
-	}
-	return nil, errProbeNotFound
 }
 
 func concatMultipleProbes(slices [][]ProbeImpl) []ProbeImpl {

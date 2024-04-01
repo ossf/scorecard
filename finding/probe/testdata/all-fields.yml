@@ -14,3 +14,11 @@ remediation:
   markdown:
     - step1
     - step2 [google.com](https://www.google.com/something)
+ecosystem:
+  languages:
+    - c
+    - c++
+  clients:
+    - github
+    - gitlab
+    - localdir

@@ -92,7 +92,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -112,7 +112,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -152,7 +152,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -174,7 +174,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         4,
 				NumberOfWarn:  9,
-				NumberOfInfo:  12,
+				NumberOfInfo:  11,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
@@ -188,7 +188,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -210,7 +210,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -232,7 +232,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				Error:         nil,
 				Score:         8,
 				NumberOfWarn:  4,
-				NumberOfInfo:  18,
+				NumberOfInfo:  16,
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
@@ -246,7 +246,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -268,7 +268,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &trueVal,
 							Contexts:             []string{"foo"},
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &trueVal,
 							RequireCodeOwnerReviews:      &trueVal,
@@ -305,7 +305,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -344,7 +344,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							UpToDateBeforeMerge:  &falseVal,
 							Contexts:             nil,
 						},
-						RequiredPullRequestReviews: clients.PullRequestReviewRule{
+						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
 							DismissStaleReviews:          &falseVal,
 							RequireCodeOwnerReviews:      &falseVal,
@@ -363,9 +363,9 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			expected: scut.TestReturn{
 				Error:         nil,
 				Score:         0,
-				NumberOfWarn:  6,
+				NumberOfWarn:  4,
 				NumberOfInfo:  0,
-				NumberOfDebug: 8,
+				NumberOfDebug: 10,
 			},
 			nonadmin:      true,
 			defaultBranch: main,

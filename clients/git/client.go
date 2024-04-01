@@ -42,6 +42,9 @@ var (
 	errNilCommitFound = errors.New("nil commit found")
 	errEmptyQuery     = errors.New("query is empty")
 	errDefaultBranch  = errors.New("default branch name could not be determined")
+
+	// ensure Client implements clients.RepoClient.
+	_ clients.RepoClient = (*Client)(nil)
 )
 
 type Client struct {
@@ -83,7 +86,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			uri = "https://" + uri
 		}
 		if !strings.HasSuffix(uri, ".git") {
-			uri = uri + ".git"
+			uri += ".git"
 		}
 		c.gitRepo, err = git.PlainClone(tempDir, false /*isBare*/, &git.CloneOptions{
 			URL:      uri,
@@ -235,17 +238,17 @@ func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, erro
 	return files, nil
 }
 
-func (c *Client) GetFileContent(filename string) ([]byte, error) {
+func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 	// Create the full path of the file
 	fullPath := filepath.Join(c.tempDir, filename)
 
 	// Read the file
-	content, err := os.ReadFile(fullPath)
+	f, err := os.Open(fullPath)
 	if err != nil {
-		return nil, fmt.Errorf("os.ReadFile: %w", err)
+		return nil, fmt.Errorf("os.Open: %w", err)
 	}
 
-	return content, nil
+	return f, nil
 }
 
 func (c *Client) IsArchived() (bool, error) {

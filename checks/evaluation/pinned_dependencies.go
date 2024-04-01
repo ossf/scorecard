@@ -22,6 +22,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/rule"
 )
 
@@ -49,42 +50,7 @@ const (
 	gitHubOwnedActionWeight int = 2
 	thirdPartyActionWeight  int = 8
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
-
-	// depTypeKey is the Values map key used to fetch the dependency type.
-	depTypeKey = "dependencyType"
 )
-
-var (
-	dependencyTypes = map[checker.DependencyUseType]int{
-		checker.DependencyUseTypeGHAction:                 0,
-		checker.DependencyUseTypeDockerfileContainerImage: 1,
-		checker.DependencyUseTypeDownloadThenRun:          2,
-		checker.DependencyUseTypeGoCommand:                3,
-		checker.DependencyUseTypeChocoCommand:             4,
-		checker.DependencyUseTypeNpmCommand:               5,
-		checker.DependencyUseTypePipCommand:               6,
-		checker.DependencyUseTypeNugetCommand:             7,
-	}
-	intToDepType = map[int]checker.DependencyUseType{
-		0: checker.DependencyUseTypeGHAction,
-		1: checker.DependencyUseTypeDockerfileContainerImage,
-		2: checker.DependencyUseTypeDownloadThenRun,
-		3: checker.DependencyUseTypeGoCommand,
-		4: checker.DependencyUseTypeChocoCommand,
-		5: checker.DependencyUseTypeNpmCommand,
-		6: checker.DependencyUseTypePipCommand,
-		7: checker.DependencyUseTypeNugetCommand,
-	}
-)
-
-func ruleRemToProbeRem(rem *rule.Remediation) *probe.Remediation {
-	return &probe.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   probe.RemediationEffort(rem.Effort),
-	}
-}
 
 func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
 	return &rule.Remediation{
@@ -95,149 +61,36 @@ func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
 	}
 }
 
-func dependenciesToFindings(r *checker.PinningDependenciesData) ([]finding.Finding, error) {
-	findings := make([]finding.Finding, 0)
-
-	for i := range r.ProcessingErrors {
-		e := r.ProcessingErrors[i]
-		f := finding.Finding{
-			Message:  generateTextIncompleteResults(e),
-			Location: &e.Location,
-			Outcome:  finding.OutcomeNotAvailable,
-		}
-		findings = append(findings, f)
-	}
-
-	for i := range r.Dependencies {
-		rr := r.Dependencies[i]
-		if rr.Location == nil {
-			if rr.Msg == nil {
-				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
-				return findings, e
-			}
-			f := &finding.Finding{
-				Probe:   "",
-				Outcome: finding.OutcomeNotApplicable,
-				Message: *rr.Msg,
-			}
-			findings = append(findings, *f)
-			continue
-		}
-		if rr.Msg != nil {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f := &finding.Finding{
-				Probe:    "",
-				Outcome:  finding.OutcomeNotApplicable,
-				Message:  *rr.Msg,
-				Location: loc,
-			}
-			findings = append(findings, *f)
-			continue
-		}
-		if rr.Pinned == nil {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f := &finding.Finding{
-				Probe:    "",
-				Outcome:  finding.OutcomeNotApplicable,
-				Message:  fmt.Sprintf("%s has empty Pinned field", rr.Type),
-				Location: loc,
-			}
-			findings = append(findings, *f)
-			continue
-		}
-		if !*rr.Pinned {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f := &finding.Finding{
-				Probe:    "",
-				Outcome:  finding.OutcomeNegative,
-				Message:  generateTextUnpinned(&rr),
-				Location: loc,
-			}
-			if rr.Remediation != nil {
-				f.Remediation = ruleRemToProbeRem(rr.Remediation)
-			}
-			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
-			})
-			findings = append(findings, *f)
-		} else {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f := &finding.Finding{
-				Probe:    "",
-				Outcome:  finding.OutcomePositive,
-				Location: loc,
-			}
-			f = f.WithValues(map[string]int{
-				depTypeKey: dependencyTypes[rr.Type],
-			})
-			findings = append(findings, *f)
-		}
-	}
-	return findings, nil
-}
-
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
-func PinningDependencies(name string, c *checker.CheckRequest,
-	r *checker.PinningDependenciesData,
+func PinningDependencies(name string,
+	findings []finding.Finding,
+	dl checker.DetailLogger,
 ) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+	expectedProbes := []string{
+		pinsDependencies.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
 	var wp workflowPinningResult
 	pr := make(map[checker.DependencyUseType]pinnedResult)
-	dl := c.Dlogger
-
-	findings, err := dependenciesToFindings(r)
-	if err != nil {
-		return checker.CreateRuntimeErrorResult(name, err)
-	}
 
 	for i := range findings {
 		f := findings[i]
 		switch f.Outcome {
 		case finding.OutcomeNotApplicable:
-			if f.Location != nil {
-				dl.Debug(&checker.LogMessage{
-					Path:      f.Location.Path,
-					Type:      f.Location.Type,
-					Offset:    *f.Location.LineStart,
-					EndOffset: *f.Location.LineEnd,
-					Text:      f.Message,
-					Snippet:   *f.Location.Snippet,
-				})
-			} else {
-				dl.Debug(&checker.LogMessage{
-					Text: f.Message,
-				})
-			}
+			return checker.CreateInconclusiveResult(name, "no dependencies found")
+		case finding.OutcomeNotSupported:
+			dl.Debug(&checker.LogMessage{
+				Finding: &f,
+			})
 			continue
 		case finding.OutcomeNegative:
+			// we cant use the finding if we want the remediation to show
+			// finding.Remediation are currently suppressed (#3349)
 			lm := &checker.LogMessage{
 				Path:      f.Location.Path,
 				Type:      f.Location.Type,
@@ -251,7 +104,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 				lm.Remediation = probeRemToRuleRem(f.Remediation)
 			}
 			dl.Warn(lm)
-		case finding.OutcomeNotAvailable:
+		case finding.OutcomeError:
 			dl.Info(&checker.LogMessage{
 				Finding: &f,
 			})
@@ -259,7 +112,7 @@ func PinningDependencies(name string, c *checker.CheckRequest,
 		default:
 			// ignore
 		}
-		updatePinningResults(intToDepType[f.Values[depTypeKey]],
+		updatePinningResults(checker.DependencyUseType(f.Values[pinsDependencies.DepTypeKey]),
 			f.Outcome, f.Location.Snippet,
 			&wp, pr)
 	}
@@ -314,21 +167,6 @@ func updatePinningResults(dependencyType checker.DependencyUseType,
 	p := pr[dependencyType]
 	addPinnedResult(outcome, &p)
 	pr[dependencyType] = p
-}
-
-func generateTextUnpinned(rr *checker.Dependency) string {
-	if rr.Type == checker.DependencyUseTypeGHAction {
-		// Check if we are dealing with a GitHub action or a third-party one.
-		gitHubOwned := fileparser.IsGitHubOwnedAction(rr.Location.Snippet)
-		owner := generateOwnerToDisplay(gitHubOwned)
-		return fmt.Sprintf("%s not pinned by hash", owner)
-	}
-
-	return fmt.Sprintf("%s not pinned by hash", rr.Type)
-}
-
-func generateTextIncompleteResults(e checker.ElementError) string {
-	return fmt.Sprintf("Possibly incomplete results: %s", e.Err)
 }
 
 func generateOwnerToDisplay(gitHubOwned bool) string {

@@ -21,14 +21,22 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
+
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "requiresLastPushApproval"
+const (
+	Probe         = "requiresLastPushApproval"
+	BranchNameKey = "branchName"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -37,6 +45,15 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
+
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
 
 	for i := range r.Branches {
 		branch := &r.Branches[i]
@@ -50,9 +67,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValues(map[string]int{
-			*branch.Name: 1,
-		})
+		f = f.WithValue(BranchNameKey, *branch.Name)
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil

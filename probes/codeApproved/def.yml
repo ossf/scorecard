@@ -19,10 +19,13 @@ motivation: >
   To ensure that the review process works, the proposed changes
   should have a minimum number of approvals.
 implementation: >
-  This probe looks for whether all changes over the last `--commit-depth` commits have been approved before merge. Commits are grouped by the Pull Request they were introduced in, and each Pull Request must have at least one approval.
+  This probe looks for whether all changes over the last `--commit-depth` commits have been approved before merge.
+  Commits are grouped by the changeset they were introduced in, and each changesets must have at least one approval.
+  Reviewed, bot authored changesets (e.g. dependabot) are not counted.
 outcome:
-  - If all commits were approved, the probe returns OutcomePositive (1)
-  - If any commit was not approved, the prove returns OutcomeNegative (0)
+  - If all commits were approved, the probe returns OutcomePositive
+  - If any commits were not approved, the probe returns OutcomeNegative
+  - If there are no changes, the probe returns OutcomeNotApplicable
 remediation:
   effort: Low
   text:

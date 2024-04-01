@@ -19,16 +19,26 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "requiresApproversForPullRequests"
+const (
+	Probe                = "requiresApproversForPullRequests"
+	BranchNameKey        = "branchName"
+	RequiredReviewersKey = "numberOfRequiredReviewers"
+)
 
 var errWrongValue = errors.New("wrong value, should not happen")
 
@@ -40,37 +50,38 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.BranchProtectionResults
 	var findings []finding.Finding
 
+	if len(r.Branches) == 0 {
+		f, err := finding.NewWith(fs, Probe, "no branches found", nil, finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	for i := range r.Branches {
 		branch := &r.Branches[i]
+
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
-		trueMsg := fmt.Sprintf("required approving review count on branch '%s'", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
+		p := branch.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-
+		f = f.WithValue(BranchNameKey, *branch.Name)
 		switch {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
-			f = f.WithValues(map[string]int{
-				*branch.Name: 1,
-			})
 		case *p > 0:
-			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
-			f = f.WithValues(map[string]int{
-				*branch.Name:                1,
-				"numberOfRequiredReviewers": int(*p),
-			})
+			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
+			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
+			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
-			f = f.WithValues(map[string]int{
-				*branch.Name:                1,
-				"numberOfRequiredReviewers": int(*p),
-			})
+			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}
