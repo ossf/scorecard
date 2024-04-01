@@ -423,9 +423,12 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-##### Showing Maintainers Annotations
+##### Showing Maintainers Annotations (Experimental)
 
 To see the maintainers annotations for each check, use the `--show-annotations` option.
+
+For more information on how to configure annotations or what are the available annotations, see [the configuration doc](config/README.md).
+
 
 ##### Using a GitLab Repository
 
