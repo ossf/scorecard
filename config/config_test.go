@@ -32,8 +32,8 @@ func Test_Parse_Checks(t *testing.T) {
 	tests := []struct {
 		name       string
 		configPath string
-		want       config.Config
 		wantErr    error
+		want       config.Config
 	}{
 		{
 			name:       "Annotation on a single check",

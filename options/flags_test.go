@@ -183,8 +183,8 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 
 func TestOptions_AddFlags_Annotations(t *testing.T) {
 	tests := []struct {
-		name         string
 		opts         *Options
+		name         string
 		experimental bool
 	}{
 		{

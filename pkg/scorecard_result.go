@@ -66,9 +66,9 @@ type ScorecardResult struct {
 
 // AsStringResultOption provides configuration options for string Scorecard results.
 type AsStringResultOption struct {
+	LogLevel    log.Level
 	Details     bool
 	Annotations bool
-	LogLevel    log.Level
 }
 
 func scoreToString(s float64) string {

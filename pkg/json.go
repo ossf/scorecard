@@ -90,9 +90,9 @@ type JSONScorecardResultV2 struct {
 
 // AsJSON2ResultOption provides configuration options for JSON2 Scorecard results.
 type AsJSON2ResultOption struct {
+	LogLevel    log.Level
 	Details     bool
 	Annotations bool
-	LogLevel    log.Level
 }
 
 // AsJSON exports results as JSON for new detail format.

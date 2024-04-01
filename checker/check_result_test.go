@@ -818,8 +818,8 @@ func TestIsExempted(t *testing.T) {
 		config config.Config
 	}
 	type want struct {
-		isExempted bool
 		reasons    []config.Reason
+		isExempted bool
 	}
 	tests := []struct {
 		name string
