@@ -627,7 +627,8 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	for _, check := range r.Checks {
 		check := check
 
-		// If check is exempted, skip
+		// SARIF output triggers GitHub security alerts for a repository.
+		// For annotated checks, we don't want to send alerts.
 		exempted, _ := check.IsExempted(r.Config)
 		if exempted {
 			continue
