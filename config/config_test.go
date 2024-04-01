@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v4/checks"
 	"github.com/ossf/scorecard/v4/config"
 )

@@ -19,8 +19,9 @@ import (
 	"io"
 	"strings"
 
-	sce "github.com/ossf/scorecard/v4/errors"
 	"gopkg.in/yaml.v3"
+
+	sce "github.com/ossf/scorecard/v4/errors"
 )
 
 // Config contains configurations defined by maintainers.
