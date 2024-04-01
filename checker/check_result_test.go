@@ -914,6 +914,33 @@ func TestIsExempted(t *testing.T) {
 				isExempted: false,
 			},
 		},
+		{
+			name: "Multiple exemption reasons in a single annotation",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+								{Reason: "remediated"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: true,
+				reasons: []config.Reason{
+					config.TestData,
+					config.Remediated,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
