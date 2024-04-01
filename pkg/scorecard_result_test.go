@@ -70,7 +70,7 @@ func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {
 		},
 		Config: config.Config{
 			Annotations: []config.Annotation{
-				config.Annotation{
+				{
 					Checks: []string{"Check-Name"},
 					Reasons: []config.ReasonGroup{
 						{Reason: "test-data"},
