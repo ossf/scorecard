@@ -66,8 +66,9 @@ type CheckResult struct {
 	Score   int
 	Reason  string
 	Details []CheckDetail
-	// Structured results.
-	Rules []string // TODO(X): add support.
+
+	// Findings from the check's probes.
+	Findings []finding.Finding
 }
 
 // CheckDetail contains information for each detail.
