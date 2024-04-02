@@ -56,5 +56,7 @@ func License(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckLicense, e)
 	}
 
-	return evaluation.License(CheckLicense, findings, c.Dlogger)
+	ret := evaluation.License(CheckLicense, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

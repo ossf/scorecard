@@ -58,5 +58,7 @@ func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.PinningDependencies(CheckPinnedDependencies, findings, c.Dlogger)
+	ret := evaluation.PinningDependencies(CheckPinnedDependencies, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

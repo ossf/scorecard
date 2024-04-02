@@ -49,5 +49,6 @@ func CodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
+	// TODO(#3049)
 	return evaluation.CodeReview(CheckCodeReview, c.Dlogger, &rawData)
 }

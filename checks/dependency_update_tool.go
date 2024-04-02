@@ -57,5 +57,7 @@ func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings, c.Dlogger)
+	ret := evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }
