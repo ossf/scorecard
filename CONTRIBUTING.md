@@ -136,8 +136,10 @@ assumed to match the PR. For instance, if you have a bugfix in with a breaking
 change, it's generally encouraged to submit the bugfix separately, but if you
 must put them in one PR, you should mark the whole PR as breaking.
 
-When a maintainer reviews your code, it is generally preferred to solve each individual
-review with small fixes without rebasing, so the maintainer can assess each fix separately.
+> [!NOTE]
+> Once a maintainer reviews your code, please address feedback without rebasing when possible.
+> This includes [synchronizing your PR](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch)
+> with `main`. The GitHub review experience is much nicer with traditional merge commits.
 
 ## What to do before submitting a pull request
 
