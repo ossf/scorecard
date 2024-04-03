@@ -68,20 +68,13 @@ You must install these tools:
 
 See [errors](errors/errors.md).
 
-## How to build scorecard locally
+## How to build Scorecard locally
 
-Note that, by building the scorecard from the source code we are allowed to test
+Note that, by building Scorecard from the source code we are allowed to test
 the changes made locally.
 
-1.  Run the following command to clone your fork of the project locally
-
-```shell
-git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scorecard.git
-```
-
+1.  Clone your fork of the project locally. ([Detailed instructions](https://docs.github.com/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository))
 1.  Enter the project folder by running the command `cd ./scorecard`
-1.  Ensure you activate module support before continue (`$ export
-    GO111MODULE=on`)
 1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
 
