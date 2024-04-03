@@ -43,7 +43,7 @@ project. This document describes the contribution guidelines for the project.
 
 1.  Create [a GitHub account](https://github.com/join)
 1.  Create a
-    [personal access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
+    [personal access token](https://docs.github.com/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 1.  Set up your [development environment](#environment-setup)
 
 ### Environment Setup
@@ -53,13 +53,17 @@ You must install these tools:
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
 1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.21](https://golang.org/dl/) or higher.
+    [v1.21.8](https://golang.org/dl/) or higher.
+
+1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
+
+You may need these tools for some tasks:
 
 1.  [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
 
 ## Contributing steps
 
-1.  Submit an issue describing your proposed change to the repo in question.
+1.  Identify an existing issue you would like to work on, or submit an issue describing your proposed change to the repo in question.
 1.  The repo owners will respond to your issue promptly.
 1.  Fork the desired repo, develop and test your code changes.
 1.  Submit a pull request.
@@ -115,14 +119,14 @@ Every PR should be annotated with an icon indicating whether it's a:
 -   Breaking change: :warning: (`:warning:`)
 -   Non-breaking feature: :sparkles: (`:sparkles:`)
 -   Patch fix: :bug: (`:bug:`)
--   Docs: :book: (`:book:`)
+-   Documentation changes (user or developer): :book: (`:book:`)
 -   Infra/Tests/Other: :seedling: (`:seedling:`)
 -   No release note: :ghost: (`:ghost:`)
 
 Use :ghost: (no release note) only for the PRs that change or revert unreleased
 changes, which don't deserve a release note. Please don't abuse it.
 
-You are free to use the `:xyz:` aliases or to use the equivalent emoji directly.
+Prefer using the `:xyz:` aliases over the equivalent emoji directly when possible.
 
 Individual commits should not be tagged separately, but will generally be
 assumed to match the PR. For instance, if you have a bugfix in with a breaking
