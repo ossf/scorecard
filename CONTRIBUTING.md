@@ -3,8 +3,15 @@
 Thank you for contributing your time and expertise to the OpenSSF Scorecard
 project. This document describes the contribution guidelines for the project.
 
-**Note:** Before you start contributing, you must read and abide by our
+> [!IMPORTANT]
+> Before you start contributing, you must read and abide by our
 **[Code of Conduct](./CODE_OF_CONDUCT.md)**.
+>
+> Additionally the Linux Foundation (LF) requires all contributions include per-commit sign-offs.
+> Ensure you use the `-s` or `--signoff` flag for every commit.
+>
+> For more details, see the [LF DCO wiki](https://wiki.linuxfoundation.org/dco)
+> or [this Pi-hole signoff guide](https://docs.pi-hole.net/guides/github/how-to-signoff/).
 
 <!-- vim-markdown-toc GFM -->
 
@@ -140,10 +147,6 @@ Following the targets that can be used to test your changes locally.
 | -------- | -------------------------------------------------- | -------------------- |
 | make all | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
 | make e2e-pat | Runs e2e tests                                     | yes                  |
-
-Make sure to signoff your commits before submitting a pull request.
-
-https://docs.pi-hole.net/guides/github/how-to-signoff/
 
 When developing locally, the following commands are useful to run regularly to check unit tests and linting.
 
