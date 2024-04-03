@@ -147,14 +147,16 @@ Following the targets that can be used to test your changes locally.
 
 | Command  | Description                                        | Is called in the CI? |
 | -------- | -------------------------------------------------- | -------------------- |
-| make all | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
-| make e2e-pat | Runs e2e tests                                     | yes                  |
+| `make all` | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
+| `make e2e-pat` | Runs e2e tests                                     | yes                  |
 
-When developing locally, the following commands are useful to run regularly to check unit tests and linting.
+When developing locally, the following targets are useful to run frequently.
+While they are included in `make all`, running them individually is faster.
 
-| Command  | Description                                        | Is called in the CI? |
-| make unit-test | Runs unit tests only. `make all` will also run this. | yes                  |
-| make check-linter | Checks linter issues only. `make all` will also run this. | yes                  |
+| Command  | Description | Called in the CI? |
+|----------|-------------|-------------------|
+| `make unit-test` | Runs unit tests only | yes |
+| `make check-linter` | Checks linter issues only | yes |
 
 ## Changing Score Results
 
