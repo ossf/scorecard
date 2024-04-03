@@ -36,7 +36,7 @@ func Test_Run(t *testing.T) {
 		expectedFindings []finding.Finding
 	}{
 		{
-			name: "sonar present",
+			name: "any unchecked commits leads to negative outcome",
 			err:  nil,
 			raw: &checker.RawResults{
 				SASTResults: checker.SASTData{
@@ -57,6 +57,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "1 commits out of 2 are checked with a SAST tool",
+					Outcome: finding.OutcomeNegative,
 					Values: map[string]string{
 						AnalyzedPRsKey: "1",
 						TotalPRsKey:    "2",
@@ -65,7 +66,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "sonar present",
+			name: "all commits checked is positive outcome",
 			err:  nil,
 			raw: &checker.RawResults{
 				SASTResults: checker.SASTData{

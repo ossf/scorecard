@@ -235,6 +235,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 				Findings: []finding.Finding{
 					{
 						Probe:   fuzzed.Probe,
+						Outcome: finding.OutcomeNegative,
 						Message: "no fuzzer integrations found",
 						Remediation: &probe.Remediation{
 							Effort: probe.RemediationEffortHigh,
