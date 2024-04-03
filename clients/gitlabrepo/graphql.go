@@ -96,25 +96,34 @@ type graphqlMergeRequestNode struct {
 }
 
 type graphqlSbomData struct {
-	Project struct {
-		Releases struct {
-			Nodes []graphqlReleaseNode `graphql:"nodes"`
-		} `graphql:"releases(sort: RELEASED_AT_DESC, first: 1)"`
-		Pipelines struct {
-			Nodes []graphqlPipelineNode
-		} `graphql:"pipelines(ref: $defaultBranch, first: 20)"`
-	} `graphql:"project(fullPath: $fullPath)"`
+	Project graphqlProject `graphql:"project(fullPath: $fullPath)"`
+}
+
+type graphqlProject struct {
+	Releases  graphqlReleases  `graphql:"releases(sort: RELEASED_AT_DESC, first: 1)"`
+	Pipelines graphqlPipelines `graphql:"pipelines(ref: $defaultBranch, first: 20)"`
+}
+
+type graphqlReleases struct {
+	Nodes []graphqlReleaseNode `graphql:"nodes"`
+}
+
+type graphqlPipelines struct {
+	Nodes []graphqlPipelineNode
 }
 
 type graphqlReleaseNode struct {
-	Name   string `graphql:"name"`
-	Assets struct {
-		Links struct {
-			Nodes []graphqlReleaseAssetLinksNode `graphql:"nodes"`
-		} `graphql:"links"`
-	} `graphql:"assets"`
+	Name   string              `graphql:"name"`
+	Assets graphqlReleaseAsset `graphql:"assets"`
 }
 
+type graphqlReleaseAsset struct {
+	Links graphqlReleaseAssetLinks `graphql:"links"`
+}
+
+type graphqlReleaseAssetLinks struct {
+	Nodes []graphqlReleaseAssetLinksNode `graphql:"nodes"`
+}
 type graphqlReleaseAssetLinksNode struct {
 	Name            string `graphql:"name"`
 	URL             string `graphql:"url"`
@@ -124,12 +133,14 @@ type graphqlReleaseAssetLinksNode struct {
 }
 
 type graphqlPipelineNode struct {
-	Status       string `graphql:"status"`
-	JobArtifacts []struct {
-		Name         string `graphql:"name"`
-		FileType     string `graphql:"fileType"`
-		DownloadPath string `graphql:"downloadPath"`
-	} `graphql:"jobArtifacts"`
+	Status       string               `graphql:"status"`
+	JobArtifacts []graphqlJobArtifact `graphql:"jobArtifacts"`
+}
+
+type graphqlJobArtifact struct {
+	Name         string `graphql:"name"`
+	FileType     string `graphql:"fileType"`
+	DownloadPath string `graphql:"downloadPath"`
 }
 
 type GitlabGID struct {

@@ -15,79 +15,395 @@
 package gitlabrepo
 
 import (
-	"net/http"
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/xanzy/go-gitlab"
 
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-func Test_listSboms(t *testing.T) {
+func TestListSboms(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		issuePath  string
-		memberPath string
-		want       []clients.Issue
-		wantErr    bool
+		name     string
+		sbomData graphqlSbomData
+		want     []clients.Sbom
+		wantErr  bool
 	}{
 		{
-			name:       "issue with maintainer as author",
-			issuePath:  "./testdata/valid-issues",
-			memberPath: "./testdata/valid-repo-members",
-			want: []clients.Issue{
-				{
-					URI:       strptr("131356518"),
-					CreatedAt: timeptr(time.Date(2023, time.July, 26, 14, 22, 52, 0, time.UTC)),
-					Author: &clients.User{
-						ID: 1355794,
+			name:     "Empty sbom data",
+			sbomData: graphqlSbomData{},
+			want:     nil,
+			wantErr:  true,
+		},
+		{
+			name: "sbomData.Project.Releases.Nodes is nil",
+			sbomData: graphqlSbomData{
+				Project: graphqlProject{
+					Releases: graphqlReleases{
+						Nodes: nil,
 					},
-					AuthorAssociation: associationptr(clients.RepoAssociationMaintainer),
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sbomData.Project.Releases.Nodes[0].Assets.Links.Nodes is nil",
+			sbomData: graphqlSbomData{
+				Project: graphqlProject{
+					Releases: graphqlReleases{
+						Nodes: []graphqlReleaseNode{
+							{
+								Name: "v1.2.3",
+								Assets: graphqlReleaseAsset{
+									Links: graphqlReleaseAssetLinks{
+										Nodes: nil,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "sbomData.Project.Pipelines.Nodes is nil",
+			sbomData: graphqlSbomData{
+				Project: graphqlProject{
+					Releases: graphqlReleases{
+						Nodes: []graphqlReleaseNode{
+							{
+								Name: "v1.2.3",
+								Assets: graphqlReleaseAsset{
+									Links: graphqlReleaseAssetLinks{
+										Nodes: testassetlinks,
+									},
+								},
+							},
+						},
+					},
+					Pipelines: graphqlPipelines{
+						Nodes: nil,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "successful run",
+			sbomData: graphqlSbomData{
+				Project: graphqlProject{
+					Releases: graphqlReleases{
+						Nodes: []graphqlReleaseNode{
+							{
+								Name: "v1.2.3",
+								Assets: graphqlReleaseAsset{
+									Links: graphqlReleaseAssetLinks{
+										Nodes: testassetlinks,
+									},
+								},
+							},
+						},
+					},
+					Pipelines: graphqlPipelines{
+						Nodes: testpipelines,
+					},
+				},
+			},
+			want: []clients.Sbom{
+				{
+					Name:   "tool-v1.23.4.cdx.json",
+					Origin: "repositoryRelease",
+					URL:    "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/tool-v1.23.4.cdx.json",
+				},
+				{
+					Name:   "gl-dependency-scanning-report.json",
+					Origin: "repositoryCICD",
+					URL:    "/repo/-/jobs/6470404028/artifacts/download?file_type=dependency_scanning",
+				},
+				{
+					Name:   "gl-sbom.cdx.json.gz",
+					Origin: "repositoryCICD",
+					URL:    "/repo/-/jobs/6470404028/artifacts/download?file_type=cyclonedx",
 				},
 			},
 			wantErr: false,
-		},
-		{
-			name:      "failure fetching issues",
-			issuePath: "./testdata/invalid-issues",
-			want:      nil,
-			wantErr:   true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			httpClient := &http.Client{
-				Transport: suffixStubTripper{
-					responsePaths: map[string]string{
-						"issues": tt.issuePath,  // corresponds to projects/<id>/issues
-						"all":    tt.memberPath, // corresponds to projects/<id>/members/all
-					},
-				},
-			}
-			client, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
-			if err != nil {
-				t.Fatalf("gitlab.NewClient error: %v", err)
-			}
-			handler := &issuesHandler{
-				glClient: client,
-			}
+
+			handler := &sbomHandler{}
 
 			repoURL := repoURL{
 				owner:     "ossf-tests",
 				commitSHA: clients.HeadSHA,
 			}
 			handler.init(&repoURL)
-			got, err := handler.listIssues()
+			got, err := handler.listSboms(tt.sbomData)
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("listIssues error: %v, wantedErr: %t", err, tt.wantErr)
+				t.Fatalf("listSboms error: %v, wantedErr: %t", err, tt.wantErr)
 			}
 			if !cmp.Equal(got, tt.want) {
-				t.Errorf("listIssues() = %v, want %v", got, cmp.Diff(got, tt.want))
+				t.Errorf("listSboms() = %v, want %v", got, cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+
+var testassetlinks = []graphqlReleaseAssetLinksNode{
+	{
+		Name:            "LICENSE",
+		URL:             "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/LICENSE",
+		LinkType:        "OTHER",
+		DirectAssetPath: "",
+		DirectAssetURL:  "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/LICENSE",
+	},
+	{
+		Name:            "repo-v1.23.4.whl",
+		URL:             "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/repo-v1.23.4.whl",
+		LinkType:        "PACKAGE",
+		DirectAssetPath: "",
+		DirectAssetURL:  "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/repo-v1.23.4.whl",
+	},
+	{
+		Name:            "tool-v1.23.4.cdx.json",
+		URL:             "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/tool-v1.23.4.cdx.json",
+		LinkType:        "OTHER",
+		DirectAssetPath: "",
+		DirectAssetURL:  "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/tool-v1.23.4.cdx.json",
+	},
+}
+
+func TestCheckReleaseArtifacts(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		assetlinks []graphqlReleaseAssetLinksNode
+		want       []clients.Sbom
+	}{
+		{
+			name:       "no release links",
+			assetlinks: []graphqlReleaseAssetLinksNode{},
+			want:       nil,
+		},
+		{
+			name: "release links without matches",
+			assetlinks: []graphqlReleaseAssetLinksNode{
+				{
+					Name:            "LICENSE",
+					URL:             "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/LICENSE",
+					LinkType:        "OTHER",
+					DirectAssetPath: "",
+					DirectAssetURL:  "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/LICENSE",
+				},
+				{
+					Name:            "repo-v1.23.4.whl",
+					URL:             "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/repo-v1.23.4.whl",
+					LinkType:        "PACKAGE",
+					DirectAssetPath: "",
+					DirectAssetURL:  "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/repo-v1.23.4.whl",
+				},
+			},
+			want: nil,
+		},
+		{
+			name:       "release links with matches",
+			assetlinks: testassetlinks,
+			want: []clients.Sbom{
+				{
+					Name:   "tool-v1.23.4.cdx.json",
+					Origin: "repositoryRelease",
+					URL:    "https://test-url.com/uploads/bef0f126121567f3d1e11499c2f96e49/tool-v1.23.4.cdx.json",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := &sbomHandler{}
+
+			repoURL := repoURL{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
+			}
+			handler.init(&repoURL)
+			handler.checkReleaseArtifacts(tt.assetlinks)
+
+			sboms := handler.sboms
+			if !cmp.Equal(sboms, tt.want) {
+				t.Errorf("checkReleaseArtifacts() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
+			}
+		})
+	}
+}
+
+var testpipelines = []graphqlPipelineNode{
+	{
+		Status: "SUCCESS",
+		JobArtifacts: []graphqlJobArtifact{
+			{
+				Name:         "6470404015.zip",
+				FileType:     "ARCHIVE",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=archive",
+			},
+			{
+				Name:         "metadata.gz",
+				FileType:     "METADATA",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=metadata",
+			},
+			{
+				Name:         "job.log",
+				FileType:     "TRACE",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=trace",
+			},
+			{
+				Name:         "gl-dependency-scanning-report.json",
+				FileType:     "DEPENDENCY_SCANNING",
+				DownloadPath: "/repo/-/jobs/6470404028/artifacts/download?file_type=dependency_scanning",
+			},
+			{
+				Name:         "gl-sbom.cdx.json.gz",
+				FileType:     "CYCLONEDX",
+				DownloadPath: "/repo/-/jobs/6470404028/artifacts/download?file_type=cyclonedx",
+			},
+		},
+	},
+	{
+		Status: "SUCCESS",
+		JobArtifacts: []graphqlJobArtifact{
+			{
+				Name:         "6470404015.zip",
+				FileType:     "ARCHIVE",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=archive",
+			},
+			{
+				Name:         "metadata.gz",
+				FileType:     "METADATA",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=metadata",
+			},
+			{
+				Name:         "job.log",
+				FileType:     "TRACE",
+				DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=trace",
+			},
+		},
+	},
+	{
+		Status:       "FAILED",
+		JobArtifacts: []graphqlJobArtifact{},
+	},
+	{
+		Status:       "CANCELED",
+		JobArtifacts: []graphqlJobArtifact{},
+	},
+	{
+		Status:       "RUNNING",
+		JobArtifacts: []graphqlJobArtifact{},
+	},
+	{
+		Status:       "SKIPPED",
+		JobArtifacts: []graphqlJobArtifact{},
+	},
+}
+
+func TestCheckCICDArtifacts(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		pipelines []graphqlPipelineNode
+		want      []clients.Sbom
+	}{
+		{
+			name:      "no release links",
+			pipelines: []graphqlPipelineNode{},
+			want:      nil,
+		},
+		{
+			name: "release links without matches",
+			pipelines: []graphqlPipelineNode{
+				{
+					Status: "SUCCESS",
+					JobArtifacts: []graphqlJobArtifact{
+						{
+							Name:         "6470404015.zip",
+							FileType:     "ARCHIVE",
+							DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=archive",
+						},
+						{
+							Name:         "metadata.gz",
+							FileType:     "METADATA",
+							DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=metadata",
+						},
+						{
+							Name:         "job.log",
+							FileType:     "TRACE",
+							DownloadPath: "/repo/-/jobs/6470404015/artifacts/download?file_type=trace",
+						},
+					},
+				},
+				{
+					Status:       "FAILED",
+					JobArtifacts: []graphqlJobArtifact{},
+				},
+				{
+					Status:       "CANCELED",
+					JobArtifacts: []graphqlJobArtifact{},
+				},
+				{
+					Status:       "RUNNING",
+					JobArtifacts: []graphqlJobArtifact{},
+				},
+				{
+					Status:       "SKIPPED",
+					JobArtifacts: []graphqlJobArtifact{},
+				},
+			},
+			want: nil,
+		},
+		{
+			name:      "release links with matches",
+			pipelines: testpipelines,
+			want: []clients.Sbom{
+				{
+					Name:   "gl-dependency-scanning-report.json",
+					Origin: "repositoryCICD",
+					URL:    "/repo/-/jobs/6470404028/artifacts/download?file_type=dependency_scanning",
+				},
+				{
+					Name:   "gl-sbom.cdx.json.gz",
+					Origin: "repositoryCICD",
+					URL:    "/repo/-/jobs/6470404028/artifacts/download?file_type=cyclonedx",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := &sbomHandler{}
+
+			repoURL := repoURL{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
+			}
+			handler.init(&repoURL)
+			handler.checkCICDArtifacts(tt.pipelines)
+
+			sboms := handler.sboms
+			if !cmp.Equal(sboms, tt.want) {
+				t.Errorf("checkCICDArtifacts() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
 			}
 		})
 	}

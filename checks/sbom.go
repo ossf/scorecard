@@ -30,6 +30,7 @@ const CheckSBOM = "Sbom"
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckSBOM, Sbom, supportedRequestTypes); err != nil {
 		// this should never happen

@@ -333,7 +333,7 @@ func TestGetEnabled(t *testing.T) {
 			name:                  "request types limit enabled checks",
 			argsChecks:            []string{},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
-			expectedEnabledChecks: 5, // All checks which are FileBased and CommitBased
+			expectedEnabledChecks: 6, // All checks which are FileBased and CommitBased
 			expectedError:         false,
 		},
 		{
