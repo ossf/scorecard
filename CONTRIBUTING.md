@@ -19,7 +19,6 @@ project. This document describes the contribution guidelines for the project.
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
 * [Contributing steps](#contributing-steps)
-* [Error handling](#error-handling)
 * [How to build scorecard locally](#how-to-build-scorecard-locally)
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
@@ -67,10 +66,6 @@ You may need these tools for some tasks:
 1.  The repo owners will respond to your issue promptly.
 1.  Fork the desired repo, develop and test your code changes.
 1.  Submit a pull request.
-
-## Error handling
-
-See [errors](errors/errors.md).
 
 ## How to build Scorecard locally
 
