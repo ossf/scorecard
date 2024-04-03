@@ -29,7 +29,17 @@ type VulnerabilitiesClient interface {
 
 // DefaultVulnerabilitiesClient returns a new OSV Vulnerabilities client.
 func DefaultVulnerabilitiesClient() VulnerabilitiesClient {
-	return osvClient{}
+	return osvClient{local: false}
+}
+
+// ExperimentalLocalOSVClient returns an OSV Vulnerabilities client which
+// takes advantage of their experimental local database option. As the
+// osv-scanner feature is experimental, so is our usage of it. This function
+// may be removed without warning.
+//
+// https://google.github.io/osv-scanner/experimental/offline-mode/#local-database-option
+func ExperimentalLocalOSVClient() VulnerabilitiesClient {
+	return osvClient{local: true}
 }
 
 // VulnerabilitiesResponse is the response from the vuln DB.

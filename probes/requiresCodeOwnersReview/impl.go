@@ -21,8 +21,13 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -52,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		reqOwnerReviews := branch.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews
+		reqOwnerReviews := branch.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews
 		var text string
 		var outcome finding.Outcome
 
