@@ -38,7 +38,7 @@ func TestWebhooks(t *testing.T) {
 			name: "No Webhooks",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: checker.MaxResultScore,
 			},
 			err:      nil,
 			webhooks: []clients.Webhook{},
@@ -47,7 +47,7 @@ func TestWebhooks(t *testing.T) {
 			name: "With Webhooks and secret set",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: checker.MaxResultScore,
 			},
 			err: nil,
 			webhooks: []clients.Webhook{
@@ -61,7 +61,7 @@ func TestWebhooks(t *testing.T) {
 			name: "With Webhooks and no secret set",
 			uri:  "github.com/owner/repo",
 			expected: checker.CheckResult{
-				Score: 0,
+				Score: checker.MinResultScore,
 			},
 			err: nil,
 			webhooks: []clients.Webhook{

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package sbomReleaseArtifactExists
+package sbomReleaseAssetExists
 
 import (
 	"embed"
@@ -28,7 +28,7 @@ import (
 var fs embed.FS
 
 const (
-	Probe        = "sbomReleaseArtifactExists"
+	Probe        = "sbomReleaseAssetExists"
 	AssetNameKey = "assetName"
 	AssetURLKey  = "assetURL"
 )

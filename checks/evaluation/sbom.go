@@ -22,7 +22,7 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/sbomCICDArtifactExists"
 	"github.com/ossf/scorecard/v4/probes/sbomExists"
-	"github.com/ossf/scorecard/v4/probes/sbomReleaseArtifactExists"
+	"github.com/ossf/scorecard/v4/probes/sbomReleaseAssetExists"
 	"github.com/ossf/scorecard/v4/probes/sbomStandardsFileUsed"
 )
 
@@ -34,7 +34,7 @@ func Sbom(name string,
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		sbomExists.Probe,
-		sbomReleaseArtifactExists.Probe,
+		sbomReleaseAssetExists.Probe,
 		sbomStandardsFileUsed.Probe,
 		sbomCICDArtifactExists.Probe,
 	}
@@ -76,7 +76,7 @@ func Sbom(name string,
 					Text: cicdMsg,
 				})
 				score += scoreProbeOnce(f.Probe, m, 3)
-			case sbomReleaseArtifactExists.Probe:
+			case sbomReleaseAssetExists.Probe:
 				dl.Info(&checker.LogMessage{
 					Type: finding.FileTypeURL,
 					Path: f.Message,
@@ -110,7 +110,7 @@ func Sbom(name string,
 					Text: "Sbom file not generated in project CICD",
 				})
 				cicdMsg = f.Message
-			case sbomReleaseArtifactExists.Probe:
+			case sbomReleaseAssetExists.Probe:
 				dl.Warn(&checker.LogMessage{
 					Type: finding.FileTypeURL,
 					Path: f.Message,

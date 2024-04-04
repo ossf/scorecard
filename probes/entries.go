@@ -55,7 +55,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
 	"github.com/ossf/scorecard/v4/probes/sbomCICDArtifactExists"
 	"github.com/ossf/scorecard/v4/probes/sbomExists"
-	"github.com/ossf/scorecard/v4/probes/sbomReleaseArtifactExists"
+	"github.com/ossf/scorecard/v4/probes/sbomReleaseAssetExists"
 	"github.com/ossf/scorecard/v4/probes/sbomStandardsFileUsed"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
@@ -133,7 +133,7 @@ var (
 	}
 	Sbom = []ProbeImpl{
 		sbomExists.Run,
-		sbomReleaseArtifactExists.Run,
+		sbomReleaseAssetExists.Run,
 		sbomStandardsFileUsed.Run,
 		sbomCICDArtifactExists.Run,
 	}

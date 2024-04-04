@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: sbomReleaseArtifactExists
+id: sbomReleaseAssetExists
 short: Check that the project publishes an sbom as part of its release artifact.
 motivation: >
   blurb about importance of sboms.
