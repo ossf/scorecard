@@ -3,8 +3,15 @@
 Thank you for contributing your time and expertise to the OpenSSF Scorecard
 project. This document describes the contribution guidelines for the project.
 
-**Note:** Before you start contributing, you must read and abide by our
+> [!IMPORTANT]
+> Before you start contributing, you must read and abide by our
 **[Code of Conduct](./CODE_OF_CONDUCT.md)**.
+>
+> Additionally the Linux Foundation (LF) requires all contributions include per-commit sign-offs.
+> Ensure you use the `-s` or `--signoff` flag for every commit.
+>
+> For more details, see the [LF DCO wiki](https://wiki.linuxfoundation.org/dco)
+> or [this Pi-hole signoff guide](https://docs.pi-hole.net/guides/github/how-to-signoff/).
 
 <!-- vim-markdown-toc GFM -->
 
@@ -12,7 +19,6 @@ project. This document describes the contribution guidelines for the project.
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
 * [Contributing steps](#contributing-steps)
-* [Error handling](#error-handling)
 * [How to build scorecard locally](#how-to-build-scorecard-locally)
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
@@ -36,7 +42,7 @@ project. This document describes the contribution guidelines for the project.
 
 1.  Create [a GitHub account](https://github.com/join)
 1.  Create a
-    [personal access token](https://docs.github.com/en/free-pro-team@latest/developers/apps/about-apps#personal-access-tokens)
+    [personal access token](https://docs.github.com/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 1.  Set up your [development environment](#environment-setup)
 
 ### Environment Setup
@@ -46,35 +52,30 @@ You must install these tools:
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
 1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.21](https://golang.org/dl/) or higher.
+    [v1.21.8](https://golang.org/dl/) or higher.
+
+1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
+
+1. [`make`](https://www.gnu.org/software/make/): You can build and run Scorecard without it, but some tasks are easier if you have it.
+
+You may need these tools for some tasks:
 
 1.  [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
 
 ## Contributing steps
 
-1.  Submit an issue describing your proposed change to the repo in question.
+1.  Identify an existing issue you would like to work on, or submit an issue describing your proposed change to the repo in question.
 1.  The repo owners will respond to your issue promptly.
 1.  Fork the desired repo, develop and test your code changes.
 1.  Submit a pull request.
 
-## Error handling
+## How to build Scorecard locally
 
-See [errors](errors/errors.md).
-
-## How to build scorecard locally
-
-Note that, by building the scorecard from the source code we are allowed to test
+Note that, by building Scorecard from the source code we are allowed to test
 the changes made locally.
 
-1.  Run the following command to clone your fork of the project locally
-
-```shell
-git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scorecard.git
-```
-
+1.  Clone your fork of the project locally. ([Detailed instructions](https://docs.github.com/repositories/creating-and-managing-repositories/cloning-a-repository#cloning-a-repository))
 1.  Enter the project folder by running the command `cd ./scorecard`
-1.  Ensure you activate module support before continue (`$ export
-    GO111MODULE=on`)
 1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
 
@@ -83,16 +84,29 @@ git clone git@github.com:<user>/scorecard.git $GOPATH/src/github.com/<user>/scor
 In the project folder, run the following command:
 
 ```shell
-// Get scores for a repository
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+# Get scores for a repository
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 ```
 
-You can input the repository you want to analyze using the `--repo=<your_repo>` flag. To view more Scorecard commands run:
+Many developers prefer working with the JSON output format, although you may need to pretty print it.
+Piping the output to [jq](https://jqlang.github.io/jq/) is one way of doing this.
+```shell
+# Get scores for a repository
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --format json | jq
+```
+
+To view all Scorecard commands and flags run:
 
 ```shell
-// View scorecard help
-$ go run main.go --help
+# View scorecard help
+go run main.go --help
 ```
+
+You should familiarize yourself with:
+* `--repo` and `--local` to specify a repository
+* `--checks` and `--probes` to specify which analyses run
+* `--format` to change the result output format
+* `--show-details` is pretty self explanatory
 
 ### Choosing checks to run
 
@@ -101,11 +115,11 @@ This is useful if, for example, you only want to run the check you're
 currently developing.
 
 ```shell
-// Get score for Pinned-Dependencies check
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies
+# Get score for Pinned-Dependencies check
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies
 
-// Get score for Pinned-Dependencies and Binary-Artifacts check
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
+# Get score for Pinned-Dependencies and Binary-Artifacts check
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
 ```
 
 ## PR Process
@@ -115,22 +129,24 @@ Every PR should be annotated with an icon indicating whether it's a:
 -   Breaking change: :warning: (`:warning:`)
 -   Non-breaking feature: :sparkles: (`:sparkles:`)
 -   Patch fix: :bug: (`:bug:`)
--   Docs: :book: (`:book:`)
+-   Documentation changes (user or developer): :book: (`:book:`)
 -   Infra/Tests/Other: :seedling: (`:seedling:`)
 -   No release note: :ghost: (`:ghost:`)
 
 Use :ghost: (no release note) only for the PRs that change or revert unreleased
 changes, which don't deserve a release note. Please don't abuse it.
 
-You are free to use the `:xyz:` aliases or to use the equivalent emoji directly.
+Prefer using the `:xyz:` aliases over the equivalent emoji directly when possible.
 
 Individual commits should not be tagged separately, but will generally be
 assumed to match the PR. For instance, if you have a bugfix in with a breaking
 change, it's generally encouraged to submit the bugfix separately, but if you
 must put them in one PR, you should mark the whole PR as breaking.
 
-When a maintainer reviews your code, it is generally preferred to solve each individual
-review with small fixes without rebasing, so the maintainer can assess each fix separately.
+> [!NOTE]
+> Once a maintainer reviews your code, please address feedback without rebasing when possible.
+> This includes [synchronizing your PR](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch)
+> with `main`. The GitHub review experience is much nicer with traditional merge commits.
 
 ## What to do before submitting a pull request
 
@@ -138,18 +154,16 @@ Following the targets that can be used to test your changes locally.
 
 | Command  | Description                                        | Is called in the CI? |
 | -------- | -------------------------------------------------- | -------------------- |
-| make all | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
-| make e2e-pat | Runs e2e tests                                     | yes                  |
+| `make all` | Runs go test,golangci lint checks, fmt, go mod tidy| yes                  |
+| `make e2e-pat` | Runs e2e tests                                     | yes                  |
 
-Make sure to signoff your commits before submitting a pull request.
+When developing locally, the following targets are useful to run frequently.
+While they are included in `make all`, running them individually is faster.
 
-https://docs.pi-hole.net/guides/github/how-to-signoff/
-
-When developing locally, the following commands are useful to run regularly to check unit tests and linting.
-
-| Command  | Description                                        | Is called in the CI? |
-| make unit-test | Runs unit tests only. `make all` will also run this. | yes                  |
-| make check-linter | Checks linter issues only. `make all` will also run this. | yes                  |
+| Command  | Description | Called in the CI? |
+|----------|-------------|-------------------|
+| `make unit-test` | Runs unit tests only | yes |
+| `make check-linter` | Checks linter issues only | yes |
 
 ## Changing Score Results
 
@@ -166,11 +180,7 @@ make fix-linter
 
 ## Permission for GitHub personal access tokens
 
-The personal access token need the following scopes:
-
--   `repo:status` - Access commit status
--   `repo_deployment` - Access deployment status
--   `public_repo` - Access public repositories
+For public repos, classic personal access tokens do not need any scopes.
 
 ## Where the CI Tests are configured
 
@@ -210,9 +220,9 @@ If you want to update its documentation, update that `checks.yaml` file.
 Whenever you modify the `checks.yaml` file, run the following to
 generate `docs/checks.md`:
 
-~~~~
+```shell
 make generate-docs
-~~~~
+```
 
 **DO NOT** edit `docs/checks.md` directly, as that is an
 auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
