@@ -167,11 +167,7 @@ make fix-linter
 
 ## Permission for GitHub personal access tokens
 
-The personal access token need the following scopes:
-
--   `repo:status` - Access commit status
--   `repo_deployment` - Access deployment status
--   `public_repo` - Access public repositories
+For public repos, classic personal access tokens do not need any scopes.
 
 ## Where the CI Tests are configured
 
