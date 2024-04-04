@@ -57,5 +57,7 @@ func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
-	return evaluation.Vulnerabilities(CheckVulnerabilities, findings, c.Dlogger)
+	ret := evaluation.Vulnerabilities(CheckVulnerabilities, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

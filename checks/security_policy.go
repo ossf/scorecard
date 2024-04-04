@@ -57,5 +57,7 @@ func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.SecurityPolicy(CheckSecurityPolicy, findings, c.Dlogger)
+	ret := evaluation.SecurityPolicy(CheckSecurityPolicy, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }
