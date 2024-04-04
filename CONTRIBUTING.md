@@ -180,7 +180,9 @@ make fix-linter
 
 ## Permission for GitHub personal access tokens
 
-For public repos, classic personal access tokens do not need any scopes.
+For public repos, classic personal access tokens need the following scopes:
+
+- `public_repo` - Read/write access to public repositories. Needed for branch protection
 
 ## Where the CI Tests are configured
 
