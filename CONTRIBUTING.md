@@ -56,6 +56,8 @@ You must install these tools:
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
+1. [`make`](https://www.gnu.org/software/make/): You can build and run Scorecard without it, but some tasks are easier if you have it.
+
 You may need these tools for some tasks:
 
 1.  [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
