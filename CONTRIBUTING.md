@@ -84,22 +84,22 @@ the changes made locally.
 In the project folder, run the following command:
 
 ```shell
-// Get scores for a repository
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+# Get scores for a repository
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 ```
 
 Many developers prefer working with the JSON output format, although you may need to pretty print it.
 Piping the output to [jq](https://jqlang.github.io/jq/) is one way of doing this.
 ```shell
-// Get scores for a repository
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --format json | jq
+# Get scores for a repository
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --format json | jq
 ```
 
 To view all Scorecard commands and flags run:
 
 ```shell
-// View scorecard help
-$ go run main.go --help
+# View scorecard help
+go run main.go --help
 ```
 
 You should familiarize yourself with:
@@ -115,11 +115,11 @@ This is useful if, for example, you only want to run the check you're
 currently developing.
 
 ```shell
-// Get score for Pinned-Dependencies check
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies
+# Get score for Pinned-Dependencies check
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies
 
-// Get score for Pinned-Dependencies and Binary-Artifacts check
-$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
+# Get score for Pinned-Dependencies and Binary-Artifacts check
+go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
 ```
 
 ## PR Process
@@ -220,9 +220,9 @@ If you want to update its documentation, update that `checks.yaml` file.
 Whenever you modify the `checks.yaml` file, run the following to
 generate `docs/checks.md`:
 
-~~~~
+```shell
 make generate-docs
-~~~~
+```
 
 **DO NOT** edit `docs/checks.md` directly, as that is an
 auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
