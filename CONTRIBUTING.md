@@ -88,12 +88,25 @@ In the project folder, run the following command:
 $ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 ```
 
-You can input the repository you want to analyze using the `--repo=<your_repo>` flag. To view more Scorecard commands run:
+Many developers prefer working with the JSON output format, although you may need to pretty print it.
+Piping the output to [jq](https://jqlang.github.io/jq/) is one way of doing this.
+```shell
+// Get scores for a repository
+$ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --format json | jq
+```
+
+To view all Scorecard commands and flags run:
 
 ```shell
 // View scorecard help
 $ go run main.go --help
 ```
+
+You should familiarize yourself with:
+* `--repo` and `--local` to specify a repository
+* `--checks` and `--probes` to specify which analyses run
+* `--format` to change the result output format
+* `--show-details` is pretty self explanatory
 
 ### Choosing checks to run
 
