@@ -18,6 +18,7 @@ project. This document describes the contribution guidelines for the project.
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
+  * [New to Go?](#new-to-go)
 * [Contributing steps](#contributing-steps)
 * [How to build scorecard locally](#how-to-build-scorecard-locally)
 * [PR Process](#pr-process)
@@ -61,6 +62,15 @@ You must install these tools:
 You may need these tools for some tasks:
 
 1.  [`docker`](https://docs.docker.com/engine/install/): `v18.9` or higher.
+
+### New to Go?
+
+If you're unfamiliar with the language, there are plenty of articles, resources, and books.
+We recommend starting with several resources from the official Go website:
+
+* [How to Write Go Code](https://go.dev/doc/code)
+* [A Tour of Go](https://go.dev/tour/)
+* [Effective Go](https://go.dev/doc/effective_go)
 
 ## Contributing steps
 
