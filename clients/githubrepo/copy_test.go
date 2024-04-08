@@ -80,7 +80,7 @@ func TestCopyInt32Ptr(t *testing.T) {
 			want: nil,
 		},
 		{
-			name: "non_nil_src_true",
+			name: "non_nil_src_positive",
 			src:  Int32Ptr(123),
 			dest: new(*int32),
 			want: Int32Ptr(123),
