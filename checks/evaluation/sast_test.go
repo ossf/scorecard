@@ -36,7 +36,7 @@ func TestSAST(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -51,7 +51,7 @@ func TestSAST(t *testing.T) {
 				tool(checker.CodeQLWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
@@ -70,7 +70,7 @@ func TestSAST(t *testing.T) {
 				tool(checker.PysaWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "2",
@@ -105,11 +105,11 @@ func TestSAST(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   sastToolConfigured.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
@@ -128,7 +128,7 @@ func TestSAST(t *testing.T) {
 				tool(checker.SnykWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
@@ -147,7 +147,7 @@ func TestSAST(t *testing.T) {
 				tool(checker.QodanaWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
@@ -175,7 +175,7 @@ func TestSAST(t *testing.T) {
 func tool(name checker.SASTWorkflowType) finding.Finding {
 	return finding.Finding{
 		Probe:   sastToolConfigured.Probe,
-		Outcome: finding.OutcomePositive,
+		Outcome: finding.OutcomeTrue,
 		Values: map[string]string{
 			sastToolConfigured.ToolKey: string(name),
 		},

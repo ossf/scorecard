@@ -248,11 +248,11 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
 			dl.Warn(&LogMessage{
 				Finding: f,
 			})
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
 			dl.Info(&LogMessage{
 				Finding: f,
 			})

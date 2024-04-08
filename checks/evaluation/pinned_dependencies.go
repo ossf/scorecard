@@ -88,7 +88,7 @@ func PinningDependencies(name string,
 				Finding: &f,
 			})
 			continue
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
 			// we cant use the finding if we want the remediation to show
 			// finding.Remediation are currently suppressed (#3349)
 			lm := &checker.LogMessage{
@@ -177,7 +177,7 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
-	if outcome == finding.OutcomePositive {
+	if outcome == finding.OutcomeTrue {
 		r.pinned += 1
 	}
 	r.total += 1
