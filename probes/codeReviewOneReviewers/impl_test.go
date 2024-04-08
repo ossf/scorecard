@@ -113,7 +113,7 @@ func TestProbeCodeReviewOneReviewers(t *testing.T) {
 			expectedFindings: []finding.Finding{
 				{
 					Probe:   "codeReviewOneReviewers",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 		},
@@ -270,7 +270,7 @@ func TestProbeCodeReviewOneReviewers(t *testing.T) {
 			expectedFindings: []finding.Finding{
 				{
 					Probe:   "codeReviewOneReviewers",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 		},

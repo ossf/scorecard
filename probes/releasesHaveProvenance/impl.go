@@ -107,7 +107,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("release artifact %s does not have provenance", release.TagName),
 			loc,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

@@ -41,14 +41,14 @@ func TestRun(t *testing.T) {
 			err:  uerror.ErrNil,
 		},
 		{
-			name: "negative outcome from no update tools",
+			name: "false outcome from no update tools",
 			raw: &checker.RawResults{
 				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
 					Tools: []checker.Tool{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{

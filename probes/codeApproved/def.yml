@@ -24,7 +24,7 @@ implementation: >
   Reviewed, bot authored changesets (e.g. dependabot) are not counted.
 outcome:
   - If all commits were approved, the probe returns OutcomeTrue
-  - If any commits were not approved, the probe returns OutcomeNegative
+  - If any commits were not approved, the probe returns OutcomeFalse
   - If there are no changes, the probe returns OutcomeNotApplicable
 remediation:
   effort: Low

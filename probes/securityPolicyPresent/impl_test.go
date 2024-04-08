@@ -101,7 +101,7 @@ func Test_Run(t *testing.T) {
 			name: "file not present",
 			raw:  &checker.RawResults{},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{

@@ -66,7 +66,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		outcome = finding.OutcomeTrue
 	} else {
 		text = "Did not find issues within the threshold."
-		outcome = finding.OutcomeNegative
+		outcome = finding.OutcomeFalse
 	}
 
 	f, err := finding.NewWith(fs, Probe, text, nil, outcome)

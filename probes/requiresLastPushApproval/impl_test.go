@@ -83,7 +83,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Last push approval enabled on 1/2 branches = 1 true and 1 negative outcomes",
+			name: "Last push approval enabled on 1/2 branches = 1 true and 1 false outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -103,11 +103,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Last push approval enabled on 1/2 branches = 1 negative and 1 true outcomes",
+			name: "Last push approval enabled on 1/2 branches = 1 false and 1 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -127,11 +127,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch does not require last push approval and 1 lacks data = 1 negative and 1 unavailable",
+			name: "1 branch does not require last push approval and 1 lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -151,7 +151,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

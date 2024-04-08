@@ -65,7 +65,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeTrue
 		} else {
 			text = fmt.Sprintf("branch '%s' is not protected", *branch.Name)
-			outcome = finding.OutcomeNegative
+			outcome = finding.OutcomeFalse
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {

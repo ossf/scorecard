@@ -49,7 +49,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeNegative)
+			nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

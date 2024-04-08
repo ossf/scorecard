@@ -68,7 +68,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		} else {
 			msg := "Webhook without token authorization found."
 			f, err := finding.NewWith(fs, Probe,
-				msg, nil, finding.OutcomeNegative)
+				msg, nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

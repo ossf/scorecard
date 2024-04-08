@@ -89,7 +89,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		if !*rr.Pinned {
 			f = f.WithMessage(generateTextUnpinned(&rr)).
-				WithOutcome(finding.OutcomeNegative)
+				WithOutcome(finding.OutcomeFalse)
 			if rr.Remediation != nil {
 				f.Remediation = ruleRemToProbeRem(rr.Remediation)
 			}

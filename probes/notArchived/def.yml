@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks the Archived Status of a project.
 outcome:
-  - If the project is archived, the outcome is OutcomeNegative.
+  - If the project is archived, the outcome is OutcomeFalse.
   - If the project is not archived, the outcome is OutcomeTrue.
 remediation:
   effort: High

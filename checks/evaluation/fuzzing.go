@@ -40,8 +40,8 @@ func Fuzzing(name string,
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeTrue {
-			// Log all findings except the negative ones.
-			checker.LogFindings(nonNegativeFindings(findings), dl)
+			// Log all findings except the false ones.
+			checker.LogFindings(nonFalseFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "project is fuzzed")
 		}
 	}

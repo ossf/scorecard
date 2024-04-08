@@ -36,7 +36,7 @@ func TestFuzzing(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   fuzzed.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -71,7 +71,7 @@ func TestFuzzing(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "someUnrelatedProbe",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				fuzzTool(fuzzers.RustCargoFuzz),
 			},

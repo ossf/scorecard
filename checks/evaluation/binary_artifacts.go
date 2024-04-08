@@ -41,7 +41,7 @@ func BinaryArtifacts(name string,
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome != finding.OutcomeNegative {
+		if f.Outcome != finding.OutcomeFalse {
 			continue
 		}
 		dl.Warn(&checker.LogMessage{
@@ -52,7 +52,7 @@ func BinaryArtifacts(name string,
 		})
 	}
 
-	// There are only negative findings.
+	// There are only false findings.
 	// Deduct the number of findings from max score
 	numberOfBinaryFilesFound := len(findings)
 

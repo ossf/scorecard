@@ -57,7 +57,7 @@ func Test_AsPJSON(t *testing.T) {
 					},
 					{
 						Probe:   "check for Y",
-						Outcome: finding.OutcomeNegative,
+						Outcome: finding.OutcomeFalse,
 						Message: "did not find Y",
 					},
 				},

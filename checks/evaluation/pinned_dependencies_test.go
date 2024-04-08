@@ -265,7 +265,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -312,7 +312,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -326,7 +326,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -350,7 +350,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -364,7 +364,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -507,7 +507,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned GitHub-owned action dependency",
 			args: args{
-				outcome:  finding.OutcomeNegative,
+				outcome:  finding.OutcomeFalse,
 				w:        &workflowPinningResult{},
 				isGitHub: true,
 			},
@@ -543,7 +543,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned Third-Party action dependency",
 			args: args{
-				outcome:  finding.OutcomeNegative,
+				outcome:  finding.OutcomeFalse,
 				w:        &workflowPinningResult{},
 				isGitHub: false,
 			},
@@ -625,7 +625,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add unpinned GitHub-owned action",
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				snippet:        stringAsPointer("actions/checkout@v2"),
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
@@ -672,7 +672,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
 				snippet:        stringAsPointer("other/checkout@v2"),
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
@@ -712,7 +712,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add unpinned pip install",
 			args: args{
 				dependencyType: checker.DependencyUseTypePipCommand,
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},

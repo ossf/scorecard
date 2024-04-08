@@ -51,15 +51,15 @@ func TestVulnerabilities(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -72,51 +72,51 @@ func TestVulnerabilities(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

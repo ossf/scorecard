@@ -53,7 +53,7 @@ func createText(t checker.TokenPermission) (string, error) {
 		*t.Name, *t.Value), nil
 }
 
-func CreateNegativeFinding(r checker.TokenPermission,
+func CreateFalseFinding(r checker.TokenPermission,
 	probe string,
 	fs embed.FS,
 	metadata map[string]string,
@@ -64,7 +64,7 @@ func CreateNegativeFinding(r checker.TokenPermission,
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
 	f, err := finding.NewWith(fs, probe,
-		text, nil, finding.OutcomeNegative)
+		text, nil, finding.OutcomeFalse)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
@@ -117,7 +117,7 @@ func CreateNoneFinding(probe string,
 	// Create finding
 	f, err := finding.NewWith(fs, probe,
 		"found token with 'none' permissions",
-		nil, finding.OutcomeNegative)
+		nil, finding.OutcomeFalse)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
@@ -152,7 +152,7 @@ func CreateUndeclaredFinding(probe string,
 	case *r.LocationType == checker.PermissionLocationTop,
 		*r.LocationType == checker.PermissionLocationJob:
 		// Create finding
-		f, err = CreateNegativeFinding(r, probe, fs, metadata)
+		f, err = CreateFalseFinding(r, probe, fs, metadata)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}

@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	fuzzers := raw.FuzzingResults.Fuzzers
 
 	if len(fuzzers) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no fuzzer integrations found", nil)
+		f, err := finding.NewFalse(fs, Probe, "no fuzzer integrations found", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

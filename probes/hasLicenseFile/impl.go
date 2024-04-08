@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	licenseFiles := raw.LicenseResults.LicenseFiles
 
 	if len(licenseFiles) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "project does not have a license file", nil)
+		f, err := finding.NewFalse(fs, Probe, "project does not have a license file", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

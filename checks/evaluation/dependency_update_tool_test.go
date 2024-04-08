@@ -57,7 +57,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   dependencyUpdateToolConfigured.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -70,7 +70,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "notARealProbe",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

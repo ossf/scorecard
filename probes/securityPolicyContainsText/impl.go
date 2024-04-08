@@ -61,7 +61,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			findings = append(findings, *f)
 		} else {
-			f, err := finding.NewNegative(fs, Probe,
+			f, err := finding.NewFalse(fs, Probe,
 				"No text (besides links / emails) found in security policy", nil)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -71,7 +71,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no security file to analyze", nil)
+		f, err := finding.NewFalse(fs, Probe, "no security file to analyze", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

@@ -51,12 +51,12 @@ func Maintained(name string,
 	}
 
 	if projectIsArchived(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
+		checker.LogFindings(falseFindings(findings), dl)
 		return checker.CreateMinScoreResult(name, "project is archived")
 	}
 
 	if projectWasCreatedInLast90Days(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
+		checker.LogFindings(falseFindings(findings), dl)
 		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
 	}
 
@@ -89,7 +89,7 @@ func Maintained(name string,
 func projectIsArchived(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notArchived.Probe {
+		if f.Outcome == finding.OutcomeFalse && f.Probe == notArchived.Probe {
 			return true
 		}
 	}
@@ -99,7 +99,7 @@ func projectIsArchived(findings []finding.Finding) bool {
 func projectWasCreatedInLast90Days(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedRecently.Probe {
+		if f.Outcome == finding.OutcomeFalse && f.Probe == notCreatedRecently.Probe {
 			return true
 		}
 	}

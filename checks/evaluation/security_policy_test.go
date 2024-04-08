@@ -35,15 +35,15 @@ func TestSecurityPolicy(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -56,23 +56,23 @@ func TestSecurityPolicy(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyInvalidProbeName",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -85,15 +85,15 @@ func TestSecurityPolicy(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyPresent",
@@ -123,7 +123,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -136,7 +136,7 @@ func TestSecurityPolicy(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
@@ -144,7 +144,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "securityPolicyPresent",

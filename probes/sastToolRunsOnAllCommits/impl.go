@@ -80,7 +80,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	} else {
 		msg := fmt.Sprintf("%v commits out of %v are checked with a SAST tool",
 			totalPullRequestsAnalyzed, totalPullRequestsMerged)
-		f = f.WithOutcome(finding.OutcomeNegative).WithMessage(msg)
+		f = f.WithOutcome(finding.OutcomeFalse).WithMessage(msg)
 	}
 	return []finding.Finding{*f}, Probe, nil
 }

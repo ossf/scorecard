@@ -58,7 +58,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	// No file found.
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe, "no security policy file detected",
-			nil, finding.OutcomeNegative)
+			nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

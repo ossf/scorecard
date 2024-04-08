@@ -65,7 +65,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeNotAvailable
 		case *branch.BranchProtectionRule.AllowForcePushes:
 			text = fmt.Sprintf("'force pushes' enabled on branch '%s'", *branch.Name)
-			outcome = finding.OutcomeNegative
+			outcome = finding.OutcomeFalse
 		case !*branch.BranchProtectionRule.AllowForcePushes:
 			text = fmt.Sprintf("'force pushes' disabled on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeTrue

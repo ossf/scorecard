@@ -30,11 +30,11 @@ func TestCIIBestPractices(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Unsupported badge found with negative finding",
+			name: "Unsupported badge found with false finding",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},

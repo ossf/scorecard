@@ -57,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if e.Type == checker.DangerousWorkflowScriptInjection {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
-				nil, finding.OutcomeNegative)
+				nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

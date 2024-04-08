@@ -64,10 +64,10 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notArchived.Probe,
 					Outcome: finding.OutcomeTrue,
@@ -85,10 +85,10 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   "archvied", /*misspelling*/
 					Outcome: finding.OutcomeTrue,
@@ -107,13 +107,13 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomeTrue,

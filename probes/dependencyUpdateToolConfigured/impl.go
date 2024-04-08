@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	tools := raw.DependencyUpdateToolResults.Tools
 	if len(tools) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no dependency update tool configurations found", nil)
+		f, err := finding.NewFalse(fs, Probe, "no dependency update tool configurations found", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

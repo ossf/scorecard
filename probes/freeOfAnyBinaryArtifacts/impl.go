@@ -55,7 +55,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Files {
 		file := &r.Files[i]
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeNegative)
+			nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

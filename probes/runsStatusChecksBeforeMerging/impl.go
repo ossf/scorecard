@@ -70,7 +70,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		default:
 			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("no status checks found to merge onto branch '%s'", *branch.Name), nil,
-				finding.OutcomeNegative)
+				finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

@@ -119,7 +119,7 @@ func BranchProtection(name string,
 			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
 			return checker.CreateRuntimeErrorResult(name, e)
 		// Now we can check whether the branch is protected:
-		case f.Outcome == finding.OutcomeNegative:
+		case f.Outcome == finding.OutcomeFalse:
 			protectedBranches[branchName] = false
 			dl.Warn(&checker.LogMessage{
 				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
@@ -261,7 +261,7 @@ func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 		debug(dl, doLogging, f.Message)
 	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -272,7 +272,7 @@ func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger
 	switch f.Outcome {
 	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -437,7 +437,7 @@ func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl che
 		} else {
 			warn(dl, doLogging, f.Message)
 		}
-	} else if f.Outcome == finding.OutcomeNegative {
+	} else if f.Outcome == finding.OutcomeFalse {
 		warn(dl, doLogging, f.Message)
 	}
 	max++

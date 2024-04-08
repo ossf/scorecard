@@ -47,7 +47,7 @@ func TestWebhooks(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -71,7 +71,7 @@ func TestWebhooks(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
@@ -87,7 +87,7 @@ func TestWebhooks(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
@@ -103,7 +103,7 @@ func TestWebhooks(t *testing.T) {
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -115,7 +115,7 @@ func TestWebhooks(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
@@ -171,51 +171,51 @@ func TestWebhooks(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "webhooksUseSecrets",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

@@ -43,7 +43,7 @@ const (
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	rawReviewData := &raw.CodeReviewResults
-	return codeReviewRun(rawReviewData, fs, Probe, finding.OutcomeTrue, finding.OutcomeNegative)
+	return codeReviewRun(rawReviewData, fs, Probe, finding.OutcomeTrue, finding.OutcomeFalse)
 }
 
 // Looks through the data and validates author and reviewers of a changeset
@@ -51,7 +51,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 // score in the case of other platforms. This probe is created to ensure that
 // there are a number of unique reviewers for each changeset.
 func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string,
-	trueOutcome, negativeOutcome finding.Outcome,
+	trueOutcome, falseOutcome finding.Outcome,
 ) ([]finding.Finding, string, error) {
 	changesets := reviewData.DefaultBranchChangesets
 	var findings []finding.Finding
@@ -98,9 +98,9 @@ func codeReviewRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID stri
 		findings = append(findings, *f)
 		return findings, probeID, nil
 	case leastFoundReviewers < minimumReviewers:
-		// returns NegativeOutcome if even a single changeset was reviewed by fewer than minimumReviewers (1).
+		// returns FalseOutcome if even a single changeset was reviewed by fewer than minimumReviewers (1).
 		f, err := finding.NewWith(fs, probeID, fmt.Sprintf("some changesets had <%d reviewers",
-			minimumReviewers), nil, negativeOutcome)
+			minimumReviewers), nil, falseOutcome)
 		if err != nil {
 			return nil, probeID, fmt.Errorf("create finding: %w", err)
 		}

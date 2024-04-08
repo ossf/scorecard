@@ -84,7 +84,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Blocks Force Push on 1/2 branches = 1 true and 1 negative outcome",
+			name: "Blocks Force Push on 1/2 branches = 1 true and 1 false outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -104,11 +104,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Blocks Force Push on 1/2 branches = 1 negative and 1 true outcome",
+			name: "Blocks Force Push on 1/2 branches = 1 false and 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -128,11 +128,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Blocks Force Push on 0/2 branches, 1 branch lacks data = 1 negative and 1 unavailable",
+			name: "Blocks Force Push on 0/2 branches, 1 branch lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -152,7 +152,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

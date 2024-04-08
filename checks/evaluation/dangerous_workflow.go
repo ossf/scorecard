@@ -43,7 +43,7 @@ func DangerousWorkflow(name string,
 	// Log all detected dangerous workflows
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
+		if f.Outcome == finding.OutcomeFalse {
 			if f.Location == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
@@ -82,7 +82,7 @@ func hasDWWithUntrustedCheckout(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Probe == hasDangerousWorkflowUntrustedCheckout.Probe {
-			if f.Outcome == finding.OutcomeNegative {
+			if f.Outcome == finding.OutcomeFalse {
 				return true
 			}
 		}
@@ -94,7 +94,7 @@ func hasDWWithScriptInjection(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Probe == hasDangerousWorkflowScriptInjection.Probe {
-			if f.Outcome == finding.OutcomeNegative {
+			if f.Outcome == finding.OutcomeFalse {
 				return true
 			}
 		}

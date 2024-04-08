@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks which branches require pull requests to change the branches' code. The probe only considers default and release branches.
 outcome:
-  - The probe returns one OutcomeTrue for each branch that requires pull requests to change code, and one OutcomeNegative for branches that don't.
+  - The probe returns one OutcomeTrue for each branch that requires pull requests to change code, and one OutcomeFalse for branches that don't.
 remediation:
   effort: Low
   text:

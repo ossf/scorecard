@@ -45,7 +45,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.SASTResults
 
 	if len(r.Workflows) == 0 {
-		f, err := finding.NewWith(fs, Probe, "no SAST configuration files detected", nil, finding.OutcomeNegative)
+		f, err := finding.NewWith(fs, Probe, "no SAST configuration files detected", nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

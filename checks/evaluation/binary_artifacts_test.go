@@ -27,9 +27,9 @@ import (
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	lineStart := uint(123)
-	negativeFinding := finding.Finding{
+	falseFinding := finding.Finding{
 		Probe:   "freeOfUnverifiedBinaryArtifacts",
-		Outcome: finding.OutcomeNegative,
+		Outcome: finding.OutcomeFalse,
 
 		Location: &finding.Location{
 			Path:      "path",
@@ -58,7 +58,7 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "one binary artifact",
 			findings: []finding.Finding{
-				negativeFinding,
+				falseFinding,
 			},
 			result: scut.TestReturn{
 				Score:        9,
@@ -70,7 +70,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Path:      "path",
 						Type:      finding.FileTypeBinary,
@@ -79,7 +79,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				},
 				{
 					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Path:      "path",
 						Type:      finding.FileTypeBinary,
@@ -95,11 +95,11 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "five binary artifact",
 			findings: []finding.Finding{
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
 			},
 			result: scut.TestReturn{
 				Score:        5,
@@ -109,18 +109,18 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "twelve binary artifact - ensure score doesn't drop below min",
 			findings: []finding.Finding{
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
-				negativeFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
+				falseFinding,
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,

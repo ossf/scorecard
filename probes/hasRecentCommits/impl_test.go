@@ -67,7 +67,7 @@ func Test_Run(t *testing.T) {
 					Issues: []clients.Issue{},
 				},
 			},
-			outcomes: []finding.Outcome{finding.OutcomeNegative},
+			outcomes: []finding.Outcome{finding.OutcomeFalse},
 		},
 		{
 			name: "Has five commits in threshold",

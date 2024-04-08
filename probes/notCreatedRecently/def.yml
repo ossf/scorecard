@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The implementation checks the creation date is within the last 90 days.
 outcome:
-  - If the project was created within the last 90 days, the outcome is OutcomeNegative (0).
+  - If the project was created within the last 90 days, the outcome is OutcomeFalse (0).
   - If the project was created before the last 90 days, the outcome is OutcomeTrue (1). The finding will include a "lookBackDays" value which is the time period that the probe looks back in. 
 remediation:
   effort: Low

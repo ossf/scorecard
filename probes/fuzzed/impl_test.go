@@ -41,14 +41,14 @@ func Test_Run(t *testing.T) {
 			err:  uerror.ErrNil,
 		},
 		{
-			name: "negative outcome from no fuzzers",
+			name: "false outcome from no fuzzers",
 			raw: &checker.RawResults{
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{

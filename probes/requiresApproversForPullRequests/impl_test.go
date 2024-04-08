@@ -90,7 +90,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "1 branch requires 1 reviewer and 1 branch requires 0 reviewers = 1 true and 1 negative",
+			name: "1 branch requires 1 reviewer and 1 branch requires 0 reviewers = 1 true and 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -114,11 +114,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "1 branch requires 0 reviewers and 1 branch requires 1 reviewer = 1 negative and 1 true",
+			name: "1 branch requires 0 reviewers and 1 branch requires 1 reviewer = 1 false and 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -142,11 +142,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch requires 0 reviewers and 1 branch lacks data = 1 negative and 1 unavailable",
+			name: "1 branch requires 0 reviewers and 1 branch lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -170,7 +170,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

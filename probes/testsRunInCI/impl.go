@@ -82,7 +82,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if !prSuccessStatus && !prCheckSuccessful {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
-				nil, finding.OutcomeNegative)
+				nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

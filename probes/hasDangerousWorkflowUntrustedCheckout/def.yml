@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe iterates through the workflows from the raw results and checks the workflow type. If it finds a workflow of the type `DangerousWorkflowUntrustedCheckout`, it returns.
 outcome:
-  - If the project has at least one workflow with possibility of untrusted code checkout, the probe returns one finding with OutcomeNegative (0).
+  - If the project has at least one workflow with possibility of untrusted code checkout, the probe returns one finding with OutcomeFalse (0).
   - If the project does not have a single workflow with possibility of untrusted code checkout, the probe returns one finding with OutcomeTrue (1).
 remediation:
   effort: Low

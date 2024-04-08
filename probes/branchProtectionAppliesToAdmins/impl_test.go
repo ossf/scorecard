@@ -84,7 +84,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 true & 1 negative",
+			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 true & 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -104,11 +104,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "1 branch does not enforce protection rules on admins and 1 does = 1 negative & 1 true",
+			name: "1 branch does not enforce protection rules on admins and 1 does = 1 false & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -128,11 +128,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch does not enforce protection rules on admins and 1 doesn't have data = 1 negative & 1 unavailable",
+			name: "1 branch does not enforce protection rules on admins and 1 doesn't have data = 1 false & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -152,7 +152,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

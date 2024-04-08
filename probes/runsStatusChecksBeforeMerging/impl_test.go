@@ -88,7 +88,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Runs status checks on 1/2 branches = 1 true and 1 negative outcome",
+			name: "Runs status checks on 1/2 branches = 1 true and 1 false outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -112,11 +112,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Runs status checks on 1/2 branches = 1 negative and 1 true outcome",
+			name: "Runs status checks on 1/2 branches = 1 false and 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -140,11 +140,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Runs status checks on 0/2 branches = 2 negative outcomes",
+			name: "Runs status checks on 0/2 branches = 2 false outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -168,7 +168,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNegative,
+				finding.OutcomeFalse, finding.OutcomeFalse,
 			},
 		},
 	}

@@ -46,15 +46,15 @@ func TestLicense(t *testing.T) {
 				NumberOfInfo: 2,
 			},
 		}, {
-			name: "Negative outcomes from all probes = Min score",
+			name: "false outcomes from all probes = Min score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -70,7 +70,7 @@ func TestLicense(t *testing.T) {
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -99,7 +99,7 @@ func TestLicense(t *testing.T) {
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

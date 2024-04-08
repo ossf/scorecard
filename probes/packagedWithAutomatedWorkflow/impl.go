@@ -70,7 +70,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		"no GitHub/GitLab publishing workflow detected.", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

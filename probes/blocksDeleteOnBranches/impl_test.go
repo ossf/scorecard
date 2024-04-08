@@ -84,7 +84,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 true & 1 negative",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 true & 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -104,11 +104,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 negative & 1 true",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 false & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -128,11 +128,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeTrue,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 negative & 1 unavailable",
+			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 false & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -152,7 +152,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

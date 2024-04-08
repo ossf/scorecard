@@ -137,7 +137,7 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
 		})
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		dl.Warn(&checker.LogMessage{
 			Text: f.Message,
 		})
@@ -155,7 +155,7 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 }
 
 // getSastToolScore returns true if the project runs the Sast tool
-// and negative if it doesn't.
+// and false if it doesn't.
 func getSastToolScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
 	case finding.OutcomeTrue:
@@ -163,7 +163,7 @@ func getSastToolScore(f *finding.Finding, dl checker.DetailLogger) int {
 			Text: f.Message,
 		})
 		return checker.MaxResultScore
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		return checker.MinResultScore
 	default:
 		return checker.InconclusiveResultScore

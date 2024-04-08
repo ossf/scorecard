@@ -41,7 +41,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -93,7 +93,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -112,7 +112,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -134,7 +134,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -143,7 +143,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow2.yml",
@@ -165,7 +165,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -174,7 +174,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow2.yml",
@@ -183,7 +183,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow3.yml",
@@ -192,7 +192,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow4.yml",
@@ -201,7 +201,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow5.yml",
@@ -210,7 +210,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow6.yml",
@@ -219,7 +219,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow7.yml",
@@ -228,7 +228,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow8.yml",

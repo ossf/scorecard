@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The implementation looks for the presence of binary files that are not "verified". A verified binary is one that Scorecard considers valid for building and/or releasing the project. This is a more permissive probe than "freeOfAnyBinaryArtifacts" which does not skip verified binary files.
 outcome:
-  - If the probe finds unverified binary files, it returns a number of negative outcomes equal to the number of unverified binary files found. Each outcome includes a location of the file.
+  - If the probe finds unverified binary files, it returns a number of false outcomes equal to the number of unverified binary files found. Each outcome includes a location of the file.
   - If the probe finds no unverified binary files, it returns a single true outcome.
 remediation:
   effort: Medium

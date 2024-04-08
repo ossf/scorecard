@@ -20,7 +20,7 @@ implementation: >
   The implementation checks whether a project uses common patterns for packaging across multiple ecosystems. Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`. 
 outcome:
   - If the project has a package without a debug message, the outcome is true.
-  - If the project has a package with a debug message, the outcome is negative.
+  - If the project has a package with a debug message, the outcome is false.
 remediation:
   effort: Low
   text:

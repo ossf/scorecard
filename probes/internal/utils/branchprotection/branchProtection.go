@@ -33,7 +33,7 @@ func GetTextOutcomeFromBool(b *bool, rule, branchName string) (string, finding.O
 		return msg, finding.OutcomeTrue, nil
 	case !*b:
 		msg := fmt.Sprintf("'%s' is disable on branch '%s'", rule, branchName)
-		return msg, finding.OutcomeNegative, nil
+		return msg, finding.OutcomeFalse, nil
 	}
 	return "", finding.OutcomeError, errWrongValue
 }

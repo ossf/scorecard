@@ -19,11 +19,11 @@ motivation: >
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
-  - The probe returns one OutcomeTrue for each branch that is disallowed from users deleting it, and one OutcomeNegative for branches where users are able to delete it. Scorecard only considers default and releases branches.
+  - The probe returns one OutcomeTrue for each branch that is disallowed from users deleting it, and one OutcomeFalse for branches where users are able to delete it. Scorecard only considers default and releases branches.
 remediation:
   effort: Low
   text:
-    - Disallow deletion of branches in your project to remove negative outcomes.
+    - Disallow deletion of branches in your project to remove false outcomes.
     - GitHub and GitLab by default disable deleting a protected branch. 
 ecosystem:
   languages:

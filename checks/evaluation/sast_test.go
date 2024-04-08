@@ -105,11 +105,11 @@ func TestSAST(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   sastToolConfigured.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Values: map[string]string{
 						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
 						sastToolRunsOnAllCommits.TotalPRsKey:    "3",

@@ -49,7 +49,7 @@ func TestContributors(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

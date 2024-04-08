@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks the branch protection rules of default and release branches in the repository.
 outcome:
-  - The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeNegative for branches that don't.
+  - The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
 remediation:
   effort: High
   text:

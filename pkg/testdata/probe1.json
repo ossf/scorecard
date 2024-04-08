@@ -21,7 +21,7 @@
         {
             "probe": "check for Y",
             "message": "did not find Y",
-            "outcome": "Negative"
+            "outcome": "False"
         }
     ]
 }

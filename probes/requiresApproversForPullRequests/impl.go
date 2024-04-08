@@ -80,7 +80,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			f = f.WithMessage(msg).WithOutcome(finding.OutcomeTrue)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
-			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
+			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeFalse)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)

@@ -66,7 +66,7 @@ func TestCITests(t *testing.T) {
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
@@ -81,19 +81,19 @@ func TestCITests(t *testing.T) {
 			name: "Tests debugging",
 			findings: []finding.Finding{
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},
