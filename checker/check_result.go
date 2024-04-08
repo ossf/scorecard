@@ -263,3 +263,15 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 		}
 	}
 }
+
+func LogFinding(dl DetailLogger, f *finding.Finding, level DetailType) {
+	lm := LogMessage{Finding: f}
+	switch level {
+	case DetailDebug:
+		dl.Debug(&lm)
+	case DetailInfo:
+		dl.Info(&lm)
+	case DetailWarn:
+		dl.Warn(&lm)
+	}
+}
