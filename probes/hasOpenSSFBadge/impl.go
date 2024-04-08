@@ -74,7 +74,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		fmt.Sprintf("OpenSSF best practice badge found at %s level.", badgeLevel),
-		nil, finding.OutcomePositive)
+		nil, finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

@@ -73,7 +73,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeNegative
 		default:
 			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
-			outcome = finding.OutcomePositive
+			outcome = finding.OutcomeTrue
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {

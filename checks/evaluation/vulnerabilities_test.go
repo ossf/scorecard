@@ -39,7 +39,7 @@ func TestVulnerabilities(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

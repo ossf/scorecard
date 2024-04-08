@@ -64,7 +64,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Repository does not have binary artifacts.", nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

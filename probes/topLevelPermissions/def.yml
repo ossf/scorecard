@@ -20,7 +20,7 @@ implementation: >
   The probe checks the permission level, the workflow type and the permission type of each workflow in the project.
 outcome:
   - The probe returns 1 negative outcome per workflow with "write" permissions at the "top" level.
-  - The probe returns 1 positive outcome if the project has no workflows "write" permissions a the "top" level.
+  - The probe returns 1 true outcome if the project has no workflows "write" permissions a the "top" level.
 remediation:
   effort: Low
   text:

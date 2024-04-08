@@ -40,7 +40,7 @@ func CITests(name string,
 	// Debug PRs that were merged without CI tests
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative || f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeNegative || f.Outcome == finding.OutcomeTrue {
 			dl.Debug(&checker.LogMessage{
 				Text: f.Message,
 			})
@@ -70,7 +70,7 @@ func getMergedAndTested(findings []finding.Finding) (int, int) {
 	for i := range findings {
 		f := &findings[i]
 		totalMerged++
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			totalTested++
 		}
 	}

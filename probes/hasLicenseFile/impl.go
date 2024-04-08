@@ -54,7 +54,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		for _, licenseFile := range licenseFiles {
 			licenseFile := licenseFile
 			loc := licenseFile.File.Location()
-			f, err := finding.NewPositive(fs, Probe, "project has a license file", loc)
+			f, err := finding.NewTrue(fs, Probe, "project has a license file", loc)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

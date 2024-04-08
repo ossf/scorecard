@@ -77,7 +77,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 		case *p > 0:
 			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
-			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage(msg).WithOutcome(finding.OutcomeTrue)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)

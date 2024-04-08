@@ -69,7 +69,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				if !strings.HasSuffix(asset.Name, suffix) {
 					continue
 				}
-				// Create Positive Finding
+				// Create True Finding
 				// with file info
 				loc := &finding.Location{
 					Type: finding.FileTypeURL,
@@ -78,7 +78,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				f, err := finding.NewWith(fs, Probe,
 					fmt.Sprintf("signed release artifact: %s", asset.Name),
 					loc,
-					finding.OutcomePositive)
+					finding.OutcomeTrue)
 				if err != nil {
 					return nil, Probe, fmt.Errorf("create finding: %w", err)
 				}

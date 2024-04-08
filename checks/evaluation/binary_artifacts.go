@@ -35,7 +35,7 @@ func BinaryArtifacts(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if findings[0].Outcome == finding.OutcomePositive {
+	if findings[0].Outcome == finding.OutcomeTrue {
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 

@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
-  - The probe returns one OutcomePositive for each branch that is protected, and one OutcomeNegative for branches that are not protected. Scorecard only considers default and releases branches.
+  - The probe returns one OutcomeTrue for each branch that is protected, and one OutcomeNegative for branches that are not protected. Scorecard only considers default and releases branches.
 remediation:
   effort: Low
   text:

@@ -106,7 +106,7 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 		outcome = finding.OutcomeNotApplicable
 		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	default:
-		outcome = finding.OutcomePositive
+		outcome = finding.OutcomeTrue
 		reason = "All changesets approved"
 	}
 	f, err := finding.NewWith(fs, probeID, reason, nil, outcome)

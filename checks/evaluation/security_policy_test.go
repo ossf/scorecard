@@ -97,7 +97,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -107,19 +107,19 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "file not found with positive probes",
+			name: "file not found with true probes",
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyPresent",
@@ -140,7 +140,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
@@ -148,7 +148,7 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -158,23 +158,23 @@ func TestSecurityPolicy(t *testing.T) {
 			},
 		},
 		{
-			name: "file found all positive",
+			name: "file found all true",
 			findings: []finding.Finding{
 				{
 					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyContainsLinks",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyContainsText",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "securityPolicyPresent",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

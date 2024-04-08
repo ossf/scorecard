@@ -20,7 +20,7 @@ implementation: >
   The implementation looks for the presence of binary files. This is a more restrictive probe than "freeOfUnverifiedBinaryArtifacts" which excludes verified binary files.
 outcome:
   - If the probe finds binary files, it returns a number of negative outcomes equal to the number of binary files found. Each outcome includes a location of the file.
-  - If the probe finds no verified binary files, it returns a single positive outcome.
+  - If the probe finds no verified binary files, it returns a single true outcome.
 remediation:
   effort: Medium
   text:

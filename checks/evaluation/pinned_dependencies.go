@@ -177,7 +177,7 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
-	if outcome == finding.OutcomePositive {
+	if outcome == finding.OutcomeTrue {
 		r.pinned += 1
 	}
 	r.total += 1

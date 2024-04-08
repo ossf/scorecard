@@ -45,11 +45,11 @@ func TestCIIBestPractices(t *testing.T) {
 			},
 		},
 		{
-			name: "Unsupported badge found with positive finding",
+			name: "Unsupported badge found with true finding",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},
@@ -65,7 +65,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.InProgressLevel,
 					},
@@ -80,7 +80,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.PassingLevel,
 					},
@@ -95,7 +95,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.SilverLevel,
 					},
@@ -110,7 +110,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.GoldLevel,
 					},
@@ -125,7 +125,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.UnknownLevel,
 					},

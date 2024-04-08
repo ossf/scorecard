@@ -98,7 +98,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			})
 			findings = append(findings, *f)
 		} else {
-			f = f.WithMessage("").WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage("").WithOutcome(finding.OutcomeTrue)
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})

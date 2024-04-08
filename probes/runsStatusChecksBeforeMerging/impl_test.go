@@ -40,7 +40,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Runs status checks on 1/1 branches with contexts = 1 positive outcome",
+			name: "Runs status checks on 1/1 branches with contexts = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -56,11 +56,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Runs status checks on 2/2 branches with contexts = 2 positive outcomes",
+			name: "Runs status checks on 2/2 branches with contexts = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -84,11 +84,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Runs status checks on 1/2 branches = 1 positive and 1 negative outcome",
+			name: "Runs status checks on 1/2 branches = 1 true and 1 negative outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -112,11 +112,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeNegative,
 			},
 		},
 		{
-			name: "Runs status checks on 1/2 branches = 1 negative and 1 positive outcome",
+			name: "Runs status checks on 1/2 branches = 1 negative and 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -140,7 +140,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeNegative, finding.OutcomeTrue,
 			},
 		},
 		{

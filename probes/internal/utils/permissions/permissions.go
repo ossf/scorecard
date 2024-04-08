@@ -85,14 +85,14 @@ func CreateNegativeFinding(r checker.TokenPermission,
 	return f, nil
 }
 
-func ReadPositiveLevelFinding(probe string,
+func ReadTrueLevelFinding(probe string,
 	fs embed.FS,
 	r checker.TokenPermission,
 	metadata map[string]string,
 ) (*finding.Finding, error) {
 	f, err := finding.NewWith(fs, probe,
 		"found token with 'read' permissions",
-		nil, finding.OutcomePositive)
+		nil, finding.OutcomeTrue)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}

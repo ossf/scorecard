@@ -47,7 +47,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		urls := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
 
 		if (urls + emails) > 0 {
-			f, err := finding.NewPositive(fs, Probe,
+			f, err := finding.NewTrue(fs, Probe,
 				"Found linked content", policy.File.Location())
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)

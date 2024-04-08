@@ -64,7 +64,7 @@ func Maintained(name string,
 	var err error
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
 				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NumIssuesKey])

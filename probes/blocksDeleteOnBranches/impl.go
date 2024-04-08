@@ -68,7 +68,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeNegative
 		case !*branch.BranchProtectionRule.AllowDeletions:
 			text = fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name)
-			outcome = finding.OutcomePositive
+			outcome = finding.OutcomeTrue
 		default:
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)

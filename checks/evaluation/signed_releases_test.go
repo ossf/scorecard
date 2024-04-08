@@ -74,7 +74,7 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed but no provenance",
 			findings: []finding.Finding{
-				signedProbe(0, 0, finding.OutcomePositive),
+				signedProbe(0, 0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeNegative),
 			},
 			result: scut.TestReturn{
@@ -87,8 +87,8 @@ func TestSignedReleases(t *testing.T) {
 		{
 			name: "Has one release that is signed and has provenance",
 			findings: []finding.Finding{
-				signedProbe(0, 0, finding.OutcomePositive),
-				provenanceProbe(0, 0, finding.OutcomePositive),
+				signedProbe(0, 0, finding.OutcomeTrue),
+				provenanceProbe(0, 0, finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         10,
@@ -100,7 +100,7 @@ func TestSignedReleases(t *testing.T) {
 			name: "Has one release that is not signed but has provenance",
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeNegative),
-				provenanceProbe(0, 0, finding.OutcomePositive),
+				provenanceProbe(0, 0, finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -118,7 +118,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset0, finding.OutcomeNegative),
 				provenanceProbe(release0, asset0, finding.OutcomeNegative),
 				//     Asset 2:
-				signedProbe(release0, asset1, finding.OutcomePositive),
+				signedProbe(release0, asset1, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2
 				//     Asset 1:
@@ -135,10 +135,10 @@ func TestSignedReleases(t *testing.T) {
 				// Release 3
 				//     Asset 1:
 				signedProbe(release2, asset0, finding.OutcomeNegative),
-				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				provenanceProbe(release2, asset0, finding.OutcomeTrue),
 				//     Asset 2:
 				signedProbe(release2, asset1, finding.OutcomeNegative),
-				provenanceProbe(release2, asset1, finding.OutcomePositive),
+				provenanceProbe(release2, asset1, finding.OutcomeTrue),
 				//     Asset 3:
 				signedProbe(release2, asset2, finding.OutcomeNegative),
 				provenanceProbe(release2, asset2, finding.OutcomeNegative),
@@ -157,11 +157,11 @@ func TestSignedReleases(t *testing.T) {
 				// Release 1, Asset 1:
 				signedProbe(release0, asset0, finding.OutcomeNegative),
 				provenanceProbe(release0, asset0, finding.OutcomeNegative),
-				signedProbe(release0, asset1, finding.OutcomePositive),
+				signedProbe(release0, asset1, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2:
 				// Release 2, Asset 1:
-				signedProbe(release1, asset1, finding.OutcomePositive),
+				signedProbe(release1, asset1, finding.OutcomeTrue),
 				provenanceProbe(release1, asset0, finding.OutcomeNegative),
 				// Release 2, Asset 2:
 				signedProbe(release1, asset1, finding.OutcomeNegative),
@@ -171,7 +171,7 @@ func TestSignedReleases(t *testing.T) {
 				provenanceProbe(release1, asset2, finding.OutcomeNegative),
 				// Release 3, Asset 1:
 				signedProbe(release2, asset0, finding.OutcomeNegative),
-				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				provenanceProbe(release2, asset0, finding.OutcomeTrue),
 				// Release 3, Asset 2:
 				signedProbe(release2, asset1, finding.OutcomeNegative),
 				provenanceProbe(release2, asset1, finding.OutcomeNegative),
@@ -180,7 +180,7 @@ func TestSignedReleases(t *testing.T) {
 				provenanceProbe(release2, asset2, finding.OutcomeNegative),
 				// Release 4, Asset 1:
 				signedProbe(release3, asset0, finding.OutcomeNegative),
-				provenanceProbe(release3, asset0, finding.OutcomePositive),
+				provenanceProbe(release3, asset0, finding.OutcomeTrue),
 				// Release 4, Asset 2:
 				signedProbe(release3, asset1, finding.OutcomeNegative),
 				provenanceProbe(release3, asset1, finding.OutcomeNegative),
@@ -214,11 +214,11 @@ func TestSignedReleases(t *testing.T) {
 				// Release 1, Asset 1:
 				signedProbe(release0, asset0, finding.OutcomeNegative),
 				provenanceProbe(release0, asset0, finding.OutcomeNegative),
-				signedProbe(release0, asset1, finding.OutcomePositive),
+				signedProbe(release0, asset1, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeNegative),
 				// Release 2:
 				// Release 2, Asset 1:
-				signedProbe(release1, asset0, finding.OutcomePositive),
+				signedProbe(release1, asset0, finding.OutcomeTrue),
 				provenanceProbe(release1, asset0, finding.OutcomeNegative),
 				// Release 2, Asset 2:
 				signedProbe(release1, asset1, finding.OutcomeNegative),
@@ -227,8 +227,8 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release1, asset2, finding.OutcomeNegative),
 				provenanceProbe(release1, asset2, finding.OutcomeNegative),
 				// Release 3, Asset 1:
-				signedProbe(release2, asset0, finding.OutcomePositive),
-				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				signedProbe(release2, asset0, finding.OutcomeTrue),
+				provenanceProbe(release2, asset0, finding.OutcomeTrue),
 				// Release 3, Asset 2:
 				signedProbe(release2, asset1, finding.OutcomeNegative),
 				provenanceProbe(release2, asset1, finding.OutcomeNegative),
@@ -236,8 +236,8 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release2, asset2, finding.OutcomeNegative),
 				provenanceProbe(release2, asset2, finding.OutcomeNegative),
 				// Release 4, Asset 1:
-				signedProbe(release3, asset0, finding.OutcomePositive),
-				provenanceProbe(release3, asset0, finding.OutcomePositive),
+				signedProbe(release3, asset0, finding.OutcomeTrue),
+				provenanceProbe(release3, asset0, finding.OutcomeTrue),
 				// Release 4, Asset 2:
 				signedProbe(release3, asset1, finding.OutcomeNegative),
 				provenanceProbe(release3, asset1, finding.OutcomeNegative),
@@ -245,7 +245,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release3, asset2, finding.OutcomeNegative),
 				provenanceProbe(release3, asset2, finding.OutcomeNegative),
 				// Release 5, Asset 1:
-				signedProbe(release4, asset0, finding.OutcomePositive),
+				signedProbe(release4, asset0, finding.OutcomeTrue),
 				provenanceProbe(release4, asset0, finding.OutcomeNegative),
 				// Release 5, Asset 2:
 				signedProbe(release4, asset1, finding.OutcomeNegative),
@@ -269,24 +269,24 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
-				signedProbe(release0, asset0, finding.OutcomePositive),
-				provenanceProbe(release0, asset0, finding.OutcomePositive),
+				signedProbe(release0, asset0, finding.OutcomeTrue),
+				provenanceProbe(release0, asset0, finding.OutcomeTrue),
 				// Release 2:
 				// Release 2, Asset 1:
-				signedProbe(release1, asset0, finding.OutcomePositive),
-				provenanceProbe(release1, asset0, finding.OutcomePositive),
+				signedProbe(release1, asset0, finding.OutcomeTrue),
+				provenanceProbe(release1, asset0, finding.OutcomeTrue),
 				// Release 3, Asset 1:
-				signedProbe(release2, asset0, finding.OutcomePositive),
-				provenanceProbe(release2, asset0, finding.OutcomePositive),
+				signedProbe(release2, asset0, finding.OutcomeTrue),
+				provenanceProbe(release2, asset0, finding.OutcomeTrue),
 				// Release 4, Asset 1:
-				signedProbe(release3, asset0, finding.OutcomePositive),
-				provenanceProbe(release3, asset0, finding.OutcomePositive),
+				signedProbe(release3, asset0, finding.OutcomeTrue),
+				provenanceProbe(release3, asset0, finding.OutcomeTrue),
 				// Release 5, Asset 1:
-				signedProbe(release4, asset0, finding.OutcomePositive),
-				provenanceProbe(release4, asset0, finding.OutcomePositive),
+				signedProbe(release4, asset0, finding.OutcomeTrue),
+				provenanceProbe(release4, asset0, finding.OutcomeTrue),
 				// Release 6, Asset 1:
-				signedProbe(release5, asset0, finding.OutcomePositive),
-				provenanceProbe(release5, asset0, finding.OutcomePositive),
+				signedProbe(release5, asset0, finding.OutcomeTrue),
+				provenanceProbe(release5, asset0, finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         checker.InconclusiveResultScore,

@@ -56,7 +56,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Workflows {
 		tool := string(r.Workflows[i].Type)
 		loc := r.Workflows[i].File.Location()
-		f, err := finding.NewWith(fs, Probe, "SAST configuration detected: "+tool, loc, finding.OutcomePositive)
+		f, err := finding.NewWith(fs, Probe, "SAST configuration detected: "+tool, loc, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

@@ -57,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if hook.UsesAuthSecret {
 			msg := "Webhook with token authorization found."
 			f, err := finding.NewWith(fs, Probe,
-				msg, nil, finding.OutcomePositive)
+				msg, nil, finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

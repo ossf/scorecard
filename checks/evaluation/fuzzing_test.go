@@ -95,7 +95,7 @@ func TestFuzzing(t *testing.T) {
 func fuzzTool(name string) finding.Finding {
 	return finding.Finding{
 		Probe:   fuzzed.Probe,
-		Outcome: finding.OutcomePositive,
+		Outcome: finding.OutcomeTrue,
 		Values: map[string]string{
 			fuzzed.ToolKey: name,
 		},

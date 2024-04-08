@@ -36,7 +36,7 @@ func DependencyUpdateTool(name string,
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			// Log all findings except the negative ones.
 			checker.LogFindings(nonNegativeFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "update tool detected")

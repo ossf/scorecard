@@ -42,7 +42,7 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			switch f.Probe {
 			case securityPolicyContainsVulnerabilityDisclosure.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
@@ -71,9 +71,9 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 	}
 
 	// Log all findings.
-	// NOTE: if the score is checker.MaxResultScore, then all findings are positive.
+	// NOTE: if the score is checker.MaxResultScore, then all findings are true.
 	// If the score is less than checker.MaxResultScore, some findings are negative,
-	// so we log both positive and negative findings.
+	// so we log both true and negative findings.
 	checker.LogFindings(findings, dl)
 
 	return checker.CreateResultWithScore(name, "security policy file detected", score)

@@ -63,7 +63,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case len(branch.BranchProtectionRule.CheckRules.Contexts) > 0:
 			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("status check found to merge onto on branch '%s'", *branch.Name), nil,
-				finding.OutcomePositive)
+				finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

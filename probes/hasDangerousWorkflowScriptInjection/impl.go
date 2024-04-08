@@ -72,16 +72,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		return positiveOutcome()
+		return trueOutcome()
 	}
 
 	return findings, Probe, nil
 }
 
-func positiveOutcome() ([]finding.Finding, string, error) {
+func trueOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project does not have dangerous workflow(s) with possibility of script injection.", nil,
-		finding.OutcomePositive)
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

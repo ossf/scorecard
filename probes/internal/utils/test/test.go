@@ -153,7 +153,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 	}

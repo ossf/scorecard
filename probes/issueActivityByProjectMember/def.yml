@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks whether collaborators, members or owners of a project have participated in issues in the last 90 days.
 outcome:
-  - If collaborators, members or owners have participated in issues in the last 90 days, the probe returns one OutcomePositive. The probe also returns a "numberOfIssuesUpdatedWithinThreshold" value with represents the number of issues on the repository which project collaborators, members or owners have shown activity in.
+  - If collaborators, members or owners have participated in issues in the last 90 days, the probe returns one OutcomeTrue. The probe also returns a "numberOfIssuesUpdatedWithinThreshold" value with represents the number of issues on the repository which project collaborators, members or owners have shown activity in.
   - If collaborators, members or owners have NOT participated in issues in the last 90 days, the probe returns a single OutcomeNegative.
 remediation:
   effort: High

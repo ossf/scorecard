@@ -16,7 +16,7 @@
             },
             "probe": "check for X",
             "message": "found X",
-            "outcome": "Positive"
+            "outcome": "True"
         },
         {
             "probe": "check for Y",

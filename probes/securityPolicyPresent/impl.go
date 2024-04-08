@@ -47,7 +47,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range files {
 		file := &files[i]
 		f, err := finding.NewWith(fs, Probe, "security policy file detected",
-			file.Location(), finding.OutcomePositive)
+			file.Location(), finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

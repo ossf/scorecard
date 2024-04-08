@@ -38,7 +38,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomeNegative,
@@ -75,10 +75,10 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -90,7 +90,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
 					Outcome: finding.OutcomeNegative,
@@ -121,7 +121,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -152,7 +152,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -237,7 +237,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

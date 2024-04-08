@@ -48,7 +48,7 @@ func TestBinaryArtifacts(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

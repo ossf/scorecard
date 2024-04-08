@@ -30,15 +30,15 @@ func TestLicense(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Positive outcome = Max Score",
+			name: "True outcome = Max Score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -66,7 +66,7 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
@@ -83,7 +83,7 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -95,7 +95,7 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",

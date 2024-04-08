@@ -39,7 +39,7 @@ func Fuzzing(name string,
 	// Compute the score.
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			// Log all findings except the negative ones.
 			checker.LogFindings(nonNegativeFindings(findings), dl)
 			return checker.CreateMaxScoreResult(name, "project is fuzzed")

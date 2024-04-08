@@ -78,7 +78,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 		case *p:
-			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomeTrue)
 		case !*p:
 			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
 		default:

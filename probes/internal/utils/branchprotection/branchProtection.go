@@ -30,7 +30,7 @@ func GetTextOutcomeFromBool(b *bool, rule, branchName string) (string, finding.O
 		return msg, finding.OutcomeNotAvailable, nil
 	case *b:
 		msg := fmt.Sprintf("'%s' is required to merge on branch '%s'", rule, branchName)
-		return msg, finding.OutcomePositive, nil
+		return msg, finding.OutcomeTrue, nil
 	case !*b:
 		msg := fmt.Sprintf("'%s' is disable on branch '%s'", rule, branchName)
 		return msg, finding.OutcomeNegative, nil

@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "1 branch requires up-to-date before merge = 1 positive outcome",
+			name: "1 branch requires up-to-date before merge = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -57,11 +57,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "2 branches require up-to-date before merge = 2 positive outcomes",
+			name: "2 branches require up-to-date before merge = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -85,11 +85,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Requires up to date branches on 1/2 branches = 1 positive and 1 negative outcomes",
+			name: "Requires up to date branches on 1/2 branches = 1 true and 1 negative outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -113,11 +113,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeNegative,
 			},
 		},
 		{
-			name: "Requires up to date branches on 1/2 branches = 1 negative and 1 positive outcomes",
+			name: "Requires up to date branches on 1/2 branches = 1 negative and 1 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -141,11 +141,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeNegative, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch does no require up-to-date before merge and 1 branch lacks data= 1 positive & 1 unavailable",
+			name: "1 branch does no require up-to-date before merge and 1 branch lacks data= 1 true & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{

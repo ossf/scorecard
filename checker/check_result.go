@@ -252,7 +252,7 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 			dl.Warn(&LogMessage{
 				Finding: f,
 			})
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
 			dl.Info(&LogMessage{
 				Finding: f,
 			})

@@ -23,7 +23,7 @@ implementation: >
   Commits are grouped by the changeset they were introduced in, and each changesets must have at least one approval.
   Reviewed, bot authored changesets (e.g. dependabot) are not counted.
 outcome:
-  - If all commits were approved, the probe returns OutcomePositive
+  - If all commits were approved, the probe returns OutcomeTrue
   - If any commits were not approved, the probe returns OutcomeNegative
   - If there are no changes, the probe returns OutcomeNotApplicable
 remediation:

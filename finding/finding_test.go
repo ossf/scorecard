@@ -35,7 +35,7 @@ func Test_FromBytes(t *testing.T) {
 	patch := "some patch values"
 	sline := uint(10)
 	eline := uint(46)
-	positiveOutcome := OutcomePositive
+	trueOutcome := OutcomeTrue
 	negativeOutcome := OutcomeNegative
 	t.Parallel()
 	tests := []struct {
@@ -151,13 +151,13 @@ func Test_FromBytes(t *testing.T) {
 			},
 		},
 		{
-			name:    "positive outcome",
+			name:    "true outcome",
 			id:      "metadata-variables",
 			path:    "testdata/metadata-variables.yml",
-			outcome: &positiveOutcome,
+			outcome: &trueOutcome,
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomePositive,
+				Outcome: OutcomeTrue,
 				Message: "some text",
 			},
 		},
@@ -211,12 +211,12 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "positive outcome",
-			wantOutcome: OutcomePositive,
+			name:        "true outcome",
+			wantOutcome: OutcomeTrue,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
-					Value: "Positive",
+					Value: "True",
 				},
 			},
 			wantErr: false,

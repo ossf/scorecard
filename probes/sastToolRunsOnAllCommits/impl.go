@@ -50,7 +50,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		"", nil,
-		finding.OutcomePositive)
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
@@ -76,7 +76,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	if totalPullRequestsAnalyzed == totalPullRequestsMerged {
 		msg := fmt.Sprintf("all commits (%v) are checked with a SAST tool", totalPullRequestsMerged)
-		f = f.WithOutcome(finding.OutcomePositive).WithMessage(msg)
+		f = f.WithOutcome(finding.OutcomeTrue).WithMessage(msg)
 	} else {
 		msg := fmt.Sprintf("%v commits out of %v are checked with a SAST tool",
 			totalPullRequestsAnalyzed, totalPullRequestsMerged)

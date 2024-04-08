@@ -42,7 +42,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "1 branch enforces protection rules on admins = 1 positive outcome",
+			name: "1 branch enforces protection rules on admins = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -56,11 +56,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch enforces protection rules on admins = 2 positive outcomes",
+			name: "1 branch enforces protection rules on admins = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -80,11 +80,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 positive & 1 negative",
+			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 true & 1 negative",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -104,11 +104,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeNegative,
 			},
 		},
 		{
-			name: "1 branch does not enforce protection rules on admins and 1 does = 1 negative & 1 positive",
+			name: "1 branch does not enforce protection rules on admins and 1 does = 1 negative & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -128,7 +128,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeNegative, finding.OutcomeTrue,
 			},
 		},
 		{

@@ -266,7 +266,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -299,7 +299,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{

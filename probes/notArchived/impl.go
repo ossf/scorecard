@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if r.ArchivedStatus.Status {
 		return negativeOutcome()
 	}
-	return positiveOutcome()
+	return trueOutcome()
 }
 
 func negativeOutcome() ([]finding.Finding, string, error) {
@@ -57,10 +57,10 @@ func negativeOutcome() ([]finding.Finding, string, error) {
 	return []finding.Finding{*f}, Probe, nil
 }
 
-func positiveOutcome() ([]finding.Finding, string, error) {
+func trueOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Repository is not archived.", nil,
-		finding.OutcomePositive)
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

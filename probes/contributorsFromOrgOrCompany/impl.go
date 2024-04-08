@@ -90,7 +90,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for e := range entities {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("%s contributor org/company found", e), nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

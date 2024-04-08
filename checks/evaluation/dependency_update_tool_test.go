@@ -93,7 +93,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 func depUpdateTool(name string) finding.Finding {
 	return finding.Finding{
 		Probe:   dependencyUpdateToolConfigured.Probe,
-		Outcome: finding.OutcomePositive,
+		Outcome: finding.OutcomeTrue,
 		Values: map[string]string{
 			dependencyUpdateToolConfigured.ToolKey: name,
 		},

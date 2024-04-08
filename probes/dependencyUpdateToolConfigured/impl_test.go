@@ -52,7 +52,7 @@ func TestRun(t *testing.T) {
 			},
 		},
 		{
-			name: "one update tool is a positive outcomes",
+			name: "one update tool is a true outcomes",
 			raw: &checker.RawResults{
 				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
 					Tools: []checker.Tool{
@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 	}
@@ -112,7 +112,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "detected update tool: Dependabot",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: "Dependabot",
 					},
@@ -138,7 +138,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "detected update tool: some update tool",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: "some update tool",
 					},

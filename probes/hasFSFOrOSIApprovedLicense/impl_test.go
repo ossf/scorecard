@@ -36,7 +36,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "License file found and is approved: outcome should be positive",
+			name: "License file found and is approved: outcome should be true",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
@@ -52,7 +52,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{

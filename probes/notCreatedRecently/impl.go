@@ -57,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		outcome = finding.OutcomeNegative
 	} else {
 		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
-		outcome = finding.OutcomePositive
+		outcome = finding.OutcomeTrue
 	}
 	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {

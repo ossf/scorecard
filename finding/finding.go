@@ -66,8 +66,8 @@ const (
 	// OutcomeError indicates an errors while running.
 	// The results could not be determined.
 	OutcomeError Outcome = "Error"
-	// OutcomePositive indicates a positive outcome.
-	OutcomePositive Outcome = "Positive"
+	// OutcomeTrue indicates the answer to the probe's question is "true" or "yes"..
+	OutcomeTrue Outcome = "True"
 	// OutcomeNotSupported indicates a non-supported outcome.
 	OutcomeNotSupported Outcome = "NotSupported"
 	// OutcomeNotApplicable indicates if a finding should not
@@ -148,10 +148,10 @@ func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desired location.
-func NewPositive(efs embed.FS, probeID, text string, loc *Location,
+// NewTrue create a true finding with the desired location.
+func NewTrue(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	return NewWith(efs, probeID, text, loc, OutcomePositive)
+	return NewWith(efs, probeID, text, loc, OutcomeTrue)
 }
 
 // Anonymize removes the probe ID and outcome
@@ -222,7 +222,7 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 // WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Positive is not negative, remove the remediation.
+	// True is not negative, remove the remediation.
 	if o != OutcomeNegative {
 		f.Remediation = nil
 	}
@@ -267,8 +267,8 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 	switch n.Value {
 	case "Negative":
 		*o = OutcomeNegative
-	case "Positive":
-		*o = OutcomePositive
+	case "True":
+		*o = OutcomeTrue
 	case "NotAvailable":
 		*o = OutcomeNotAvailable
 	case "NotSupported":
