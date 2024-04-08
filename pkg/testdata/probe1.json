@@ -16,12 +16,12 @@
             },
             "probe": "check for X",
             "message": "found X",
-            "outcome": 12
+            "outcome": "Positive"
         },
         {
             "probe": "check for Y",
             "message": "did not find Y",
-            "outcome": 0
+            "outcome": "Negative"
         }
     ]
 }

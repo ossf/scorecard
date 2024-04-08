@@ -54,43 +54,25 @@ type Location struct {
 }
 
 // Outcome is the result of a finding.
-type Outcome int
+type Outcome string
 
 // TODO(#2928): re-visit the finding definitions.
 const (
-	// NOTE: The additional '_' are intended for future use.
-	// This allows adding outcomes without breaking the values
-	// of existing outcomes.
 	// OutcomeNegative indicates a negative outcome.
-	OutcomeNegative Outcome = iota
-	_
-	_
-	_
+	OutcomeNegative Outcome = "Negative"
 	// OutcomeNotAvailable indicates an unavailable outcome,
 	// typically because an API call did not return an answer.
-	OutcomeNotAvailable
-	_
-	_
-	_
+	OutcomeNotAvailable Outcome = "NotAvailable"
 	// OutcomeError indicates an errors while running.
 	// The results could not be determined.
-	OutcomeError
-	_
-	_
-	_
+	OutcomeError Outcome = "Error"
 	// OutcomePositive indicates a positive outcome.
-	OutcomePositive
-	_
-	_
-	_
+	OutcomePositive Outcome = "Positive"
 	// OutcomeNotSupported indicates a non-supported outcome.
-	OutcomeNotSupported
-	_
-	_
-	_
+	OutcomeNotSupported Outcome = "NotSupported"
 	// OutcomeNotApplicable indicates if a finding should not
 	// be considered in evaluation.
-	OutcomeNotApplicable
+	OutcomeNotApplicable Outcome = "NotApplicable"
 )
 
 // Finding represents a finding.
