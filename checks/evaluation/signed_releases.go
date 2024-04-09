@@ -73,8 +73,8 @@ func SignedReleases(name string,
 	totalTrue := 0
 	releaseMap := make(map[string]int)
 	uniqueReleaseTags := make([]string, 0)
-	checker.LogFindings(findings, dl)
 
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
 
@@ -86,9 +86,10 @@ func SignedReleases(name string,
 			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
 		}
 
-		if f.Outcome == finding.OutcomeTrue {
+		switch f.Outcome {
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
 			totalTrue++
-
 			switch f.Probe {
 			case releasesAreSigned.Probe:
 				if _, ok := releaseMap[releaseName]; !ok {
@@ -97,7 +98,12 @@ func SignedReleases(name string,
 			case releasesHaveProvenance.Probe:
 				releaseMap[releaseName] = 10
 			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 
 	if totalTrue == 0 {
