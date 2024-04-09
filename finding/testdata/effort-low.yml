@@ -6,6 +6,7 @@ motivation: >
 implementation: >
   line1
   line2
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

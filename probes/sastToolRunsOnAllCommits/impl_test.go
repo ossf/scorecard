@@ -112,8 +112,9 @@ func Test_Run(t *testing.T) {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 			test.AssertOutcomes(t, findings, tt.outcomes)
-			if !cmp.Equal(tt.expectedFindings, findings, cmpopts.EquateErrors()) {
-				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors()))
+			diff := cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors(), cmpopts.IgnoreUnexported(finding.Finding{}))
+			if diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

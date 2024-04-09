@@ -81,6 +81,9 @@ type Finding struct {
 	Probe       string            `json:"probe"`
 	Message     string            `json:"message"`
 	Outcome     Outcome           `json:"outcome"`
+
+	// Expected bad outcome, used to determine if Remediation should be set
+	badOutcome Outcome
 }
 
 // AnonymousFinding is a finding without a corresponding probe ID.
@@ -101,6 +104,7 @@ func FromBytes(content []byte, probeID string) (*Finding, error) {
 		Probe:       p.ID,
 		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
@@ -116,6 +120,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 		Probe:       p.ID,
 		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
@@ -216,12 +221,10 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 
 // WithOutcome adds an outcome to an existing finding.
 // No copy is made.
-// WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Currently only false probes have remediations.
-	// TODO(#3654) this is a temporary mechanical conversion.
-	if o != OutcomeFalse {
+	// only bad outcomes need remediation, clear if unneeded
+	if o != f.badOutcome {
 		f.Remediation = nil
 	}
 

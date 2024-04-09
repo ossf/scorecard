@@ -46,6 +46,7 @@ func Test_probeFromBytes(t *testing.T) {
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
 					Effort:   RemediationEffortLow,
 				},
+				RemediateOnOutcome: OutcomeFalse,
 			},
 		},
 		{

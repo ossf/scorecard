@@ -190,7 +190,7 @@ func Test_FromBytes(t *testing.T) {
 			if tt.outcome != nil {
 				r = r.WithOutcome(*tt.outcome)
 			}
-			if diff := cmp.Diff(*tt.finding, *r); diff != "" {
+			if diff := cmp.Diff(*tt.finding, *r, cmpopts.IgnoreUnexported(Finding{})); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})

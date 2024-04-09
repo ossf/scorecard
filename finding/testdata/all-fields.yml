@@ -6,6 +6,7 @@ motivation: >
 implementation: >
   impl1
   impl2
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

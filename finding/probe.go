@@ -68,21 +68,23 @@ var supportedClients = map[string]bool{
 }
 
 type yamlProbe struct {
-	ID             string          `yaml:"id"`
-	Short          string          `yaml:"short"`
-	Motivation     string          `yaml:"motivation"`
-	Implementation string          `yaml:"implementation"`
-	Ecosystem      yamlEcosystem   `yaml:"ecosystem"`
-	Remediation    yamlRemediation `yaml:"remediation"`
+	ID                 string          `yaml:"id"`
+	Short              string          `yaml:"short"`
+	Motivation         string          `yaml:"motivation"`
+	Implementation     string          `yaml:"implementation"`
+	Ecosystem          yamlEcosystem   `yaml:"ecosystem"`
+	Remediation        yamlRemediation `yaml:"remediation"`
+	RemediateOnOutcome Outcome         `yaml:"remediateOnOutcome"`
 }
 
 //nolint:govet
 type Probe struct {
-	ID             string
-	Short          string
-	Motivation     string
-	Implementation string
-	Remediation    *Remediation
+	ID                 string
+	Short              string
+	Motivation         string
+	Implementation     string
+	Remediation        *Remediation
+	RemediateOnOutcome Outcome
 }
 
 func probeFromBytes(content []byte, probeID string) (*Probe, error) {
@@ -105,6 +107,7 @@ func probeFromBytes(content []byte, probeID string) (*Probe, error) {
 			Markdown: strings.Join(r.Remediation.Markdown, "\n"),
 			Effort:   r.Remediation.Effort,
 		},
+		RemediateOnOutcome: r.RemediateOnOutcome,
 	}, nil
 }
 
@@ -125,6 +128,9 @@ func validate(r *yamlProbe, probeID string) error {
 		return err
 	}
 	if err := validateEcosystem(r.Ecosystem); err != nil {
+		return err
+	}
+	if err := validateBadOutcome(r.RemediateOnOutcome); err != nil {
 		return err
 	}
 	return nil
@@ -155,6 +161,15 @@ func validateEcosystem(r yamlEcosystem) error {
 		return err
 	}
 	return nil
+}
+
+func validateBadOutcome(o Outcome) error {
+	switch o {
+	case OutcomeTrue, OutcomeFalse, OutcomeNotApplicable, OutcomeNotAvailable, OutcomeNotSupported, OutcomeError:
+		return nil
+	default:
+		return fmt.Errorf("%w: unknown outcome: %v", errInvalid, o)
+	}
 }
 
 func validateSupportedLanguages(r yamlEcosystem) error {
@@ -189,7 +204,7 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errInvalid, err)
+		return nil, fmt.Errorf("unable to parse yaml: %w", err)
 	}
 	return &r, nil
 }

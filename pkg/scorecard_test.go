@@ -320,9 +320,10 @@ func TestExperimentalRunProbes(t *testing.T) {
 			}
 			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")
 			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
-			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText) {
+			ignoreUnexported := cmpopts.IgnoreUnexported(finding.Finding{})
+			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText, ignoreUnexported) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
-					ignoreRemediationText))
+					ignoreRemediationText, ignoreUnexported))
 			}
 		})
 	}
