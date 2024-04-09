@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package probe
+package finding
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -24,8 +23,6 @@ import (
 
 	"github.com/ossf/scorecard/v4/clients"
 )
-
-var errInvalid = errors.New("invalid")
 
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
@@ -88,8 +85,7 @@ type Probe struct {
 	Remediation    *Remediation
 }
 
-// FromBytes creates a probe from a file.
-func FromBytes(content []byte, probeID string) (*Probe, error) {
+func probeFromBytes(content []byte, probeID string) (*Probe, error) {
 	r, err := parseFromYAML(content)
 	if err != nil {
 		return nil, err
@@ -113,12 +109,12 @@ func FromBytes(content []byte, probeID string) (*Probe, error) {
 }
 
 // New create a new probe.
-func New(loc embed.FS, probeID string) (*Probe, error) {
+func NewProbe(loc embed.FS, probeID string) (*Probe, error) {
 	content, err := loc.ReadFile("def.yml")
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
-	return FromBytes(content, probeID)
+	return probeFromBytes(content, probeID)
 }
 
 func validate(r *yamlProbe, probeID string) error {

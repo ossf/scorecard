@@ -22,8 +22,6 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-
-	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 // FileType is the type of a file.
@@ -77,12 +75,12 @@ const (
 
 // Finding represents a finding.
 type Finding struct {
-	Location    *Location          `json:"location,omitempty"`
-	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]string  `json:"values,omitempty"`
-	Probe       string             `json:"probe"`
-	Message     string             `json:"message"`
-	Outcome     Outcome            `json:"outcome"`
+	Location    *Location         `json:"location,omitempty"`
+	Remediation *Remediation      `json:"remediation,omitempty"`
+	Values      map[string]string `json:"values,omitempty"`
+	Probe       string            `json:"probe"`
+	Message     string            `json:"message"`
+	Outcome     Outcome           `json:"outcome"`
 }
 
 // AnonymousFinding is a finding without a corresponding probe ID.
@@ -95,9 +93,8 @@ var errInvalid = errors.New("invalid")
 
 // FromBytes creates a finding for a probe given its config file's content.
 func FromBytes(content []byte, probeID string) (*Finding, error) {
-	p, err := probe.FromBytes(content, probeID)
+	p, err := probeFromBytes(content, probeID)
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{
@@ -110,9 +107,9 @@ func FromBytes(content []byte, probeID string) (*Finding, error) {
 
 // New creates a new finding.
 func New(loc embed.FS, probeID string) (*Finding, error) {
-	p, err := probe.New(loc, probeID)
+	p, err := NewProbe(loc, probeID)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
 	}
 
 	f := &Finding{

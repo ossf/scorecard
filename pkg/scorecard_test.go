@@ -26,7 +26,6 @@ import (
 	"github.com/ossf/scorecard/v4/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/probes/fuzzed"
 )
@@ -237,8 +236,8 @@ func TestExperimentalRunProbes(t *testing.T) {
 						Probe:   fuzzed.Probe,
 						Outcome: finding.OutcomeFalse,
 						Message: "no fuzzer integrations found",
-						Remediation: &probe.Remediation{
-							Effort: probe.RemediationEffortHigh,
+						Remediation: &finding.Remediation{
+							Effort: finding.RemediationEffortHigh,
 						},
 					},
 				},
@@ -319,7 +318,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			ignoreRemediationText := cmpopts.IgnoreFields(probe.Remediation{}, "Text", "Markdown")
+			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")
 			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
 			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
