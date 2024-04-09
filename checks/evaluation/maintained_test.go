@@ -65,9 +65,11 @@ func TestMaintained(t *testing.T) {
 				{
 					Probe:   hasRecentCommits.Probe,
 					Outcome: finding.OutcomeFalse,
+					Message: "no recent commits",
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeFalse,
+					Message: "no recent issues",
 				}, {
 					Probe:   notArchived.Probe,
 					Outcome: finding.OutcomeTrue,
@@ -77,7 +79,8 @@ func TestMaintained(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfWarn: 2,
 			},
 		},
 		{
