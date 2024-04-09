@@ -18,18 +18,6 @@ import (
 	"github.com/ossf/scorecard/v4/finding"
 )
 
-func nonFalseFindings(findings []finding.Finding) []finding.Finding {
-	var ff []finding.Finding
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomeFalse {
-			continue
-		}
-		ff = append(ff, *f)
-	}
-	return ff
-}
-
 func falseFindings(findings []finding.Finding) []finding.Finding {
 	var ff []finding.Finding
 	for i := range findings {
