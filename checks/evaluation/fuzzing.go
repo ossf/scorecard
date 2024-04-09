@@ -36,16 +36,25 @@ func Fuzzing(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	var fuzzerDetected bool
 	// Compute the score.
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeTrue {
-			// Log all findings except the false ones.
-			checker.LogFindings(nonFalseFindings(findings), dl)
-			return checker.CreateMaxScoreResult(name, "project is fuzzed")
+		var logLevel checker.DetailType
+		switch f.Outcome {
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		case finding.OutcomeTrue:
+			fuzzerDetected = true
+			logLevel = checker.DetailInfo
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
-	// Log all findings.
-	checker.LogFindings(findings, dl)
+
+	if fuzzerDetected {
+		return checker.CreateMaxScoreResult(name, "project is fuzzed")
+	}
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }

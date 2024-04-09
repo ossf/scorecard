@@ -40,21 +40,22 @@ func Packaging(name string,
 	// we return max score if the outcome is true and lowest score if
 	// the outcome is false.
 	maxScore := false
-	for _, f := range findings {
-		f := f
-		if f.Outcome == finding.OutcomeTrue {
+	for i := range findings {
+		f := &findings[i]
+		var logLevel checker.DetailType
+		switch f.Outcome {
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		case finding.OutcomeTrue:
 			maxScore = true
-			// Log all findings except the false ones.
-			dl.Info(&checker.LogMessage{
-				Finding: &f,
-			})
+			logLevel = checker.DetailInfo
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 	if maxScore {
 		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
 	}
-
-	checker.LogFindings(falseFindings(findings), dl)
-	return checker.CreateInconclusiveResult(name,
-		"packaging workflow not detected")
+	return checker.CreateInconclusiveResult(name, "packaging workflow not detected")
 }

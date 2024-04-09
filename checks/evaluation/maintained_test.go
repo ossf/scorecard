@@ -121,7 +121,7 @@ func TestMaintained(t *testing.T) {
 			},
 			result: scut.TestReturn{
 				Score:        0,
-				NumberOfWarn: 3,
+				NumberOfWarn: 1,
 			},
 		},
 	}

@@ -127,8 +127,10 @@ func TestSecurityPolicy(t *testing.T) {
 				},
 			},
 			result: scut.TestReturn{
-				Score: checker.InconclusiveResultScore,
-				Error: sce.ErrScorecardInternal,
+				Score:        checker.InconclusiveResultScore,
+				Error:        sce.ErrScorecardInternal,
+				NumberOfWarn: 1,
+				NumberOfInfo: 3,
 			},
 		},
 		{
