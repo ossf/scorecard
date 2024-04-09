@@ -22,6 +22,7 @@ outcome:
   - For each of the last 5 releases, the probe returns OutcomeTrue, if the release has a signature file in the release assets.
   - For each of the last 5 releases, the probe returns OutcomeFalse, if the release does not have a signature file in the release assets.
   - If the project has no releases, the probe returns OutcomeNotApplicable.
+remediateOnOutcome: False
 remediation:
   effort: Medium
   text:

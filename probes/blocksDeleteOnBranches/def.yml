@@ -20,6 +20,7 @@ implementation: >
   Checks the protection rules of default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that is disallowed from users deleting it, and one OutcomeFalse for branches where users are able to delete it. Scorecard only considers default and releases branches.
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

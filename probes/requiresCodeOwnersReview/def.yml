@@ -20,6 +20,7 @@ implementation: >
   The probe checks which branches require code owner reviews. The probe only considers default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires code owner review for PRs, and one OutcomeFalse for branches that don't.
+remediateOnOutcome: False
 remediation:
   effort: High
   text:

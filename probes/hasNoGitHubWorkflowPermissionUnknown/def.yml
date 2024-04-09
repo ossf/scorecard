@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - The probe returns 1 false outcome per workflow without unknown permission level(s).
   - The probe returns 1 true outcome if the project has no workflows with unknown permission levels.
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

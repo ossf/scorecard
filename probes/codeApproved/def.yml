@@ -26,6 +26,7 @@ outcome:
   - If all commits were approved, the probe returns OutcomeTrue
   - If any commits were not approved, the probe returns OutcomeFalse
   - If there are no changes, the probe returns OutcomeNotApplicable
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

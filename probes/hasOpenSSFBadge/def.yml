@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - If the project has a badge, the probe returns one OutcomeTrue (1). The finding includes an entry in the `Values` map with the key describing the badge level.
   - If the project does not have a badge, the probe returns one OutcomeFalse (0).
+remediateOnOutcome: False
 remediation:
   effort: High
   text:

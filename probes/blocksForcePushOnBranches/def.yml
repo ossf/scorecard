@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - The probe returns one OutcomeTrue for each branch that is blocked from force pushes, and one OutcomeFalse for branches that allows force push.
   - Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
+remediateOnOutcome: False
 remediation:
   effort: Low
   text:

@@ -20,6 +20,7 @@ implementation: >
   Checks the protection rules of default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that enforces branch protection rules on admins, and one OutcomeFalse for branches that don't.
+remediateOnOutcome: False
 remediation:
   effort: Medium
   text:

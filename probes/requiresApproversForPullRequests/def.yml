@@ -20,6 +20,7 @@ implementation: >
   The probe checks the number of required approvers in default and release branches of the project.
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires approval for PRs, and one OutcomeFalse for branches that don't.
+remediateOnOutcome: False
 remediation:
   effort: High
   text:
