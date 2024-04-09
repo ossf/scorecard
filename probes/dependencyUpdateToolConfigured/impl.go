@@ -1,4 +1,4 @@
-// Copyright 2023 OpenSSF Scorecard Authors
+// Copyright 2024 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package toolRenovateInstalled
+package dependencyUpdateToolConfigured
 
 import (
 	"embed"
@@ -22,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/internal/probes"
-	tls "github.com/ossf/scorecard/v4/probes/internal/utils/tools"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
@@ -33,31 +32,41 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "toolRenovateInstalled"
-
-type renovate struct{}
-
-func (t renovate) Name() string {
-	return "RenovateBot"
-}
-
-func (t renovate) Matches(tool *checker.Tool) bool {
-	return t.Name() == tool.Name
-}
+const (
+	Probe   = "dependencyUpdateToolConfigured"
+	ToolKey = "tool"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
-		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+		return nil, Probe, fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
+
 	tools := raw.DependencyUpdateToolResults.Tools
-	var matcher renovate
-	// Check whether Renovate tool is installed on the repo,
-	// and create the corresponding findings.
-	//nolint:wrapcheck
-	return tls.Run(tools, fs, Probe,
-		// Tool found will generate a positive result.
-		finding.OutcomePositive,
-		// Tool not found will generate a negative result.
-		finding.OutcomeNegative,
-		matcher)
+	if len(tools) == 0 {
+		f, err := finding.NewFalse(fs, Probe, "no dependency update tool configurations found", nil)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
+	var findings []finding.Finding
+	for i := range tools {
+		tool := &tools[i]
+
+		var loc *finding.Location
+		if len(tool.Files) > 0 {
+			loc = tool.Files[0].Location()
+		}
+
+		f, err := finding.NewTrue(fs, Probe, "detected update tool: "+tool.Name, loc)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValue(ToolKey, tool.Name)
+		findings = append(findings, *f)
+	}
+
+	return findings, Probe, nil
 }

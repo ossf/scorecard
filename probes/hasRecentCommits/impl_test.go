@@ -67,7 +67,7 @@ func Test_Run(t *testing.T) {
 					Issues: []clients.Issue{},
 				},
 			},
-			outcomes: []finding.Outcome{finding.OutcomeNegative},
+			outcomes: []finding.Outcome{finding.OutcomeFalse},
 		},
 		{
 			name: "Has five commits in threshold",
@@ -80,7 +80,7 @@ func Test_Run(t *testing.T) {
 				NumCommitsKey:  "5",
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
-			outcomes: []finding.Outcome{finding.OutcomePositive},
+			outcomes: []finding.Outcome{finding.OutcomeTrue},
 		},
 		{
 			name: "Has twenty in threshold",
@@ -93,7 +93,7 @@ func Test_Run(t *testing.T) {
 				NumCommitsKey:  "20",
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 			},
-			outcomes: []finding.Outcome{finding.OutcomePositive},
+			outcomes: []finding.Outcome{finding.OutcomeTrue},
 		},
 	}
 	for _, tt := range tests {

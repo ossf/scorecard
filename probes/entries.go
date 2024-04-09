@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
@@ -57,9 +58,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v4/probes/testsRunInCI"
-	"github.com/ossf/scorecard/v4/probes/toolDependabotInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolPyUpInstalled"
-	"github.com/ossf/scorecard/v4/probes/toolRenovateInstalled"
 	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
 )
@@ -81,9 +79,7 @@ var (
 	// DependencyToolUpdates is all the probes for the
 	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
-		toolRenovateInstalled.Run,
-		toolDependabotInstalled.Run,
-		toolPyUpInstalled.Run,
+		dependencyUpdateToolConfigured.Run,
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzed.Run,

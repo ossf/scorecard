@@ -35,8 +35,8 @@ func Test_FromBytes(t *testing.T) {
 	patch := "some patch values"
 	sline := uint(10)
 	eline := uint(46)
-	positiveOutcome := OutcomePositive
-	negativeOutcome := OutcomeNegative
+	trueOutcome := OutcomeTrue
+	falseOutcome := OutcomeFalse
 	t.Parallel()
 	tests := []struct {
 		err      error
@@ -51,10 +51,10 @@ func Test_FromBytes(t *testing.T) {
 			name:    "effort low",
 			id:      "effort-low",
 			path:    "testdata/effort-low.yml",
-			outcome: &negativeOutcome,
+			outcome: &falseOutcome,
 			finding: &Finding{
 				Probe:   "effort-low",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
@@ -66,10 +66,10 @@ func Test_FromBytes(t *testing.T) {
 			name:    "effort high",
 			id:      "effort-high",
 			path:    "testdata/effort-high.yml",
-			outcome: &negativeOutcome,
+			outcome: &falseOutcome,
 			finding: &Finding{
 				Probe:   "effort-high",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
@@ -81,11 +81,11 @@ func Test_FromBytes(t *testing.T) {
 			name:     "env variables",
 			id:       "metadata-variables",
 			path:     "testdata/metadata-variables.yml",
-			outcome:  &negativeOutcome,
+			outcome:  &falseOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -97,11 +97,11 @@ func Test_FromBytes(t *testing.T) {
 			name:     "patch",
 			id:       "metadata-variables",
 			path:     "testdata/metadata-variables.yml",
-			outcome:  &negativeOutcome,
+			outcome:  &falseOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -114,11 +114,11 @@ func Test_FromBytes(t *testing.T) {
 			name:     "location",
 			id:       "metadata-variables",
 			path:     "testdata/metadata-variables.yml",
-			outcome:  &negativeOutcome,
+			outcome:  &falseOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -137,11 +137,11 @@ func Test_FromBytes(t *testing.T) {
 			name:     "text",
 			id:       "metadata-variables",
 			path:     "testdata/metadata-variables.yml",
-			outcome:  &negativeOutcome,
+			outcome:  &falseOutcome,
 			metadata: map[string]string{"branch": "master", "repo": "ossf/scorecard"},
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomeNegative,
+				Outcome: OutcomeFalse,
 				Remediation: &probe.Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
@@ -151,13 +151,13 @@ func Test_FromBytes(t *testing.T) {
 			},
 		},
 		{
-			name:    "positive outcome",
+			name:    "true outcome",
 			id:      "metadata-variables",
 			path:    "testdata/metadata-variables.yml",
-			outcome: &positiveOutcome,
+			outcome: &trueOutcome,
 			finding: &Finding{
 				Probe:   "metadata-variables",
-				Outcome: OutcomePositive,
+				Outcome: OutcomeTrue,
 				Message: "some text",
 			},
 		},
@@ -211,23 +211,23 @@ func TestOutcome_UnmarshalYAML(t *testing.T) {
 		wantErr     bool
 	}{
 		{
-			name:        "positive outcome",
-			wantOutcome: OutcomePositive,
+			name:        "true outcome",
+			wantOutcome: OutcomeTrue,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
-					Value: "Positive",
+					Value: "True",
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name:        "negative outcome",
-			wantOutcome: OutcomeNegative,
+			name:        "false outcome",
+			wantOutcome: OutcomeFalse,
 			args: args{
 				n: &yaml.Node{
 					Kind:  yaml.ScalarNode,
-					Value: "Negative",
+					Value: "False",
 				},
 			},
 			wantErr: false,

@@ -37,22 +37,22 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasRecentCommits.NumCommitsKey: "2",
 					},
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						issueActivityByProjectMember.NumIssuesKey: "1",
 					},
 				}, {
 					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -64,16 +64,16 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -85,16 +85,16 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   "archvied", /*misspelling*/
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -107,16 +107,16 @@ func TestMaintained(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   hasRecentCommits.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   issueActivityByProjectMember.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

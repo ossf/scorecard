@@ -19,9 +19,9 @@ motivation: >
 implementation: >
   The probe works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows which are used during the build and release process of a project. Special considerations for Go modules treat full semantic versions as pinned due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
 outcome:
-  - For each of the last 5 releases, the probe returns OutcomePositive, if the release has a signature file in the release assets.
-  - For each of the last 5 releases, the probe returns OutcomeNegative, if the release does not have a signature file in the release assets.
-  - If the project has no releases, the probe returns OutcomeNotApplicable.
+  - For supported ecosystem, the probe returns OutcomeTrue per pinned dependency.
+  - For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
+  - If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 remediation:
   effort: Medium
   text:

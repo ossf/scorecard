@@ -19,7 +19,7 @@ motivation: >
 implementation: >
   The probe checks the rules for default and release branches in the projects repository.
 outcome:
-  - The probe returns one OutcomePositive for each branch that runs required status checks, and one OutcomeNegative for branches that don't.
+  - The probe returns one OutcomeTrue for each branch that runs required status checks, and one OutcomeFalse for branches that don't.
 remediation:
   effort: Medium
   text:

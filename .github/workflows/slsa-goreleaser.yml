@@ -19,7 +19,7 @@ jobs:
       go-binary-name: ${{ steps.build.outputs.go-binary-name }}
     steps:
       - id: checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
         with:
           fetch-depth: 0
       - id: ldflags
@@ -32,7 +32,7 @@ jobs:
       contents: write
       actions: read
     needs: args
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.9.0 #7f4fdb871876c23e455853d694197440c5a91506
+    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v1.10.0 #7f4fdb871876c23e455853d694197440c5a91506
     with:
       go-version: ${{ env.GO_VERSION }}
       evaluated-envs: "VERSION_LDFLAGS:${{needs.args.outputs.ldflags}}"
@@ -44,7 +44,7 @@ jobs:
     permissions: read-all
     steps:
       - name: Install the verifier
-        uses: slsa-framework/slsa-verifier/actions/installer@v2.4.1
+        uses: slsa-framework/slsa-verifier/actions/installer@v2.5.1
 
       - name: Download the artifact
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4

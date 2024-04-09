@@ -43,7 +43,7 @@ func License(name string,
 	m := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			switch f.Probe {
 			case hasFSFOrOSIApprovedLicense.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)

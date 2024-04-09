@@ -72,7 +72,7 @@ func Test_Run(t *testing.T) {
 			},
 			findings: []*finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    Probe,
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
@@ -107,7 +107,7 @@ func Test_Run(t *testing.T) {
 			},
 			findings: []*finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    Probe,
 					Message:  "CI test found: pr: HeadSHA, context: CI-Tests",
 					Location: &finding.Location{Type: 4},

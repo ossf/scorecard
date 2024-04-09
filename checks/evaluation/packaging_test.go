@@ -30,11 +30,11 @@ func TestPackaging(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "test positive outcome",
+			name: "test true outcome",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -43,11 +43,11 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test positive outcome with wrong probes",
+			name: "test true outcome with wrong probes",
 			findings: []finding.Finding{
 				{
 					Probe:   "wrongProbe",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -60,7 +60,7 @@ func TestPackaging(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -69,11 +69,11 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test negative outcome with wrong probes",
+			name: "test false outcome with wrong probes",
 			findings: []finding.Finding{
 				{
 					Probe:   "wrongProbe",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

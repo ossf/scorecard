@@ -55,7 +55,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 
 		// Create finding
-		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
+		f, err := permissions.CreateFalseFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -65,7 +65,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"no workflows with unknown permissions",
-			nil, finding.OutcomePositive)
+			nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

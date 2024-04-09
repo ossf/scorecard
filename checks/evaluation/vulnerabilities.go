@@ -37,7 +37,7 @@ func Vulnerabilities(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	vulnsFound := negativeFindings(findings)
+	vulnsFound := falseFindings(findings)
 	numVulnsFound := len(vulnsFound)
 	checker.LogFindings(vulnsFound, dl)
 

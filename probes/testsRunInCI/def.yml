@@ -19,7 +19,7 @@ motivation: >
 implementation: >
  The probe checks for tests in the projects CI jobs in the recent commits (~30).
 outcome:
-  - The probe returns one OutcomePositive for each PR that ran CI tests and one OutcomeNegative for each PR that did not run CI tests.
+  - The probe returns one OutcomeTrue for each PR that ran CI tests and one OutcomeFalse for each PR that did not run CI tests.
   - The probe returns a single OutcomeNotApplicable if the projects has had no pull requests.
 remediation:
   effort: Medium

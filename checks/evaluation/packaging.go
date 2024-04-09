@@ -36,15 +36,15 @@ func Packaging(name string,
 	}
 
 	// Currently there is only a single packaging probe that returns
-	// a single positive or negative outcome. As such, in this evaluation,
-	// we return max score if the outcome is positive and lowest score if
-	// the outcome is negative.
+	// a single true or false outcome. As such, in this evaluation,
+	// we return max score if the outcome is true and lowest score if
+	// the outcome is false.
 	maxScore := false
 	for _, f := range findings {
 		f := f
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			maxScore = true
-			// Log all findings except the negative ones.
+			// Log all findings except the false ones.
 			dl.Info(&checker.LogMessage{
 				Finding: &f,
 			})
@@ -54,7 +54,7 @@ func Packaging(name string,
 		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
 	}
 
-	checker.LogFindings(negativeFindings(findings), dl)
+	checker.LogFindings(falseFindings(findings), dl)
 	return checker.CreateInconclusiveResult(name,
 		"packaging workflow not detected")
 }

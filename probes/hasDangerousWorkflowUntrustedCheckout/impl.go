@@ -32,6 +32,8 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
+// TODO(#3654) fix this probe. true/false positive/negative swap made this confusing.
+
 const Probe = "hasDangerousWorkflowUntrustedCheckout"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -57,7 +59,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if e.Type == checker.DangerousWorkflowUntrustedCheckout {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet),
-				nil, finding.OutcomeNegative)
+				nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -71,25 +73,25 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 	}
 	if len(findings) == 0 {
-		return positiveOutcome()
+		return trueOutcome()
 	}
 	return findings, Probe, nil
 }
 
-func positiveOutcome() ([]finding.Finding, string, error) {
+func trueOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project does not have workflow(s) with untrusted checkout.", nil,
-		finding.OutcomePositive)
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 	return []finding.Finding{*f}, Probe, nil
 }
 
-/*func negativeOutcome() ([]finding.Finding, string, error) {
+/*func falseOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project has workflow(s) with untrusted checkout.", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

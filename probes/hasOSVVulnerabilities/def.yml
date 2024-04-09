@@ -19,8 +19,8 @@ motivation: >
 implementation: >
  The implementation fetches data from OSV.dev about the project which shows whether a given project has known, unfixed vulnerabilities. The implementation uses the number of known, unfixed vulnerabilities to score.
 outcome:
-  - The probe returns one negative outcome for each vulnerability found in OSV.
-  - If there are no known vulnerabilities from the raw results, the probe returns one positive outcome.
+  - The probe returns one false outcome for each vulnerability found in OSV.
+  - If there are no known vulnerabilities from the raw results, the probe returns one true outcome.
 remediation:
   effort: High
   text:

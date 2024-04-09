@@ -66,8 +66,9 @@ type CheckResult struct {
 	Score   int
 	Reason  string
 	Details []CheckDetail
-	// Structured results.
-	Rules []string // TODO(X): add support.
+
+	// Findings from the check's probes.
+	Findings []finding.Finding
 }
 
 // CheckDetail contains information for each detail.
@@ -247,11 +248,11 @@ func LogFindings(findings []finding.Finding, dl DetailLogger) {
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
 			dl.Warn(&LogMessage{
 				Finding: f,
 			})
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
 			dl.Info(&LogMessage{
 				Finding: f,
 			})

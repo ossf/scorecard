@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -242,7 +243,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -264,7 +265,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -288,7 +289,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNotApplicable,
+					Outcome: finding.OutcomeNotSupported,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -311,7 +312,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -325,7 +326,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -349,7 +350,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -363,7 +364,7 @@ func Test_PinningDependencies(t *testing.T) {
 				},
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -387,7 +388,7 @@ func Test_PinningDependencies(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "pinsDependencies",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "test-file",
@@ -403,6 +404,57 @@ func Test_PinningDependencies(t *testing.T) {
 			result: scut.TestReturn{
 				Score:        10,
 				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "no dependencies leads to an inconclusive score",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+			},
+		},
+		{
+			name: "processing errors are logged as info",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeError,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.InconclusiveResultScore,
+				NumberOfInfo: 1,
+			},
+		},
+		{
+			name: "processing errors dont affect other dependencies",
+			findings: []finding.Finding{
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeError,
+				},
+				{
+					Probe:   pinsDependencies.Probe,
+					Outcome: finding.OutcomeTrue,
+					Location: &finding.Location{
+						Type:      finding.FileTypeText,
+						Path:      "test-file",
+						LineStart: &testLineStart,
+						Snippet:   &testSnippet,
+					},
+					Values: map[string]string{
+						"dependencyType": string(checker.DependencyUseTypePipCommand),
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2, // 1 for processing error, 1 for pinned pip ecosystem
 			},
 		},
 	}
@@ -437,7 +489,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add pinned GitHub-owned action dependency",
 			args: args{
-				outcome:  finding.OutcomePositive,
+				outcome:  finding.OutcomeTrue,
 				w:        &workflowPinningResult{},
 				isGitHub: true,
 			},
@@ -455,7 +507,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned GitHub-owned action dependency",
 			args: args{
-				outcome:  finding.OutcomeNegative,
+				outcome:  finding.OutcomeFalse,
 				w:        &workflowPinningResult{},
 				isGitHub: true,
 			},
@@ -473,7 +525,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add pinned Third-Party action dependency",
 			args: args{
-				outcome:  finding.OutcomePositive,
+				outcome:  finding.OutcomeTrue,
 				w:        &workflowPinningResult{},
 				isGitHub: false,
 			},
@@ -491,7 +543,7 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		{
 			name: "add unpinned Third-Party action dependency",
 			args: args{
-				outcome:  finding.OutcomeNegative,
+				outcome:  finding.OutcomeFalse,
 				w:        &workflowPinningResult{},
 				isGitHub: false,
 			},
@@ -550,7 +602,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add pinned GitHub-owned action",
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
-				outcome:        finding.OutcomePositive,
+				outcome:        finding.OutcomeTrue,
 				snippet:        stringAsPointer("actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675"),
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
@@ -573,7 +625,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add unpinned GitHub-owned action",
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				snippet:        stringAsPointer("actions/checkout@v2"),
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
@@ -596,7 +648,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add pinned Third-party action",
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
-				outcome:        finding.OutcomePositive,
+				outcome:        finding.OutcomeTrue,
 				w:              &workflowPinningResult{},
 				snippet:        stringAsPointer("other/checkout@ffa6706ff2127a749973072756f83c532e43ed02"),
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
@@ -620,7 +672,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			args: args{
 				dependencyType: checker.DependencyUseTypeGHAction,
 				snippet:        stringAsPointer("other/checkout@v2"),
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
@@ -642,7 +694,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add pinned pip install",
 			args: args{
 				dependencyType: checker.DependencyUseTypePipCommand,
-				outcome:        finding.OutcomePositive,
+				outcome:        finding.OutcomeTrue,
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},
@@ -660,7 +712,7 @@ func TestUpdatePinningResults(t *testing.T) {
 			name: "add unpinned pip install",
 			args: args{
 				dependencyType: checker.DependencyUseTypePipCommand,
-				outcome:        finding.OutcomeNegative,
+				outcome:        finding.OutcomeFalse,
 				w:              &workflowPinningResult{},
 				pr:             make(map[checker.DependencyUseType]pinnedResult),
 			},

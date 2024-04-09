@@ -48,7 +48,7 @@ func Test_AsPJSON(t *testing.T) {
 				Findings: []finding.Finding{
 					{
 						Probe:   "check for X",
-						Outcome: finding.OutcomePositive,
+						Outcome: finding.OutcomeTrue,
 						Message: "found X",
 						Location: &finding.Location{
 							Path: "some/path/to/file",
@@ -57,7 +57,7 @@ func Test_AsPJSON(t *testing.T) {
 					},
 					{
 						Probe:   "check for Y",
-						Outcome: finding.OutcomeNegative,
+						Outcome: finding.OutcomeFalse,
 						Message: "did not find Y",
 					},
 				},

@@ -19,16 +19,16 @@ motivation: >
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
-  - The probe returns one OutcomePositive for each branch that is blocked from force pushes, and one OutcomeNegative for branches that allows force push.
+  - The probe returns one OutcomeTrue for each branch that is blocked from force pushes, and one OutcomeFalse for branches that allows force push.
   - Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
 remediation:
   effort: Low
   text:
-    - Disallow force pushes branches in your project to remove negative outcomes.
+    - Disallow force pushes branches in your project to remove false outcomes.
     - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
     - For GitLab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
   markdown:
-    - Disallow force pushes branches in your project to remove negative outcomes.
+    - Disallow force pushes branches in your project to remove false outcomes.
     - For GitHub-hosted projects, force pushes are disabled by default. To make sure it has not been enabled, see ["Allow force pushes"](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#allow-force-pushes).
     - For GitLab-hosted projects, follow the ["Protected branches"](https://docs.gitlab.com/ee/user/project/protected_branches.html) documentation to see who can force push to the project.
 ecosystem:

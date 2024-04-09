@@ -54,5 +54,7 @@ func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.SignedReleases(CheckSignedReleases, findings, c.Dlogger)
+	ret := evaluation.SignedReleases(CheckSignedReleases, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

@@ -70,25 +70,16 @@ func PinningDependencies(name string,
 	for i := range findings {
 		f := findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNotAvailable:
-			return checker.CreateInconclusiveResult(name, "no dependencies found")
 		case finding.OutcomeNotApplicable:
-			if f.Location != nil {
-				dl.Debug(&checker.LogMessage{
-					Path:      f.Location.Path,
-					Type:      f.Location.Type,
-					Offset:    *f.Location.LineStart,
-					EndOffset: *f.Location.LineEnd,
-					Text:      f.Message,
-					Snippet:   *f.Location.Snippet,
-				})
-			} else {
-				dl.Debug(&checker.LogMessage{
-					Text: f.Message,
-				})
-			}
+			return checker.CreateInconclusiveResult(name, "no dependencies found")
+		case finding.OutcomeNotSupported:
+			dl.Debug(&checker.LogMessage{
+				Finding: &f,
+			})
 			continue
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
+			// we cant use the finding if we want the remediation to show
+			// finding.Remediation are currently suppressed (#3349)
 			lm := &checker.LogMessage{
 				Path:      f.Location.Path,
 				Type:      f.Location.Type,
@@ -175,7 +166,7 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
-	if outcome == finding.OutcomePositive {
+	if outcome == finding.OutcomeTrue {
 		r.pinned += 1
 	}
 	r.total += 1
