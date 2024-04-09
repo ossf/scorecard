@@ -77,6 +77,9 @@ func Maintained(name string,
 				archived = true
 			case notCreatedRecently.Probe:
 				recentlyCreated = true
+			// informational probes dont need logged, but they do factor into the score
+			case hasRecentCommits.Probe, issueActivityByProjectMember.Probe:
+				continue
 			}
 			checker.LogFinding(dl, f, checker.DetailWarn)
 		default:
