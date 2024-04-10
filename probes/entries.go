@@ -92,9 +92,6 @@ var (
 		hasLicenseFile.Run,
 		hasFSFOrOSIApprovedLicense.Run,
 	}
-	PermissiveLicense = []ProbeImpl{
-		hasPermissiveLicense.Run,
-	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
 	}
@@ -161,6 +158,7 @@ var (
 	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
 		freeOfAnyBinaryArtifacts.Run,
+		hasPermissiveLicense.Run,
 	}
 )
 

@@ -21,11 +21,16 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
 var fs embed.FS
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.License})
+}
 
 const Probe = "hasPermissiveLicense"
 
@@ -37,7 +42,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(raw.LicenseResults.LicenseFiles) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"project does not have a license file", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -83,7 +88,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			f, err := finding.NewWith(fs, Probe,
 				msg, loc,
-				finding.OutcomePositive)
+				finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -93,7 +98,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		"", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

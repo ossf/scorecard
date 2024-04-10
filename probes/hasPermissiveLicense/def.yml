@@ -19,9 +19,9 @@ motivation: >
 implementation: >
  The implementation checks whether a permissive license is present
 outcome:
-  - If a license file is found and is permissive, the probe returns a single OutcomePositive.
-  - If a license file is missing the probe returns a single OutcomeNegative.
-  - If the license is not permissive, the probe returns a single OutcomeNegative.
+  - If a license file is found and is permissive, the probe returns a single OutcomeTrue.
+  - If a license file is missing the probe returns a single OutcomeFalse.
+  - If the license is not permissive, the probe returns a single OutcomeFalse.
 remediation:
   effort: High
   text:
