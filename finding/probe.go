@@ -77,7 +77,6 @@ type yamlProbe struct {
 	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
-//nolint:govet
 type Probe struct {
 	ID                 string
 	Short              string
