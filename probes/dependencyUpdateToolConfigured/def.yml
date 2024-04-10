@@ -23,6 +23,7 @@ outcome:
   - If a dependency update tool is configured, the probe returns OutcomeTrue for each configuration.
   - If no tool is detected, the probe returns OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Setup one of tools we currently detect https://github.com/ossf/scorecard/blob/main/docs/checks/dependencyupdatetool/README.md.

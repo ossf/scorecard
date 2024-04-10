@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package probe
+package finding
 
 import (
-	"errors"
 	"os"
 	"testing"
 
@@ -23,11 +22,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
-func errCmp(e1, e2 error) bool {
-	return errors.Is(e1, e2) || errors.Is(e2, e1)
-}
-
-func Test_FromBytes(t *testing.T) {
+func Test_probeFromBytes(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
 	tests := []struct {
@@ -35,13 +30,13 @@ func Test_FromBytes(t *testing.T) {
 		id    string
 		path  string
 		err   error
-		probe *Probe
+		probe *probe
 	}{
 		{
 			name: "all fields set",
 			id:   "all-fields",
 			path: "testdata/all-fields.yml",
-			probe: &Probe{
+			probe: &probe{
 				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",
@@ -51,13 +46,14 @@ func Test_FromBytes(t *testing.T) {
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
 					Effort:   RemediationEffortLow,
 				},
+				RemediateOnOutcome: OutcomeFalse,
 			},
 		},
 		{
 			name: "mismatch probe ID",
 			id:   "mismatch-id",
 			path: "testdata/all-fields.yml",
-			probe: &Probe{
+			probe: &probe{
 				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",
@@ -105,7 +101,7 @@ func Test_FromBytes(t *testing.T) {
 				t.Fatalf(err.Error())
 			}
 
-			r, err := FromBytes(content, tt.id)
+			r, err := probeFromBytes(content, tt.id)
 			if err != nil || tt.err != nil {
 				if !errCmp(err, tt.err) {
 					t.Fatalf("unexpected error: %v", cmp.Diff(err, tt.err, cmpopts.EquateErrors()))

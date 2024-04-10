@@ -23,6 +23,7 @@ outcome:
   - If a license file is missing the probe returns a single OutcomeNotApplicable.
   - If the license is not of an approved format, the probe returns a single OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Update the license file format in the GitHub repository to be of an approved format.

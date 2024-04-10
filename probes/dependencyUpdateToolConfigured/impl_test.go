@@ -155,7 +155,7 @@ func TestRun_Detailed(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if diff := cmp.Diff(findings, tt.expected); diff != "" {
+			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
 				t.Error(diff)
 			}
 		})

@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires pull requests to change code, and one OutcomeFalse for branches that don't.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Configure the project such that contributors must make PRs to change code.

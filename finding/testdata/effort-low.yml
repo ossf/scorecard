@@ -7,6 +7,7 @@ implementation: >
   line1
   line2
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - step1

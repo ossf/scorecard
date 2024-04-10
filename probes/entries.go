@@ -17,6 +17,7 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/archived"
 	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
 	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
@@ -24,11 +25,11 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/createdRecently"
 	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
-	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/fuzzed"
+	"github.com/ossf/scorecard/v4/probes/hasBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
@@ -37,10 +38,9 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v4/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
@@ -110,16 +110,16 @@ var (
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 	Maintained = []ProbeImpl{
-		notArchived.Run,
+		archived.Run,
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
-		notCreatedRecently.Run,
+		createdRecently.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,
 	}
 	BinaryArtifacts = []ProbeImpl{
-		freeOfUnverifiedBinaryArtifacts.Run,
+		hasUnverifiedBinaryArtifacts.Run,
 	}
 	Webhook = []ProbeImpl{
 		webhooksUseSecrets.Run,
@@ -156,7 +156,7 @@ var (
 	// Probes which aren't included by any checks.
 	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
-		freeOfAnyBinaryArtifacts.Run,
+		hasBinaryArtifacts.Run,
 	}
 )
 

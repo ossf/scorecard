@@ -22,8 +22,6 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-
-	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 // FileType is the type of a file.
@@ -77,12 +75,15 @@ const (
 
 // Finding represents a finding.
 type Finding struct {
-	Location    *Location          `json:"location,omitempty"`
-	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]string  `json:"values,omitempty"`
-	Probe       string             `json:"probe"`
-	Message     string             `json:"message"`
-	Outcome     Outcome            `json:"outcome"`
+	Location    *Location         `json:"location,omitempty"`
+	Remediation *Remediation      `json:"remediation,omitempty"`
+	Values      map[string]string `json:"values,omitempty"`
+	Probe       string            `json:"probe"`
+	Message     string            `json:"message"`
+	Outcome     Outcome           `json:"outcome"`
+
+	// Expected bad outcome, used to determine if Remediation should be set
+	badOutcome Outcome
 }
 
 // AnonymousFinding is a finding without a corresponding probe ID.
@@ -95,30 +96,31 @@ var errInvalid = errors.New("invalid")
 
 // FromBytes creates a finding for a probe given its config file's content.
 func FromBytes(content []byte, probeID string) (*Finding, error) {
-	p, err := probe.FromBytes(content, probeID)
+	p, err := probeFromBytes(content, probeID)
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{
 		Probe:       p.ID,
 		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
 
 // New creates a new finding.
 func New(loc embed.FS, probeID string) (*Finding, error) {
-	p, err := probe.New(loc, probeID)
+	p, err := newProbe(loc, probeID)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
 	}
 
 	f := &Finding{
 		Probe:       p.ID,
 		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
@@ -219,12 +221,10 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 
 // WithOutcome adds an outcome to an existing finding.
 // No copy is made.
-// WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Currently only false probes have remediations.
-	// TODO(#3654) this is a temporary mechanical conversion.
-	if o != OutcomeFalse {
+	// only bad outcomes need remediation, clear if unneeded
+	if o != f.badOutcome {
 		f.Remediation = nil
 	}
 

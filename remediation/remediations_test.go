@@ -23,7 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v4/checker"
 	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v4/finding"
 )
 
 func TestRepeatedSetup(t *testing.T) {
@@ -75,7 +75,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		expected *probe.Remediation
+		expected *finding.Remediation
 		dep      checker.Dependency
 		name     string
 	}{
@@ -90,7 +90,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 				Name: asPointer("foo"),
 				Type: checker.DependencyUseTypeDockerfileContainerImage,
 			},
-			expected: &probe.Remediation{
+			expected: &finding.Remediation{
 				Text:     "pin your Docker image by updating foo to foo@sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
 				Markdown: "pin your Docker image by updating foo to foo@sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
 			},
@@ -103,7 +103,7 @@ func TestCreateDockerfilePinningRemediation(t *testing.T) {
 				PinnedAt: asPointer("11"),
 				Type:     checker.DependencyUseTypeDockerfileContainerImage,
 			},
-			expected: &probe.Remediation{
+			expected: &finding.Remediation{
 				Text:     "pin your Docker image by updating amazoncorretto:11 to amazoncorretto:11@sha256:b1a711069b801a325a30885f08f5067b2b102232379750dda4d25a016afd9a88",
 				Markdown: "pin your Docker image by updating amazoncorretto:11 to amazoncorretto:11@sha256:b1a711069b801a325a30885f08f5067b2b102232379750dda4d25a016afd9a88",
 			},
@@ -143,7 +143,7 @@ func TestCreateWorkflowPinningRemediation(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		expected *probe.Remediation
+		expected *finding.Remediation
 		name     string
 		branch   string
 		repo     string
@@ -154,7 +154,7 @@ func TestCreateWorkflowPinningRemediation(t *testing.T) {
 			branch:   "main",
 			repo:     "ossf/scorecard",
 			filepath: ".github/workflows/scorecard.yml",
-			expected: &probe.Remediation{
+			expected: &finding.Remediation{
 				Text:     fmt.Sprintf(workflowText, "ossf/scorecard", "scorecard.yml", "main", "pin"),
 				Markdown: fmt.Sprintf(workflowMarkdown, "ossf/scorecard", "scorecard.yml", "main", "pin"),
 			},

@@ -16,12 +16,13 @@ package evaluation
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/archived"
+	"github.com/ossf/scorecard/v4/probes/createdRecently"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -48,11 +49,11 @@ func TestMaintained(t *testing.T) {
 						issueActivityByProjectMember.NumIssuesKey: "1",
 					},
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -69,11 +70,11 @@ func TestMaintained(t *testing.T) {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -93,8 +94,8 @@ func TestMaintained(t *testing.T) {
 					Probe:   "archvied", /*misspelling*/
 					Outcome: finding.OutcomeTrue,
 				}, {
-					Probe:   notCreatedRecently.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -112,15 +113,43 @@ func TestMaintained(t *testing.T) {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeFalse,
-				}, {
-					Probe:   notCreatedRecently.Probe,
+					Probe:   archived.Probe,
 					Outcome: finding.OutcomeTrue,
+				}, {
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        0,
+				NumberOfWarn: 1,
+			},
+		},
+		{
+			name: "recently created projects get min score",
+			findings: []finding.Finding{
+				{
+					Probe:   hasRecentCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						hasRecentCommits.NumCommitsKey: "20",
+					},
+				}, {
+					Probe:   issueActivityByProjectMember.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						issueActivityByProjectMember.NumIssuesKey: "10",
+					},
+				}, {
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MinResultScore,
 				NumberOfWarn: 1,
 			},
 		},

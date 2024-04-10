@@ -13,11 +13,13 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfAnyBinaryArtifacts
+package createdRecently
 
 import (
 	"embed"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
@@ -26,46 +28,41 @@ import (
 )
 
 func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BinaryArtifacts})
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Maintained})
 }
 
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "freeOfAnyBinaryArtifacts"
+const (
+	Probe = "createdRecently"
+
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	r := raw.BinaryArtifactResults
-	var findings []finding.Finding
+	r := raw.MaintainedResults
 
-	// Apply the policy evaluation.
-	if len(r.Files) == 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"Repository does not have any binary artifacts.", nil,
-			finding.OutcomeTrue)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-	}
-	for i := range r.Files {
-		file := &r.Files[i]
-		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeFalse)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		f = f.WithLocation(&finding.Location{
-			Path:      file.Path,
-			LineStart: &file.Offset,
-			Type:      file.Type,
-		})
-		findings = append(findings, *f)
-	}
+	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 
-	return findings, Probe, nil
+	var text string
+	var outcome finding.Outcome
+	if r.CreatedAt.After(recencyThreshold) {
+		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeTrue
+	} else {
+		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeFalse
+	}
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
+	f = f.WithValue(LookbackDayKey, strconv.Itoa(lookBackDays))
+	return []finding.Finding{*f}, Probe, nil
 }
