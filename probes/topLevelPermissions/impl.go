@@ -28,7 +28,11 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "topLevelPermissions"
+const (
+	Probe              = "topLevelPermissions"
+	PermissionLevelKey = "permissionLevel"
+	TokenNameKey       = "tokenName"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -100,8 +104,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue("permissionLevel", string(r.Type))
-		f = f.WithValue("tokenName", tokenName)
+		f = f.WithValue(PermissionLevelKey, string(r.Type))
+		f = f.WithValue(TokenNameKey, tokenName)
 		findings = append(findings, *f)
 	}
 
