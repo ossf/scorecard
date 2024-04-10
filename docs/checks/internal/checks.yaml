@@ -16,6 +16,7 @@
 # Run `cd checks/main && go run /main` to generate `checks.json` and `checks.md`.
 checks:
   Maintained:
+    id: 1
     risk: High
     tags: supply-chain, security
     repos: GitHub
@@ -49,6 +50,7 @@ checks:
         commitment. External users should determine whether the software is the type
         that would not normally need active maintenance.
   Dependency-Update-Tool:
+    id: 2
     risk: High
     tags: supply-chain, security, dependencies
     repos: GitHub, local
@@ -88,6 +90,7 @@ checks:
         via the [pinDigests setting](https://docs.renovatebot.com/configuration-options/#pindigests) without
         additional manual effort.
   Binary-Artifacts:
+    id: 3
     risk: High
     tags: supply-chain, security, dependencies
     repos: GitHub, GitLab, local
@@ -139,6 +142,7 @@ checks:
       - >-
         Build from source.
   Branch-Protection:
+    id: 4
     risk: High
     tags: supply-chain, security, source-code, code-reviews
     repos: GitHub, GitLab
@@ -225,6 +229,7 @@ checks:
       - >-
         For GitHub, check out the steps [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   CI-Tests:
+    id: 5
     risk: Low
     tags: supply-chain, testing
     repos: GitHub, GitLab
@@ -258,6 +263,7 @@ checks:
         request (e.g. if hosted on GitHub, [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions),
         [Prow](https://github.com/kubernetes/test-infra/tree/master/prow), etc).
   CII-Best-Practices:
+    id: 6
     risk: Low
     tags: security-awareness, security-training, security
     repos: GitHub
@@ -284,6 +290,7 @@ checks:
       - >-
         Sign up for the [OpenSSF Best Practices program](https://www.bestpractices.dev/).
   Code-Review:
+    id: 7
     risk: High
     tags: supply-chain, security, source-code, code-reviews
     repos: GitHub
@@ -357,6 +364,7 @@ checks:
         Enforce the rule for administrators / code owners as well.
         ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators))
   Contributors:
+    id: 8
     risk: Low
     tags: source-code
     repos: GitHub
@@ -388,6 +396,7 @@ checks:
         it simply provides insight into which organizations have contributed so that
         you can make a trust-based decision based on that information.
   Fuzzing:
+    id: 9
     risk: Medium
     tags: supply-chain, security, testing
     repos: GitHub
@@ -418,6 +427,7 @@ checks:
         Integrate the project with OSS-Fuzz by following the instructions
         [here](https://google.github.io/oss-fuzz/).
   Packaging:
+    id: 10
     risk: Medium
     tags: supply-chain, security, releases
     repos: GitHub
@@ -462,6 +472,7 @@ checks:
       - Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
   Pinned-Dependencies:
+    id: 11
     risk: Medium
     tags: supply-chain, security, dependencies
     repos: GitHub, local
@@ -528,6 +539,7 @@ checks:
       - >-
         To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
   SAST:
+    id: 12
     risk: Medium
     tags: supply-chain, security, testing
     repos: GitHub
@@ -559,6 +571,7 @@ checks:
         Run CodeQL checks in your CI/CD by following the instructions
         [here](https://github.com/github/codeql-action#usage).
   Security-Policy:
+    id: 13
     risk: Medium
     short: Determines if the project has published a security policy.
     repos: GitHub
@@ -610,6 +623,7 @@ checks:
         For GitHub, see more information
         [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
   Signed-Releases:
+    id: 14
     risk: High
     tags: supply-chain, security, releases
     repos: GitHub
@@ -649,6 +663,7 @@ checks:
         If the source is hosted on GitHub, check out the steps
         [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
   Token-Permissions:
+    id: 15
     risk: High
     tags: supply-chain, security, infrastructure
     repos: GitHub, local
@@ -702,6 +717,7 @@ checks:
         the "Restrict permissions for GITHUB_TOKEN". You may also tick the "Pin actions to a full length commit SHA" to fix issues found
         by the Pinned-dependencies check.
   Vulnerabilities:
+    id: 16
     risk: High
     tags: supply-chain, security, vulnerabilities
     repos: GitHub
@@ -727,6 +743,7 @@ checks:
         [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
 
   Dangerous-Workflow:
+    id: 17
     risk: Critical
     tags: supply-chain, security, infrastructure
     repos: GitHub, local
@@ -766,6 +783,7 @@ checks:
         for information on avoiding and mitigating the risk of script injections.
 
   License:
+    id: 18
     risk: Low
     tags: license
     repos: GitHub, local
@@ -817,6 +835,7 @@ checks:
         such as `LICENSES/Apache-2.0.txt`.
 
   Webhooks:
+    id: 19
     risk: Critical
     tags: security, infrastructure
     repos: GitHub

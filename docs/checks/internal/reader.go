@@ -30,6 +30,7 @@ var checksYAML []byte
 //
 //nolint:govet
 type Check struct {
+	ID          uint     `yaml:"id"`
 	Risk        string   `yaml:"risk"`
 	Short       string   `yaml:"short"`
 	Description string   `yaml:"description"`

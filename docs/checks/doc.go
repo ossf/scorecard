@@ -24,6 +24,7 @@ type Doc interface {
 
 // CheckDoc defines the documentation interface for a check.
 type CheckDoc interface {
+	GetID() uint
 	GetName() string
 	GetRisk() string
 	GetShort() string

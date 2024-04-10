@@ -83,6 +83,11 @@ type CheckDocImpl struct {
 	internalCheck internal.Check
 }
 
+// GetID returns the ID of the check.
+func (c *CheckDocImpl) GetID() uint {
+	return c.internalCheck.ID
+}
+
 // GetName returns the name of the check.
 func (c *CheckDocImpl) GetName() string {
 	return c.internalCheck.Name

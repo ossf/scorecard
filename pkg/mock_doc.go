@@ -23,6 +23,11 @@ import (
 type mockCheck struct {
 	name, risk, short, description, url string
 	tags, remediation, repos            []string
+	ID                                  uint
+}
+
+func (c *mockCheck) GetID() uint {
+	return c.ID
 }
 
 func (c *mockCheck) GetName() string {

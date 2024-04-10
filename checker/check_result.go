@@ -60,6 +60,7 @@ var errSuccessTotal = errors.New("unexpected number of success is higher than to
 //
 //nolint:govet
 type CheckResult struct {
+	ID      uint
 	Name    string
 	Version int
 	Error   error
