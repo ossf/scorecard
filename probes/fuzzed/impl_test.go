@@ -41,18 +41,18 @@ func Test_Run(t *testing.T) {
 			err:  uerror.ErrNil,
 		},
 		{
-			name: "negative outcome from no fuzzers",
+			name: "false outcome from no fuzzers",
 			raw: &checker.RawResults{
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "one fuzzer is a positive outcomes",
+			name: "one fuzzer is a true outcomes",
 			raw: &checker.RawResults{
 				FuzzingResults: checker.FuzzingData{
 					Fuzzers: []checker.Tool{
@@ -63,7 +63,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -81,8 +81,8 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 	}
@@ -131,7 +131,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "GoBuiltInFuzzer integration found",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: fuzzers.BuiltInGo,
 					},
@@ -157,7 +157,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "some fuzzer integration found",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: "some fuzzer",
 					},
@@ -174,7 +174,7 @@ func TestRun_Detailed(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if diff := cmp.Diff(findings, tt.expected); diff != "" {
+			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
 				t.Error(diff)
 			}
 		})

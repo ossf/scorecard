@@ -53,7 +53,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
@@ -93,7 +93,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
@@ -113,7 +113,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
@@ -135,7 +135,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNegative,
+				finding.OutcomeFalse, finding.OutcomeFalse,
 			},
 		},
 	}

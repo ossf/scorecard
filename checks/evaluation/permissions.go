@@ -94,7 +94,7 @@ func TokenPermissions(name string,
 			return checker.CreateInconclusiveResult(name, "No tokens found")
 		}
 
-		if f.Outcome != finding.OutcomeNegative {
+		if f.Outcome != finding.OutcomeFalse {
 			continue
 		}
 		if f.Location == nil {

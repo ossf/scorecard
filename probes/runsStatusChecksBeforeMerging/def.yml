@@ -19,8 +19,9 @@ motivation: >
 implementation: >
   The probe checks the rules for default and release branches in the projects repository.
 outcome:
-  - The probe returns one OutcomePositive for each branch that runs required status checks, and one OutcomeNegative for branches that don't.
+  - The probe returns one OutcomeTrue for each branch that runs required status checks, and one OutcomeFalse for branches that don't.
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Enable required status checks by following [these guidelines](https://docs.github.com/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks).

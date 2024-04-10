@@ -52,7 +52,7 @@ func CIIBestPractices(name string,
 	}
 
 	f := &findings[0]
-	if f.Outcome == finding.OutcomeNegative {
+	if f.Outcome == finding.OutcomeFalse {
 		text = "no effort to earn an OpenSSF best practices badge detected"
 		return checker.CreateMinScoreResult(name, text)
 	}

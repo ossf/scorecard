@@ -54,5 +54,7 @@ func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.BranchProtection(CheckBranchProtection, findings, c.Dlogger)
+	ret := evaluation.BranchProtection(CheckBranchProtection, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

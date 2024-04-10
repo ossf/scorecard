@@ -29,7 +29,6 @@ import (
 	"github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	spol "github.com/ossf/scorecard/v4/policy"
-	rules "github.com/ossf/scorecard/v4/rule"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -162,7 +161,7 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &rules.Remediation{
+									Remediation: &finding.Remediation{
 										Markdown: "this is the custom markdown help",
 										Text:     "this is the custom text help",
 									},

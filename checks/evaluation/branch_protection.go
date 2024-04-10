@@ -119,12 +119,12 @@ func BranchProtection(name string,
 			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
 			return checker.CreateRuntimeErrorResult(name, e)
 		// Now we can check whether the branch is protected:
-		case f.Outcome == finding.OutcomeNegative:
+		case f.Outcome == finding.OutcomeFalse:
 			protectedBranches[branchName] = false
 			dl.Warn(&checker.LogMessage{
 				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
 			})
-		case f.Outcome == finding.OutcomePositive:
+		case f.Outcome == finding.OutcomeTrue:
 			protectedBranches[branchName] = true
 		default:
 			continue
@@ -181,7 +181,7 @@ func BranchProtection(name string,
 
 			reviewerWeight := 2
 			max = reviewerWeight
-			if f.Outcome == finding.OutcomePositive && noOfRequiredReviewers > 0 {
+			if f.Outcome == finding.OutcomeTrue && noOfRequiredReviewers > 0 {
 				branchScores[branchName].scores.review += reviewerWeight
 			}
 			branchScores[branchName].maxes.review += max
@@ -279,9 +279,9 @@ func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
 	case finding.OutcomeNotAvailable:
 		debug(dl, doLogging, f.Message)
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -290,9 +290,9 @@ func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 
 func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -301,7 +301,7 @@ func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger
 
 func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
 	default:
 		warn(dl, doLogging, f.Message)
@@ -404,7 +404,7 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	logWithoutDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	max++
@@ -415,7 +415,7 @@ func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker
 func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	logInfoOrWarn(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	max++
@@ -424,7 +424,7 @@ func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.De
 
 func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	logWithDebug(f, doLogging, dl)
@@ -438,7 +438,7 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 	var score, max int
 
 	logWithDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	if f.Outcome != finding.OutcomeNotAvailable {
@@ -449,14 +449,14 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 
 func logReviewerCount(f *finding.Finding, doLogging bool, dl checker.DetailLogger, noOfRequiredReviews int) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		if noOfRequiredReviews >= minReviews {
 			info(dl, doLogging, f.Message)
 			score++
 		} else {
 			warn(dl, doLogging, f.Message)
 		}
-	} else if f.Outcome == finding.OutcomeNegative {
+	} else if f.Outcome == finding.OutcomeFalse {
 		warn(dl, doLogging, f.Message)
 	}
 	max++
@@ -465,7 +465,7 @@ func logReviewerCount(f *finding.Finding, doLogging bool, dl checker.DetailLogge
 
 func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		info(dl, doLogging, f.Message)
 		score++
 	} else {

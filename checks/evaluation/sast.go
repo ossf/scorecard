@@ -52,7 +52,7 @@ func SAST(name string,
 			}
 		case sastToolConfigured.Probe:
 			tool, ok := f.Values[sastToolConfigured.ToolKey]
-			if f.Outcome == finding.OutcomePositive && !ok {
+			if f.Outcome == finding.OutcomeTrue && !ok {
 				return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, "missing SAST tool"))
 			}
 			score := getSastToolScore(f, dl)
@@ -133,11 +133,11 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 			Text: f.Message,
 		})
 		return checker.InconclusiveResultScore, nil
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
 		})
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		dl.Warn(&checker.LogMessage{
 			Text: f.Message,
 		})
@@ -154,16 +154,16 @@ func getSASTScore(f *finding.Finding, dl checker.DetailLogger) (int, error) {
 	return checker.CreateProportionalScore(analyzed, total), nil
 }
 
-// getSastToolScore returns positive if the project runs the Sast tool
-// and negative if it doesn't.
+// getSastToolScore returns true if the project runs the Sast tool
+// and false if it doesn't.
 func getSastToolScore(f *finding.Finding, dl checker.DetailLogger) int {
 	switch f.Outcome {
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		dl.Info(&checker.LogMessage{
 			Text: f.Message,
 		})
 		return checker.MaxResultScore
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		return checker.MinResultScore
 	default:
 		return checker.InconclusiveResultScore

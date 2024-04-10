@@ -77,7 +77,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			findings = append(findings, *f)
 			continue
 		case checker.PermissionLevelRead:
-			f, err := permissions.ReadPositiveLevelFinding(Probe, fs, r, raw.Metadata.Metadata)
+			f, err := permissions.ReadTrueLevelFinding(Probe, fs, r, raw.Metadata.Metadata)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -91,7 +91,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 
-		f, err := permissions.CreateNegativeFinding(r, Probe, fs, raw.Metadata.Metadata)
+		f, err := permissions.CreateFalseFinding(r, Probe, fs, raw.Metadata.Metadata)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -103,7 +103,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"no job-level permissions found",
-			nil, finding.OutcomePositive)
+			nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
