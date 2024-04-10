@@ -22,9 +22,9 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	"github.com/ossf/scorecard/v4/probes/archived"
+	"github.com/ossf/scorecard/v4/probes/createdRecently"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 )
 
 const (
@@ -42,7 +42,7 @@ func Maintained(name string,
 		archived.Probe,
 		issueActivityByProjectMember.Probe,
 		hasRecentCommits.Probe,
-		notCreatedRecently.Probe,
+		createdRecently.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -72,12 +72,14 @@ func Maintained(name string,
 			case archived.Probe:
 				isArchived = true
 				checker.LogFinding(dl, f, checker.DetailWarn)
-			}
-		case finding.OutcomeFalse:
-			if f.Probe == notCreatedRecently.Probe {
+			case createdRecently.Probe:
 				recentlyCreated = true
 				checker.LogFinding(dl, f, checker.DetailWarn)
 			}
+		case finding.OutcomeFalse:
+			// both archive and created recently are good if false, and the
+			// other probes are informational and dont need logged. But we need
+			// to specify the case so it doesn't get logged below at the debug level
 		default:
 			checker.LogFinding(dl, f, checker.DetailDebug)
 		}

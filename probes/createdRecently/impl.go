@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package notCreatedRecently
+package createdRecently
 
 import (
 	"embed"
@@ -35,7 +35,7 @@ func init() {
 var fs embed.FS
 
 const (
-	Probe = "notCreatedRecently"
+	Probe = "createdRecently"
 
 	LookbackDayKey = "lookBackDays"
 	lookBackDays   = 90
@@ -54,10 +54,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var outcome finding.Outcome
 	if r.CreatedAt.After(recencyThreshold) {
 		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
-		outcome = finding.OutcomeFalse
+		outcome = finding.OutcomeTrue
 	} else {
 		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
-		outcome = finding.OutcomeTrue
+		outcome = finding.OutcomeFalse
 	}
 	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {

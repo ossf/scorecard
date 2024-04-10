@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/codeApproved"
 	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
 	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v4/probes/createdRecently"
 	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
@@ -40,7 +41,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
@@ -113,7 +113,7 @@ var (
 		archived.Run,
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
-		notCreatedRecently.Run,
+		createdRecently.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,
