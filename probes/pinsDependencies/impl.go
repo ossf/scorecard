@@ -23,10 +23,8 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/internal/probes"
 	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 func init() {
@@ -62,7 +60,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range r.Dependencies {
 		rr := r.Dependencies[i]
-		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotApplicable)
+		loc := rr.Location.Location()
+		f, err := finding.NewWith(fs, Probe, "", loc, finding.OutcomeNotSupported)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -71,63 +70,33 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "empty File field")
 				return findings, Probe, e
 			}
-			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotApplicable)
+			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
 		if rr.Msg != nil {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f = f.WithMessage(*rr.Msg).WithLocation(loc).WithOutcome(finding.OutcomeNotApplicable)
+			f = f.WithMessage(*rr.Msg).WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
 		if rr.Pinned == nil {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
 			f = f.WithMessage(fmt.Sprintf("%s has empty Pinned field", rr.Type)).
-				WithLocation(loc).
-				WithOutcome(finding.OutcomeNotApplicable)
+				WithOutcome(finding.OutcomeNotSupported)
 			findings = append(findings, *f)
 			continue
 		}
 		if !*rr.Pinned {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
 			f = f.WithMessage(generateTextUnpinned(&rr)).
-				WithLocation(loc).
-				WithOutcome(finding.OutcomeNegative)
+				WithOutcome(finding.OutcomeFalse)
 			if rr.Remediation != nil {
-				f.Remediation = ruleRemToProbeRem(rr.Remediation)
+				f.Remediation = rr.Remediation
 			}
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})
 			findings = append(findings, *f)
 		} else {
-			loc := &finding.Location{
-				Type:      rr.Location.Type,
-				Path:      rr.Location.Path,
-				LineStart: &rr.Location.Offset,
-				LineEnd:   &rr.Location.EndOffset,
-				Snippet:   &rr.Location.Snippet,
-			}
-			f = f.WithMessage("").WithLocation(loc).WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage("").WithOutcome(finding.OutcomeTrue)
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})
@@ -136,9 +105,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"no dependencies found", nil,
-			finding.OutcomeNotAvailable)
+		f, err := finding.NewWith(fs, Probe, "no dependencies found", nil, finding.OutcomeNotApplicable)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -150,15 +117,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 func generateTextIncompleteResults(e checker.ElementError) string {
 	return fmt.Sprintf("Possibly incomplete results: %s", e.Err)
-}
-
-func ruleRemToProbeRem(rem *rule.Remediation) *probe.Remediation {
-	return &probe.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   probe.RemediationEffort(rem.Effort),
-	}
 }
 
 func generateTextUnpinned(rr *checker.Dependency) string {

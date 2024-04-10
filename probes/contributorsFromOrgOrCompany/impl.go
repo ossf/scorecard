@@ -49,7 +49,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(users) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not have contributors.", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -77,7 +77,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(entities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"No companies/organizations have contributed to the project.", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -90,7 +90,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for e := range entities {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("%s contributor org/company found", e), nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

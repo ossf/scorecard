@@ -36,7 +36,7 @@ func Test_Run(t *testing.T) {
 		expectedFindings []finding.Finding
 	}{
 		{
-			name: "sonar present",
+			name: "any unchecked commits leads to false outcome",
 			err:  nil,
 			raw: &checker.RawResults{
 				SASTResults: checker.SASTData{
@@ -51,12 +51,13 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 			expectedFindings: []finding.Finding{
 				{
 					Probe:   Probe,
 					Message: "1 commits out of 2 are checked with a SAST tool",
+					Outcome: finding.OutcomeFalse,
 					Values: map[string]string{
 						AnalyzedPRsKey: "1",
 						TotalPRsKey:    "2",
@@ -65,7 +66,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "sonar present",
+			name: "all commits checked is true outcome",
 			err:  nil,
 			raw: &checker.RawResults{
 				SASTResults: checker.SASTData{
@@ -80,13 +81,13 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 			expectedFindings: []finding.Finding{
 				{
 					Probe:   Probe,
 					Message: "all commits (2) are checked with a SAST tool",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						AnalyzedPRsKey: "2",
 						TotalPRsKey:    "2",
@@ -111,8 +112,9 @@ func Test_Run(t *testing.T) {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 			test.AssertOutcomes(t, findings, tt.outcomes)
-			if !cmp.Equal(tt.expectedFindings, findings, cmpopts.EquateErrors()) {
-				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors()))
+			diff := cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors(), cmpopts.IgnoreUnexported(finding.Finding{}))
+			if diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

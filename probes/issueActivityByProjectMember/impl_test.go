@@ -93,7 +93,7 @@ func Test_Run(t *testing.T) {
 					Issues: []clients.Issue{},
 				},
 			},
-			outcomes: []finding.Outcome{finding.OutcomeNegative},
+			outcomes: []finding.Outcome{finding.OutcomeFalse},
 		},
 		{
 			name: "Has 5 issues in threshold",
@@ -106,7 +106,7 @@ func Test_Run(t *testing.T) {
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 				NumIssuesKey:   "5",
 			},
-			outcomes: []finding.Outcome{finding.OutcomePositive},
+			outcomes: []finding.Outcome{finding.OutcomeTrue},
 		},
 		{
 			name: "Has 20 issues in threshold",
@@ -119,7 +119,7 @@ func Test_Run(t *testing.T) {
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 				NumIssuesKey:   "20",
 			},
-			outcomes: []finding.Outcome{finding.OutcomePositive},
+			outcomes: []finding.Outcome{finding.OutcomeTrue},
 		},
 		{
 			name: "Has 5 issues by collaborator and 5 by first time user",
@@ -132,7 +132,7 @@ func Test_Run(t *testing.T) {
 				LookbackDayKey: strconv.Itoa(lookBackDays),
 				NumIssuesKey:   "5",
 			},
-			outcomes: []finding.Outcome{finding.OutcomePositive},
+			outcomes: []finding.Outcome{finding.OutcomeTrue},
 		},
 	}
 	for _, tt := range tests {

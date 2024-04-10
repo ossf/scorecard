@@ -57,5 +57,7 @@ func CodeReview(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.CodeReview(CheckCodeReview, findings, c.Dlogger)
+	ret := evaluation.CodeReview(CheckCodeReview, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

@@ -38,10 +38,10 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -75,10 +75,10 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -86,33 +86,11 @@ func TestDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
-			name: "DangerousWorkflow - Dangerous workflow detected",
-			findings: []finding.Finding{
-				{
-					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomePositive,
-				}, {
-					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomeNegative,
-					Location: &finding.Location{
-						Type:      finding.FileTypeText,
-						Path:      "./github/workflows/dangerous-workflow.yml",
-						LineStart: &testLineStart,
-						Snippet:   &testSnippet,
-					},
-				},
-			},
-			result: scut.TestReturn{
-				Score:        0,
-				NumberOfWarn: 1,
-			},
-		},
-		{
 			name: "DangerousWorkflow - Script injection detected",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -121,7 +99,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -130,11 +108,11 @@ func TestDangerousWorkflow(t *testing.T) {
 			},
 		},
 		{
-			name: "DangerousWorkflow - 3 script injection workflows detected",
+			name: "2 script injections are both logged",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -143,7 +121,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow2.yml",
@@ -152,7 +130,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -165,7 +143,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow.yml",
@@ -174,7 +152,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow2.yml",
@@ -183,7 +161,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow3.yml",
@@ -192,7 +170,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow4.yml",
@@ -201,7 +179,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow5.yml",
@@ -210,7 +188,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow6.yml",
@@ -219,7 +197,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow7.yml",
@@ -228,7 +206,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowScriptInjection",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Location: &finding.Location{
 						Type:      finding.FileTypeText,
 						Path:      "./github/workflows/dangerous-workflow8.yml",
@@ -237,7 +215,7 @@ func TestDangerousWorkflow(t *testing.T) {
 					},
 				}, {
 					Probe:   "hasDangerousWorkflowUntrustedCheckout",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

@@ -19,6 +19,7 @@ import (
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
@@ -39,7 +40,7 @@ func TestVulnerabilities(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -47,78 +48,16 @@ func TestVulnerabilities(t *testing.T) {
 			},
 		},
 		{
-			name: "three vulnerabilities",
-			findings: []finding.Finding{
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
+			name:     "three vulnerabilities",
+			findings: vulnFindings(t, 3),
 			result: scut.TestReturn{
 				Score:        7,
 				NumberOfWarn: 3,
 			},
 		},
 		{
-			name: "twelve vulnerabilities to check that score is not less than 0",
-			findings: []finding.Finding{
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "hasOSVVulnerabilities",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
+			name:     "twelve vulnerabilities to check that score is not less than 0",
+			findings: vulnFindings(t, 12),
 			result: scut.TestReturn{
 				Score:        0,
 				NumberOfWarn: 12,
@@ -142,4 +81,17 @@ func TestVulnerabilities(t *testing.T) {
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
+}
+
+// helper to generate repeated vuln findings.
+func vulnFindings(t *testing.T, n int) []finding.Finding {
+	t.Helper()
+	findings := make([]finding.Finding, n)
+	for i := range findings {
+		findings[i] = finding.Finding{
+			Probe:   hasOSVVulnerabilities.Probe,
+			Outcome: finding.OutcomeTrue,
+		}
+	}
+	return findings
 }

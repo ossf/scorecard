@@ -57,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if e.Type == checker.DangerousWorkflowScriptInjection {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
-				nil, finding.OutcomeNegative)
+				nil, finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -72,16 +72,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		return positiveOutcome()
+		return falseOutcome()
 	}
 
 	return findings, Probe, nil
 }
 
-func positiveOutcome() ([]finding.Finding, string, error) {
+func falseOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Project does not have dangerous workflow(s) with possibility of script injection.", nil,
-		finding.OutcomePositive)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

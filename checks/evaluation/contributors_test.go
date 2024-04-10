@@ -29,15 +29,15 @@ func TestContributors(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Only has two positive outcomes",
+			name: "Only has two true outcomes",
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -49,26 +49,26 @@ func TestContributors(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
 				Score: 0,
 			},
 		}, {
-			name: "Has three positive outcomes",
+			name: "Has three true outcomes",
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "contributorsFromOrgOrCompany",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

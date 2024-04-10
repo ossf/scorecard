@@ -119,12 +119,12 @@ func BranchProtection(name string,
 			e := sce.WithMessage(sce.ErrScorecardInternal, "probe is missing branch name")
 			return checker.CreateRuntimeErrorResult(name, e)
 		// Now we can check whether the branch is protected:
-		case f.Outcome == finding.OutcomeNegative:
+		case f.Outcome == finding.OutcomeFalse:
 			protectedBranches[branchName] = false
 			dl.Warn(&checker.LogMessage{
 				Text: fmt.Sprintf("branch protection not enabled for branch '%s'", branchName),
 			})
-		case f.Outcome == finding.OutcomePositive:
+		case f.Outcome == finding.OutcomeTrue:
 			protectedBranches[branchName] = true
 		default:
 			continue
@@ -167,17 +167,21 @@ func BranchProtection(name string,
 			branchScores[branchName].maxes.adminThoroughReview += max
 
 		case requiresApproversForPullRequests.Probe:
+			noOfRequiredReviewers, err := getReviewerCount(f)
+			if err != nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "unable to get reviewer count")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
 			// Scorecard evaluation scores twice with this probe:
 			// Once if the count is above 0
 			// Once if the count is above 2
-			score, max = nonAdminThoroughReviewProtection(f, doLogging, dl)
+			score, max = logReviewerCount(f, doLogging, dl, noOfRequiredReviewers)
 			branchScores[branchName].scores.thoroughReview += score
 			branchScores[branchName].maxes.thoroughReview += max
 
 			reviewerWeight := 2
 			max = reviewerWeight
-			noOfRequiredReviewers, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
-			if f.Outcome == finding.OutcomePositive && noOfRequiredReviewers > 0 {
+			if f.Outcome == finding.OutcomeTrue && noOfRequiredReviewers > 0 {
 				branchScores[branchName].scores.review += reviewerWeight
 			}
 			branchScores[branchName].maxes.review += max
@@ -235,6 +239,22 @@ func getBranchName(f *finding.Finding) (string, error) {
 	return name, nil
 }
 
+func getReviewerCount(f *finding.Finding) (int, error) {
+	// assume no review required if data not available
+	if f.Outcome == finding.OutcomeNotAvailable {
+		return 0, nil
+	}
+	countString, ok := f.Values[requiresApproversForPullRequests.RequiredReviewersKey]
+	if !ok {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "no required reviewer count found")
+	}
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "unable to parse required reviewer count")
+	}
+	return count, nil
+}
+
 func sumUpScoreForTier(t tier, scoresData []levelScore) int {
 	sum := 0
 	for i := range scoresData {
@@ -259,9 +279,9 @@ func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
 	case finding.OutcomeNotAvailable:
 		debug(dl, doLogging, f.Message)
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -270,9 +290,9 @@ func logWithDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 
 func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
-	case finding.OutcomeNegative:
+	case finding.OutcomeFalse:
 		warn(dl, doLogging, f.Message)
 	default:
 		// To satisfy linter
@@ -281,7 +301,7 @@ func logWithoutDebug(f *finding.Finding, doLogging bool, dl checker.DetailLogger
 
 func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) {
 	switch f.Outcome {
-	case finding.OutcomePositive:
+	case finding.OutcomeTrue:
 		info(dl, doLogging, f.Message)
 	default:
 		warn(dl, doLogging, f.Message)
@@ -384,7 +404,7 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	logWithoutDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	max++
@@ -395,7 +415,7 @@ func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker
 func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
 	logInfoOrWarn(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	max++
@@ -404,7 +424,7 @@ func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.De
 
 func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	logWithDebug(f, doLogging, dl)
@@ -418,7 +438,7 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 	var score, max int
 
 	logWithDebug(f, doLogging, dl)
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	if f.Outcome != finding.OutcomeNotAvailable {
@@ -427,17 +447,16 @@ func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checke
 	return score, max
 }
 
-func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
+func logReviewerCount(f *finding.Finding, doLogging bool, dl checker.DetailLogger, noOfRequiredReviews int) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
-		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
+	if f.Outcome == finding.OutcomeTrue {
 		if noOfRequiredReviews >= minReviews {
 			info(dl, doLogging, f.Message)
 			score++
 		} else {
 			warn(dl, doLogging, f.Message)
 		}
-	} else if f.Outcome == finding.OutcomeNegative {
+	} else if f.Outcome == finding.OutcomeFalse {
 		warn(dl, doLogging, f.Message)
 	}
 	max++
@@ -446,7 +465,7 @@ func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl che
 
 func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
 	var score, max int
-	if f.Outcome == finding.OutcomePositive {
+	if f.Outcome == finding.OutcomeTrue {
 		info(dl, doLogging, f.Message)
 		score++
 	} else {

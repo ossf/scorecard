@@ -50,7 +50,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		// check passes.
 		f, err := finding.NewWith(fs, Probe,
 			"Project packages its releases by way of GitHub Actions.", nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -70,7 +70,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		"no GitHub/GitLab publishing workflow detected.", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

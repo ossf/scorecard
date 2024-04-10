@@ -70,11 +70,11 @@ func SignedReleases(name string,
 		// Check if outcome is NotApplicable
 	}
 
-	totalPositive := 0
+	totalTrue := 0
 	releaseMap := make(map[string]int)
 	uniqueReleaseTags := make([]string, 0)
-	checker.LogFindings(findings, dl)
 
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
 
@@ -86,9 +86,10 @@ func SignedReleases(name string,
 			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
 		}
 
-		if f.Outcome == finding.OutcomePositive {
-			totalPositive++
-
+		switch f.Outcome {
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
+			totalTrue++
 			switch f.Probe {
 			case releasesAreSigned.Probe:
 				if _, ok := releaseMap[releaseName]; !ok {
@@ -97,10 +98,15 @@ func SignedReleases(name string,
 			case releasesHaveProvenance.Probe:
 				releaseMap[releaseName] = 10
 			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 
-	if totalPositive == 0 {
+	if totalTrue == 0 {
 		return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
 	}
 
@@ -125,7 +131,7 @@ func SignedReleases(name string,
 
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
 	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
-		len(releaseMap), totalReleases, totalPositive)
+		len(releaseMap), totalReleases, totalTrue)
 	return checker.CreateResultWithScore(name, reason, score)
 }
 

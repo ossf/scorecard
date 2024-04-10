@@ -65,5 +65,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	return evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
+	ret := evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

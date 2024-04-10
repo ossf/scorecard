@@ -25,10 +25,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
 )
 
-func isWriteAll(f *finding.Finding) bool {
-	return (f.Values["tokenName"] == "all" || f.Values["tokenName"] == "write-all")
-}
-
 // TokenPermissions applies the score policy for the Token-Permissions check.
 //
 //nolint:gocognit
@@ -75,7 +71,7 @@ func TokenPermissions(name string,
 		f := &findings[i]
 
 		// Log workflows with "none" permissions
-		if f.Values["permissionLevel"] == string(checker.PermissionLevelNone) {
+		if permissionLevel(f) == checker.PermissionLevelNone {
 			dl.Info(&checker.LogMessage{
 				Finding: f,
 			})
@@ -83,7 +79,7 @@ func TokenPermissions(name string,
 		}
 
 		// Log workflows with "read" permissions
-		if f.Values["permissionLevel"] == string(checker.PermissionLevelRead) {
+		if permissionLevel(f) == checker.PermissionLevelRead {
 			dl.Info(&checker.LogMessage{
 				Finding: f,
 			})
@@ -98,7 +94,7 @@ func TokenPermissions(name string,
 			return checker.CreateInconclusiveResult(name, "No tokens found")
 		}
 
-		if f.Outcome != finding.OutcomeNegative {
+		if f.Outcome != finding.OutcomeFalse {
 			continue
 		}
 		if f.Location == nil {
@@ -108,7 +104,7 @@ func TokenPermissions(name string,
 
 		addProbeToMaps(fPath, undeclaredPermissions, hasWritePermissions)
 
-		if f.Values["permissionLevel"] == string(checker.PermissionLevelUndeclared) {
+		if permissionLevel(f) == checker.PermissionLevelUndeclared {
 			score = updateScoreAndMapFromUndeclared(undeclaredPermissions,
 				hasWritePermissions, f, score, dl)
 			continue
@@ -120,7 +116,7 @@ func TokenPermissions(name string,
 				Finding: f,
 			})
 		case topLevelPermissions.Probe:
-			if f.Values["permissionLevel"] != string(checker.PermissionLevelWrite) {
+			if permissionLevel(f) != checker.PermissionLevelWrite {
 				continue
 			}
 			hasWritePermissions["topLevel"][fPath] = true
@@ -141,7 +137,7 @@ func TokenPermissions(name string,
 			}
 			score -= 0.5
 		case jobLevelPermissions.Probe:
-			if f.Values["permissionLevel"] != string(checker.PermissionLevelWrite) {
+			if permissionLevel(f) != checker.PermissionLevelWrite {
 				continue
 			}
 
@@ -221,7 +217,7 @@ func updateScoreFromUndeclaredTop(undeclaredPermissions map[string]map[string]bo
 }
 
 func isBothUndeclaredAndNotAvailableOrNotApplicable(f *finding.Finding, dl checker.DetailLogger) bool {
-	if f.Values["permissionLevel"] == string(checker.PermissionLevelUndeclared) {
+	if permissionLevel(f) == checker.PermissionLevelUndeclared {
 		if f.Outcome == finding.OutcomeNotAvailable {
 			return true
 		} else if f.Outcome == finding.OutcomeNotApplicable {
@@ -278,11 +274,10 @@ func addProbeToMaps(fPath string, hasWritePermissions, undeclaredPermissions map
 }
 
 func reduceBy(f *finding.Finding, dl checker.DetailLogger) float32 {
-	if f.Values["permissionLevel"] != string(checker.PermissionLevelWrite) {
+	if permissionLevel(f) != checker.PermissionLevelWrite {
 		return 0
 	}
-	tokenName := f.Values["tokenName"]
-	switch tokenName {
+	switch tokenName(f) {
 	case "checks", "statuses":
 		dl.Warn(&checker.LogMessage{
 			Finding: f,
@@ -300,4 +295,35 @@ func reduceBy(f *finding.Finding, dl checker.DetailLogger) float32 {
 		return 1.0
 	}
 	return 0
+}
+
+func isWriteAll(f *finding.Finding) bool {
+	token := tokenName(f)
+	return (token == "all" || token == "write-all")
+}
+
+func permissionLevel(f *finding.Finding) checker.PermissionLevel {
+	var key string
+	// these values should be the same, but better safe than sorry
+	switch f.Probe {
+	case jobLevelPermissions.Probe:
+		key = jobLevelPermissions.PermissionLevelKey
+	case topLevelPermissions.Probe:
+		key = topLevelPermissions.PermissionLevelKey
+	default:
+	}
+	return checker.PermissionLevel(f.Values[key])
+}
+
+func tokenName(f *finding.Finding) string {
+	var key string
+	// these values should be the same, but better safe than sorry
+	switch f.Probe {
+	case jobLevelPermissions.Probe:
+		key = jobLevelPermissions.TokenNameKey
+	case topLevelPermissions.Probe:
+		key = topLevelPermissions.TokenNameKey
+	default:
+	}
+	return f.Values[key]
 }

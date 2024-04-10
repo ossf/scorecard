@@ -94,13 +94,13 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var reason string
 	switch {
 	case nApproved != nChanges:
-		outcome = finding.OutcomeNegative
+		outcome = finding.OutcomeFalse
 		reason = fmt.Sprintf("Found %d/%d approved changesets", nApproved, nChanges)
 	case !foundHumanActivity:
 		outcome = finding.OutcomeNotApplicable
 		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	default:
-		outcome = finding.OutcomePositive
+		outcome = finding.OutcomeTrue
 		reason = "All changesets approved"
 	}
 	f, err := finding.NewWith(fs, probeID, reason, nil, outcome)

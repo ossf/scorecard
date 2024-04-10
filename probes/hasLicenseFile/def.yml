@@ -19,9 +19,10 @@ motivation: >
 implementation: >
  The implementation checks whether a license file is present.
 outcome:
-  - If license files are found, the probe returns OutcomePositive for each license file.
-  - If a license file is not found, the probe returns a single OutcomeNegative.
+  - If license files are found, the probe returns OutcomeTrue for each license file.
+  - If a license file is not found, the probe returns a single OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - For GitHub projects, follow [this guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to determine which license to apply to your project and establish a license file for your project.

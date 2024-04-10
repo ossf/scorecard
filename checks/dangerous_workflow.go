@@ -57,5 +57,7 @@ func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
 	}
 
-	return evaluation.DangerousWorkflow(CheckDangerousWorkflow, findings, c.Dlogger)
+	ret := evaluation.DangerousWorkflow(CheckDangerousWorkflow, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

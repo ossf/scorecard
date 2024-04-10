@@ -63,10 +63,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var outcome finding.Outcome
 	if commitsWithinThreshold > 0 {
 		text = "Found a contribution within the threshold."
-		outcome = finding.OutcomePositive
+		outcome = finding.OutcomeTrue
 	} else {
 		text = "Did not find contribution within the threshold."
-		outcome = finding.OutcomeNegative
+		outcome = finding.OutcomeFalse
 	}
 	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {

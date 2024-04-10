@@ -46,7 +46,7 @@ func Webhooks(name string,
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
+		if f.Outcome == finding.OutcomeFalse {
 			webhooksWithNoSecret++
 		}
 	}

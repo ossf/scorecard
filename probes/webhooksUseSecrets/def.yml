@@ -19,9 +19,10 @@ motivation: >
 implementation: >
   The probe checks all webhooks of a project and checks whether each uses secret authentication.
 outcome:
-  - If the project has any webhooks without secret authorization, the probe returns as many OutcomeNegative (0) as the project has webhooks without secret authorization and as many OutcomePositive as there are webhooks with secret authorization. All findings include the path to the webhook.
-  - If the project does not have any webhooks without secret authorization, the probe returns one OutcomePositive (1).
+  - If the project has any webhooks without secret authorization, the probe returns as many OutcomeFalse (0) as the project has webhooks without secret authorization and as many OutcomeTrue as there are webhooks with secret authorization. All findings include the path to the webhook.
+  - If the project does not have any webhooks without secret authorization, the probe returns one OutcomeTrue (1).
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Check if the service your webhooks is configured with supports secrets.

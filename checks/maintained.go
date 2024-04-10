@@ -54,5 +54,7 @@ func Maintained(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.Maintained(CheckMaintained, findings, c.Dlogger)
+	ret := evaluation.Maintained(CheckMaintained, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

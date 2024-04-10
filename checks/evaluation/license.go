@@ -27,7 +27,6 @@ func License(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
 		hasFSFOrOSIApprovedLicense.Probe,
@@ -41,9 +40,12 @@ func License(name string,
 	// Compute the score.
 	score := 0
 	m := make(map[string]bool)
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		switch f.Outcome {
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case hasFSFOrOSIApprovedLicense.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
@@ -53,10 +55,13 @@ func License(name string,
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
-	checker.LogFindings(findings, dl)
-
 	_, defined := m[hasLicenseFile.Probe]
 	if !defined {
 		if score > 0 {

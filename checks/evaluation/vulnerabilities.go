@@ -37,9 +37,14 @@ func Vulnerabilities(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	vulnsFound := negativeFindings(findings)
-	numVulnsFound := len(vulnsFound)
-	checker.LogFindings(vulnsFound, dl)
+	var numVulnsFound int
+	for i := range findings {
+		f := &findings[i]
+		if f.Outcome == finding.OutcomeTrue {
+			numVulnsFound++
+			checker.LogFinding(dl, f, checker.DetailWarn)
+		}
+	}
 
 	score := checker.MaxResultScore - numVulnsFound
 
