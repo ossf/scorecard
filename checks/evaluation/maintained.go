@@ -21,9 +21,9 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/archived"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 )
 
@@ -39,7 +39,7 @@ func Maintained(name string,
 ) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
-		notArchived.Probe,
+		archived.Probe,
 		issueActivityByProjectMember.Probe,
 		hasRecentCommits.Probe,
 		notCreatedRecently.Probe,
@@ -50,13 +50,12 @@ func Maintained(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	var archived, recentlyCreated bool
+	var isArchived, recentlyCreated bool
 
 	var commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold int
 	var err error
 	for i := range findings {
 		f := &findings[i]
-		// currently this works but when we switch notArchived for #3654 this will need to also check the probe
 		switch f.Outcome {
 		case finding.OutcomeTrue:
 			switch f.Probe {
@@ -70,24 +69,21 @@ func Maintained(name string,
 				if err != nil {
 					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
 				}
+			case archived.Probe:
+				isArchived = true
+				checker.LogFinding(dl, f, checker.DetailWarn)
 			}
 		case finding.OutcomeFalse:
-			switch f.Probe {
-			case notArchived.Probe:
-				archived = true
-			case notCreatedRecently.Probe:
+			if f.Probe == notCreatedRecently.Probe {
 				recentlyCreated = true
-			// informational probes dont need logged, but they do factor into the score
-			case hasRecentCommits.Probe, issueActivityByProjectMember.Probe:
-				continue
+				checker.LogFinding(dl, f, checker.DetailWarn)
 			}
-			checker.LogFinding(dl, f, checker.DetailWarn)
 		default:
 			checker.LogFinding(dl, f, checker.DetailDebug)
 		}
 	}
 
-	if archived {
+	if isArchived {
 		return checker.CreateMinScoreResult(name, "project is archived")
 	}
 

@@ -17,6 +17,7 @@ package probes
 import (
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/archived"
 	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
 	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
@@ -39,7 +40,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
@@ -110,7 +110,7 @@ var (
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 	Maintained = []ProbeImpl{
-		notArchived.Run,
+		archived.Run,
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		notCreatedRecently.Run,

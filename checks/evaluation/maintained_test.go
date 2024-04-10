@@ -18,9 +18,9 @@ import (
 
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v4/probes/archived"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
 	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
 	scut "github.com/ossf/scorecard/v4/utests"
 )
@@ -48,8 +48,8 @@ func TestMaintained(t *testing.T) {
 						issueActivityByProjectMember.NumIssuesKey: "1",
 					},
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomeTrue,
@@ -69,8 +69,8 @@ func TestMaintained(t *testing.T) {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeTrue,
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
 				}, {
 					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomeTrue,
@@ -112,8 +112,8 @@ func TestMaintained(t *testing.T) {
 					Probe:   issueActivityByProjectMember.Probe,
 					Outcome: finding.OutcomeFalse,
 				}, {
-					Probe:   notArchived.Probe,
-					Outcome: finding.OutcomeFalse,
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   notCreatedRecently.Probe,
 					Outcome: finding.OutcomeTrue,

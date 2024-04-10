@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
-package notArchived
+package archived
 
 import (
 	"embed"
@@ -32,7 +31,7 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "notArchived"
+const Probe = "archived"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -42,25 +41,25 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.MaintainedResults
 
 	if r.ArchivedStatus.Status {
-		return falseOutcome()
+		return trueOutcome()
 	}
-	return trueOutcome()
+	return falseOutcome()
 }
 
-func falseOutcome() ([]finding.Finding, string, error) {
+func trueOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Repository is archived.", nil,
-		finding.OutcomeFalse)
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
 	return []finding.Finding{*f}, Probe, nil
 }
 
-func trueOutcome() ([]finding.Finding, string, error) {
+func falseOutcome() ([]finding.Finding, string, error) {
 	f, err := finding.NewWith(fs, Probe,
 		"Repository is not archived.", nil,
-		finding.OutcomeTrue)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
