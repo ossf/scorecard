@@ -30,13 +30,13 @@ func Test_probeFromBytes(t *testing.T) {
 		id    string
 		path  string
 		err   error
-		probe *Probe
+		probe *probe
 	}{
 		{
 			name: "all fields set",
 			id:   "all-fields",
 			path: "testdata/all-fields.yml",
-			probe: &Probe{
+			probe: &probe{
 				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",
@@ -53,7 +53,7 @@ func Test_probeFromBytes(t *testing.T) {
 			name: "mismatch probe ID",
 			id:   "mismatch-id",
 			path: "testdata/all-fields.yml",
-			probe: &Probe{
+			probe: &probe{
 				ID:             "all-fields",
 				Short:          "short description",
 				Implementation: "impl1 impl2\n",

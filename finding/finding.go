@@ -111,7 +111,7 @@ func FromBytes(content []byte, probeID string) (*Finding, error) {
 
 // New creates a new finding.
 func New(loc embed.FS, probeID string) (*Finding, error) {
-	p, err := NewProbe(loc, probeID)
+	p, err := newProbe(loc, probeID)
 	if err != nil {
 		return nil, err
 	}

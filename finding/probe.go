@@ -77,7 +77,7 @@ type yamlProbe struct {
 	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
-type Probe struct {
+type probe struct {
 	ID                 string
 	Short              string
 	Motivation         string
@@ -86,7 +86,7 @@ type Probe struct {
 	RemediateOnOutcome Outcome
 }
 
-func probeFromBytes(content []byte, probeID string) (*Probe, error) {
+func probeFromBytes(content []byte, probeID string) (*probe, error) {
 	r, err := parseFromYAML(content)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func probeFromBytes(content []byte, probeID string) (*Probe, error) {
 		return nil, err
 	}
 
-	return &Probe{
+	return &probe{
 		ID:             r.ID,
 		Short:          r.Short,
 		Motivation:     r.Motivation,
@@ -111,7 +111,7 @@ func probeFromBytes(content []byte, probeID string) (*Probe, error) {
 }
 
 // New create a new probe.
-func NewProbe(loc embed.FS, probeID string) (*Probe, error) {
+func newProbe(loc embed.FS, probeID string) (*probe, error) {
 	content, err := loc.ReadFile("def.yml")
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
