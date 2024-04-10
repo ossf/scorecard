@@ -20,8 +20,8 @@ implementation: >
   The probe checks the protection rules of default and release branches branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires approval of the most recent push, and one OutcomeFalse for branches that don't.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Configure the project such that it requires approval of the most recent push.

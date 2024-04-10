@@ -21,8 +21,8 @@ implementation: >
 outcome:
   - If the project is archived, the outcome is OutcomeFalse.
   - If the project is not archived, the outcome is OutcomeTrue.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Non-collaborators, members or owners cannot affect the outcome of this probe.

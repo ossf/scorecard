@@ -21,8 +21,8 @@ implementation: >
 outcome:
   - The probe returns one true outcome for each vulnerability found in OSV.
   - If there are no known vulnerabilities from the raw results, the probe returns one false outcome.
-remediateOnOutcome: True
 remediation:
+  onOutcome: True
   effort: High
   text:
     - Fix the ${{ metadata.osvid }} by following information from https://osv.dev/${{ metadata.osvid }} .

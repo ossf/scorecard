@@ -22,8 +22,8 @@ outcome:
   - For supported ecosystem, the probe returns OutcomeTrue per pinned dependency.
   - For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
   - If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Pin dependencies by hash.

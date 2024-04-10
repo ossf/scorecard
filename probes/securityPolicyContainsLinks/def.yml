@@ -22,8 +22,8 @@ outcome:
   - If links are found, one finding with OutcomeTrue (1) is returned for each file.
   - If no links are found, one finding with OutcomeFalse (0) is returned for each file.
   - If no file is found, one finding with OutcomeFalse (0) is returned.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - 'On GitHub:'

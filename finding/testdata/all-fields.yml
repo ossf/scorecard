@@ -6,8 +6,8 @@ motivation: >
 implementation: >
   impl1
   impl2
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - step1

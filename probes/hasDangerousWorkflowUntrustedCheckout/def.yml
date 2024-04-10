@@ -21,8 +21,8 @@ implementation: >
 outcome:
   - If the project has at least one workflow with possibility of untrusted code checkout, the probe returns one finding with OutcomeFalse (0).
   - If the project does not have a single workflow with possibility of untrusted code checkout, the probe returns one finding with OutcomeTrue (1).
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Avoid the dangerous workflow patterns.

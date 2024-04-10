@@ -6,8 +6,8 @@ motivation: >
 implementation: >
   line1
   line2
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - step1

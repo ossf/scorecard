@@ -21,8 +21,8 @@ implementation: >
 outcome:
   - If the probe finds binary files, it returns a number of false outcomes equal to the number of binary files found. Each outcome includes a location of the file.
   - If the probe finds no verified binary files, it returns a single true outcome.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Remove the generated executable artifacts from the repository.

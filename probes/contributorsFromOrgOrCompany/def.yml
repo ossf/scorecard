@@ -25,8 +25,8 @@ outcome:
   - If the project has no contributing organizations or companies, the probe returns 1 OutcomeFalse
   - If the project has contributing organizations or companies, the probe returns 1 Outcome per org or company.
   - If the probe fails to process the raw results, it returns nil instead of the findings slice as well as an error.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Encourage community-driven contributions to your project.

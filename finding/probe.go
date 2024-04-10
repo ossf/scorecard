@@ -51,9 +51,10 @@ type Remediation struct {
 }
 
 type yamlRemediation struct {
-	Text     []string          `yaml:"text"`
-	Markdown []string          `yaml:"markdown"`
-	Effort   RemediationEffort `yaml:"effort"`
+	OnOutcome Outcome           `yaml:"onOutcome"`
+	Text      []string          `yaml:"text"`
+	Markdown  []string          `yaml:"markdown"`
+	Effort    RemediationEffort `yaml:"effort"`
 }
 
 type yamlEcosystem struct {
@@ -68,13 +69,12 @@ var supportedClients = map[string]bool{
 }
 
 type yamlProbe struct {
-	ID                 string          `yaml:"id"`
-	Short              string          `yaml:"short"`
-	Motivation         string          `yaml:"motivation"`
-	Implementation     string          `yaml:"implementation"`
-	Ecosystem          yamlEcosystem   `yaml:"ecosystem"`
-	Remediation        yamlRemediation `yaml:"remediation"`
-	RemediateOnOutcome Outcome         `yaml:"remediateOnOutcome"`
+	ID             string          `yaml:"id"`
+	Short          string          `yaml:"short"`
+	Motivation     string          `yaml:"motivation"`
+	Implementation string          `yaml:"implementation"`
+	Ecosystem      yamlEcosystem   `yaml:"ecosystem"`
+	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
 //nolint:govet
@@ -107,7 +107,7 @@ func probeFromBytes(content []byte, probeID string) (*Probe, error) {
 			Markdown: strings.Join(r.Remediation.Markdown, "\n"),
 			Effort:   r.Remediation.Effort,
 		},
-		RemediateOnOutcome: r.RemediateOnOutcome,
+		RemediateOnOutcome: r.Remediation.OnOutcome,
 	}, nil
 }
 
@@ -130,9 +130,6 @@ func validate(r *yamlProbe, probeID string) error {
 	if err := validateEcosystem(r.Ecosystem); err != nil {
 		return err
 	}
-	if err := validateBadOutcome(r.RemediateOnOutcome); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -145,6 +142,9 @@ func validateID(actual, expected string) error {
 }
 
 func validateRemediation(r yamlRemediation) error {
+	if err := validateRemediationOutcomeTrigger(r.OnOutcome); err != nil {
+		return err
+	}
 	switch r.Effort {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
 		return nil
@@ -163,7 +163,7 @@ func validateEcosystem(r yamlEcosystem) error {
 	return nil
 }
 
-func validateBadOutcome(o Outcome) error {
+func validateRemediationOutcomeTrigger(o Outcome) error {
 	switch o {
 	case OutcomeTrue, OutcomeFalse, OutcomeNotApplicable, OutcomeNotAvailable, OutcomeNotSupported, OutcomeError:
 		return nil

@@ -20,8 +20,8 @@ implementation: >
   Checks the protection rules of default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that is protected, and one OutcomeFalse for branches that are not protected. Scorecard only considers default and releases branches.
-remediateOnOutcome: False
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - For Gitlab-hosted project, follow the documentation on how to protect branches, https://docs.gitlab.com/ee/user/project/protected_branches.html
