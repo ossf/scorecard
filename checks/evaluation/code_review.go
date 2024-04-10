@@ -41,7 +41,7 @@ func CodeReview(name string, findings []finding.Finding, dl checker.DetailLogger
 		switch f.Outcome {
 		case finding.OutcomeNotApplicable:
 			return checker.CreateInconclusiveResult(name, f.Message)
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
 			return checker.CreateMaxScoreResult(name, "all changesets reviewed")
 		case finding.OutcomeError:
 			return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, f.Message))

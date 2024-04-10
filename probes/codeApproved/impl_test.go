@@ -60,7 +60,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -120,7 +120,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{

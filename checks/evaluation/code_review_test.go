@@ -61,7 +61,7 @@ func TestCodeReview(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   codeApproved.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Message: "Found 0/2 approved changesets",
 					Values: map[string]string{
 						codeApproved.NumApprovedKey: "0",
@@ -78,7 +78,7 @@ func TestCodeReview(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   codeApproved.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeTrue,
 					Message: "All changesets approved",
 					Values: map[string]string{
 						codeApproved.NumApprovedKey: "2",
