@@ -50,21 +50,15 @@ func Maintained(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if projectIsArchived(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
-		return checker.CreateMinScoreResult(name, "project is archived")
-	}
-
-	if projectWasCreatedInLast90Days(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
-		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
-	}
+	var archived, recentlyCreated bool
 
 	var commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold int
 	var err error
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		// currently this works but when we switch notArchived for #3654 this will need to also check the probe
+		switch f.Outcome {
+		case finding.OutcomeTrue:
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
 				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NumIssuesKey])
@@ -77,31 +71,32 @@ func Maintained(name string,
 					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
 				}
 			}
+		case finding.OutcomeFalse:
+			switch f.Probe {
+			case notArchived.Probe:
+				archived = true
+			case notCreatedRecently.Probe:
+				recentlyCreated = true
+			// informational probes dont need logged, but they do factor into the score
+			case hasRecentCommits.Probe, issueActivityByProjectMember.Probe:
+				continue
+			}
+			checker.LogFinding(dl, f, checker.DetailWarn)
+		default:
+			checker.LogFinding(dl, f, checker.DetailDebug)
 		}
+	}
+
+	if archived {
+		return checker.CreateMinScoreResult(name, "project is archived")
+	}
+
+	if recentlyCreated {
+		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
 	}
 
 	return checker.CreateProportionalScoreResult(name, fmt.Sprintf(
 		"%d commit(s) and %d issue activity found in the last %d days",
 		commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold, lookBackDays),
 		commitsWithinThreshold+numberOfIssuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
-}
-
-func projectIsArchived(findings []finding.Finding) bool {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notArchived.Probe {
-			return true
-		}
-	}
-	return false
-}
-
-func projectWasCreatedInLast90Days(findings []finding.Finding) bool {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedRecently.Probe {
-			return true
-		}
-	}
-	return false
 }

@@ -35,13 +35,13 @@ func BinaryArtifacts(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if findings[0].Outcome == finding.OutcomePositive {
+	if findings[0].Outcome == finding.OutcomeTrue {
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome != finding.OutcomeNegative {
+		if f.Outcome != finding.OutcomeFalse {
 			continue
 		}
 		dl.Warn(&checker.LogMessage{
@@ -52,7 +52,7 @@ func BinaryArtifacts(name string,
 		})
 	}
 
-	// There are only negative findings.
+	// There are only false findings.
 	// Deduct the number of findings from max score
 	numberOfBinaryFilesFound := len(findings)
 

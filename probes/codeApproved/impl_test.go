@@ -140,7 +140,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -225,7 +225,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -266,7 +266,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -299,11 +299,11 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "only unreviewed bot changesets gives negative outcome",
+			name: "only unreviewed bot changesets gives false outcome",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
 					DefaultBranchChangesets: []checker.Changeset{
@@ -326,7 +326,7 @@ func TestProbeCodeApproved(t *testing.T) {
 				},
 			},
 			expectedOutcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 	}

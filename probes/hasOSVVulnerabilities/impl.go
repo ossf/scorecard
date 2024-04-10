@@ -51,7 +51,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(raw.VulnerabilitiesResults.Vulnerabilities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not contain OSV vulnerabilities", nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -72,7 +72,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f, err := finding.NewWith(fs, Probe,
 			"Project contains OSV vulnerabilities", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

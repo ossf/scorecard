@@ -58,5 +58,7 @@ func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.TokenPermissions(CheckTokenPermissions, findings, c.Dlogger)
+	ret := evaluation.TokenPermissions(CheckTokenPermissions, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

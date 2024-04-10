@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	tools := raw.DependencyUpdateToolResults.Tools
 	if len(tools) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no dependency update tool configurations found", nil)
+		f, err := finding.NewFalse(fs, Probe, "no dependency update tool configurations found", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -60,7 +60,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			loc = tool.Files[0].Location()
 		}
 
-		f, err := finding.NewPositive(fs, Probe, "detected update tool: "+tool.Name, loc)
+		f, err := finding.NewTrue(fs, Probe, "detected update tool: "+tool.Name, loc)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

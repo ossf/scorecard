@@ -65,9 +65,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		}, {
 			name: "Test multiple users",
@@ -98,12 +98,12 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		}, {
 			name: "Test multiple users where one user has insufficient contributions.",
@@ -134,9 +134,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 	}

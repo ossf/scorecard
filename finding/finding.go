@@ -54,43 +54,25 @@ type Location struct {
 }
 
 // Outcome is the result of a finding.
-type Outcome int
+type Outcome string
 
 // TODO(#2928): re-visit the finding definitions.
 const (
-	// NOTE: The additional '_' are intended for future use.
-	// This allows adding outcomes without breaking the values
-	// of existing outcomes.
-	// OutcomeNegative indicates a negative outcome.
-	OutcomeNegative Outcome = iota
-	_
-	_
-	_
+	// OutcomeFalse indicates the answer to the probe's question is "false" or "no".
+	OutcomeFalse Outcome = "False"
 	// OutcomeNotAvailable indicates an unavailable outcome,
 	// typically because an API call did not return an answer.
-	OutcomeNotAvailable
-	_
-	_
-	_
+	OutcomeNotAvailable Outcome = "NotAvailable"
 	// OutcomeError indicates an errors while running.
 	// The results could not be determined.
-	OutcomeError
-	_
-	_
-	_
-	// OutcomePositive indicates a positive outcome.
-	OutcomePositive
-	_
-	_
-	_
+	OutcomeError Outcome = "Error"
+	// OutcomeTrue indicates the answer to the probe's question is "true" or "yes".
+	OutcomeTrue Outcome = "True"
 	// OutcomeNotSupported indicates a non-supported outcome.
-	OutcomeNotSupported
-	_
-	_
-	_
+	OutcomeNotSupported Outcome = "NotSupported"
 	// OutcomeNotApplicable indicates if a finding should not
 	// be considered in evaluation.
-	OutcomeNotApplicable
+	OutcomeNotApplicable Outcome = "NotApplicable"
 )
 
 // Finding represents a finding.
@@ -120,7 +102,7 @@ func FromBytes(content []byte, probeID string) (*Finding, error) {
 	}
 	f := &Finding{
 		Probe:       p.ID,
-		Outcome:     OutcomeNegative,
+		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
 	}
 	return f, nil
@@ -135,7 +117,7 @@ func New(loc embed.FS, probeID string) (*Finding, error) {
 
 	f := &Finding{
 		Probe:       p.ID,
-		Outcome:     OutcomeNegative,
+		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
 	}
 	return f, nil
@@ -154,10 +136,10 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-// NewWith create a negative finding with the desired location.
-func NewNegative(efs embed.FS, probeID, text string, loc *Location,
+// NewFalse create a false finding with the desired location.
+func NewFalse(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	return NewWith(efs, probeID, text, loc, OutcomeNegative)
+	return NewWith(efs, probeID, text, loc, OutcomeFalse)
 }
 
 // NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
@@ -166,10 +148,10 @@ func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desired location.
-func NewPositive(efs embed.FS, probeID, text string, loc *Location,
+// NewTrue create a true finding with the desired location.
+func NewTrue(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	return NewWith(efs, probeID, text, loc, OutcomePositive)
+	return NewWith(efs, probeID, text, loc, OutcomeTrue)
 }
 
 // Anonymize removes the probe ID and outcome
@@ -240,8 +222,9 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 // WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Positive is not negative, remove the remediation.
-	if o != OutcomeNegative {
+	// Currently only false probes have remediations.
+	// TODO(#3654) this is a temporary mechanical conversion.
+	if o != OutcomeFalse {
 		f.Remediation = nil
 	}
 
@@ -283,10 +266,10 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	switch n.Value {
-	case "Negative":
-		*o = OutcomeNegative
-	case "Positive":
-		*o = OutcomePositive
+	case "False":
+		*o = OutcomeFalse
+	case "True":
+		*o = OutcomeTrue
 	case "NotAvailable":
 		*o = OutcomeNotAvailable
 	case "NotSupported":

@@ -69,5 +69,7 @@ func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	return evaluation.Webhooks(CheckWebHooks, findings, c.Dlogger)
+	ret := evaluation.Webhooks(CheckWebHooks, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

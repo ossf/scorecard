@@ -20,8 +20,8 @@ motivation: >
 implementation: >
   The implementation looks for the presence of various config files for different dependency update tools.
 outcome:
-  - If a dependency update tool is configured, the probe returns OutcomePositive for each configuration.
-  - If no tool is detected, the probe returns OutcomeNegative.
+  - If a dependency update tool is configured, the probe returns OutcomeTrue for each configuration.
+  - If no tool is detected, the probe returns OutcomeFalse.
 remediation:
   effort: Low
   text:

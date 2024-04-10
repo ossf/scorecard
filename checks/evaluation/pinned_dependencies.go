@@ -21,9 +21,7 @@ import (
 	"github.com/ossf/scorecard/v4/checks/fileparser"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
 	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
-	"github.com/ossf/scorecard/v4/rule"
 )
 
 type pinnedResult struct {
@@ -52,15 +50,6 @@ const (
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
 )
 
-func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
-	return &rule.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   rule.RemediationEffort(rem.Effort),
-	}
-}
-
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string,
 	findings []finding.Finding,
@@ -88,7 +77,7 @@ func PinningDependencies(name string,
 				Finding: &f,
 			})
 			continue
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
 			// we cant use the finding if we want the remediation to show
 			// finding.Remediation are currently suppressed (#3349)
 			lm := &checker.LogMessage{
@@ -101,7 +90,7 @@ func PinningDependencies(name string,
 			}
 
 			if f.Remediation != nil {
-				lm.Remediation = probeRemToRuleRem(f.Remediation)
+				lm.Remediation = f.Remediation
 			}
 			dl.Warn(lm)
 		case finding.OutcomeError:
@@ -177,7 +166,7 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
-	if outcome == finding.OutcomePositive {
+	if outcome == finding.OutcomeTrue {
 		r.pinned += 1
 	}
 	r.total += 1

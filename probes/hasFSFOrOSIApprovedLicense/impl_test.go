@@ -36,7 +36,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "License file found and is approved: outcome should be positive",
+			name: "License file found and is approved: outcome should be true",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
@@ -52,11 +52,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "License file found and is not approved: outcome should be negative",
+			name: "License file found and is not approved: outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
@@ -72,11 +72,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "License file not found and outcome should be negative",
+			name: "License file not found and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
@@ -87,7 +87,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "License file found but is not approved. Outcome should be Negative",
+			name: "License file found but is not approved. Outcome should be False",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
@@ -111,11 +111,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "nil license files and outcome should be negative",
+			name: "nil license files and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: nil,
@@ -126,7 +126,7 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "0 license files and outcome should be negative",
+			name: "0 license files and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},

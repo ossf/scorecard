@@ -46,7 +46,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(r.Files) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Repository does not have any binary artifacts.", nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -55,7 +55,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Files {
 		file := &r.Files[i]
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeNegative)
+			nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

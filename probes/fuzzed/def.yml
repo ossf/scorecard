@@ -20,8 +20,8 @@ motivation: >
 implementation: >
   The implementation looks for various fuzzing function signatures, imports, configuration files, and external integration data.
 outcome:
-  - If a fuzzing tool is found, one finding per tool with OutcomePositive is returned.
-  - If no fuzzing tool is found, or the project uses a tool we don't detect, one finding with OutcomeNegative is returned.
+  - If a fuzzing tool is found, one finding per tool with OutcomeTrue is returned.
+  - If no fuzzing tool is found, or the project uses a tool we don't detect, one finding with OutcomeFalse is returned.
 remediation:
   effort: High
   text:
