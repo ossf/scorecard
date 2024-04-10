@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfAnyBinaryArtifacts
+package hasUnverifiedBinaryArtifacts
 
 import (
 	"embed"
@@ -32,7 +32,7 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "freeOfAnyBinaryArtifacts"
+const Probe = "hasUnverifiedBinaryArtifacts"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -40,22 +40,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	r := raw.BinaryArtifactResults
+
 	var findings []finding.Finding
 
-	// Apply the policy evaluation.
-	if len(r.Files) == 0 {
-		f, err := finding.NewWith(fs, Probe,
-			"Repository does not have any binary artifacts.", nil,
-			finding.OutcomeTrue)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-	}
 	for i := range r.Files {
 		file := &r.Files[i]
+		if file.Type == finding.FileTypeBinaryVerified {
+			continue
+		}
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeFalse)
+			nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -67,5 +61,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		findings = append(findings, *f)
 	}
 
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Repository does not have binary artifacts.", nil,
+			finding.OutcomeFalse)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+	}
 	return findings, Probe, nil
 }

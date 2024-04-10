@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfAnyBinaryArtifacts
+package hasBinaryArtifacts
 
 import (
 	"testing"
@@ -48,7 +48,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -57,7 +57,7 @@ func Test_Run(t *testing.T) {
 				BinaryArtifactResults: checker.BinaryArtifactData{},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeTrue,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -81,9 +81,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -111,20 +111,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
-			},
-		},
-		{
-			name: "Is free of any binary artifacts",
-			raw: &checker.RawResults{
-				BinaryArtifactResults: checker.BinaryArtifactData{
-					Files: []checker.File{},
-				},
-			},
-			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 			},
 		},
