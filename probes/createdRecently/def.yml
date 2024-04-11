@@ -15,7 +15,8 @@
 id: createdRecently
 short: Checks if the project was created in the last 90 days.
 motivation: >
-  When Scorecard checks the activity of a project in the last 90 days, the project may not have been created before the last 90 days. As such, Scorecard cannot give an accurate score. This probe helps Scorecard assess whether it can give an accurate score when checking the project activity in the last 90 days.
+  Recently created repositories have been used for malicious forks / typosquatting attacks in the past.
+  A newly created repo is not a strong signal on its own, but can be a useful piece of information.  
 implementation: >
   The implementation checks the creation date is within the last 90 days.
 outcome:

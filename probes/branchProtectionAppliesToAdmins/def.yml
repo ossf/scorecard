@@ -13,9 +13,9 @@
 # limitations under the License.
 
 id: branchProtectionAppliesToAdmins
-short: Check that the projects branch protection rules apply to project admins.
+short: Check that the project's branch protection rules apply to project admins.
 motivation: >
-  Admins can make malicious code changes that users will be unaware of (see CVE-2022-23812); consuming software where this is disabled is encouraged.
+  Admins may be able to bypass branch protection settings which could defeat the purpose of having them.
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
