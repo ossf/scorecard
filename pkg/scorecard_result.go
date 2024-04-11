@@ -135,9 +135,7 @@ func FormatResults(
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
-	case options.FormatFJSON:
-		err = results.AsFJSON(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
-	case options.FormatPJSON:
+	case options.FormatProbe:
 		var opts *ProbeResultOption
 		err = results.AsPJSON(output, opts)
 	case options.FormatRaw:

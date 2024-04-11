@@ -79,13 +79,8 @@ const (
 	// Formats.
 	// FormatJSON specifies that results should be output in JSON format.
 	FormatJSON = "json"
-	// FormatFJSON specifies that results should be output in JSON format,
-	// but with structured findings.
-	FormatFJSON = "finding"
-	// FormatPJSON specifies that results should be output in probe JSON format.
-	FormatPJSON = "probe"
-	// FormatSJSON specifies that results should be output in structured JSON format.
-	FormatSJSON = "structured"
+	// FormatProbe specifies that results should be output in probe JSON format.
+	FormatProbe = "probe"
 	// FormatSarif specifies that results should be output in SARIF format.
 	FormatSarif = "sarif"
 	// FormatDefault specifies that results should be output in default format.
@@ -161,17 +156,6 @@ func (o *Options) Validate() error {
 			errs = append(
 				errs,
 				errRawOptionNotSupported,
-			)
-		}
-	}
-
-	if !o.isExperimentalEnabled() {
-		if o.Format == FormatSJSON ||
-			o.Format == FormatFJSON ||
-			o.Format == FormatPJSON {
-			errs = append(
-				errs,
-				errFormatSupportedWithExperimental,
 			)
 		}
 	}
@@ -269,8 +253,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatSJSON, FormatFJSON,
-		FormatPJSON, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw:
 		return true
 	default:
 		return false
