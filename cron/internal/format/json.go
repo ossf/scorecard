@@ -48,11 +48,11 @@ type jsonCheckDocumentationV2 struct {
 
 //nolint:govet
 type jsonCheckResultV2 struct {
-	Details []string                 `json:"details"`
-	Score   int                      `json:"score"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 	Reason  string                   `json:"reason"`
 	Name    string                   `json:"name"`
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
 	ID      uint                     `json:"id"`
 }
 
