@@ -30,7 +30,6 @@ import (
 type jsonCheckResult struct {
 	Name       string
 	Details    []string
-	ID         uint
 	Confidence int
 	Pass       bool
 }
@@ -47,13 +46,15 @@ type jsonCheckDocumentationV2 struct {
 	Short string `json:"short"`
 	// Can be extended if needed.
 }
+
+//nolint:govet
 type jsonCheckResultV2 struct {
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
+	ID      uint                     `json:"id"`
+	Details []string                 `json:"details"`
+	Score   int                      `json:"score"`
 	Reason  string                   `json:"reason"`
 	Name    string                   `json:"name"`
-	Details []string                 `json:"details"`
-	ID      uint                     `json:"id"`
-	Score   int                      `json:"score"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 }
 
 type jsonRepoV2 struct {
@@ -77,14 +78,14 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 
 // JSONScorecardResultV2 exports results as JSON for new detail format.
 //
-
+//nolint:govet
 type JSONScorecardResultV2 struct {
+	Date           string              `json:"date"`
 	Repo           jsonRepoV2          `json:"repo"`
 	Scorecard      jsonScorecardV2     `json:"scorecard"`
-	Date           string              `json:"date"`
+	AggregateScore jsonFloatScore      `json:"score"`
 	Checks         []jsonCheckResultV2 `json:"checks"`
 	Metadata       []string            `json:"metadata"`
-	AggregateScore jsonFloatScore      `json:"score"`
 }
 
 // AsJSON exports results as JSON for new detail format.
@@ -99,7 +100,6 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 
 	for _, checkResult := range r.Checks {
 		tmpResult := jsonCheckResult{
-			ID:   checkResult.ID,
 			Name: checkResult.Name,
 		}
 		if showDetails {
