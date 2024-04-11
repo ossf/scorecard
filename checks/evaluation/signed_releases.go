@@ -42,6 +42,10 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	// keep track of releases which have provenance so we don't log about signatures
+	// on our second pass through below
+	hasProvenance := make(map[string]bool)
+
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
 	// releases. Therefore, check for any finding with OutcomeNotApplicable.
@@ -67,7 +71,9 @@ func SignedReleases(name string,
 			loggedReleases = append(loggedReleases, releaseName)
 		}
 
-		// Check if outcome is NotApplicable
+		if f.Probe == releasesHaveProvenance.Probe && f.Outcome == finding.OutcomeTrue {
+			hasProvenance[releaseName] = true
+		}
 	}
 
 	totalTrue := 0
@@ -100,6 +106,9 @@ func SignedReleases(name string,
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
+			if f.Probe == releasesAreSigned.Probe && hasProvenance[releaseName] {
+				continue
+			}
 		default:
 			logLevel = checker.DetailDebug
 		}

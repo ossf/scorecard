@@ -105,7 +105,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfWarn:  1,
+				NumberOfWarn:  0,
 				NumberOfDebug: 1,
 			},
 		},
@@ -126,7 +126,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         6,
 				NumberOfInfo:  2,
-				NumberOfWarn:  4,
+				NumberOfWarn:  3,
 				NumberOfDebug: 3,
 			},
 		},
@@ -152,7 +152,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         7,
 				NumberOfInfo:  4,
-				NumberOfWarn:  6,
+				NumberOfWarn:  4,
 				NumberOfDebug: 5,
 			},
 		},
