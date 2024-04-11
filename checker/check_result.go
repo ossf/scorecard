@@ -86,15 +86,14 @@ type LogMessage struct {
 	// Structured results.
 	Finding *finding.Finding
 
-	Remediation *probe.Remediation // Remediation information, if any.
-
 	// Non-structured results.
-	Text      string           // A short string explaining why the detail was recorded/logged.
-	Path      string           // Fullpath to the file.
-	Snippet   string           // Snippet of code
-	Type      finding.FileType // Type of file.
-	Offset    uint             // Offset in the file of Path (line for source/text files).
-	EndOffset uint             // End of offset in the file, e.g. if the command spans multiple lines.
+	Remediation *probe.Remediation // Remediation information, if any.
+	Text        string             // A short string explaining why the detail was recorded/logged.
+	Path        string             // Fullpath to the file.
+	Snippet     string             // Snippet of code
+	Type        finding.FileType   // Type of file.
+	Offset      uint               // Offset in the file of Path (line for source/text files).
+	EndOffset   uint               // End of offset in the file, e.g. if the command spans multiple lines.
 }
 
 // ProportionalScoreWeighted is a structure that contains
