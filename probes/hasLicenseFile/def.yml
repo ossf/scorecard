@@ -15,9 +15,10 @@
 id: hasLicenseFile
 short: Check that the project has a license file
 motivation: >
-  A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
+  A license can give users information about how the source code may or may not be used.
+  The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
 implementation: >
- The implementation checks whether a license file is present.
+  The implementation checks whether a license file is present.
 outcome:
   - If license files are found, the probe returns OutcomeTrue for each license file.
   - If a license file is not found, the probe returns a single OutcomeFalse.

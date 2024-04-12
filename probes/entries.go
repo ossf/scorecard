@@ -37,6 +37,7 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v4/probes/hasPermissiveLicense"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v4/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
@@ -155,6 +156,7 @@ var (
 	// Probes which aren't included by any checks.
 	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
+		hasPermissiveLicense.Run,
 		codeReviewOneReviewers.Run,
 		hasBinaryArtifacts.Run,
 	}

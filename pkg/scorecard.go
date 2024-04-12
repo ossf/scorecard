@@ -19,7 +19,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -31,7 +30,6 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/options"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -162,13 +160,9 @@ func runScorecard(ctx context.Context,
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
-	exposeFindings := os.Getenv(options.EnvVarScorecardExperimental) == "1"
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
-
-		if exposeFindings {
-			ret.Findings = append(ret.Findings, result.Findings...)
-		}
+		ret.Findings = append(ret.Findings, result.Findings...)
 	}
 	return ret, nil
 }
