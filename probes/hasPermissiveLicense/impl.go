@@ -49,7 +49,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return []finding.Finding{*f}, Probe, nil
 	}
 
-	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
+	for i := range raw.LicenseResults.LicenseFiles {
+		licenseFile := raw.LicenseResults.LicenseFiles[i]
 		spdxID := licenseFile.LicenseInformation.SpdxID
 		switch spdxID {
 		case
