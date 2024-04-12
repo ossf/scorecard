@@ -105,48 +105,28 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfWarn:  1,
+				NumberOfWarn:  0,
 				NumberOfDebug: 1,
 			},
 		},
 
 		{
-			name: "3 releases. One release has one signed, and one release has two provenance.",
+			name: "3 releases. One release has one signed, and one release has provenance.",
 			findings: []finding.Finding{
 				// Release 1:
-				//     Asset 1:
-				signedProbe(release0, asset0, finding.OutcomeFalse),
-				provenanceProbe(release0, asset0, finding.OutcomeFalse),
-				//     Asset 2:
 				signedProbe(release0, asset1, finding.OutcomeTrue),
-				provenanceProbe(release0, asset1, finding.OutcomeFalse),
+				provenanceProbe(release0, asset0, finding.OutcomeFalse),
 				// Release 2
-				//     Asset 1:
 				signedProbe(release1, asset0, finding.OutcomeFalse),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
-				// Release 2
-				//     Asset 2:
-				signedProbe(release1, asset1, finding.OutcomeFalse),
-				provenanceProbe(release1, asset1, finding.OutcomeFalse),
-				// Release 2
-				//     Asset 3:
-				signedProbe(release1, asset2, finding.OutcomeFalse),
-				provenanceProbe(release1, asset2, finding.OutcomeFalse),
 				// Release 3
-				//     Asset 1:
 				signedProbe(release2, asset0, finding.OutcomeFalse),
-				provenanceProbe(release2, asset0, finding.OutcomeTrue),
-				//     Asset 2:
-				signedProbe(release2, asset1, finding.OutcomeFalse),
 				provenanceProbe(release2, asset1, finding.OutcomeTrue),
-				//     Asset 3:
-				signedProbe(release2, asset2, finding.OutcomeFalse),
-				provenanceProbe(release2, asset2, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         6,
-				NumberOfInfo:  3,
-				NumberOfWarn:  13,
+				NumberOfInfo:  2,
+				NumberOfWarn:  3,
 				NumberOfDebug: 3,
 			},
 		},
@@ -154,56 +134,25 @@ func TestSignedReleases(t *testing.T) {
 			name: "5 releases. Two releases have one signed each, and two releases have one provenance each.",
 			findings: []finding.Finding{
 				// Release 1:
-				// Release 1, Asset 1:
-				signedProbe(release0, asset0, finding.OutcomeFalse),
-				provenanceProbe(release0, asset0, finding.OutcomeFalse),
 				signedProbe(release0, asset1, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeFalse),
 				// Release 2:
-				// Release 2, Asset 1:
-				signedProbe(release1, asset1, finding.OutcomeTrue),
+				signedProbe(release1, asset0, finding.OutcomeTrue),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
-				// Release 2, Asset 2:
-				signedProbe(release1, asset1, finding.OutcomeFalse),
-				provenanceProbe(release1, asset1, finding.OutcomeFalse),
-				// Release 2, Asset 3:
-				signedProbe(release1, asset2, finding.OutcomeFalse),
-				provenanceProbe(release1, asset2, finding.OutcomeFalse),
-				// Release 3, Asset 1:
+				// Release 3:
 				signedProbe(release2, asset0, finding.OutcomeFalse),
 				provenanceProbe(release2, asset0, finding.OutcomeTrue),
-				// Release 3, Asset 2:
-				signedProbe(release2, asset1, finding.OutcomeFalse),
-				provenanceProbe(release2, asset1, finding.OutcomeFalse),
-				// Release 3, Asset 3:
-				signedProbe(release2, asset2, finding.OutcomeFalse),
-				provenanceProbe(release2, asset2, finding.OutcomeFalse),
 				// Release 4, Asset 1:
 				signedProbe(release3, asset0, finding.OutcomeFalse),
 				provenanceProbe(release3, asset0, finding.OutcomeTrue),
-				// Release 4, Asset 2:
-				signedProbe(release3, asset1, finding.OutcomeFalse),
-				provenanceProbe(release3, asset1, finding.OutcomeFalse),
-				// Release 4, Asset 3:
-				signedProbe(release3, asset2, finding.OutcomeFalse),
-				provenanceProbe(release3, asset2, finding.OutcomeFalse),
 				// Release 5, Asset 1:
 				signedProbe(release4, asset0, finding.OutcomeFalse),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
-				// Release 5, Asset 2:
-				signedProbe(release4, asset1, finding.OutcomeFalse),
-				provenanceProbe(release4, asset1, finding.OutcomeFalse),
-				// Release 5, Asset 3:
-				signedProbe(release4, asset2, finding.OutcomeFalse),
-				provenanceProbe(release4, asset2, finding.OutcomeFalse),
-				// Release 5, Asset 4:
-				signedProbe(release4, asset3, finding.OutcomeFalse),
-				provenanceProbe(release4, asset3, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         7,
 				NumberOfInfo:  4,
-				NumberOfWarn:  26,
+				NumberOfWarn:  4,
 				NumberOfDebug: 5,
 			},
 		},
@@ -211,61 +160,30 @@ func TestSignedReleases(t *testing.T) {
 			name: "5 releases. All have one signed artifact.",
 			findings: []finding.Finding{
 				// Release 1:
-				// Release 1, Asset 1:
-				signedProbe(release0, asset0, finding.OutcomeFalse),
-				provenanceProbe(release0, asset0, finding.OutcomeFalse),
 				signedProbe(release0, asset1, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeFalse),
 				// Release 2:
-				// Release 2, Asset 1:
 				signedProbe(release1, asset0, finding.OutcomeTrue),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
-				// Release 2, Asset 2:
-				signedProbe(release1, asset1, finding.OutcomeFalse),
-				provenanceProbe(release1, asset1, finding.OutcomeFalse),
-				// Release 2, Asset 3:
-				signedProbe(release1, asset2, finding.OutcomeFalse),
-				provenanceProbe(release1, asset2, finding.OutcomeFalse),
-				// Release 3, Asset 1:
+				// Release 3:
 				signedProbe(release2, asset0, finding.OutcomeTrue),
-				provenanceProbe(release2, asset0, finding.OutcomeTrue),
-				// Release 3, Asset 2:
-				signedProbe(release2, asset1, finding.OutcomeFalse),
-				provenanceProbe(release2, asset1, finding.OutcomeFalse),
-				// Release 3, Asset 3:
-				signedProbe(release2, asset2, finding.OutcomeFalse),
-				provenanceProbe(release2, asset2, finding.OutcomeFalse),
-				// Release 4, Asset 1:
+				provenanceProbe(release2, asset0, finding.OutcomeFalse),
+				// Release 4:
 				signedProbe(release3, asset0, finding.OutcomeTrue),
-				provenanceProbe(release3, asset0, finding.OutcomeTrue),
-				// Release 4, Asset 2:
-				signedProbe(release3, asset1, finding.OutcomeFalse),
-				provenanceProbe(release3, asset1, finding.OutcomeFalse),
-				// Release 4, Asset 3:
-				signedProbe(release3, asset2, finding.OutcomeFalse),
-				provenanceProbe(release3, asset2, finding.OutcomeFalse),
-				// Release 5, Asset 1:
+				provenanceProbe(release3, asset0, finding.OutcomeFalse),
+				// Release 5:
 				signedProbe(release4, asset0, finding.OutcomeTrue),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
-				// Release 5, Asset 2:
-				signedProbe(release4, asset1, finding.OutcomeFalse),
-				provenanceProbe(release4, asset1, finding.OutcomeFalse),
-				// Release 5, Asset 3:
-				signedProbe(release4, asset2, finding.OutcomeFalse),
-				provenanceProbe(release4, asset2, finding.OutcomeFalse),
-				// Release 5, Asset 4:
-				signedProbe(release4, asset3, finding.OutcomeFalse),
-				provenanceProbe(release4, asset3, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         8,
-				NumberOfInfo:  7,
-				NumberOfWarn:  23,
+				NumberOfInfo:  5,
+				NumberOfWarn:  5,
 				NumberOfDebug: 5,
 			},
 		},
 		{
-			name: "too many releases (6 when lookback is 5)",
+			name: "too many releases is an error (6 when lookback is 5)",
 			findings: []finding.Finding{
 				// Release 1:
 				// Release 1, Asset 1:
