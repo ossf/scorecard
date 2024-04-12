@@ -177,12 +177,11 @@ require (
 	golang.org/x/crypto v0.21.0 // indirect
 	golang.org/x/exp v0.0.0-20240314144324-c7f7c6466f7f // indirect
 	golang.org/x/net v0.22.0 // indirect
-	golang.org/x/oauth2 v0.18.0
+	golang.org/x/oauth2 v0.19.0
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.170.0 // indirect
-	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
