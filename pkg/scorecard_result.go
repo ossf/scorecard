@@ -137,7 +137,7 @@ func FormatResults(
 		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
 	case options.FormatProbe:
 		var opts *ProbeResultOption
-		err = results.AsPJSON(output, opts)
+		err = results.AsProbe(output, opts)
 	case options.FormatRaw:
 		err = results.AsRawJSON(output)
 	default:
