@@ -23,6 +23,7 @@ outcome:
   - If a license file is missing the probe returns a single OutcomeFalse.
   - If the license is not permissive, the probe returns a single OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: High
   text:
     - A relicensing is necessary, or the component should not be used by the user for this purpose.
