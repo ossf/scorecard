@@ -16,7 +16,7 @@ id: dependencyUpdateToolConfigured
 short: Check that a dependency update tool config is present.
 motivation: >
   Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
-  Tools can automate the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
+  Tools can help the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
 implementation: >
   The implementation looks for the presence of various config files for different dependency update tools.
 outcome:
@@ -31,6 +31,7 @@ remediation:
     - Setup one of [tools we currently detect](https://github.com/ossf/scorecard/blob/main/docs/checks/dependencyupdatetool/README.md).
 ecosystem:
   languages:
+    - c#
     - dockerfile
     - go
     - java
@@ -39,6 +40,9 @@ ecosystem:
     - python
     - ruby
     - rust
+    - scala
+    - swift
+    - typescript
   clients:
     - github
     - gitlab
