@@ -15,11 +15,11 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v5/probes/hasLicenseFile"
 )
 
 // License applies the score policy for the License check.

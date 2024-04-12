@@ -22,7 +22,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func Test_AsPJSON(t *testing.T) {

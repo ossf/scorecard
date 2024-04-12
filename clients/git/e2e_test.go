@@ -20,10 +20,10 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
-	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
-	"github.com/ossf/scorecard/v4/clients/localdir"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 )
 
 var _ = DescribeTable("Test ListCommits commit-depth for HEAD",

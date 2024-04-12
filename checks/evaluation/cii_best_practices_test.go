@@ -16,10 +16,10 @@ package evaluation
 import (
 	"testing"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
-	scut "github.com/ossf/scorecard/v4/utests"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasOpenSSFBadge"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestCIIBestPractices(t *testing.T) {

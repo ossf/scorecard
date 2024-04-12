@@ -24,8 +24,8 @@ import (
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 const (

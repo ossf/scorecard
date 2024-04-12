@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/archived"
-	"github.com/ossf/scorecard/v4/probes/createdRecently"
-	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
-	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/archived"
+	"github.com/ossf/scorecard/v5/probes/createdRecently"
+	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 )
 
 const (

@@ -17,12 +17,12 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
-	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasNoGitHubWorkflowPermissionUnknown"
+	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
+	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
 )
 
 // TokenPermissions applies the score policy for the Token-Permissions check.

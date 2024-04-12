@@ -25,9 +25,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/compare"
-	"github.com/ossf/scorecard/v4/cmd/internal/scdiff/app/format"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/compare"
+	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/format"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 //nolint:gochecknoinits // common for cobra apps

@@ -16,12 +16,12 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/fuzzers"
-	"github.com/ossf/scorecard/v4/probes/fuzzed"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/fuzzers"
+	"github.com/ossf/scorecard/v5/probes/fuzzed"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestFuzzing(t *testing.T) {

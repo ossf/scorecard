@@ -24,11 +24,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	spol "github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	spol "github.com/ossf/scorecard/v5/policy"
 )
 
 func sarifMockDocRead() *mockDoc {

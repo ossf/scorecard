@@ -18,12 +18,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/clients"
-	ghrepo "github.com/ossf/scorecard/v4/clients/githubrepo"
-	glrepo "github.com/ossf/scorecard/v4/clients/gitlabrepo"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	"github.com/ossf/scorecard/v4/clients/ossfuzz"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients"
+	ghrepo "github.com/ossf/scorecard/v5/clients/githubrepo"
+	glrepo "github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 // GetClients returns a list of clients for running scorecard checks.

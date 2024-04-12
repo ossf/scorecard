@@ -18,7 +18,7 @@ import (
 	"context"
 	"testing"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 func Test_init_clearsErr(t *testing.T) {

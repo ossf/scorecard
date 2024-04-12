@@ -22,9 +22,9 @@ import (
 	"regexp"
 	"strings"
 
-	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
-	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
-	sce "github.com/ossf/scorecard/v4/errors"
+	ngt "github.com/ossf/scorecard/v5/cmd/internal/nuget"
+	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var (

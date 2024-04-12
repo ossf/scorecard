@@ -25,8 +25,8 @@ import (
 	"slices"
 	"strings"
 
-	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
-	sce "github.com/ossf/scorecard/v4/errors"
+	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 type indexResults struct {

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"io"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // JSONScorecardProbeResult exports results as JSON for flat findings without checks.

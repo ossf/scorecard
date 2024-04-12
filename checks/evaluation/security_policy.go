@@ -15,13 +15,13 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.

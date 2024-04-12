@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
-	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/sastToolConfigured"
+	"github.com/ossf/scorecard/v5/probes/sastToolRunsOnAllCommits"
 )
 
 // SAST applies the score policy for the SAST check.

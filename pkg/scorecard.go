@@ -26,12 +26,12 @@ import (
 
 	"sigs.k8s.io/release-utils/version"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/options"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 // errEmptyRepository indicates the repository is empty.

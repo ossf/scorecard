@@ -23,7 +23,7 @@ import (
 	"contrib.go.opencensus.io/exporter/stackdriver/monitoredresource/gcp"
 	"go.opencensus.io/stats/view"
 
-	"github.com/ossf/scorecard/v4/cron/config"
+	"github.com/ossf/scorecard/v5/cron/config"
 )
 
 type unsupportedExporterError struct {

@@ -24,8 +24,8 @@ import (
 
 	"github.com/caarlos0/env/v6"
 
-	"github.com/ossf/scorecard/v4/clients"
-	sclog "github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients"
+	sclog "github.com/ossf/scorecard/v5/log"
 )
 
 // Options define common options for configuring scorecard.
