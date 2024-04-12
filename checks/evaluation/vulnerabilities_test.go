@@ -17,10 +17,10 @@ package evaluation
 import (
 	"testing"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
-	scut "github.com/ossf/scorecard/v4/utests"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 // TestVulnerabilities tests the vulnerabilities checker.

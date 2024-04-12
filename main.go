@@ -18,8 +18,8 @@ package main
 import (
 	"log"
 
-	"github.com/ossf/scorecard/v4/cmd"
-	"github.com/ossf/scorecard/v4/options"
+	"github.com/ossf/scorecard/v5/cmd"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 func main() {

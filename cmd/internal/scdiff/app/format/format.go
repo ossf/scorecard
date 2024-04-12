@@ -19,9 +19,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/ossf/scorecard/v4/docs/checks"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/docs/checks"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 const logLevel = log.DefaultLevel

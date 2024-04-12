@@ -17,10 +17,10 @@ package evaluation
 import (
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/codeApproved"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/codeApproved"
 )
 
 // TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,

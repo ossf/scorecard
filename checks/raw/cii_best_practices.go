@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 var errEmptyClient = errors.New("CII client is nil")

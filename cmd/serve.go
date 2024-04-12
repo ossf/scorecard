@@ -23,13 +23,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v4/checks"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
-	"github.com/ossf/scorecard/v4/clients/ossfuzz"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 // TODO(cmd): Determine if this should be exported.

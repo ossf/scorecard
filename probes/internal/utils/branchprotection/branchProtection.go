@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 var errWrongValue = errors.New("wrong value, should not happen")

@@ -18,7 +18,7 @@ package checks
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 func Test_registerCheck(t *testing.T) {

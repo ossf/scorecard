@@ -21,8 +21,8 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 var errInvalidArg = errors.New("invalid argument")

@@ -18,10 +18,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	serrors "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes"
+	"github.com/ossf/scorecard/v5/checker"
+	serrors "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes"
 )
 
 var errProbeRun = errors.New("probe run failure")

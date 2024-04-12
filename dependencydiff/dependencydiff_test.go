@@ -20,8 +20,8 @@ import (
 	"path"
 	"testing"
 
-	sclog "github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 func Test_initRepoAndClientByChecks(t *testing.T) {

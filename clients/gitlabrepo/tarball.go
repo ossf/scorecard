@@ -31,7 +31,7 @@ import (
 
 	"github.com/xanzy/go-gitlab"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 const (
