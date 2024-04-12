@@ -90,11 +90,13 @@ func ReadTrueLevelFinding(probe string,
 	r checker.TokenPermission,
 	metadata map[string]string,
 ) (*finding.Finding, error) {
-	f, err := finding.NewWith(fs, probe,
-		"found token with 'read' permissions",
-		nil, finding.OutcomeTrue)
+	text, err := createText(r)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
+	}
+	f, err := finding.NewWith(fs, probe, text, nil, finding.OutcomeTrue)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())

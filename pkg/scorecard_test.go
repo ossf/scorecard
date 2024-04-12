@@ -145,6 +145,7 @@ func TestRunScorecard(t *testing.T) {
 					Name: "github.com/ossf/scorecard",
 				},
 				Scorecard: ScorecardInfo{
+					Version:   "devel",
 					CommitSHA: "unknown",
 				},
 			},
@@ -229,6 +230,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 					},
 				},
 				Scorecard: ScorecardInfo{
+					Version:   "devel",
 					CommitSHA: "unknown",
 				},
 				Findings: []finding.Finding{
