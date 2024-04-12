@@ -22,6 +22,7 @@ outcome:
   - The probe returns one OutcomeTrue for each PR that ran CI tests and one OutcomeFalse for each PR that did not run CI tests.
   - The probe returns a single OutcomeNotApplicable if the projects has had no pull requests.
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Check-in scripts that run all the tests in your repository.

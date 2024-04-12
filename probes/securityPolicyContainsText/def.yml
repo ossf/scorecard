@@ -19,10 +19,11 @@ motivation: >
 implementation: >
   The implementation checks that the content of the SECURITY.md contains more than just a link or an email address. It does this by comparing the length of the content to the lengths of the links and email addresses.
 outcome:
-  - If links are found, one finding with OutcomeTrue (1) is returned for each file.
-  - If no links are found, one finding with OutcomeFalse (0) is returned for each file.
-  - If no file is found, one finding with OutcomeFalse (0) is returned.
+  - If explanatory text is found in a security policy, one finding with OutcomeTrue is returned for each file.
+  - If no additional text is found in a security policy, one finding with OutcomeFalse is returned for each file.
+  - If no security policy is found, one finding with OutcomeFalse is returned.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - 'On GitHub:'

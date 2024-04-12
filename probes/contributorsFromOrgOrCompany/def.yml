@@ -15,21 +15,21 @@
 id: contributorsFromOrgOrCompany
 short: Checks whether a project has a contributions from users associated with a company or organization.
 motivation: >
-  This probe tries to determine if the project has recent contributors from multiple organizations (e.g., companies). 
-
-  Some projects cannot meet this requirement, such as small projects with only one active participant, or projects with a narrow scope that cannot attract the interest of multiple organizations. See Code Reviews for more information about evaluating projects with a small number of participants.
-  
+  This probe tries to determine if the project has recent contributors from multiple organizations.
+  For some projects, having a diverse group of contributors is an indicator of project health.
 implementation: >
-  The probe looks at the Company field on the user profile for authors of recent commits. To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits.
+  The probe looks at the Company field on the user profile for authors of recent commits. 
+  To receive the highest score, the project must have had contributors from at least 3 different companies in the last 30 commits.
 outcome:
-  - If the project has no contributing organizations or companies, the probe returns 1 OutcomeFalse
-  - If the project has contributing organizations or companies, the probe returns 1 Outcome per org or company.
-  - If the probe fails to process the raw results, it returns nil instead of the findings slice as well as an error.
+  - If the project has no contributing organizations, the probe returns 1 OutcomeFalse
+  - If the project has contributing organizations, the probe returns 1 OutcomeTrue per organization.
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Encourage community-driven contributions to your project.
-    - Ask contributors to join their respective organizations, if they have not already. Otherwise, there is no remediation for this probe; it simply provides insight into how many organizations have contributed so that you can make a trust-based decision based on that information.
+    - Ask contributors to join their respective organizations, if they have not already. 
+    - Otherwise, there is no remediation for this probe; it simply provides insight into how many organizations have contributed so that you can make a trust-based decision based on that information.
 ecosystem:
   languages:
     - all

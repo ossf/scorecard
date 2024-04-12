@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - The probe returns one OutcomeTrue for each branch that is disallowed from users deleting it, and one OutcomeFalse for branches where users are able to delete it. Scorecard only considers default and releases branches.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Disallow deletion of branches in your project to remove false outcomes.

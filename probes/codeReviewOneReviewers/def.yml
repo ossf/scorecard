@@ -25,6 +25,7 @@ outcome:
   - If all the changes had at least one reviewers, the probe returns OutcomeTrue (1)
   - If the changes had fewer than one reviewers, the prove returns OutcomeFalse (0)
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.

@@ -1,22 +1,24 @@
-# Scorecard probes
+# OpenSSF Scorecard Probes
 
-This directory contains all the Scorecard probes.
+This directory contains all the Scorecard probes. Each probe has its own subdirectory.
 
-A probe is an assessment of a focused, specific heuristic typically isolated to a particular ecosystem. For example, Scorecards fuzzing check consists of many different probes that assess particular ecosystems or aspects of fuzzing.
+A probe is an individual heuristic, which provides information about a distinct behavior a project under analysis may or may not be doing.
+The probes follow a camelcase naming convention that describe the exact heuristic a particular probe assesses. 
+The name should be phrased in a way that can be answered by "true" or "false".
 
-Each probe has its own directory in `scorecard/probes`. The probes follow a camelcase naming convention that describe the exact heuristic a particular probe assesses. 
-
-Probes can return multiple or a single finding, where a finding is a piece of data with an outcome, message, and optionally a location. Probes should be designed in such a way that a `finding.OutcomePositive` reflects a positive result, and `finding.OutcomeNegative` reflects a negative result. Scorecard has other `finding.Outcome` types available for other results; For example, the `finding.OutcomeNotAvailable` is often used for scenarios, where Scorecard cannot assess a project with a given probe. In addition, probes should also be named in such a way that they answer "yes" or "no", and where "yes" answers positively to the heuristic, and "no" answers negatively. For example, probes that check for SAST tools in the CI are called `toolXXXInstalled` so that `finding.OutcomePositive` reflects that it is positive to use the given tool, and that "yes" reflects what Scorecard considers the positive outcome. For some probes, this can be a bit trickier to do; The `notArchived` probe checks whether a project is archived, however, Scorecard considers archived projects to be negative, and the probe cannot be called `isArchived`. These naming conventions are not hard rules but merely guidelines. Note that probes do not do any formal evaluation such a scoring; This is left to the evaluation part once the outcomes have been produced by the probes.
+Probes can return one or more findings, where a finding is a piece of data with an outcome, message, and optionally a location where the behavior was observed. 
+The primary outcomes are `finding.OutcomeTrue` and `finding.OutcomeFalse`, but other outcomes are available as well.
+For example, the `finding.OutcomeNotAvailable` is often used for scenarios, where Scorecard cannot assess a behavior because there is no data to analyze. 
 
 A probe consists of three files: 
 
 - `def.yml`: The documentation of the probe. 
 - `impl.go`: The actual implementation of the probe.
-- `impl_test.go`: The probes test.
+- `impl_test.go`: The probe's test.
 
 ## Reusing code in probes
 
-When multiple probes use the same code, the reused code can be placed on `scorecard/probes/internal/utils`
+When multiple probes use the same code, the reused code can be placed in a package under `probes/internal/`
 
 ## How do I know which probes to add?
 
@@ -39,7 +41,7 @@ And then in `impl.go` add the following metadata:
 ```golang
 f, err := finding.NewWith(fs, Probe,
 	"Message", nil,
-	finding.OutcomePositive)
+	finding.OutcomeTrue)
 f = f.WithRemediationMetadata(map[string]string{
 	"dataToDisplay": "this is the text we will display",
 })
@@ -55,7 +57,7 @@ and the probe sets the following metadata:
 ```golang
 f, err := finding.NewWith(fs, Probe,
 	"Message", nil,
-	finding.OutcomePositive)
+	finding.OutcomeTrue)
 f = f.WithRemediationMetadata(map[string]string{
 	"oss-fuzz-integration-status": "is",
 })

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package notArchived
+package hasUnverifiedBinaryArtifacts
 
 import (
 	"embed"
@@ -26,43 +26,49 @@ import (
 )
 
 func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Maintained})
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BinaryArtifacts})
 }
 
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "notArchived"
+const Probe = "hasUnverifiedBinaryArtifacts"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	r := raw.MaintainedResults
+	r := raw.BinaryArtifactResults
 
-	if r.ArchivedStatus.Status {
-		return falseOutcome()
-	}
-	return trueOutcome()
-}
+	var findings []finding.Finding
 
-func falseOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository is archived.", nil,
-		finding.OutcomeFalse)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	for i := range r.Files {
+		file := &r.Files[i]
+		if file.Type == finding.FileTypeBinaryVerified {
+			continue
+		}
+		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
+			nil, finding.OutcomeTrue)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithLocation(&finding.Location{
+			Path:      file.Path,
+			LineStart: &file.Offset,
+			Type:      file.Type,
+		})
+		findings = append(findings, *f)
 	}
-	return []finding.Finding{*f}, Probe, nil
-}
 
-func trueOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository is not archived.", nil,
-		finding.OutcomeTrue)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"Repository does not have binary artifacts.", nil,
+			finding.OutcomeFalse)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
 	}
-	return []finding.Finding{*f}, Probe, nil
+	return findings, Probe, nil
 }

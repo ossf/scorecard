@@ -13,10 +13,11 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfUnverifiedBinaryArtifacts
+package createdRecently
 
 import (
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -28,7 +29,6 @@ import (
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
-
 	//nolint:govet
 	tests := []struct {
 		name     string
@@ -37,60 +37,25 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "1 binary artifact",
+			name: "Was created 10 days ago",
 			raw: &checker.RawResults{
-				BinaryArtifactResults: checker.BinaryArtifactData{
-					Files: []checker.File{
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeBinary,
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-			},
-		},
-		{
-			name: "Two binary artifacts and one gradle wrapper (which is trusted)",
-			raw: &checker.RawResults{
-				BinaryArtifactResults: checker.BinaryArtifactData{
-					Files: []checker.File{
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeBinary,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeBinary,
-						},
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeBinaryVerified,
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-				finding.OutcomeFalse,
-			},
-		},
-		{
-			name: "One gradle wrapper (which is trusted)",
-			raw: &checker.RawResults{
-				BinaryArtifactResults: checker.BinaryArtifactData{
-					Files: []checker.File{
-						{
-							Path: "test_binary_artifacts_check_pass",
-							Type: finding.FileTypeBinaryVerified,
-						},
-					},
+				MaintainedResults: checker.MaintainedData{
+					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
 				},
 			},
 			outcomes: []finding.Outcome{
 				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Was created 100 days ago",
+			raw: &checker.RawResults{
+				MaintainedResults: checker.MaintainedData{
+					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -100 /*days*/),
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
 			},
 		},
 	}

@@ -429,6 +429,7 @@ func branchFinding(probe, branch string, outcome finding.Outcome) finding.Findin
 	}
 }
 
+//nolint:gocritic // not worried about param size / efficiency since this is a test
 func withValue(f finding.Finding, k, v string) finding.Finding {
 	f.Values[k] = v
 	return f

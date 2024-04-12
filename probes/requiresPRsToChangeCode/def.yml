@@ -15,12 +15,13 @@
 id: requiresPRsToChangeCode
 short: Check that the project requires pull requests to change code.
 motivation: >
-  Changing code without pull requests does not leave a traceable trail and can allow malicious actors to sneak in vulnerable code.
+  Changing code through pull requests promotes testing and reviews of the suggested change.
 implementation: >
   The probe checks which branches require pull requests to change the branches' code. The probe only considers default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires pull requests to change code, and one OutcomeFalse for branches that don't.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Configure the project such that contributors must make PRs to change code.

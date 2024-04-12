@@ -40,8 +40,7 @@ func Vulnerabilities(name string,
 	var numVulnsFound int
 	for i := range findings {
 		f := &findings[i]
-		// TODO(#3654), this needs to be swapped. But it's a complicated swap so doing it not in here.
-		if f.Outcome == finding.OutcomeFalse {
+		if f.Outcome == finding.OutcomeTrue {
 			numVulnsFound++
 			checker.LogFinding(dl, f, checker.DetailWarn)
 		}

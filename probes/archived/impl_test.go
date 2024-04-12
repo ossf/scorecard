@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
-package notCreatedRecently
+package archived
 
 import (
 	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -37,25 +35,29 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Was created 10 days ago",
+			name: "Is archived",
 			raw: &checker.RawResults{
 				MaintainedResults: checker.MaintainedData{
-					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -10 /*days*/),
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-			},
-		},
-		{
-			name: "Was created 100 days ago",
-			raw: &checker.RawResults{
-				MaintainedResults: checker.MaintainedData{
-					CreatedAt: time.Now().AddDate(0 /*years*/, 0 /*months*/, -100 /*days*/),
+					ArchivedStatus: checker.ArchivedStatus{
+						Status: true,
+					},
 				},
 			},
 			outcomes: []finding.Outcome{
 				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Is not archived",
+			raw: &checker.RawResults{
+				MaintainedResults: checker.MaintainedData{
+					ArchivedStatus: checker.ArchivedStatus{
+						Status: false,
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
 			},
 		},
 	}

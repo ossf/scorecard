@@ -140,8 +140,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         0,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 0,
 			},
 		},
 		{
@@ -171,8 +170,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         5,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 5,
 			},
 		},
 		{
@@ -197,8 +195,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         5,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 5,
 			},
 		},
 		{
@@ -228,8 +225,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         0,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 0,
 			},
 		},
 		{

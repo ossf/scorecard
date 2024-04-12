@@ -15,13 +15,14 @@
 id: blocksForcePushOnBranches
 short: Check that the project blocks force push on its branches.
 motivation: >
-  Allowing non-admins to force push to branches could allow untrusted users to make insecure changes to the behavior of the project.
+  Allowing force pushes to branches could allow those with write access to make insecure changes to the behavior of the project.
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
   - The probe returns one OutcomeTrue for each branch that is blocked from force pushes, and one OutcomeFalse for branches that allows force push.
   - Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Disallow force pushes branches in your project to remove false outcomes.

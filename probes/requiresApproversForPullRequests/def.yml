@@ -21,6 +21,7 @@ implementation: >
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires approval for PRs, and one OutcomeFalse for branches that don't.
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Configure the project so that it requires approval to merge PRs.

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package notArchived
+package hasUnverifiedBinaryArtifacts
 
 import (
 	"testing"
@@ -28,6 +28,7 @@ import (
 
 func Test_Run(t *testing.T) {
 	t.Parallel()
+
 	//nolint:govet
 	tests := []struct {
 		name     string
@@ -36,29 +37,60 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Is archived",
+			name: "1 binary artifact",
 			raw: &checker.RawResults{
-				MaintainedResults: checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{
-						Status: true,
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
-			},
-		},
-		{
-			name: "Is not archived",
-			raw: &checker.RawResults{
-				MaintainedResults: checker.MaintainedData{
-					ArchivedStatus: checker.ArchivedStatus{
-						Status: false,
+				BinaryArtifactResults: checker.BinaryArtifactData{
+					Files: []checker.File{
+						{
+							Path: "test_binary_artifacts_check_pass",
+							Type: finding.FileTypeBinary,
+						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
 				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Two binary artifacts and one gradle wrapper (which is trusted)",
+			raw: &checker.RawResults{
+				BinaryArtifactResults: checker.BinaryArtifactData{
+					Files: []checker.File{
+						{
+							Path: "test_binary_artifacts_check_pass",
+							Type: finding.FileTypeBinary,
+						},
+						{
+							Path: "test_binary_artifacts_check_pass",
+							Type: finding.FileTypeBinary,
+						},
+						{
+							Path: "test_binary_artifacts_check_pass",
+							Type: finding.FileTypeBinaryVerified,
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "One gradle wrapper (which is trusted)",
+			raw: &checker.RawResults{
+				BinaryArtifactResults: checker.BinaryArtifactData{
+					Files: []checker.File{
+						{
+							Path: "test_binary_artifacts_check_pass",
+							Type: finding.FileTypeBinaryVerified,
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
 			},
 		},
 	}
