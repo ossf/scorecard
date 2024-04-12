@@ -104,12 +104,11 @@ var (
 	// DefaultLogLevel retrieves the default log level.
 	DefaultLogLevel = sclog.DefaultLevel.String()
 
-	errCommitIsEmpty                   = errors.New("commit should be non-empty")
-	errFormatNotSupported              = errors.New("unsupported format")
-	errFormatSupportedWithExperimental = errors.New("format supported only with SCORECARD_EXPERIMENTAL=1")
-	errPolicyFileNotSupported          = errors.New("policy file is not supported yet")
-	errRawOptionNotSupported           = errors.New("raw option is not supported yet")
-	errRepoOptionMustBeSet             = errors.New(
+	errCommitIsEmpty          = errors.New("commit should be non-empty")
+	errFormatNotSupported     = errors.New("unsupported format")
+	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
+	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
+	errRepoOptionMustBeSet    = errors.New(
 		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
@@ -227,13 +226,6 @@ func (o *Options) Checks() []string {
 
 func (o *Options) Probes() []string {
 	return o.ProbesToRun
-}
-
-// isExperimentalEnabled returns true if experimental features were enabled via
-// environment variable.
-func (o *Options) isExperimentalEnabled() bool {
-	value, _ := os.LookupEnv(EnvVarScorecardExperimental)
-	return value == "1"
 }
 
 // isSarifEnabled returns true if SARIF format was specified in options or via
