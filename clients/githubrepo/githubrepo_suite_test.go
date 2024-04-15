@@ -26,8 +26,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 func TestGithubrepo(t *testing.T) {

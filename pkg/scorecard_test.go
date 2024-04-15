@@ -21,14 +21,13 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/probes/fuzzed"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/localdir"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/probes/fuzzed"
 )
 
 func Test_getRepoCommitHash(t *testing.T) {
@@ -146,6 +145,7 @@ func TestRunScorecard(t *testing.T) {
 					Name: "github.com/ossf/scorecard",
 				},
 				Scorecard: ScorecardInfo{
+					Version:   "devel",
 					CommitSHA: "unknown",
 				},
 			},
@@ -230,14 +230,16 @@ func TestExperimentalRunProbes(t *testing.T) {
 					},
 				},
 				Scorecard: ScorecardInfo{
+					Version:   "devel",
 					CommitSHA: "unknown",
 				},
 				Findings: []finding.Finding{
 					{
 						Probe:   fuzzed.Probe,
+						Outcome: finding.OutcomeFalse,
 						Message: "no fuzzer integrations found",
-						Remediation: &probe.Remediation{
-							Effort: probe.RemediationEffortHigh,
+						Remediation: &finding.Remediation{
+							Effort: finding.RemediationEffortHigh,
 						},
 					},
 				},
@@ -318,11 +320,12 @@ func TestExperimentalRunProbes(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			ignoreRemediationText := cmpopts.IgnoreFields(probe.Remediation{}, "Text", "Markdown")
+			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")
 			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
-			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText) {
+			ignoreUnexported := cmpopts.IgnoreUnexported(finding.Finding{})
+			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText, ignoreUnexported) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
-					ignoreRemediationText))
+					ignoreRemediationText, ignoreUnexported))
 			}
 		})
 	}

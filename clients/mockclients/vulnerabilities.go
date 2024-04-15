@@ -24,7 +24,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	clients "github.com/ossf/scorecard/v4/clients"
+	clients "github.com/ossf/scorecard/v5/clients"
 )
 
 // MockVulnerabilitiesClient is a mock of VulnerabilitiesClient interface.

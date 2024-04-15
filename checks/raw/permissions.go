@@ -20,11 +20,11 @@ import (
 
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/checks/raw/github"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/checks/raw/github"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 type permission string
@@ -104,6 +104,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	// 2. Run-level permission definitions,
 	// see https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idpermissions.
 	ignoredPermissions := createIgnoredPermissions(workflow, path, pdata)
+
 	if err := validatejobLevelPermissions(workflow, path, pdata, ignoredPermissions); err != nil {
 		return false, err
 	}

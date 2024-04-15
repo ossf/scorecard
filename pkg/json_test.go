@@ -26,9 +26,9 @@ import (
 
 	"github.com/xeipuuv/gojsonschema"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 func jsonMockDocRead() *mockDoc {

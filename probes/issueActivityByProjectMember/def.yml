@@ -15,13 +15,16 @@
 id: issueActivityByProjectMember
 short: Checks that a collaborator, member or owner has participated in issues in the last 90 days.
 motivation: >
-  A project which is not active might not be patched, have its dependencies patched, or be actively tested and used. However, a lack of active maintenance is not necessarily always a problem. Some software, especially smaller utility functions, does not normally need to be maintained. For example, a library that determines if an integer is even would not normally need maintenance unless an underlying implementation language definition changed. A lack of active maintenance should signal that potential users should investigate further to judge the situation.
+  A project which does not respond to issues may not be actively maintained.
+  A lack of active maintenance should signal that potential users should investigate further to judge the situation.
+  However a project may simply not have any recent issues; In this case, the probe results can be disregarded.
 implementation: >
   The probe checks whether collaborators, members or owners of a project have participated in issues in the last 90 days.
 outcome:
-  - If collaborators, members or owners have participated in issues in the last 90 days, the probe returns one OutcomePositive. The probe also returns a "numberOfIssuesUpdatedWithinThreshold" value with represents the number of issues on the repository which project collaborators, members or owners have shown activity in.
-  - If collaborators, members or owners have NOT participated in issues in the last 90 days, the probe returns a single OutcomeNegative.
+  - If collaborators, members or owners have participated in issues in the last 90 days, the probe returns one OutcomeTrue. The probe also returns a "numberOfIssuesUpdatedWithinThreshold" value with represents the number of issues on the repository which project collaborators, members or owners have shown activity in.
+  - If collaborators, members or owners have NOT participated in issues in the last 90 days, the probe returns a single OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: High
   text:
     - It is not possible for users of a project to affect the issue activity of collaborators, members or owners of a project.

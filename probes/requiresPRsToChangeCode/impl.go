@@ -20,10 +20,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -62,7 +67,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			"If you think it might be the latter, make sure to run Scorecard with a PAT or use Repo " +
 			"Rules (that are always public) instead of Branch Protection settings"
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.Required
+		p := branch.BranchProtectionRule.PullRequestRule.Required
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
@@ -73,9 +78,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case p == nil:
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 		case *p:
-			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage(trueMsg).WithOutcome(finding.OutcomeTrue)
 		case !*p:
-			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
+			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeFalse)
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
 		}

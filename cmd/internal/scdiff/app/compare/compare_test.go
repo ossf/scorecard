@@ -17,8 +17,8 @@ package compare
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 func TestResults(t *testing.T) {

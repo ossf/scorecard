@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -42,7 +42,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "One branch blocks branch deletion should result in one positive outcome",
+			name: "One branch blocks branch deletion should result in one true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -56,11 +56,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Two branches that block branch deletions should result in two positive outcomes",
+			name: "Two branches that block branch deletions should result in two true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -80,11 +80,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 positive & 1 negative",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 true & 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -104,11 +104,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 negative & 1 positive",
+			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 false & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -128,11 +128,11 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 negative & 1 unavailable",
+			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 false & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
@@ -152,7 +152,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

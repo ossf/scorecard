@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 // TODO: add a "check" field to all results so that they can be linked to a check.
@@ -712,13 +712,13 @@ func (r *jsonScorecardRawResult) addBranchProtectionRawResults(bp *checker.Branc
 			bp = &jsonBranchProtectionSettings{
 				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
 				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
-				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
+				RequiresCodeOwnerReviews:            v.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews,
 				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
-				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
+				DismissesStaleReviews:               v.BranchProtectionRule.PullRequestRule.DismissStaleReviews,
 				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
 				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
 				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
-				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
+				RequiredApprovingReviewCount:        v.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount,
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}

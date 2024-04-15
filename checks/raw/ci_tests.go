@@ -16,9 +16,9 @@ package raw
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 func CITests(c clients.RepoClient) (checker.CITestData, error) {

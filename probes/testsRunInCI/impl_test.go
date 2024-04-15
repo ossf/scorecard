@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 const (
@@ -72,7 +72,7 @@ func Test_Run(t *testing.T) {
 			},
 			findings: []*finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    Probe,
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
@@ -107,7 +107,7 @@ func Test_Run(t *testing.T) {
 			},
 			findings: []*finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    Probe,
 					Message:  "CI test found: pr: HeadSHA, context: CI-Tests",
 					Location: &finding.Location{Type: 4},
@@ -136,7 +136,7 @@ func Test_Run(t *testing.T) {
 			for i := range tt.findings {
 				outcome := &tt.findings[i]
 				f := &findings[i]
-				if diff := cmp.Diff(*outcome, f); diff != "" {
+				if diff := cmp.Diff(*outcome, f, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
 				}
 			}

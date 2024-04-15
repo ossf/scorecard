@@ -21,7 +21,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 func TestAggregateScores(t *testing.T) {

@@ -22,9 +22,9 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {

@@ -21,9 +21,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -36,7 +36,7 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "License file found and outcome should be positive",
+			name: "License file found and outcome should be true",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{
@@ -49,40 +49,40 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "License file not found and outcome should be negative",
+			name: "License file not found and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "nil license files and outcome should be negative",
+			name: "nil license files and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: nil,
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "0 license files and outcome should be negative",
+			name: "0 license files and outcome should be false",
 			raw: &checker.RawResults{
 				LicenseResults: checker.LicenseData{
 					LicenseFiles: []checker.LicenseFile{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -93,7 +93,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 	}

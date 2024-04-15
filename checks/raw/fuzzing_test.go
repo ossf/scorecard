@@ -24,9 +24,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
 
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.

@@ -19,11 +19,16 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/branchprotection"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/branchprotection"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -53,7 +58,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews
+		p := branch.BranchProtectionRule.PullRequestRule.DismissStaleReviews
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
 			"stale review dismissal",
 			*branch.Name)

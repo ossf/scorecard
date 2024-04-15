@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -60,10 +65,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeNotAvailable
 		case *branch.BranchProtectionRule.AllowDeletions:
 			text = fmt.Sprintf("'allow deletion' enabled on branch '%s'", *branch.Name)
-			outcome = finding.OutcomeNegative
+			outcome = finding.OutcomeFalse
 		case !*branch.BranchProtectionRule.AllowDeletions:
 			text = fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name)
-			outcome = finding.OutcomePositive
+			outcome = finding.OutcomeTrue
 		default:
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)

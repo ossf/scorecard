@@ -22,10 +22,10 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
-func Test_AsPJSON(t *testing.T) {
+func TestAsProbe(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -48,7 +48,7 @@ func Test_AsPJSON(t *testing.T) {
 				Findings: []finding.Finding{
 					{
 						Probe:   "check for X",
-						Outcome: finding.OutcomePositive,
+						Outcome: finding.OutcomeTrue,
 						Message: "found X",
 						Location: &finding.Location{
 							Path: "some/path/to/file",
@@ -57,7 +57,7 @@ func Test_AsPJSON(t *testing.T) {
 					},
 					{
 						Probe:   "check for Y",
-						Outcome: finding.OutcomeNegative,
+						Outcome: finding.OutcomeFalse,
 						Message: "did not find Y",
 					},
 				},
@@ -76,8 +76,8 @@ func Test_AsPJSON(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			if err = tt.result.AsPJSON(&result, opt); err != nil {
-				t.Fatalf("AsPJSON: %v", err)
+			if err = tt.result.AsProbe(&result, opt); err != nil {
+				t.Fatalf("AsProbe: %v", err)
 			}
 
 			if diff := cmp.Diff(expected, result.Bytes()); diff != "" {

@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.License})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -34,7 +39,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	if raw.LicenseResults.LicenseFiles == nil || len(raw.LicenseResults.LicenseFiles) == 0 {
+	if len(raw.LicenseResults.LicenseFiles) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"project does not have a license file", nil,
 			finding.OutcomeNotApplicable)
@@ -45,23 +50,21 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for _, licenseFile := range raw.LicenseResults.LicenseFiles {
-		if licenseFile.LicenseInformation.Approved {
-			// Store the file path in the msg
-			msg := licenseFile.File.Path
-
-			f, err := finding.NewWith(fs, Probe,
-				msg, nil,
-				finding.OutcomePositive)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			return []finding.Finding{*f}, Probe, nil
+		if !licenseFile.LicenseInformation.Approved {
+			continue
 		}
+		licenseFile := licenseFile
+		loc := licenseFile.File.Location()
+		f, err := finding.NewTrue(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
 	}
 
 	f, err := finding.NewWith(fs, Probe,
 		"project license file does not contain an FSF or OSI license.", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

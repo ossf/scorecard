@@ -21,7 +21,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/xanzy/go-gitlab"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func Test_listStatuses(t *testing.T) {

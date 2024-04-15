@@ -15,12 +15,13 @@
 id: dismissesStaleReviews
 short: Check that the project dismisses stale reviews when new commits are pushed.
 motivation: >
-  When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make malicious commits.
+  When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make unreviewed commits.
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
-  - The probe returns one OutcomePositive for each branch that dismisses the stale status of PRs, and one OutcomeNegative for branches that don't.
+  - The probe returns one OutcomeTrue for each branch that dismisses the stale status of PRs, and one OutcomeFalse for branches that don't.
 remediation:
+  onOutcome: False
   effort: High
   text:
     - Configure your repository so that the stale status of PRs is dismissed when users make new commits.

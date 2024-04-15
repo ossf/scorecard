@@ -17,7 +17,7 @@ package githubrepo
 import (
 	"time"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func copyBoolPtr(src *bool, dest **bool) {

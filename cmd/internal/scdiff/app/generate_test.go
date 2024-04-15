@@ -20,8 +20,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 var errFoo = errors.New("arbitrary error")

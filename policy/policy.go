@@ -23,9 +23,9 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var (

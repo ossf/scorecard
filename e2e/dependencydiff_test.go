@@ -20,9 +20,9 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v5/checks"
 	//nolint:staticcheck // we know it's deprecated and the tests will be removed when the package is
-	"github.com/ossf/scorecard/v4/dependencydiff"
+	"github.com/ossf/scorecard/v5/dependencydiff"
 )
 
 const (

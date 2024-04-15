@@ -15,7 +15,7 @@
 package secpolicy
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 func CountSecInfo(secInfo []checker.SecurityPolicyInformation,

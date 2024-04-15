@@ -24,8 +24,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/ossf/scorecard/v4/cron/config"
-	"github.com/ossf/scorecard/v4/cron/data"
+	"github.com/ossf/scorecard/v5/cron/config"
+	"github.com/ossf/scorecard/v5/cron/data"
 )
 
 func transferDataToBq(ctx context.Context,

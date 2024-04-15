@@ -25,8 +25,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	ngt "github.com/ossf/scorecard/v4/cmd/internal/nuget"
-	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
+	ngt "github.com/ossf/scorecard/v5/cmd/internal/nuget"
+	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 )
 
 func Test_fetchGitRepositoryFromNPM(t *testing.T) {

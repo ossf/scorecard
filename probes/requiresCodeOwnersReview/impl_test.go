@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -41,14 +41,14 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "1 branch requires code owner reviews with files = 1 positive outcome",
+			name: "1 branch requires code owner reviews with files = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -58,18 +58,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branch requires code owner reviews without files = 1 negative outcome",
+			name: "1 branch requires code owner reviews without files = 1 false outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -79,18 +79,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "2 branches require code owner reviews with files = 2 positive outcomes",
+			name: "2 branches require code owner reviews with files = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -98,7 +98,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -108,18 +108,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "2 branches require code owner reviews with files = 2 positive outcomes",
+			name: "2 branches require code owner reviews with files = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -127,7 +127,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -137,18 +137,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomePositive,
+				finding.OutcomeTrue, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "1 branches require code owner reviews and 1 branch doesn't with files = 1 positive 1 negative",
+			name: "1 branches require code owner reviews and 1 branch doesn't with files = 1 true 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -156,7 +156,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -166,18 +166,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - without files = 1 positive and 1 negative",
+			name: "Requires code owner reviews on 1/2 branches - without files = 1 true and 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -185,7 +185,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -195,18 +195,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive, finding.OutcomeNegative,
+				finding.OutcomeTrue, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - with files = 1 negative and 1 positive",
+			name: "Requires code owner reviews on 1/2 branches - with files = 1 false and 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -214,7 +214,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -224,18 +224,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomePositive,
+				finding.OutcomeFalse, finding.OutcomeTrue,
 			},
 		},
 		{
-			name: "Requires code owner reviews on 1/2 branches - without files = 2 negative",
+			name: "Requires code owner reviews on 1/2 branches - without files = 2 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -243,7 +243,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &trueVal,
 								},
 							},
@@ -253,18 +253,18 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNegative,
+				finding.OutcomeFalse, finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "1 branch does not require code owner review and 1 lacks data = 1 negative and 1 unavailable",
+			name: "1 branch does not require code owner review and 1 lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
 					Branches: []clients.BranchRef{
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: &falseVal,
 								},
 							},
@@ -272,7 +272,7 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								RequiredPullRequestReviews: clients.PullRequestReviewRule{
+								PullRequestRule: clients.PullRequestRule{
 									RequireCodeOwnerReviews: nil,
 								},
 							},
@@ -282,7 +282,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNotAvailable,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}

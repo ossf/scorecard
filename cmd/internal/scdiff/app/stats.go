@@ -26,8 +26,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 //nolint:gochecknoinits // common for cobra apps

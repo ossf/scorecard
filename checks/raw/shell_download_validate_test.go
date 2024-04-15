@@ -18,7 +18,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {

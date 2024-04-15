@@ -17,22 +17,21 @@ package codeApproved
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
-var (
-	//go:embed *.yml
-	fs embed.FS
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.CodeReview})
+}
 
-	errNoAuthor   = errors.New("could not retrieve changeset author")
-	errNoReviewer = errors.New("could not retrieve the changeset reviewer")
-)
+//go:embed *.yml
+var fs embed.FS
 
 const (
 	Probe          = "codeApproved"
@@ -95,13 +94,13 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 	var reason string
 	switch {
 	case nApproved != nChanges:
-		outcome = finding.OutcomeNegative
+		outcome = finding.OutcomeFalse
 		reason = fmt.Sprintf("Found %d/%d approved changesets", nApproved, nChanges)
 	case !foundHumanActivity:
 		outcome = finding.OutcomeNotApplicable
 		reason = fmt.Sprintf("Found no human activity in the last %d changesets", nChangesets)
 	default:
-		outcome = finding.OutcomePositive
+		outcome = finding.OutcomeTrue
 		reason = "All changesets approved"
 	}
 	f, err := finding.NewWith(fs, probeID, reason, nil, outcome)
@@ -115,13 +114,15 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 }
 
 func approved(c *checker.Changeset) (bool, error) {
-	if c.Author.Login == "" {
-		return false, errNoAuthor
+	switch c.ReviewPlatform {
+	// reviewed outside GitHub / GitLab
+	case checker.ReviewPlatformProw,
+		checker.ReviewPlatformGerrit,
+		checker.ReviewPlatformPhabricator,
+		checker.ReviewPlatformPiper:
+		return true, nil
 	}
 	for _, review := range c.Reviews {
-		if review.Author.Login == "" {
-			return false, errNoReviewer
-		}
 		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
 			return true, nil
 		}

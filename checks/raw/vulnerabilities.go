@@ -17,8 +17,8 @@ package raw
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 // Vulnerabilities retrieves the raw data for the Vulnerabilities check.

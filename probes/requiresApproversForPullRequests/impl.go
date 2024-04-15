@@ -21,10 +21,15 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -60,7 +65,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		nilMsg := fmt.Sprintf("could not determine whether branch '%s' has required approving review count", *branch.Name)
 		falseMsg := fmt.Sprintf("branch '%s' does not require approvers", *branch.Name)
 
-		p := branch.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount
+		p := branch.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount
 
 		f, err := finding.NewWith(fs, Probe, "", nil, finding.OutcomeNotAvailable)
 		if err != nil {
@@ -72,10 +77,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			f = f.WithMessage(nilMsg).WithOutcome(finding.OutcomeNotAvailable)
 		case *p > 0:
 			msg := fmt.Sprintf("required approving review count is %d on branch '%s'", *p, *branch.Name)
-			f = f.WithMessage(msg).WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage(msg).WithOutcome(finding.OutcomeTrue)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		case *p == 0:
-			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeNegative)
+			f = f.WithMessage(falseMsg).WithOutcome(finding.OutcomeFalse)
 			f = f.WithValue(RequiredReviewersKey, strconv.Itoa(int(*p)))
 		default:
 			return nil, Probe, fmt.Errorf("create finding: %w", errWrongValue)
