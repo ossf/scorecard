@@ -1,20 +1,40 @@
-#!/bin/bash
-
-set -e
-
-if [[ "$#" != 1 ]]; then
-  echo "Specify name of the probe: setup-probe.sh [nameOfProbe]"
-  exit
-fi
-
-export PROBE_NAME=$1
-
-mkdir probes/"$1"
-cd probes/"$1"
-touch def.yml impl_test.go impl.go
-
-cat << EOF > impl.go
 // Copyright 2024 OpenSSF Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+package main
+
+import (
+	"fmt"
+	"os"
+	"path"
+	"time"
+)
+
+func main() {
+	if len(os.Args) != 2 {
+		panic("usage: make setup-probe probeName=arg")
+	}
+	pn := os.Args[1]
+
+	pd := path.Join("probes", pn)
+	err := os.Mkdir(pd, 0o700)
+	if err != nil {
+		panic(err)
+	}
+
+	y := time.Now().Year()
+
+	implBoilerplate := fmt.Sprintf(`// Copyright %d OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,7 +49,7 @@ cat << EOF > impl.go
 // limitations under the License.
 
 //nolint:stylecheck
-package $1
+package %s
 
 import (
 	"embed"
@@ -42,18 +62,19 @@ import (
 var fs embed.FS
 
 const (
-	Probe = "$1"
+	Probe = "%s"
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
-	return []finding.Finding{}, "", nil
+	return nil, "", nil
 }
+`, y, pn, pn)
+	err = os.WriteFile(path.Join(pd, "impl.go"), []byte(implBoilerplate), 0o600)
+	if err != nil {
+		panic(err)
+	}
 
-EOF
-
-
-cat << EOF > impl_test.go
-// Copyright 2024 OpenSSF Scorecard Authors
+	implTestBoilerplate := fmt.Sprintf(`// Copyright %d OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,11 +89,14 @@ cat << EOF > impl_test.go
 // limitations under the License.
 
 //nolint:stylecheck
-package $1
-EOF
+package %s
+`, y, pn)
+	err = os.WriteFile(path.Join(pd, "impl_test.go"), []byte(implTestBoilerplate), 0o600)
+	if err != nil {
+		panic(err)
+	}
 
-cat << EOF > def.yml
-# Copyright 2024 OpenSSF Scorecard Authors
+	defYmlBoilerplate := fmt.Sprintf(`# Copyright %d OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -86,12 +110,12 @@ cat << EOF > def.yml
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: $1
+id: %s
 short: A short description of this probe
 motivation: >
-    What is the motivation for this probe?
+  What is the motivation for this probe?
 implementation: >
-    How does this probe work under-the-hood?
+  How does this probe work under-the-hood?
 outcome:
   -
 remediation:
@@ -100,8 +124,13 @@ remediation:
   - 
 ecosystem:
   languages:
-    - all
+  - all
   clients:
-    - github
-    - gitlab
-EOF
+  - github
+  - gitlab
+`, y, pn)
+	err = os.WriteFile(path.Join(pd, "def.yml"), []byte(defYmlBoilerplate), 0o600)
+	if err != nil {
+		panic(err)
+	}
+}
