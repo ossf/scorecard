@@ -18,7 +18,7 @@ package checks
 import (
 	"os"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 // allChecks is the list of all registered security checks.

@@ -23,26 +23,27 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"os"
 
 	"go.opencensus.io/stats/view"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
-	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
-	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
-	"github.com/ossf/scorecard/v4/clients/ossfuzz"
-	"github.com/ossf/scorecard/v4/cron/config"
-	"github.com/ossf/scorecard/v4/cron/data"
-	format "github.com/ossf/scorecard/v4/cron/internal/format"
-	"github.com/ossf/scorecard/v4/cron/monitoring"
-	"github.com/ossf/scorecard/v4/cron/worker"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
-	"github.com/ossf/scorecard/v4/policy"
-	"github.com/ossf/scorecard/v4/stats"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	githubstats "github.com/ossf/scorecard/v5/clients/githubrepo/stats"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
+	"github.com/ossf/scorecard/v5/cron/config"
+	"github.com/ossf/scorecard/v5/cron/data"
+	format "github.com/ossf/scorecard/v5/cron/internal/format"
+	"github.com/ossf/scorecard/v5/cron/monitoring"
+	"github.com/ossf/scorecard/v5/cron/worker"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/policy"
+	"github.com/ossf/scorecard/v5/stats"
 )
 
 const (
@@ -129,7 +130,11 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
 	}
 
-	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	if _, enabled := os.LookupEnv("SCORECARD_LOCAL_OSV"); enabled {
+		sw.vulnsClient = clients.ExperimentalLocalOSVClient()
+	} else {
+		sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	}
 
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)

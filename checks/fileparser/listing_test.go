@@ -22,7 +22,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
 
 var (

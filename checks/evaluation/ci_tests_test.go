@@ -16,8 +16,8 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 // Tip: If you add new findings to this test, else
@@ -33,7 +33,7 @@ func TestCITests(t *testing.T) {
 			name: "Has CI tests. 1 tested out of 1 merged",
 			findings: []finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
@@ -48,25 +48,25 @@ func TestCITests(t *testing.T) {
 			name: "Has CI tests. 3 tested out of 4 merged",
 			findings: []finding.Finding{
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomePositive,
+					Outcome:  finding.OutcomeTrue,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "CI test found: pr: 1, context: e2e",
 					Location: &finding.Location{Type: 4},
@@ -81,19 +81,19 @@ func TestCITests(t *testing.T) {
 			name: "Tests debugging",
 			findings: []finding.Finding{
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},
 				},
 				{
-					Outcome:  finding.OutcomeNegative,
+					Outcome:  finding.OutcomeFalse,
 					Probe:    "testsRunInCI",
 					Message:  "merged PR 1 without CI test at HEAD: 1",
 					Location: &finding.Location{Type: 4},

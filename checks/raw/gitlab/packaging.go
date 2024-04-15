@@ -19,9 +19,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // Packaging checks for packages.
@@ -75,7 +75,7 @@ func isGitlabPackagingWorkflow(fc []byte, fp string) (checker.File, bool) {
 	}
 
 ParseLines:
-	for idx, val := range strings.Split(string(fc[:]), "\n") {
+	for idx, val := range strings.Split(string(fc), "\n") {
 		for _, element := range packagingStrings {
 			if strings.Contains(val, element) {
 				lineNumber = uint(idx + 1)

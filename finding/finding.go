@@ -22,8 +22,6 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
-
-	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 // FileType is the type of a file.
@@ -54,53 +52,38 @@ type Location struct {
 }
 
 // Outcome is the result of a finding.
-type Outcome int
+type Outcome string
 
 // TODO(#2928): re-visit the finding definitions.
 const (
-	// NOTE: The additional '_' are intended for future use.
-	// This allows adding outcomes without breaking the values
-	// of existing outcomes.
-	// OutcomeNegative indicates a negative outcome.
-	OutcomeNegative Outcome = iota
-	_
-	_
-	_
+	// OutcomeFalse indicates the answer to the probe's question is "false" or "no".
+	OutcomeFalse Outcome = "False"
 	// OutcomeNotAvailable indicates an unavailable outcome,
 	// typically because an API call did not return an answer.
-	OutcomeNotAvailable
-	_
-	_
-	_
+	OutcomeNotAvailable Outcome = "NotAvailable"
 	// OutcomeError indicates an errors while running.
 	// The results could not be determined.
-	OutcomeError
-	_
-	_
-	_
-	// OutcomePositive indicates a positive outcome.
-	OutcomePositive
-	_
-	_
-	_
+	OutcomeError Outcome = "Error"
+	// OutcomeTrue indicates the answer to the probe's question is "true" or "yes".
+	OutcomeTrue Outcome = "True"
 	// OutcomeNotSupported indicates a non-supported outcome.
-	OutcomeNotSupported
-	_
-	_
-	_
+	OutcomeNotSupported Outcome = "NotSupported"
 	// OutcomeNotApplicable indicates if a finding should not
 	// be considered in evaluation.
-	OutcomeNotApplicable
+	OutcomeNotApplicable Outcome = "NotApplicable"
 )
 
 // Finding represents a finding.
 type Finding struct {
-	Location    *Location          `json:"location,omitempty"`
-	Remediation *probe.Remediation `json:"remediation,omitempty"`
-	Values      map[string]string  `json:"values,omitempty"`
-	Probe       string             `json:"probe"`
-	Message     string             `json:"message"`
-	Outcome     Outcome            `json:"outcome"`
+	Location    *Location         `json:"location,omitempty"`
+	Remediation *Remediation      `json:"remediation,omitempty"`
+	Values      map[string]string `json:"values,omitempty"`
+	Probe       string            `json:"probe"`
+	Message     string            `json:"message"`
+	Outcome     Outcome           `json:"outcome"`
+
+	// Expected bad outcome, used to determine if Remediation should be set
+	badOutcome Outcome
 }
 
 // AnonymousFinding is a finding without a corresponding probe ID.
@@ -113,30 +96,31 @@ var errInvalid = errors.New("invalid")
 
 // FromBytes creates a finding for a probe given its config file's content.
 func FromBytes(content []byte, probeID string) (*Finding, error) {
-	p, err := probe.FromBytes(content, probeID)
+	p, err := probeFromBytes(content, probeID)
 	if err != nil {
-		//nolint:wrapcheck
 		return nil, err
 	}
 	f := &Finding{
 		Probe:       p.ID,
-		Outcome:     OutcomeNegative,
+		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
 
 // New creates a new finding.
 func New(loc embed.FS, probeID string) (*Finding, error) {
-	p, err := probe.New(loc, probeID)
+	p, err := newProbe(loc, probeID)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
 	}
 
 	f := &Finding{
 		Probe:       p.ID,
-		Outcome:     OutcomeNegative,
+		Outcome:     OutcomeFalse,
 		Remediation: p.Remediation,
+		badOutcome:  p.RemediateOnOutcome,
 	}
 	return f, nil
 }
@@ -154,10 +138,10 @@ func NewWith(efs embed.FS, probeID, text string, loc *Location,
 	return f, nil
 }
 
-// NewWith create a negative finding with the desired location.
-func NewNegative(efs embed.FS, probeID, text string, loc *Location,
+// NewFalse create a false finding with the desired location.
+func NewFalse(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	return NewWith(efs, probeID, text, loc, OutcomeNegative)
+	return NewWith(efs, probeID, text, loc, OutcomeFalse)
 }
 
 // NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
@@ -166,10 +150,10 @@ func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
 }
 
-// NewPositive create a positive finding with the desired location.
-func NewPositive(efs embed.FS, probeID, text string, loc *Location,
+// NewTrue create a true finding with the desired location.
+func NewTrue(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
-	return NewWith(efs, probeID, text, loc, OutcomePositive)
+	return NewWith(efs, probeID, text, loc, OutcomeTrue)
 }
 
 // Anonymize removes the probe ID and outcome
@@ -211,10 +195,10 @@ func (f *Finding) WithLocation(loc *Location) *Finding {
 	f.Location = loc
 	if f.Remediation != nil && f.Location != nil {
 		// Replace location data.
-		f.Remediation.Text = strings.Replace(f.Remediation.Text,
-			"${{ finding.location.path }}", f.Location.Path, -1)
-		f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-			"${{ finding.location.path }}", f.Location.Path, -1)
+		f.Remediation.Text = strings.ReplaceAll(f.Remediation.Text,
+			"${{ finding.location.path }}", f.Location.Path)
+		f.Remediation.Markdown = strings.ReplaceAll(f.Remediation.Markdown,
+			"${{ finding.location.path }}", f.Location.Path)
 	}
 	return f
 }
@@ -237,11 +221,10 @@ func (f *Finding) WithPatch(patch *string) *Finding {
 
 // WithOutcome adds an outcome to an existing finding.
 // No copy is made.
-// WARNING: this function should be called at most once for a finding.
 func (f *Finding) WithOutcome(o Outcome) *Finding {
 	f.Outcome = o
-	// Positive is not negative, remove the remediation.
-	if o != OutcomeNegative {
+	// only bad outcomes need remediation, clear if unneeded
+	if o != f.badOutcome {
 		f.Remediation = nil
 	}
 
@@ -255,10 +238,10 @@ func (f *Finding) WithRemediationMetadata(values map[string]string) *Finding {
 		// Replace all dynamic values.
 		for k, v := range values {
 			// Replace metadata.
-			f.Remediation.Text = strings.Replace(f.Remediation.Text,
-				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
-			f.Remediation.Markdown = strings.Replace(f.Remediation.Markdown,
-				fmt.Sprintf("${{ metadata.%s }}", k), v, -1)
+			f.Remediation.Text = strings.ReplaceAll(f.Remediation.Text,
+				fmt.Sprintf("${{ metadata.%s }}", k), v)
+			f.Remediation.Markdown = strings.ReplaceAll(f.Remediation.Markdown,
+				fmt.Sprintf("${{ metadata.%s }}", k), v)
 		}
 	}
 	return f
@@ -283,10 +266,10 @@ func (o *Outcome) UnmarshalYAML(n *yaml.Node) error {
 	}
 
 	switch n.Value {
-	case "Negative":
-		*o = OutcomeNegative
-	case "Positive":
-		*o = OutcomePositive
+	case "False":
+		*o = OutcomeFalse
+	case "True":
+		*o = OutcomeTrue
 	case "NotAvailable":
 		*o = OutcomeNotAvailable
 	case "NotSupported":

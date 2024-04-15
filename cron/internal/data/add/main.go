@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/cron/data"
+	"github.com/ossf/scorecard/v5/cron/data"
 )
 
 // Script to add new project repositories to the projects.csv file:

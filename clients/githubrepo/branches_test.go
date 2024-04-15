@@ -20,7 +20,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func Test_rulesMatchingBranch(t *testing.T) {
@@ -209,7 +209,7 @@ func Test_applyRepoRules(t *testing.T) {
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: nil, // this checkbox is enabled only if require status checks
 					RequireLinearHistory:    &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -227,7 +227,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &trueVal,
 					RequireLinearHistory: &falseVal,
 					EnforceAdmins:        &trueVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -245,7 +245,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &trueVal,
 					RequireLinearHistory: &falseVal,
 					EnforceAdmins:        &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -268,7 +268,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &falseVal,
 					EnforceAdmins:        &falseVal, // Downgrade: deletion does not enforce admins
 					RequireLinearHistory: &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -292,7 +292,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &falseVal,
 					EnforceAdmins:        &falseVal, // Maintain: deletion enforces but force-push does not
 					RequireLinearHistory: &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -315,7 +315,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &falseVal,
 					EnforceAdmins:        &trueVal, // Maintain: base and rule are equal strictness
 					RequireLinearHistory: &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -333,7 +333,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &falseVal,
 					EnforceAdmins:        &trueVal,
 					RequireLinearHistory: &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -351,7 +351,7 @@ func Test_applyRepoRules(t *testing.T) {
 					AllowForcePushes:     &trueVal,
 					RequireLinearHistory: &trueVal,
 					EnforceAdmins:        &trueVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -378,7 +378,7 @@ func Test_applyRepoRules(t *testing.T) {
 					EnforceAdmins:           &trueVal,
 					RequireLastPushApproval: &trueVal,
 					RequireLinearHistory:    &falseVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     &trueVal,
 						RequiredApprovingReviewCount: &zeroVal,
 					},
@@ -409,7 +409,7 @@ func Test_applyRepoRules(t *testing.T) {
 					EnforceAdmins:           &trueVal,
 					RequireLinearHistory:    &falseVal,
 					RequireLastPushApproval: &trueVal,
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     &trueVal,
 						DismissStaleReviews:          &trueVal,
 						RequireCodeOwnerReviews:      &trueVal,
@@ -447,7 +447,7 @@ func Test_applyRepoRules(t *testing.T) {
 						RequiresStatusChecks: &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required: &falseVal,
 					},
 				},
@@ -515,7 +515,7 @@ func Test_applyRepoRules(t *testing.T) {
 						RequiresStatusChecks: &trueVal,
 						Contexts:             []string{"foo"},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     &trueVal,
 						RequiredApprovingReviewCount: &twoVal,
 						DismissStaleReviews:          &trueVal,
@@ -577,7 +577,7 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 						RequiresStatusChecks: nil,
 						Contexts:             []string{},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						RequiredApprovingReviewCount: asPtr[int32](0),
 						RequireCodeOwnerReviews:      &falseVal,
 					},
@@ -615,7 +615,7 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 						RequiresStatusChecks: &falseVal,
 						Contexts:             []string{},
 					},
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     &falseVal,
 						RequireCodeOwnerReviews:      &falseVal,
 						DismissStaleReviews:          &falseVal,

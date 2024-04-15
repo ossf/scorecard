@@ -15,11 +15,11 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
-	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
 )
 
 // DangerousWorkflow applies the score policy for the DangerousWorkflow check.
@@ -43,18 +43,12 @@ func DangerousWorkflow(name string,
 	// Log all detected dangerous workflows
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
+		if f.Outcome == finding.OutcomeTrue {
 			if f.Location == nil {
 				e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
-			dl.Warn(&checker.LogMessage{
-				Path:    f.Location.Path,
-				Type:    f.Location.Type,
-				Offset:  *f.Location.LineStart,
-				Text:    f.Message,
-				Snippet: *f.Location.Snippet,
-			})
+			checker.LogFinding(dl, f, checker.DetailWarn)
 		}
 	}
 
@@ -82,7 +76,7 @@ func hasDWWithUntrustedCheckout(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Probe == hasDangerousWorkflowUntrustedCheckout.Probe {
-			if f.Outcome == finding.OutcomeNegative {
+			if f.Outcome == finding.OutcomeTrue {
 				return true
 			}
 		}
@@ -94,7 +88,7 @@ func hasDWWithScriptInjection(findings []finding.Finding) bool {
 	for i := range findings {
 		f := &findings[i]
 		if f.Probe == hasDangerousWorkflowScriptInjection.Probe {
-			if f.Outcome == finding.OutcomeNegative {
+			if f.Outcome == finding.OutcomeTrue {
 				return true
 			}
 		}

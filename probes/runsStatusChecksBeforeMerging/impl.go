@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.BranchProtection})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -58,14 +63,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		case len(branch.BranchProtectionRule.CheckRules.Contexts) > 0:
 			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("status check found to merge onto on branch '%s'", *branch.Name), nil,
-				finding.OutcomePositive)
+				finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 		default:
 			f, err = finding.NewWith(fs, Probe,
 				fmt.Sprintf("no status checks found to merge onto branch '%s'", *branch.Name), nil,
-				finding.OutcomeNegative)
+				finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

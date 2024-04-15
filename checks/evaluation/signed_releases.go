@@ -19,16 +19,18 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
-	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 )
 
 var errNoReleaseFound = errors.New("no release found")
 
 // SignedReleases applies the score policy for the Signed-Releases check.
+//
+//nolint:gocognit // surpressing for now
 func SignedReleases(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
@@ -41,6 +43,10 @@ func SignedReleases(name string,
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+
+	// keep track of releases which have provenance so we don't log about signatures
+	// on our second pass through below
+	hasProvenance := make(map[string]bool)
 
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
@@ -67,14 +73,16 @@ func SignedReleases(name string,
 			loggedReleases = append(loggedReleases, releaseName)
 		}
 
-		// Check if outcome is NotApplicable
+		if f.Probe == releasesHaveProvenance.Probe && f.Outcome == finding.OutcomeTrue {
+			hasProvenance[releaseName] = true
+		}
 	}
 
-	totalPositive := 0
+	totalTrue := 0
 	releaseMap := make(map[string]int)
 	uniqueReleaseTags := make([]string, 0)
-	checker.LogFindings(findings, dl)
 
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
 
@@ -86,9 +94,10 @@ func SignedReleases(name string,
 			uniqueReleaseTags = append(uniqueReleaseTags, releaseName)
 		}
 
-		if f.Outcome == finding.OutcomePositive {
-			totalPositive++
-
+		switch f.Outcome {
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
+			totalTrue++
 			switch f.Probe {
 			case releasesAreSigned.Probe:
 				if _, ok := releaseMap[releaseName]; !ok {
@@ -97,10 +106,18 @@ func SignedReleases(name string,
 			case releasesHaveProvenance.Probe:
 				releaseMap[releaseName] = 10
 			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+			if f.Probe == releasesAreSigned.Probe && hasProvenance[releaseName] {
+				continue
+			}
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 
-	if totalPositive == 0 {
+	if totalTrue == 0 {
 		return checker.CreateMinScoreResult(name, "Project has not signed or included provenance with any releases.")
 	}
 
@@ -125,7 +142,7 @@ func SignedReleases(name string,
 
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
 	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
-		len(releaseMap), totalReleases, totalPositive)
+		len(releaseMap), totalReleases, totalTrue)
 	return checker.CreateResultWithScore(name, reason, score)
 }
 

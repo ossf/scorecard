@@ -19,7 +19,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 func TestRoundTrip(t *testing.T) {

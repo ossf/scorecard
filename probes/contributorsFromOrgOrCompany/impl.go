@@ -19,14 +19,19 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 const (
 	minContributionsPerUser = 5
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Contributors})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -44,7 +49,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(users) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not have contributors.", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -72,7 +77,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(entities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"No companies/organizations have contributed to the project.", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -85,7 +90,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for e := range entities {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("%s contributor org/company found", e), nil,
-			finding.OutcomePositive)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

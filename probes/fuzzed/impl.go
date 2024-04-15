@@ -18,10 +18,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Fuzzing})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -39,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	fuzzers := raw.FuzzingResults.Fuzzers
 
 	if len(fuzzers) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no fuzzer integrations found", nil)
+		f, err := finding.NewFalse(fs, Probe, "no fuzzer integrations found", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -52,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		// The current implementation does not provide file location
 		// for all fuzzers. Check this first.
 		if len(fuzzer.Files) == 0 {
-			f, err := finding.NewPositive(fs, Probe, fuzzer.Name+" integration found", nil)
+			f, err := finding.NewTrue(fs, Probe, fuzzer.Name+" integration found", nil)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -62,7 +67,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		// Files are present. Create one results for each file location.
 		for _, file := range fuzzer.Files {
-			f, err := finding.NewPositive(fs, Probe, fuzzer.Name+" integration found", file.Location())
+			f, err := finding.NewTrue(fs, Probe, fuzzer.Name+" integration found", file.Location())
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

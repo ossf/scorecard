@@ -23,10 +23,15 @@ import (
 
 	"github.com/google/osv-scanner/pkg/grouper"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Vulnerabilities})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -46,7 +51,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(raw.VulnerabilitiesResults.Vulnerabilities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not contain OSV vulnerabilities", nil,
-			finding.OutcomePositive)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -67,7 +72,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f, err := finding.NewWith(fs, Probe,
 			"Project contains OSV vulnerabilities", nil,
-			finding.OutcomeNegative)
+			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

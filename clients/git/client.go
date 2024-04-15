@@ -33,7 +33,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	cp "github.com/otiai10/copy"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 const repoDir = "repo*"
@@ -86,7 +86,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			uri = "https://" + uri
 		}
 		if !strings.HasSuffix(uri, ".git") {
-			uri = uri + ".git"
+			uri += ".git"
 		}
 		c.gitRepo, err = git.PlainClone(tempDir, false /*isBare*/, &git.CloneOptions{
 			URL:      uri,

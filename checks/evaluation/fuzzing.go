@@ -15,10 +15,10 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/fuzzed"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/fuzzed"
 )
 
 // Fuzzing applies the score policy for the Fuzzing check.
@@ -36,16 +36,25 @@ func Fuzzing(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	var fuzzerDetected bool
 	// Compute the score.
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			// Log all findings except the negative ones.
-			checker.LogFindings(nonNegativeFindings(findings), dl)
-			return checker.CreateMaxScoreResult(name, "project is fuzzed")
+		var logLevel checker.DetailType
+		switch f.Outcome {
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		case finding.OutcomeTrue:
+			fuzzerDetected = true
+			logLevel = checker.DetailInfo
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
-	// Log all findings.
-	checker.LogFindings(findings, dl)
+
+	if fuzzerDetected {
+		return checker.CreateMaxScoreResult(name, "project is fuzzed")
+	}
 	return checker.CreateMinScoreResult(name, "project is not fuzzed")
 }

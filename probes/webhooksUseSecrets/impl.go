@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.Webhooks})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -52,7 +57,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if hook.UsesAuthSecret {
 			msg := "Webhook with token authorization found."
 			f, err := finding.NewWith(fs, Probe,
-				msg, nil, finding.OutcomePositive)
+				msg, nil, finding.OutcomeTrue)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -63,7 +68,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		} else {
 			msg := "Webhook without token authorization found."
 			f, err := finding.NewWith(fs, Probe,
-				msg, nil, finding.OutcomeNegative)
+				msg, nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

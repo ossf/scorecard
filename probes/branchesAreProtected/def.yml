@@ -13,18 +13,19 @@
 # limitations under the License.
 
 id: branchesAreProtected
-short: Check that the projects branches are protected.
+short: Check that the project uses protected branches.
 motivation: >
-  Branches that are not protected may allow excessive actions that could compromise the projects security. 
+  Unprotected branches may allow actions that could compromise the project's security. 
 implementation: >
   Checks the protection rules of default and release branches.
 outcome:
-  - The probe returns one OutcomePositive for each branch that is protected, and one OutcomeNegative for branches that are not protected. Scorecard only considers default and releases branches.
+  - The probe returns one OutcomeTrue for each branch that is protected, and one OutcomeFalse for branches that are not protected. Scorecard only considers default and releases branches.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - For Gitlab-hosted project, follow the documentation on how to protect branches, https://docs.gitlab.com/ee/user/project/protected_branches.html
-    - For GitHub-hosted projects, follow [the documentation on protected branches, https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
+    - For GitHub-hosted projects, follow the documentation on protected branches, https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
   markdown:
     - For Gitlab-hosted project, follow [the documentation on how to protect branches](https://docs.gitlab.com/ee/user/project/protected_branches.html)
     - For GitHub-hosted projects, follow [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)

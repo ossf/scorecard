@@ -15,7 +15,7 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 // getRawResults returns a pointer to the raw results in the CheckRequest

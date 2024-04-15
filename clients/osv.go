@@ -21,12 +21,14 @@ import (
 
 	"github.com/google/osv-scanner/pkg/osvscanner"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var _ VulnerabilitiesClient = osvClient{}
 
-type osvClient struct{}
+type osvClient struct {
+	local bool
+}
 
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
 func (v osvClient) ListUnfixedVulnerabilities(
@@ -52,6 +54,9 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		SkipGit:        true,
 		Recursive:      true,
 		GitCommits:     gitCommits,
+		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
+			CompareLocally: v.local,
+		},
 	}, nil) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}

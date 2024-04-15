@@ -20,8 +20,13 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+)
+
+var (
+	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:\s*(\w+)`)
+	rePiperRevID       = regexp.MustCompile(`PiperOrigin-RevId:\s*(\d{3,})`)
 )
 
 // CodeReview retrieves the raw data for the Code-Review check.
@@ -90,12 +95,8 @@ func getGerritRevisionID(c *clients.Commit) string {
 // Given m, a commit message, find the Phabricator revision ID in it.
 func getPhabricatorRevisionID(c *clients.Commit) string {
 	m := c.Message
-	p, err := regexp.Compile(`Differential Revision:\s*(\w+)`)
-	if err != nil {
-		return ""
-	}
 
-	match := p.FindStringSubmatch(m)
+	match := rePhabricatorRevID.FindStringSubmatch(m)
 	if match == nil || len(match) < 2 {
 		return ""
 	}
@@ -106,12 +107,8 @@ func getPhabricatorRevisionID(c *clients.Commit) string {
 // Given m, a commit message, find the piper revision ID in it.
 func getPiperRevisionID(c *clients.Commit) string {
 	m := c.Message
-	matchPiperRevID, err := regexp.Compile(`PiperOrigin-RevId:\s*(\d{3,})`)
-	if err != nil {
-		return ""
-	}
 
-	match := matchPiperRevID.FindStringSubmatch(m)
+	match := rePiperRevID.FindStringSubmatch(m)
 	if match == nil || len(match) < 2 {
 		return ""
 	}

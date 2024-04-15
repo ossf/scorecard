@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.License})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -35,17 +40,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	var outcome finding.Outcome
-	var msg string
 
 	licenseFiles := raw.LicenseResults.LicenseFiles
 
 	if len(licenseFiles) == 0 {
-		outcome = finding.OutcomeNegative
-		msg = "project does not have a license file"
-		f, err := finding.NewWith(fs, Probe,
-			msg, nil,
-			outcome)
+		f, err := finding.NewFalse(fs, Probe, "project does not have a license file", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -54,18 +53,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	} else {
 		for _, licenseFile := range licenseFiles {
 			licenseFile := licenseFile
-			loc := &finding.Location{
-				Type:      licenseFile.File.Type,
-				Path:      licenseFile.File.Path,
-				LineStart: &licenseFile.File.Offset,
-				LineEnd:   &licenseFile.File.EndOffset,
-				Snippet:   &licenseFile.File.Snippet,
-			}
-			msg = "project has a license file"
-			outcome = finding.OutcomePositive
-			f, err := finding.NewWith(fs, Probe,
-				msg, loc,
-				outcome)
+			loc := licenseFile.File.Location()
+			f, err := finding.NewTrue(fs, Probe, "project has a license file", loc)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

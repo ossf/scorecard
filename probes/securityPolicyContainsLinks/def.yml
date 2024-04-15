@@ -15,14 +15,16 @@
 id: securityPolicyContainsLinks
 short: Check that the security policy contains web or email links.
 motivation: >
-  URLs point users to additional information as well as online disclosure forms. Emails provide a point of contact for vulnerability disclosure.
+  URLs point users to additional information as well as online disclosure forms.
+  Emails provide a point of contact for vulnerability disclosure.
 implementation: >
   The implementation looks for strings "http(s)://" to find URLs; and for strings "...@..." for email addresses.
 outcome:
-  - If links are found, one finding with OutcomePositive (1) is returned for each file.
-  - If no links are found, one finding with OutcomeNegative (0) is returned for each file.
-  - If no file is found, one finding with OutcomeNegative (0) is returned.
+  - If links are found, one finding with OutcomeTrue is returned for each security policy file.
+  - If no links are found, one finding with OutcomeFalse is returned for each security policy file.
+  - If no security policy files are found, one finding with OutcomeFalse is returned.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - 'On GitHub:'

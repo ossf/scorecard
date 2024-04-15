@@ -25,9 +25,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/config"
-	"github.com/ossf/scorecard/v4/cron/data"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/cron/config"
+	"github.com/ossf/scorecard/v5/cron/data"
 )
 
 const ciiBaseURL = "https://www.bestpractices.dev/projects.json"

@@ -15,12 +15,11 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFileAtTopDir"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v5/probes/hasLicenseFile"
 )
 
 // License applies the score policy for the License check.
@@ -28,11 +27,9 @@ func License(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
-	// We have 3 unique probes, each should have a finding.
 	expectedProbes := []string{
 		hasLicenseFile.Probe,
 		hasFSFOrOSIApprovedLicense.Probe,
-		hasLicenseFileAtTopDir.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -43,59 +40,27 @@ func License(name string,
 	// Compute the score.
 	score := 0
 	m := make(map[string]bool)
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNotApplicable:
-			dl.Info(&checker.LogMessage{
-				Type:   finding.FileTypeSource,
-				Offset: 1,
-				Text:   f.Message,
-			})
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case hasFSFOrOSIApprovedLicense.Probe:
-				dl.Info(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "FSF or OSI recognized license",
-				})
 				score += scoreProbeOnce(f.Probe, m, 1)
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Info(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in expected location",
-				})
-				score += scoreProbeOnce(f.Probe, m, 3)
 			case hasLicenseFile.Probe:
-				score += scoreProbeOnce(f.Probe, m, 6)
+				score += scoreProbeOnce(f.Probe, m, 9)
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
-		case finding.OutcomeNegative:
-			switch f.Probe {
-			case hasLicenseFileAtTopDir.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   f.Message,
-					Text:   "License file found in unexpected location",
-				})
-			case hasFSFOrOSIApprovedLicense.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type:   finding.FileTypeSource,
-					Offset: 1,
-					Path:   "",
-					Text:   f.Message,
-				})
-			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
 		default:
-			continue // for linting
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 	_, defined := m[hasLicenseFile.Probe]
 	if !defined {

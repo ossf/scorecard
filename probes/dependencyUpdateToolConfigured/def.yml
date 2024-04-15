@@ -1,0 +1,49 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: dependencyUpdateToolConfigured
+short: Check that a dependency update tool config is present.
+motivation: >
+  Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
+  Tools can help the process of updating dependencies by scanning for outdated or insecure requirements, and opening a pull request to update them if found.
+implementation: >
+  The implementation looks for the presence of various config files for different dependency update tools.
+outcome:
+  - If a dependency update tool is configured, the probe returns OutcomeTrue for each configuration.
+  - If no tool is detected, the probe returns OutcomeFalse.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Setup one of tools we currently detect https://github.com/ossf/scorecard/blob/main/docs/checks/dependencyupdatetool/README.md.
+  markdown:
+    - Setup one of [tools we currently detect](https://github.com/ossf/scorecard/blob/main/docs/checks/dependencyupdatetool/README.md).
+ecosystem:
+  languages:
+    - c#
+    - dockerfile
+    - go
+    - java
+    - javascript
+    - php
+    - python
+    - ruby
+    - rust
+    - scala
+    - swift
+    - typescript
+  clients:
+    - github
+    - gitlab
+    - localdir

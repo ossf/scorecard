@@ -20,10 +20,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.CITests})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -77,7 +82,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if !prSuccessStatus && !prCheckSuccessful {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("merged PR %d without CI test at HEAD: %s", r.PullRequestNumber, r.HeadSHA),
-				nil, finding.OutcomeNegative)
+				nil, finding.OutcomeFalse)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
@@ -102,7 +107,7 @@ func prHasSuccessStatus(r checker.RevisionCIInfo) (bool, *finding.Finding, error
 
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
-				finding.OutcomePositive)
+				finding.OutcomeTrue)
 			if err != nil {
 				return false, nil, fmt.Errorf("create finding: %w", err)
 			}
@@ -135,7 +140,7 @@ func prHasSuccessfulCheck(r checker.RevisionCIInfo) (bool, *finding.Finding, err
 
 			f, err := finding.NewWith(fs, Probe,
 				msg, nil,
-				finding.OutcomePositive)
+				finding.OutcomeTrue)
 			if err != nil {
 				return false, nil, fmt.Errorf("create finding: %w", err)
 			}

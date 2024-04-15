@@ -20,10 +20,15 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.SignedReleases})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -64,7 +69,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				if !strings.HasSuffix(asset.Name, suffix) {
 					continue
 				}
-				// Create Positive Finding
+				// Create True Finding
 				// with file info
 				loc := &finding.Location{
 					Type: finding.FileTypeURL,
@@ -73,7 +78,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				f, err := finding.NewWith(fs, Probe,
 					fmt.Sprintf("signed release artifact: %s", asset.Name),
 					loc,
-					finding.OutcomePositive)
+					finding.OutcomeTrue)
 				if err != nil {
 					return nil, Probe, fmt.Errorf("create finding: %w", err)
 				}
@@ -101,7 +106,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("release artifact %s not signed", release.TagName),
 			loc,
-			finding.OutcomeNegative)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

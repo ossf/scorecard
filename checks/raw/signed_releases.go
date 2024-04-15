@@ -17,7 +17,7 @@ package raw
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 // SignedReleases checks for presence of signed release check.

@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 // Flat JSON structure to hold raw results.
@@ -210,13 +210,13 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 			bp = &jsonBranchProtectionSettings{
 				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
 				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
-				RequiresCodeOwnerReviews:            v.BranchProtectionRule.RequiredPullRequestReviews.RequireCodeOwnerReviews,
+				RequiresCodeOwnerReviews:            v.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews,
 				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
-				DismissesStaleReviews:               v.BranchProtectionRule.RequiredPullRequestReviews.DismissStaleReviews,
+				DismissesStaleReviews:               v.BranchProtectionRule.PullRequestRule.DismissStaleReviews,
 				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
 				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
 				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
-				RequiredApprovingReviewCount:        v.BranchProtectionRule.RequiredPullRequestReviews.RequiredApprovingReviewCount,
+				RequiredApprovingReviewCount:        v.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount,
 				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
 			}
 		}

@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"io"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // JSONScorecardProbeResult exports results as JSON for flat findings without checks.
@@ -37,9 +37,9 @@ type ProbeResultOption struct {
 	Indent string
 }
 
-// AsPJSON writes results as JSON for flat findings without checks.
+// AsProbe writes results as JSON for flat findings without checks.
 // It accepts an optional argument to configure the output.
-func (r *ScorecardResult) AsPJSON(writer io.Writer, o *ProbeResultOption) error {
+func (r *ScorecardResult) AsProbe(writer io.Writer, o *ProbeResultOption) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{
 		Repo: jsonRepoV2{

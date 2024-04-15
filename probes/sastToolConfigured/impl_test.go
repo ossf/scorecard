@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func Test_Run(t *testing.T) {
@@ -49,7 +49,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -71,9 +71,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 	}
@@ -172,7 +172,7 @@ func assertTools(tb testing.TB, findings []finding.Finding, tools []string) {
 		tb.Fatalf("mismatch between number of finding (%d) and tools (%d)", len(findings), len(tools))
 	}
 	for i, f := range findings {
-		if f.Outcome != finding.OutcomePositive {
+		if f.Outcome != finding.OutcomeTrue {
 			tb.Errorf("outcome (%v) shouldn't have a tool field", f.Outcome)
 		}
 		tool, ok := f.Values[ToolKey]

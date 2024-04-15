@@ -22,7 +22,7 @@ import (
 
 	"github.com/xanzy/go-gitlab"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 type branchesHandler struct {
@@ -193,7 +193,7 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 		Contexts:             makeContextsFromResp(projectStatusChecks),
 	}
 
-	pullRequestReviewRule := clients.PullRequestReviewRule{
+	pullRequestReviewRule := clients.PullRequestRule{
 		// TODO how do we know if they're required?
 		DismissStaleReviews:     newTrue(),
 		RequireCodeOwnerReviews: &protectedBranch.CodeOwnerApprovalRequired,
@@ -208,11 +208,11 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 		Name:      &branch.Name,
 		Protected: &branch.Protected,
 		BranchProtectionRule: clients.BranchProtectionRule{
-			RequiredPullRequestReviews: pullRequestReviewRule,
-			AllowDeletions:             newFalse(),
-			AllowForcePushes:           &protectedBranch.AllowForcePush,
-			EnforceAdmins:              newTrue(),
-			CheckRules:                 statusChecksRule,
+			PullRequestRule:  pullRequestReviewRule,
+			AllowDeletions:   newFalse(),
+			AllowForcePushes: &protectedBranch.AllowForcePush,
+			EnforceAdmins:    newTrue(),
+			CheckRules:       statusChecksRule,
 		},
 	}
 

@@ -17,10 +17,10 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/webhooksUseSecrets"
 )
 
 // Webhooks applies the score policy for the Webhooks check.
@@ -46,7 +46,7 @@ func Webhooks(name string,
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative {
+		if f.Outcome == finding.OutcomeFalse {
 			webhooksWithNoSecret++
 		}
 	}

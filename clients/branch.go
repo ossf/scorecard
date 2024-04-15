@@ -23,13 +23,13 @@ type BranchRef struct {
 
 // BranchProtectionRule captures the settings enabled on a branch for security.
 type BranchProtectionRule struct {
-	RequiredPullRequestReviews PullRequestReviewRule
-	AllowDeletions             *bool
-	AllowForcePushes           *bool
-	RequireLinearHistory       *bool
-	EnforceAdmins              *bool
-	RequireLastPushApproval    *bool
-	CheckRules                 StatusChecksRule
+	PullRequestRule         PullRequestRule
+	AllowDeletions          *bool
+	AllowForcePushes        *bool
+	RequireLinearHistory    *bool
+	EnforceAdmins           *bool
+	RequireLastPushApproval *bool
+	CheckRules              StatusChecksRule
 }
 
 // StatusChecksRule captures settings on status checks.
@@ -39,8 +39,8 @@ type StatusChecksRule struct {
 	Contexts             []string
 }
 
-// PullRequestReviewRule captures settings on a PullRequest.
-type PullRequestReviewRule struct {
+// PullRequestRule captures settings on a PullRequest.
+type PullRequestRule struct {
 	Required                     *bool // are PRs required
 	RequiredApprovingReviewCount *int32
 	DismissStaleReviews          *bool

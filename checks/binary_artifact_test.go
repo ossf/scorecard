@@ -21,11 +21,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	"github.com/ossf/scorecard/v4/log"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/localdir"
+	"github.com/ossf/scorecard/v5/log"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestBinaryArtifacts(t *testing.T) {

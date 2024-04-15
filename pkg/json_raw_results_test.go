@@ -22,8 +22,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func TestAsPointer(t *testing.T) {
@@ -1114,7 +1114,7 @@ func TestJsonScorecardRawResult(t *testing.T) {
 				BranchProtectionRule: clients.BranchProtectionRule{
 					AllowDeletions:   boolPtr(true),
 					AllowForcePushes: boolPtr(false),
-					RequiredPullRequestReviews: clients.PullRequestReviewRule{
+					PullRequestRule: clients.PullRequestRule{
 						Required:                     boolPtr(true),
 						RequireCodeOwnerReviews:      boolPtr(true),
 						DismissStaleReviews:          boolPtr(true),

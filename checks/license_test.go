@@ -21,11 +21,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	"github.com/ossf/scorecard/v4/log"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/localdir"
+	"github.com/ossf/scorecard/v5/log"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestLicenseFileSubdirectory(t *testing.T) {
@@ -52,10 +52,11 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			name:        "Without LICENSE",
 			inputFolder: "testdata/licensedir/withoutlicense",
 			expected: scut.TestReturn{
-				Error:        nil,
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 0,
-				NumberOfInfo: 2,
+				Error:         nil,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  0,
+				NumberOfDebug: 1,
 			},
 			err: nil,
 		},
