@@ -72,7 +72,7 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 	r.log("processing repo: " + repoURI)
 	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
-	if errors.Is(err, sce.ErrorUnsupportedHost) {
+	if errors.Is(err, sce.ErrUnsupportedHost) {
 		repo, err = gitlabrepo.MakeGitlabRepo(repoURI)
 		repoClient = r.gitlabClient
 	}

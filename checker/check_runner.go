@@ -92,7 +92,7 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	unsupported := ListUnsupported(r.CheckRequest.RequiredTypes, c.SupportedRequestTypes)
 	if len(unsupported) != 0 {
 		return CreateRuntimeErrorResult(r.CheckName,
-			sce.WithMessage(sce.ErrorUnsupportedCheck,
+			sce.WithMessage(sce.ErrUnsupportedCheck,
 				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
 	}
 

@@ -175,7 +175,7 @@ func rootCmd(o *options.Options) error {
 	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
 	for _, result := range repoResult.Checks {
 		if result.Error != nil {
-			return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
+			return sce.WithMessage(sce.ErrCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
 		}
 	}
 	return nil

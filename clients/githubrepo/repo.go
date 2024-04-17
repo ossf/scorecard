@@ -65,7 +65,7 @@ func (r *repoURL) parse(input string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
+		return sce.WithMessage(sce.ErrInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
 	}
 
 	r.host, r.owner, r.repo = u.Host, split[0], split[1]
@@ -93,11 +93,11 @@ func (r *repoURL) IsValid() error {
 	case "github.com":
 	case githubHost:
 	default:
-		return sce.WithMessage(sce.ErrorUnsupportedHost, r.host)
+		return sce.WithMessage(sce.ErrUnsupportedHost, r.host)
 	}
 
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.repo) == "" {
-		return sce.WithMessage(sce.ErrorInvalidURL,
+		return sce.WithMessage(sce.ErrInvalidURL,
 			fmt.Sprintf("%v. Expected the full repository url", r.URI()))
 	}
 	return nil
