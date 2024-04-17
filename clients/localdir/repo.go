@@ -69,6 +69,11 @@ func (r *repoLocal) AppendMetadata(m ...string) {
 	r.metadata = append(r.metadata, m...)
 }
 
+// Path() implements RepoClient.Path.
+func (r *repoLocal) Path() string {
+	return r.path
+}
+
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
 func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
 	p := path.Clean(pathfn)

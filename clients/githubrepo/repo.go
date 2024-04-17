@@ -132,3 +132,8 @@ func MakeGithubRepo(input string) (clients.Repo, error) {
 	}
 	return &repo, nil
 }
+
+// Path() implements RepoClient.Path.
+func (r *repoURL) Path() string {
+	return fmt.Sprintf("%s/%s", r.owner, r.repo)
+}

@@ -27,7 +27,13 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		return checker.SignedReleasesData{}, fmt.Errorf("%w", err)
 	}
 
+	versions, err := c.ProjectClient.GetProjectPackageVersions(c.Ctx, c.Repo.Host(), c.Repo.Path())
+	if err != nil {
+		return checker.SignedReleasesData{}, fmt.Errorf("GetProjectPackageVersions: %w", err)
+	}
+
 	return checker.SignedReleasesData{
-		Releases: releases,
+		Releases:               releases,
+		ProjectPackageVersions: *versions,
 	}, nil
 }

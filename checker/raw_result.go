@@ -286,7 +286,8 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases []clients.Release
+	Releases               []clients.Release
+	ProjectPackageVersions clients.ProjectPackageVersions
 }
 
 // DependencyUpdateToolData contains the raw results

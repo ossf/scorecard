@@ -165,6 +165,11 @@ func (r *repoURL) Metadata() []string {
 	return r.metadata
 }
 
+// Path() implements RepoClient.Path.
+func (r *repoURL) Path() string {
+	return fmt.Sprintf("%s/%s", r.owner, r.project)
+}
+
 // MakeGitlabRepo takes input of forms in parse and returns and implementation
 // of clients.Repo interface.
 func MakeGitlabRepo(input string) (clients.Repo, error) {
