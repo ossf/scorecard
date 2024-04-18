@@ -152,15 +152,15 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 			},
 		},
