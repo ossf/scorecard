@@ -22,9 +22,10 @@ implementation: >
   Commits are grouped by the Pull Request they were introduced in.
   Only unique reviewer logins that aren't the same as the changeset author are counted.
 outcome:
-  - If all the changes had at least one reviewers, the probe returns OutcomePositive (1)
-  - If the changes had fewer than one reviewers, the prove returns OutcomeNegative (0)
+  - If all the changes had at least one reviewers, the probe returns OutcomeTrue (1)
+  - If the changes had fewer than one reviewers, the prove returns OutcomeFalse (0)
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Follow the instructions https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.

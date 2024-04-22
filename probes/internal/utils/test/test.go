@@ -17,9 +17,9 @@ package test
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // AssertOutcomes compares finding outcomes against expected outcomes.
@@ -85,7 +85,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -112,7 +112,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative, finding.OutcomeNegative,
+				finding.OutcomeFalse, finding.OutcomeFalse,
 			},
 		},
 		{
@@ -132,7 +132,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 			Err: sce.ErrScorecardInternal,
 		},
@@ -153,7 +153,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func GetTests(locationType checker.PermissionLocation,
 				},
 			},
 			Outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 	}

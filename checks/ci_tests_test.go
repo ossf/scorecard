@@ -20,8 +20,8 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
+	"github.com/ossf/scorecard/v5/checker"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
 
 func TestCITestsRuntimeError(t *testing.T) {

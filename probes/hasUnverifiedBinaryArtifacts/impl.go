@@ -13,16 +13,16 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package freeOfUnverifiedBinaryArtifacts
+package hasUnverifiedBinaryArtifacts
 
 import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -32,7 +32,7 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "freeOfUnverifiedBinaryArtifacts"
+const Probe = "hasUnverifiedBinaryArtifacts"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -49,7 +49,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 		f, err := finding.NewWith(fs, Probe, "binary artifact detected",
-			nil, finding.OutcomeNegative)
+			nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -64,7 +64,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Repository does not have binary artifacts.", nil,
-			finding.OutcomePositive)
+			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

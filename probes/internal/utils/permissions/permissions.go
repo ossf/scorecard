@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func createText(t checker.TokenPermission) (string, error) {
@@ -53,7 +53,7 @@ func createText(t checker.TokenPermission) (string, error) {
 		*t.Name, *t.Value), nil
 }
 
-func CreateNegativeFinding(r checker.TokenPermission,
+func CreateFalseFinding(r checker.TokenPermission,
 	probe string,
 	fs embed.FS,
 	metadata map[string]string,
@@ -64,7 +64,7 @@ func CreateNegativeFinding(r checker.TokenPermission,
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
 	f, err := finding.NewWith(fs, probe,
-		text, nil, finding.OutcomeNegative)
+		text, nil, finding.OutcomeFalse)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
@@ -85,16 +85,18 @@ func CreateNegativeFinding(r checker.TokenPermission,
 	return f, nil
 }
 
-func ReadPositiveLevelFinding(probe string,
+func ReadTrueLevelFinding(probe string,
 	fs embed.FS,
 	r checker.TokenPermission,
 	metadata map[string]string,
 ) (*finding.Finding, error) {
-	f, err := finding.NewWith(fs, probe,
-		"found token with 'read' permissions",
-		nil, finding.OutcomePositive)
+	text, err := createText(r)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
+	}
+	f, err := finding.NewWith(fs, probe, text, nil, finding.OutcomeTrue)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())
@@ -117,7 +119,7 @@ func CreateNoneFinding(probe string,
 	// Create finding
 	f, err := finding.NewWith(fs, probe,
 		"found token with 'none' permissions",
-		nil, finding.OutcomeNegative)
+		nil, finding.OutcomeFalse)
 	if err != nil {
 		return nil, fmt.Errorf("create finding: %w", err)
 	}
@@ -152,7 +154,7 @@ func CreateUndeclaredFinding(probe string,
 	case *r.LocationType == checker.PermissionLocationTop,
 		*r.LocationType == checker.PermissionLocationJob:
 		// Create finding
-		f, err = CreateNegativeFinding(r, probe, fs, metadata)
+		f, err = CreateFalseFinding(r, probe, fs, metadata)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}

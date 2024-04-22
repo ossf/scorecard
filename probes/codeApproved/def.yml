@@ -23,10 +23,11 @@ implementation: >
   Commits are grouped by the changeset they were introduced in, and each changesets must have at least one approval.
   Reviewed, bot authored changesets (e.g. dependabot) are not counted.
 outcome:
-  - If all commits were approved, the probe returns OutcomePositive
-  - If any commits were not approved, the probe returns OutcomeNegative
+  - If all commits were approved, the probe returns OutcomeTrue
+  - If any commits were not approved, the probe returns OutcomeFalse
   - If there are no changes, the probe returns OutcomeNotApplicable
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Follow the instructions at https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.

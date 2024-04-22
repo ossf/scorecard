@@ -19,10 +19,10 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -55,7 +55,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		licenseFile := licenseFile
 		loc := licenseFile.File.Location()
-		f, err := finding.NewPositive(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
+		f, err := finding.NewTrue(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -64,7 +64,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	f, err := finding.NewWith(fs, Probe,
 		"project license file does not contain an FSF or OSI license.", nil,
-		finding.OutcomeNegative)
+		finding.OutcomeFalse)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}

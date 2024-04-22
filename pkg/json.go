@@ -21,10 +21,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/checker"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 type jsonCheckResult struct {

@@ -15,12 +15,12 @@
 package checks
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/evaluation"
-	"github.com/ossf/scorecard/v4/checks/raw"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/probes"
-	"github.com/ossf/scorecard/v4/probes/zrunner"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/evaluation"
+	"github.com/ossf/scorecard/v5/checks/raw"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/probes"
+	"github.com/ossf/scorecard/v5/probes/zrunner"
 )
 
 const CheckCITests = "CI-Tests"
@@ -53,5 +53,7 @@ func CITests(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckCITests, e)
 	}
 
-	return evaluation.CITests(CheckCITests, findings, c.Dlogger)
+	ret := evaluation.CITests(CheckCITests, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
 }

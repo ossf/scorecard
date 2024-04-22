@@ -23,8 +23,8 @@ import (
 	opencensusstats "go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/stats"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/stats"
 )
 
 const checkRetries = 3
@@ -92,7 +92,7 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	unsupported := ListUnsupported(r.CheckRequest.RequiredTypes, c.SupportedRequestTypes)
 	if len(unsupported) != 0 {
 		return CreateRuntimeErrorResult(r.CheckName,
-			sce.WithMessage(sce.ErrorUnsupportedCheck,
+			sce.WithMessage(sce.ErrUnsupportedCheck,
 				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
 	}
 

@@ -12,16 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-id: freeOfUnverifiedBinaryArtifacts
+id: hasUnverifiedBinaryArtifacts
 short: Checks if the project has binary files in its source tree. The probe skips verified binary files which currently are gradle-wrappers.
 motivation: >
-  Binary files are not readable so users can't see what they do. Many programming language systems can generate executables from source code (e.g., C/C++ generated machine code, Java .class files, Python .pyc files, and minified JavaScript). Users will often directly use executables if they are included in the source repository, leading to many dangerous behaviors.
+  Binary files are not human readable so users and reviewers can't easily see what they do.
 implementation: >
-  The implementation looks for the presence of binary files that are not "verified". A verified binary is one that Scorecard considers valid for building and/or releasing the project. This is a more permissive probe than "freeOfAnyBinaryArtifacts" which does not skip verified binary files.
+  The implementation looks for the presence of binary files that are not "verified".
+  A verified binary is one that Scorecard considers valid for building and/or releasing the project.
+  This is a more permissive probe than "hasBinaryArtifacts" which does not skip verified binary files.
 outcome:
-  - If the probe finds unverified binary files, it returns a number of negative outcomes equal to the number of unverified binary files found. Each outcome includes a location of the file.
-  - If the probe finds no unverified binary files, it returns a single positive outcome.
+  - If the probe finds unverified binary files, it returns OutcomeTrue for each unverified binary file found.
+  - If the probe finds no unverified binary files, it returns OutcomeFalse.
 remediation:
+  onOutcome: True
   effort: Medium
   text:
     - Remove the generated executable artifacts from the repository.

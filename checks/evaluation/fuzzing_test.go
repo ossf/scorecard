@@ -16,12 +16,12 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/fuzzers"
-	"github.com/ossf/scorecard/v4/probes/fuzzed"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/fuzzers"
+	"github.com/ossf/scorecard/v5/probes/fuzzed"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestFuzzing(t *testing.T) {
@@ -36,7 +36,7 @@ func TestFuzzing(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   fuzzed.Probe,
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -71,7 +71,7 @@ func TestFuzzing(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "someUnrelatedProbe",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				fuzzTool(fuzzers.RustCargoFuzz),
 			},
@@ -95,7 +95,7 @@ func TestFuzzing(t *testing.T) {
 func fuzzTool(name string) finding.Finding {
 	return finding.Finding{
 		Probe:   fuzzed.Probe,
-		Outcome: finding.OutcomePositive,
+		Outcome: finding.OutcomeTrue,
 		Values: map[string]string{
 			fuzzed.ToolKey: name,
 		},

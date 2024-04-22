@@ -21,10 +21,10 @@ import (
 	"math"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/config"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/config"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/rule"
 )
 
 type (
@@ -68,8 +68,9 @@ type CheckResult struct {
 	Score   int
 	Reason  string
 	Details []CheckDetail
-	// Structured results.
-	Rules []string // TODO(X): add support.
+
+	// Findings from the check's probes.
+	Findings []finding.Finding
 }
 
 // CheckDetail contains information for each detail.
@@ -87,13 +88,13 @@ type LogMessage struct {
 	Finding *finding.Finding
 
 	// Non-structured results.
-	Text        string            // A short string explaining why the detail was recorded/logged.
-	Path        string            // Fullpath to the file.
-	Type        finding.FileType  // Type of file.
-	Offset      uint              // Offset in the file of Path (line for source/text files).
-	EndOffset   uint              // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string            // Snippet of code
-	Remediation *rule.Remediation // Remediation information, if any.
+	Text        string               // A short string explaining why the detail was recorded/logged.
+	Path        string               // Fullpath to the file.
+	Type        finding.FileType     // Type of file.
+	Offset      uint                 // Offset in the file of Path (line for source/text files).
+	EndOffset   uint                 // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string               // Snippet of code
+	Remediation *finding.Remediation // Remediation information, if any.
 }
 
 // ProportionalScoreWeighted is a structure that contains
@@ -244,24 +245,16 @@ func CreateRuntimeErrorResult(name string, e error) CheckResult {
 	}
 }
 
-// LogFindings logs the list of findings.
-func LogFindings(findings []finding.Finding, dl DetailLogger) {
-	for i := range findings {
-		f := &findings[i]
-		switch f.Outcome {
-		case finding.OutcomeNegative:
-			dl.Warn(&LogMessage{
-				Finding: f,
-			})
-		case finding.OutcomePositive:
-			dl.Info(&LogMessage{
-				Finding: f,
-			})
-		default:
-			dl.Debug(&LogMessage{
-				Finding: f,
-			})
-		}
+// LogFinding logs the given finding at the given level.
+func LogFinding(dl DetailLogger, f *finding.Finding, level DetailType) {
+	lm := LogMessage{Finding: f}
+	switch level {
+	case DetailDebug:
+		dl.Debug(&lm)
+	case DetailInfo:
+		dl.Info(&lm)
+	case DetailWarn:
+		dl.Warn(&lm)
 	}
 }
 

@@ -16,10 +16,10 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestPackaging(t *testing.T) {
@@ -30,11 +30,11 @@ func TestPackaging(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "test positive outcome",
+			name: "test true outcome",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -43,11 +43,11 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test positive outcome with wrong probes",
+			name: "test true outcome with wrong probes",
 			findings: []finding.Finding{
 				{
 					Probe:   "wrongProbe",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -60,7 +60,7 @@ func TestPackaging(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -69,11 +69,11 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test negative outcome with wrong probes",
+			name: "test false outcome with wrong probes",
 			findings: []finding.Finding{
 				{
 					Probe:   "wrongProbe",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

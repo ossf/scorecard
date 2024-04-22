@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
-	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/archived"
+	"github.com/ossf/scorecard/v5/probes/createdRecently"
+	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 )
 
 const (
@@ -39,10 +39,10 @@ func Maintained(name string,
 ) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
-		notArchived.Probe,
+		archived.Probe,
 		issueActivityByProjectMember.Probe,
 		hasRecentCommits.Probe,
-		notCreatedRecently.Probe,
+		createdRecently.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -50,21 +50,14 @@ func Maintained(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if projectIsArchived(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
-		return checker.CreateMinScoreResult(name, "project is archived")
-	}
-
-	if projectWasCreatedInLast90Days(findings) {
-		checker.LogFindings(negativeFindings(findings), dl)
-		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
-	}
+	var isArchived, recentlyCreated bool
 
 	var commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold int
 	var err error
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		switch f.Outcome {
+		case finding.OutcomeTrue:
 			switch f.Probe {
 			case issueActivityByProjectMember.Probe:
 				numberOfIssuesUpdatedWithinThreshold, err = strconv.Atoi(f.Values[issueActivityByProjectMember.NumIssuesKey])
@@ -76,32 +69,32 @@ func Maintained(name string,
 				if err != nil {
 					return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, err.Error()))
 				}
+			case archived.Probe:
+				isArchived = true
+				checker.LogFinding(dl, f, checker.DetailWarn)
+			case createdRecently.Probe:
+				recentlyCreated = true
+				checker.LogFinding(dl, f, checker.DetailWarn)
 			}
+		case finding.OutcomeFalse:
+			// both archive and created recently are good if false, and the
+			// other probes are informational and dont need logged. But we need
+			// to specify the case so it doesn't get logged below at the debug level
+		default:
+			checker.LogFinding(dl, f, checker.DetailDebug)
 		}
+	}
+
+	if isArchived {
+		return checker.CreateMinScoreResult(name, "project is archived")
+	}
+
+	if recentlyCreated {
+		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
 	}
 
 	return checker.CreateProportionalScoreResult(name, fmt.Sprintf(
 		"%d commit(s) and %d issue activity found in the last %d days",
 		commitsWithinThreshold, numberOfIssuesUpdatedWithinThreshold, lookBackDays),
 		commitsWithinThreshold+numberOfIssuesUpdatedWithinThreshold, activityPerWeek*lookBackDays/daysInOneWeek)
-}
-
-func projectIsArchived(findings []finding.Finding) bool {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notArchived.Probe {
-			return true
-		}
-	}
-	return false
-}
-
-func projectWasCreatedInLast90Days(findings []finding.Finding) bool {
-	for i := range findings {
-		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative && f.Probe == notCreatedRecently.Probe {
-			return true
-		}
-	}
-	return false
 }

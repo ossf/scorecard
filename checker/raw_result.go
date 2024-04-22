@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // RawResults contains results before a policy
@@ -126,7 +125,7 @@ type Dependency struct {
 	Location    *File
 	Msg         *string // Only for debug messages.
 	Pinned      *bool
-	Remediation *rule.Remediation
+	Remediation *finding.Remediation
 	Type        DependencyUseType
 }
 

@@ -15,8 +15,8 @@
 package raw
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 // WebHook retrieves the raw data for the WebHooks check.

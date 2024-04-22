@@ -12,20 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package probe
+package finding
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"strings"
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
-
-var errInvalid = errors.New("invalid")
 
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
@@ -54,9 +51,10 @@ type Remediation struct {
 }
 
 type yamlRemediation struct {
-	Text     []string          `yaml:"text"`
-	Markdown []string          `yaml:"markdown"`
-	Effort   RemediationEffort `yaml:"effort"`
+	OnOutcome Outcome           `yaml:"onOutcome"`
+	Text      []string          `yaml:"text"`
+	Markdown  []string          `yaml:"markdown"`
+	Effort    RemediationEffort `yaml:"effort"`
 }
 
 type yamlEcosystem struct {
@@ -79,17 +77,16 @@ type yamlProbe struct {
 	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
-//nolint:govet
-type Probe struct {
-	ID             string
-	Short          string
-	Motivation     string
-	Implementation string
-	Remediation    *Remediation
+type probe struct {
+	ID                 string
+	Short              string
+	Motivation         string
+	Implementation     string
+	Remediation        *Remediation
+	RemediateOnOutcome Outcome
 }
 
-// FromBytes creates a probe from a file.
-func FromBytes(content []byte, probeID string) (*Probe, error) {
+func probeFromBytes(content []byte, probeID string) (*probe, error) {
 	r, err := parseFromYAML(content)
 	if err != nil {
 		return nil, err
@@ -99,7 +96,7 @@ func FromBytes(content []byte, probeID string) (*Probe, error) {
 		return nil, err
 	}
 
-	return &Probe{
+	return &probe{
 		ID:             r.ID,
 		Short:          r.Short,
 		Motivation:     r.Motivation,
@@ -109,16 +106,17 @@ func FromBytes(content []byte, probeID string) (*Probe, error) {
 			Markdown: strings.Join(r.Remediation.Markdown, "\n"),
 			Effort:   r.Remediation.Effort,
 		},
+		RemediateOnOutcome: r.Remediation.OnOutcome,
 	}, nil
 }
 
 // New create a new probe.
-func New(loc embed.FS, probeID string) (*Probe, error) {
+func newProbe(loc embed.FS, probeID string) (*probe, error) {
 	content, err := loc.ReadFile("def.yml")
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
-	return FromBytes(content, probeID)
+	return probeFromBytes(content, probeID)
 }
 
 func validate(r *yamlProbe, probeID string) error {
@@ -143,6 +141,9 @@ func validateID(actual, expected string) error {
 }
 
 func validateRemediation(r yamlRemediation) error {
+	if err := validateRemediationOutcomeTrigger(r.OnOutcome); err != nil {
+		return err
+	}
 	switch r.Effort {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
 		return nil
@@ -159,6 +160,15 @@ func validateEcosystem(r yamlEcosystem) error {
 		return err
 	}
 	return nil
+}
+
+func validateRemediationOutcomeTrigger(o Outcome) error {
+	switch o {
+	case OutcomeTrue, OutcomeFalse, OutcomeNotApplicable, OutcomeNotAvailable, OutcomeNotSupported, OutcomeError:
+		return nil
+	default:
+		return fmt.Errorf("%w: unknown outcome: %v", errInvalid, o)
+	}
 }
 
 func validateSupportedLanguages(r yamlEcosystem) error {
@@ -193,7 +203,7 @@ func parseFromYAML(content []byte) (*yamlProbe, error) {
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", errInvalid, err)
+		return nil, fmt.Errorf("unable to parse yaml: %w", err)
 	}
 	return &r, nil
 }

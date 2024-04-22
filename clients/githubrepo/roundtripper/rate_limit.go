@@ -23,9 +23,9 @@ import (
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 
-	githubstats "github.com/ossf/scorecard/v4/clients/githubrepo/stats"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
+	githubstats "github.com/ossf/scorecard/v5/clients/githubrepo/stats"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 // MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.

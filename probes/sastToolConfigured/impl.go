@@ -19,10 +19,10 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -45,7 +45,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	r := raw.SASTResults
 
 	if len(r.Workflows) == 0 {
-		f, err := finding.NewWith(fs, Probe, "no SAST configuration files detected", nil, finding.OutcomeNegative)
+		f, err := finding.NewWith(fs, Probe, "no SAST configuration files detected", nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -56,7 +56,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Workflows {
 		tool := string(r.Workflows[i].Type)
 		loc := r.Workflows[i].File.Location()
-		f, err := finding.NewWith(fs, Probe, "SAST configuration detected: "+tool, loc, finding.OutcomePositive)
+		f, err := finding.NewWith(fs, Probe, "SAST configuration detected: "+tool, loc, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

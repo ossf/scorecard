@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
-package notCreatedRecently
+package archived
 
 import (
 	"embed"
 	"fmt"
-	"strconv"
-	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -34,12 +31,7 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const (
-	Probe = "notCreatedRecently"
-
-	LookbackDayKey = "lookBackDays"
-	lookBackDays   = 90
-)
+const Probe = "archived"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -48,21 +40,28 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.MaintainedResults
 
-	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
-
-	var text string
-	var outcome finding.Outcome
-	if r.CreatedAt.After(recencyThreshold) {
-		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
-		outcome = finding.OutcomeNegative
-	} else {
-		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
-		outcome = finding.OutcomePositive
+	if r.ArchivedStatus.Status {
+		return trueOutcome()
 	}
-	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
+	return falseOutcome()
+}
+
+func trueOutcome() ([]finding.Finding, string, error) {
+	f, err := finding.NewWith(fs, Probe,
+		"Repository is archived.", nil,
+		finding.OutcomeTrue)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
-	f = f.WithValue(LookbackDayKey, strconv.Itoa(lookBackDays))
+	return []finding.Finding{*f}, Probe, nil
+}
+
+func falseOutcome() ([]finding.Finding, string, error) {
+	f, err := finding.NewWith(fs, Probe,
+		"Repository is not archived.", nil,
+		finding.OutcomeFalse)
+	if err != nil {
+		return nil, Probe, fmt.Errorf("create finding: %w", err)
+	}
 	return []finding.Finding{*f}, Probe, nil
 }

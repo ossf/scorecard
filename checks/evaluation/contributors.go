@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/contributorsFromOrgOrCompany"
 )
 
 const (
@@ -42,37 +42,37 @@ func Contributors(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	numberOfPositives := getNumberOfPositives(findings)
-	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfPositives)
+	numberOfTrue := getNumberOfTrue(findings)
+	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfTrue)
 
-	if numberOfPositives > 0 {
+	if numberOfTrue > 0 {
 		logFindings(findings, dl)
 	}
-	if numberOfPositives > numberCompaniesForTopScore {
+	if numberOfTrue > numberCompaniesForTopScore {
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	return checker.CreateProportionalScoreResult(name, reason, numberOfPositives, numberCompaniesForTopScore)
+	return checker.CreateProportionalScoreResult(name, reason, numberOfTrue, numberCompaniesForTopScore)
 }
 
-func getNumberOfPositives(findings []finding.Finding) int {
-	var numberOfPositives int
+func getNumberOfTrue(findings []finding.Finding) int {
+	var numberOfTrue int
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			if f.Probe == contributorsFromOrgOrCompany.Probe {
-				numberOfPositives++
+				numberOfTrue++
 			}
 		}
 	}
-	return numberOfPositives
+	return numberOfTrue
 }
 
 func logFindings(findings []finding.Finding, dl checker.DetailLogger) {
 	var sb strings.Builder
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			sb.WriteString(fmt.Sprintf("%s, ", f.Message))
 		}
 	}

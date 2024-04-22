@@ -20,7 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ossf/scorecard/v4/checks"
+	"github.com/ossf/scorecard/v5/checks"
 )
 
 const (

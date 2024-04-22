@@ -165,4 +165,4 @@ linters-settings:
     require-specific: true
   wrapcheck:
     ignorePackageGlobs:
-      - github.com/ossf/scorecard/v4/checks/fileparser
+      - github.com/ossf/scorecard/v5/checks/fileparser

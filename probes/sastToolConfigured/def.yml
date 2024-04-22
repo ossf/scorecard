@@ -19,9 +19,10 @@ motivation: >
 implementation: >
   The implementation checks for evidence of various SAST tools. This includes configuration files, GitHub Action workflows, and GitHub PR check annotations.
 outcome:
-  - If the project uses a SAST tool we can detect, the probe returns one finding per tool with OutcomePositive.
-  - If the project does not use a SAST tool, or uses a tool we dont currently detect, the probe returns one finding with OutcomeNegative.
+  - If the project uses a SAST tool we can detect, the probe returns one finding per tool with OutcomeTrue.
+  - If the project does not use a SAST tool, or uses a tool we dont currently detect, the probe returns one finding with OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Setup one of tools we currently detect https://github.com/ossf/scorecard/blob/main/docs/checks/sast/README.md.

@@ -24,13 +24,13 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/config"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	spol "github.com/ossf/scorecard/v4/policy"
-	rules "github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/config"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	spol "github.com/ossf/scorecard/v5/policy"
+	rules "github.com/ossf/scorecard/v5/rule"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -164,7 +164,7 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &rules.Remediation{
+									Remediation: &finding.Remediation{
 										Markdown: "this is the custom markdown help",
 										Text:     "this is the custom text help",
 									},

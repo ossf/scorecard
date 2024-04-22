@@ -28,7 +28,7 @@ Intended usage:
 */
 package main
 
-import "github.com/ossf/scorecard/v4/cmd/internal/scdiff/app"
+import "github.com/ossf/scorecard/v5/cmd/internal/scdiff/app"
 
 func main() {
 	app.Execute()

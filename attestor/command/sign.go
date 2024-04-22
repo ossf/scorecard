@@ -24,7 +24,7 @@ import (
 	"github.com/grafeas/kritis/pkg/kritis/signer"
 	"github.com/grafeas/kritis/pkg/kritis/util"
 
-	sclog "github.com/ossf/scorecard/v4/log"
+	sclog "github.com/ossf/scorecard/v5/log"
 )
 
 const scorecardNoteID = "ossf-scorecard-attestation"

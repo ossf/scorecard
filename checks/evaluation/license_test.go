@@ -16,10 +16,10 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestLicense(t *testing.T) {
@@ -30,15 +30,15 @@ func TestLicense(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Positive outcome = Max Score",
+			name: "True outcome = Max Score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -46,15 +46,15 @@ func TestLicense(t *testing.T) {
 				NumberOfInfo: 2,
 			},
 		}, {
-			name: "Negative outcomes from all probes = Min score",
+			name: "false outcomes from all probes = Min score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -66,11 +66,11 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -83,7 +83,7 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{
@@ -95,11 +95,11 @@ func TestLicense(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasLicenseFile",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasFSFOrOSIApprovedLicense",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{

@@ -1,13 +1,13 @@
+id: all-fields
 short: short description
-desc: description
 motivation: >
-  line1
-  line2
+  mot1
+  mot2
 implementation: >
-  line1
-  line2
-risk: invalid
+  impl1
+  impl2
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - step1
@@ -15,3 +15,11 @@ remediation:
   markdown:
     - step1
     - step2 [google.com](https://www.google.com/something)
+ecosystem:
+  languages:
+    - c
+    - c++
+  clients:
+    - github
+    - gitlab
+    - localdir

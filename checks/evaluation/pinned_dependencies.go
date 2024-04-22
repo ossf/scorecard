@@ -17,13 +17,11 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
-	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 )
 
 type pinnedResult struct {
@@ -52,15 +50,6 @@ const (
 	normalWeight            int = gitHubOwnedActionWeight + thirdPartyActionWeight
 )
 
-func probeRemToRuleRem(rem *probe.Remediation) *rule.Remediation {
-	return &rule.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   rule.RemediationEffort(rem.Effort),
-	}
-}
-
 // PinningDependencies applies the score policy for the Pinned-Dependencies check.
 func PinningDependencies(name string,
 	findings []finding.Finding,
@@ -81,25 +70,16 @@ func PinningDependencies(name string,
 	for i := range findings {
 		f := findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNotAvailable:
-			return checker.CreateInconclusiveResult(name, "no dependencies found")
 		case finding.OutcomeNotApplicable:
-			if f.Location != nil {
-				dl.Debug(&checker.LogMessage{
-					Path:      f.Location.Path,
-					Type:      f.Location.Type,
-					Offset:    *f.Location.LineStart,
-					EndOffset: *f.Location.LineEnd,
-					Text:      f.Message,
-					Snippet:   *f.Location.Snippet,
-				})
-			} else {
-				dl.Debug(&checker.LogMessage{
-					Text: f.Message,
-				})
-			}
+			return checker.CreateInconclusiveResult(name, "no dependencies found")
+		case finding.OutcomeNotSupported:
+			dl.Debug(&checker.LogMessage{
+				Finding: &f,
+			})
 			continue
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
+			// we cant use the finding if we want the remediation to show
+			// finding.Remediation are currently suppressed (#3349)
 			lm := &checker.LogMessage{
 				Path:      f.Location.Path,
 				Type:      f.Location.Type,
@@ -110,7 +90,7 @@ func PinningDependencies(name string,
 			}
 
 			if f.Remediation != nil {
-				lm.Remediation = probeRemToRuleRem(f.Remediation)
+				lm.Remediation = f.Remediation
 			}
 			dl.Warn(lm)
 		case finding.OutcomeError:
@@ -186,7 +166,7 @@ func generateOwnerToDisplay(gitHubOwned bool) string {
 }
 
 func addPinnedResult(outcome finding.Outcome, r *pinnedResult) {
-	if outcome == finding.OutcomePositive {
+	if outcome == finding.OutcomeTrue {
 		r.pinned += 1
 	}
 	r.total += 1

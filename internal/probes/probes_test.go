@@ -19,8 +19,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func emptyImpl(r *checker.RawResults) ([]finding.Finding, string, error) {

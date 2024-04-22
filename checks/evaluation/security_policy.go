@@ -15,13 +15,13 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
@@ -40,9 +40,13 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 
 	score := 0
 	m := make(map[string]bool)
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
+		// all of the security policy probes are good things if true and bad if false
+		switch f.Outcome {
+		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case securityPolicyContainsVulnerabilityDisclosure.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
@@ -56,7 +60,12 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 	_, defined := m[securityPolicyPresent.Probe]
 	if !defined {
@@ -64,18 +73,8 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
-
-		// Log all findings.
-		checker.LogFindings(findings, dl)
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
 	}
-
-	// Log all findings.
-	// NOTE: if the score is checker.MaxResultScore, then all findings are positive.
-	// If the score is less than checker.MaxResultScore, some findings are negative,
-	// so we log both positive and negative findings.
-	checker.LogFindings(findings, dl)
-
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
 

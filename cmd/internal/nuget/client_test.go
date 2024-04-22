@@ -28,7 +28,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
+	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 )
 
 type resultPackagePage struct {

@@ -21,13 +21,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/config"
-	"github.com/ossf/scorecard/v4/docs/checks"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	spol "github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/config"
+	"github.com/ossf/scorecard/v5/docs/checks"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	spol "github.com/ossf/scorecard/v5/policy"
 )
 
 func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {

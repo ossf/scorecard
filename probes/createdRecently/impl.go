@@ -13,16 +13,18 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package notArchived
+package createdRecently
 
 import (
 	"embed"
 	"fmt"
+	"strconv"
+	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -32,7 +34,12 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "notArchived"
+const (
+	Probe = "createdRecently"
+
+	LookbackDayKey = "lookBackDays"
+	lookBackDays   = 90
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -41,28 +48,21 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	r := raw.MaintainedResults
 
-	if r.ArchivedStatus.Status {
-		return negativeOutcome()
-	}
-	return positiveOutcome()
-}
+	recencyThreshold := time.Now().AddDate(0 /*years*/, 0 /*months*/, -1*lookBackDays /*days*/)
 
-func negativeOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository is archived.", nil,
-		finding.OutcomeNegative)
+	var text string
+	var outcome finding.Outcome
+	if r.CreatedAt.After(recencyThreshold) {
+		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeTrue
+	} else {
+		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+		outcome = finding.OutcomeFalse
+	}
+	f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 	if err != nil {
 		return nil, Probe, fmt.Errorf("create finding: %w", err)
 	}
-	return []finding.Finding{*f}, Probe, nil
-}
-
-func positiveOutcome() ([]finding.Finding, string, error) {
-	f, err := finding.NewWith(fs, Probe,
-		"Repository is not archived.", nil,
-		finding.OutcomePositive)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
+	f = f.WithValue(LookbackDayKey, strconv.Itoa(lookBackDays))
 	return []finding.Finding{*f}, Probe, nil
 }

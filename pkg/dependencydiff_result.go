@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 // ChangeType is the change type (added, updated, removed) of a dependency.
