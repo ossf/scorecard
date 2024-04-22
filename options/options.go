@@ -229,6 +229,13 @@ func (o *Options) Probes() []string {
 	return o.ProbesToRun
 }
 
+// isExperimentalEnabled returns true if experimental features were enabled via
+// environment variable.
+func (o *Options) isExperimentalEnabled() bool {
+	value, _ := os.LookupEnv(EnvVarScorecardExperimental)
+	return value == "1"
+}
+
 // isSarifEnabled returns true if SARIF format was specified in options or via
 // environment variable.
 func (o *Options) isSarifEnabled() bool {
