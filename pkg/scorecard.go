@@ -32,6 +32,7 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
 	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
+	sclog "github.com/ossf/scorecard/v4/log"
 	"github.com/ossf/scorecard/v4/options"
 	"github.com/ossf/scorecard/v4/probes"
 	"github.com/ossf/scorecard/v4/probes/zrunner"
@@ -176,8 +177,8 @@ func runScorecard(ctx context.Context,
 		}
 		c, err := config.Parse(rc, checks)
 		if err != nil {
-			return ScorecardResult{},
-				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Parse configuration:%v", err.Error()))
+			logger := sclog.NewLogger(sclog.DefaultLevel)
+			logger.Error(err, "parsing configuration file")
 		}
 		ret.Config = c
 	}
