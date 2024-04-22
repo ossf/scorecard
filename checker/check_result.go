@@ -24,7 +24,6 @@ import (
 	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
-	"github.com/ossf/scorecard/v5/rule"
 )
 
 type (

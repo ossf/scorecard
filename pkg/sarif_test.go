@@ -30,7 +30,6 @@ import (
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
 	spol "github.com/ossf/scorecard/v5/policy"
-	rules "github.com/ossf/scorecard/v5/rule"
 )
 
 func sarifMockDocRead() *mockDoc {

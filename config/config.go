@@ -22,7 +22,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var (

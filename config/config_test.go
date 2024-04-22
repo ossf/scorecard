@@ -23,8 +23,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checks"
-	"github.com/ossf/scorecard/v4/config"
+	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/config"
 )
 
 func Test_Parse_Checks(t *testing.T) {
