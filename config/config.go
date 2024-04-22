@@ -76,17 +76,17 @@ func Parse(r io.Reader, checks []string) (Config, error) {
 	// Find scorecard.yml file in the repository's root
 	content, err := io.ReadAll(r)
 	if err != nil {
-		return c, fmt.Errorf("fail to read configuration file: %w", err)
+		return Config{}, fmt.Errorf("fail to read configuration file: %w", err)
 	}
 
 	err = parseFile(&c, content)
 	if err != nil {
-		return c, fmt.Errorf("fail to parse configuration file: %w", err)
+		return Config{}, fmt.Errorf("fail to parse configuration file: %w", err)
 	}
 
 	err = validate(c, checks)
 	if err != nil {
-		return c, fmt.Errorf("configuration file is not valid: %w", err)
+		return Config{}, fmt.Errorf("configuration file is not valid: %w", err)
 	}
 
 	// Return configuration
