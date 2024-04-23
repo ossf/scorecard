@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/config"
 	"github.com/ossf/scorecard/v5/docs/checks"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/log"
@@ -65,6 +66,17 @@ func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {
 				Score:  5,
 				Reason: "half score reason",
 				Name:   "Check-Name",
+			},
+		},
+		Config: config.Config{
+			Annotations: []config.Annotation{
+				{
+					Checks: []string{"Check-Name"},
+					Reasons: []config.ReasonGroup{
+						{Reason: "test-data"},
+						{Reason: "not-applicable"},
+					},
+				},
 			},
 		},
 		Metadata: []string{},
@@ -122,6 +134,23 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			},
 			want: want{
 				path: "check1.log",
+				err:  false,
+			},
+		},
+		{
+			name: "output file with format default and annotations",
+			args: args{
+				opts: &options.Options{
+					Format:          options.FormatDefault,
+					ShowDetails:     true,
+					LogLevel:        log.DebugLevel.String(),
+					ShowAnnotations: true,
+				},
+				results: scorecardResults,
+				doc:     checkDocs,
+			},
+			want: want{
+				path: "check1_annotations.log",
 				err:  false,
 			},
 		},

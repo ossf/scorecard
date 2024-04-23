@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/olekukonko/tablewriter"
@@ -29,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/config"
 	docChecks "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
@@ -59,6 +61,14 @@ type ScorecardResult struct {
 	RawResults checker.RawResults
 	Findings   []finding.Finding
 	Metadata   []string
+	Config     config.Config
+}
+
+// AsStringResultOption provides configuration options for string Scorecard results.
+type AsStringResultOption struct {
+	LogLevel    log.Level
+	Details     bool
+	Annotations bool
 }
 
 func scoreToString(s float64) string {
@@ -129,12 +139,22 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		err = results.AsString(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
+		o := AsStringResultOption{
+			Details:     opts.ShowDetails,
+			Annotations: opts.ShowAnnotations,
+			LogLevel:    log.ParseLevel(opts.LogLevel),
+		}
+		err = results.AsString(output, doc, o)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
-		err = results.AsJSON2(opts.ShowDetails, log.ParseLevel(opts.LogLevel), doc, output)
+		o := AsJSON2ResultOption{
+			Details:     opts.ShowDetails,
+			Annotations: opts.ShowAnnotations,
+			LogLevel:    log.ParseLevel(opts.LogLevel),
+		}
+		err = results.AsJSON2(output, doc, o)
 	case options.FormatProbe:
 		var opts *ProbeResultOption
 		err = results.AsProbe(output, opts)
@@ -158,27 +178,19 @@ func FormatResults(
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
-	checkDocs docChecks.Doc, writer io.Writer,
+func (r *ScorecardResult) AsString(writer io.Writer,
+	checkDocs docChecks.Doc, o AsStringResultOption,
 ) error {
 	data := make([][]string, len(r.Checks))
 
 	for i, row := range r.Checks {
-		const withdetails = 5
-		const withoutdetails = 4
 		var x []string
-
-		if showDetails {
-			x = make([]string, withdetails)
-		} else {
-			x = make([]string, withoutdetails)
-		}
 
 		// UPGRADEv2: rename variable.
 		if row.Score == checker.InconclusiveResultScore {
-			x[0] = "?"
+			x = append(x, "?")
 		} else {
-			x[0] = fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore)
+			x = append(x, fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore))
 		}
 
 		cdoc, e := checkDocs.GetCheck(row.Name)
@@ -187,18 +199,18 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 		}
 
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
-		x[1] = row.Name
-		x[2] = row.Reason
-		if showDetails {
-			details, show := detailsToString(row.Details, logLevel)
+		x = append(x, row.Name, row.Reason)
+		if o.Details {
+			details, show := detailsToString(row.Details, o.LogLevel)
 			if show {
-				x[3] = details
+				x = append(x, details)
 			}
-			x[4] = doc
-		} else {
-			x[3] = doc
 		}
-
+		x = append(x, doc)
+		if o.Annotations {
+			_, reasons := row.IsExempted(r.Config)
+			x = append(x, strings.Join(reasons, "\n"))
+		}
 		data[i] = x
 	}
 
@@ -215,10 +227,13 @@ func (r *ScorecardResult) AsString(showDetails bool, logLevel log.Level,
 
 	table := tablewriter.NewWriter(writer)
 	header := []string{"Score", "Name", "Reason"}
-	if showDetails {
+	if o.Details {
 		header = append(header, "Details")
 	}
 	header = append(header, "Documentation/Remediation")
+	if o.Annotations {
+		header = append(header, "Annotation")
+	}
 	table.SetHeader(header)
 	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
 	table.SetRowSeparator("-")

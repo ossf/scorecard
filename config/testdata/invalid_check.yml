@@ -1,0 +1,5 @@
+annotations:
+  - checks:
+      - credentials
+    reasons:
+      - reason: test-data

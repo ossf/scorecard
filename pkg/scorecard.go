@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -27,9 +28,12 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -159,6 +163,25 @@ func runScorecard(ctx context.Context,
 
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
+
+	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
+		// Get configuration
+		rc, err := repoClient.GetFileReader("scorecard.yml")
+		// If configuration file exists, continue. Otherwise, ignore
+		if err == nil {
+			defer rc.Close()
+			checks := []string{}
+			for check := range checksToRun {
+				checks = append(checks, check)
+			}
+			c, err := config.Parse(rc, checks)
+			if err != nil {
+				logger := sclog.NewLogger(sclog.DefaultLevel)
+				logger.Error(err, "parsing configuration file")
+			}
+			ret.Config = c
+		}
+	}
 
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
