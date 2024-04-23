@@ -15,7 +15,6 @@
 package runner
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -47,7 +46,6 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo.EXPECT().InitRepo(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
 	mockRepo.EXPECT().Close().Return(nil)
-	mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("Mock Error"))
 	r := Runner{
 		enabledChecks: checker.CheckNameToFnMap{},
 		githubClient:  mockRepo,
