@@ -18,8 +18,9 @@ permissions: read-all
 
 on:
   push:
-    branches:
-      - main
+    # only publish ghcr images for releases
+    tags:
+      - v*
 
 env:
   GO_VERSION: 1.22
