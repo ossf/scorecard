@@ -18,8 +18,9 @@ permissions: read-all
 
 on:
   push:
-    branches:
-      - main
+    # only publish ghcr images for releases
+    tags:
+      - v*
 
 env:
   GO_VERSION: 1.22
@@ -64,4 +65,4 @@ jobs:
        uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
      - name: Sign image
        run: |
-          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
+          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v5:${{ github.sha }}
