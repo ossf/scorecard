@@ -78,7 +78,7 @@ jobs:
               checks = found[1]
             }
             core.exportVariable('SCORECARD_CHECKS', checks)
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ steps.config.outputs.base }}
       - name: Setup Go
@@ -94,7 +94,7 @@ jobs:
           go run cmd/internal/scdiff/main.go generate \
             --repos $HOME/repos.txt \
             --checks $SCORECARD_CHECKS > $HOME/before.json
-      - uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           ref: ${{ steps.config.outputs.head }}
       - name: generate after results
