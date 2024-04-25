@@ -207,7 +207,12 @@ func runEnabledProbes(request *checker.CheckRequest,
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		// Run probe
-		findings, _, err := probe.Implementation(&ret.RawResults)
+		var findings []finding.Finding
+		if probe.IndependentImplementation != nil {
+			findings, _, err = probe.IndependentImplementation(request)
+		} else {
+			findings, _, err = probe.Implementation(&ret.RawResults)
+		}
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}

@@ -66,6 +66,9 @@ import (
 // ProbeImpl is the implementation of a probe.
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
 
+// IndependentProbeImpl is the implementation of an independent probe.
+type IndependentProbeImpl func(*checker.CheckRequest) ([]finding.Finding, string, error)
+
 var (
 	// All represents all the probes.
 	All []ProbeImpl
@@ -160,6 +163,9 @@ var (
 		codeReviewOneReviewers.Run,
 		hasBinaryArtifacts.Run,
 	}
+
+	// Probes which don't use pre-computed raw data but rather collect it themselves.
+	Independent = []IndependentProbeImpl{}
 )
 
 //nolint:gochecknoinits
