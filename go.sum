@@ -575,8 +575,8 @@ github.com/mitchellh/gox v0.4.0/go.mod h1:Sd9lOJ0+aimLBi73mGofS1ycjY8lL3uZM3JPS4
 github.com/mitchellh/iochan v1.0.0/go.mod h1:JwYml1nuB7xOzsp52dPpHFffvOCDupsG0QubkSMEySY=
 github.com/mitchellh/mapstructure v0.0.0-20160808181253-ca63d7c062ee/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
-github.com/moby/buildkit v0.13.1 h1:L8afOFhPq2RPJJSr/VyzbufwID7jquZVB7oFHbPRcPE=
-github.com/moby/buildkit v0.13.1/go.mod h1:aNmNQKLBFYAOFuzQjR3VA27/FijlvtBD1pjNwTSN37k=
+github.com/moby/buildkit v0.13.2 h1:nXNszM4qD9E7QtG7bFWPnDI1teUQFQglBzon/IU3SzI=
+github.com/moby/buildkit v0.13.2/go.mod h1:2cyVOv9NoHM7arphK9ZfHIWKn9YVZRFd1wXB8kKmEzY=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
