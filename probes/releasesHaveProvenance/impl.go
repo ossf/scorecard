@@ -56,11 +56,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range releases {
 		release := releases[i]
-		if len(release.Assets) == 0 {
-			continue
-		}
 		if i == releaseLookBack {
 			break
+		}
+		if len(release.Assets) == 0 {
+			continue
 		}
 		totalReleases++
 		hasProvenance := false

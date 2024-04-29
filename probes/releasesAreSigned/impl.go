@@ -53,12 +53,12 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	totalReleases := 0
 	for releaseIndex, release := range releases {
-		if len(release.Assets) == 0 {
-			continue
-		}
-
 		if releaseIndex == releaseLookBack {
 			break
+		}
+
+		if len(release.Assets) == 0 {
+			continue
 		}
 
 		totalReleases++
