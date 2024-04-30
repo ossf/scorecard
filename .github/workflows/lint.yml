@@ -19,7 +19,7 @@ jobs:
     name: check-linter
     runs-on: ubuntu-latest
     steps:
-      - uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+      - uses: step-security/harden-runner@a4aa98b93cab29d9b1101a6143fb8bce00e2eac4 # v2.7.1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "GOLANGCI_LINT_VERSION=$(cd tools; go list -m -f '{{ .Version }}' github.com/golangci/golangci-lint)" >> "$GITHUB_ENV"
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@3cfe3a4abbb849e10058ce4af15d205b6da42804 # v4.0.0
+        uses: golangci/golangci-lint-action@9d1e0624a798bb64f6c3cea93db47765312263dc # v5.1.0
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           only-new-issues: true
