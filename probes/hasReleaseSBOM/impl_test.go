@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package sbomExists
+package hasReleaseSBOM
 
 import (
 	"testing"
@@ -36,13 +36,14 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Sbom file found and outcome should be positive",
+			name: "Release SBOM file found and outcome should be positive",
 			raw: &checker.RawResults{
-				SbomResults: checker.SbomData{
-					SbomFiles: []checker.SbomFile{
+				SBOMResults: checker.SBOMData{
+					SBOMFiles: []checker.SBOM{
 						{
 							File: checker.File{
-								Path: "sbom.cdx.json",
+								Path: "SBOM.cdx.json",
+								Type: finding.FileTypeURL,
 							},
 						},
 					},
@@ -53,10 +54,17 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "nil sbom files and outcome should be negative",
+			name: "Release SBOM file not found and outcome should be negative",
 			raw: &checker.RawResults{
-				SbomResults: checker.SbomData{
-					SbomFiles: nil,
+				SBOMResults: checker.SBOMData{
+					SBOMFiles: []checker.SBOM{
+						{
+							File: checker.File{
+								Path: "SBOM.cdx.json",
+								Type: finding.FileTypeSource,
+							},
+						},
+					},
 				},
 			},
 			outcomes: []finding.Outcome{
@@ -64,10 +72,21 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "0 sbom files and outcome should be negative",
+			name: "SBOM file not found and outcome should be negative",
 			raw: &checker.RawResults{
-				SbomResults: checker.SbomData{
-					SbomFiles: []checker.SbomFile{},
+				SBOMResults: checker.SBOMData{
+					SBOMFiles: []checker.SBOM{},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNegative,
+			},
+		},
+		{
+			name: "nil license files and outcome should be negative",
+			raw: &checker.RawResults{
+				SBOMResults: checker.SBOMData{
+					SBOMFiles: nil,
 				},
 			},
 			outcomes: []finding.Outcome{

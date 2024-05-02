@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package sbomStandardsFileUsed
+package hasReleaseSBOM
 
 import (
 	"embed"
@@ -27,7 +27,12 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sbomStandardsFileUsed"
+const (
+	Probe        = "hasReleaseSBOM"
+	AssetNameKey = "assetName"
+	AssetURLKey  = "assetURL"
+	missingSbom  = "Project is not publishing an SBOM file as part of a release or CICD"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -38,11 +43,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var outcome finding.Outcome
 	var msg string
 
-	sbomFiles := raw.SbomResults.SbomFiles
+	SBOMFiles := raw.SBOMResults.SBOMFiles
 
-	if len(sbomFiles) == 0 {
+	if len(SBOMFiles) == 0 {
 		outcome = finding.OutcomeNegative
-		msg = "Project is not utilizing an sbom standards file"
+		msg = missingSbom
 		f, err := finding.NewWith(fs, Probe,
 			msg, nil,
 			outcome)
@@ -53,20 +58,21 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	for i := range sbomFiles {
-		sbomFile := sbomFiles[i]
+	for i := range SBOMFiles {
+		SBOMFile := SBOMFiles[i]
 
-		if sbomFile.SbomInformation.Origin != checker.SbomOriginationTypeStandards {
+		if SBOMFile.File.Type != finding.FileTypeURL {
 			continue
 		}
+
 		loc := &finding.Location{
-			Type:      sbomFile.File.Type,
-			Path:      sbomFile.File.Path,
-			LineStart: &sbomFile.File.Offset,
-			LineEnd:   &sbomFile.File.EndOffset,
-			Snippet:   &sbomFile.File.Snippet,
+			Type:      SBOMFile.File.Type,
+			Path:      SBOMFile.File.Path,
+			LineStart: &SBOMFile.File.Offset,
+			LineEnd:   &SBOMFile.File.EndOffset,
+			Snippet:   &SBOMFile.File.Snippet,
 		}
-		msg = "Project utilizing an sbom standards file"
+		msg = "Project publishes an SBOM file as part of a release or CICD"
 		outcome = finding.OutcomePositive
 		f, err := finding.NewWith(fs, Probe,
 			msg, loc,
@@ -74,12 +80,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
+		f.Values = map[string]string{
+			AssetNameKey: SBOMFile.Name,
+			AssetURLKey:  SBOMFile.URL,
+		}
 		findings = append(findings, *f)
 	}
 
 	if len(findings) == 0 {
 		outcome = finding.OutcomeNegative
-		msg = "Project is not utilizing an sbom standards file"
+		msg = missingSbom
 		f, err := finding.NewWith(fs, Probe,
 			msg, nil,
 			outcome)

@@ -20,23 +20,19 @@ import (
 	"github.com/ossf/scorecard/v4/checker"
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/sbomCICDArtifactExists"
-	"github.com/ossf/scorecard/v4/probes/sbomExists"
-	"github.com/ossf/scorecard/v4/probes/sbomReleaseAssetExists"
-	"github.com/ossf/scorecard/v4/probes/sbomStandardsFileUsed"
+	"github.com/ossf/scorecard/v4/probes/hasReleaseSBOM"
+	"github.com/ossf/scorecard/v4/probes/hasSBOM"
 )
 
-// Sbom applies the score policy for the Sbom check.
-func Sbom(name string,
+// SBOM applies the score policy for the SBOM check.
+func SBOM(name string,
 	findings []finding.Finding,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
-		sbomExists.Probe,
-		sbomReleaseAssetExists.Probe,
-		sbomStandardsFileUsed.Probe,
-		sbomCICDArtifactExists.Probe,
+		hasSBOM.Probe,
+		hasReleaseSBOM.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -45,10 +41,8 @@ func Sbom(name string,
 	}
 
 	// Compute the score.
-	existsMsg := "Sbom file found in project"
-	cicdMsg := "Sbom file generated in project CICD"
-	releaseMsg := "Sbom file found in release artifacts"
-	standardsMsg := "Sbom standards file used in project"
+	existsMsg := "SBOM file found in project"
+	releaseMsg := "SBOM file found in release artifacts"
 	score := 0
 	m := make(map[string]bool)
 	for i := range findings {
@@ -62,79 +56,51 @@ func Sbom(name string,
 			})
 		case finding.OutcomePositive:
 			switch f.Probe {
-			case sbomExists.Probe:
+			case hasSBOM.Probe:
 				dl.Info(&checker.LogMessage{
 					Type: finding.FileTypeSource,
 					Path: f.Message,
 					Text: existsMsg,
 				})
-				score += scoreProbeOnce(f.Probe, m, 3)
-			case sbomCICDArtifactExists.Probe:
-				dl.Info(&checker.LogMessage{
-					Type: finding.FileTypeURL,
-					Path: f.Message,
-					Text: cicdMsg,
-				})
-				score += scoreProbeOnce(f.Probe, m, 3)
-			case sbomReleaseAssetExists.Probe:
+				score += scoreProbeOnce(f.Probe, m, 5)
+			case hasReleaseSBOM.Probe:
 				dl.Info(&checker.LogMessage{
 					Type: finding.FileTypeURL,
 					Path: f.Message,
 					Text: releaseMsg,
 				})
-				score += scoreProbeOnce(f.Probe, m, 3)
-			case sbomStandardsFileUsed.Probe:
-				dl.Info(&checker.LogMessage{
-					Type: finding.FileTypeSource,
-					Path: f.Message,
-					Text: standardsMsg,
-				})
-				score += scoreProbeOnce(f.Probe, m, 1)
+				score += scoreProbeOnce(f.Probe, m, 5)
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		case finding.OutcomeNegative:
 			switch f.Probe {
-			case sbomExists.Probe:
+			case hasSBOM.Probe:
 				dl.Warn(&checker.LogMessage{
 					Type: finding.FileTypeSource,
 					Path: f.Message,
-					Text: "Sbom file not found in project",
+					Text: "SBOM file not found in project",
 				})
 				existsMsg = f.Message
-			case sbomCICDArtifactExists.Probe:
+			case hasReleaseSBOM.Probe:
 				dl.Warn(&checker.LogMessage{
 					Type: finding.FileTypeURL,
 					Path: f.Message,
-					Text: "Sbom file not generated in project CICD",
-				})
-				cicdMsg = f.Message
-			case sbomReleaseAssetExists.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type: finding.FileTypeURL,
-					Path: f.Message,
-					Text: "Sbom file not found in release artifacts",
+					Text: "SBOM file not found in release artifacts",
 				})
 				releaseMsg = f.Message
-			case sbomStandardsFileUsed.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type: finding.FileTypeSource,
-					Path: f.Message,
-					Text: "Sbom standards file not used in project",
-				})
-				standardsMsg = f.Message
 			}
 		default:
 			continue // for linting
 		}
 	}
 
-	_, defined := m[sbomExists.Probe]
+	_, defined := m[hasSBOM.Probe]
 	if !defined {
-		return checker.CreateMinScoreResult(name, "sbom file not detected")
+		return checker.CreateMinScoreResult(name, "SBOM file not detected")
 	}
 
-	message := fmt.Sprintf("%s. %s. %s. %s. ", existsMsg, cicdMsg, releaseMsg, standardsMsg)
+	message := fmt.Sprintf("%s. %s.", existsMsg, releaseMsg)
 	return checker.CreateResultWithScore(name, message, score)
 }

@@ -26,40 +26,30 @@ import (
 )
 
 var (
-	errSbomDataEmpty        = errors.New("tarball not found")
-	errReleaseNodesEmpty    = errors.New("corrupted tarball")
-	errLatestPipelinesEmpty = errors.New("ZipSlip path detected")
+	errSBOMDataEmpty        = errors.New("SBOM Data not found")
+	errLatestPipelinesEmpty = errors.New("missing Sbom Pipelines Info")
 )
 
-type sbomHandler struct {
+type SBOMHandler struct {
 	glClient *gitlab.Client
 	once     *sync.Once
 	errSetup error
 	repourl  *repoURL
-	sboms    []clients.Sbom
+	sboms    []clients.SBOM
 }
 
-func (handler *sbomHandler) init(repourl *repoURL) {
+func (handler *SBOMHandler) init(repourl *repoURL) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 }
 
-func (handler *sbomHandler) setup(sbomData graphqlSbomData) error {
+func (handler *SBOMHandler) setup(sbomData graphqlSBOMData) error {
 	handler.once.Do(func() {
-		if cmp.Equal(sbomData, graphqlSbomData{}) {
-			handler.errSetup = errSbomDataEmpty
+		if cmp.Equal(sbomData, graphqlSBOMData{}) {
+			handler.errSetup = errSBOMDataEmpty
 			return
 		}
-
-		if len(sbomData.Project.Releases.Nodes) < 1 || sbomData.Project.Releases.Nodes[0].Assets.Links.Nodes == nil {
-			handler.errSetup = errReleaseNodesEmpty
-			return
-		}
-
-		// Check for sboms in release artifacts
-		ReleaseAssetLinks := sbomData.Project.Releases.Nodes[0].Assets.Links.Nodes
-		handler.checkReleaseArtifacts(ReleaseAssetLinks)
 
 		latestPipelines := sbomData.Project.Pipelines.Nodes
 
@@ -77,34 +67,15 @@ func (handler *sbomHandler) setup(sbomData graphqlSbomData) error {
 	return handler.errSetup
 }
 
-func (handler *sbomHandler) listSboms(sbomData graphqlSbomData) ([]clients.Sbom, error) {
+func (handler *SBOMHandler) listSBOMs(sbomData graphqlSBOMData) ([]clients.SBOM, error) {
 	if err := handler.setup(sbomData); err != nil {
-		return nil, fmt.Errorf("error during sbomHandler.setup: %w", err)
+		return nil, fmt.Errorf("error during SBOMHandler.setup: %w", err)
 	}
 
 	return handler.sboms, nil
 }
 
-func (handler *sbomHandler) checkReleaseArtifacts(assetlinks []graphqlReleaseAssetLinksNode) {
-	if len(assetlinks) < 1 { // no release links
-		return
-	}
-
-	for _, link := range assetlinks {
-		if !clients.ReSbomFile.Match([]byte(link.Name)) {
-			continue
-		}
-
-		handler.sboms = append(handler.sboms, clients.Sbom{
-			Name:   link.Name,
-			URL:    link.URL,
-			Path:   link.DirectAssetPath,
-			Origin: "repositoryRelease",
-		})
-	}
-}
-
-func (handler *sbomHandler) checkCICDArtifacts(latestPipelines []graphqlPipelineNode) {
+func (handler *SBOMHandler) checkCICDArtifacts(latestPipelines []graphqlPipelineNode) {
 	// Checks latest 20 pipelines in default branch for appropriate artifacts
 	for _, pipeline := range latestPipelines {
 		if pipeline.Status != "SUCCESS" {
@@ -118,10 +89,9 @@ func (handler *sbomHandler) checkCICDArtifacts(latestPipelines []graphqlPipeline
 				continue
 			}
 
-			handler.sboms = append(handler.sboms, clients.Sbom{
-				Name:   artifact.Name,
-				URL:    artifact.DownloadPath,
-				Origin: "repositoryCICD",
+			handler.sboms = append(handler.sboms, clients.SBOM{
+				Name: artifact.Name,
+				URL:  artifact.DownloadPath,
 			})
 		}
 	}

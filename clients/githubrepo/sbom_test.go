@@ -25,12 +25,12 @@ import (
 	"github.com/ossf/scorecard/v4/clients"
 )
 
-func TestListSboms(t *testing.T) {
+func TestListSBOMs(t *testing.T) {
 	t.Parallel()
 	testcases := []struct {
 		name         string
 		responsePath string
-		want         []clients.Sbom
+		want         []clients.SBOM
 		wantError    bool
 	}{
 		{
@@ -40,20 +40,18 @@ func TestListSboms(t *testing.T) {
 			wantError:    true,
 		},
 		{
-			name:         "Asset List has matches",
-			responsePath: "testdata/asset-matches-response",
-			want: []clients.Sbom{
+			name:         "Artifact List has matches",
+			responsePath: "testdata/artifact-matches-response",
+			want: []clients.SBOM{
 				{
-					Name:   "trivy_0.50.1_tar.gz.spdx",
-					Origin: "repositoryRelease",
-					URL:    "https://github.com/test/releases/download/v0.50.1/trivy_0.50.1_tar.gz.spdx",
-					Path:   "https://api.github.com/repos/test/releases/assets/158838506",
+					Name: "sbom.spdx.json",
+					URL:  "https://api.github.com/repos/test/actions/artifacts/1357350465/zip",
+					Path: "https://api.github.com/repos/test/actions/artifacts/1357350465",
 				},
 				{
-					Name:   "trivy_0.50.1_tar.gz.spdx.xml",
-					Origin: "repositoryRelease",
-					URL:    "https://github.com/test/releases/download/v0.50.1/trivy_0.50.1_tar.gz.spdx.xml",
-					Path:   "https://api.github.com/repos/test/releases/assets/158838450",
+					Name: "trivy-bom.cdx.xml",
+					URL:  "https://api.github.com/repos/test/actions/artifacts/1373743022/zip",
+					Path: "https://api.github.com/repos/test/actions/artifacts/1373743022",
 				},
 			},
 			wantError: false,
@@ -72,7 +70,7 @@ func TestListSboms(t *testing.T) {
 
 			client := github.NewClient(httpClient)
 
-			handler := &sbomHandler{
+			handler := &SBOMHandler{
 				ghclient: client,
 				ctx:      ctx,
 			}
@@ -84,176 +82,16 @@ func TestListSboms(t *testing.T) {
 			}
 
 			handler.init(ctx, &repoURL)
-			sboms, err := handler.listSboms()
+			SBOMs, err := handler.listSBOMs()
 
 			if tt.wantError && err == nil {
-				t.Fatalf("listSboms() - expected error did not occur")
+				t.Fatalf("listSBOMs() - expected error did not occur")
 			}
 			if !tt.wantError && err != nil {
-				t.Fatalf("listSboms() - unexpected error occurred: %v", err)
+				t.Fatalf("listSBOMs() - unexpected error occurred: %v", err)
 			}
-			if !cmp.Equal(sboms, tt.want) {
-				t.Errorf("listSboms() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
-			}
-		})
-	}
-}
-
-func TestFetchGithubAPISbom(t *testing.T) {
-	t.Parallel()
-	testcases := []struct {
-		name         string
-		responsePath string
-		want         []clients.Sbom
-		wantError    bool
-	}{
-		{
-			name:         "Request Error",
-			responsePath: "testdata/invalid-response",
-			want:         nil,
-			wantError:    true,
-		},
-		{
-			name:         "Successful Return",
-			responsePath: "testdata/sbom-response",
-			want: []clients.Sbom{
-				{
-					ID:            "SPDXRef-DOCUMENT",
-					Name:          "github/example",
-					Origin:        "repositoryRelease",
-					URL:           "https://github.com/github/example/dependency_graph/sbom-abcdef123456",
-					Path:          "github/example",
-					Tool:          "Tool: GitHub.com-Dependency-Graph",
-					Schema:        "SPDX",
-					SchemaVersion: "SPDX-2.3",
-				},
-			},
-			wantError: false,
-		},
-	}
-	for _, tt := range testcases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			ctx := context.Background()
-			httpClient := &http.Client{
-				Transport: stubTripper{
-					responsePath: tt.responsePath,
-				},
-			}
-
-			client := github.NewClient(httpClient)
-
-			handler := &sbomHandler{
-				ghclient: client,
-				ctx:      ctx,
-			}
-
-			repoURL := repoURL{
-				owner:     "ossf-tests",
-				repo:      "foo",
-				commitSHA: clients.HeadSHA,
-			}
-
-			handler.init(ctx, &repoURL)
-			err := handler.fetchGithubAPISbom()
-			sboms := handler.sboms
-
-			if tt.wantError && err == nil {
-				t.Fatalf("fetchGithubAPISbom() - expected error did not occur")
-			}
-			if !tt.wantError && err != nil {
-				t.Fatalf("fetchGithubAPISbom() - unexpected error occurred: %v", err)
-			}
-			if !cmp.Equal(sboms, tt.want) {
-				t.Errorf("fetchGithubAPISbom() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
-			}
-		})
-	}
-}
-
-func TestCheckReleaseArtifacts(t *testing.T) {
-	t.Parallel()
-	testcases := []struct {
-		name         string
-		responsePath string
-		want         []clients.Sbom
-		wantError    bool
-	}{
-		{
-			name:         "Request Error",
-			responsePath: "testdata/invalid-response",
-			want:         nil,
-			wantError:    true,
-		},
-		{
-			name:         "Zero Length Asset List",
-			responsePath: "testdata/empty-asset-response",
-			want:         nil,
-			wantError:    false,
-		},
-		{
-			name:         "Asset List has no matches",
-			responsePath: "testdata/no-asset-matches-response",
-			want:         nil,
-			wantError:    false,
-		},
-		{
-			name:         "Asset List has matches",
-			responsePath: "testdata/asset-matches-response",
-			want: []clients.Sbom{
-				{
-					Name:   "trivy_0.50.1_tar.gz.spdx",
-					Origin: "repositoryRelease",
-					URL:    "https://github.com/test/releases/download/v0.50.1/trivy_0.50.1_tar.gz.spdx",
-					Path:   "https://api.github.com/repos/test/releases/assets/158838506",
-				},
-				{
-					Name:   "trivy_0.50.1_tar.gz.spdx.xml",
-					Origin: "repositoryRelease",
-					URL:    "https://github.com/test/releases/download/v0.50.1/trivy_0.50.1_tar.gz.spdx.xml",
-					Path:   "https://api.github.com/repos/test/releases/assets/158838450",
-				},
-			},
-			wantError: false,
-		},
-	}
-	for _, tt := range testcases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			ctx := context.Background()
-			httpClient := &http.Client{
-				Transport: stubTripper{
-					responsePath: tt.responsePath,
-				},
-			}
-
-			client := github.NewClient(httpClient)
-
-			handler := &sbomHandler{
-				ghclient: client,
-				ctx:      ctx,
-			}
-
-			repoURL := repoURL{
-				owner:     "ossf-tests",
-				repo:      "foo",
-				commitSHA: clients.HeadSHA,
-			}
-
-			handler.init(ctx, &repoURL)
-			err := handler.checkReleaseArtifacts()
-			sboms := handler.sboms
-
-			if tt.wantError && err == nil {
-				t.Fatalf("checkReleaseArtifacts() - expected error did not occur")
-			}
-			if !tt.wantError && err != nil {
-				t.Fatalf("checkReleaseArtifacts() - unexpected error occurred: %v", err)
-			}
-			if !cmp.Equal(sboms, tt.want) {
-				t.Errorf("checkReleaseArtifacts() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
+			if !cmp.Equal(SBOMs, tt.want) {
+				t.Errorf("listSBOMs() = %v, want %v, diff %v", SBOMs, tt.want, cmp.Diff(SBOMs, tt.want))
 			}
 		})
 	}
@@ -264,7 +102,7 @@ func TestCheckCICDArtifacts(t *testing.T) {
 	testcases := []struct {
 		name         string
 		responsePath string
-		want         []clients.Sbom
+		want         []clients.SBOM
 		wantError    bool
 	}{
 		{
@@ -288,18 +126,16 @@ func TestCheckCICDArtifacts(t *testing.T) {
 		{
 			name:         "Artifact List has matches",
 			responsePath: "testdata/artifact-matches-response",
-			want: []clients.Sbom{
+			want: []clients.SBOM{
 				{
-					Name:   "sbom.spdx.json",
-					Origin: "repositoryCICD",
-					URL:    "https://api.github.com/repos/test/actions/artifacts/1357350465/zip",
-					Path:   "https://api.github.com/repos/test/actions/artifacts/1357350465",
+					Name: "sbom.spdx.json",
+					URL:  "https://api.github.com/repos/test/actions/artifacts/1357350465/zip",
+					Path: "https://api.github.com/repos/test/actions/artifacts/1357350465",
 				},
 				{
-					Name:   "trivy-bom.cdx.xml",
-					Origin: "repositoryCICD",
-					URL:    "https://api.github.com/repos/test/actions/artifacts/1373743022/zip",
-					Path:   "https://api.github.com/repos/test/actions/artifacts/1373743022",
+					Name: "trivy-bom.cdx.xml",
+					URL:  "https://api.github.com/repos/test/actions/artifacts/1373743022/zip",
+					Path: "https://api.github.com/repos/test/actions/artifacts/1373743022",
 				},
 			},
 			wantError: false,
@@ -318,7 +154,7 @@ func TestCheckCICDArtifacts(t *testing.T) {
 
 			client := github.NewClient(httpClient)
 
-			handler := &sbomHandler{
+			handler := &SBOMHandler{
 				ghclient: client,
 				ctx:      ctx,
 			}
@@ -331,7 +167,7 @@ func TestCheckCICDArtifacts(t *testing.T) {
 
 			handler.init(ctx, &repoURL)
 			err := handler.checkCICDArtifacts()
-			sboms := handler.sboms
+			SBOMs := handler.SBOMs
 
 			if tt.wantError && err == nil {
 				t.Fatalf("checkCICDArtifacts() - expected error did not occur")
@@ -339,8 +175,8 @@ func TestCheckCICDArtifacts(t *testing.T) {
 			if !tt.wantError && err != nil {
 				t.Fatalf("checkCICDArtifacts() - unexpected error occurred: %v", err)
 			}
-			if !cmp.Equal(sboms, tt.want) {
-				t.Errorf("checkCICDArtifacts() = %v, want %v, diff %v", sboms, tt.want, cmp.Diff(sboms, tt.want))
+			if !cmp.Equal(SBOMs, tt.want) {
+				t.Errorf("checkCICDArtifacts() = %v, want %v, diff %v", SBOMs, tt.want, cmp.Diff(SBOMs, tt.want))
 			}
 		})
 	}

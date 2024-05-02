@@ -23,8 +23,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/zrunner"
 )
 
-// Sbom is the registered name for Sbom.
-const CheckSBOM = "Sbom"
+// SBOM is the registered name for SBOM.
+const CheckSBOM = "SBOM"
 
 //nolint:gochecknoinits
 func init() {
@@ -32,15 +32,15 @@ func init() {
 		checker.CommitBased,
 		checker.FileBased,
 	}
-	if err := registerCheck(CheckSBOM, Sbom, supportedRequestTypes); err != nil {
+	if err := registerCheck(CheckSBOM, SBOM, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
 }
 
-// Sbom runs Sbom check.
-func Sbom(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.Sbom(c)
+// SBOM runs SBOM check.
+func SBOM(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.SBOM(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
@@ -48,14 +48,14 @@ func Sbom(c *checker.CheckRequest) checker.CheckResult {
 
 	// Set the raw results.
 	pRawResults := getRawResults(c)
-	pRawResults.SbomResults = rawData
+	pRawResults.SBOMResults = rawData
 
 	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.Sbom)
+	findings, err := zrunner.Run(pRawResults, probes.SBOM)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
 	}
 
-	return evaluation.Sbom(CheckSBOM, findings, c.Dlogger)
+	return evaluation.SBOM(CheckSBOM, findings, c.Dlogger)
 }

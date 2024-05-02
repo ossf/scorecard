@@ -21,7 +21,7 @@ import (
 	scut "github.com/ossf/scorecard/v4/utests"
 )
 
-func TestSbom(t *testing.T) {
+func TestSBOM(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
@@ -32,233 +32,53 @@ func TestSbom(t *testing.T) {
 			name: "Negative outcome = Min Score",
 			findings: []finding.Finding{
 				{
-					Probe:   "sbomExists",
+					Probe:   "hasSBOM",
 					Outcome: finding.OutcomeNegative,
 				},
 				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
+					Probe:   "hasReleaseSBOM",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
 				NumberOfInfo: 0,
-				NumberOfWarn: 4,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name: "Exists in Source: Positive outcome.",
 			findings: []finding.Finding{
 				{
-					Probe:   "sbomExists",
+					Probe:   "hasSBOM",
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
+					Probe:   "hasReleaseSBOM",
 					Outcome: finding.OutcomeNegative,
 				},
 			},
 			result: scut.TestReturn{
-				Score:        3,
+				Score:        5,
 				NumberOfInfo: 1,
-				NumberOfWarn: 3,
-			},
-		},
-		{
-			name: "Exists in Release Assets: Positive outcome.",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
-			},
-		},
-		{
-			name: "Exists in Standards File: Positive outcome.",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        4,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
-			},
-		},
-		{
-			name: "Exists in CICD Artifacts: Positive outcome.",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomePositive,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
-			},
-		},
-		{
-			name: "Exists in Release Assets and Standards File: Positive outcome.",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomeNegative,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        7,
-				NumberOfInfo: 3,
 				NumberOfWarn: 1,
 			},
 		},
 		{
-			name: "Exists in Release Assets and CICD Artifacts: Positive outcome.",
+			name: "Exists in Release Assets: Max outcome.",
 			findings: []finding.Finding{
 				{
-					Probe:   "sbomExists",
+					Probe:   "hasSBOM",
 					Outcome: finding.OutcomePositive,
 				},
 				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomePositive,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        9,
-				NumberOfInfo: 3,
-				NumberOfWarn: 1,
-			},
-		},
-		{
-			name: "Exists in CICD Artifacts and Standards File: Positive outcome.",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomeNegative,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
-					Outcome: finding.OutcomePositive,
-				},
-			},
-			result: scut.TestReturn{
-				Score:        7,
-				NumberOfInfo: 3,
-				NumberOfWarn: 1,
-			},
-		},
-		{
-			name: "Positive outcome = Max Score",
-			findings: []finding.Finding{
-				{
-					Probe:   "sbomExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomReleaseAssetExists",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomStandardsFileUsed",
-					Outcome: finding.OutcomePositive,
-				},
-				{
-					Probe:   "sbomCICDArtifactExists",
+					Probe:   "hasReleaseSBOM",
 					Outcome: finding.OutcomePositive,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
-				NumberOfInfo: 4,
+				NumberOfInfo: 2,
 				NumberOfWarn: 0,
 			},
 		},
@@ -268,7 +88,7 @@ func TestSbom(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			got := Sbom(tt.name, tt.findings, &dl)
+			got := SBOM(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}

@@ -56,7 +56,7 @@ type Client struct {
 	tarball       *tarballHandler
 	graphql       *graphqlHandler
 	ctx           context.Context
-	sbom          *sbomHandler
+	SBOM          *SBOMHandler
 	commitDepth   int
 }
 
@@ -160,8 +160,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Init graphqlHandler
 	client.graphql.init(client.ctx, client.repourl)
 
-	// Init sbomHandler
-	client.sbom.init(client.repourl)
+	// Init SBOMHandler
+	client.SBOM.init(client.repourl)
 
 	return nil
 }
@@ -264,13 +264,13 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return client.languages.listProgrammingLanguages()
 }
 
-func (client *Client) ListSboms() ([]clients.Sbom, error) {
-	latestSbomDetails, err := client.graphql.getSbomDetail()
+func (client *Client) ListSBOMs() ([]clients.SBOM, error) {
+	latestSBOMDetails, err := client.graphql.getSBOMDetail()
 	if err != nil {
-		return []clients.Sbom{}, err
+		return []clients.SBOM{}, err
 	}
 
-	return client.sbom.listSboms(latestSbomDetails)
+	return client.SBOM.listSBOMs(latestSBOMDetails)
 }
 
 // ListLicenses implements RepoClient.ListLicenses.
@@ -343,7 +343,7 @@ func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clien
 		languages: &languagesHandler{
 			glClient: client,
 		},
-		sbom: &sbomHandler{
+		SBOM: &SBOMHandler{
 			glClient: client,
 		},
 		licenses: &licensesHandler{},

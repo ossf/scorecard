@@ -16,11 +16,7 @@ package raw
 
 import (
 	"fmt"
-	"io"
 	"regexp"
-	"slices"
-
-	"gopkg.in/yaml.v2"
 
 	"github.com/ossf/scorecard/v4/checker"
 	"github.com/ossf/scorecard/v4/clients"
@@ -29,117 +25,97 @@ import (
 
 var reRootFile = regexp.MustCompile(`^[^.]([^//]*)$`)
 
-// Sbom retrieves the raw data for the Sbom check.
-func Sbom(c *checker.CheckRequest) (checker.SbomData, error) {
-	var results checker.SbomData
+// SBOM retrieves the raw data for the SBOM check.
+func SBOM(c *checker.CheckRequest) (checker.SBOMData, error) {
+	var results checker.SBOMData
 
-	sbomsFound, lerr := c.RepoClient.ListSboms()
+	SBOMsFound, lerr := c.RepoClient.ListSBOMs()
 	if lerr != nil {
-		return results, fmt.Errorf("RepoClient.ListSboms: %w", lerr)
+		return results, fmt.Errorf("RepoClient.ListSBOMs: %w", lerr)
 	}
 
-	for i := range sbomsFound {
-		v := sbomsFound[i]
+	for i := range SBOMsFound {
+		v := SBOMsFound[i]
 
-		results.SbomFiles = append(results.SbomFiles,
-			checker.SbomFile{
+		results.SBOMFiles = append(results.SBOMFiles,
+			checker.SBOM{
 				File: checker.File{
 					Path: v.Path,
 					Type: finding.FileTypeURL,
 				},
-				SbomInformation: checker.Sbom{
-					Name:          v.Name,
-					Origin:        checker.SbomOriginationType(v.Origin),
-					Schema:        v.Schema,
-					SchemaVersion: v.SchemaVersion,
-					URL:           v.URL,
-				},
+				Name:          v.Name,
+				Schema:        v.Schema,
+				SchemaVersion: v.SchemaVersion,
+				URL:           v.URL,
 			})
 	}
 
-	// no sboms found in release artifacts or pipelines, continue looking for files
+	releases, lerr := c.RepoClient.ListReleases()
+	if lerr != nil {
+		return results, fmt.Errorf("RepoClient.ListReleases: %w", lerr)
+	}
+
+	releaseSBOMs := checkSBOMReleases(releases)
+	if releaseSBOMs != nil {
+		results.SBOMFiles = append(results.SBOMFiles, releaseSBOMs...)
+	}
+
+	// no SBOMs found in release artifacts or pipelines, continue looking for files
 	repoFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		return results, fmt.Errorf("error during ListFiles: %w", err)
 	}
 
 	// TODO: Make these two happy path left
-	sourceSboms, err := checkSbomSource(repoFiles)
-	if err == nil && sourceSboms != nil {
-		results.SbomFiles = append(results.SbomFiles, sourceSboms...)
-	}
-
-	standardSbom, err := checkSbomStandard(c, repoFiles)
-	if err == nil && standardSbom != nil {
-		results.SbomFiles = append(results.SbomFiles, *standardSbom)
+	sourceSBOMs := checkSBOMSource(repoFiles)
+	if sourceSBOMs != nil {
+		results.SBOMFiles = append(results.SBOMFiles, sourceSBOMs...)
 	}
 
 	return results, nil
 }
 
-func checkSbomSource(fileList []string) ([]checker.SbomFile, error) {
-	var foundSboms []checker.SbomFile
+func checkSBOMReleases(releases []clients.Release) []checker.SBOM {
+	var foundSBOMs []checker.SBOM
+
+	for i := range releases {
+		v := releases[i]
+
+		for _, link := range v.Assets {
+			if !clients.ReSBOMFile.Match([]byte(link.Name)) {
+				continue
+			}
+
+			foundSBOMs = append(foundSBOMs,
+				checker.SBOM{
+					File: checker.File{
+						Path: link.URL,
+						Type: finding.FileTypeURL,
+					},
+					Name: link.Name,
+					URL:  link.URL,
+				})
+		}
+	}
+	return foundSBOMs
+}
+
+func checkSBOMSource(fileList []string) []checker.SBOM {
+	var foundSBOMs []checker.SBOM
 
 	for _, file := range fileList {
-		if clients.ReSbomFile.MatchString(file) && reRootFile.MatchString(file) {
+		if clients.ReSBOMFile.MatchString(file) && reRootFile.MatchString(file) {
 			// TODO: parse matching file contents to determine schema & version
-			foundSboms = append(foundSboms,
-				checker.SbomFile{
+			foundSBOMs = append(foundSBOMs,
+				checker.SBOM{
 					File: checker.File{
 						Path: file,
 						Type: finding.FileTypeSource,
 					},
-					SbomInformation: checker.Sbom{
-						Name:   file,
-						Origin: checker.SbomOriginationTypeOther,
-					},
+					Name: file,
 				})
 		}
 	}
 
-	return foundSboms, nil
-}
-
-func checkSbomStandard(c *checker.CheckRequest, fileList []string) (*checker.SbomFile, error) {
-	foundSbomInfo := checker.SbomFile{}
-
-	idx := slices.IndexFunc(fileList, func(f string) bool { return f == "SECURITY_INSIGHTS.yml" })
-
-	if idx == -1 { // no matches found
-		return nil, nil
-	}
-
-	standardsFileName := fileList[idx]
-
-	reader, err := c.RepoClient.GetFileReader(standardsFileName)
-	if err != nil {
-		return nil, fmt.Errorf("error getting filereader in checkSbomStandard: %w", err)
-	}
-
-	securityInsightsFile := clients.SecurityInsightsSchema{}
-
-	contents, err := io.ReadAll(reader)
-	reader.Close()
-	if err != nil {
-		return nil, fmt.Errorf("error getting fileContent in checkSbomStandard: %w", err)
-	}
-
-	err = yaml.Unmarshal(contents, &securityInsightsFile)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing security insights file: %w", err)
-	}
-
-	// TODO: Check for existence of sbom struct, not ID
-	if securityInsightsFile.Properties.Dependencies.Properties.Sbom.ID == "" {
-		return nil, fmt.Errorf("error parsing security insights file: %w", err)
-	}
-
-	sbomInfo := securityInsightsFile.Properties.Dependencies.Properties.Sbom
-
-	foundSbomInfo.SbomInformation.Name = sbomInfo.Items.AnyOf[0].Properties.SbomFile.Description
-	foundSbomInfo.SbomInformation.Origin = checker.SbomOriginationTypeStandards
-	foundSbomInfo.SbomInformation.Schema = sbomInfo.Items.AnyOf[0].Properties.SbomFormat.Description
-	foundSbomInfo.SbomInformation.URL = sbomInfo.Items.AnyOf[0].Properties.SbomURL.Description
-
-	return &foundSbomInfo, nil
+	return foundSBOMs
 }

@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-func TestSbomFileCheck(t *testing.T) {
+func TestSBOMFileCheck(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

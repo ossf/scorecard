@@ -362,7 +362,7 @@ func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
-func (c *Client) ListSboms() ([]clients.Sbom, error) {
+func (c *Client) ListSBOMs() ([]clients.SBOM, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 

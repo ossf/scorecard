@@ -38,7 +38,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
-	SbomResults                 SbomData
+	SBOMResults                 SBOMData
 	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
@@ -170,40 +170,19 @@ type LicenseData struct {
 	LicenseFiles []LicenseFile
 }
 
-type SbomOriginationType string
-
-const (
-	// sources of sbom information.
-
-	// Originating in repository Release Assets (or Sbom api endpoint for GH).
-	SbomOriginationTypeRelease SbomOriginationType = "repositoryRelease"
-	// Originating in repository CICD artifacts.
-	SbomOriginationTypeCICD SbomOriginationType = "repositoryCICD"
-	// Originating in source or other non-specific source.
-	SbomOriginationTypeOther SbomOriginationType = "other"
-	// Originating from sbom entry in SECURITY_INSIGHTS.yml.
-	SbomOriginationTypeStandards SbomOriginationType = "standardsFile"
-)
-
-// sbom details.
-type Sbom struct {
-	Name          string              // Sbom Filename
-	Origin        SbomOriginationType // Sbom Source
-	Schema        string              // Sbom Schema
-	SchemaVersion string              // Sbom Schema Version
-	URL           string              // Sbom Asset URL
+// SBOM details.
+type SBOM struct {
+	Name          string // SBOM Filename
+	Schema        string // SBOM Schema
+	SchemaVersion string // SBOM Schema Version
+	URL           string // SBOM Asset URL
+	File          File   // SBOM File Object
 }
 
-// one file contains one sbom.
-type SbomFile struct {
-	SbomInformation Sbom
-	File            File
-}
-
-// SbomData contains the raw results for the Sbom check.
-// Some repos may have more than one sbom.
-type SbomData struct {
-	SbomFiles []SbomFile
+// SBOMData contains the raw results for the SBOM check.
+// Some repos may have more than one SBOM.
+type SBOMData struct {
+	SBOMFiles []SBOM
 }
 
 // CodeReviewData contains the raw results

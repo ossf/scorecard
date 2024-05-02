@@ -262,7 +262,7 @@ func (client *localDirClient) ListLicenses() ([]clients.License, error) {
 
 // ListSboms implements RepoClient.ListSboms.
 // TODO: add ListLicenses support for local directories.
-func (client *localDirClient) ListSboms() ([]clients.Sbom, error) {
+func (client *localDirClient) ListSBOMs() ([]clients.SBOM, error) {
 	return nil, fmt.Errorf("ListSboms: %w", clients.ErrUnsupportedFeature)
 }
 

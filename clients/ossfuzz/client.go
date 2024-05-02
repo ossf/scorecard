@@ -268,7 +268,7 @@ func (c *client) ListLicenses() ([]clients.License, error) {
 }
 
 // ListSboms implements RepoClient.ListSboms.
-func (c *client) ListSboms() ([]clients.Sbom, error) {
+func (c *client) ListSBOMs() ([]clients.SBOM, error) {
 	return nil, fmt.Errorf("ListSboms: %w", clients.ErrUnsupportedFeature)
 }
 

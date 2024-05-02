@@ -95,41 +95,16 @@ type graphqlMergeRequestNode struct {
 	} `graphql:"approvedBy"`
 }
 
-type graphqlSbomData struct {
+type graphqlSBOMData struct {
 	Project graphqlProject `graphql:"project(fullPath: $fullPath)"`
 }
 
 type graphqlProject struct {
-	Releases  graphqlReleases  `graphql:"releases(sort: RELEASED_AT_DESC, first: 1)"`
 	Pipelines graphqlPipelines `graphql:"pipelines(ref: $defaultBranch, first: 20)"`
-}
-
-type graphqlReleases struct {
-	Nodes []graphqlReleaseNode `graphql:"nodes"`
 }
 
 type graphqlPipelines struct {
 	Nodes []graphqlPipelineNode
-}
-
-type graphqlReleaseNode struct {
-	Name   string              `graphql:"name"`
-	Assets graphqlReleaseAsset `graphql:"assets"`
-}
-
-type graphqlReleaseAsset struct {
-	Links graphqlReleaseAssetLinks `graphql:"links"`
-}
-
-type graphqlReleaseAssetLinks struct {
-	Nodes []graphqlReleaseAssetLinksNode `graphql:"nodes"`
-}
-type graphqlReleaseAssetLinksNode struct {
-	Name            string `graphql:"name"`
-	URL             string `graphql:"url"`
-	LinkType        string `graphql:"linkType"`
-	DirectAssetPath string `graphql:"directAssetPath"`
-	DirectAssetURL  string `graphql:"directAssetUrl"`
 }
 
 type graphqlPipelineNode struct {
@@ -182,8 +157,8 @@ func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphq
 	return data, nil
 }
 
-func (handler *graphqlHandler) getSbomDetail() (graphqlSbomData, error) {
-	data := graphqlSbomData{}
+func (handler *graphqlHandler) getSBOMDetail() (graphqlSBOMData, error) {
+	data := graphqlSBOMData{}
 	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
 	params := map[string]interface{}{
 		"fullPath":      path,
@@ -191,7 +166,7 @@ func (handler *graphqlHandler) getSbomDetail() (graphqlSbomData, error) {
 	}
 	err := handler.graphClient.Query(context.Background(), &data, params)
 	if err != nil {
-		return graphqlSbomData{}, fmt.Errorf("couldn't query gitlab graphql for Sbom Detail: %w", err)
+		return graphqlSBOMData{}, fmt.Errorf("couldn't query gitlab graphql for SBOM Detail: %w", err)
 	}
 
 	return data, nil

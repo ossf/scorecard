@@ -1,0 +1,29 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasReleaseSBOM
+short: Check that the project publishes an SBOM as part of its release or CI/CD artifacts.
+motivation: >
+  An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.
+implementation: >
+  The implementation checks whether a SBOM artifact is included in release or CI/CD artifacts.
+outcome:
+  - If SBOM artifacts are found, the probe returns OutcomePositive for each SBOM artifact.
+  - If an SBOM artifact is not found, the probe returns a single OutcomeNegative.
+remediation:
+  effort: Low
+  text:
+    - For Github projects, start with [this guide](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security) to determine which steps are needed to generate an adequate SBOM.
+    - For Gitlab projects, see existing [Dependency Scanning](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/index.html#cyclonedx-software-bill-of-materials) and [Container Scanning](https://docs.gitlab.com/ee/user/application_security/container_scanning/index.html#cyclonedx-software-bill-of-materials) tools. 
+    - Alternately, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/tools/) SBOMs.

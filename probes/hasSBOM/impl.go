@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package sbomExists
+package hasSBOM
 
 import (
 	"embed"
@@ -27,7 +27,7 @@ import (
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "sbomExists"
+const Probe = "hasSBOM"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -38,11 +38,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var outcome finding.Outcome
 	var msg string
 
-	sbomFiles := raw.SbomResults.SbomFiles
+	SBOMFiles := raw.SBOMResults.SBOMFiles
 
-	if len(sbomFiles) == 0 {
+	if len(SBOMFiles) == 0 {
 		outcome = finding.OutcomeNegative
-		msg = "Project does not have a sbom file"
+		msg = "Project does not have a SBOM file"
 		f, err := finding.NewWith(fs, Probe,
 			msg, nil,
 			outcome)
@@ -53,16 +53,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	for i := range sbomFiles {
-		sbomFile := sbomFiles[i]
+	for i := range SBOMFiles {
+		SBOMFile := SBOMFiles[i]
 		loc := &finding.Location{
-			Type:      sbomFile.File.Type,
-			Path:      sbomFile.File.Path,
-			LineStart: &sbomFile.File.Offset,
-			LineEnd:   &sbomFile.File.EndOffset,
-			Snippet:   &sbomFile.File.Snippet,
+			Type:      SBOMFile.File.Type,
+			Path:      SBOMFile.File.Path,
+			LineStart: &SBOMFile.File.Offset,
+			LineEnd:   &SBOMFile.File.EndOffset,
+			Snippet:   &SBOMFile.File.Snippet,
 		}
-		msg = "Project has a sbom file"
+		msg = "Project has a SBOM file"
 		outcome = finding.OutcomePositive
 		f, err := finding.NewWith(fs, Probe,
 			msg, loc,

@@ -37,6 +37,8 @@ import (
 	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
 	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
 	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v4/probes/hasReleaseSBOM"
+	"github.com/ossf/scorecard/v4/probes/hasSBOM"
 	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v4/probes/notArchived"
@@ -53,10 +55,6 @@ import (
 	"github.com/ossf/scorecard/v4/probes/runsStatusChecksBeforeMerging"
 	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/sbomCICDArtifactExists"
-	"github.com/ossf/scorecard/v4/probes/sbomExists"
-	"github.com/ossf/scorecard/v4/probes/sbomReleaseAssetExists"
-	"github.com/ossf/scorecard/v4/probes/sbomStandardsFileUsed"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -131,11 +129,9 @@ var (
 	CITests = []ProbeImpl{
 		testsRunInCI.Run,
 	}
-	Sbom = []ProbeImpl{
-		sbomExists.Run,
-		sbomReleaseAssetExists.Run,
-		sbomStandardsFileUsed.Run,
-		sbomCICDArtifactExists.Run,
+	SBOM = []ProbeImpl{
+		hasSBOM.Run,
+		hasReleaseSBOM.Run,
 	}
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
