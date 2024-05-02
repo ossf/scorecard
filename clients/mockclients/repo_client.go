@@ -26,7 +26,7 @@ import (
 	time "time"
 
 	gomock "github.com/golang/mock/gomock"
-	clients "github.com/ossf/scorecard/v4/clients"
+	clients "github.com/ossf/scorecard/v5/clients"
 )
 
 // MockRepoClient is a mock of RepoClient interface.

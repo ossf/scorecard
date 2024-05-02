@@ -19,10 +19,10 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	licenseFiles := raw.LicenseResults.LicenseFiles
 
 	if len(licenseFiles) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "project does not have a license file", nil)
+		f, err := finding.NewFalse(fs, Probe, "project does not have a license file", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -54,7 +54,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		for _, licenseFile := range licenseFiles {
 			licenseFile := licenseFile
 			loc := licenseFile.File.Location()
-			f, err := finding.NewPositive(fs, Probe, "project has a license file", loc)
+			f, err := finding.NewTrue(fs, Probe, "project has a license file", loc)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}

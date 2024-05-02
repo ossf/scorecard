@@ -22,8 +22,15 @@ outcome:
   - If an SBOM file(s) is found, the probe returns OutcomePositive for each SBOM file.
   - If an SBOM file is not found, the probe returns a single OutcomeNegative.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - For Github projects, start with [this guide](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security) to determine which steps are needed to generate an adequate SBOM.
     - For Gitlab projects, see existing [Dependency Scanning](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/index.html#cyclonedx-software-bill-of-materials) and [Container Scanning](https://docs.gitlab.com/ee/user/application_security/container_scanning/index.html#cyclonedx-software-bill-of-materials) tools. 
     - Alternately, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/tools/) SBOMs.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

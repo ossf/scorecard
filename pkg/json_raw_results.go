@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 // TODO: add a "check" field to all results so that they can be linked to a check.

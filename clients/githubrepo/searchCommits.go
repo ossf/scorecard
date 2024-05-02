@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v53/github"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 type searchCommitsHandler struct {

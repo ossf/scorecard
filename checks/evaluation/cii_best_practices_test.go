@@ -16,10 +16,10 @@ package evaluation
 import (
 	"testing"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
-	scut "github.com/ossf/scorecard/v4/utests"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasOpenSSFBadge"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestCIIBestPractices(t *testing.T) {
@@ -30,11 +30,11 @@ func TestCIIBestPractices(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Unsupported badge found with negative finding",
+			name: "Unsupported badge found with false finding",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},
@@ -45,11 +45,11 @@ func TestCIIBestPractices(t *testing.T) {
 			},
 		},
 		{
-			name: "Unsupported badge found with positive finding",
+			name: "Unsupported badge found with true finding",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: "Unsupported",
 					},
@@ -65,7 +65,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.InProgressLevel,
 					},
@@ -80,7 +80,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.PassingLevel,
 					},
@@ -95,7 +95,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.SilverLevel,
 					},
@@ -110,7 +110,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.GoldLevel,
 					},
@@ -125,7 +125,7 @@ func TestCIIBestPractices(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOpenSSFBadge",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						hasOpenSSFBadge.LevelKey: hasOpenSSFBadge.UnknownLevel,
 					},

@@ -19,14 +19,12 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
-	"github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -89,16 +87,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		if !*rr.Pinned {
 			f = f.WithMessage(generateTextUnpinned(&rr)).
-				WithOutcome(finding.OutcomeNegative)
+				WithOutcome(finding.OutcomeFalse)
 			if rr.Remediation != nil {
-				f.Remediation = ruleRemToProbeRem(rr.Remediation)
+				f.Remediation = rr.Remediation
 			}
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})
 			findings = append(findings, *f)
 		} else {
-			f = f.WithMessage("").WithOutcome(finding.OutcomePositive)
+			f = f.WithMessage("").WithOutcome(finding.OutcomeTrue)
 			f = f.WithValues(map[string]string{
 				DepTypeKey: string(rr.Type),
 			})
@@ -119,15 +117,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 func generateTextIncompleteResults(e checker.ElementError) string {
 	return fmt.Sprintf("Possibly incomplete results: %s", e.Err)
-}
-
-func ruleRemToProbeRem(rem *rule.Remediation) *probe.Remediation {
-	return &probe.Remediation{
-		Patch:    rem.Patch,
-		Text:     rem.Text,
-		Markdown: rem.Markdown,
-		Effort:   probe.RemediationEffort(rem.Effort),
-	}
 }
 
 func generateTextUnpinned(rr *checker.Dependency) string {

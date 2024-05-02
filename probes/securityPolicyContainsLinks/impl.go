@@ -19,11 +19,11 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/secpolicy"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/secpolicy"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -47,14 +47,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		urls := secpolicy.CountSecInfo(policy.Information, checker.SecurityPolicyInformationTypeLink, true)
 
 		if (urls + emails) > 0 {
-			f, err := finding.NewPositive(fs, Probe,
+			f, err := finding.NewTrue(fs, Probe,
 				"Found linked content", policy.File.Location())
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
 			}
 			findings = append(findings, *f)
 		} else {
-			f, err := finding.NewNegative(fs, Probe,
+			f, err := finding.NewFalse(fs, Probe,
 				"no linked content found", nil)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -64,7 +64,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	if len(findings) == 0 {
-		f, err := finding.NewNegative(fs, Probe, "no security file to analyze", nil)
+		f, err := finding.NewFalse(fs, Probe, "no security file to analyze", nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

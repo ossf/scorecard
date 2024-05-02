@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v53/github"
 
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/clients"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 type workflowsHandler struct {

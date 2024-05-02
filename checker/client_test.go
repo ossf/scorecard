@@ -17,7 +17,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 func TestGetClients(t *testing.T) {

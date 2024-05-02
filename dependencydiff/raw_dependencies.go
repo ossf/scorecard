@@ -19,10 +19,10 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v53/github"
 
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 // dependency is a raw dependency fetched from the GitHub Dependency Review API.

@@ -17,9 +17,9 @@ package probes
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 type CheckName string
@@ -40,6 +40,7 @@ const (
 	Packaging            CheckName = "Packaging"
 	PinnedDependencies   CheckName = "Pinned-Dependencies"
 	SAST                 CheckName = "SAST"
+	SBOM                 CheckName = "SBOM"
 	SecurityPolicy       CheckName = "Security-Policy"
 	SignedReleases       CheckName = "Signed-Releases"
 	TokenPermissions     CheckName = "Token-Permissions"
@@ -48,12 +49,15 @@ const (
 )
 
 type Probe struct {
-	Name            string
-	Implementation  ProbeImpl
-	RequiredRawData []CheckName
+	Name                      string
+	Implementation            ProbeImpl
+	IndependentImplementation IndependentProbeImpl
+	RequiredRawData           []CheckName
 }
 
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
+
+type IndependentProbeImpl func(*checker.CheckRequest) ([]finding.Finding, string, error)
 
 // registered is the mapping of all registered probes.
 var registered = map[string]Probe{}
@@ -69,15 +73,25 @@ func MustRegister(name string, impl ProbeImpl, requiredRawData []CheckName) {
 	}
 }
 
+func MustRegisterIndependent(name string, impl IndependentProbeImpl) {
+	err := register(Probe{
+		Name:                      name,
+		IndependentImplementation: impl,
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
 func register(p Probe) error {
 	if p.Name == "" {
 		return errors.WithMessage(errors.ErrScorecardInternal, "name cannot be empty")
 	}
-	if p.Implementation == nil {
-		return errors.WithMessage(errors.ErrScorecardInternal, "implementation cannot be nil")
+	if p.Implementation == nil && p.IndependentImplementation == nil {
+		return errors.WithMessage(errors.ErrScorecardInternal, "at least one implementation must be non-nil")
 	}
-	if len(p.RequiredRawData) == 0 {
-		return errors.WithMessage(errors.ErrScorecardInternal, "probes need some raw data")
+	if p.Implementation != nil && len(p.RequiredRawData) == 0 {
+		return errors.WithMessage(errors.ErrScorecardInternal, "non-independent probes need some raw data")
 	}
 	registered[p.Name] = p
 	return nil

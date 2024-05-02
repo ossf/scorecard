@@ -24,12 +24,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	spol "github.com/ossf/scorecard/v4/policy"
-	rules "github.com/ossf/scorecard/v4/rule"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/config"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	spol "github.com/ossf/scorecard/v5/policy"
 )
 
 func sarifMockDocRead() *mockDoc {
@@ -116,12 +116,13 @@ func TestSARIFOutput(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		name        string
-		expected    string
-		showDetails bool
-		logLevel    log.Level
-		result      ScorecardResult
-		policy      spol.ScorecardPolicy
+		name           string
+		expected       string
+		showDetails    bool
+		showAnotations bool
+		logLevel       log.Level
+		result         ScorecardResult
+		policy         spol.ScorecardPolicy
 	}{
 		{
 			name:        "check with detail remediation",
@@ -162,7 +163,7 @@ func TestSARIFOutput(t *testing.T) {
 									Type:    finding.FileTypeSource,
 									Offset:  5,
 									Snippet: "if (bad) {BUG();}",
-									Remediation: &rules.Remediation{
+									Remediation: &finding.Remediation{
 										Markdown: "this is the custom markdown help",
 										Text:     "this is the custom text help",
 									},
@@ -222,6 +223,63 @@ func TestSARIFOutput(t *testing.T) {
 						Score:  5,
 						Reason: "half score reason",
 						Name:   "Check-Name",
+					},
+				},
+				Metadata: []string{},
+			},
+		},
+		{
+			name:           "check-1 annotations",
+			showDetails:    true,
+			showAnotations: true,
+			expected:       "./testdata/check1_annotations.sarif",
+			logLevel:       log.DebugLevel,
+			policy: spol.ScorecardPolicy{
+				Version: 1,
+				Policies: map[string]*spol.CheckPolicy{
+					"Check-Name": {
+						Score: checker.MaxResultScore,
+						Mode:  spol.CheckPolicy_ENFORCED,
+					},
+				},
+			},
+			result: ScorecardResult{
+				Repo: RepoInfo{
+					Name:      repoName,
+					CommitSHA: repoCommit,
+				},
+				Scorecard: ScorecardInfo{
+					Version:   scorecardVersion,
+					CommitSHA: scorecardCommit,
+				},
+				Date: date,
+				Checks: []checker.CheckResult{
+					{
+						Details: []checker.CheckDetail{
+							{
+								Type: checker.DetailWarn,
+								Msg: checker.LogMessage{
+									Text:    "warn message",
+									Path:    "src/file1.cpp",
+									Type:    finding.FileTypeSource,
+									Offset:  5,
+									Snippet: "if (bad) {BUG();}",
+								},
+							},
+						},
+						Score:  5,
+						Reason: "half score reason",
+						Name:   "Check-Name",
+					},
+				},
+				Config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"Check-Name"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
 					},
 				},
 				Metadata: []string{},

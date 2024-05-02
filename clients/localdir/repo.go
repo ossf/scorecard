@@ -22,7 +22,7 @@ import (
 	"os"
 	"path"
 
-	clients "github.com/ossf/scorecard/v4/clients"
+	clients "github.com/ossf/scorecard/v5/clients"
 )
 
 var errNotDirectory = errors.New("not a directory")

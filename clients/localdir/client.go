@@ -29,8 +29,8 @@ import (
 	"sync"
 	"time"
 
-	clients "github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/log"
+	clients "github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 var (

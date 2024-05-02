@@ -17,11 +17,11 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasReleaseSBOM"
-	"github.com/ossf/scorecard/v4/probes/hasSBOM"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasReleaseSBOM"
+	"github.com/ossf/scorecard/v5/probes/hasSBOM"
 )
 
 // SBOM applies the score policy for the SBOM check.
@@ -54,7 +54,7 @@ func SBOM(name string,
 				Offset: 1,
 				Text:   f.Message,
 			})
-		case finding.OutcomePositive:
+		case finding.OutcomeTrue:
 			switch f.Probe {
 			case hasSBOM.Probe:
 				dl.Info(&checker.LogMessage{
@@ -74,7 +74,7 @@ func SBOM(name string,
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
-		case finding.OutcomeNegative:
+		case finding.OutcomeFalse:
 			switch f.Probe {
 			case hasSBOM.Probe:
 				dl.Warn(&checker.LogMessage{

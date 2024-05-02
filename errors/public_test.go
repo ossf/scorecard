@@ -83,11 +83,11 @@ func TestGetName(t *testing.T) {
 			want: "ErrRepoUnreachable",
 		},
 		{
-			name: "ErrorShellParsing",
+			name: "ErrShellParsing",
 			args: args{
-				err: ErrorShellParsing,
+				err: ErrShellParsing,
 			},
-			want: "ErrorShellParsing",
+			want: "ErrShellParsing",
 		},
 		{
 			name: "unknown error",

@@ -15,10 +15,10 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasOpenSSFBadge"
 )
 
 const (
@@ -52,7 +52,7 @@ func CIIBestPractices(name string,
 	}
 
 	f := &findings[0]
-	if f.Outcome == finding.OutcomeNegative {
+	if f.Outcome == finding.OutcomeFalse {
 		text = "no effort to earn an OpenSSF best practices badge detected"
 		return checker.CreateMinScoreResult(name, text)
 	}

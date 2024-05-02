@@ -33,7 +33,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	cp "github.com/otiai10/copy"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 const repoDir = "repo*"

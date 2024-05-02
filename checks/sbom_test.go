@@ -17,8 +17,8 @@ package checks
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestSbomFileSubdirectory(t *testing.T) {

@@ -26,14 +26,14 @@ import (
 
 	"sigs.k8s.io/release-utils/version"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/options"
-	"github.com/ossf/scorecard/v4/probes"
-	"github.com/ossf/scorecard/v4/probes/zrunner"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/config"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -164,25 +164,28 @@ func runScorecard(ctx context.Context,
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
-	for result := range resultsCh {
-		ret.Checks = append(ret.Checks, result)
+	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
+		// Get configuration
+		rc, err := repoClient.GetFileReader("scorecard.yml")
+		// If configuration file exists, continue. Otherwise, ignore
+		if err == nil {
+			defer rc.Close()
+			checks := []string{}
+			for check := range checksToRun {
+				checks = append(checks, check)
+			}
+			c, err := config.Parse(rc, checks)
+			if err != nil {
+				logger := sclog.NewLogger(sclog.DefaultLevel)
+				logger.Error(err, "parsing configuration file")
+			}
+			ret.Config = c
+		}
 	}
 
-	if value, _ := os.LookupEnv(options.EnvVarScorecardExperimental); value == "1" {
-		// Run the probes.
-		var findings []finding.Finding
-		// TODO(#3049): only run the probes for checks.
-		// NOTE: We will need separate functions to support:
-		// - `--probes X,Y`
-		// - `--check-definitions-file path/to/config.yml
-		// NOTE: we discard the returned error because the errors are
-		// already contained in the findings and we want to return the findings
-		// to users.
-		// See https://github.com/ossf/scorecard/blob/main/probes/zrunner/runner.go#L34-L45.
-		// We also don't want the entire scorecard run to fail if a single error is encountered.
-		//nolint:errcheck
-		findings, _ = zrunner.Run(&ret.RawResults, probes.All)
-		ret.Findings = findings
+	for result := range resultsCh {
+		ret.Checks = append(ret.Checks, result)
+		ret.Findings = append(ret.Findings, result.Findings...)
 	}
 	return ret, nil
 }
@@ -204,7 +207,12 @@ func runEnabledProbes(request *checker.CheckRequest,
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		// Run probe
-		findings, _, err := probe.Implementation(&ret.RawResults)
+		var findings []finding.Finding
+		if probe.IndependentImplementation != nil {
+			findings, _, err = probe.IndependentImplementation(request)
+		} else {
+			findings, _, err = probe.Implementation(&ret.RawResults)
+		}
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}

@@ -19,10 +19,10 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -67,13 +67,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			outcome = finding.OutcomeNotAvailable
 		case !*reqOwnerReviews:
 			text = fmt.Sprintf("codeowners review is not required on branch '%s'", *branch.Name)
-			outcome = finding.OutcomeNegative
+			outcome = finding.OutcomeFalse
 		case len(r.CodeownersFiles) == 0:
 			text = "codeowners review is required - but no codeowners file found in repo"
-			outcome = finding.OutcomeNegative
+			outcome = finding.OutcomeFalse
 		default:
 			text = fmt.Sprintf("codeowner review is required on branch '%s'", *branch.Name)
-			outcome = finding.OutcomePositive
+			outcome = finding.OutcomeTrue
 		}
 		f, err := finding.NewWith(fs, Probe, text, nil, outcome)
 		if err != nil {

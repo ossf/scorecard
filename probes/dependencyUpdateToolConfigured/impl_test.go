@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func TestRun(t *testing.T) {
@@ -41,18 +41,18 @@ func TestRun(t *testing.T) {
 			err:  uerror.ErrNil,
 		},
 		{
-			name: "negative outcome from no update tools",
+			name: "false outcome from no update tools",
 			raw: &checker.RawResults{
 				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
 					Tools: []checker.Tool{},
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
 			},
 		},
 		{
-			name: "one update tool is a positive outcomes",
+			name: "one update tool is a true outcomes",
 			raw: &checker.RawResults{
 				DependencyUpdateToolResults: checker.DependencyUpdateToolData{
 					Tools: []checker.Tool{
@@ -63,7 +63,7 @@ func TestRun(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 	}
@@ -112,7 +112,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "detected update tool: Dependabot",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: "Dependabot",
 					},
@@ -138,7 +138,7 @@ func TestRun_Detailed(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "detected update tool: some update tool",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 					Values: map[string]string{
 						ToolKey: "some update tool",
 					},
@@ -155,7 +155,7 @@ func TestRun_Detailed(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if diff := cmp.Diff(findings, tt.expected); diff != "" {
+			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
 				t.Error(diff)
 			}
 		})

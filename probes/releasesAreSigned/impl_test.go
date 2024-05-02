@@ -22,10 +22,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -54,7 +54,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -82,8 +82,8 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 		{
@@ -111,8 +111,8 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -149,9 +149,9 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeNegative,
-				finding.OutcomePositive,
-				finding.OutcomeNegative,
+				finding.OutcomeFalse,
+				finding.OutcomeTrue,
+				finding.OutcomeFalse,
 			},
 		},
 		{
@@ -182,11 +182,35 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
-				finding.OutcomePositive,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			// https://github.com/ossf/scorecard/issues/4059
+			name: "lookback cutoff not skipped if 6th release has no assets",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						release("v0.8.5"),
+						release("v0.8.4"),
+						release("v0.8.3"),
+						release("v0.8.2"),
+						release("v0.8.1"),
+						releaseNoAssets("v0.8.0"),
+						release("v0.7.0"),
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
 			},
 		},
 	}
@@ -249,5 +273,14 @@ func release(version string) clients.Release {
 				URL:  fmt.Sprintf("https://github.com/test/repo/releases/%s/%s_windows_x86_64.tar.gz", version, version),
 			},
 		},
+	}
+}
+
+func releaseNoAssets(version string) clients.Release {
+	return clients.Release{
+		TagName:         version,
+		URL:             fmt.Sprintf("https://github.com/test/test_artifact/releases/tag/%s", version),
+		TargetCommitish: "master",
+		Assets:          []clients.ReleaseAsset{},
 	}
 }

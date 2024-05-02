@@ -27,18 +27,18 @@ var (
 	ErrScorecardInternal = errors.New("internal error")
 	// ErrRepoUnreachable indicates Scorecard is unable to establish connection with the repository.
 	ErrRepoUnreachable = errors.New("repo unreachable")
-	// ErrorUnsupportedHost indicates the repo's host is unsupported.
-	ErrorUnsupportedHost = errors.New("unsupported host") //nolint:errname
-	// ErrorInvalidURL indicates the repo's full URL was not passed.
-	ErrorInvalidURL = errors.New("invalid repo flag") //nolint:errname
-	// ErrorShellParsing indicates there was an error when parsing shell code.
-	ErrorShellParsing = errors.New("error parsing shell code") //nolint:errname
+	// ErrUnsupportedHost indicates the repo's host is unsupported.
+	ErrUnsupportedHost = errors.New("unsupported host")
+	// ErrInvalidURL indicates the repo's full URL was not passed.
+	ErrInvalidURL = errors.New("invalid repo flag")
+	// ErrShellParsing indicates there was an error when parsing shell code.
+	ErrShellParsing = errors.New("error parsing shell code")
 	// ErrJobOSParsing indicates there was an error when detecting a job's operating system.
 	ErrJobOSParsing = errors.New("error parsing job operating system")
-	// ErrorUnsupportedCheck indicates check cannot be run for given request.
-	ErrorUnsupportedCheck = errors.New("check is not supported for this request") //nolint:errname
-	// ErrorCheckRuntime indicates an individual check had a runtime error.
-	ErrorCheckRuntime = errors.New("check runtime error") //nolint:errname
+	// ErrUnsupportedCheck indicates check cannot be run for given request.
+	ErrUnsupportedCheck = errors.New("check is not supported for this request")
+	// ErrCheckRuntime indicates an individual check had a runtime error.
+	ErrCheckRuntime = errors.New("check runtime error")
 )
 
 // WithMessage wraps any of the errors listed above.
@@ -59,8 +59,8 @@ func GetName(err error) string {
 		return "ErrScorecardInternal"
 	case errors.Is(err, ErrRepoUnreachable):
 		return "ErrRepoUnreachable"
-	case errors.Is(err, ErrorShellParsing):
-		return "ErrorShellParsing"
+	case errors.Is(err, ErrShellParsing):
+		return "ErrShellParsing"
 	default:
 		return "ErrUnknown"
 	}

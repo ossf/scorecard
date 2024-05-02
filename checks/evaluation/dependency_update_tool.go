@@ -15,10 +15,10 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/dependencyUpdateToolConfigured"
 )
 
 // DependencyUpdateTool applies the score policy and logs the details
@@ -34,16 +34,24 @@ func DependencyUpdateTool(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
+	var usesTool bool
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomePositive {
-			// Log all findings except the negative ones.
-			checker.LogFindings(nonNegativeFindings(findings), dl)
-			return checker.CreateMaxScoreResult(name, "update tool detected")
+		var logLevel checker.DetailType
+		switch f.Outcome {
+		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
+		case finding.OutcomeTrue:
+			usesTool = true
+			logLevel = checker.DetailInfo
+		default:
+			logLevel = checker.DetailDebug
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 
-	// Log all findings.
-	checker.LogFindings(findings, dl)
+	if usesTool {
+		return checker.CreateMaxScoreResult(name, "update tool detected")
+	}
 	return checker.CreateMinScoreResult(name, "no update tool detected")
 }

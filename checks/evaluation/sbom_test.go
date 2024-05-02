@@ -16,9 +16,9 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestSBOM(t *testing.T) {
@@ -33,11 +33,11 @@ func TestSBOM(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 				{
 					Probe:   "hasReleaseSBOM",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -51,11 +51,11 @@ func TestSBOM(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasReleaseSBOM",
-					Outcome: finding.OutcomeNegative,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -69,11 +69,11 @@ func TestSBOM(t *testing.T) {
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 				{
 					Probe:   "hasReleaseSBOM",
-					Outcome: finding.OutcomePositive,
+					Outcome: finding.OutcomeTrue,
 				},
 			},
 			result: scut.TestReturn{

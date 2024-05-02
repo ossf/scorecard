@@ -1,15 +1,9 @@
 version: 2
 updates:
 - package-ecosystem: gomod
-  directory: "/"
-  schedule:
-    interval: daily
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-  open-pull-requests-limit: 3
-- package-ecosystem: gomod
-  directory: "/tools"
+  directories:
+    - "/"
+    - "/tools"
   schedule:
     interval: daily
   rebase-strategy: disabled
@@ -33,58 +27,15 @@ updates:
         - "arduino/setup-protoc"
         - "goreleaser/goreleaser-action"
 - package-ecosystem: docker
-  directory: "/"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-  open-pull-requests-limit: 3
-- package-ecosystem: docker
-  directory: "/cron/internal/bq"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-  open-pull-requests-limit: 3
-- package-ecosystem: docker
-  directory: "/cron/internal/worker"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/cron/internal/webhook"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/cron/internal/controller"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/cron/internal/cii"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/clients/githubrepo/roundtripper/tokens/server"
-  schedule:
-    interval: weekly
-  rebase-strategy: disabled
-  commit-message:
-      prefix: ":seedling:"
-- package-ecosystem: docker
-  directory: "/attestor"
+  directories:
+    - "/"
+    - "/cron/internal/bq"
+    - "/cron/internal/worker"
+    - "/cron/internal/webhook"
+    - "/cron/internal/controller"
+    - "/cron/internal/cii"
+    - "/clients/githubrepo/roundtripper/tokens/server"
+    - "/attestor"
   schedule:
     interval: weekly
   rebase-strategy: disabled

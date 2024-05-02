@@ -18,8 +18,9 @@ permissions: read-all
 
 on:
   push:
-    branches:
-      - main
+    # only publish ghcr images for releases
+    tags:
+      - v*
 
 env:
   GO_VERSION: 1.22
@@ -35,12 +36,12 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142
+       uses: step-security/harden-runner@a4aa98b93cab29d9b1101a6143fb8bce00e2eac4
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
      - name: Clone the code
-       uses: actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633 # v4.1.2
+       uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -61,7 +62,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@e1523de7571e31dbe865fd2e80c5c7c23ae71eb4
+       uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20
      - name: Sign image
        run: |
-          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v4:${{ github.sha }}
+          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v5:${{ github.sha }}

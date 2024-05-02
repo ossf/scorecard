@@ -15,95 +15,49 @@
 package evaluation
 
 import (
-	"fmt"
+	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/codeApproved"
 )
-
-type reviewScore int
 
 // TODO(raghavkaul) More partial credit? E.g. approval from non-contributor, discussion liveness,
 // number of resolved comments, number of approvers (more eyes on a project).
-const (
-	noReview              reviewScore = 0 // No approving review before merge
-	changesReviewed       reviewScore = 1 // Changes were reviewed
-	reviewedOutsideGithub reviewScore = 1 // Full marks until we can check review platforms outside of GitHub
-)
 
 // CodeReview applies the score policy for the Code-Review check.
-func CodeReview(name string, dl checker.DetailLogger, r *checker.CodeReviewData) checker.CheckResult {
-	if r == nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, "empty raw data")
+func CodeReview(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
+	expectedProbes := []string{
+		codeApproved.Probe,
+	}
+
+	if !finding.UniqueProbesEqual(findings, expectedProbes) {
+		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	N := len(r.DefaultBranchChangesets)
-	if N == 0 {
-		return checker.CreateInconclusiveResult(name, "no commits found")
-	}
-
-	nUnreviewedChanges := 0
-	nChanges := 0
-	foundHumanActivity := false
-
-	for i := range r.DefaultBranchChangesets {
-		cs := &r.DefaultBranchChangesets[i]
-		isReviewed := reviewScoreForChangeset(cs, dl) >= changesReviewed
-		if isReviewed && cs.Author.IsBot {
-			continue // ignore reviewed bot commits (https://github.com/ossf/scorecard/issues/2450)
-		}
-
-		nChanges += 1
-
-		if !cs.Author.IsBot {
-			foundHumanActivity = true
-		}
-
-		if !isReviewed {
-			nUnreviewedChanges += 1
-		}
-	}
-
-	switch {
-	case nChanges == 0 || !foundHumanActivity:
-		reason := fmt.Sprintf("found no human review activity in the last %v changesets", N)
-		return checker.CreateInconclusiveResult(name, reason)
-	case nUnreviewedChanges > 0:
-		return checker.CreateProportionalScoreResult(
-			name,
-			fmt.Sprintf("found %d unreviewed changesets out of %d", nUnreviewedChanges, nChanges),
-			max(nChanges-nUnreviewedChanges, 0),
-			nChanges,
-		)
-	}
-
-	return checker.CreateMaxScoreResult(name, "all changesets reviewed")
-}
-
-func reviewScoreForChangeset(changeset *checker.Changeset, dl checker.DetailLogger) (score reviewScore) {
-	plat := changeset.ReviewPlatform
-	if plat != checker.ReviewPlatformUnknown &&
-		plat != checker.ReviewPlatformGitHub {
-		return reviewedOutsideGithub
-	}
-
-	if plat == checker.ReviewPlatformGitHub {
-		for i := range changeset.Reviews {
-			review := changeset.Reviews[i]
-			if review.State == "APPROVED" && review.Author.Login != changeset.Author.Login {
-				return changesReviewed
+	for _, f := range findings {
+		switch f.Outcome {
+		case finding.OutcomeNotApplicable:
+			return checker.CreateInconclusiveResult(name, f.Message)
+		case finding.OutcomeTrue:
+			return checker.CreateMaxScoreResult(name, "all changesets reviewed")
+		case finding.OutcomeError:
+			return checker.CreateRuntimeErrorResult(name, sce.WithMessage(sce.ErrScorecardInternal, f.Message))
+		default:
+			approved, err := strconv.Atoi(f.Values[codeApproved.NumApprovedKey])
+			if err != nil {
+				err = sce.WithMessage(sce.ErrScorecardInternal, "converting approved count: %v")
+				return checker.CreateRuntimeErrorResult(name, err)
 			}
+			total, err := strconv.Atoi(f.Values[codeApproved.NumTotalKey])
+			if err != nil {
+				err = sce.WithMessage(sce.ErrScorecardInternal, "converting total count: %v")
+				return checker.CreateRuntimeErrorResult(name, err)
+			}
+			return checker.CreateProportionalScoreResult(name, f.Message, approved, total)
 		}
 	}
-
-	dl.Debug(
-		&checker.LogMessage{
-			Text: fmt.Sprintf(
-				"couldn't find approvals for revision: %s platform: %s",
-				changeset.RevisionID, plat,
-			),
-		},
-	)
-	return noReview
+	return checker.CreateMaxScoreResult(name, "all changesets reviewed")
 }

@@ -19,10 +19,15 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
+
+func init() {
+	probes.MustRegister(Probe, Run, []probes.CheckName{probes.SBOM})
+}
 
 //go:embed *.yml
 var fs embed.FS
@@ -35,17 +40,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	var outcome finding.Outcome
 	var msg string
 
 	SBOMFiles := raw.SBOMResults.SBOMFiles
 
 	if len(SBOMFiles) == 0 {
-		outcome = finding.OutcomeNegative
 		msg = "Project does not have a SBOM file"
-		f, err := finding.NewWith(fs, Probe,
-			msg, nil,
-			outcome)
+		f, err := finding.NewFalse(fs, Probe, msg, nil)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -63,10 +64,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			Snippet:   &SBOMFile.File.Snippet,
 		}
 		msg = "Project has a SBOM file"
-		outcome = finding.OutcomePositive
-		f, err := finding.NewWith(fs, Probe,
-			msg, loc,
-			outcome)
+		f, err := finding.NewTrue(fs, Probe, msg, loc)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}

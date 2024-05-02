@@ -21,12 +21,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo/internal/fnmatch"
-	sce "github.com/ossf/scorecard/v4/errors"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/internal/fnmatch"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 const (

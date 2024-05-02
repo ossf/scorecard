@@ -19,10 +19,11 @@ motivation: >
 implementation: >
   The probe works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows which are used during the build and release process of a project. Special considerations for Go modules treat full semantic versions as pinned due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
 outcome:
-  - For supported ecosystem, the probe returns OutcomePositive per pinned dependency.
-  - For supported ecosystem, the probe returns OutcomeNegative per unpinned dependency.
+  - For supported ecosystem, the probe returns OutcomeTrue per pinned dependency.
+  - For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
   - If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 remediation:
+  onOutcome: False
   effort: Medium
   text:
     - Pin dependencies by hash.

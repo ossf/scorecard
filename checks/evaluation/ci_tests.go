@@ -17,10 +17,10 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/testsRunInCI"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
 )
 
 const CheckCITests = "CI-Tests"
@@ -40,7 +40,7 @@ func CITests(name string,
 	// Debug PRs that were merged without CI tests
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeNegative || f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeFalse || f.Outcome == finding.OutcomeTrue {
 			dl.Debug(&checker.LogMessage{
 				Text: f.Message,
 			})
@@ -70,7 +70,7 @@ func getMergedAndTested(findings []finding.Finding) (int, int) {
 	for i := range findings {
 		f := &findings[i]
 		totalMerged++
-		if f.Outcome == finding.OutcomePositive {
+		if f.Outcome == finding.OutcomeTrue {
 			totalTested++
 		}
 	}

@@ -25,13 +25,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v59/github"
+	"github.com/google/go-github/v53/github"
 	"github.com/shurcooL/githubv4"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 var (
@@ -288,7 +288,7 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
 
 		var err error
-		client, err = github.NewClient(httpClient).WithEnterpriseURLs(githubRestURL, githubRestURL)
+		client, err = github.NewEnterpriseClient(githubRestURL, githubRestURL, httpClient)
 		if err != nil {
 			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport:EnterpriseClient: %w", err))
 		}

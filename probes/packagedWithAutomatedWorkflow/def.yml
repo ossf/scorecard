@@ -15,13 +15,16 @@
 id: packagedWithAutomatedWorkflow
 short: Checks whether the project uses automated packaging.
 motivation: >
-  Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.
+  Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager.
+  In particular, they make it easy for users to receive security patches as updates.
 implementation: >
-  The implementation checks whether a project uses common patterns for packaging across multiple ecosystems. Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`. 
+  The implementation checks whether a project uses common patterns for packaging across multiple ecosystems.
+  Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`. 
 outcome:
-  - If the project has a package without a debug message, the outcome is positive.
-  - If the project has a package with a debug message, the outcome is negative.
+  - If the project uses a packaging mechanism we detect, the outcome is positive.
+  - If the project doesn't use automated packaing we can detect, the outcome is negative.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Use a GitHub action to release your package to language-specific hubs.
