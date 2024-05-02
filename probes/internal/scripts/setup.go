@@ -65,6 +65,12 @@ const (
 	Probe = "%s"
 )
 
+// If your probe is associated with a Scorecard check, map it like so:
+// and create the entry in internal/probes/probes.go
+// func init() {
+// 	probes.MustRegister(Probe, Run, []probes.CheckName{probes.<ProbeName>})
+// }
+
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	return nil, "", nil
 }
@@ -119,15 +125,15 @@ implementation: >
 outcome:
   -
 remediation:
+  onOutcome: # Which direction of a probe outcome (True/False) requires a "fix"?
   effort: # High, Medium, Low
   text:
   - 
 ecosystem:
   languages:
-  - all
+  -
   clients:
-  - github
-  - gitlab
+  -
 `, y, pn)
 	err = os.WriteFile(path.Join(pd, "def.yml"), []byte(defYmlBoilerplate), 0o600)
 	if err != nil {
