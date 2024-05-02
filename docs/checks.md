@@ -541,39 +541,31 @@ is therefore not a definitive indication that the project is at risk.
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
 
-## Sbom 
+## SBOM 
 
 Risk: `Medium` (possible inaccurate reporting of dependencies/vulnerabilities)
 
-This check tries to determine if the project maintains a Software Bill of Materials (Sbom)
+This check tries to determine if the project maintains a Software Bill of Materials (SBOM)
 either as a file in the source or a release artifact. 
 
-An Sbom can give users information about what dependencies your project has which
+An SBOM can give users information about what dependencies your project has which
 allows them to identify vulnerabilities in the software supply chain.
 
-Stadards to be used during checks;
-- Security insights 1.0.0 spec (SECURITY_INSIGHTS.yaml):
-  - If available, used to locate sbom file.
-  - <https://github.com/ossf/security-insights-spec/blob/v1.0.0/specification.md#dependencies>
-- Sbom-everywhere naming and directory conventions:
-  - <https://github.com/ossf/sbom-everywhere/blob/main/reference/sbom_naming.md#consistent-naming-conventions>
+Standards to be used during checks;
+- SBOM-everywhere naming and directory conventions:
+  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
 
-This check currently looks for the existence of an sbom in the
-source of a project, a pipeline artifact, or in a release artifact 
-and whether or not sbom standards are in use.
+This check currently looks for the existence of an SBOM in the
+source of a project and as a pipeline or release artifact.
 
-An Sbom Exists (one or more) (3/10 points):
-  - Any sbom found counts for this test either in source. pipeline or release. 
-  - A sbom stored with your source code is not ideal, but is a good first step.
-    It is recommended to publish with your release artifacts. 
+An SBOM Exists (one or more) (5/10 points):
+  - Any SBOM found counts for this test either in source. pipeline or release. 
+  - A SBOM stored with your source code is not ideal, but is a good first step.
+    It is recommended to publish with your release artifacts or as part of your CI/CD workflow.
 
-A SECURITY_INSIGHTS.yaml exists with accurate sbom information populated (1/10 points):
-  - An emerging standard for informing users where to find a projects sbom
-    and other useful security information.
-
-An Sbom is published as a release artifact (6/10 points):
-  - This is the preferred way to store an sbom, and will be awarded full points.
-  - Checks release artifacts for an sbom file matching established standards
+An SBOM is published as a release or CI/CD artifact (5/10 points):
+  - This is the preferred way to store an SBOM, and will be awarded full points.
+  - Checks release and CI/CD artifacts for an SBOM file matching established standards
  
 
 **Remediation steps**
