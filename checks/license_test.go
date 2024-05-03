@@ -86,7 +86,9 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 				return os.Open("./" + tt.inputFolder + "/" + file)
 			}).AnyTimes()
 
-			// mock based on localDir
+			//Currently the check itself handles this error gracefully,
+			//     searching through the directory to find the license file(s)
+			//     if that functionality is ever changed, this mock needs to be updated accordingly
 			mockRepoClient.EXPECT().ListLicenses().Return(nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)).AnyTimes()
 
 			ctx := context.Background()
