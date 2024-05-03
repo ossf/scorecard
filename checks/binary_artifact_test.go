@@ -33,22 +33,26 @@ func TestBinaryArtifacts(t *testing.T) {
 		name        string
 		inputFolder string
 		err         error
-		expected    checker.CheckResult
+		expected    scut.TestReturn
 	}{
 		{
 			name:        "Jar file",
 			inputFolder: "testdata/binaryartifacts/jars",
 			err:         nil,
-			expected: checker.CheckResult{
-				Score: 8,
+			expected: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 0,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name:        "non binary file",
 			inputFolder: "testdata/licensedir/withlicense",
 			err:         nil,
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 0,
+				NumberOfWarn: 0,
 			},
 		},
 	}
@@ -57,9 +61,6 @@ func TestBinaryArtifacts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			// logger := log.NewLogger(log.DebugLevel)
-
-			// TODO: Use gMock instead of Localdir here.
 			ctrl := gomock.NewController(t)
 
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
@@ -91,9 +92,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			}
 
 			result := BinaryArtifacts(&req)
-			if result.Score != tt.expected.Score {
-				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Score, tt.expected.Score, tt.name)
-			}
+
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl)
 
 			ctrl.Finish()
 		})
