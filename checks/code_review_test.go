@@ -206,7 +206,7 @@ func TestCodereview(t *testing.T) {
 					Committer: clients.User{
 						Login: "bob",
 					},
-					Message: "Title\nReviewed By: alice\nDifferential Revision: PHAB234",
+					Message: "Title\nReviewed By: alice\nDifferential Revision: D234",
 				},
 			},
 			expected: scut.TestReturn{
@@ -236,7 +236,7 @@ func TestCodereview(t *testing.T) {
 					Committer: clients.User{
 						Login: "bob",
 					},
-					Message: "Title\nDifferential Revision: PHAB234",
+					Message: "Title\nDifferential Revision: D234",
 				},
 			},
 			expected: scut.TestReturn{

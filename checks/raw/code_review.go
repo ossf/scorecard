@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:\s*(\w+)`)
+	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:[^\r\n]*(D\d+)`)
 	rePiperRevID       = regexp.MustCompile(`PiperOrigin-RevId:\s*(\d{3,})`)
 )
 

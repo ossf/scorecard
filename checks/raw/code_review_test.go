@@ -67,28 +67,40 @@ func Test_getChangesets(t *testing.T) {
 		}
 
 		phabricatorCommitA = clients.Commit{
-			Message: "\nDifferential Revision: 123\nReviewed By: user-123",
+			Message: "\nDifferential Revision: D123\nReviewed By: user-123",
 			SHA:     "abc",
 		}
 		phabricatorCommitAUnsquashed = clients.Commit{
-			Message: "\nDifferential Revision: 123\nReviewed By: user-123",
+			Message: "\nDifferential Revision: D123\nReviewed By: user-123",
 			SHA:     "adef",
 		}
 		phabricatorCommitAUnsquashed2 = clients.Commit{
-			Message: "\nDifferential Revision: 123\nReviewed By: user-456",
+			Message: "\nDifferential Revision: D123\nReviewed By: user-456",
 			SHA:     "afab",
 		}
 		phabricatorCommitB = clients.Commit{
-			Message: "\nDifferential Revision: 158\nReviewed By: user-123",
+			Message: "\nDifferential Revision: D158\nReviewed By: user-123",
 			SHA:     "def",
 		}
 		phabricatorCommitC = clients.Commit{
-			Message: "\nDifferential Revision: 2000\nReviewed By: user-456",
+			Message: "\nDifferential Revision: D2000\nReviewed By: user-456",
 			SHA:     "fab",
 		}
 		phabricatorCommitD = clients.Commit{
-			Message: "\nDifferential Revision: 2\nReviewed By: user-456",
+			Message: "\nDifferential Revision: D2\nReviewed By: user-456",
 			SHA:     "d",
+		}
+		phabricatorCommitE = clients.Commit{
+			Message: "\nDifferential Revision: https://reviews.foo.org/D123 \nReviewed By: user-123",
+			SHA:     "e",
+		}
+		phabricatorCommitF = clients.Commit{
+			Message: "\nDifferential Revision: https://foo.bar.example.com/D456 \nReviewed By: user-123",
+			SHA:     "f",
+		}
+		phabricatorCommitG = clients.Commit{
+			Message: "\nDifferential Revision: https://reviews.bar.org/D78910 \nReviewed By: user-123",
+			SHA:     "g",
 		}
 
 		gerritCommitB = clients.Commit{
@@ -256,17 +268,17 @@ func Test_getChangesets(t *testing.T) {
 			commits: []clients.Commit{phabricatorCommitA, phabricatorCommitB, phabricatorCommitC},
 			expected: []checker.Changeset{
 				{
-					RevisionID:     "123",
+					RevisionID:     "D123",
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					Commits:        []clients.Commit{phabricatorCommitA},
 				},
 				{
-					RevisionID:     "158",
+					RevisionID:     "D158",
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					Commits:        []clients.Commit{phabricatorCommitB},
 				},
 				{
-					RevisionID:     "2000",
+					RevisionID:     "D2000",
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					Commits:        []clients.Commit{phabricatorCommitC},
 				},
@@ -277,7 +289,7 @@ func Test_getChangesets(t *testing.T) {
 			commits: []clients.Commit{phabricatorCommitA, phabricatorCommitAUnsquashed, phabricatorCommitAUnsquashed2},
 			expected: []checker.Changeset{
 				{
-					RevisionID:     "123",
+					RevisionID:     "D123",
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					Commits:        []clients.Commit{phabricatorCommitA, phabricatorCommitAUnsquashed, phabricatorCommitAUnsquashed2},
 				},
@@ -305,12 +317,12 @@ func Test_getChangesets(t *testing.T) {
 			expected: []checker.Changeset{
 				{
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
-					RevisionID:     "123",
+					RevisionID:     "D123",
 					Commits:        []clients.Commit{phabricatorCommitA},
 				},
 				{
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
-					RevisionID:     "2",
+					RevisionID:     "D2",
 					Commits:        []clients.Commit{phabricatorCommitD},
 				},
 				{
@@ -351,23 +363,47 @@ func Test_getChangesets(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:    "phabricator with URL for differential revision",
+			commits: []clients.Commit{phabricatorCommitE, phabricatorCommitF, phabricatorCommitG},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformPhabricator,
+					RevisionID:     "D123",
+					Commits:        []clients.Commit{phabricatorCommitE},
+				},
+				{
+					ReviewPlatform: checker.ReviewPlatformPhabricator,
+					RevisionID:     "D456",
+					Commits:        []clients.Commit{phabricatorCommitF},
+				},
+				{
+					ReviewPlatform: checker.ReviewPlatformPhabricator,
+					RevisionID:     "D78910",
+					Commits:        []clients.Commit{phabricatorCommitG},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
-		t.Logf("test: %s", tt.name)
-		changesets := getChangesets(tt.commits)
-		if !cmp.Equal(tt.expected, changesets,
-			cmpopts.SortSlices(func(x, y checker.Changeset) bool {
-				if x.RevisionID == y.RevisionID {
-					return x.ReviewPlatform < y.ReviewPlatform
-				}
-				return x.RevisionID < y.RevisionID
-			}),
-			cmpopts.SortSlices(func(x, y clients.Commit) bool {
-				return x.SHA < y.SHA
-			})) {
-			t.Log(cmp.Diff(tt.expected, changesets))
-			t.Fail()
-		}
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			changesets := getChangesets(tt.commits)
+			if !cmp.Equal(tt.expected, changesets,
+				cmpopts.SortSlices(func(x, y checker.Changeset) bool {
+					if x.RevisionID == y.RevisionID {
+						return x.ReviewPlatform < y.ReviewPlatform
+					}
+					return x.RevisionID < y.RevisionID
+				}),
+				cmpopts.SortSlices(func(x, y clients.Commit) bool {
+					return x.SHA < y.SHA
+				})) {
+				t.Log(cmp.Diff(tt.expected, changesets))
+				t.Fail()
+			}
+		})
 	}
 }
