@@ -27,6 +27,10 @@ func emptyImpl(r *checker.RawResults) ([]finding.Finding, string, error) {
 	return nil, "", nil
 }
 
+func emptyIndependentImpl(c *checker.CheckRequest) ([]finding.Finding, string, error) {
+	return nil, "", nil
+}
+
 var (
 	p1 = Probe{
 		Name:            "someProbe1",
@@ -81,6 +85,14 @@ func Test_register(t *testing.T) {
 				Name:            "foo",
 				Implementation:  emptyImpl,
 				RequiredRawData: []CheckName{BinaryArtifacts},
+			},
+			wantErr: false,
+		},
+		{
+			name: "independent probe registration",
+			probe: Probe{
+				Name:                      "bar",
+				IndependentImplementation: emptyIndependentImpl,
 			},
 			wantErr: false,
 		},

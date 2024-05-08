@@ -21,6 +21,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
+	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
@@ -805,6 +806,198 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 			t.Parallel()
 			if got := CreateRuntimeErrorResult(tt.args.name, tt.args.e); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CreateRuntimeErrorResult() = %v, want %v", got, cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
+
+func TestIsExempted(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		check  CheckResult
+		config config.Config
+	}
+	type want struct {
+		reasons    []config.Reason
+		isExempted bool
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "Binary-Artifacts exempted for testing",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: true,
+				reasons: []config.Reason{
+					config.TestData,
+				},
+			},
+		},
+		{
+			name: "Binary-Artifacts not exempted",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"pinned-dependencies"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+						{
+							Checks: []string{"branch-protection"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "not-applicable"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
+		{
+			name: "No checks exempted",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
+		{
+			name: "Exemption is outdated",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 10,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: false,
+			},
+		},
+		{
+			name: "Multiple exemption reasons in a single annotation",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{"binary-artifacts"},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+								{Reason: "remediated"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: true,
+				reasons: []config.Reason{
+					config.TestData,
+					config.Remediated,
+				},
+			},
+		},
+		{
+			name: "Multiple exemption reasons across annotations",
+			args: args{
+				check: CheckResult{
+					Name:  "Binary-Artifacts",
+					Score: 0,
+				},
+				config: config.Config{
+					Annotations: []config.Annotation{
+						{
+							Checks: []string{
+								"binary-artifacts",
+								"pinned-dependencies",
+							},
+							Reasons: []config.ReasonGroup{
+								{Reason: "test-data"},
+							},
+						},
+						{
+							Checks: []string{
+								"binary-artifacts",
+								"dangerous-workflow",
+							},
+							Reasons: []config.ReasonGroup{
+								{Reason: "remediated"},
+							},
+						},
+					},
+				},
+			},
+			want: want{
+				isExempted: true,
+				reasons: []config.Reason{
+					config.TestData,
+					config.Remediated,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			isExempted, reasons := tt.args.check.IsExempted(tt.args.config)
+			if isExempted != tt.want.isExempted {
+				t.Fatalf("IsExempted() = %v, want %v", isExempted, tt.want.isExempted)
+			}
+			wantReasons := []string{}
+			if tt.want.reasons != nil {
+				for _, r := range tt.want.reasons {
+					wantReasons = append(wantReasons, r.Doc())
+				}
+			} else {
+				wantReasons = nil
+			}
+			if cmp.Equal(reasons, wantReasons) == false {
+				t.Fatalf("Reasons for IsExempted() = %v, want %v", reasons, wantReasons)
 			}
 		})
 	}

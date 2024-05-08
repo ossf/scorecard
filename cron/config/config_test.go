@@ -194,7 +194,7 @@ func TestGetStringConfigValue(t *testing.T) {
 			envVal:      "",
 			setEnv:      true,
 			hasError:    true,
-			expectedErr: ErrorEmptyConfigValue,
+			expectedErr: ErrEmptyConfigValue,
 		},
 	}
 	for _, testcase := range testcases {

@@ -88,7 +88,7 @@ func (r *repoURL) parse(input string) error {
 	const splitLen = 2
 	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
 	if len(split) != splitLen {
-		return sce.WithMessage(sce.ErrorInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
+		return sce.WithMessage(sce.ErrInvalidURL, fmt.Sprintf("%v. Expected full repository url", input))
 	}
 
 	r.scheme, r.host, r.owner, r.project = u.Scheme, u.Host, split[0], split[1]
@@ -120,7 +120,7 @@ func (r *repoURL) String() string {
 // IsValid implements Repo.IsValid.
 func (r *repoURL) IsValid() error {
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
-		return sce.WithMessage(sce.ErrorInvalidURL, "expected full project url: "+r.URI())
+		return sce.WithMessage(sce.ErrInvalidURL, "expected full project url: "+r.URI())
 	}
 
 	if strings.Contains(r.host, "gitlab.") {
