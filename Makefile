@@ -174,6 +174,9 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
+setup-probe:
+	go run ./probes/internal/scripts/setup.go $(probeName)
+
 SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/)
 build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
