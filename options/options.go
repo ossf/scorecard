@@ -30,22 +30,23 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo        string
-	Local       string
-	Commit      string
-	LogLevel    string
-	Format      string
-	NPM         string
-	PyPI        string
-	RubyGems    string
-	Nuget       string
-	PolicyFile  string
-	ResultsFile string
-	ChecksToRun []string
-	ProbesToRun []string
-	Metadata    []string
-	CommitDepth int
-	ShowDetails bool
+	Repo            string
+	Local           string
+	Commit          string
+	LogLevel        string
+	Format          string
+	NPM             string
+	PyPI            string
+	RubyGems        string
+	Nuget           string
+	PolicyFile      string
+	ResultsFile     string
+	ChecksToRun     []string
+	ProbesToRun     []string
+	Metadata        []string
+	CommitDepth     int
+	ShowDetails     bool
+	ShowAnnotations bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
@@ -226,6 +227,13 @@ func (o *Options) Checks() []string {
 
 func (o *Options) Probes() []string {
 	return o.ProbesToRun
+}
+
+// isExperimentalEnabled returns true if experimental features were enabled via
+// environment variable.
+func (o *Options) isExperimentalEnabled() bool {
+	value, _ := os.LookupEnv(EnvVarScorecardExperimental)
+	return value == "1"
 }
 
 // isSarifEnabled returns true if SARIF format was specified in options or via

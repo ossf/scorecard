@@ -1097,7 +1097,7 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 		if errors.As(err, &parseError) {
 			content := string(content)
 			r.ProcessingErrors = append(r.ProcessingErrors, checker.ElementError{
-				Err: sce.WithMessage(sce.ErrorShellParsing, parseError.Text),
+				Err: sce.WithMessage(sce.ErrShellParsing, parseError.Text),
 				Location: finding.Location{
 					Path:      pathfn,
 					LineStart: &startLine,
@@ -1108,7 +1108,7 @@ func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content 
 			})
 			return nil
 		}
-		return sce.WithMessage(sce.ErrorShellParsing, err.Error())
+		return sce.WithMessage(sce.ErrShellParsing, err.Error())
 	}
 
 	printer := syntax.NewPrinter()

@@ -47,7 +47,7 @@ func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 			Text: "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check",
 		})
 
-		e := sce.WithMessage(sce.ErrorUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check")
+		e := sce.WithMessage(sce.ErrUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check")
 		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
 	}
 

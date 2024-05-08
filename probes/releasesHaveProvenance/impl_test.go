@@ -217,6 +217,75 @@ func Test_Run(t *testing.T) {
 				finding.OutcomeTrue,
 			},
 		},
+		{
+			// https://github.com/ossf/scorecard/issues/4059
+			name: "lookback cutoff not skipped if 6th release has no assets",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v7.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v6.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v5.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v4.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v3.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v2.0",
+							Assets:  []clients.ReleaseAsset{},
+						},
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+			},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below

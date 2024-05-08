@@ -1,6 +1,6 @@
 # OpenSSF Scorecard
 
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/ossf/scorecard/badge)](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ossf/scorecard/badge)](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/5621/badge)](https://www.bestpractices.dev/projects/5621)
 ![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
 ![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
@@ -20,10 +20,6 @@
 -   [Scorecard's Public Data](#public-data)
 
 ## Using Scorecard
-> [!IMPORTANT]
-> OpenSSF Scorecard has opened a survey to better understand user expectations and needs from the project. The survey will remain open through OSS NA and the results will help steer the roadmap. **_[Survey link](https://forms.gle/6poWj6gQ15chxTDH8)_**
-> 
-> Please let us know what is working, what is not, and what you would like to see from the project. **Thank you for participating!**
 
 -   [Scorecard GitHub Action](#scorecard-github-action)
 -   [Scorecard REST API](#scorecard-rest-api)
@@ -100,11 +96,11 @@ metrics. Prominent projects that use Scorecard include:
 ### View a Project's Score
 
 To see scores for projects regularly scanned by Scorecard, navigate to the webviewer, replacing the placeholder text with the platform, user/org, and repository name:
-https://securityscorecards.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
+https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
 
 For example:
- - [https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard](https://securityscorecards.dev/viewer/?uri=github.com/ossf/scorecard)
- - [https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient](https://securityscorecards.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient)
+ - [https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
+ - [https://scorecard.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient](https://scorecard.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient)
 
 To view scores for projects not included in the webviewer, use the [Scorecard CLI](#scorecard-command-line-interface).
 
@@ -161,7 +157,7 @@ Action
 
 ### Scorecard REST API
 
-To query pre-calculated scores of OSS projects, use the [REST API](https://api.securityscorecards.dev).
+To query pre-calculated scores of OSS projects, use the [REST API](https://api.scorecard.dev).
 
 To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
@@ -178,7 +174,7 @@ hard work. This badge also auto-updates for every change made to the repository.
 To include a badge on your project's repository, simply add the following markdown to your README:
 
 ```
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/{owner}/{repo}/badge)](https://securityscorecards.dev/viewer/?uri=github.com/{owner}/{repo})
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/{owner}/{repo}/badge)](https://scorecard.dev/viewer/?uri=github.com/{owner}/{repo})
 ```
 
 ### Scorecard Command Line Interface
@@ -422,6 +418,13 @@ RESULTS
 |         |                        |                                | merged on branch 'main'        |                                                                           |
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
+
+##### Showing Maintainers Annotations (Experimental)
+
+To see the maintainers annotations for each check, use the `--show-annotations` option.
+
+For more information on how to configure annotations or what are the available annotations, see [the configuration doc](config/README.md).
+
 
 ##### Using a GitLab Repository
 
