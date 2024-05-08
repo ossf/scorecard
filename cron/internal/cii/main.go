@@ -24,6 +24,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/cron/config"
@@ -95,9 +96,13 @@ func main() {
 		panic(err)
 	}
 
+	throttle := time.NewTicker(time.Second) // bestpractices.dev wants 1 QPS
+	defer throttle.Stop()
+
 	pageNum := 1
 	pageResp, err := getPage(ctx, pageNum)
 	for err == nil && len(pageResp) > 0 {
+		<-throttle.C
 		if err := writeToCIIDataBucket(ctx, pageResp, ciiDataBucket); err != nil {
 			panic(err)
 		}
