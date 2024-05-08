@@ -12,23 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package e2e
+package internal
 
 import (
 	"context"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/ossf/scorecard/v5/clients"
 )
 
 var _ = Describe("E2E TEST: depsdevclient.GetProjectPackageVersions", func() {
-	var client clients.ProjectPackageClient
+	var client ProjectPackageClient
 
 	Context("E2E TEST: Confirm ProjectPackageClient works", func() {
 		It("Should receive a non-empty response from deps.dev for existing projects", func() {
-			client = clients.CreateDepsDevClient()
+			client = CreateDepsDevClient()
 			versions, err := client.GetProjectPackageVersions(
 				context.Background(), "github.com", "ossf/scorecard",
 			)
@@ -36,7 +34,7 @@ var _ = Describe("E2E TEST: depsdevclient.GetProjectPackageVersions", func() {
 			Expect(len(versions.Versions)).Should(BeNumerically(">", 0))
 		})
 		It("Should error from deps.dev for nonexistent projects", func() {
-			client = clients.CreateDepsDevClient()
+			client = CreateDepsDevClient()
 			versions, err := client.GetProjectPackageVersions(
 				context.Background(), "github.com", "ossf/scorecard-E2E-TEST-DOES-NOT-EXIST",
 			)
@@ -44,7 +42,7 @@ var _ = Describe("E2E TEST: depsdevclient.GetProjectPackageVersions", func() {
 			Expect(versions).Should(BeNil())
 		})
 		It("Should receive a non-empty response from deps.dev for existing projects", func() {
-			client = clients.CreateDepsDevClient()
+			client = CreateDepsDevClient()
 			versions, err := client.GetProjectPackageVersions(
 				context.Background(), "gitlab.com", "libtiff/libtiff",
 			)
