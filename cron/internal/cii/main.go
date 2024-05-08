@@ -42,6 +42,9 @@ func writeToCIIDataBucket(ctx context.Context, pageResp []ciiPageResp, bucketURL
 	for _, project := range pageResp {
 		projectURL := strings.TrimPrefix(project.RepoURL, "https://")
 		projectURL = strings.TrimPrefix(projectURL, "http://")
+		if projectURL == "" {
+			continue
+		}
 		jsonData, err := clients.BadgeResponse{
 			BadgeLevel: project.BadgeLevel,
 		}.AsJSON()
