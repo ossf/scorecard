@@ -66,9 +66,14 @@ const (
 )
 
 // If your probe is associated with a Scorecard check, map it like so:
-// and create the entry in internal/probes/probes.go
+// and create the entry in probes/entries.go
 // func init() {
 // 	probes.MustRegister(Probe, Run, []probes.CheckName{probes.<ProbeName>})
+// }
+// If your probe isn't supposed to be part of a Scorecard check, you must
+// register it independently:
+// func init() {
+// 	probes.MustRegisterIndependent(Probe, Run)
 // }
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
