@@ -164,13 +164,26 @@ func TestBinaryArtifacts(t *testing.T) {
 			expect:              1,
 		},
 		{
-			name: "gradle-wrapper.jar with outdated verification action",
+			name: "gradle-wrapper.jar with new verification action",
 			err:  nil,
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{
 					"../testdata/binaryartifacts/workflows/nonverify.yaml",
-					"../testdata/binaryartifacts/workflows/verify-outdated-action.yaml",
+					"../testdata/binaryartifacts/workflows/verify-new-gradle-name.yaml",
+				},
+			},
+			successfulWorkflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA: strptr("sha-a"),
+				},
+			},
+			commits: []clients.Commit{
+				{
+					SHA: "sha-a",
+				},
+				{
+					SHA: "sha-old",
 				},
 			},
 			getFileContentCount: 3,
