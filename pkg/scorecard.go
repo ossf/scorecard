@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/config"
@@ -287,6 +288,7 @@ type runConfig struct {
 	ossfuzzClient clients.RepoClient
 	checks        checker.CheckNameToFnMap
 	commit        string
+	probes        []string
 	commitDepth   int
 }
 
@@ -365,10 +367,11 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 	if c.client == nil {
 		// TODO, need to detect and create here.
 	}
-	// TODO checks to run
-	var checks checker.CheckNameToFnMap
+	if c.checks == nil && len(c.probes) == 0 {
+		c.checks = checks.GetAll()
+	}
 	// TODO probes to run
 	var probes []string
 
-	return runScorecard(ctx, repo, c.commit, c.commitDepth, checks, probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, c.checks, probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }
