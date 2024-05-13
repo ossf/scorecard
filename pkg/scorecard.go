@@ -283,6 +283,7 @@ type runConfig struct {
 	client        clients.RepoClient
 	vulnClient    clients.VulnerabilitiesClient
 	ciiClient     clients.CIIBestPracticesClient
+	projectClient packageclient.ProjectPackageClient
 	ossfuzzClient clients.RepoClient
 	checks        checker.CheckNameToFnMap
 	commit        string
@@ -358,6 +359,9 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 	if c.vulnClient == nil {
 		c.vulnClient = clients.DefaultVulnerabilitiesClient()
 	}
+	if c.projectClient == nil {
+		c.projectClient = packageclient.CreateDepsDevClient()
+	}
 	if c.client == nil {
 		// TODO, need to detect and create here.
 	}
@@ -366,5 +370,5 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 	// TODO probes to run
 	var probes []string
 
-	return runScorecard(ctx, repo, c.commit, c.commitDepth, checks, probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient)
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, checks, probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }
