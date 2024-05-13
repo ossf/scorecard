@@ -340,13 +340,13 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
-func Run(ctx context.Context, repo clients.Repo, options ...Option) error {
+func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardResult, error) {
 	c := runConfig{
 		commit: clients.HeadSHA,
 	}
 	for _, option := range options {
 		if err := option(&c); err != nil {
-			return err
+			return ScorecardResult{}, err
 		}
 	}
 	if c.ciiClient == nil {
@@ -361,5 +361,10 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) error {
 	if c.client == nil {
 		// TODO, need to detect and create here.
 	}
-	return nil
+	// TODO checks to run
+	var checks checker.CheckNameToFnMap
+	// TODO probes to run
+	var probes []string
+
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, checks, probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient)
 }
