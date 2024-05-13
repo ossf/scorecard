@@ -20,6 +20,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 )
 
 // RawResults contains results before a policy
@@ -287,7 +288,7 @@ type BinaryArtifactData struct {
 // for the Signed-Releases check.
 type SignedReleasesData struct {
 	Releases               []clients.Release
-	ProjectPackageVersions clients.ProjectPackageVersions
+	ProjectPackageVersions packageclient.ProjectPackageVersions
 }
 
 // DependencyUpdateToolData contains the raw results
