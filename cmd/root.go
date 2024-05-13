@@ -93,7 +93,7 @@ func rootCmd(o *options.Options) error {
 
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		ctx, o.Repo, o.Local, logger) // MODIFIED
 	if err != nil {
 		return fmt.Errorf("GetClients: %w", err)
@@ -142,6 +142,7 @@ func rootCmd(o *options.Options) error {
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)

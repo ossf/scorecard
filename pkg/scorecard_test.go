@@ -179,7 +179,7 @@ func TestRunScorecard(t *testing.T) {
 				}, nil
 			})
 			defer ctrl.Finish()
-			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil)
+			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil, nil)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -315,7 +315,9 @@ func TestExperimentalRunProbes(t *testing.T) {
 				mockRepoClient,
 				nil,
 				nil,
-				nil)
+				nil,
+				nil,
+			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return

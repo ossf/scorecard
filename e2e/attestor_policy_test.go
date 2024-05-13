@@ -242,11 +242,11 @@ func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
 			Fn: checks.PinningDependencies,
 		},
 	}
-	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
 	if err != nil {
 		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up clients: %w", err)
 	}
 
-	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
+	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient)
 }

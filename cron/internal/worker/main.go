@@ -40,6 +40,7 @@ import (
 	"github.com/ossf/scorecard/v5/cron/worker"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/pkg"
 	"github.com/ossf/scorecard/v5/policy"
@@ -89,6 +90,7 @@ type ScorecardWorker struct {
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
+	projectClient     packageclient.ProjectPackageClient
 	apiBucketURL      string
 	rawBucketURL      string
 	blacklistedChecks []string
@@ -156,7 +158,8 @@ func (sw *ScorecardWorker) Close() {
 
 func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
-		sw.checkDocs, sw.githubClient, sw.gitlabClient, sw.ossFuzzRepoClient, sw.ciiClient, sw.vulnsClient, sw.logger)
+		sw.checkDocs, sw.githubClient, sw.gitlabClient, sw.ossFuzzRepoClient, sw.ciiClient,
+		sw.vulnsClient, sw.projectClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
@@ -171,6 +174,7 @@ func processRequest(ctx context.Context,
 	githubClient, gitlabClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 	logger *log.Logger,
 ) error {
 	filename := worker.ResultFilename(batchRequest)
@@ -210,7 +214,7 @@ func processRequest(ctx context.Context,
 		}
 
 		result, err := pkg.RunScorecard(ctx, repo, commitSHA, 0, checksToRun,
-			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
+			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
