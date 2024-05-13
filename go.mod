@@ -32,14 +32,13 @@ require (
 	golang.org/x/text v0.15.0
 	golang.org/x/tools v0.20.0 // indirect
 	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.8.0
 )
 
 require (
-	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
@@ -171,7 +170,7 @@ require (
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
-	github.com/xanzy/go-gitlab v0.103.0
+	github.com/xanzy/go-gitlab v0.105.0
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
