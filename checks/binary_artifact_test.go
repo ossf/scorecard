@@ -16,15 +16,14 @@ package checks
 
 import (
 	"context"
-	"errors"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/clients"
-	"github.com/ossf/scorecard/v5/clients/localdir"
-	"github.com/ossf/scorecard/v5/log"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -34,22 +33,26 @@ func TestBinaryArtifacts(t *testing.T) {
 		name        string
 		inputFolder string
 		err         error
-		expected    checker.CheckResult
+		expected    scut.TestReturn
 	}{
 		{
 			name:        "Jar file",
 			inputFolder: "testdata/binaryartifacts/jars",
 			err:         nil,
-			expected: checker.CheckResult{
-				Score: 8,
+			expected: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 0,
+				NumberOfWarn: 2,
 			},
 		},
 		{
 			name:        "non binary file",
 			inputFolder: "testdata/licensedir/withlicense",
 			err:         nil,
-			expected: checker.CheckResult{
-				Score: 10,
+			expected: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 0,
+				NumberOfWarn: 0,
 			},
 		},
 	}
@@ -58,35 +61,39 @@ func TestBinaryArtifacts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			logger := log.NewLogger(log.DebugLevel)
-
-			// TODO: Use gMock instead of Localdir here.
 			ctrl := gomock.NewController(t)
-			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)
 
-			if !errors.Is(err, tt.err) {
-				t.Errorf("MakeLocalDirRepo: %v, expected %v", err, tt.err)
-			}
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				var files []string
+				dirFiles, err := os.ReadDir(tt.inputFolder)
+				if err == nil {
+					for _, file := range dirFiles {
+						files = append(files, file.Name())
+					}
+					print(files)
+				}
+				return files, err
+			}).AnyTimes()
+
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open("./" + tt.inputFolder + "/" + file)
+			}).AnyTimes()
 
 			ctx := context.Background()
-
-			client := localdir.CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
-				t.Errorf("InitRepo: %v", err)
-			}
 
 			dl := scut.TestDetailLogger{}
 
 			req := checker.CheckRequest{
 				Ctx:        ctx,
-				RepoClient: client,
+				RepoClient: mockRepoClient,
 				Dlogger:    &dl,
 			}
 
 			result := BinaryArtifacts(&req)
-			if result.Score != tt.expected.Score {
-				t.Errorf("BinaryArtifacts: %v, expected %v for tests %v", result.Score, tt.expected.Score, tt.name)
-			}
+
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &result, &dl)
 
 			ctrl.Finish()
 		})

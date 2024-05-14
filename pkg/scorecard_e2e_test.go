@@ -108,20 +108,20 @@ var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
 
 			isolatedLogger := sclog.NewLogger(sclog.DebugLevel)
 			lastRepo := repos[len(repos)-1]
-			repo, rc, ofrc, cc, vc, err := checker.GetClients(ctx, lastRepo, "", isolatedLogger)
+			repo, rc, ofrc, cc, vc, dc, err := checker.GetClients(ctx, lastRepo, "", isolatedLogger)
 			Expect(err).Should(BeNil())
-			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc, ofrc, cc, vc)
+			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc, ofrc, cc, vc, dc)
 			Expect(err).Should(BeNil())
 
 			logger := sclog.NewLogger(sclog.DebugLevel)
-			_, rc2, ofrc2, cc2, vc2, err := checker.GetClients(ctx, repos[0], "", logger)
+			_, rc2, ofrc2, cc2, vc2, dc2, err := checker.GetClients(ctx, repos[0], "", logger)
 			Expect(err).Should(BeNil())
 
 			var sharedResult ScorecardResult
 			for i := range repos {
 				repo, err = githubrepo.MakeGithubRepo(repos[i])
 				Expect(err).Should(BeNil())
-				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc2, ofrc2, cc2, vc2)
+				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc2, ofrc2, cc2, vc2, dc2)
 				Expect(err).Should(BeNil())
 			}
 
