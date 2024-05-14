@@ -174,7 +174,6 @@ type SBOM struct {
 	Name          string // SBOM Filename
 	Schema        string // SBOM Schema
 	SchemaVersion string // SBOM Schema Version
-	URL           string // SBOM Asset URL
 	File          File   // SBOM File Object
 }
 

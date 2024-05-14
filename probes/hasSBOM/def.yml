@@ -19,8 +19,8 @@ motivation: >
 implementation: >
   The implementation checks whether an SBOM file is present in the source code.
 outcome:
-  - If an SBOM file(s) is found, the probe returns OutcomePositive for each SBOM file.
-  - If an SBOM file is not found, the probe returns a single OutcomeNegative.
+  - If an SBOM file(s) is found, the probe returns OutcomeTrue for each SBOM artifact.
+  - If an SBOM file is not found, the probe returns a single OutcomeFalse.
 remediation:
   onOutcome: False
   effort: Low

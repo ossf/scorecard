@@ -23,54 +23,31 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 )
 
-var reRootFile = regexp.MustCompile(`^[^.]([^//]*)$`)
+var (
+	reRootFile = regexp.MustCompile(`^[^.]([^//]*)$`)
+	reSBOMFile = regexp.MustCompile(
+		`(?i).+\.(cdx.json|cdx.xml|spdx|spdx.json|spdx.xml|spdx.y[a?]ml|spdx.rdf|spdx.rdf.xm)`,
+	)
+)
 
 // SBOM retrieves the raw data for the SBOM check.
 func SBOM(c *checker.CheckRequest) (checker.SBOMData, error) {
 	var results checker.SBOMData
-
-	SBOMsFound, lerr := c.RepoClient.ListSBOMs()
-	if lerr != nil {
-		return results, fmt.Errorf("RepoClient.ListSBOMs: %w", lerr)
-	}
-
-	for i := range SBOMsFound {
-		v := SBOMsFound[i]
-
-		results.SBOMFiles = append(results.SBOMFiles,
-			checker.SBOM{
-				File: checker.File{
-					Path: v.Path,
-					Type: finding.FileTypeURL,
-				},
-				Name:          v.Name,
-				Schema:        v.Schema,
-				SchemaVersion: v.SchemaVersion,
-				URL:           v.URL,
-			})
-	}
 
 	releases, lerr := c.RepoClient.ListReleases()
 	if lerr != nil {
 		return results, fmt.Errorf("RepoClient.ListReleases: %w", lerr)
 	}
 
-	releaseSBOMs := checkSBOMReleases(releases)
-	if releaseSBOMs != nil {
-		results.SBOMFiles = append(results.SBOMFiles, releaseSBOMs...)
-	}
+	results.SBOMFiles = append(results.SBOMFiles, checkSBOMReleases(releases)...)
 
-	// no SBOMs found in release artifacts or pipelines, continue looking for files
+	// Look for SBOMs in source
 	repoFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
 	if err != nil {
 		return results, fmt.Errorf("error during ListFiles: %w", err)
 	}
 
-	// TODO: Make these two happy path left
-	sourceSBOMs := checkSBOMSource(repoFiles)
-	if sourceSBOMs != nil {
-		results.SBOMFiles = append(results.SBOMFiles, sourceSBOMs...)
-	}
+	results.SBOMFiles = append(results.SBOMFiles, checkSBOMSource(repoFiles)...)
 
 	return results, nil
 }
@@ -82,7 +59,7 @@ func checkSBOMReleases(releases []clients.Release) []checker.SBOM {
 		v := releases[i]
 
 		for _, link := range v.Assets {
-			if !clients.ReSBOMFile.Match([]byte(link.Name)) {
+			if !reSBOMFile.MatchString(link.Name) {
 				continue
 			}
 
@@ -93,7 +70,6 @@ func checkSBOMReleases(releases []clients.Release) []checker.SBOM {
 						Type: finding.FileTypeURL,
 					},
 					Name: link.Name,
-					URL:  link.URL,
 				})
 		}
 	}
@@ -104,7 +80,7 @@ func checkSBOMSource(fileList []string) []checker.SBOM {
 	var foundSBOMs []checker.SBOM
 
 	for _, file := range fileList {
-		if clients.ReSBOMFile.MatchString(file) && reRootFile.MatchString(file) {
+		if reSBOMFile.MatchString(file) && reRootFile.MatchString(file) {
 			// TODO: parse matching file contents to determine schema & version
 			foundSBOMs = append(foundSBOMs,
 				checker.SBOM{

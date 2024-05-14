@@ -15,8 +15,6 @@
 package evaluation
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
@@ -41,59 +39,35 @@ func SBOM(name string,
 	}
 
 	// Compute the score.
-	existsMsg := "SBOM file found in project"
-	releaseMsg := "SBOM file found in release artifacts"
 	score := 0
+	var detailsMsg string
 	m := make(map[string]bool)
+	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
 		switch f.Outcome {
-		case finding.OutcomeNotApplicable:
-			dl.Info(&checker.LogMessage{
-				Type:   finding.FileTypeSource,
-				Offset: 1,
-				Text:   f.Message,
-			})
 		case finding.OutcomeTrue:
+			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case hasSBOM.Probe:
-				dl.Info(&checker.LogMessage{
-					Type: finding.FileTypeSource,
-					Path: f.Message,
-					Text: existsMsg,
-				})
+				detailsMsg = "SBOM file found in project"
 				score += scoreProbeOnce(f.Probe, m, 5)
 			case hasReleaseSBOM.Probe:
-				dl.Info(&checker.LogMessage{
-					Type: finding.FileTypeURL,
-					Path: f.Message,
-					Text: releaseMsg,
-				})
+				detailsMsg = "SBOM file found in release artifacts"
 				score += scoreProbeOnce(f.Probe, m, 5)
-			default:
-				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
-				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		case finding.OutcomeFalse:
+			logLevel = checker.DetailWarn
 			switch f.Probe {
 			case hasSBOM.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type: finding.FileTypeSource,
-					Path: f.Message,
-					Text: "SBOM file not found in project",
-				})
-				existsMsg = f.Message
+				detailsMsg = "SBOM file not found in project"
 			case hasReleaseSBOM.Probe:
-				dl.Warn(&checker.LogMessage{
-					Type: finding.FileTypeURL,
-					Path: f.Message,
-					Text: "SBOM file not found in release artifacts",
-				})
-				releaseMsg = f.Message
+				detailsMsg = "SBOM file not found in release artifacts"
 			}
 		default:
 			continue // for linting
 		}
+		checker.LogFinding(dl, f, logLevel)
 	}
 
 	_, defined := m[hasSBOM.Probe]
@@ -101,6 +75,5 @@ func SBOM(name string,
 		return checker.CreateMinScoreResult(name, "SBOM file not detected")
 	}
 
-	message := fmt.Sprintf("%s. %s.", existsMsg, releaseMsg)
-	return checker.CreateResultWithScore(name, message, score)
+	return checker.CreateResultWithScore(name, detailsMsg, score)
 }

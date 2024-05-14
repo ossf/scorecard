@@ -305,21 +305,6 @@ func (mr *MockRepoClientMockRecorder) ListReleases() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListReleases", reflect.TypeOf((*MockRepoClient)(nil).ListReleases))
 }
 
-// ListSboms mocks base method.
-func (m *MockRepoClient) ListSBOMs() ([]clients.SBOM, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListSboms")
-	ret0, _ := ret[0].([]clients.SBOM)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListSboms indicates an expected call of ListSboms.
-func (mr *MockRepoClientMockRecorder) ListSboms() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSboms", reflect.TypeOf((*MockRepoClient)(nil).ListSBOMs))
-}
-
 // ListStatuses mocks base method.
 func (m *MockRepoClient) ListStatuses(ref string) ([]clients.Status, error) {
 	m.ctrl.T.Helper()

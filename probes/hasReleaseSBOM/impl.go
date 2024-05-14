@@ -66,13 +66,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 
-		loc := &finding.Location{
-			Type:      SBOMFile.File.Type,
-			Path:      SBOMFile.File.Path,
-			LineStart: &SBOMFile.File.Offset,
-			LineEnd:   &SBOMFile.File.EndOffset,
-			Snippet:   &SBOMFile.File.Snippet,
-		}
+		loc := SBOMFile.File.Location()
 		msg = "Project publishes an SBOM file as part of a release or CICD"
 		f, err := finding.NewTrue(fs, Probe, msg, loc)
 		if err != nil {
@@ -80,7 +74,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		}
 		f.Values = map[string]string{
 			AssetNameKey: SBOMFile.Name,
-			AssetURLKey:  SBOMFile.URL,
+			AssetURLKey:  SBOMFile.File.Path,
 		}
 		findings = append(findings, *f)
 	}

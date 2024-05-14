@@ -13,14 +13,14 @@
 # limitations under the License.
 
 id: hasReleaseSBOM
-short: Check that the project publishes an SBOM as part of its release or CI/CD artifacts.
+short: Check that the project publishes an SBOM as part of its release artifacts.
 motivation: >
   An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.
 implementation: >
-  The implementation checks whether a SBOM artifact is included in release or CI/CD artifacts.
+  The implementation checks whether a SBOM artifact is included in release artifacts.
 outcome:
-  - If SBOM artifacts are found, the probe returns OutcomePositive for each SBOM artifact.
-  - If an SBOM artifact is not found, the probe returns a single OutcomeNegative.
+  - If SBOM artifacts are found, the probe returns OutcomeTrue for each SBOM artifact.
+  - If an SBOM artifact is not found, the probe returns a single OutcomeFalse.
 remediation:
   onOutcome: False
   effort: Low

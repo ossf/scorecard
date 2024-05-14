@@ -260,12 +260,6 @@ func (client *localDirClient) ListLicenses() ([]clients.License, error) {
 	return nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)
 }
 
-// ListSboms implements RepoClient.ListSboms.
-// TODO: add ListLicenses support for local directories.
-func (client *localDirClient) ListSBOMs() ([]clients.SBOM, error) {
-	return nil, fmt.Errorf("ListSboms: %w", clients.ErrUnsupportedFeature)
-}
-
 func (client *localDirClient) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }

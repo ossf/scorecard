@@ -95,29 +95,6 @@ type graphqlMergeRequestNode struct {
 	} `graphql:"approvedBy"`
 }
 
-type graphqlSBOMData struct {
-	Project graphqlProject `graphql:"project(fullPath: $fullPath)"`
-}
-
-type graphqlProject struct {
-	Pipelines graphqlPipelines `graphql:"pipelines(ref: $defaultBranch, first: 20)"`
-}
-
-type graphqlPipelines struct {
-	Nodes []graphqlPipelineNode
-}
-
-type graphqlPipelineNode struct {
-	Status       string               `graphql:"status"`
-	JobArtifacts []graphqlJobArtifact `graphql:"jobArtifacts"`
-}
-
-type graphqlJobArtifact struct {
-	Name         string `graphql:"name"`
-	FileType     string `graphql:"fileType"`
-	DownloadPath string `graphql:"downloadPath"`
-}
-
 type GitlabGID struct {
 	Type string
 	ID   int
@@ -152,21 +129,6 @@ func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphq
 	err := handler.graphClient.Query(context.Background(), &data, params)
 	if err != nil {
 		return graphqlMRData{}, fmt.Errorf("couldn't query gitlab graphql for merge requests: %w", err)
-	}
-
-	return data, nil
-}
-
-func (handler *graphqlHandler) getSBOMDetail() (graphqlSBOMData, error) {
-	data := graphqlSBOMData{}
-	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
-	params := map[string]interface{}{
-		"fullPath":      path,
-		"defaultBranch": graphql.String(handler.repourl.defaultBranch),
-	}
-	err := handler.graphClient.Query(context.Background(), &data, params)
-	if err != nil {
-		return graphqlSBOMData{}, fmt.Errorf("couldn't query gitlab graphql for SBOM Detail: %w", err)
 	}
 
 	return data, nil

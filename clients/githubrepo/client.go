@@ -58,7 +58,6 @@ type Client struct {
 	languages     *languagesHandler
 	licenses      *licensesHandler
 	ctx           context.Context
-	SBOM          *SBOMHandler
 	tarball       tarballHandler
 	commitDepth   int
 }
@@ -127,9 +126,6 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
-
-	// Init SBOMHandler
-	client.SBOM.init(client.ctx, client.repourl)
 
 	return nil
 }
@@ -253,11 +249,6 @@ func (client *Client) ListLicenses() ([]clients.License, error) {
 	return client.licenses.listLicenses()
 }
 
-// ListSBOMs implements RepoClient.ListSBOMs.
-func (client *Client) ListSBOMs() ([]clients.SBOM, error) {
-	return client.SBOM.listSBOMs()
-}
-
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return client.search.search(request)
@@ -338,9 +329,6 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 			ghclient: client,
 		},
 		licenses: &licensesHandler{
-			ghclient: client,
-		},
-		SBOM: &SBOMHandler{
 			ghclient: client,
 		},
 		tarball: tarballHandler{

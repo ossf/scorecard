@@ -56,13 +56,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range SBOMFiles {
 		SBOMFile := SBOMFiles[i]
-		loc := &finding.Location{
-			Type:      SBOMFile.File.Type,
-			Path:      SBOMFile.File.Path,
-			LineStart: &SBOMFile.File.Offset,
-			LineEnd:   &SBOMFile.File.EndOffset,
-			Snippet:   &SBOMFile.File.Snippet,
-		}
+		loc := SBOMFile.File.Location()
 		msg = "Project has a SBOM file"
 		f, err := finding.NewTrue(fs, Probe, msg, loc)
 		if err != nil {

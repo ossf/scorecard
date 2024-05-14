@@ -29,7 +29,7 @@ func TestSBOM(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Negative outcome = Min Score",
+			name: "No SBOM. Min Score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
@@ -47,7 +47,7 @@ func TestSBOM(t *testing.T) {
 			},
 		},
 		{
-			name: "Exists in Source: Positive outcome.",
+			name: "Only Source SBOM. Half Points",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
@@ -65,7 +65,7 @@ func TestSBOM(t *testing.T) {
 			},
 		},
 		{
-			name: "Exists in Release Assets: Max outcome.",
+			name: "SBOM in Release Assets. Max score",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasSBOM",
