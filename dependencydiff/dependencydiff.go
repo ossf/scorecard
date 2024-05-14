@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/pkg"
 	"github.com/ossf/scorecard/v5/policy"
@@ -44,6 +45,7 @@ type dependencydiffContext struct {
 	ossFuzzClient                   clients.RepoClient
 	vulnsClient                     clients.VulnerabilitiesClient
 	ciiClient                       clients.CIIBestPracticesClient
+	projectClient                   packageclient.ProjectPackageClient
 	changeTypesToCheck              []string
 	checkNamesToRun                 []string
 	dependencydiffs                 []dependency
@@ -95,7 +97,7 @@ func GetDependencyDiffResults(
 }
 
 func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) error {
-	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repo, repoClient, ossFuzzClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		dCtx.ctx, dSrcRepo, "", dCtx.logger)
 	if err != nil {
 		return fmt.Errorf("error getting the github repo and clients: %w", err)
@@ -115,6 +117,8 @@ func initRepoAndClientByChecks(dCtx *dependencydiffContext, dSrcRepo string) err
 			dCtx.ciiClient = ciiClient
 		case checks.CheckVulnerabilities:
 			dCtx.vulnsClient = vulnsClient
+		case checks.CheckSignedReleases:
+			dCtx.projectClient = projectClient
 		}
 	}
 	return nil
@@ -171,6 +175,7 @@ func getScorecardCheckResults(dCtx *dependencydiffContext) error {
 				dCtx.ossFuzzClient,
 				dCtx.ciiClient,
 				dCtx.vulnsClient,
+				dCtx.projectClient,
 			)
 			// If the run fails, we leave the current dependency scorecard result empty and record the error
 			// rather than letting the entire API return nil since we still expect results for other dependencies.
