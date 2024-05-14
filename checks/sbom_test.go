@@ -15,51 +15,57 @@
 package checks
 
 import (
+	"context"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
-func TestSbomFileSubdirectory(t *testing.T) {
-	t.Parallel()
-
+func TestSbom(t *testing.T) {
 	tests := []struct {
-		name        string
-		inputFolder string
-		err         error
-		expected    scut.TestReturn
+		name     string
+		releases []clients.Release
+		files    []string
+		err      error
+		expected checker.CheckResult
 	}{
 		{
-			name:        "With Sbom in release artifacts",
-			inputFolder: "testdata/sbomdir/withsbom",
-			expected: scut.TestReturn{
-				Error:        nil,
-				Score:        checker.MaxResultScore,
-				NumberOfInfo: 1,
-				NumberOfWarn: 1,
+			name: "With Sbom in release artifacts",
+			releases: []clients.Release{
+				{
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "test-sbom.cdx.json",
+							URL:  "https://this.url",
+						},
+					},
+				},
+			},
+			files: []string{},
+			expected: checker.CheckResult{
+				Score: checker.MaxResultScore,
 			},
 			err: nil,
 		},
 		{
-			name:        "With Sbom in source",
-			inputFolder: "testdata/sbomdir/withsbom",
-			expected: scut.TestReturn{
-				Error:        nil,
-				Score:        3, // Sbom maintained in source
-				NumberOfInfo: 1,
-				NumberOfWarn: 1,
+			name:     "With Sbom in source",
+			releases: []clients.Release{},
+			files:    []string{"test-sbom.spdx.json"},
+			err:      nil,
+			expected: checker.CheckResult{
+				Score: 5,
 			},
-			err: nil,
 		},
 		{
-			name:        "Without LICENSE",
-			inputFolder: "testdata/sbomdir/withoutsbom",
-			expected: scut.TestReturn{
-				Error:        nil,
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 0,
-				NumberOfInfo: 2,
+			name:     "Without SBOM",
+			releases: []clients.Release{},
+			files:    []string{},
+			expected: checker.CheckResult{
+				Score: checker.MinResultScore,
 			},
 			err: nil,
 		},
@@ -67,7 +73,42 @@ func TestSbomFileSubdirectory(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+			t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+
+			mockRepo.EXPECT().ListReleases().DoAndReturn(
+				func() ([]clients.Release, error) {
+					if tt.err != nil {
+						return nil, tt.err
+					}
+					return tt.releases, tt.err
+				},
+			).MaxTimes(1)
+
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				return tt.files, nil
+			}).AnyTimes()
+
+			dl := scut.TestDetailLogger{}
+			req := checker.CheckRequest{
+				RepoClient: mockRepo,
+				Ctx:        context.TODO(),
+				Dlogger:    &dl,
+			}
+			res := SBOM(&req)
+			if tt.err != nil {
+				if res.Error == nil {
+					t.Errorf("Expected error %v, got nil", tt.err)
+				}
+				// return as we don't need to check the rest of the fields.
+				return
+			}
+
+			if res.Score != tt.expected.Score {
+				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
+			}
+			ctrl.Finish()
 		})
 	}
 }
