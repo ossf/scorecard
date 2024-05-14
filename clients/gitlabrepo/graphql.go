@@ -48,7 +48,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("%s/api/graphql", repourl.Host()), handler.client)
 }
 
-type graphqlMRData struct {
+type graphqlData struct {
 	Project struct {
 		MergeRequests struct {
 			Nodes []graphqlMergeRequestNode `graphql:"nodes"`
@@ -60,11 +60,12 @@ type graphqlMRData struct {
 	} `graphql:"queryComplexity"`
 }
 
+//nolint:govet
 type graphqlMergeRequestNode struct {
-	MergedAt       time.Time `graphql:"mergedAt"`
-	IID            string    `graphql:"iid"`
-	MergeCommitSHA string    `graphql:"mergeCommitSha"`
-	Author         struct {
+	ID       GitlabGID `graphql:"id"`
+	IID      string    `graphql:"iid"`
+	MergedAt time.Time `graphql:"mergedAt"`
+	Author   struct {
 		Username string    `graphql:"username"`
 		ID       GitlabGID `graphql:"id"`
 	} `graphql:"author"`
@@ -72,7 +73,6 @@ type graphqlMergeRequestNode struct {
 		Username string    `graphql:"username"`
 		ID       GitlabGID `graphql:"id"`
 	} `graphql:"mergeUser"`
-	ID      GitlabGID `graphql:"id"`
 	Commits struct {
 		Nodes []struct {
 			SHA string `graphql:"sha"`
@@ -80,11 +80,11 @@ type graphqlMergeRequestNode struct {
 	} `graphql:"commits"`
 	Reviewers struct {
 		Nodes []struct {
-			Username                string `graphql:"username"`
+			Username                string    `graphql:"username"`
+			ID                      GitlabGID `graphql:"id"`
 			MergeRequestInteraction struct {
 				ReviewState string `graphql:"reviewState"`
 			} `graphql:"mergeRequestInteraction"`
-			ID GitlabGID `graphql:"id"`
 		} `graphql:"nodes"`
 	} `graphql:"reviewers"`
 	Approvers struct {
@@ -93,6 +93,12 @@ type graphqlMergeRequestNode struct {
 			ID       GitlabGID `graphql:"id"`
 		} `graphql:"nodes"`
 	} `graphql:"approvedBy"`
+	MergeCommitSHA string `graphql:"mergeCommitSha"`
+	// Labels         struct {
+	// 	Nodes []struct {
+	// 		Title string `graphql:"title"`
+	// 	} `graphql:"nodes"`
+	// } `graphql:"labels"`
 }
 
 type GitlabGID struct {
@@ -119,8 +125,8 @@ func (g *GitlabGID) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphqlMRData, error) {
-	data := graphqlMRData{}
+func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphqlData, error) {
+	data := graphqlData{}
 	path := fmt.Sprintf("%s/%s", handler.repourl.owner, handler.repourl.project)
 	params := map[string]interface{}{
 		"fullPath":     path,
@@ -128,7 +134,7 @@ func (handler *graphqlHandler) getMergeRequestsDetail(before *time.Time) (graphq
 	}
 	err := handler.graphClient.Query(context.Background(), &data, params)
 	if err != nil {
-		return graphqlMRData{}, fmt.Errorf("couldn't query gitlab graphql for merge requests: %w", err)
+		return graphqlData{}, fmt.Errorf("couldn't query gitlab graphql for merge requests: %w", err)
 	}
 
 	return data, nil

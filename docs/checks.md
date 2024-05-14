@@ -552,7 +552,7 @@ An SBOM can give users information about what dependencies your project has whic
 allows them to identify vulnerabilities in the software supply chain.
 
 Standards to be used during checks;
-- SBOM-everywhere naming and directory conventions:
+- OSSF SBOM Everywhere SIG naming and directory conventions:
   - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
 
 This check currently looks for the existence of an SBOM in the
@@ -561,15 +561,14 @@ source of a project and as a pipeline or release artifact.
 An SBOM Exists (one or more) (5/10 points):
   - Any SBOM found counts for this test either in source. pipeline or release. 
   - A SBOM stored with your source code is not ideal, but is a good first step.
-    It is recommended to publish with your release artifacts or as part of your CI/CD workflow.
+  \* It is recommended to publish with your release artifacts.
 
-An SBOM is published as a release or CI/CD artifact (5/10 points):
+An SBOM is published as a release artifact (5/10 points):
   - This is the preferred way to store an SBOM, and will be awarded full points.
-  - Checks release and CI/CD artifacts for an SBOM file matching established standards
+  - Checks release artifacts for an SBOM file matching established standards
  
 
 **Remediation steps**
-- Needs updating
 - For Gitlab, see more information [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exporting-a-software-bill-of-materials-for-your-repository).
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
 

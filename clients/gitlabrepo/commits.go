@@ -102,7 +102,7 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 // get from Commits -> MRs that they were part of or vice-versa (MRs -> commits they
 // contain), except through a separate API call. Instead of calling the REST API
 // len(commits) times to get the associated MR, we make 3 calls (2 REST, 1 GraphQL).
-func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlMRData) []clients.Commit {
+func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData) []clients.Commit {
 	commitToMRIID := make(map[string]string) // which mr does a commit belong to?
 	for i := range data.Project.MergeRequests.Nodes {
 		mr := data.Project.MergeRequests.Nodes[i]

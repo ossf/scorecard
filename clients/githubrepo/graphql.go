@@ -41,7 +41,7 @@ const (
 )
 
 //nolint:govet
-type graphqlMRData struct {
+type graphqlData struct {
 	Repository struct {
 		IsArchived githubv4.Boolean
 		Object     struct {
@@ -136,7 +136,7 @@ type graphqlMRData struct {
 
 type graphqlHandler struct {
 	client      *githubv4.Client
-	data        *graphqlMRData
+	data        *graphqlData
 	setupOnce   *sync.Once
 	ctx         context.Context
 	errSetup    error
@@ -150,7 +150,7 @@ type graphqlHandler struct {
 func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
-	handler.data = new(graphqlMRData)
+	handler.data = new(graphqlData)
 	handler.errSetup = nil
 	handler.setupOnce = new(sync.Once)
 	handler.commitDepth = commitDepth
@@ -239,7 +239,7 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 	return handler.archived, nil
 }
 
-func commitsFrom(data *graphqlMRData, repoOwner, repoName string) ([]clients.Commit, error) {
+func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
 	ret := make([]clients.Commit, 0)
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		var committer string
@@ -308,7 +308,7 @@ func commitsFrom(data *graphqlMRData, repoOwner, repoName string) ([]clients.Com
 	return ret, nil
 }
 
-func issuesFrom(data *graphqlMRData) []clients.Issue {
+func issuesFrom(data *graphqlData) []clients.Issue {
 	var ret []clients.Issue
 	for _, issue := range data.Repository.Issues.Nodes {
 		var tmpIssue clients.Issue
