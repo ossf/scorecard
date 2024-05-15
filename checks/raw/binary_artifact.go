@@ -167,9 +167,9 @@ var checkBinaryFileReader fileparser.DoWhileTrueOnFileReader = func(path string,
 //	A version of golang.org/x/tools/godoc/util modified to allow carriage returns
 //	and utf8.RuneError (0xFFFD), as the file may not be utf8 encoded.
 func isText(s []byte) bool {
-	const max = binaryTestLen // at least utf8.UTFMax (4)
-	if len(s) > max {
-		s = s[0:max]
+	const maxLen = binaryTestLen // at least utf8.UTFMax (4)
+	if len(s) > maxLen {
+		s = s[0:maxLen]
 	}
 	for i, c := range string(s) {
 		if i+utf8.UTFMax > len(s) {
