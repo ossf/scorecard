@@ -33,10 +33,11 @@ func init() {
 var fs embed.FS
 
 const (
-	Probe        = "hasReleaseSBOM"
-	AssetNameKey = "assetName"
-	AssetURLKey  = "assetURL"
-	missingSbom  = "Project is not publishing an SBOM file as part of a release or CICD"
+	Probe           = "hasReleaseSBOM"
+	AssetNameKey    = "assetName"
+	AssetURLKey     = "assetURL"
+	missingSbom     = "Project is not publishing an SBOM file as part of a release or CICD"
+	releaseLookBack = 5
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -49,17 +50,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	SBOMFiles := raw.SBOMResults.SBOMFiles
 
-	if len(SBOMFiles) == 0 {
-		msg = missingSbom
-		f, err := finding.NewFalse(fs, Probe, msg, nil)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *f)
-		return findings, Probe, nil
-	}
-
 	for i := range SBOMFiles {
+		if i >= releaseLookBack {
+			break
+		}
+
 		SBOMFile := SBOMFiles[i]
 
 		if SBOMFile.File.Type != finding.FileTypeURL {

@@ -591,10 +591,12 @@ checks:
     remediation:
       - >-
         For Gitlab, see more information
-        [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/exporting-a-software-bill-of-materials-for-your-repository).
+        [here](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/index.html#cyclonedx-software-bill-of-materials).
       - >-
         For GitHub, see more information
-        [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
+        [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security).
+      - >-
+        Alternatively, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/tools/) SBOMs.
 
   Security-Policy:
     risk: Medium

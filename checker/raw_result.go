@@ -171,10 +171,8 @@ type LicenseData struct {
 
 // SBOM details.
 type SBOM struct {
-	Name          string // SBOM Filename
-	Schema        string // SBOM Schema
-	SchemaVersion string // SBOM Schema Version
-	File          File   // SBOM File Object
+	Name string // SBOM Filename
+	File File   // SBOM File Object
 }
 
 // SBOMData contains the raw results for the SBOM check.

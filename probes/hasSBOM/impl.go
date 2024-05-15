@@ -32,7 +32,10 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "hasSBOM"
+const (
+	Probe        = "hasSBOM"
+	sbomLookBack = 5
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -55,6 +58,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	for i := range SBOMFiles {
+		if i >= sbomLookBack {
+			break
+		}
+
 		SBOMFile := SBOMFiles[i]
 		loc := SBOMFile.File.Location()
 		msg = "Project has a SBOM file"

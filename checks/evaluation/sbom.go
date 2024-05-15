@@ -40,7 +40,6 @@ func SBOM(name string,
 
 	// Compute the score.
 	score := 0
-	var detailsMsg string
 	m := make(map[string]bool)
 	var logLevel checker.DetailType
 	for i := range findings {
@@ -50,20 +49,12 @@ func SBOM(name string,
 			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case hasSBOM.Probe:
-				detailsMsg = "SBOM file found in project"
 				score += scoreProbeOnce(f.Probe, m, 5)
 			case hasReleaseSBOM.Probe:
-				detailsMsg = "SBOM file found in release artifacts"
 				score += scoreProbeOnce(f.Probe, m, 5)
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
-			switch f.Probe {
-			case hasSBOM.Probe:
-				detailsMsg = "SBOM file not found in project"
-			case hasReleaseSBOM.Probe:
-				detailsMsg = "SBOM file not found in release artifacts"
-			}
 		default:
 			continue // for linting
 		}
@@ -75,5 +66,10 @@ func SBOM(name string,
 		return checker.CreateMinScoreResult(name, "SBOM file not detected")
 	}
 
-	return checker.CreateResultWithScore(name, detailsMsg, score)
+	_, defined = m[hasReleaseSBOM.Probe]
+	if defined {
+		return checker.CreateMaxScoreResult(name, "SBOM file found in release artifacts")
+	}
+
+	return checker.CreateResultWithScore(name, "SBOM file found in project", score)
 }

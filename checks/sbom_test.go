@@ -32,7 +32,7 @@ func TestSbom(t *testing.T) {
 		releases []clients.Release
 		files    []string
 		err      error
-		expected checker.CheckResult
+		expected scut.TestReturn
 	}{
 		{
 			name: "With Sbom in release artifacts",
@@ -47,8 +47,10 @@ func TestSbom(t *testing.T) {
 				},
 			},
 			files: []string{},
-			expected: checker.CheckResult{
-				Score: checker.MaxResultScore,
+			expected: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2,
+				NumberOfWarn: 0,
 			},
 			err: nil,
 		},
@@ -57,16 +59,20 @@ func TestSbom(t *testing.T) {
 			releases: []clients.Release{},
 			files:    []string{"test-sbom.spdx.json"},
 			err:      nil,
-			expected: checker.CheckResult{
-				Score: 5,
+			expected: scut.TestReturn{
+				Score:        5,
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
 		{
 			name:     "Without SBOM",
 			releases: []clients.Release{},
 			files:    []string{},
-			expected: checker.CheckResult{
-				Score: checker.MinResultScore,
+			expected: scut.TestReturn{
+				Score:        checker.MinResultScore,
+				NumberOfInfo: 0,
+				NumberOfWarn: 2,
 			},
 			err: nil,
 		},
@@ -94,22 +100,17 @@ func TestSbom(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.TODO(),
+				Ctx:        context.Background(),
 				Dlogger:    &dl,
 			}
 			res := SBOM(&req)
 			if tt.err != nil {
 				if res.Error == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
+					t.Fatalf("Expected error %v, got nil", tt.err)
 				}
-				// return as we don't need to check the rest of the fields.
-				return
 			}
 
-			if res.Score != tt.expected.Score {
-				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
-			}
-			ctrl.Finish()
+			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 		})
 	}
 }

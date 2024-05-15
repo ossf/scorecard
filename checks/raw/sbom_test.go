@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -28,6 +29,7 @@ import (
 )
 
 func TestSbom(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		releases []clients.Release
@@ -54,6 +56,7 @@ func TestSbom(t *testing.T) {
 						Name: "test-sbom.cdx.json",
 						File: checker.File{
 							Type: finding.FileTypeURL,
+							Path: "https://this.url",
 						},
 					},
 				},
@@ -71,6 +74,7 @@ func TestSbom(t *testing.T) {
 						Name: "test-sbom.spdx.json",
 						File: checker.File{
 							Type: finding.FileTypeSource,
+							Path: "test-sbom.spdx.json",
 						},
 					},
 				},
@@ -87,7 +91,7 @@ func TestSbom(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
@@ -107,29 +111,19 @@ func TestSbom(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.TODO(),
+				Ctx:        context.Background(),
 				Dlogger:    &dl,
 			}
 			res, err := SBOM(&req)
 			if tt.err != nil {
 				if err == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
-				}
-				// return as we don't need to check the rest of the fields.
-				return
-			}
-
-			if len(res.SBOMFiles) != len(tt.expected.SBOMFiles) {
-				t.Errorf("Expected %d SBOMs, got %d for %v", len(tt.expected.SBOMFiles), len(res.SBOMFiles), tt.name)
-			}
-
-			if len(tt.expected.SBOMFiles) > 0 {
-				if (res.SBOMFiles[0].Name != tt.expected.SBOMFiles[0].Name) && (res.SBOMFiles[0].File.Type != tt.expected.SBOMFiles[0].File.Type) {
-					t.Errorf("Expected SBOM with Name: %s  and Type: %d, got Name: %s  and Type: %d for %v", tt.expected.SBOMFiles[0].Name, tt.expected.SBOMFiles[0].File.Type, res.SBOMFiles[0].Name, res.SBOMFiles[0].File.Type, tt.name)
+					t.Fatalf("Expected error %v, got nil", tt.err)
 				}
 			}
 
-			ctrl.Finish()
+			if !cmp.Equal(res, tt.expected) {
+				t.Errorf("Expected %v, got %v for %v", tt.expected, res, tt.name)
+			}
 		})
 	}
 }

@@ -26,7 +26,7 @@ import (
 var (
 	reRootFile = regexp.MustCompile(`^[^.]([^//]*)$`)
 	reSBOMFile = regexp.MustCompile(
-		`(?i).+\.(cdx.json|cdx.xml|spdx|spdx.json|spdx.xml|spdx.y[a?]ml|spdx.rdf|spdx.rdf.xm)`,
+		`(?i).+\.(cdx.json|cdx.xml|spdx|spdx.json|spdx.xml|spdx.y[a?]ml|spdx.rdf|spdx.rdf.xml)`,
 	)
 )
 
@@ -42,7 +42,9 @@ func SBOM(c *checker.CheckRequest) (checker.SBOMData, error) {
 	results.SBOMFiles = append(results.SBOMFiles, checkSBOMReleases(releases)...)
 
 	// Look for SBOMs in source
-	repoFiles, err := c.RepoClient.ListFiles(func(string) (bool, error) { return true, nil })
+	repoFiles, err := c.RepoClient.ListFiles(func(file string) (bool, error) {
+		return reSBOMFile.MatchString(file) && reRootFile.MatchString(file), nil
+	})
 	if err != nil {
 		return results, fmt.Errorf("error during ListFiles: %w", err)
 	}
@@ -80,17 +82,15 @@ func checkSBOMSource(fileList []string) []checker.SBOM {
 	var foundSBOMs []checker.SBOM
 
 	for _, file := range fileList {
-		if reSBOMFile.MatchString(file) && reRootFile.MatchString(file) {
-			// TODO: parse matching file contents to determine schema & version
-			foundSBOMs = append(foundSBOMs,
-				checker.SBOM{
-					File: checker.File{
-						Path: file,
-						Type: finding.FileTypeSource,
-					},
-					Name: file,
-				})
-		}
+		// TODO: parse matching file contents to determine schema & version
+		foundSBOMs = append(foundSBOMs,
+			checker.SBOM{
+				File: checker.File{
+					Path: file,
+					Type: finding.FileTypeSource,
+				},
+				Name: file,
+			})
 	}
 
 	return foundSBOMs
