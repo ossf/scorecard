@@ -30,6 +30,8 @@ var (
 	)
 )
 
+const releaseLookBack = 5
+
 // SBOM retrieves the raw data for the SBOM check.
 func SBOM(c *checker.CheckRequest) (checker.SBOMData, error) {
 	var results checker.SBOMData
@@ -58,6 +60,10 @@ func checkSBOMReleases(releases []clients.Release) []checker.SBOM {
 	var foundSBOMs []checker.SBOM
 
 	for i := range releases {
+		if i >= releaseLookBack {
+			break
+		}
+
 		v := releases[i]
 
 		for _, link := range v.Assets {
@@ -73,6 +79,9 @@ func checkSBOMReleases(releases []clients.Release) []checker.SBOM {
 					},
 					Name: link.Name,
 				})
+
+			// Only want one sbom from each release
+			break
 		}
 	}
 	return foundSBOMs
