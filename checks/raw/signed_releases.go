@@ -32,7 +32,7 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		return checker.SignedReleasesData{}, fmt.Errorf("GetProjectPackageVersions: %w", err)
 	}
 
-	pkgs := []checker.ProjectPackages{}
+	pkgs := []checker.ProjectPackage{}
 	for _, v := range versions.Versions {
 		prov := checker.PackageProvenance{}
 
@@ -43,11 +43,11 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 			}
 		}
 
-		pkgs = append(pkgs, checker.ProjectPackages{
-			System:         v.VersionKey.System,
-			Name:           v.VersionKey.Name,
-			Version:        v.VersionKey.Version,
-			SLSAProvenance: prov,
+		pkgs = append(pkgs, checker.ProjectPackage{
+			System:     v.VersionKey.System,
+			Name:       v.VersionKey.Name,
+			Version:    v.VersionKey.Version,
+			Provenance: prov,
 		})
 	}
 

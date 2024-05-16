@@ -92,11 +92,11 @@ type PackageProvenance struct {
 	Commit     string
 	IsVerified bool
 }
-type ProjectPackages struct {
-	System         string
-	Name           string
-	Version        string
-	SLSAProvenance PackageProvenance
+type ProjectPackage struct {
+	System     string
+	Name       string
+	Version    string
+	Provenance PackageProvenance
 }
 
 // DependencyUseType represents a type of dependency use.
@@ -298,7 +298,7 @@ type BinaryArtifactData struct {
 // for the Signed-Releases check.
 type SignedReleasesData struct {
 	Releases []clients.Release
-	Packages []ProjectPackages
+	Packages []ProjectPackage
 }
 
 // DependencyUpdateToolData contains the raw results
