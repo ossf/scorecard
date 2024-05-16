@@ -55,6 +55,24 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		})
 	}
 
+	for _, v := range versions.Versions {
+		prov := checker.PackageProvenance{}
+
+		if len(v.SLSAProvenances) > 0 {
+			prov = checker.PackageProvenance{
+				Commit:     v.SLSAProvenances[0].Commit,
+				IsVerified: v.SLSAProvenances[0].Verified,
+			}
+		}
+
+		pkgs = append(pkgs, checker.ProjectPackage{
+			System:     v.VersionKey.System,
+			Name:       v.VersionKey.Name,
+			Version:    v.VersionKey.Version,
+			Provenance: prov,
+		})
+	}
+
 	return checker.SignedReleasesData{
 		Releases: releases,
 		Packages: pkgs,
