@@ -20,7 +20,6 @@ import (
 
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
-	"github.com/ossf/scorecard/v5/internal/packageclient"
 )
 
 // RawResults contains results before a policy
@@ -87,6 +86,17 @@ type Package struct {
 	// Note: Msg is populated only for debug messages.
 	Msg  *string
 	Runs []Run
+}
+
+type PackageProvenance struct {
+	Commit     string
+	IsVerified bool
+}
+type ProjectPackages struct {
+	System         string
+	Name           string
+	Version        string
+	SLSAProvenance PackageProvenance
 }
 
 // DependencyUseType represents a type of dependency use.
@@ -287,8 +297,8 @@ type BinaryArtifactData struct {
 // SignedReleasesData contains the raw results
 // for the Signed-Releases check.
 type SignedReleasesData struct {
-	Releases               []clients.Release
-	ProjectPackageVersions packageclient.ProjectPackageVersions
+	Releases []clients.Release
+	Packages []ProjectPackages
 }
 
 // DependencyUpdateToolData contains the raw results
