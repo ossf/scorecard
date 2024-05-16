@@ -64,20 +64,6 @@ func (mr *MockRepoMockRecorder) AppendMetadata(metadata ...interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppendMetadata", reflect.TypeOf((*MockRepo)(nil).AppendMetadata), metadata...)
 }
 
-// Path mocks base method.
-func (m *MockRepo) Path() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Path")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// Path indicates an expected call of Path.
-func (mr *MockRepoMockRecorder) Path() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Path", reflect.TypeOf((*MockRepo)(nil).Path))
-}
-
 // Host mocks base method.
 func (m *MockRepo) Host() string {
 	m.ctrl.T.Helper()
@@ -118,6 +104,20 @@ func (m *MockRepo) Metadata() []string {
 func (mr *MockRepoMockRecorder) Metadata() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Metadata", reflect.TypeOf((*MockRepo)(nil).Metadata))
+}
+
+// Path mocks base method.
+func (m *MockRepo) Path() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Path")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Path indicates an expected call of Path.
+func (mr *MockRepoMockRecorder) Path() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Path", reflect.TypeOf((*MockRepo)(nil).Path))
 }
 
 // String mocks base method.
