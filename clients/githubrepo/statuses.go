@@ -27,10 +27,10 @@ import (
 type statusesHandler struct {
 	client  *github.Client
 	ctx     context.Context
-	repourl *repoURL
+	repourl *Repo
 }
 
-func (handler *statusesHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *statusesHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 }

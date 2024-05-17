@@ -41,7 +41,7 @@ var _ = Describe("E2E TEST: githubrepo.languagesHandler", func() {
 	})
 	Context("listProgrammingLanguages()", func() {
 		It("returns a list of programming languages for a valid repository", func() {
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner: "ossf",
 				repo:  "scorecard",
 			}
