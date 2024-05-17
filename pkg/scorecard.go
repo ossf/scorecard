@@ -27,8 +27,10 @@ import (
 	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
-	scchecks "github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -37,6 +39,7 @@ import (
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	sclog "github.com/ossf/scorecard/v5/log"
 	scoptions "github.com/ossf/scorecard/v5/options"
+	"github.com/ossf/scorecard/v5/policy"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -286,7 +289,7 @@ type runConfig struct {
 	ciiClient     clients.CIIBestPracticesClient
 	projectClient packageclient.ProjectPackageClient
 	ossfuzzClient clients.RepoClient
-	checks        checker.CheckNameToFnMap
+	checks        []string
 	commit        string
 	probes        []string
 	commitDepth   int
@@ -308,7 +311,7 @@ func WithCommitSHA(sha string) Option {
 	}
 }
 
-func WithChecks(checks checker.CheckNameToFnMap) Option {
+func WithChecks(checks []string) Option {
 	return func(c *runConfig) error {
 		c.checks = checks
 		return nil
@@ -351,6 +354,8 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 }
 
 func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardResult, error) {
+	// TODO logger
+	logger := sclog.NewLogger(sclog.InfoLevel)
 	c := runConfig{
 		commit: clients.HeadSHA,
 	}
@@ -371,12 +376,36 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 	if c.projectClient == nil {
 		c.projectClient = packageclient.CreateDepsDevClient()
 	}
-	if c.client == nil {
-		// TODO, need to detect and create here.
-	}
-	if c.checks == nil && len(c.probes) == 0 {
-		c.checks = scchecks.GetAll()
+
+	var requiredRequestTypes []checker.RequestType
+	var err error
+	switch repo.(type) {
+	case *localdir.Repo:
+		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
+		if c.client == nil {
+			c.client = localdir.CreateLocalDirClient(ctx, logger)
+		}
+	case *githubrepo.Repo:
+		if c.client == nil {
+			c.client = githubrepo.CreateGithubRepoClient(ctx, logger)
+		}
+	case *gitlabrepo.Repo:
+		if c.client == nil {
+			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
+			if err != nil {
+				return ScorecardResult{}, err
+			}
+		}
 	}
 
-	return runScorecard(ctx, repo, c.commit, c.commitDepth, c.checks, c.probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
+	if !strings.EqualFold(c.commit, clients.HeadSHA) {
+		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
+	}
+
+	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
+	if err != nil {
+		return ScorecardResult{}, err
+	}
+
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }
