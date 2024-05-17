@@ -126,6 +126,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
+
 	return nil
 }
 
