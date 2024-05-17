@@ -38,6 +38,7 @@ func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 	if _, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !experimental {
 		// TODO: remove this check when v6 is released
 		delete(possibleChecks, CheckWebHooks)
+		delete(possibleChecks, CheckSBOM)
 	}
 
 	return possibleChecks

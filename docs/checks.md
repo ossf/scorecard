@@ -541,6 +541,38 @@ is therefore not a definitive indication that the project is at risk.
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
 
+## SBOM 
+
+Risk: `Medium` (possible inaccurate reporting of dependencies/vulnerabilities)
+
+This check tries to determine if the project maintains a Software Bill of Materials (SBOM)
+either as a file in the source or a release artifact. 
+
+An SBOM can give users information about what dependencies your project has which
+allows them to identify vulnerabilities in the software supply chain.
+
+Standards to be used during checks;
+- OSSF SBOM Everywhere SIG naming and directory conventions:
+  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
+
+This check currently looks for the existence of an SBOM in the
+source of a project and as a pipeline or release artifact.
+
+An SBOM Exists (one or more) (5/10 points):
+  - Any SBOM found counts for this test either in source. pipeline or release. 
+  - A SBOM stored with your source code is not ideal, but is a good first step.
+  \* It is recommended to publish with your release artifacts.
+
+An SBOM is published as a release artifact (5/10 points):
+  - This is the preferred way to store an SBOM, and will be awarded full points.
+  - Checks release artifacts for an SBOM file matching established standards
+ 
+
+**Remediation steps**
+- For Gitlab, see more information [here](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/index.html#cyclonedx-software-bill-of-materials).
+- For GitHub, see more information [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security).
+- Alternatively, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/tools/) SBOMs.
+
 ## Security-Policy 
 
 Risk: `Medium` (possible insecure reporting of vulnerabilities)

@@ -40,6 +40,7 @@ const (
 	Packaging            CheckName = "Packaging"
 	PinnedDependencies   CheckName = "Pinned-Dependencies"
 	SAST                 CheckName = "SAST"
+	SBOM                 CheckName = "SBOM"
 	SecurityPolicy       CheckName = "Security-Policy"
 	SignedReleases       CheckName = "Signed-Releases"
 	TokenPermissions     CheckName = "Token-Permissions"
