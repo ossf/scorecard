@@ -106,14 +106,11 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 	return packageMangerResponse{}, nil
 }
 
-type npmSearchResults struct {
-	Objects []struct {
-		Package struct {
-			Links struct {
-				Repository string `json:"repository"`
-			} `json:"links"`
-		} `json:"package"`
-	} `json:"objects"`
+type npmResult struct{
+	Repository struct {
+		Url string `json:"url"`
+	} 
+
 }
 
 type pypiSearchResults struct {
@@ -127,26 +124,31 @@ type rubyGemsSearchResults struct {
 	SourceCodeURI string `json:"source_code_uri"`
 }
 
+
 // Gets the GitHub repository URL for the npm package.
 func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (string, error) {
-	npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
+	//npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
+	npmSearchURL := "https://registry.npmjs.org/%s/latest"
+
 	resp, err := packageManager.Get(npmSearchURL, packageName)
-	if err != nil {
+	if err != nil  {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
 	}
 
 	defer resp.Body.Close()
-	v := &npmSearchResults{}
+	//v := &npmSearchResults{}
+	v := &npmResult{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
 	}
-	if len(v.Objects) == 0 {
+	if resp.StatusCode == 404 || v.Repository.Url == "" { //len(v.Objects) == 0 || {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
 	}
-	return v.Objects[0].Package.Links.Repository, nil
-}
+	url := strings.TrimPrefix(strings.TrimSuffix(v.Repository.Url, ".git" ), "git+")
+	return url, nil
+} 
 
 func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
 	v := &pypiSearchResults{}
