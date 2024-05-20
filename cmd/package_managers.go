@@ -108,8 +108,8 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 
 type npmResult struct{
 	Repository struct {
-		Url string `json:"url"`
-	} 
+		URL string `json:"url"`
+	}  `json:"repository"`
 
 }
 
@@ -127,7 +127,6 @@ type rubyGemsSearchResults struct {
 
 // Gets the GitHub repository URL for the npm package.
 func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (string, error) {
-	//npmSearchURL := "https://registry.npmjs.org/-/v1/search?text=%s&size=1"
 	npmSearchURL := "https://registry.npmjs.org/%s/latest"
 
 	resp, err := packageManager.Get(npmSearchURL, packageName)
@@ -136,18 +135,16 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	}
 
 	defer resp.Body.Close()
-	//v := &npmSearchResults{}
 	v := &npmResult{}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
 	}
-	if resp.StatusCode == 404 || v.Repository.Url == "" { //len(v.Objects) == 0 || {
+	if resp.StatusCode == 404 || v.Repository.URL == "" { 
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
 	}
-	url := strings.TrimPrefix(strings.TrimSuffix(v.Repository.Url, ".git" ), "git+")
-	return url, nil
+	return strings.TrimPrefix(strings.TrimSuffix(v.Repository.URL, ".git" ), "git+"), nil
 } 
 
 func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (string, error) {
