@@ -48,47 +48,143 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 				packageName: "npm-package",
 				result: `
 {
-  "objects": [
+  "name": "@pulumi/pulumi",
+  "version": "3.116.1",
+  "description": "Pulumi's Node.js SDK",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pulumi/pulumi.git",
+    "directory": "sdk/nodejs"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.10.1",
+    "@logdna/tail-file": "^2.0.6",
+    "@npmcli/arborist": "^7.3.1",
+    "@opentelemetry/api": "^1.2.0",
+    "@opentelemetry/exporter-zipkin": "^1.6.0",
+    "@opentelemetry/instrumentation": "^0.32.0",
+    "@opentelemetry/instrumentation-grpc": "^0.32.0",
+    "@opentelemetry/resources": "^1.6.0",
+    "@opentelemetry/sdk-trace-base": "^1.6.0",
+    "@opentelemetry/sdk-trace-node": "^1.6.0",
+    "@opentelemetry/semantic-conventions": "^1.6.0",
+    "@pulumi/query": "^0.3.0",
+    "@types/google-protobuf": "^3.15.5",
+    "@types/semver": "^7.5.6",
+    "@types/tmp": "^0.2.6",
+    "execa": "^5.1.0",
+    "fdir": "^6.1.1",
+    "google-protobuf": "^3.5.0",
+    "got": "^11.8.6",
+    "ini": "^2.0.0",
+    "js-yaml": "^3.14.0",
+    "minimist": "^1.2.6",
+    "normalize-package-data": "^6.0.0",
+    "picomatch": "^3.0.1",
+    "pkg-dir": "^7.0.0",
+    "require-from-string": "^2.0.1",
+    "semver": "^7.5.2",
+    "source-map-support": "^0.5.6",
+    "tmp": "^0.2.1",
+    "upath": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/ini": "^1.3.31",
+    "@types/js-yaml": "^3.12.5",
+    "@types/minimist": "^1.2.0",
+    "@types/mocha": "^2.2.42",
+    "@types/node": "14.18.3",
+    "@types/normalize-package-data": "^2.4.0",
+    "@types/picomatch": "^2.3.3",
+    "@types/sinon": "^10.0.13",
+    "@types/split2": "^2.1.6",
+    "@types/uuid": "^9.0.7",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-import": "^2.23.4",
+    "mocha": "^9.0.0",
+    "nyc": "^15.1.0",
+    "rome": "^12.1.0",
+    "sinon": "^14.0.0",
+    "ts-node": "^7.0.1",
+    "typescript": "~3.8.3"
+  },
+  "peerDependencies": {
+    "ts-node": "\u003E= 7.0.1 \u003C 12",
+    "typescript": "\u003E= 3.8.3 \u003C 6"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    },
+    "ts-node": {
+      "optional": true
+    }
+  },
+  "pulumi": {
+    "comment": "Do not remove. Marks this as as a deployment-time-only package"
+  },
+  "engines": {
+    "node": "\u003E=18"
+  },
+  "mocha": {
+    "require": [
+      "ts-node/register",
+      "source-map-support/register"
+    ]
+  },
+  "//": [
+    "NOTE: @types/node is pinned due to grpc/grpc-node#2002"
+  ],
+  "types": "./index.d.ts",
+  "bugs": {
+    "url": "https://github.com/pulumi/pulumi/issues"
+  },
+  "homepage": "https://github.com/pulumi/pulumi#readme",
+  "_id": "@pulumi/pulumi@3.116.1",
+  "_integrity": "sha512-Haweoa0O94MG+czV7+lcYJKunRCBxSz8VoHY23JWoCASWSc3i7/h4U8ejZB88GnrrRRQSihnKVCuz4Mb5Ngm+A==",
+  "_resolved": "/home/runner/work/pulumi/pulumi/artifacts/sdk-nodejs-pulumi-pulumi-3.116.1.tgz",
+  "_from": "file:../../artifacts/sdk-nodejs-pulumi-pulumi-3.116.1.tgz",
+  "_nodeVersion": "16.20.2",
+  "_npmVersion": "8.19.4",
+  "dist": {
+    "integrity": "sha512-Haweoa0O94MG+czV7+lcYJKunRCBxSz8VoHY23JWoCASWSc3i7/h4U8ejZB88GnrrRRQSihnKVCuz4Mb5Ngm+A==",
+    "shasum": "226b662634635105c079fb6f583fa3eea92aefa8",
+    "tarball": "https://registry.npmjs.org/@pulumi/pulumi/-/pulumi-3.116.1.tgz",
+    "fileCount": 494,
+    "unpackedSize": 14427261,
+    "signatures": [
+      {
+        "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA",
+        "sig": "MEQCIHDRPDKsVOQV7TvjvCJ7IWETqK35d8tfyesh1X7SCKKJAiAFfjVGFCIxAeu1eeZoO+H9kM8Lc/MWWsEyDGStbX/Q6g=="
+      }
+    ]
+  },
+  "_npmUser": {
+    "name": "pulumi-bot",
+    "email": "bot@pulumi.com"
+  },
+  "directories": {
+
+  },
+  "maintainers": [
     {
-      "package": {
-        "name": "@pulumi/pulumi",
-        "scope": "pulumi",
-        "version": "3.26.0",
-        "description": "Pulumi's Node.js SDK",
-        "date": "2022-03-09T14:05:40.682Z",
-        "links": {
-          "homepage": "https://github.com/pulumi/pulumi#readme",
-          "repository": "https://github.com/pulumi/pulumi",
-          "bugs": "https://github.com/pulumi/pulumi/issues"
-        },
-        "publisher": {
-          "username": "pulumi-bot",
-          "email": "bot@pulumi.com"
-        },
-        "maintainers": [
-          {
-            "username": "joeduffy",
-            "email": "joe@pulumi.com"
-          },
-          {
-            "username": "pulumi-bot",
-            "email": "bot@pulumi.com"
-          }
-        ]
-      },
-      "score": {
-        "final": 0.4056031974977145,
-        "detail": {
-          "quality": 0.7308571951451065,
-          "popularity": 0.19908392082147397,
-          "maintenance": 0.3333333333333333
-        }
-      },
-      "searchScore": 0.00090895034
+      "name": "joeduffy",
+      "email": "joe@pulumi.com"
+    },
+    {
+      "name": "pulumi-bot",
+      "email": "bot@pulumi.com"
     }
   ],
-  "total": 380,
-  "time": "Wed Mar 09 2022 18:11:10 GMT+0000 (Coordinated Universal Time)"
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/pulumi_3.116.1_1715761997764_0.7694246358483017"
+  },
+  "_hasShrinkwrap": false
 }
 				`,
 			},
