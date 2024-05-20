@@ -37,6 +37,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+	SBOMResults                 SBOMData
 	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
@@ -177,6 +178,18 @@ type LicenseFile struct {
 // Some repos may have more than one license.
 type LicenseData struct {
 	LicenseFiles []LicenseFile
+}
+
+// SBOM details.
+type SBOM struct {
+	Name string // SBOM Filename
+	File File   // SBOM File Object
+}
+
+// SBOMData contains the raw results for the SBOM check.
+// Some repos may have more than one SBOM.
+type SBOMData struct {
+	SBOMFiles []SBOM
 }
 
 // CodeReviewData contains the raw results
