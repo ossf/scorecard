@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/osvscanner"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var _ VulnerabilitiesClient = osvClient{}

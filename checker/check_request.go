@@ -17,7 +17,8 @@ package checker
 import (
 	"context"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 )
 
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
@@ -29,6 +30,7 @@ type CheckRequest struct {
 	Dlogger               DetailLogger
 	Repo                  clients.Repo
 	VulnerabilitiesClient clients.VulnerabilitiesClient
+	ProjectClient         packageclient.ProjectPackageClient
 	// UPGRADEv6: return raw results instead of scores.
 	RawResults    *RawResults
 	RequiredTypes []RequestType

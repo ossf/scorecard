@@ -17,9 +17,9 @@ package pkg
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding/probe"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 func TestDetailString(t *testing.T) {
@@ -122,7 +122,7 @@ func TestDetailString(t *testing.T) {
 				Msg: checker.LogMessage{
 					Text: "some meaningful text",
 					Path: "Dockerfile",
-					Remediation: &probe.Remediation{
+					Remediation: &finding.Remediation{
 						Text: "fix x by doing y",
 					},
 				},

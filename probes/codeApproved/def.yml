@@ -27,6 +27,7 @@ outcome:
   - If any commits were not approved, the probe returns OutcomeFalse
   - If there are no changes, the probe returns OutcomeNotApplicable
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Follow the instructions at https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/approving-a-pull-request-with-required-reviews.

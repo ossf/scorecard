@@ -24,13 +24,13 @@ import (
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 
-	"github.com/ossf/scorecard/v4/attestor/command"
-	"github.com/ossf/scorecard/v4/attestor/policy"
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
-	"github.com/ossf/scorecard/v4/clients"
-	sclog "github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/attestor/command"
+	"github.com/ossf/scorecard/v5/attestor/policy"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/clients"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
@@ -242,11 +242,11 @@ func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
 			Fn: checks.PinningDependencies,
 		},
 	}
-	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
 	if err != nil {
 		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up clients: %w", err)
 	}
 
-	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient)
+	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient)
 }

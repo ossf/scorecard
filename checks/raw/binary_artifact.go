@@ -19,38 +19,22 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"unicode/utf8"
 
-	semver "github.com/Masterminds/semver/v3"
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
 	"github.com/rhysd/actionlint"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks/fileparser"
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-)
-
-var (
-	gradleWrapperValidationActionRegex             = regexp.MustCompile(`^gradle\/wrapper-validation-action@v?(.+)$`)
-	gradleWrapperValidationActionVersionConstraint = mustParseConstraint(`>= 1.0.0`)
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // how many bytes are considered when determining if a file is text or binary.
 const binaryTestLen = 1024
-
-// mustParseConstraint attempts parse of semver constraint, panics if fail.
-func mustParseConstraint(c string) *semver.Constraints {
-	if c, err := semver.NewConstraint(c); err != nil {
-		panic(fmt.Errorf("failed to parse constraint: %w", err))
-	} else {
-		return c
-	}
-}
 
 // BinaryArtifacts retrieves the raw data for the Binary-Artifacts check.
 func BinaryArtifacts(req *checker.CheckRequest) (checker.BinaryArtifactData, error) {
@@ -183,9 +167,9 @@ var checkBinaryFileReader fileparser.DoWhileTrueOnFileReader = func(path string,
 //	A version of golang.org/x/tools/godoc/util modified to allow carriage returns
 //	and utf8.RuneError (0xFFFD), as the file may not be utf8 encoded.
 func isText(s []byte) bool {
-	const max = binaryTestLen // at least utf8.UTFMax (4)
-	if len(s) > max {
-		s = s[0:max]
+	const maxLen = binaryTestLen // at least utf8.UTFMax (4)
+	if len(s) > maxLen {
+		s = s[0:maxLen]
 	}
 	for i, c := range string(s) {
 		if i+utf8.UTFMax > len(s) {
@@ -266,18 +250,8 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 			if ea.Uses == nil {
 				continue
 			}
-			sms := gradleWrapperValidationActionRegex.FindStringSubmatch(ea.Uses.Value)
-			if len(sms) > 1 {
-				v, err := semver.NewVersion(sms[1])
-				if err != nil {
-					// Couldn't parse version, hopefully another step has
-					// a correct one.
-					continue
-				}
-				if !gradleWrapperValidationActionVersionConstraint.Check(v) {
-					// Version out of acceptable range.
-					continue
-				}
+			if strings.HasPrefix(ea.Uses.Value, "gradle/wrapper-validation-action@") ||
+				strings.HasPrefix(ea.Uses.Value, "gradle/actions/wrapper-validation@") {
 				// OK! This is it.
 				*validatingWorkflowFile = filepath.Base(path)
 				return false, nil

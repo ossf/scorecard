@@ -19,11 +19,15 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func emptyImpl(r *checker.RawResults) ([]finding.Finding, string, error) {
+	return nil, "", nil
+}
+
+func emptyIndependentImpl(c *checker.CheckRequest) ([]finding.Finding, string, error) {
 	return nil, "", nil
 }
 
@@ -81,6 +85,14 @@ func Test_register(t *testing.T) {
 				Name:            "foo",
 				Implementation:  emptyImpl,
 				RequiredRawData: []CheckName{BinaryArtifacts},
+			},
+			wantErr: false,
+		},
+		{
+			name: "independent probe registration",
+			probe: Probe{
+				Name:                      "bar",
+				IndependentImplementation: emptyIndependentImpl,
 			},
 			wantErr: false,
 		},

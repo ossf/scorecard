@@ -17,10 +17,10 @@ package evaluation
 import (
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
 )
 
 // Vulnerabilities applies the score policy for the Vulnerabilities check.
@@ -40,8 +40,7 @@ func Vulnerabilities(name string,
 	var numVulnsFound int
 	for i := range findings {
 		f := &findings[i]
-		// TODO(#3654), this needs to be swapped. But it's a complicated swap so doing it not in here.
-		if f.Outcome == finding.OutcomeFalse {
+		if f.Outcome == finding.OutcomeTrue {
 			numVulnsFound++
 			checker.LogFinding(dl, f, checker.DetailWarn)
 		}

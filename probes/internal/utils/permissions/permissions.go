@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func createText(t checker.TokenPermission) (string, error) {
@@ -90,11 +90,13 @@ func ReadTrueLevelFinding(probe string,
 	r checker.TokenPermission,
 	metadata map[string]string,
 ) (*finding.Finding, error) {
-	f, err := finding.NewWith(fs, probe,
-		"found token with 'read' permissions",
-		nil, finding.OutcomeTrue)
+	text, err := createText(r)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
+	}
+	f, err := finding.NewWith(fs, probe, text, nil, finding.OutcomeTrue)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
 	}
 	if r.File != nil {
 		f = f.WithLocation(r.File.Location())

@@ -21,10 +21,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/ossf/scorecard/v4/checker"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/checker"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 type jsonCheckResult struct {
@@ -49,12 +49,13 @@ type jsonCheckDocumentationV2 struct {
 
 //nolint:govet
 type jsonCheckResultV2 struct {
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
-	Reason  string                   `json:"reason"`
-	Name    string                   `json:"name"`
-	Details []string                 `json:"details"`
-	ID      uint                     `json:"id"`
-	Score   int                      `json:"score"`
+	Details     []string                 `json:"details"`
+	Score       int                      `json:"score"`
+	Reason      string                   `json:"reason"`
+	Name        string                   `json:"name"`
+	Doc         jsonCheckDocumentationV2 `json:"documentation"`
+	Annotations []string                 `json:"annotations,omitempty"`
+	ID          uint                     `json:"id"`
 }
 
 type jsonRepoV2 struct {
@@ -86,6 +87,13 @@ type JSONScorecardResultV2 struct {
 	Checks         []jsonCheckResultV2 `json:"checks"`
 	Metadata       []string            `json:"metadata"`
 	AggregateScore jsonFloatScore      `json:"score"`
+}
+
+// AsJSON2ResultOption provides configuration options for JSON2 Scorecard results.
+type AsJSON2ResultOption struct {
+	LogLevel    log.Level
+	Details     bool
+	Annotations bool
 }
 
 // AsJSON exports results as JSON for new detail format.
@@ -122,8 +130,8 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
+func (r *ScorecardResult) AsJSON2(writer io.Writer,
+	checkDocs docs.Doc, o AsJSON2ResultOption,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
@@ -164,14 +172,20 @@ func (r *ScorecardResult) AsJSON2(showDetails bool,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
-		if showDetails {
+		if o.Details {
 			for i := range checkResult.Details {
 				d := checkResult.Details[i]
-				m := DetailToString(&d, logLevel)
+				m := DetailToString(&d, o.LogLevel)
 				if m == "" {
 					continue
 				}
 				tmpResult.Details = append(tmpResult.Details, m)
+			}
+		}
+		if o.Annotations {
+			exempted, reasons := checkResult.IsExempted(r.Config)
+			if exempted {
+				tmpResult.Annotations = reasons
 			}
 		}
 		out.Checks = append(out.Checks, tmpResult)

@@ -16,7 +16,7 @@ package checker
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/finding"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func TestFile_Location(t *testing.T) {

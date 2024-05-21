@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
@@ -56,11 +56,11 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	for i := range releases {
 		release := releases[i]
+		if i >= releaseLookBack {
+			break
+		}
 		if len(release.Assets) == 0 {
 			continue
-		}
-		if i == releaseLookBack {
-			break
 		}
 		totalReleases++
 		hasProvenance := false

@@ -1,7 +1,7 @@
 # How to handle errors
 
 ```golang
-import sce "github.com/ossf/scorecard/v4/errors"
+import sce "github.com/ossf/scorecard/v5/errors"
 
 // Public errors are defined in errors/public.go and are exposed to callers.
 // Internal errors are defined in checks/errors.go. Their names start with errInternalXXX

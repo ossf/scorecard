@@ -19,10 +19,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v5/config"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 type (
@@ -86,13 +87,13 @@ type LogMessage struct {
 	Finding *finding.Finding
 
 	// Non-structured results.
-	Text        string             // A short string explaining why the detail was recorded/logged.
-	Path        string             // Fullpath to the file.
-	Type        finding.FileType   // Type of file.
-	Offset      uint               // Offset in the file of Path (line for source/text files).
-	EndOffset   uint               // End of offset in the file, e.g. if the command spans multiple lines.
-	Snippet     string             // Snippet of code
-	Remediation *probe.Remediation // Remediation information, if any.
+	Text        string               // A short string explaining why the detail was recorded/logged.
+	Path        string               // Fullpath to the file.
+	Type        finding.FileType     // Type of file.
+	Offset      uint                 // Offset in the file of Path (line for source/text files).
+	EndOffset   uint                 // End of offset in the file, e.g. if the command spans multiple lines.
+	Snippet     string               // Snippet of code
+	Remediation *finding.Remediation // Remediation information, if any.
 }
 
 // ProportionalScoreWeighted is a structure that contains
@@ -254,4 +255,33 @@ func LogFinding(dl DetailLogger, f *finding.Finding, level DetailType) {
 	case DetailWarn:
 		dl.Warn(&lm)
 	}
+}
+
+// IsExempted verifies if a given check in the results is exempted in annotations.
+func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
+	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
+	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
+	// or on the maintainers side
+	if check.Score == MaxResultScore {
+		return false, nil
+	}
+
+	// Collect all annotation reasons for this check
+	var reasons []string
+
+	// For all annotations
+	for _, annotation := range c.Annotations {
+		for _, checkName := range annotation.Checks {
+			// If check is in this annotation
+			if strings.EqualFold(checkName, check.Name) {
+				// Get all the reasons for this annotation
+				for _, reasonGroup := range annotation.Reasons {
+					reasons = append(reasons, reasonGroup.Reason.Doc())
+				}
+			}
+		}
+	}
+
+	// A check is considered exempted if it has annotation reasons
+	return (len(reasons) > 0), reasons
 }

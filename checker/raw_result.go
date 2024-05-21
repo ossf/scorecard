@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // RawResults contains results before a policy
@@ -38,6 +37,7 @@ type RawResults struct {
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
 	LicenseResults              LicenseData
+	SBOMResults                 SBOMData
 	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
 	PackagingResults            PackagingData
@@ -126,7 +126,7 @@ type Dependency struct {
 	Location    *File
 	Msg         *string // Only for debug messages.
 	Pinned      *bool
-	Remediation *probe.Remediation
+	Remediation *finding.Remediation
 	Type        DependencyUseType
 }
 
@@ -167,6 +167,18 @@ type LicenseFile struct {
 // Some repos may have more than one license.
 type LicenseData struct {
 	LicenseFiles []LicenseFile
+}
+
+// SBOM details.
+type SBOM struct {
+	Name string // SBOM Filename
+	File File   // SBOM File Object
+}
+
+// SBOMData contains the raw results for the SBOM check.
+// Some repos may have more than one SBOM.
+type SBOMData struct {
+	SBOMFiles []SBOM
 }
 
 // CodeReviewData contains the raw results

@@ -1,0 +1,35 @@
+# Copyright 2023 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: createdRecently
+short: Checks if the project was created in the last 90 days.
+motivation: >
+  Recently created repositories have been used for malicious forks / typosquatting attacks in the past.
+  A newly created repo is not a strong signal on its own, but can be a useful piece of information.  
+implementation: >
+  The implementation checks the creation date is within the last 90 days.
+outcome:
+  - If the project was created within the last 90 days, the outcome is OutcomeTrue.
+  - If the project is older than 90 days, the outcome is OutcomeFalse. The finding will include a "lookBackDays" value which is the time period that the probe looks back in. 
+remediation:
+  onOutcome: True
+  effort: Low
+  text:
+    - The only remediation for this probe is to wait until 90 days have passed after a project has been created.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

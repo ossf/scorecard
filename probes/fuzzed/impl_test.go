@@ -20,11 +20,11 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/internal/fuzzers"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/fuzzers"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func Test_Run(t *testing.T) {
@@ -174,7 +174,7 @@ func TestRun_Detailed(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if diff := cmp.Diff(findings, tt.expected); diff != "" {
+			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
 				t.Error(diff)
 			}
 		})

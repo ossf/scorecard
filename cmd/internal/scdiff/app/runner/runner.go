@@ -19,15 +19,16 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/githubrepo"
-	"github.com/ossf/scorecard/v4/clients/gitlabrepo"
-	"github.com/ossf/scorecard/v4/clients/ossfuzz"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 const (
@@ -45,6 +46,7 @@ type Runner struct {
 	ossFuzz       clients.RepoClient
 	cii           clients.CIIBestPracticesClient
 	vuln          clients.VulnerabilitiesClient
+	deps          packageclient.ProjectPackageClient
 }
 
 // Creates a Runner which will run the listed checks. If no checks are provided, all will run.
@@ -72,14 +74,16 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 	r.log("processing repo: " + repoURI)
 	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
-	if errors.Is(err, sce.ErrorUnsupportedHost) {
+	if errors.Is(err, sce.ErrUnsupportedHost) {
 		repo, err = gitlabrepo.MakeGitlabRepo(repoURI)
 		repoClient = r.gitlabClient
 	}
 	if err != nil {
 		return pkg.ScorecardResult{}, err
 	}
-	return pkg.RunScorecard(r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln)
+	return pkg.RunScorecard(
+		r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln, r.deps,
+	)
 }
 
 // logs only if logger is set.

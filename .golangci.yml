@@ -15,10 +15,10 @@ issues:
   exclude-rules:
     - path: '(.+)_test\.go'
       linters:
+        - err113
         - funlen
         - goconst
         - gocyclo
-        - goerr113
         - lll
         - wrapcheck
   # probes must register via init
@@ -31,6 +31,7 @@ linters:
   enable:
     - asciicheck
     - dogsled
+    - err113
     - errcheck
     - errname
     - errorlint
@@ -45,7 +46,6 @@ linters:
     - gocyclo
     - godot
     - godox
-    - goerr113
     - gofmt
     - gofumpt
     - goheader
@@ -165,4 +165,4 @@ linters-settings:
     require-specific: true
   wrapcheck:
     ignorePackageGlobs:
-      - github.com/ossf/scorecard/v4/checks/fileparser
+      - github.com/ossf/scorecard/v5/checks/fileparser

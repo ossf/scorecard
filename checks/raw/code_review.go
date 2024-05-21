@@ -20,12 +20,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 var (
-	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:\s*(\w+)`)
+	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:[^\r\n]*(D\d+)`)
 	rePiperRevID       = regexp.MustCompile(`PiperOrigin-RevId:\s*(\d{3,})`)
 )
 

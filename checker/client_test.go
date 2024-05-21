@@ -17,9 +17,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ossf/scorecard/v4/log"
+	"github.com/ossf/scorecard/v5/log"
 )
 
+//nolint:gocognit
 func TestGetClients(t *testing.T) {
 	type args struct { //nolint:govet
 		ctx      context.Context
@@ -28,16 +29,17 @@ func TestGetClients(t *testing.T) {
 		logger   *log.Logger
 	}
 	tests := []struct { //nolint:govet
-		name                  string
-		args                  args
-		shouldOSSFuzzBeNil    bool
-		shouldRepoClientBeNil bool
-		shouldVulnClientBeNil bool
-		shouldRepoBeNil       bool
-		shouldCIIBeNil        bool
-		wantErr               bool
-		experimental          bool
-		isGhHost              bool
+		name                     string
+		args                     args
+		shouldOSSFuzzBeNil       bool
+		shouldRepoClientBeNil    bool
+		shouldVulnClientBeNil    bool
+		shouldRepoBeNil          bool
+		shouldCIIBeNil           bool
+		shouldProjectClientBeNil bool
+		wantErr                  bool
+		experimental             bool
+		isGhHost                 bool
 	}{
 		{
 			name: "localURI is not empty",
@@ -105,7 +107,7 @@ func TestGetClients(t *testing.T) {
 				t.Setenv("GH_HOST", "github.corp.com")
 				t.Setenv("GH_TOKEN", "PAT")
 			}
-			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger)
+			got, repoClient, ossFuzzClient, ciiClient, vulnsClient, projectClient, err := GetClients(tt.args.ctx, tt.args.repoURI, tt.args.localURI, tt.args.logger)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("GetClients() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -123,6 +125,9 @@ func TestGetClients(t *testing.T) {
 			}
 			if vulnsClient != nil && tt.shouldVulnClientBeNil {
 				t.Errorf("GetClients() vulnsClient = %v", vulnsClient)
+			}
+			if projectClient != nil && tt.shouldProjectClientBeNil {
+				t.Errorf("GetClients() projectClient = %v", projectClient)
 			}
 		})
 	}

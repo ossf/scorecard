@@ -19,9 +19,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/ossf/scorecard/v4/docs/checks"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/docs/checks"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 const logLevel = log.DefaultLevel
@@ -56,5 +56,9 @@ func JSON(r *pkg.ScorecardResult, w io.Writer) error {
 		return err
 	}
 	Normalize(r)
-	return r.AsJSON2(details, logLevel, docs, w)
+	o := pkg.AsJSON2ResultOption{
+		Details:  details,
+		LogLevel: logLevel,
+	}
+	return r.AsJSON2(w, docs, o)
 }

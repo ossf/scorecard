@@ -18,7 +18,7 @@ package checks
 import (
 	"os"
 
-	"github.com/ossf/scorecard/v4/checker"
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 // allChecks is the list of all registered security checks.
@@ -38,6 +38,7 @@ func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 	if _, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !experimental {
 		// TODO: remove this check when v6 is released
 		delete(possibleChecks, CheckWebHooks)
+		delete(possibleChecks, CheckSBOM)
 	}
 
 	return possibleChecks

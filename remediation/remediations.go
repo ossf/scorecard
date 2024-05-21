@@ -21,8 +21,8 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding/probe"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 var errInvalidArg = errors.New("invalid argument")
@@ -62,11 +62,11 @@ func New(c *checker.CheckRequest) (*RemediationMetadata, error) {
 }
 
 // CreateWorkflowPinningRemediation create remediation for pinning GH Actions.
-func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *probe.Remediation {
+func (r *RemediationMetadata) CreateWorkflowPinningRemediation(filepath string) *finding.Remediation {
 	return r.createWorkflowRemediation(filepath, "pin")
 }
 
-func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *probe.Remediation {
+func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *finding.Remediation {
 	p := strings.TrimPrefix(path, ".github/workflows/")
 	if r.Branch == "" || r.Repo == "" {
 		return nil
@@ -75,7 +75,7 @@ func (r *RemediationMetadata) createWorkflowRemediation(path, t string) *probe.R
 	text := fmt.Sprintf(workflowText, r.Repo, p, r.Branch, t)
 	markdown := fmt.Sprintf(workflowMarkdown, r.Repo, p, r.Branch, t)
 
-	return &probe.Remediation{
+	return &finding.Remediation{
 		Text:     text,
 		Markdown: markdown,
 	}
@@ -101,7 +101,7 @@ func (c CraneDigester) Digest(name string) (string, error) {
 }
 
 // CreateDockerfilePinningRemediation create remediation for pinning Dockerfile images.
-func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *probe.Remediation {
+func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digester) *finding.Remediation {
 	name, ok := dockerImageName(dep)
 	if !ok {
 		return nil
@@ -115,7 +115,7 @@ func CreateDockerfilePinningRemediation(dep *checker.Dependency, digester Digest
 	text := fmt.Sprintf(dockerfilePinText, name, hash)
 	markdown := text
 
-	return &probe.Remediation{
+	return &finding.Remediation{
 		Text:     text,
 		Markdown: markdown,
 	}

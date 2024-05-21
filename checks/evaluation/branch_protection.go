@@ -18,20 +18,20 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
-	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
-	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
-	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
-	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
-	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
-	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
-	"github.com/ossf/scorecard/v4/probes/requiresLastPushApproval"
-	"github.com/ossf/scorecard/v4/probes/requiresPRsToChangeCode"
-	"github.com/ossf/scorecard/v4/probes/requiresUpToDateBranches"
-	"github.com/ossf/scorecard/v4/probes/runsStatusChecksBeforeMerging"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
+	"github.com/ossf/scorecard/v5/probes/blocksForcePushOnBranches"
+	"github.com/ossf/scorecard/v5/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
+	"github.com/ossf/scorecard/v5/probes/dismissesStaleReviews"
+	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
+	"github.com/ossf/scorecard/v5/probes/requiresCodeOwnersReview"
+	"github.com/ossf/scorecard/v5/probes/requiresLastPushApproval"
+	"github.com/ossf/scorecard/v5/probes/requiresPRsToChangeCode"
+	"github.com/ossf/scorecard/v5/probes/requiresUpToDateBranches"
+	"github.com/ossf/scorecard/v5/probes/runsStatusChecksBeforeMerging"
 )
 
 const (
@@ -152,51 +152,55 @@ func BranchProtection(name string,
 			branchScores[branchName] = &levelScore{}
 		}
 
-		var score, max int
+		var score, maxScore int
 
 		doLogging := protectedBranches[branchName]
 		switch f.Probe {
 		case blocksDeleteOnBranches.Probe, blocksForcePushOnBranches.Probe:
-			score, max = deleteAndForcePushProtection(f, doLogging, dl)
+			score, maxScore = deleteAndForcePushProtection(f, doLogging, dl)
 			branchScores[branchName].scores.basic += score
-			branchScores[branchName].maxes.basic += max
+			branchScores[branchName].maxes.basic += maxScore
 
 		case dismissesStaleReviews.Probe, branchProtectionAppliesToAdmins.Probe:
-			score, max = adminThoroughReviewProtection(f, doLogging, dl)
+			score, maxScore = adminThoroughReviewProtection(f, doLogging, dl)
 			branchScores[branchName].scores.adminThoroughReview += score
-			branchScores[branchName].maxes.adminThoroughReview += max
+			branchScores[branchName].maxes.adminThoroughReview += maxScore
 
 		case requiresApproversForPullRequests.Probe:
+			noOfRequiredReviewers, err := getReviewerCount(f)
+			if err != nil {
+				e := sce.WithMessage(sce.ErrScorecardInternal, "unable to get reviewer count")
+				return checker.CreateRuntimeErrorResult(name, e)
+			}
 			// Scorecard evaluation scores twice with this probe:
 			// Once if the count is above 0
 			// Once if the count is above 2
-			score, max = nonAdminThoroughReviewProtection(f, doLogging, dl)
+			score, maxScore = logReviewerCount(f, doLogging, dl, noOfRequiredReviewers)
 			branchScores[branchName].scores.thoroughReview += score
-			branchScores[branchName].maxes.thoroughReview += max
+			branchScores[branchName].maxes.thoroughReview += maxScore
 
 			reviewerWeight := 2
-			max = reviewerWeight
-			noOfRequiredReviewers, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
+			maxScore = reviewerWeight
 			if f.Outcome == finding.OutcomeTrue && noOfRequiredReviewers > 0 {
 				branchScores[branchName].scores.review += reviewerWeight
 			}
-			branchScores[branchName].maxes.review += max
+			branchScores[branchName].maxes.review += maxScore
 
 		case requiresCodeOwnersReview.Probe:
-			score, max = codeownerBranchProtection(f, doLogging, dl)
+			score, maxScore = codeownerBranchProtection(f, doLogging, dl)
 			branchScores[branchName].scores.codeownerReview += score
-			branchScores[branchName].maxes.codeownerReview += max
+			branchScores[branchName].maxes.codeownerReview += maxScore
 
 		case requiresUpToDateBranches.Probe, requiresLastPushApproval.Probe,
 			requiresPRsToChangeCode.Probe:
-			score, max = adminReviewProtection(f, doLogging, dl)
+			score, maxScore = adminReviewProtection(f, doLogging, dl)
 			branchScores[branchName].scores.adminReview += score
-			branchScores[branchName].maxes.adminReview += max
+			branchScores[branchName].maxes.adminReview += maxScore
 
 		case runsStatusChecksBeforeMerging.Probe:
-			score, max = nonAdminContextProtection(f, doLogging, dl)
+			score, maxScore = nonAdminContextProtection(f, doLogging, dl)
 			branchScores[branchName].scores.context += score
-			branchScores[branchName].maxes.context += max
+			branchScores[branchName].maxes.context += maxScore
 		}
 	}
 
@@ -233,6 +237,22 @@ func getBranchName(f *finding.Finding) (string, error) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, "no branch name found")
 	}
 	return name, nil
+}
+
+func getReviewerCount(f *finding.Finding) (int, error) {
+	// assume no review required if data not available
+	if f.Outcome == finding.OutcomeNotAvailable {
+		return 0, nil
+	}
+	countString, ok := f.Values[requiresApproversForPullRequests.RequiredReviewersKey]
+	if !ok {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "no required reviewer count found")
+	}
+	count, err := strconv.Atoi(countString)
+	if err != nil {
+		return 0, sce.WithMessage(sce.ErrScorecardInternal, "unable to parse required reviewer count")
+	}
+	return count, nil
 }
 
 func sumUpScoreForTier(t tier, scoresData []levelScore) int {
@@ -288,11 +308,11 @@ func logInfoOrWarn(f *finding.Finding, doLogging bool, dl checker.DetailLogger) 
 	}
 }
 
-func normalizeScore(score, max, level int) float64 {
-	if max == 0 {
+func normalizeScore(score, maxScore, level int) float64 {
+	if maxScore == 0 {
 		return float64(level)
 	}
-	return float64(score*level) / float64(max)
+	return float64(score*level) / float64(maxScore)
 }
 
 func computeFinalScore(scores []levelScore) (int, error) {
@@ -382,55 +402,54 @@ func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interfac
 }
 
 func deleteAndForcePushProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+	var score, maxScore int
 	logWithoutDebug(f, doLogging, dl)
 	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
-	max++
+	maxScore++
 
-	return score, max
+	return score, maxScore
 }
 
 func nonAdminContextProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+	var score, maxScore int
 	logInfoOrWarn(f, doLogging, dl)
 	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
-	max++
-	return score, max
+	maxScore++
+	return score, maxScore
 }
 
 func adminReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+	var score, maxScore int
 	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	logWithDebug(f, doLogging, dl)
 	if f.Outcome != finding.OutcomeNotAvailable {
-		max++
+		maxScore++
 	}
-	return score, max
+	return score, maxScore
 }
 
 func adminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+	var score, maxScore int
 
 	logWithDebug(f, doLogging, dl)
 	if f.Outcome == finding.OutcomeTrue {
 		score++
 	}
 	if f.Outcome != finding.OutcomeNotAvailable {
-		max++
+		maxScore++
 	}
-	return score, max
+	return score, maxScore
 }
 
-func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+func logReviewerCount(f *finding.Finding, doLogging bool, dl checker.DetailLogger, noOfRequiredReviews int) (int, int) {
+	var score, maxScore int
 	if f.Outcome == finding.OutcomeTrue {
-		noOfRequiredReviews, _ := strconv.Atoi(f.Values["numberOfRequiredReviewers"]) //nolint:errcheck
 		if noOfRequiredReviews >= minReviews {
 			info(dl, doLogging, f.Message)
 			score++
@@ -440,18 +459,18 @@ func nonAdminThoroughReviewProtection(f *finding.Finding, doLogging bool, dl che
 	} else if f.Outcome == finding.OutcomeFalse {
 		warn(dl, doLogging, f.Message)
 	}
-	max++
-	return score, max
+	maxScore++
+	return score, maxScore
 }
 
 func codeownerBranchProtection(f *finding.Finding, doLogging bool, dl checker.DetailLogger) (int, int) {
-	var score, max int
+	var score, maxScore int
 	if f.Outcome == finding.OutcomeTrue {
 		info(dl, doLogging, f.Message)
 		score++
 	} else {
 		warn(dl, doLogging, f.Message)
 	}
-	max++
-	return score, max
+	maxScore++
+	return score, maxScore
 }

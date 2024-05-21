@@ -25,10 +25,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	"github.com/ossf/scorecard/v4/finding/probe"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestGithubWorkflowPinning(t *testing.T) {
@@ -1874,7 +1874,7 @@ func TestCollectDockerfilePinning(t *testing.T) {
 					},
 					Pinned: boolAsPointer(false),
 					Type:   "containerImage",
-					Remediation: &probe.Remediation{
+					Remediation: &finding.Remediation{
 						Text: "pin your Docker image by updating python:3.7 to python:3.7" +
 							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
 						Markdown: "pin your Docker image by updating python:3.7 to python:3.7" +

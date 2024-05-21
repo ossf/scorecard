@@ -22,6 +22,7 @@ outcome:
   - The probe returns 1 false outcome per workflow with "write" permissions at the "job" level.
   - The probe returns 1 true outcome if the project has no workflows "write" permissions a the "job" level.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - Visit https://app.stepsecurity.io/secureworkflow/${{ metadata.repository.uri }}/${{ metadata.workflow }}/${{ metadata.repository.defaultBranch }}?enable=permissions

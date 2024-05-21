@@ -24,10 +24,11 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/config"
-	"github.com/ossf/scorecard/v4/cron/data"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/cron/config"
+	"github.com/ossf/scorecard/v5/cron/data"
 )
 
 const ciiBaseURL = "https://www.bestpractices.dev/projects.json"
@@ -41,6 +42,9 @@ func writeToCIIDataBucket(ctx context.Context, pageResp []ciiPageResp, bucketURL
 	for _, project := range pageResp {
 		projectURL := strings.TrimPrefix(project.RepoURL, "https://")
 		projectURL = strings.TrimPrefix(projectURL, "http://")
+		if projectURL == "" {
+			continue
+		}
 		jsonData, err := clients.BadgeResponse{
 			BadgeLevel: project.BadgeLevel,
 		}.AsJSON()
@@ -95,9 +99,13 @@ func main() {
 		panic(err)
 	}
 
+	throttle := time.NewTicker(time.Second) // bestpractices.dev wants 1 QPS
+	defer throttle.Stop()
+
 	pageNum := 1
 	pageResp, err := getPage(ctx, pageNum)
 	for err == nil && len(pageResp) > 0 {
+		<-throttle.C
 		if err := writeToCIIDataBucket(ctx, pageResp, ciiDataBucket); err != nil {
 			panic(err)
 		}

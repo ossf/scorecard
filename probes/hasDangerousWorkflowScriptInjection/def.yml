@@ -15,18 +15,20 @@
 id: hasDangerousWorkflowScriptInjection
 short: Check whether the project has GitHub Actions workflows that enable script injection.
 motivation: >
-  Script Injection with Untrusted Context Variables: This pattern detects whether a workflow's inline script may execute untrusted input from attackers. This occurs when an attacker adds malicious commands and scripts to a context. When a workflow runs, these strings may be interpreted as code that is executed on the runner. Attackers can add their own content to certain github context variables that are considered untrusted, for example, github.event.issue.title. These values should not flow directly into executable code.
+  Script injections allow attackers to use untrusted input to access privileged resources (code execution, secret exfiltration, etc.)
 implementation: >
-  The probe iterates through the workflows from the raw results and checks the workflow type. If it finds a workflow of the type `DangerousWorkflowScriptInjection`, it returns.
+  The probe analyzes the repository's workflows for known dangerous patterns.
 outcome:
-  - If the project has at least one workflow with possibility of script injection, the probe returns one finding with OutcomeFalse (0).
-  - If the project does not have a single workflow with possibility of script injection, the probe returns one finding with OutcomeTrue (1).
+  - The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected.
+  - If no dangerous patterns are found, the probe returns one finding with OutcomeFalse.
 remediation:
+  onOutcome: True
   effort: Low
   text:
     - Avoid the dangerous workflow patterns.
   markdown:
-    - Avoid the dangerous workflow patterns. See [this post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See [this document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
+    - Avoid the dangerous workflow patterns.
+    - See [this document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
 ecosystem:
   languages:
     - all

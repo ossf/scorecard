@@ -17,19 +17,20 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 // TestBinaryArtifacts tests the binary artifacts check.
 func TestBinaryArtifacts(t *testing.T) {
 	t.Parallel()
 	lineStart := uint(123)
-	falseFinding := finding.Finding{
-		Probe:   "freeOfUnverifiedBinaryArtifacts",
-		Outcome: finding.OutcomeFalse,
+	unverifiedBinaryFinding := finding.Finding{
+		Probe:   hasUnverifiedBinaryArtifacts.Probe,
+		Outcome: finding.OutcomeTrue,
 
 		Location: &finding.Location{
 			Path:      "path",
@@ -47,8 +48,8 @@ func TestBinaryArtifacts(t *testing.T) {
 			name: "no binary artifacts",
 			findings: []finding.Finding{
 				{
-					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomeTrue,
+					Probe:   hasUnverifiedBinaryArtifacts.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
@@ -58,7 +59,7 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "one binary artifact",
 			findings: []finding.Finding{
-				falseFinding,
+				unverifiedBinaryFinding,
 			},
 			result: scut.TestReturn{
 				Score:        9,
@@ -68,24 +69,8 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "two binary artifact",
 			findings: []finding.Finding{
-				{
-					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomeFalse,
-					Location: &finding.Location{
-						Path:      "path",
-						Type:      finding.FileTypeBinary,
-						LineStart: &lineStart,
-					},
-				},
-				{
-					Probe:   "freeOfUnverifiedBinaryArtifacts",
-					Outcome: finding.OutcomeFalse,
-					Location: &finding.Location{
-						Path:      "path",
-						Type:      finding.FileTypeBinary,
-						LineStart: &lineStart,
-					},
-				},
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
 			},
 			result: scut.TestReturn{
 				Score:        8,
@@ -95,11 +80,11 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "five binary artifact",
 			findings: []finding.Finding{
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
 			},
 			result: scut.TestReturn{
 				Score:        5,
@@ -109,18 +94,18 @@ func TestBinaryArtifacts(t *testing.T) {
 		{
 			name: "twelve binary artifact - ensure score doesn't drop below min",
 			findings: []finding.Finding{
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
-				falseFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
+				unverifiedBinaryFinding,
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,

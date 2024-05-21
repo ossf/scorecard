@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/ossf/scorecard/v4/attestor/command"
+import "github.com/ossf/scorecard/v5/attestor/command"
 
 func main() {
 	command.Execute()

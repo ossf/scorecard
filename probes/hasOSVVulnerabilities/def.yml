@@ -15,13 +15,16 @@
 id: hasOSVVulnerabilities
 short: Check whether the project has known vulnerabilities
 motivation: >
-  This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability may be exploited by attackers and should be fixed as soon as possible.
+  This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service.
+  An open vulnerability may be exploited by attackers and should be fixed as soon as possible.
 implementation: >
- The implementation fetches data from OSV.dev about the project which shows whether a given project has known, unfixed vulnerabilities. The implementation uses the number of known, unfixed vulnerabilities to score.
+  The implementation fetches data from OSV.dev about the project which shows whether a given project has known, unfixed vulnerabilities.
+  The implementation uses the number of known, unfixed vulnerabilities to score.
 outcome:
-  - The probe returns one false outcome for each vulnerability found in OSV.
-  - If there are no known vulnerabilities from the raw results, the probe returns one true outcome.
+  - The probe returns one true outcome for each vulnerability found in OSV.
+  - If there are no known vulnerabilities detected, the probe returns one false outcome.
 remediation:
+  onOutcome: True
   effort: High
   text:
     - Fix the ${{ metadata.osvid }} by following information from https://osv.dev/${{ metadata.osvid }} .

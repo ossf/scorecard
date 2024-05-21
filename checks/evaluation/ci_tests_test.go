@@ -16,8 +16,8 @@ package evaluation
 import (
 	"testing"
 
-	"github.com/ossf/scorecard/v4/finding"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 // Tip: If you add new findings to this test, else

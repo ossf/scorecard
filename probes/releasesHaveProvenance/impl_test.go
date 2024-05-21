@@ -21,10 +21,10 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -197,6 +197,75 @@ func Test_Run(t *testing.T) {
 								{Name: "binary.tar.gz.sig"},
 								{Name: "binary.tar.gz.intoto.jsonl"},
 							},
+						},
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			// https://github.com/ossf/scorecard/issues/4059
+			name: "lookback cutoff not skipped if 6th release has no assets",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v7.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v6.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v5.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v4.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v3.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v2.0",
+							Assets:  []clients.ReleaseAsset{},
 						},
 						{
 							TagName: "v1.0",

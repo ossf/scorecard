@@ -19,16 +19,20 @@ import (
 	"embed"
 	"fmt"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/permissions"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/uerror"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/permissions"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "jobLevelPermissions"
+const (
+	Probe              = "jobLevelPermissions"
+	PermissionLevelKey = "permissionLevel"
+	TokenNameKey       = "tokenName"
+)
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -91,8 +95,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithValue("permissionLevel", string(r.Type))
-		f = f.WithValue("tokenName", *r.Name)
+		f = f.WithValue(PermissionLevelKey, string(r.Type))
+		f = f.WithValue(TokenNameKey, *r.Name)
 		findings = append(findings, *f)
 	}
 

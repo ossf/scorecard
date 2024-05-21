@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ossf/scorecard/v4/attestor/policy"
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/checks"
-	sclog "github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	"github.com/ossf/scorecard/v5/attestor/policy"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 type EmptyParameterError struct {
@@ -77,7 +77,7 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 		}
 	}
 
-	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		ctx, repoURL, "", logger)
 	if err != nil {
 		return policy.Fail, fmt.Errorf("couldn't set up clients: %w", err)
@@ -117,6 +117,7 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 	if err != nil {
 		return policy.Fail, fmt.Errorf("RunScorecard: %w", err)

@@ -15,55 +15,61 @@
 package probes
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/blocksDeleteOnBranches"
-	"github.com/ossf/scorecard/v4/probes/blocksForcePushOnBranches"
-	"github.com/ossf/scorecard/v4/probes/branchProtectionAppliesToAdmins"
-	"github.com/ossf/scorecard/v4/probes/branchesAreProtected"
-	"github.com/ossf/scorecard/v4/probes/codeApproved"
-	"github.com/ossf/scorecard/v4/probes/codeReviewOneReviewers"
-	"github.com/ossf/scorecard/v4/probes/contributorsFromOrgOrCompany"
-	"github.com/ossf/scorecard/v4/probes/dependencyUpdateToolConfigured"
-	"github.com/ossf/scorecard/v4/probes/dismissesStaleReviews"
-	"github.com/ossf/scorecard/v4/probes/freeOfAnyBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
-	"github.com/ossf/scorecard/v4/probes/fuzzed"
-	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowScriptInjection"
-	"github.com/ossf/scorecard/v4/probes/hasDangerousWorkflowUntrustedCheckout"
-	"github.com/ossf/scorecard/v4/probes/hasFSFOrOSIApprovedLicense"
-	"github.com/ossf/scorecard/v4/probes/hasLicenseFile"
-	"github.com/ossf/scorecard/v4/probes/hasNoGitHubWorkflowPermissionUnknown"
-	"github.com/ossf/scorecard/v4/probes/hasOSVVulnerabilities"
-	"github.com/ossf/scorecard/v4/probes/hasOpenSSFBadge"
-	"github.com/ossf/scorecard/v4/probes/hasRecentCommits"
-	"github.com/ossf/scorecard/v4/probes/issueActivityByProjectMember"
-	"github.com/ossf/scorecard/v4/probes/jobLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/notArchived"
-	"github.com/ossf/scorecard/v4/probes/notCreatedRecently"
-	"github.com/ossf/scorecard/v4/probes/packagedWithAutomatedWorkflow"
-	"github.com/ossf/scorecard/v4/probes/pinsDependencies"
-	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
-	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
-	"github.com/ossf/scorecard/v4/probes/requiresApproversForPullRequests"
-	"github.com/ossf/scorecard/v4/probes/requiresCodeOwnersReview"
-	"github.com/ossf/scorecard/v4/probes/requiresLastPushApproval"
-	"github.com/ossf/scorecard/v4/probes/requiresPRsToChangeCode"
-	"github.com/ossf/scorecard/v4/probes/requiresUpToDateBranches"
-	"github.com/ossf/scorecard/v4/probes/runsStatusChecksBeforeMerging"
-	"github.com/ossf/scorecard/v4/probes/sastToolConfigured"
-	"github.com/ossf/scorecard/v4/probes/sastToolRunsOnAllCommits"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsLinks"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsText"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyContainsVulnerabilityDisclosure"
-	"github.com/ossf/scorecard/v4/probes/securityPolicyPresent"
-	"github.com/ossf/scorecard/v4/probes/testsRunInCI"
-	"github.com/ossf/scorecard/v4/probes/topLevelPermissions"
-	"github.com/ossf/scorecard/v4/probes/webhooksUseSecrets"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/archived"
+	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
+	"github.com/ossf/scorecard/v5/probes/blocksForcePushOnBranches"
+	"github.com/ossf/scorecard/v5/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
+	"github.com/ossf/scorecard/v5/probes/codeApproved"
+	"github.com/ossf/scorecard/v5/probes/codeReviewOneReviewers"
+	"github.com/ossf/scorecard/v5/probes/contributorsFromOrgOrCompany"
+	"github.com/ossf/scorecard/v5/probes/createdRecently"
+	"github.com/ossf/scorecard/v5/probes/dependencyUpdateToolConfigured"
+	"github.com/ossf/scorecard/v5/probes/dismissesStaleReviews"
+	"github.com/ossf/scorecard/v5/probes/fuzzed"
+	"github.com/ossf/scorecard/v5/probes/hasBinaryArtifacts"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
+	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v5/probes/hasLicenseFile"
+	"github.com/ossf/scorecard/v5/probes/hasNoGitHubWorkflowPermissionUnknown"
+	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v5/probes/hasOpenSSFBadge"
+	"github.com/ossf/scorecard/v5/probes/hasPermissiveLicense"
+	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
+	"github.com/ossf/scorecard/v5/probes/hasReleaseSBOM"
+	"github.com/ossf/scorecard/v5/probes/hasSBOM"
+	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
+	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
+	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
+	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
+	"github.com/ossf/scorecard/v5/probes/requiresCodeOwnersReview"
+	"github.com/ossf/scorecard/v5/probes/requiresLastPushApproval"
+	"github.com/ossf/scorecard/v5/probes/requiresPRsToChangeCode"
+	"github.com/ossf/scorecard/v5/probes/requiresUpToDateBranches"
+	"github.com/ossf/scorecard/v5/probes/runsStatusChecksBeforeMerging"
+	"github.com/ossf/scorecard/v5/probes/sastToolConfigured"
+	"github.com/ossf/scorecard/v5/probes/sastToolRunsOnAllCommits"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
+	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
+	"github.com/ossf/scorecard/v5/probes/webhooksUseSecrets"
 )
 
 // ProbeImpl is the implementation of a probe.
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
+
+// IndependentProbeImpl is the implementation of an independent probe.
+type IndependentProbeImpl func(*checker.CheckRequest) ([]finding.Finding, string, error)
 
 var (
 	// All represents all the probes.
@@ -99,7 +105,6 @@ var (
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
-		codeReviewOneReviewers.Run,
 	}
 	SAST = []ProbeImpl{
 		sastToolConfigured.Run,
@@ -110,22 +115,26 @@ var (
 		hasDangerousWorkflowUntrustedCheckout.Run,
 	}
 	Maintained = []ProbeImpl{
-		notArchived.Run,
+		archived.Run,
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
-		notCreatedRecently.Run,
+		createdRecently.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,
 	}
 	BinaryArtifacts = []ProbeImpl{
-		freeOfUnverifiedBinaryArtifacts.Run,
+		hasUnverifiedBinaryArtifacts.Run,
 	}
 	Webhook = []ProbeImpl{
 		webhooksUseSecrets.Run,
 	}
 	CITests = []ProbeImpl{
 		testsRunInCI.Run,
+	}
+	SBOM = []ProbeImpl{
+		hasSBOM.Run,
+		hasReleaseSBOM.Run,
 	}
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
@@ -156,8 +165,13 @@ var (
 	// Probes which aren't included by any checks.
 	// These still need to be listed so they can be called with --probes.
 	Uncategorized = []ProbeImpl{
-		freeOfAnyBinaryArtifacts.Run,
+		hasPermissiveLicense.Run,
+		codeReviewOneReviewers.Run,
+		hasBinaryArtifacts.Run,
 	}
+
+	// Probes which don't use pre-computed raw data but rather collect it themselves.
+	Independent = []IndependentProbeImpl{}
 )
 
 //nolint:gochecknoinits

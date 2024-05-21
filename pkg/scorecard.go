@@ -26,12 +26,15 @@ import (
 
 	"sigs.k8s.io/release-utils/version"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	proberegistration "github.com/ossf/scorecard/v4/internal/probes"
-	"github.com/ossf/scorecard/v4/options"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/config"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
+	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -89,6 +92,7 @@ func runScorecard(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
@@ -162,13 +166,28 @@ func runScorecard(ctx context.Context,
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
-	exposeFindings := os.Getenv(options.EnvVarScorecardExperimental) == "1"
+	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
+		// Get configuration
+		rc, err := repoClient.GetFileReader("scorecard.yml")
+		// If configuration file exists, continue. Otherwise, ignore
+		if err == nil {
+			defer rc.Close()
+			checks := []string{}
+			for check := range checksToRun {
+				checks = append(checks, check)
+			}
+			c, err := config.Parse(rc, checks)
+			if err != nil {
+				logger := sclog.NewLogger(sclog.DefaultLevel)
+				logger.Error(err, "parsing configuration file")
+			}
+			ret.Config = c
+		}
+	}
+
 	for result := range resultsCh {
 		ret.Checks = append(ret.Checks, result)
-
-		if exposeFindings {
-			ret.Findings = append(ret.Findings, result.Findings...)
-		}
+		ret.Findings = append(ret.Findings, result.Findings...)
 	}
 	return ret, nil
 }
@@ -190,7 +209,12 @@ func runEnabledProbes(request *checker.CheckRequest,
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		// Run probe
-		findings, _, err := probe.Implementation(&ret.RawResults)
+		var findings []finding.Finding
+		if probe.IndependentImplementation != nil {
+			findings, _, err = probe.IndependentImplementation(request)
+		} else {
+			findings, _, err = probe.Implementation(&ret.RawResults)
+		}
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}
@@ -210,6 +234,7 @@ func RunScorecard(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	return runScorecard(ctx,
 		repo,
@@ -221,6 +246,7 @@ func RunScorecard(ctx context.Context,
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 }
 
@@ -235,6 +261,7 @@ func ExperimentalRunProbes(ctx context.Context,
 	ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	projectClient packageclient.ProjectPackageClient,
 ) (ScorecardResult, error) {
 	return runScorecard(ctx,
 		repo,
@@ -246,5 +273,6 @@ func ExperimentalRunProbes(ctx context.Context,
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 }

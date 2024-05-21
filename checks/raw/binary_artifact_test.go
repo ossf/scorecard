@@ -21,10 +21,10 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func strptr(s string) *string {
@@ -164,13 +164,26 @@ func TestBinaryArtifacts(t *testing.T) {
 			expect:              1,
 		},
 		{
-			name: "gradle-wrapper.jar with outdated verification action",
+			name: "gradle-wrapper.jar with new verification action",
 			err:  nil,
 			files: [][]string{
 				{"../testdata/binaryartifacts/jars/gradle-wrapper.jar"},
 				{
 					"../testdata/binaryartifacts/workflows/nonverify.yaml",
-					"../testdata/binaryartifacts/workflows/verify-outdated-action.yaml",
+					"../testdata/binaryartifacts/workflows/verify-new-gradle-name.yaml",
+				},
+			},
+			successfulWorkflowRuns: []clients.WorkflowRun{
+				{
+					HeadSHA: strptr("sha-a"),
+				},
+			},
+			commits: []clients.Commit{
+				{
+					SHA: "sha-a",
+				},
+				{
+					SHA: "sha-old",
 				},
 			},
 			getFileContentCount: 3,

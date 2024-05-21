@@ -15,13 +15,16 @@
 id: hasRecentCommits
 short: Check whether the project has at least one commit per week over the last 90 days.
 motivation: >
-  A project which is not active might not be patched, have its dependencies patched, or be actively tested and used. However, a lack of active maintenance is not necessarily always a problem. Some software, especially smaller utility functions, does not normally need to be maintained. For example, a library that determines if an integer is even would not normally need maintenance unless an underlying implementation language definition changed. A lack of active maintenance should signal that potential users should investigate further to judge the situation. A project may not need further features or maintenance; In this case, the probe results can be disregarded.
+  A project which is not active might not be patched, have its dependencies patched, or be actively tested and used.
+  A lack of active maintenance should signal that potential users should investigate further to judge the situation.
+  A project may not need further features or maintenance; In this case, the probe results can be disregarded.
 implementation: >
   The implementation checks the number of commits made in the last 90 days by any user type.
 outcome:
   - If the project has commits from the last 90 days, the probe returns one OutcomeTrue with a "commitsWithinThreshold" value which contains the number of commits that the probe found within the threshold. The probe will also return a "lookBackDays" value which is the number of days that the probe includes in its threshold - which is 90.
   - If the project does not have commits in the last 90 days, the probe returns a single OutcomeFalse.
 remediation:
+  onOutcome: False
   effort: Low
   text:
     - The only way to remediate this probe is to make contributions to the project, however, some projects have reached a level of maturity that does require further contributions.

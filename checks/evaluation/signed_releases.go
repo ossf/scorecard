@@ -19,16 +19,18 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/releasesAreSigned"
-	"github.com/ossf/scorecard/v4/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 )
 
 var errNoReleaseFound = errors.New("no release found")
 
 // SignedReleases applies the score policy for the Signed-Releases check.
+//
+//nolint:gocognit // surpressing for now
 func SignedReleases(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {
@@ -41,6 +43,10 @@ func SignedReleases(name string,
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
+
+	// keep track of releases which have provenance so we don't log about signatures
+	// on our second pass through below
+	hasProvenance := make(map[string]bool)
 
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
@@ -67,7 +73,9 @@ func SignedReleases(name string,
 			loggedReleases = append(loggedReleases, releaseName)
 		}
 
-		// Check if outcome is NotApplicable
+		if f.Probe == releasesHaveProvenance.Probe && f.Outcome == finding.OutcomeTrue {
+			hasProvenance[releaseName] = true
+		}
 	}
 
 	totalTrue := 0
@@ -100,6 +108,9 @@ func SignedReleases(name string,
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
+			if f.Probe == releasesAreSigned.Probe && hasProvenance[releaseName] {
+				continue
+			}
 		default:
 			logLevel = checker.DetailDebug
 		}

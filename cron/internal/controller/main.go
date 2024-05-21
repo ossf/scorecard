@@ -26,10 +26,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"sigs.k8s.io/release-utils/version"
 
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/cron/config"
-	"github.com/ossf/scorecard/v4/cron/data"
-	"github.com/ossf/scorecard/v4/cron/internal/pubsub"
+	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/cron/config"
+	"github.com/ossf/scorecard/v5/cron/data"
+	"github.com/ossf/scorecard/v5/cron/internal/pubsub"
 )
 
 var headSHA = clients.HeadSHA

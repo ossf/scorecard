@@ -21,7 +21,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	sce "github.com/ossf/scorecard/v4/errors"
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 type outcome struct {
@@ -152,15 +152,15 @@ func TestCsvIterator(t *testing.T) {
 			outcomes: []outcome{
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 				{
 					hasError:    true,
-					expectedErr: sce.ErrorInvalidURL,
+					expectedErr: sce.ErrInvalidURL,
 				},
 			},
 		},

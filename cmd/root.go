@@ -25,21 +25,21 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/release-utils/version"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	pmc "github.com/ossf/scorecard/v4/cmd/internal/packagemanager"
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
-	sclog "github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/options"
-	"github.com/ossf/scorecard/v4/pkg"
-	"github.com/ossf/scorecard/v4/policy"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
+	sclog "github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/options"
+	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/policy"
 )
 
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems,nuget}=<package_name>)
-	 [--checks=check1,...] [--show-details]`
+	 [--checks=check1,...] [--show-details] [--show-annotations]`
 	scorecardShort = "OpenSSF Scorecard"
 )
 
@@ -93,7 +93,7 @@ func rootCmd(o *options.Options) error {
 
 	ctx := context.Background()
 	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, err := checker.GetClients(
+	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
 		ctx, o.Repo, o.Local, logger) // MODIFIED
 	if err != nil {
 		return fmt.Errorf("GetClients: %w", err)
@@ -142,6 +142,7 @@ func rootCmd(o *options.Options) error {
 		ossFuzzRepoClient,
 		ciiClient,
 		vulnsClient,
+		projectClient,
 	)
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
@@ -175,7 +176,7 @@ func rootCmd(o *options.Options) error {
 	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
 	for _, result := range repoResult.Checks {
 		if result.Error != nil {
-			return sce.WithMessage(sce.ErrorCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
+			return sce.WithMessage(sce.ErrCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
 		}
 	}
 	return nil

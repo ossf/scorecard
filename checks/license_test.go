@@ -16,16 +16,17 @@ package checks
 
 import (
 	"context"
-	"errors"
+	"fmt"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	"github.com/ossf/scorecard/v4/clients/localdir"
-	"github.com/ossf/scorecard/v4/log"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	clients "github.com/ossf/scorecard/v5/clients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func TestLicenseFileSubdirectory(t *testing.T) {
@@ -66,28 +67,37 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			logger := log.NewLogger(log.DebugLevel)
-
-			// TODO: Use gMock instead of Localdir here.
 			ctrl := gomock.NewController(t)
-			repo, err := localdir.MakeLocalDirRepo(tt.inputFolder)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 
-			if !errors.Is(err, tt.err) {
-				t.Errorf("MakeLocalDirRepo: %v, expected %v", err, tt.err)
-			}
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				var files []string
+				dirFiles, err := os.ReadDir(tt.inputFolder)
+				if err == nil {
+					for _, file := range dirFiles {
+						files = append(files, file.Name())
+					}
+					print(files)
+				}
+				return files, err
+			}).AnyTimes()
+
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open("./" + tt.inputFolder + "/" + file)
+			}).AnyTimes()
+
+			// Currently the check itself handles this error gracefully,
+			//     searching through the directory to find the license file(s)
+			//     if that functionality is ever changed, this mock needs to be updated accordingly
+			mockRepoClient.EXPECT().ListLicenses().Return(nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)).AnyTimes()
 
 			ctx := context.Background()
-
-			client := localdir.CreateLocalDirClient(ctx, logger)
-			if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
-				t.Errorf("InitRepo: %v", err)
-			}
 
 			dl := scut.TestDetailLogger{}
 
 			req := checker.CheckRequest{
 				Ctx:        ctx,
-				RepoClient: client,
+				RepoClient: mockRepoClient,
 				Dlogger:    &dl,
 			}
 

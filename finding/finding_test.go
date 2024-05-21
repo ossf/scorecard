@@ -22,8 +22,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"gopkg.in/yaml.v3"
-
-	"github.com/ossf/scorecard/v4/finding/probe"
 )
 
 func errCmp(e1, e2 error) bool {
@@ -55,10 +53,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "effort-low",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   probe.RemediationEffortLow,
+					Effort:   RemediationEffortLow,
 				},
 			},
 		},
@@ -70,10 +68,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "effort-high",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 https://www.google.com/something",
 					Markdown: "step1\nstep2 [google.com](https://www.google.com/something)",
-					Effort:   probe.RemediationEffortHigh,
+					Effort:   RemediationEffortHigh,
 				},
 			},
 		},
@@ -86,10 +84,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "metadata-variables",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   probe.RemediationEffortLow,
+					Effort:   RemediationEffortLow,
 				},
 			},
 		},
@@ -102,10 +100,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "metadata-variables",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   probe.RemediationEffortLow,
+					Effort:   RemediationEffortLow,
 					Patch:    &patch,
 				},
 			},
@@ -119,10 +117,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "metadata-variables",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   probe.RemediationEffortLow,
+					Effort:   RemediationEffortLow,
 				},
 				Location: &Location{
 					Type:      FileTypeSource,
@@ -142,10 +140,10 @@ func Test_FromBytes(t *testing.T) {
 			finding: &Finding{
 				Probe:   "metadata-variables",
 				Outcome: OutcomeFalse,
-				Remediation: &probe.Remediation{
+				Remediation: &Remediation{
 					Text:     "step1\nstep2 google.com/ossf/scorecard@master",
 					Markdown: "step1\nstep2 [google.com/ossf/scorecard@master](google.com/ossf/scorecard@master)",
-					Effort:   probe.RemediationEffortLow,
+					Effort:   RemediationEffortLow,
 				},
 				Message: "some text",
 			},
@@ -192,7 +190,7 @@ func Test_FromBytes(t *testing.T) {
 			if tt.outcome != nil {
 				r = r.WithOutcome(*tt.outcome)
 			}
-			if diff := cmp.Diff(*tt.finding, *r); diff != "" {
+			if diff := cmp.Diff(*tt.finding, *r, cmpopts.IgnoreUnexported(Finding{})); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})

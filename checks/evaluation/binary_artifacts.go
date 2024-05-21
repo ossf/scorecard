@@ -15,10 +15,10 @@
 package evaluation
 
 import (
-	"github.com/ossf/scorecard/v4/checker"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/freeOfUnverifiedBinaryArtifacts"
+	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
 )
 
 // BinaryArtifacts applies the score policy for the Binary-Artifacts check.
@@ -27,7 +27,7 @@ func BinaryArtifacts(name string,
 	dl checker.DetailLogger,
 ) checker.CheckResult {
 	expectedProbes := []string{
-		freeOfUnverifiedBinaryArtifacts.Probe,
+		hasUnverifiedBinaryArtifacts.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -35,13 +35,13 @@ func BinaryArtifacts(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	if findings[0].Outcome == finding.OutcomeTrue {
+	if findings[0].Outcome == finding.OutcomeFalse {
 		return checker.CreateMaxScoreResult(name, "no binaries found in the repo")
 	}
 
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome != finding.OutcomeFalse {
+		if f.Outcome != finding.OutcomeTrue {
 			continue
 		}
 		dl.Warn(&checker.LogMessage{

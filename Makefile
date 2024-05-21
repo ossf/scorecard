@@ -174,6 +174,9 @@ validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
 
+setup-probe:
+	go run ./probes/internal/scripts/setup.go $(probeName)
+
 SCORECARD_DEPS = $(shell find . -iname "*.go" | grep -v tools/)
 build-scorecard: ## Build Scorecard CLI
 build-scorecard: scorecard
@@ -374,7 +377,7 @@ scorecard-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4
+			   github.com/ossf/scorecard/v5
 
 cron-controller-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -386,7 +389,7 @@ cron-controller-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/cron/internal/controller
+			   github.com/ossf/scorecard/v5/cron/internal/controller
 
 cron-worker-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -398,7 +401,7 @@ cron-worker-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/cron/internal/worker
+			   github.com/ossf/scorecard/v5/cron/internal/worker
 
 cron-cii-worker-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -410,7 +413,7 @@ cron-cii-worker-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM)\
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/cron/internal/cii
+			   github.com/ossf/scorecard/v5/cron/internal/cii
 
 cron-bq-transfer-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -422,7 +425,7 @@ cron-bq-transfer-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/cron/internal/bq
+			   github.com/ossf/scorecard/v5/cron/internal/bq
 
 cron-webhook-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -434,7 +437,7 @@ cron-webhook-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/cron/internal/webhook
+			   github.com/ossf/scorecard/v5/cron/internal/webhook
 
 cron-github-server-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
@@ -446,6 +449,6 @@ cron-github-server-ko: | $(KO) $(KOCACHE_PATH)
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v4/clients/githubrepo/roundtripper/tokens/server
+			   github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens/server
 
 ###############################################################################

@@ -14,7 +14,7 @@
 
 package compare
 
-import "github.com/ossf/scorecard/v4/pkg"
+import "github.com/ossf/scorecard/v5/pkg"
 
 // results should be normalized before comparison.
 func Results(r1, r2 *pkg.ScorecardResult) bool {

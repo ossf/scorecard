@@ -21,9 +21,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/finding"
-	"github.com/ossf/scorecard/v4/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
 )
 
 func Test_Run(t *testing.T) {
@@ -112,8 +112,9 @@ func Test_Run(t *testing.T) {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 			test.AssertOutcomes(t, findings, tt.outcomes)
-			if !cmp.Equal(tt.expectedFindings, findings, cmpopts.EquateErrors()) {
-				t.Errorf("mismatch (-want +got):\n%s", cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors()))
+			diff := cmp.Diff(tt.expectedFindings, findings, cmpopts.EquateErrors(), cmpopts.IgnoreUnexported(finding.Finding{}))
+			if diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

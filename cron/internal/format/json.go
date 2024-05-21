@@ -20,10 +20,10 @@ import (
 	"io"
 	_ "net/http/pprof" //nolint:gosec
 
-	docs "github.com/ossf/scorecard/v4/docs/checks"
-	sce "github.com/ossf/scorecard/v4/errors"
-	"github.com/ossf/scorecard/v4/log"
-	"github.com/ossf/scorecard/v4/pkg"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
+	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
+	"github.com/ossf/scorecard/v5/pkg"
 )
 
 type jsonCheckResult struct {

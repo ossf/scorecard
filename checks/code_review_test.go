@@ -21,11 +21,11 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v4/checker"
-	"github.com/ossf/scorecard/v4/clients"
-	mockrepo "github.com/ossf/scorecard/v4/clients/mockclients"
-	sce "github.com/ossf/scorecard/v4/errors"
-	scut "github.com/ossf/scorecard/v4/utests"
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
+	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	sce "github.com/ossf/scorecard/v5/errors"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 // TestCodeReview tests the code review checker.
@@ -140,8 +140,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         0,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 0,
 			},
 		},
 		{
@@ -171,8 +170,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         5,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 5,
 			},
 		},
 		{
@@ -197,8 +195,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         5,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 5,
 			},
 		},
 		{
@@ -209,7 +206,7 @@ func TestCodereview(t *testing.T) {
 					Committer: clients.User{
 						Login: "bob",
 					},
-					Message: "Title\nReviewed By: alice\nDifferential Revision: PHAB234",
+					Message: "Title\nReviewed By: alice\nDifferential Revision: D234",
 				},
 			},
 			expected: scut.TestReturn{
@@ -228,8 +225,7 @@ func TestCodereview(t *testing.T) {
 				},
 			},
 			expected: scut.TestReturn{
-				Score:         0,
-				NumberOfDebug: 1, // one per un-reviewed change
+				Score: 0,
 			},
 		},
 		{
@@ -240,7 +236,7 @@ func TestCodereview(t *testing.T) {
 					Committer: clients.User{
 						Login: "bob",
 					},
-					Message: "Title\nDifferential Revision: PHAB234",
+					Message: "Title\nDifferential Revision: D234",
 				},
 			},
 			expected: scut.TestReturn{

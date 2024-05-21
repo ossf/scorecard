@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ossf/scorecard/v4/clients"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func TestCopyBoolPtr(t *testing.T) {
