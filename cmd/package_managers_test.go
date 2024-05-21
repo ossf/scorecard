@@ -191,6 +191,97 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			want:    "https://github.com/pulumi/pulumi",
 			wantErr: false,
 		},
+    {
+			name: "fetchGitRepositoryFromNPM",
+
+			args: args{
+				packageName: "left-pad",
+				result:      `
+{
+  "name": "left-pad",
+  "version": "1.3.0",
+  "description": "String left pad",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "node test",
+    "bench": "node perf/perf.js"
+  },
+  "devDependencies": {
+    "benchmark": "^2.1.0",
+    "fast-check": "0.0.8",
+    "tape": "*"
+  },
+  "keywords": [
+    "leftpad",
+    "left",
+    "pad",
+    "padding",
+    "string",
+    "repeat"
+  ],
+  "repository": {
+    "url": "git+ssh://git@github.com/stevemao/left-pad.git",
+    "type": "git"
+  },
+  "author": {
+    "name": "azer"
+  },
+  "maintainers": [
+    {
+      "name": "sebmck",
+      "email": "sebmck@gmail.com"
+    },
+    {
+      "name": "stevemao",
+      "email": "maochenyan@gmail.com"
+    },
+    {
+      "name": "westlac",
+      "email": "cameron.westland@autodesk.com"
+    }
+  ],
+  "license": "WTFPL",
+  "gitHead": "ff8e7ba8b4122829cf66125ca8445cac7f073bce",
+  "bugs": {
+    "url": "https://github.com/stevemao/left-pad/issues"
+  },
+  "homepage": "https://github.com/stevemao/left-pad#readme",
+  "_id": "left-pad@1.3.0",
+  "_npmVersion": "5.5.1",
+  "_nodeVersion": "9.2.1",
+  "_npmUser": {
+    "name": "stevemao",
+    "email": "maochenyan@gmail.com"
+  },
+  "dist": {
+    "integrity": "sha512-XI5MPzVNApjAyhQzphX8BkmKsKUxD4LdyK24iZeQGinBN9yTQT3bFlCBy/aVx2HrNcqQGsdot8ghrjyrvMCoEA==",
+    "shasum": "5b8a3a7765dfe001261dde915589e782f8c94d1e",
+    "tarball": "https://registry.npmjs.org/left-pad/-/left-pad-1.3.0.tgz",
+    "fileCount": 10,
+    "unpackedSize": 9752,
+    "signatures": [
+      {
+        "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA",
+        "sig": "MEYCIQD6P3wA64go2fjiRW+yNvdi0x7Jtge3eAxAlwNaK2wyfQIhAKMCJXCFKygnFmsVuppuZIuNzTCYx2WlrJSg8B6wMqZk"
+      }
+    ]
+  },
+  "directories": {
+
+  },
+  "_npmOperationalInternal": {
+    "host": "s3://npm-registry-packages",
+    "tmp": "tmp/left-pad_1.3.0_1523236245678_0.2849598021556574"
+  },
+  "_hasShrinkwrap": false,
+  "deprecated": "use String.prototype.padStart()"
+}
+        `,
+			},
+			want:    "ssh://git@github.com/stevemao/left-pad",
+			wantErr: false,
+		},
 		{
 			name: "fetchGitRepositoryFromNPM_error",
 
@@ -205,8 +296,11 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "foo",
+				packageName: "https://github.com/airbnb/lottie-web",
+				result:`
+        {"code":"ResourceNotFound","message":"/https:/github.com/airbnb/lottie-web does not exist"}
+        `,
+
 			},
 			want:    "",
 			wantErr: true,
