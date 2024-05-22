@@ -74,15 +74,19 @@ func (d depsDevClient) GetProjectPackageVersions(
 	}
 	defer resp.Body.Close()
 
+	var res ProjectPackageVersions
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("deps.dev HTTP: %s", resp.Status)
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("resp.Body.Read: %w", err)
 	}
 
-	var res ProjectPackageVersions
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		return nil, fmt.Errorf("json.Unmarshal from deps.dev: %w", err)
+		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
 	}
 
 	return &res, nil
