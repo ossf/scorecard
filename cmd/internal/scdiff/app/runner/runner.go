@@ -65,6 +65,7 @@ func New(enabledChecks []string) Runner {
 		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
 		cii:           clients.DefaultCIIBestPracticesClient(),
 		vuln:          clients.DefaultVulnerabilitiesClient(),
+		deps:          packageclient.CreateDepsDevClient(),
 		enabledChecks: parseChecks(enabledChecks),
 	}
 }
