@@ -17,6 +17,7 @@ package packageclient
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -57,6 +58,11 @@ func CreateDepsDevClient() ProjectPackageClient {
 	}
 }
 
+var (
+	ErrDepsDevAPI            = errors.New("deps.dev")
+	ErrProjNotFoundInDepsDev = errors.New("project not found in deps.dev")
+)
+
 func (d depsDevClient) GetProjectPackageVersions(
 	ctx context.Context, host, project string,
 ) (*ProjectPackageVersions, error) {
@@ -75,8 +81,12 @@ func (d depsDevClient) GetProjectPackageVersions(
 	defer resp.Body.Close()
 
 	var res ProjectPackageVersions
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjNotFoundInDepsDev
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("deps.dev HTTP: %s", resp.Status)
+		return nil, fmt.Errorf("%w: %s", ErrDepsDevAPI, resp.Status)
 	}
 
 	body, err := io.ReadAll(resp.Body)
