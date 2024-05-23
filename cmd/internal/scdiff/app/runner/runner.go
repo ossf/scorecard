@@ -53,7 +53,7 @@ type Runner struct {
 func New(enabledChecks []string) Runner {
 	ctx := context.Background()
 	logger := log.NewLogger(log.DefaultLevel)
-	gitlabClient, err := gitlabrepo.CreateGitlabClient(ctx, "https://gitlab.com")
+	gitlabClient, err := gitlabrepo.CreateGitlabClient(ctx, "gitlab.com")
 	if err != nil {
 		logger.Error(err, "creating gitlab client")
 	}

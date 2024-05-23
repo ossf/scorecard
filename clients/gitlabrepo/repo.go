@@ -109,7 +109,7 @@ func (r *repoURL) URI() string {
 }
 
 func (r *repoURL) Host() string {
-	return fmt.Sprintf("%s://%s", r.scheme, r.host)
+	return r.host
 }
 
 // String implements Repo.String.
@@ -134,7 +134,8 @@ func (r *repoURL) IsValid() error {
 	// intentionally pass empty token
 	// "When accessed without authentication, only public projects with simple fields are returned."
 	// https://docs.gitlab.com/ee/api/projects.html#list-all-projects
-	client, err := gitlab.NewClient("", gitlab.WithBaseURL(r.Host()))
+	baseURL := fmt.Sprintf("%s://%s", r.scheme, r.host)
+	client, err := gitlab.NewClient("", gitlab.WithBaseURL(baseURL))
 	if err != nil {
 		return sce.WithMessage(err,
 			fmt.Sprintf("couldn't create gitlab client for %s", r.host),
@@ -144,7 +145,7 @@ func (r *repoURL) IsValid() error {
 	_, resp, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{})
 	if resp == nil || resp.StatusCode != http.StatusOK {
 		return sce.WithMessage(sce.ErrRepoUnreachable,
-			fmt.Sprintf("couldn't reach gitlab instance at %s", r.host),
+			fmt.Sprintf("couldn't reach gitlab instance at %s: %v", r.host, err),
 		)
 	}
 	if err != nil {
