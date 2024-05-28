@@ -48,6 +48,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
 	"github.com/ossf/scorecard/v5/probes/requiresCodeOwnersReview"
 	"github.com/ossf/scorecard/v5/probes/requiresLastPushApproval"
@@ -139,6 +140,7 @@ var (
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
+		releasesHaveVerifiedProvenance.Run,
 	}
 	BranchProtection = []ProbeImpl{
 		blocksDeleteOnBranches.Run,
