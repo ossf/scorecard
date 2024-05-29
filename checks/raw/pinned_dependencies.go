@@ -228,14 +228,18 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 		return err
 	}
 
-	for i := range r.Dependencies {
-		rr := &r.Dependencies[i]
+	applyDockerfilePinningRemediations(r.Dependencies)
+	return nil
+}
+
+func applyDockerfilePinningRemediations(d []checker.Dependency) {
+	for i := range d {
+		rr := &d[i]
 		if rr.Type == checker.DependencyUseTypeDockerfileContainerImage && !*rr.Pinned {
 			remediate := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
 			rr.Remediation = remediate
 		}
 	}
-	return nil
 }
 
 var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
@@ -483,14 +487,18 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	//nolint:errcheck
 	remediationMetadata, _ := remediation.New(c)
 
-	for i := range r.Dependencies {
-		rr := &r.Dependencies[i]
+	applyWorkflowPinningRemediations(remediationMetadata, r.Dependencies)
+	return nil
+}
+
+func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []checker.Dependency) {
+	for i := range d {
+		rr := &d[i]
 		if rr.Type == checker.DependencyUseTypeGHAction && !*rr.Pinned {
-			remediate := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
+			remediate := rm.CreateWorkflowPinningRemediation(rr.Location.Path)
 			rr.Remediation = remediate
 		}
 	}
-	return nil
 }
 
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
