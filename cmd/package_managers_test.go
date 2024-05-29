@@ -57,6 +57,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
     "url": "git+https://github.com/pulumi/pulumi.git",
     "directory": "sdk/nodejs"
   }
+ 
 }
 				`,
 			},
@@ -78,7 +79,7 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
   "scripts": {
     "test": "node test",
     "bench": "node perf/perf.js"
-  }
+  },
   "repository": {
     "url": "git+ssh://git@github.com/stevemao/left-pad.git",
     "type": "git"
@@ -204,6 +205,7 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
  {
   "info": {
     "platform": "UNKNOWN",
+
     "project_url": "http://git_NOT_VALID_hub.com/htaslan/color",
     "project_urls": {
       "RandomKey": "https://github.com/htaslan/color/",
@@ -408,6 +410,7 @@ func Test_fetchGitRepositoryFromPYPI(t *testing.T) {
   ],
   "vulnerabilities": []
 }
+
 				`,
 			},
 			want:    "https://github.com/htaslan/color",
