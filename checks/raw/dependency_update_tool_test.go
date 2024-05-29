@@ -106,6 +106,18 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    ".scala-steward.conf",
+			path:    ".scala-steward.conf",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "scala-steward.conf",
+			path:    "scala-steward.conf",
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name:    ".lift.toml",
 			path:    ".lift.toml",
 			want:    false, // support removed
