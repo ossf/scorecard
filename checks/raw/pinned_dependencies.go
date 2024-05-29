@@ -230,7 +230,7 @@ func collectDockerfilePinning(c *checker.CheckRequest, r *checker.PinningDepende
 
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
-		if !*rr.Pinned {
+		if rr.Type == checker.DependencyUseTypeDockerfileContainerImage && !*rr.Pinned {
 			remediate := remediation.CreateDockerfilePinningRemediation(rr, remediation.CraneDigester{})
 			rr.Remediation = remediate
 		}
@@ -485,7 +485,7 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 
 	for i := range r.Dependencies {
 		rr := &r.Dependencies[i]
-		if !*rr.Pinned {
+		if rr.Type == checker.DependencyUseTypeGHAction && !*rr.Pinned {
 			remediate := remediationMetadata.CreateWorkflowPinningRemediation(rr.Location.Path)
 			rr.Remediation = remediate
 		}
