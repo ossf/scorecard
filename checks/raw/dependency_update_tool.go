@@ -129,7 +129,11 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 		})
 	// https://github.com/scala-steward-org/scala-steward/blob/main/docs/repo-specific-configuration.md
 	case ".scala-steward.conf",
-		"scala-steward.conf":
+		"scala-steward.conf",
+		".github/.scala-steward.conf",
+		".github/scala-steward.conf",
+		".config/.scala-steward.conf",
+		".config/scala-steward.conf":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "scala-steward",
 			URL:  asPointer("https://github.com/scala-steward-org/scala-steward"),
