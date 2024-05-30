@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/remediation"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -412,6 +413,75 @@ func TestDockerfilePinning(t *testing.T) {
 				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
 			}
 		})
+	}
+}
+
+func TestMixedPinning(t *testing.T) {
+	t.Parallel()
+
+	workflowDependency := checker.Dependency{
+		Name:     stringAsPointer("github/codeql-action/analyze"),
+		PinnedAt: nil,
+		Location: &checker.File{
+			Path:      ".github/workflows/workflow-not-pinned.yaml",
+			Snippet:   "github/codeql-action/analyze@v1",
+			Offset:    79,
+			EndOffset: 79,
+			FileSize:  0,
+			Type:      1,
+		},
+		Pinned:      boolAsPointer(false),
+		Type:        "GitHubAction",
+		Remediation: nil,
+	}
+	dockerDependency := checker.Dependency{
+		Name:     stringAsPointer("python"),
+		PinnedAt: stringAsPointer("3.7"),
+		Location: &checker.File{
+			Path:      "./testdata/Dockerfile-not-pinned",
+			Snippet:   "FROM python:3.7",
+			Offset:    17,
+			EndOffset: 17,
+			Type:      0,
+		},
+		Pinned: boolAsPointer(false),
+		Type:   "containerImage",
+	}
+	dependencies := []checker.Dependency{
+		workflowDependency,
+		dockerDependency,
+	}
+
+	//nolint:errcheck
+	remediationMetadata, _ := remediation.New(nil)
+	remediationMetadata.Branch = "mybranch"
+	remediationMetadata.Repo = "myrepo"
+
+	applyWorkflowPinningRemediations(remediationMetadata, dependencies)
+	if dependencies[0].Remediation == nil {
+		t.Errorf("No remediation added to workflow dependency")
+		return
+	}
+	if !strings.Contains(dependencies[0].Remediation.Text, "update your workflow") {
+		t.Errorf("Unexpected workflow remediation text")
+	}
+	if dependencies[1].Remediation != nil {
+		t.Errorf("Unexpected docker remediation")
+		return
+	}
+	applyDockerfilePinningRemediations(dependencies)
+	if dependencies[0].Remediation == nil {
+		t.Errorf("Remediation disappeared from workflow dependency")
+	}
+	if !strings.Contains(dependencies[0].Remediation.Text, "update your workflow") {
+		t.Errorf("Unexpected workflow remediation text")
+	}
+	if dependencies[1].Remediation == nil {
+		t.Errorf("No remediation added to docker dependency")
+		return
+	}
+	if !strings.Contains(dependencies[1].Remediation.Text, "Docker") {
+		t.Errorf("Unexpected Docker remediation text")
 	}
 }
 
