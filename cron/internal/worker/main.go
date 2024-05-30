@@ -138,6 +138,8 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 		sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
 	}
 
+	sw.projectClient = packageclient.CreateDepsDevClient()
+
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}

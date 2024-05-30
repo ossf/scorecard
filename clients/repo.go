@@ -24,7 +24,8 @@ type Repo interface {
 	Host() string
 	// String returns a string representation of the repository URI
 	String() string
-	// IsValid returns whether the repository provided is a real URI
+	// IsValid returns whether the repository path on the forge is properly
+	// -formatted (GitHub), or that the repository exists (GitLab)
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)
