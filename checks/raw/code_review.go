@@ -39,10 +39,6 @@ func CodeReview(c clients.RepoClient) (checker.CodeReviewData, error) {
 
 	changesets := getChangesets(commits)
 
-	if err != nil {
-		return checker.CodeReviewData{}, fmt.Errorf("%w", err)
-	}
-
 	return checker.CodeReviewData{
 		DefaultBranchChangesets: changesets,
 	}, nil

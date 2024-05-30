@@ -45,7 +45,7 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
 		&oauth2.Token{AccessToken: os.Getenv("GITLAB_AUTH_TOKEN")},
 	)
 	handler.client = oauth2.NewClient(ctx, src)
-	handler.graphClient = graphql.NewClient(fmt.Sprintf("%s/api/graphql", repourl.Host()), handler.client)
+	handler.graphClient = graphql.NewClient(fmt.Sprintf("https://%s/api/graphql", repourl.Host()), handler.client)
 }
 
 type graphqlData struct {
