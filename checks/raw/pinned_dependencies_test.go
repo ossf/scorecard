@@ -420,13 +420,13 @@ func TestMixedPinning(t *testing.T) {
 	t.Parallel()
 
 	workflowDependency := checker.Dependency{
-		Name:     stringAsPointer("actions/checkout"),
-		PinnedAt: stringAsPointer("daadedc81d5f9d3c06d2c92f49202a3cc2b919ba"),
+		Name:     stringAsPointer("github/codeql-action/analyze"),
+		PinnedAt: nil,
 		Location: &checker.File{
 			Path:      ".github/workflows/workflow-not-pinned.yaml",
-			Snippet:   "actions/checkout@daadedc81d5f9d3c06d2c92f49202a3cc2b919ba",
-			Offset:    31,
-			EndOffset: 31,
+			Snippet:   "github/codeql-action/analyze@v1",
+			Offset:    79,
+			EndOffset: 79,
 			FileSize:  0,
 			Type:      1,
 		},
