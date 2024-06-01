@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -34,13 +35,15 @@ var _ = Describe("E2E TEST:"+checks.CheckSignedReleases, func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-signed-releases-e2e")
 			Expect(err).Should(BeNil())
 			repoClient := githubrepo.CreateGithubRepoClient(context.Background(), logger)
+			projClient := packageclient.CreateDepsDevClient()
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
-				Ctx:        context.Background(),
-				RepoClient: repoClient,
-				Repo:       repo,
-				Dlogger:    &dl,
+				Ctx:           context.Background(),
+				RepoClient:    repoClient,
+				ProjectClient: projClient,
+				Repo:          repo,
+				Dlogger:       &dl,
 			}
 			expected := scut.TestReturn{
 				Error:         nil,

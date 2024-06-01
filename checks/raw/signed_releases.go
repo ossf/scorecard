@@ -27,7 +27,36 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		return checker.SignedReleasesData{}, fmt.Errorf("%w", err)
 	}
 
+	pkgs := []checker.ProjectPackage{}
+	versions, err := c.ProjectClient.GetProjectPackageVersions(c.Ctx, c.Repo.Host(), c.Repo.Path())
+	if err != nil {
+		c.Dlogger.Debug(&checker.LogMessage{Text: fmt.Sprintf("GetProjectPackageVersions: %v", err)})
+		return checker.SignedReleasesData{
+			Releases: releases,
+			Packages: pkgs,
+		}, nil
+	}
+
+	for _, v := range versions.Versions {
+		prov := checker.PackageProvenance{}
+
+		if len(v.SLSAProvenances) > 0 {
+			prov = checker.PackageProvenance{
+				Commit:     v.SLSAProvenances[0].Commit,
+				IsVerified: v.SLSAProvenances[0].Verified,
+			}
+		}
+
+		pkgs = append(pkgs, checker.ProjectPackage{
+			System:     v.VersionKey.System,
+			Name:       v.VersionKey.Name,
+			Version:    v.VersionKey.Version,
+			Provenance: prov,
+		})
+	}
+
 	return checker.SignedReleasesData{
 		Releases: releases,
+		Packages: pkgs,
 	}, nil
 }
