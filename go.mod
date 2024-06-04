@@ -42,7 +42,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.7.3
+	github.com/google/osv-scanner v1.7.4
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/otiai10/copy v1.14.0
@@ -56,8 +56,8 @@ require (
 	cloud.google.com/go/containeranalysis v0.11.5 // indirect
 	cloud.google.com/go/kms v1.15.8 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	deps.dev/api/v3 v3.0.0-20240503042720-6166138ce783 // indirect
-	github.com/BurntSushi/toml v1.3.2 // indirect
+	deps.dev/api/v3 v3.0.0-20240516073147-b352d7eeeae6 // indirect
+	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.8.0 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/apache/arrow/go/v15 v15.0.2 // indirect
@@ -93,7 +93,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/owenrumney/go-sarif/v2 v2.3.1 // indirect
-	github.com/package-url/packageurl-go v0.1.2 // indirect
+	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
@@ -175,13 +175,13 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
-	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f // indirect
+	golang.org/x/exp v0.0.0-20240525044651-4c93da0ed11d // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/oauth2 v0.20.0
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.177.0 // indirect
-	google.golang.org/grpc v1.63.2 // indirect
+	google.golang.org/grpc v1.64.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
