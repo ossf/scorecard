@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -125,9 +126,9 @@ type rubyGemsSearchResults struct {
 
 // Gets the GitHub repository URL for the npm package.
 func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (string, error) {
-	npmSearchURL := "https://registry.npmjs.org/%s/latest"
+	npmGetURL := "https://registry.npmjs.org/%s/latest"
 
-	resp, err := packageManager.Get(npmSearchURL, packageName)
+	resp, err := packageManager.Get(npmGetURL, packageName)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to get npm package json: %v", err))
 	}
@@ -138,7 +139,7 @@ func fetchGitRepositoryFromNPM(packageName string, packageManager pmc.Client) (s
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse npm package json: %v", err))
 	}
-	if resp.StatusCode == 404 || v.Repository.URL == "" {
+	if resp.StatusCode == http.StatusNotFound || v.Repository.URL == "" {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("could not find source repo for npm package: %s", packageName))
 	}
