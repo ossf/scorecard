@@ -16,6 +16,7 @@
 package releasesHaveVerifiedProvenance
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -23,6 +24,8 @@ import (
 )
 
 func Test_Run(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
 	tests := []struct {
 		desc     string
 		pkgs     []checker.ProjectPackage
@@ -83,6 +86,7 @@ func Test_Run(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
 			raw := checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{
 					Packages: tt.pkgs,
@@ -91,7 +95,7 @@ func Test_Run(t *testing.T) {
 
 			outcomes, _, err := Run(&raw)
 
-			if tt.err != err {
+			if !errors.Is(tt.err, err) {
 				t.Errorf("expected %+v got %+v", tt.err, err)
 			}
 

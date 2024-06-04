@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 )
 
 var errNoReleaseFound = errors.New("no release found")
@@ -37,6 +38,7 @@ func SignedReleases(name string,
 	expectedProbes := []string{
 		releasesAreSigned.Probe,
 		releasesHaveProvenance.Probe,
+		releasesHaveVerifiedProvenance.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -54,6 +56,10 @@ func SignedReleases(name string,
 	loggedReleases := make([]string, 0)
 	for i := range findings {
 		f := &findings[i]
+
+		if f.Probe == releasesHaveVerifiedProvenance.Probe {
+			continue
+		}
 
 		// Debug release name
 		if f.Outcome == finding.OutcomeNotApplicable {
@@ -85,6 +91,10 @@ func SignedReleases(name string,
 	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
+
+		if f.Probe == releasesHaveVerifiedProvenance.Probe {
+			continue
+		}
 
 		releaseName := getReleaseName(f)
 		if releaseName == "" {
