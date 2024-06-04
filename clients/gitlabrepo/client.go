@@ -283,7 +283,8 @@ func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, e
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(host))
+	url := "https://" + host
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(url))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}

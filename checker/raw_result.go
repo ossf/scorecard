@@ -89,6 +89,17 @@ type Package struct {
 	Runs []Run
 }
 
+type PackageProvenance struct {
+	Commit     string
+	IsVerified bool
+}
+type ProjectPackage struct {
+	System     string
+	Name       string
+	Version    string
+	Provenance PackageProvenance
+}
+
 // DependencyUseType represents a type of dependency use.
 type DependencyUseType string
 
@@ -300,6 +311,7 @@ type BinaryArtifactData struct {
 // for the Signed-Releases check.
 type SignedReleasesData struct {
 	Releases []clients.Release
+	Packages []ProjectPackage
 }
 
 // DependencyUpdateToolData contains the raw results

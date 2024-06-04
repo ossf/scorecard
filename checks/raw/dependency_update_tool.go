@@ -127,6 +127,25 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 				},
 			},
 		})
+	// https://github.com/scala-steward-org/scala-steward/blob/main/docs/repo-specific-configuration.md
+	case ".scala-steward.conf",
+		"scala-steward.conf",
+		".github/.scala-steward.conf",
+		".github/scala-steward.conf",
+		".config/.scala-steward.conf",
+		".config/scala-steward.conf":
+		*ptools = append(*ptools, checker.Tool{
+			Name: "scala-steward",
+			URL:  asPointer("https://github.com/scala-steward-org/scala-steward"),
+			Desc: asPointer("Works with Maven, Mill, sbt, and Scala CLI."),
+			Files: []checker.File{
+				{
+					Path:   name,
+					Type:   finding.FileTypeSource,
+					Offset: checker.OffsetDefault,
+				},
+			},
+		})
 	}
 
 	// Continue iterating, even if we have found a tool.
