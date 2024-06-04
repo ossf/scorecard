@@ -393,7 +393,7 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 		if c.client == nil {
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
-				return ScorecardResult{}, err
+				return ScorecardResult{}, fmt.Errorf("creating gitlab client: %w", err)
 			}
 		}
 	}
@@ -404,8 +404,9 @@ func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardRe
 
 	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
 	if err != nil {
-		return ScorecardResult{}, err
+		return ScorecardResult{}, fmt.Errorf("getting enabled checks: %w", err)
 	}
 
-	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes, c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,
+		c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }
