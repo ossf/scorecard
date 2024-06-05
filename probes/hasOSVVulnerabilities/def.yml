@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasOSVVulnerabilities
+lifecycle: stable
 short: Check whether the project has known vulnerabilities
 motivation: >
   This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service.

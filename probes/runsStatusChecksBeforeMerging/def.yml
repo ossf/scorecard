@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: runsStatusChecksBeforeMerging
+lifecycle: stable
 short: Check that the project runs required status checks
 motivation: >
   Required status checks can check for common errors and resolve issues in PRs.

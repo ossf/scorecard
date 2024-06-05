@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasBinaryArtifacts
+lifecycle: stable
 short: Checks if the project has any binary files in its source tree.
 motivation: >
   Binary files are not human readable so users and reviewers can't easily see what they do.
