@@ -28,6 +28,9 @@ import (
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
 
+// lifecycle indicates the probe's stability
+type lifecycle string
+
 const (
 	// RemediationEffortNone indicates a no remediation effort.
 	RemediationEffortNone RemediationEffort = iota
@@ -37,6 +40,10 @@ const (
 	RemediationEffortMedium
 	// RemediationEffortHigh indicates a high remediation effort.
 	RemediationEffortHigh
+
+	lifecycleExperimental lifecycle = "experimental"
+	lifecycleStable       lifecycle = "stable"
+	lifecycleDeprecated   lifecycle = "deprecated"
 )
 
 // Remediation represents the remediation for a finding.
@@ -109,6 +116,9 @@ func validate(r *pyaml.Probe, probeID string) error {
 	if err := validateEcosystem(r.Ecosystem); err != nil {
 		return err
 	}
+	if err := validateLifecycle(lifecycle(r.Lifecycle)); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -176,6 +186,15 @@ func validateSupportedClients(r pyaml.Ecosystem) error {
 		}
 	}
 	return nil
+}
+
+func validateLifecycle(l lifecycle) error {
+	switch l {
+	case lifecycleExperimental, lifecycleStable, lifecycleDeprecated:
+		return nil
+	default:
+		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("lifecycle '%v'", l))
+	}
 }
 
 func parseFromYAML(content []byte) (*pyaml.Probe, error) {
