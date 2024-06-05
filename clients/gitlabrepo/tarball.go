@@ -120,7 +120,7 @@ func (handler *tarballHandler) setup() error {
 }
 
 func (handler *tarballHandler) getTarball() error {
-	url := fmt.Sprintf("%s/api/v4/projects/%d/repository/archive.tar.gz?sha=%s",
+	url := fmt.Sprintf("https://%s/api/v4/projects/%d/repository/archive.tar.gz?sha=%s",
 		handler.repourl.Host(), handler.repo.ID, handler.commitSHA)
 
 	// Create a temp file.  This automatically appends a random number to the name.
@@ -138,7 +138,7 @@ func (handler *tarballHandler) getTarball() error {
 		return fmt.Errorf("gitlab.apiFunction: %w", err)
 	}
 	// Gitlab url for pulling combined ci
-	url = fmt.Sprintf("%s/api/v4/projects/%d/ci/lint",
+	url = fmt.Sprintf("https://%s/api/v4/projects/%d/ci/lint",
 		handler.repourl.Host(), handler.repo.ID)
 	ciFile, err := os.CreateTemp(tempDir, "gitlabscorecard_lint*.json")
 	if err != nil {

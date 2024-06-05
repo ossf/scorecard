@@ -15,6 +15,7 @@
 package checks
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"testing"
@@ -24,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -435,8 +437,8 @@ func TestSignedRelease(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 
-			mockRepo := mockrepo.NewMockRepoClient(ctrl)
-			mockRepo.EXPECT().ListReleases().DoAndReturn(
+			mockRepoC := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoC.EXPECT().ListReleases().DoAndReturn(
 				func() ([]clients.Release, error) {
 					if tt.err != nil {
 						return nil, tt.err
@@ -445,8 +447,30 @@ func TestSignedRelease(t *testing.T) {
 				},
 			).MinTimes(1)
 
+			mockRepo := mockrepo.NewMockRepo(ctrl)
+			mockRepo.EXPECT().Host().DoAndReturn(
+				func() string {
+					return ""
+				},
+			).AnyTimes()
+			mockRepo.EXPECT().Path().DoAndReturn(
+				func() string {
+					return ""
+				},
+			).AnyTimes()
+
+			mockPkgC := mockrepo.NewMockProjectPackageClient(ctrl)
+			mockPkgC.EXPECT().GetProjectPackageVersions(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, host, project string) (*packageclient.ProjectPackageVersions, error) {
+					v := packageclient.ProjectPackageVersions{}
+					return &v, nil
+				},
+			).AnyTimes()
+
 			req := checker.CheckRequest{
-				RepoClient: mockRepo,
+				RepoClient:    mockRepoC,
+				Repo:          mockRepo,
+				ProjectClient: mockPkgC,
 			}
 			req.Dlogger = &scut.TestDetailLogger{}
 			res := SignedReleases(&req)

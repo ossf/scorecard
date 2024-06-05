@@ -949,6 +949,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "sbt ci-release",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-sbt-ci-release.yaml",
+			expected: true,
+		},
+		{
 			name:     "gem publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-gem.yaml",
 			expected: true,
