@@ -9,7 +9,7 @@ require (
 	cloud.google.com/go/trace v1.10.6 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/bradleyfalzon/ghinstallation/v2 v2.10.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.11.0
 	github.com/go-git/go-git/v5 v5.12.0
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
@@ -77,7 +77,7 @@ require (
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-github/v60 v60.0.0 // indirect
+	github.com/google/go-github/v62 v62.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20240424215950-a892ee059fd6 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
