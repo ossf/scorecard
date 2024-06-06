@@ -229,7 +229,7 @@ func TestSARIFOutput(t *testing.T) {
 			},
 		},
 		{
-			name:           "check-1 annotations",
+			name:           "annotated check defined but no results",
 			showDetails:    true,
 			showAnotations: true,
 			expected:       "./testdata/check1_annotations.sarif",
