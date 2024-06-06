@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -168,21 +169,23 @@ func runScorecard(ctx context.Context,
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
-		// Get configuration
-		rc, err := repoClient.GetFileReader("scorecard.yml")
-		// If configuration file exists, continue. Otherwise, ignore
+		r, err := findConfigFile(repoClient)
+
+		logger := sclog.NewLogger(sclog.DefaultLevel)
+
 		if err == nil {
-			defer rc.Close()
+			defer r.Close()
 			checks := []string{}
 			for check := range checksToRun {
 				checks = append(checks, check)
 			}
-			c, err := config.Parse(rc, checks)
+			c, err := config.Parse(r, checks)
 			if err != nil {
-				logger := sclog.NewLogger(sclog.DefaultLevel)
 				logger.Error(err, "parsing configuration file")
 			}
 			ret.Config = c
+		} else {
+			logger.Info(fmt.Sprintf("no maintainer annotation: %v", err))
 		}
 	}
 
@@ -191,6 +194,21 @@ func runScorecard(ctx context.Context,
 		ret.Findings = append(ret.Findings, result.Findings...)
 	}
 	return ret, nil
+}
+
+func findConfigFile(rc clients.RepoClient) (io.ReadCloser, error) {
+	// Look for a config file. Return first one regardless of validity
+	locs := []string{"scorecard.yml", ".scorecard.yml", ".github/scorecard.yml"}
+
+	for i := range locs {
+		cfr, err := rc.GetFileReader(locs[i])
+		if err == nil {
+			continue
+		}
+		return cfr, nil
+	}
+
+	return nil, fmt.Errorf("no scorecard.yml found")
 }
 
 func runEnabledProbes(request *checker.CheckRequest,
