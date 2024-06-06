@@ -48,51 +48,46 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 				packageName: "npm-package",
 				result: `
 {
-  "objects": [
-    {
-      "package": {
-        "name": "@pulumi/pulumi",
-        "scope": "pulumi",
-        "version": "3.26.0",
-        "description": "Pulumi's Node.js SDK",
-        "date": "2022-03-09T14:05:40.682Z",
-        "links": {
-          "homepage": "https://github.com/pulumi/pulumi#readme",
-          "repository": "https://github.com/pulumi/pulumi",
-          "bugs": "https://github.com/pulumi/pulumi/issues"
-        },
-        "publisher": {
-          "username": "pulumi-bot",
-          "email": "bot@pulumi.com"
-        },
-        "maintainers": [
-          {
-            "username": "joeduffy",
-            "email": "joe@pulumi.com"
-          },
-          {
-            "username": "pulumi-bot",
-            "email": "bot@pulumi.com"
-          }
-        ]
-      },
-      "score": {
-        "final": 0.4056031974977145,
-        "detail": {
-          "quality": 0.7308571951451065,
-          "popularity": 0.19908392082147397,
-          "maintenance": 0.3333333333333333
-        }
-      },
-      "searchScore": 0.00090895034
-    }
-  ],
-  "total": 380,
-  "time": "Wed Mar 09 2022 18:11:10 GMT+0000 (Coordinated Universal Time)"
+  "name": "@pulumi/pulumi",
+  "version": "3.116.1",
+  "description": "Pulumi's Node.js SDK",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pulumi/pulumi.git",
+    "directory": "sdk/nodejs"
+  }
+ 
 }
 				`,
 			},
 			want:    "https://github.com/pulumi/pulumi",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromNPM",
+
+			args: args{
+				packageName: "left-pad",
+				result: `
+{
+  "name": "left-pad",
+  "version": "1.3.0",
+  "description": "String left pad",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "node test",
+    "bench": "node perf/perf.js"
+  },
+  "repository": {
+    "url": "git+ssh://git@github.com/stevemao/left-pad.git",
+    "type": "git"
+  }
+}
+        `,
+			},
+			want:    "ssh://git@github.com/stevemao/left-pad",
 			wantErr: false,
 		},
 		{
@@ -109,8 +104,10 @@ func Test_fetchGitRepositoryFromNPM(t *testing.T) {
 			name: "fetchGitRepositoryFromNPM_error",
 
 			args: args{
-				packageName: "npm-package",
-				result:      "foo",
+				packageName: "https://github.com/airbnb/lottie-web",
+				result: `
+        {"code":"ResourceNotFound","message":"/https:/github.com/airbnb/lottie-web does not exist"}
+        `,
 			},
 			want:    "",
 			wantErr: true,

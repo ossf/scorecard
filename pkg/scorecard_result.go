@@ -134,6 +134,7 @@ func FormatResults(
 		if err != nil {
 			return fmt.Errorf("unable to create output file: %w", err)
 		}
+		fmt.Fprintln(os.Stderr, "Writing results to", opts.ResultsFile)
 		defer output.Close()
 	}
 
