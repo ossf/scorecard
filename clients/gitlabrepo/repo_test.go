@@ -46,7 +46,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			name: "GitHub project with 'gitlab.' in the title",
 			expected: repoURL{
 				scheme:  "http",
-				host:    "http://github.com",
+				host:    "github.com",
 				owner:   "foo",
 				project: "gitlab.test",
 			},
@@ -56,7 +56,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		{
 			name: "valid gitlab project",
 			expected: repoURL{
-				host:    "https://gitlab.com",
+				host:    "gitlab.com",
 				owner:   "ossf-test",
 				project: "scorecard-check-binary-artifacts-e2e",
 			},
@@ -66,7 +66,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		{
 			name: "valid gitlab project",
 			expected: repoURL{
-				host:    "https://gitlab.com",
+				host:    "gitlab.com",
 				owner:   "ossf-test",
 				project: "scorecard-check-binary-artifacts-e2e",
 			},
@@ -77,7 +77,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			name: "valid https address with trailing slash",
 			expected: repoURL{
 				scheme:  "https",
-				host:    "https://gitlab.haskell.org",
+				host:    "gitlab.haskell.org",
 				owner:   "haskell",
 				project: "filepath",
 			},
@@ -88,7 +88,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			name: "valid hosted gitlab project",
 			expected: repoURL{
 				scheme:  "https",
-				host:    "https://salsa.debian.org",
+				host:    "salsa.debian.org",
 				owner:   "webmaster-team",
 				project: "webml",
 			},
@@ -114,6 +114,9 @@ func TestRepoURL_IsValid(t *testing.T) {
 			}
 			if err := r.IsValid(); (err != nil) != tt.wantErr {
 				t.Errorf("repoURL.IsValid() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
 			}
 			t.Log(r.URI())
 			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmpopts.IgnoreUnexported(repoURL{})) {

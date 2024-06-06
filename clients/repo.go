@@ -16,9 +16,16 @@ package clients
 
 // Repo interface uniquely identifies a repo.
 type Repo interface {
+	// Path returns the specifier of the repository within its forge
+	Path() string
+	// URI returns the fully qualified address of the repository
 	URI() string
+	// Host returns the web domain of the repository
 	Host() string
+	// String returns a string representation of the repository URI
 	String() string
+	// IsValid returns whether the repository path on the forge is properly
+	// -formatted (GitHub), or that the repository exists (GitLab)
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)

@@ -150,6 +150,7 @@ func runScorecard(ctx context.Context,
 		OssFuzzRepo:           ossFuzzRepoClient,
 		CIIClient:             ciiClient,
 		VulnerabilitiesClient: vulnsClient,
+		ProjectClient:         projectClient,
 		Repo:                  repo,
 		RawResults:            &ret.RawResults,
 	}

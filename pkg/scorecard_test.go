@@ -20,6 +20,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -128,6 +129,10 @@ func TestRunScorecard(t *testing.T) {
 		uri       string
 		commitSHA string
 	}
+	// These values depend on the environment,
+	// so don't encode particular expectations
+	// in the test:
+	versionInfo := version.GetVersionInfo()
 	tests := []struct {
 		name    string
 		args    args
@@ -145,8 +150,8 @@ func TestRunScorecard(t *testing.T) {
 					Name: "github.com/ossf/scorecard",
 				},
 				Scorecard: ScorecardInfo{
-					Version:   "devel",
-					CommitSHA: "unknown",
+					Version:   versionInfo.GitVersion,
+					CommitSHA: versionInfo.GitCommit,
 				},
 			},
 			wantErr: false,
@@ -194,6 +199,10 @@ func TestRunScorecard(t *testing.T) {
 
 func TestExperimentalRunProbes(t *testing.T) {
 	t.Parallel()
+	// These values depend on the environment,
+	// so don't encode particular expectations
+	// in the test:
+	versionInfo := version.GetVersionInfo()
 	type args struct {
 		uri       string
 		commitSHA string
@@ -230,8 +239,8 @@ func TestExperimentalRunProbes(t *testing.T) {
 					},
 				},
 				Scorecard: ScorecardInfo{
-					Version:   "devel",
-					CommitSHA: "unknown",
+					Version:   versionInfo.GitVersion,
+					CommitSHA: versionInfo.GitCommit,
 				},
 				Findings: []finding.Finding{
 					{

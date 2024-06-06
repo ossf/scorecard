@@ -489,6 +489,15 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate java publishing workflow using gradle",
 		},
 		{
+			// Scala packages with sbt-ci-release
+			Steps: []*JobMatcherStep{
+				{
+					Run: "sbt.*ci-release",
+				},
+			},
+			LogText: "candidate Scala publishing workflow using sbt-ci-release",
+		},
+		{
 			// Ruby packages.
 			Steps: []*JobMatcherStep{
 				{
