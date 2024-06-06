@@ -248,9 +248,3 @@ func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, 
 
 	return sr, float64(jsr.AggregateScore), nil
 }
-
-func (r *ScorecardResult) AsFJSON(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
-) error {
-	return sce.WithMessage(sce.ErrScorecardInternal, "WIP: not supported")
-}
