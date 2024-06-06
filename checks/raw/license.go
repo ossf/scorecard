@@ -253,7 +253,6 @@ func getSpdxID(matches []string) string {
 	// For the regex's 'un' will match the [pre|suf]Spdx
 	// regex group (just as it would match '0BSD'), but
 	// 'un' will not "hit" in the map with key 'Unlicense'
-	// so change to 'UN' for 'unlicense' for 'isLicenseFile()
 	if strings.EqualFold(id, "UN") {
 		id = "UNLICENSE"
 	}
