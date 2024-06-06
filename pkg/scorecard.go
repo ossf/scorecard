@@ -169,11 +169,11 @@ func runScorecard(ctx context.Context,
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
 	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
-		r, err := findConfigFile(repoClient)
+		r := findConfigFile(repoClient)
 
 		logger := sclog.NewLogger(sclog.DefaultLevel)
 
-		if err == nil {
+		if r != nil {
 			defer r.Close()
 			checks := []string{}
 			for check := range checksToRun {
@@ -196,19 +196,19 @@ func runScorecard(ctx context.Context,
 	return ret, nil
 }
 
-func findConfigFile(rc clients.RepoClient) (io.ReadCloser, error) {
+func findConfigFile(rc clients.RepoClient) io.ReadCloser {
 	// Look for a config file. Return first one regardless of validity
 	locs := []string{"scorecard.yml", ".scorecard.yml", ".github/scorecard.yml"}
 
 	for i := range locs {
 		cfr, err := rc.GetFileReader(locs[i])
-		if err == nil {
+		if err != nil {
 			continue
 		}
-		return cfr, nil
+		return cfr
 	}
 
-	return nil, fmt.Errorf("no scorecard.yml found")
+	return nil
 }
 
 func runEnabledProbes(request *checker.CheckRequest,

@@ -15,6 +15,11 @@ package pkg
 
 import (
 	"context"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -337,6 +342,68 @@ func TestExperimentalRunProbes(t *testing.T) {
 			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText, ignoreUnexported) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
 					ignoreRemediationText, ignoreUnexported))
+			}
+		})
+	}
+}
+
+func Test_findConfigFile(t *testing.T) {
+	t.Parallel()
+
+	//nolint:govet
+	tests := []struct {
+		locs      []string
+		desc      string
+		wantFound bool
+	}{
+		{
+			desc:      "scorecard.yml exists",
+			locs:      []string{"scorecard.yml"},
+			wantFound: true,
+		},
+		{
+			desc:      ".scorecard.yml exists",
+			locs:      []string{".scorecard.yml"},
+			wantFound: true,
+		},
+		{
+			desc:      ".github/scorecard.yml exists",
+			locs:      []string{".github/scorecard.yml"},
+			wantFound: true,
+		},
+		{
+			desc:      "multiple configs exist",
+			locs:      []string{"scorecard.yml", ".github/scorecard.yml"},
+			wantFound: true,
+		},
+		{
+			desc:      "no config exists so shouldn't find one",
+			locs:      []string{},
+			wantFound: false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(filename string) (io.ReadCloser, error) {
+				if !slices.Contains(tt.locs, filename) {
+					return nil, fmt.Errorf("os.Open: %s", filename)
+				}
+				fullPath := filepath.Join("./testdata", filename)
+				f, err := os.Open(fullPath)
+				if err != nil {
+					return nil, fmt.Errorf("os.Open: %w", err)
+				}
+				return f, nil
+			})
+			r := findConfigFile(mockRepoClient)
+
+			if tt.wantFound != (r != nil) {
+				t.Errorf("wantFound: %+v got %+v", tt.wantFound, r)
 			}
 		})
 	}
