@@ -28,7 +28,7 @@ import (
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
 
-// lifecycle indicates the probe's stability
+// lifecycle indicates the probe's stability.
 type lifecycle string
 
 const (
