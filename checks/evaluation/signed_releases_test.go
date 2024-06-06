@@ -23,7 +23,6 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
-	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -62,13 +61,6 @@ func provenanceProbe(release, asset int, outcome finding.Outcome) finding.Findin
 			releasesHaveProvenance.ReleaseNameKey: fmt.Sprintf("v%d", release),
 			releasesHaveProvenance.AssetNameKey:   fmt.Sprintf("artifact-%d", asset),
 		},
-	}
-}
-
-func verifiedProvenanceProbe(outcome finding.Outcome) finding.Finding {
-	return finding.Finding{
-		Probe:   releasesHaveVerifiedProvenance.Probe,
-		Outcome: outcome,
 	}
 }
 
