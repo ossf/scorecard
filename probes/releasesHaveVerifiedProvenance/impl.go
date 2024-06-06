@@ -39,7 +39,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 
 	if len(raw.SignedReleasesResults.Packages) == 0 {
-		f, err := finding.NewNotAvailable(fs, Probe, "no package manager releases found", nil)
+		f, err := finding.NewNotApplicable(fs, Probe, "no package manager releases found", nil)
 		if err != nil {
 			return []finding.Finding{}, Probe, fmt.Errorf("create finding: %w", err)
 		}

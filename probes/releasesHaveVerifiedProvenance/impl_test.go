@@ -34,7 +34,7 @@ func Test_Run(t *testing.T) {
 	}{
 		{
 			desc:     "no packages found",
-			outcomes: []finding.Outcome{finding.OutcomeNotAvailable},
+			outcomes: []finding.Outcome{finding.OutcomeNotApplicable},
 		},
 		{
 			desc: "some releases with verified provenance",

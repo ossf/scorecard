@@ -140,7 +140,6 @@ var (
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
 		releasesHaveProvenance.Run,
-		releasesHaveVerifiedProvenance.Run,
 	}
 	BranchProtection = []ProbeImpl{
 		blocksDeleteOnBranches.Run,
@@ -170,6 +169,7 @@ var (
 		hasPermissiveLicense.Run,
 		codeReviewOneReviewers.Run,
 		hasBinaryArtifacts.Run,
+		releasesHaveVerifiedProvenance.Run,
 	}
 
 	// Probes which don't use pre-computed raw data but rather collect it themselves.

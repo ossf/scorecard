@@ -84,7 +84,6 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
-				verifiedProvenanceProbe(finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -98,7 +97,6 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
-				verifiedProvenanceProbe(finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         10,
@@ -111,7 +109,6 @@ func TestSignedReleases(t *testing.T) {
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
-				verifiedProvenanceProbe(finding.OutcomeTrue),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -133,7 +130,6 @@ func TestSignedReleases(t *testing.T) {
 				// Release 3
 				signedProbe(release2, asset0, finding.OutcomeFalse),
 				provenanceProbe(release2, asset1, finding.OutcomeTrue),
-				verifiedProvenanceProbe(finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         6,
@@ -160,7 +156,6 @@ func TestSignedReleases(t *testing.T) {
 				// Release 5, Asset 1:
 				signedProbe(release4, asset0, finding.OutcomeFalse),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
-				verifiedProvenanceProbe(finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         7,
@@ -187,7 +182,6 @@ func TestSignedReleases(t *testing.T) {
 				// Release 5:
 				signedProbe(release4, asset0, finding.OutcomeTrue),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
-				verifiedProvenanceProbe(finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -219,7 +213,6 @@ func TestSignedReleases(t *testing.T) {
 				// Release 6, Asset 1:
 				signedProbe(release5, asset0, finding.OutcomeTrue),
 				provenanceProbe(release5, asset0, finding.OutcomeTrue),
-				verifiedProvenanceProbe(finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         checker.InconclusiveResultScore,

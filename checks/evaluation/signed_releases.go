@@ -38,7 +38,6 @@ func SignedReleases(name string,
 	expectedProbes := []string{
 		releasesAreSigned.Probe,
 		releasesHaveProvenance.Probe,
-		releasesHaveVerifiedProvenance.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
