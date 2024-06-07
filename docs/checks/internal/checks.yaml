@@ -852,7 +852,7 @@ checks:
         in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or
         `LICENSE-Apache-2.0`.
       - >-
-        Alternately, create a `LICENSE` directory and add a license file(s) with a name
+        Alternately, create a `LICENSES` directory and add a license file(s) with a name
         that matches your [SPDX license identifier](https://spdx.org/licenses/).
         such as `LICENSES/Apache-2.0.txt`.
 
