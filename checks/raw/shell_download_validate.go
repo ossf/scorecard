@@ -790,7 +790,11 @@ func isUnpinnedDotNetCliAdd(cmd []string) bool {
 }
 
 func isNuget(cmd []string) bool {
-	return isDotNetCliAdd(cmd) || isNugetCliInstall(cmd) || isDotNetCliRestore(cmd) || isNugetCliRestore(cmd) || isMsBuildRestore(cmd)
+	return isDotNetCliAdd(cmd) ||
+		isNugetCliInstall(cmd) ||
+		isDotNetCliRestore(cmd) ||
+		isNugetCliRestore(cmd) ||
+		isMsBuildRestore(cmd)
 }
 
 func isNugetUnpinned(cmd []string) bool {
@@ -852,10 +856,6 @@ func isMsBuildRestore(cmd []string) bool {
 		}
 	}
 	return false
-}
-
-func isNugetRestore(cmd []string) bool {
-	return isDotNetCliRestore(cmd) || isNugetCliRestore(cmd) || isMsBuildRestore(cmd)
 }
 
 func isUnpinnedNugetCliRestore(cmd []string) bool {
