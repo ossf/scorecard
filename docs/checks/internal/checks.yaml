@@ -832,7 +832,7 @@ checks:
       or `.md`. It will also detect these files in a directory named `LICENSES`.
       (Files in a `LICENSES` directory are typically named as their
       [SPDX](https://spdx.org/licenses/) license identifier followed by an
-      appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+      appropriate file extension, as described in the [REUSE Specification](https://reuse.software/spec/).)
 
       License Requirements:
         - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
