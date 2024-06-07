@@ -764,19 +764,19 @@ func isUnpinnedNugetCliInstall(cmd []string) bool {
 	return unpinnedDependency
 }
 
-func isDotNetCliInstall(cmd []string) bool {
+func isDotNetCliAdd(cmd []string) bool {
 	// Search for command of type dotnet add <PROJECT> package <PACKAGE_NAME>
 	if len(cmd) < 4 {
 		return false
 	}
-	// Search for dotnet add <PROJECT> package <PACKAGE_NAME>
+	// Search for dotnet add [PROJECT] package <PACKAGE_NAME>
 	// where package command can be either the second or the third word
 	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) &&
 		strings.EqualFold(cmd[1], "add") &&
 		(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
 }
 
-func isUnpinnedDotNetCliInstall(cmd []string) bool {
+func isUnpinnedDotNetCliAdd(cmd []string) bool {
 	unpinnedDependency := true
 	for i := 3; i < len(cmd); i++ {
 		// look for version flag
@@ -789,12 +789,12 @@ func isUnpinnedDotNetCliInstall(cmd []string) bool {
 	return unpinnedDependency
 }
 
-func isNugetDownload(cmd []string) bool {
-	return isDotNetCliInstall(cmd) || isNugetCliInstall(cmd)
+func isNuget(cmd []string) bool {
+	return isDotNetCliAdd(cmd) || isNugetCliInstall(cmd) || isDotNetCliRestore(cmd) || isNugetCliRestore(cmd) || isMsBuildRestore(cmd)
 }
 
-func isNugetUnpinnedDownload(cmd []string) bool {
-	if isDotNetCliInstall(cmd) && isUnpinnedDotNetCliInstall(cmd) {
+func isNugetUnpinned(cmd []string) bool {
+	if isDotNetCliAdd(cmd) && isUnpinnedDotNetCliAdd(cmd) {
 		return true
 	}
 
@@ -802,7 +802,99 @@ func isNugetUnpinnedDownload(cmd []string) bool {
 		return true
 	}
 
+	if isDotNetCliRestore(cmd) && isUnpinnedDotNetCliRestore(cmd) {
+		return true
+	}
+
+	if isNugetCliRestore(cmd) && isUnpinnedNugetCliRestore(cmd) {
+		return true
+	}
+
+	if isMsBuildRestore(cmd) && isUnpinnedMsBuildCliRestore(cmd) {
+		return true
+	}
+
 	return false
+}
+
+func isNugetCliRestore(cmd []string) bool {
+	// Search for command of type nuget restore
+	if len(cmd) < 2 {
+		return false
+	}
+	// Search for nuget restore
+	return (isBinaryName("nuget", cmd[0]) || isBinaryName("nuget.exe", cmd[0])) &&
+		strings.EqualFold(cmd[1], "restore")
+}
+
+func isDotNetCliRestore(cmd []string) bool {
+	// Search for command of type dotnet restore
+	if len(cmd) < 2 {
+		return false
+	}
+	// Search for dotnet restore
+	return (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) &&
+		strings.EqualFold(cmd[1], "restore")
+}
+
+func isMsBuildRestore(cmd []string) bool {
+	// Search for command of type msbuild /t:restore
+	if len(cmd) < 2 {
+		return false
+	}
+	// Search for msbuild /t:restore
+	if isBinaryName("msbuild", cmd[0]) || isBinaryName("msbuild.exe", cmd[0]) {
+		for i := 1; i < len(cmd); i++ {
+			// look for /t:restore flag
+			if strings.EqualFold(cmd[i], "/t:restore") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isNugetRestore(cmd []string) bool {
+	return isDotNetCliRestore(cmd) || isNugetCliRestore(cmd) || isMsBuildRestore(cmd)
+}
+
+func isUnpinnedNugetCliRestore(cmd []string) bool {
+	unpinnedDependency := true
+	for i := 2; i < len(cmd); i++ {
+		// look for LockedMode flag
+		// https://learn.microsoft.com/en-us/nuget/reference/cli-reference/cli-ref-restore
+		if strings.EqualFold(cmd[i], "-LockedMode") {
+			unpinnedDependency = false
+			break
+		}
+	}
+	return unpinnedDependency
+}
+
+func isUnpinnedDotNetCliRestore(cmd []string) bool {
+	unpinnedDependency := true
+	for i := 2; i < len(cmd); i++ {
+		// look for locked-mode flag
+		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+		if strings.EqualFold(cmd[i], "--locked-mode") {
+			unpinnedDependency = false
+			break
+		}
+	}
+	return unpinnedDependency
+}
+
+func isUnpinnedMsBuildCliRestore(cmd []string) bool {
+	unpinnedDependency := true
+	for i := 2; i < len(cmd); i++ {
+		// look for /p:RestoreLockedMode=true
+		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+		if strings.EqualFold(cmd[i], "/p:RestoreLockedMode=true") {
+			unpinnedDependency = false
+			break
+		}
+	}
+	return unpinnedDependency
 }
 
 func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.Node,
@@ -900,8 +992,8 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 		return
 	}
 
-	// Nuget install.
-	if isNugetDownload(c) {
+	// Nuget install and restore
+	if isNuget(c) {
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -911,13 +1003,14 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(!isNugetUnpinnedDownload(c)),
+				Pinned: asBoolPointer(!isNugetUnpinned(c)),
 				Type:   checker.DependencyUseTypeNugetCommand,
 			},
 		)
 
 		return
 	}
+
 	// TODO(laurent): add other package managers.
 }
 
