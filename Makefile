@@ -196,7 +196,7 @@ scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 	# Run go releaser on the Scorecard repo
 	$(GORELEASER) check && \
 		VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release \
-		--snapshot --rm-dist --skip-publish --skip-sign && \
+		--snapshot --clean --skip-publish --skip-sign && \
 		touch scorecard.releaser
 
 CRON_CONTROLLER_DEPS = $(shell find cron/internal/ -iname "*.go")
