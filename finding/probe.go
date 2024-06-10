@@ -142,7 +142,7 @@ func validateID(actual, expected string) error {
 
 func validateRemediation(r yamlRemediation) error {
 	if err := validateRemediationOutcomeTrigger(r.OnOutcome); err != nil {
-		return err
+		return fmt.Errorf("remediation: %w", err)
 	}
 	switch r.Effort {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
