@@ -140,7 +140,7 @@ func FormatResults(
 
 	switch opts.Format {
 	case options.FormatDefault:
-		o := AsStringResultOption{
+		o := &AsStringResultOption{
 			Details:     opts.ShowDetails,
 			Annotations: opts.ShowAnnotations,
 			LogLevel:    log.ParseLevel(opts.LogLevel),
@@ -150,7 +150,7 @@ func FormatResults(
 		// TODO: support config files and update checker.MaxResultScore.
 		err = results.AsSARIF(opts.ShowDetails, log.ParseLevel(opts.LogLevel), output, doc, policy, opts)
 	case options.FormatJSON:
-		o := AsJSON2ResultOption{
+		o := &AsJSON2ResultOption{
 			Details:     opts.ShowDetails,
 			Annotations: opts.ShowAnnotations,
 			LogLevel:    log.ParseLevel(opts.LogLevel),
@@ -179,9 +179,15 @@ func FormatResults(
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(writer io.Writer,
-	checkDocs docChecks.Doc, o AsStringResultOption,
-) error {
+func (r *ScorecardResult) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStringResultOption) error {
+	if opt == nil {
+		opt = &AsStringResultOption{
+			LogLevel:    log.DefaultLevel,
+			Details:     false,
+			Annotations: false,
+		}
+	}
+
 	data := make([][]string, len(r.Checks))
 
 	for i, row := range r.Checks {
@@ -201,14 +207,14 @@ func (r *ScorecardResult) AsString(writer io.Writer,
 
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
 		x = append(x, row.Name, row.Reason)
-		if o.Details {
-			details, show := detailsToString(row.Details, o.LogLevel)
+		if opt.Details {
+			details, show := detailsToString(row.Details, opt.LogLevel)
 			if show {
 				x = append(x, details)
 			}
 		}
 		x = append(x, doc)
-		if o.Annotations {
+		if opt.Annotations {
 			_, reasons := row.IsExempted(r.Config)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
@@ -228,11 +234,11 @@ func (r *ScorecardResult) AsString(writer io.Writer,
 
 	table := tablewriter.NewWriter(writer)
 	header := []string{"Score", "Name", "Reason"}
-	if o.Details {
+	if opt.Details {
 		header = append(header, "Details")
 	}
 	header = append(header, "Documentation/Remediation")
-	if o.Annotations {
+	if opt.Annotations {
 		header = append(header, "Annotation")
 	}
 	table.SetHeader(header)
