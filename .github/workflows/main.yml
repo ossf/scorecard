@@ -39,7 +39,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
      - name: Clone the code
        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
      - name: Setup Go
@@ -97,7 +97,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
 
      - name: Install Protoc
        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
@@ -145,7 +145,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
      - name: Clone the code
        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
      - name: Setup Go
@@ -174,7 +174,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
 
      - name: Install Protoc
        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
@@ -223,7 +223,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v2.8.1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9 # v4.0.2
@@ -262,7 +262,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
 
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
@@ -304,7 +304,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
      - name: Clone the code
        uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
      - name: Setup Go
@@ -332,7 +332,7 @@ jobs:
      - name: Harden Runner
        uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
        with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+         egress-policy: block
 
      - name: Install Protoc
        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
@@ -367,7 +367,7 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@17d0e2bd7d51742c71671bd19fa12bdc9d40a3d6 # v1
         with:
-          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+          egress-policy: block
 
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7 # v2.2.0
