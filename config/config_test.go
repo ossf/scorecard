@@ -130,6 +130,8 @@ func Test_Parse_Checks(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
+			defer r.Close()
+
 			result, err := config.Parse(r)
 			if (tt.wantErr != nil) != (err != nil) {
 				t.Errorf("expected %+v got %+v", tt.wantErr, err)
