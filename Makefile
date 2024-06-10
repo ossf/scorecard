@@ -45,7 +45,7 @@ $(GINKGO): $(TOOLS_DIR)/go.mod
 
 GORELEASER := $(TOOLS_BIN_DIR)/goreleaser
 $(GORELEASER): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser/v2
 
 PROTOC_GEN_GO := $(TOOLS_BIN_DIR)/protoc-gen-go
 $(PROTOC_GEN_GO): $(TOOLS_DIR)/go.mod

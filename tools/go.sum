@@ -560,8 +560,8 @@ github.com/goreleaser/chglog v0.6.1 h1:NZKiX8l0FTQPRzBgKST7knvNZmZ04f7PEGkN2wInf
 github.com/goreleaser/chglog v0.6.1/go.mod h1:Bnnfo07jMZkaAb0uRNASMZyOsX6ROW6X1qbXqN3guUo=
 github.com/goreleaser/fileglob v1.3.0 h1:/X6J7U8lbDpQtBvGcwwPS6OpzkNVlVEsFUVRx9+k+7I=
 github.com/goreleaser/fileglob v1.3.0/go.mod h1:Jx6BoXv3mbYkEzwm9THo7xbr5egkAraxkGorbJb4RxU=
-github.com/goreleaser/goreleaser v1.26.2 h1:1iY1HaXtRiMTrwy6KE1sNjkRjsjMi+9l0k6WUX8GpWw=
-github.com/goreleaser/goreleaser v1.26.2/go.mod h1:mHi6zr6fuuOh5eHdWWgyo/N8BWED5WEVtb/4GETc9jQ=
+github.com/goreleaser/goreleaser/v2 v2.0.0 h1:TxH7v+rYsQ+e4CQDMmdBFnVzxuTbBJRwsLXeCSkOREU=
+github.com/goreleaser/goreleaser/v2 v2.0.0/go.mod h1:eit+2+u8uJLgBtuEMITPaQHwO55amhR089eFkbWi3s0=
 github.com/goreleaser/nfpm/v2 v2.37.1 h1:RUmeEt8OlEVeSzKRrO5Vl5qVWCtUwx4j9uivGuRo5fw=
 github.com/goreleaser/nfpm/v2 v2.37.1/go.mod h1:q8+sZXFqn106/eGw+9V+I8+izFxZ/sJjrhwmEUxXhUg=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
