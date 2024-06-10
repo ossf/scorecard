@@ -43,7 +43,7 @@ func Test_getCommits_retry(t *testing.T) {
 			Transport: rt,
 		}),
 	}
-	handler.init(context.Background(), &repoURL{}, 1)
+	handler.init(context.Background(), &Repo{}, 1)
 	_, err := handler.getCommits()
 	if err == nil {
 		t.Error("expected error")

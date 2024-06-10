@@ -29,6 +29,10 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
+	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/config"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
@@ -36,6 +40,7 @@ import (
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
+	"github.com/ossf/scorecard/v5/policy"
 )
 
 // errEmptyRepository indicates the repository is empty.
@@ -292,4 +297,132 @@ func ExperimentalRunProbes(ctx context.Context,
 		vulnsClient,
 		projectClient,
 	)
+}
+
+type runConfig struct {
+	client        clients.RepoClient
+	vulnClient    clients.VulnerabilitiesClient
+	ciiClient     clients.CIIBestPracticesClient
+	projectClient packageclient.ProjectPackageClient
+	ossfuzzClient clients.RepoClient
+	checks        []string
+	commit        string
+	probes        []string
+	commitDepth   int
+}
+
+type Option func(*runConfig) error
+
+func WithCommitDepth(depth int) Option {
+	return func(c *runConfig) error {
+		c.commitDepth = depth
+		return nil
+	}
+}
+
+func WithCommitSHA(sha string) Option {
+	return func(c *runConfig) error {
+		c.commit = sha
+		return nil
+	}
+}
+
+func WithChecks(checks []string) Option {
+	return func(c *runConfig) error {
+		c.checks = checks
+		return nil
+	}
+}
+
+func WithProbes(probes []string) Option {
+	return func(c *runConfig) error {
+		c.probes = probes
+		return nil
+	}
+}
+
+func WithRepoClient(client clients.RepoClient) Option {
+	return func(c *runConfig) error {
+		c.client = client
+		return nil
+	}
+}
+
+func WithOSSFuzzClient(client clients.RepoClient) Option {
+	return func(c *runConfig) error {
+		c.ossfuzzClient = client
+		return nil
+	}
+}
+
+func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
+	return func(c *runConfig) error {
+		c.vulnClient = client
+		return nil
+	}
+}
+
+func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option {
+	return func(c *runConfig) error {
+		c.ciiClient = client
+		return nil
+	}
+}
+
+func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResult, error) {
+	// TODO logger
+	logger := sclog.NewLogger(sclog.InfoLevel)
+	c := runConfig{
+		commit: clients.HeadSHA,
+	}
+	for _, option := range opts {
+		if err := option(&c); err != nil {
+			return ScorecardResult{}, err
+		}
+	}
+	if c.ciiClient == nil {
+		c.ciiClient = clients.DefaultCIIBestPracticesClient()
+	}
+	if c.ossfuzzClient == nil {
+		c.ossfuzzClient = ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL)
+	}
+	if c.vulnClient == nil {
+		c.vulnClient = clients.DefaultVulnerabilitiesClient()
+	}
+	if c.projectClient == nil {
+		c.projectClient = packageclient.CreateDepsDevClient()
+	}
+
+	var requiredRequestTypes []checker.RequestType
+	var err error
+	switch repo.(type) {
+	case *localdir.Repo:
+		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
+		if c.client == nil {
+			c.client = localdir.CreateLocalDirClient(ctx, logger)
+		}
+	case *githubrepo.Repo:
+		if c.client == nil {
+			c.client = githubrepo.CreateGithubRepoClient(ctx, logger)
+		}
+	case *gitlabrepo.Repo:
+		if c.client == nil {
+			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
+			if err != nil {
+				return ScorecardResult{}, fmt.Errorf("creating gitlab client: %w", err)
+			}
+		}
+	}
+
+	if !strings.EqualFold(c.commit, clients.HeadSHA) {
+		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
+	}
+
+	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
+	if err != nil {
+		return ScorecardResult{}, fmt.Errorf("getting enabled checks: %w", err)
+	}
+
+	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,
+		c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
 }

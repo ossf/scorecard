@@ -29,7 +29,7 @@ type branchesHandler struct {
 	glClient                 *gitlab.Client
 	once                     *sync.Once
 	errSetup                 error
-	repourl                  *repoURL
+	repourl                  *Repo
 	defaultBranchRef         *clients.BranchRef
 	queryProject             fnProject
 	queryBranch              fnQueryBranch
@@ -38,7 +38,7 @@ type branchesHandler struct {
 	getApprovalConfiguration fnGetApprovalConfiguration
 }
 
-func (handler *branchesHandler) init(repourl *repoURL) {
+func (handler *branchesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
