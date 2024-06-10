@@ -160,17 +160,10 @@ func License(c *checker.CheckRequest) (checker.LicenseData, error) {
 
 	// scorecard search stops at first candidate (isLicenseFile) license file found
 	if path != (checker.LicenseFile{}) {
-		//
-		// now it is time to "map it back" in the case of the
-		// Spdx Identifier for "UNLICENSE" which was mapped to "UN"
-		// for the regex group match and this check.
-		// grab what is needed before clobbering the Spdx Identifier
-		// Aside from 'UN', these settings (Name, Key) match GH repo API
-		// for when the Spdx Identifier cannot be determined.
 		path.LicenseInformation.Name = fsfOsiApprovedLicenseCiMap[strings.ToUpper(path.LicenseInformation.SpdxID)].Name
-		if strings.ToUpper(path.LicenseInformation.SpdxID) == "UN" {
-			path.LicenseInformation.SpdxID = "UNLICENSE"
-		} else if path.LicenseInformation.SpdxID == "" {
+		// these settings (Name, Key) match GH repo API
+		// for when the Spdx Identifier cannot be determined.
+		if path.LicenseInformation.SpdxID == "" {
 			path.LicenseInformation.SpdxID = "NOASSERTION"
 			path.LicenseInformation.Name = "Other"
 		}
@@ -226,19 +219,7 @@ func setCiMap() {
 	defer ciMapMutex.Unlock()
 	if len(fsfOsiApprovedLicenseCiMap) == 0 {
 		for key, entry := range fsfOsiApprovedLicenseMap {
-			// Special case, the unlicense, in the map is
-			// called 'The Unlicense' with the Spdx id 'Unlicense'.
-			// For the regex's 'un' will match the [pre|suf]Spdx
-			// regex group (just as it would match '0BSD'), but
-			// 'un' will not "hit" in the map with key 'Unlicense'
-			// so change to 'UN' for 'unlicense' for 'isLicenseFile()'
-			// TODO: make this general (pass a key map for changing these
-			//       special cases). For now this is the only one.
-			if strings.ToUpper(key) == "UNLICENSE" {
-				fsfOsiApprovedLicenseCiMap["UN"] = entry
-			} else {
-				fsfOsiApprovedLicenseCiMap[strings.ToUpper(key)] = entry
-			}
+			fsfOsiApprovedLicenseCiMap[strings.ToUpper(key)] = entry
 		}
 	}
 }
@@ -261,12 +242,22 @@ func getSpdxID(matches []string) string {
 	// value, preSpdx takes precedence.
 	// (e.g., 0BSD-LICENSE-GPL-2.0.txt)
 	// TODO: decide if that is OK or should "fail"
+	var id string
 	if matches[reGroupIdxs["preSpdx"]] != "" {
-		return matches[reGroupIdxs["preSpdx"]]
+		id = matches[reGroupIdxs["preSpdx"]]
 	} else if matches[reGroupIdxs["sufSpdx"]] != "" {
-		return matches[reGroupIdxs["sufSpdx"]]
+		id = matches[reGroupIdxs["sufSpdx"]]
 	}
-	return ""
+	// Special case, the unlicense, in the map is
+	// called 'The Unlicense' with the Spdx id 'Unlicense'.
+	// For the regex's 'un' will match the [pre|suf]Spdx
+	// regex group (just as it would match '0BSD'), but
+	// 'un' will not "hit" in the map with key 'Unlicense'
+	if strings.EqualFold(id, "UN") {
+		id = "UNLICENSE"
+	}
+
+	return id
 }
 
 func getExt(filename string, matches []string) string {

@@ -144,10 +144,22 @@ func NewFalse(efs embed.FS, probeID, text string, loc *Location,
 	return NewWith(efs, probeID, text, loc, OutcomeFalse)
 }
 
+// NewNotApplicable create a finding with a NotApplicable outcome and the desired location.
+func NewNotApplicable(efs embed.FS, probeID, text string, loc *Location,
+) (*Finding, error) {
+	return NewWith(efs, probeID, text, loc, OutcomeNotApplicable)
+}
+
 // NewNotAvailable create a finding with a NotAvailable outcome and the desired location.
 func NewNotAvailable(efs embed.FS, probeID, text string, loc *Location,
 ) (*Finding, error) {
 	return NewWith(efs, probeID, text, loc, OutcomeNotAvailable)
+}
+
+// NewNotSupported create a finding with a NotSupported outcome and the desired location.
+func NewNotSupported(efs embed.FS, probeID, text string, loc *Location,
+) (*Finding, error) {
+	return NewWith(efs, probeID, text, loc, OutcomeNotSupported)
 }
 
 // NewTrue create a true finding with the desired location.

@@ -48,6 +48,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
 	"github.com/ossf/scorecard/v5/probes/requiresCodeOwnersReview"
 	"github.com/ossf/scorecard/v5/probes/requiresLastPushApproval"
@@ -168,6 +169,7 @@ var (
 		hasPermissiveLicense.Run,
 		codeReviewOneReviewers.Run,
 		hasBinaryArtifacts.Run,
+		releasesHaveVerifiedProvenance.Run,
 	}
 
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
