@@ -1,6 +1,6 @@
 annotations:
   - checks:
-      - binary-artifacts
+      - Binary-Artifacts
     reasons:
       - reason: test-data
       - reason: remediated

@@ -1,5 +1,5 @@
 annotations:
   - checks:
-      - credentials
+      - Credentials
     reasons:
       - reason: test-data

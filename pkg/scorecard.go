@@ -173,11 +173,7 @@ func runScorecard(ctx context.Context,
 		// If configuration file exists, continue. Otherwise, ignore
 		if err == nil {
 			defer rc.Close()
-			checks := []string{}
-			for check := range checksToRun {
-				checks = append(checks, check)
-			}
-			c, err := config.Parse(rc, checks)
+			c, err := config.Parse(rc)
 			if err != nil {
 				logger := sclog.NewLogger(sclog.DefaultLevel)
 				logger.Error(err, "parsing configuration file")

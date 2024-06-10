@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 
@@ -45,19 +45,63 @@ func parseFile(c *Config, content []byte) error {
 	return nil
 }
 
-func isValidCheck(check string, checks []string) bool {
-	for _, validCheck := range checks {
-		if strings.EqualFold(check, validCheck) {
-			return true
-		}
-	}
-	return false
+type CheckName = string
+
+// Redefining check names here to avoid circular imports.
+const (
+	BinaryArtifacts      CheckName = "Binary-Artifacts"
+	BranchProtection     CheckName = "Branch-Protection"
+	CIIBestPractices     CheckName = "CII-Best-Practices"
+	CITests              CheckName = "CI-Tests"
+	CodeReview           CheckName = "Code-Review"
+	Contributors         CheckName = "Contributors"
+	DangerousWorkflow    CheckName = "Dangerous-Workflow"
+	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
+	Fuzzing              CheckName = "Fuzzing"
+	License              CheckName = "License"
+	Maintained           CheckName = "Maintained"
+	Packaging            CheckName = "Packaging"
+	PinnedDependencies   CheckName = "Pinned-Dependencies"
+	SAST                 CheckName = "SAST"
+	SBOM                 CheckName = "SBOM"
+	SecurityPolicy       CheckName = "Security-Policy"
+	SignedReleases       CheckName = "Signed-Releases"
+	TokenPermissions     CheckName = "Token-Permissions"
+	Vulnerabilities      CheckName = "Vulnerabilities"
+	Webhooks             CheckName = "Webhooks"
+)
+
+var allValidChecks []string = []string{
+	BinaryArtifacts,
+	BranchProtection,
+	CIIBestPractices,
+	CITests,
+	CodeReview,
+	Contributors,
+	DangerousWorkflow,
+	DependencyUpdateTool,
+	Fuzzing,
+	License,
+	Maintained,
+	Packaging,
+	PinnedDependencies,
+	SAST,
+	SBOM,
+	SecurityPolicy,
+	SignedReleases,
+	TokenPermissions,
+	Vulnerabilities,
+	Webhooks,
 }
 
-func validate(c Config, checks []string) error {
+func isValidCheck(check string) bool {
+	return slices.Contains(allValidChecks, check)
+}
+
+func validate(c Config) error {
 	for _, annotation := range c.Annotations {
 		for _, check := range annotation.Checks {
-			if !isValidCheck(check, checks) {
+			if !isValidCheck(check) {
 				return fmt.Errorf("%w: %s", ErrInvalidCheck, check)
 			}
 		}
@@ -71,7 +115,7 @@ func validate(c Config, checks []string) error {
 }
 
 // Parse reads the configuration file from the repo, stored in scorecard.yml, and returns a `Config`.
-func Parse(r io.Reader, checks []string) (Config, error) {
+func Parse(r io.Reader) (Config, error) {
 	c := Config{}
 	// Find scorecard.yml file in the repository's root
 	content, err := io.ReadAll(r)
@@ -84,7 +128,7 @@ func Parse(r io.Reader, checks []string) (Config, error) {
 		return Config{}, fmt.Errorf("fail to parse configuration file: %w", err)
 	}
 
-	err = validate(c, checks)
+	err = validate(c)
 	if err != nil {
 		return Config{}, fmt.Errorf("configuration file is not valid: %w", err)
 	}

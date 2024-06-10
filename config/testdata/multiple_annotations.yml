@@ -1,9 +1,9 @@
 annotations:
   - checks:
-      - binary-artifacts
+      - Binary-Artifacts
     reasons:
       - reason: test-data
   - checks:
-      - pinned-dependencies
+      - Pinned-Dependencies
     reasons:
       - reason: not-applicable

@@ -23,7 +23,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
-	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/config"
 )
 
@@ -41,7 +40,7 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks:  []string{"binary-artifacts"},
+						Checks:  []string{"Binary-Artifacts"},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 				},
@@ -54,24 +53,24 @@ func Test_Parse_Checks(t *testing.T) {
 				Annotations: []config.Annotation{
 					{
 						Checks: []string{
-							"binary-artifacts",
-							"branch-protection",
-							"cii-best-practices",
-							"ci-tests",
-							"code-review",
-							"contributors",
-							"dangerous-workflow",
-							"dependency-update-tool",
-							"fuzzing",
-							"license",
-							"maintained",
-							"packaging",
-							"pinned-dependencies",
-							"sast",
-							"security-policy",
-							"signed-releases",
-							"token-permissions",
-							"vulnerabilities",
+							"Binary-Artifacts",
+							"Branch-Protection",
+							"CII-Best-Practices",
+							"CI-Tests",
+							"Code-Review",
+							"Contributors",
+							"Dangerous-Workflow",
+							"Dependency-Update-Tool",
+							"Fuzzing",
+							"License",
+							"Maintained",
+							"Packaging",
+							"Pinned-Dependencies",
+							"SAST",
+							"Security-Policy",
+							"Signed-Releases",
+							"Token-Permissions",
+							"Vulnerabilities",
 						},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
@@ -84,7 +83,7 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks: []string{"binary-artifacts"},
+						Checks: []string{"Binary-Artifacts"},
 						Reasons: []config.ReasonGroup{
 							{Reason: "test-data"},
 							{Reason: "remediated"},
@@ -102,11 +101,11 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks:  []string{"binary-artifacts"},
+						Checks:  []string{"Binary-Artifacts"},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 					{
-						Checks:  []string{"pinned-dependencies"},
+						Checks:  []string{"Pinned-Dependencies"},
 						Reasons: []config.ReasonGroup{{Reason: "not-applicable"}},
 					},
 				},
@@ -125,20 +124,19 @@ func Test_Parse_Checks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		allChecks := []string{}
-		for check := range checks.GetAll() {
-			allChecks = append(allChecks, check)
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r, err := os.Open(tt.configPath)
 			if err != nil {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
-			result, err := config.Parse(r, allChecks)
+			result, err := config.Parse(r)
+			if (tt.wantErr != nil) != (err != nil) {
+				t.Errorf("expected %+v got %+v", tt.wantErr, err)
+			}
 			if tt.wantErr != nil {
 				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
+					t.Fatalf("wrong error during Parse: got %v, wantErr %v", err, tt.wantErr)
 				}
 				return
 			}
