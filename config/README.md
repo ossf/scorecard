@@ -7,7 +7,7 @@
 To annotate your repository, create a `scorecard.yml` file in the root of your repository.
 > You can also place your annotations in `.scorecard.yml` or `.github/scorecard.yml`.
 
-The file `scorecard.yml` looks like so:
+The file structure is as follows:
 
 ```yml
 exemptions:
@@ -54,7 +54,7 @@ The annotations are predefined as shown in the table below:
 
 | Annotation | Description | Example |
 |------------|-------------|---------|
-| test-data | A check or probe has found an issue in files or code snippets only used for test or example purposes. | The binary files are only used for testing. |
+| test-data | A check or probe has found a security issue in files or code snippets only used for test or example purposes. | The binary files are only used for testing. |
 | remediated | To annotate when a check or probe has found a security issue to which a remediation was already applied. | A workflow is dangerous but only run under maintainers verification and approval, or a binary is needed but it is signed or has provenance. |
 | not-applicable | To annotate when a check or probe is not applicable for the case. | The dependencies should not be pinned because the project is a library. |
 | not-supported | To annotate when the maintainer fulfills a check or probe in a way that is not supported by Scorecard. | Clang-Tidy is used as SAST tool but not identified because its not supported. |
