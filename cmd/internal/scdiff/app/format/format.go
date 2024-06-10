@@ -56,7 +56,7 @@ func JSON(r *pkg.ScorecardResult, w io.Writer) error {
 		return err
 	}
 	Normalize(r)
-	o := pkg.AsJSON2ResultOption{
+	o := &pkg.AsJSON2ResultOption{
 		Details:  details,
 		LogLevel: logLevel,
 	}
