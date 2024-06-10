@@ -354,26 +354,31 @@ func Test_findConfigFile(t *testing.T) {
 	tests := []struct {
 		locs      []string
 		desc      string
+		found     string
 		wantFound bool
 	}{
 		{
 			desc:      "scorecard.yml exists",
 			locs:      []string{"scorecard.yml"},
+			found:     "scorecard.yml",
 			wantFound: true,
 		},
 		{
 			desc:      ".scorecard.yml exists",
 			locs:      []string{".scorecard.yml"},
+			found:     ".scorecard.yml",
 			wantFound: true,
 		},
 		{
 			desc:      ".github/scorecard.yml exists",
 			locs:      []string{".github/scorecard.yml"},
+			found:     ".github/scorecard.yml",
 			wantFound: true,
 		},
 		{
 			desc:      "multiple configs exist",
 			locs:      []string{"scorecard.yml", ".github/scorecard.yml"},
+			found:     "scorecard.yml",
 			wantFound: true,
 		},
 		{
@@ -400,7 +405,11 @@ func Test_findConfigFile(t *testing.T) {
 				}
 				return f, nil
 			})
-			r := findConfigFile(mockRepoClient)
+			r, path := findConfigFile(mockRepoClient)
+
+			if tt.found != "" && tt.found != path {
+				t.Errorf("expected config file %+v got %+v", tt.found, path)
+			}
 
 			if tt.wantFound != (r != nil) {
 				t.Errorf("wantFound: %+v got %+v", tt.wantFound, r)
