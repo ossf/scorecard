@@ -369,13 +369,13 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
-func Run(ctx context.Context, repo clients.Repo, options ...Option) (ScorecardResult, error) {
+func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResult, error) {
 	// TODO logger
 	logger := sclog.NewLogger(sclog.InfoLevel)
 	c := runConfig{
 		commit: clients.HeadSHA,
 	}
-	for _, option := range options {
+	for _, option := range opts {
 		if err := option(&c); err != nil {
 			return ScorecardResult{}, err
 		}
