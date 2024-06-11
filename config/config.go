@@ -62,7 +62,7 @@ func validate(c Config, checks []string) error {
 			}
 		}
 		for _, reasonGroup := range annotation.Reasons {
-			if !IsValidReason(reasonGroup.Reason) {
+			if !isValidReason(reasonGroup.Reason) {
 				return fmt.Errorf("%w: %s", ErrInvalidReason, reasonGroup.Reason)
 			}
 		}
