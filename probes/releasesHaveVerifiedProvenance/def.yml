@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: releasesHaveVerifiedProvenance
+lifecycle: experimental
 short: Checks if the project releases with provenance attestations that have been verified
 motivation: >
   Package provenance attestations provide a greater guarantee of authenticity and integrity than package signatures alone, since the attestation can be performed over a hash of both the package contents and metadata. Developers can attest to particular qualities of the build, such as the build environment, build steps or builder identity.
