@@ -1,6 +1,6 @@
 # Maintainer Annotations
 
-*Maintainer Annotations* are an *experimental feature* that let maintainers *add context* to Scorecard check results in `scorecard.yml`. Annotations can be useful when Scorecard incorrectly assesses a project's security practices.
+**Maintainer Annotations** are an experimental feature that let maintainers add context to Scorecard check results. Annotations can inform users when Scorecard is incorrectly assessing a project's security practices.
 
 ## Annotating Your Project
 
