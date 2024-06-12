@@ -24,10 +24,10 @@ import (
 
 type statusesHandler struct {
 	glClient *gitlab.Client
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *statusesHandler) init(repourl *repoURL) {
+func (handler *statusesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 }
 

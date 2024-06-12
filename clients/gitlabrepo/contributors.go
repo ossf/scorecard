@@ -30,11 +30,11 @@ type contributorsHandler struct {
 	glClient       *gitlab.Client
 	once           *sync.Once
 	errSetup       error
-	repourl        *repoURL
+	repourl        *Repo
 	contributors   []clients.User
 }
 
-func (handler *contributorsHandler) init(repourl *repoURL) {
+func (handler *contributorsHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
