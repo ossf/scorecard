@@ -25,10 +25,10 @@ import (
 
 type workflowsHandler struct {
 	glClient *gitlab.Client
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *workflowsHandler) init(repourl *repoURL) {
+func (handler *workflowsHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 }
 

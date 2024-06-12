@@ -25,10 +25,10 @@ import (
 
 type searchCommitsHandler struct {
 	glClient *gitlab.Client
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *searchCommitsHandler) init(repourl *repoURL) {
+func (handler *searchCommitsHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 }
 

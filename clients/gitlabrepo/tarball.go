@@ -69,7 +69,7 @@ type tarballHandler struct {
 	once        *sync.Once
 	ctx         context.Context
 	repo        *gitlab.Project
-	repourl     *repoURL
+	repourl     *Repo
 	commitSHA   string
 	tempDir     string
 	tempTarFile string
@@ -83,7 +83,7 @@ type gitLabLint struct {
 	Valid      bool     `json:"valid"`
 }
 
-func (handler *tarballHandler) init(ctx context.Context, repourl *repoURL, repo *gitlab.Project, commitSHA string) {
+func (handler *tarballHandler) init(ctx context.Context, repourl *Repo, repo *gitlab.Project, commitSHA string) {
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
 	handler.ctx = ctx

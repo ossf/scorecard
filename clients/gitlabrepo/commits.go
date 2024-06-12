@@ -30,12 +30,12 @@ type commitsHandler struct {
 	glClient    *gitlab.Client
 	once        *sync.Once
 	errSetup    error
-	repourl     *repoURL
+	repourl     *Repo
 	commitsRaw  []*gitlab.Commit
 	commitDepth int
 }
 
-func (handler *commitsHandler) init(repourl *repoURL, commitDepth int) {
+func (handler *commitsHandler) init(repourl *Repo, commitDepth int) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)

@@ -51,7 +51,7 @@ type localDirClient struct {
 
 // InitRepo sets up the local repo.
 func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
-	localRepo, ok := inputRepo.(*repoLocal)
+	localRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
