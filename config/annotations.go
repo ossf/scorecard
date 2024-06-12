@@ -71,8 +71,9 @@ func (r *Reason) Doc() string {
 	}
 }
 
-// IsValidReason validates if a reason exists.
-func IsValidReason(r Reason) bool {
+// isValidReason checks if a reason can be used by a config file.
+func isValidReason(r Reason) bool {
+	// the reason must be one of the preselected options
 	switch r {
 	case TestData, Remediated, NotApplicable, NotSupported, NotDetected:
 		return true
