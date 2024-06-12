@@ -1,63 +1,65 @@
-# Maintainers Annotations
+# Maintainer Annotations
 
-Maintainers Annotations is an experimental feature to let maintainers add annotations to Scorecard checks.
+**Maintainer Annotations** are an experimental feature that let maintainers add context to Scorecard check results. Annotations can inform users when Scorecard is incorrectly assessing a project's security practices.
 
-## Showing Maintainers Annotations
+## Annotating Your Project
 
-To see the maintainers annotations for each check on Scorecard results, use the `--show-annotations` option.
-
-## Adding Annotations
-
-To add annotations to your repository, create a `scorecard.yml` file in the root of your repository.
+To annotate your repository, create a `scorecard.yml` file in the root of your repository.
+> You can also place your annotations in `.scorecard.yml` or `.github/scorecard.yml`.
 
 The file structure is as follows:
+
 ```yml
 exemptions:
   - checks:
       - binary-artifacts
     annotations:
-      # the binary files are only used for testing
-      - annotation: test-data
+      - annotation: test-data # the binary files are only used for testing
   - checks:
       - dangerous-workflow
     annotations:
-      # the workflow is dangerous but only run under maintainers verification and approval
-      - annotation: remediated
+      - annotation: remediated # the workflow is dangerous but only run under maintainers verification and approval
+      -
 ```
 
 You can annotate multiple checks at a time:
+
 ```yml
 exemptions:
   - checks:
       - binary-artifacts
       - pinned-dependencies
     annotations:
-      # the binary files and files with unpinned dependencies are only used for testing
-      - annotation: test-data
+      - annotation: test-data # the binary files and files with unpinned dependencies are only used for testing
+ 
 ```
 
 And also provide multiple annotations for checks:
+
 ```yml
 exemptions:
   - checks:
       - binary-artifacts
     annotations:
-      # test.exe is only used for testing
-      - annotation: test-data
-      # dependency.exe is needed and it's used but the binary signature is verified
-      - annotation: remediated
+      - annotation: test-data # test.exe is only used for testing 
+      - annotation: remediated # dependency.exe is needed and it's used but the binary signature is verified
+  
 ```
 
 The available checks are the Scorecard checks in lower case e.g. Binary-Artifacts is `binary-artifacts`.
+
+## Types of Annotations
 
 The annotations are predefined as shown in the table below:
 
 | Annotation | Description | Example |
 |------------|-------------|---------|
-| test-data | To annotate when a check or probe is targeting a danger in files or code snippets only used for test or example purposes. | The binary files are only used for testing. |
-| remediated | To annotate when a check or probe correctly identified a danger and, even though the danger is necessary, a remediation was already applied. | A workflow is dangerous but only run under maintainers verification and approval, or a binary is needed but it is signed or has provenance. |
+| test-data | A check or probe has found a security issue in files or code snippets only used for test or example purposes. | The binary files are only used for testing. |
+| remediated | To annotate when a check or probe has found a security issue to which a remediation was already applied. | A workflow is dangerous but only run under maintainers verification and approval, or a binary is needed but it is signed or has provenance. |
 | not-applicable | To annotate when a check or probe is not applicable for the case. | The dependencies should not be pinned because the project is a library. |
 | not-supported | To annotate when the maintainer fulfills a check or probe in a way that is not supported by Scorecard. | Clang-Tidy is used as SAST tool but not identified because its not supported. |
 | not-detected | To annotate when the maintainer fulfills a check or probe in a way that is supported by Scorecard but not identified. | Dependabot is configured in the repository settings and not in a file. |
 
-These annotations, when displayed in Scorecard results are parsed to a human-readable format that is similar to the annotation description described in the table above.
+## Viewing Maintainer Annotations
+
+To see the maintainers annotations for each check on Scorecard results, use the `--show-annotations` option.
