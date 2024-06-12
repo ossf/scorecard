@@ -117,7 +117,7 @@ func TestListCommits(t *testing.T) {
 				glClient: glclient,
 			}
 
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf-tests",
 				commitSHA: clients.HeadSHA,
 			}

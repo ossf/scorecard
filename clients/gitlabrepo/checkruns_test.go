@@ -76,7 +76,7 @@ func Test_CheckRuns(t *testing.T) {
 				glClient: client,
 			}
 
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf-tests",
 				commitSHA: clients.HeadSHA,
 			}

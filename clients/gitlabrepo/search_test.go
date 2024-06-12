@@ -31,13 +31,13 @@ func TestBuildQuery(t *testing.T) {
 		searchReq       clients.SearchRequest
 		expectedErrType error
 		name            string
-		repourl         *repoURL
+		repourl         *Repo
 		expectedQuery   string
 		hasError        bool
 	}{
 		{
 			name: "Basic",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -48,7 +48,7 @@ func TestBuildQuery(t *testing.T) {
 		},
 		{
 			name: "EmptyQuery",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -58,7 +58,7 @@ func TestBuildQuery(t *testing.T) {
 		},
 		{
 			name: "WithFilename",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -70,7 +70,7 @@ func TestBuildQuery(t *testing.T) {
 		},
 		{
 			name: "WithPath",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -82,7 +82,7 @@ func TestBuildQuery(t *testing.T) {
 		},
 		{
 			name: "WithFilenameAndPath",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -95,7 +95,7 @@ func TestBuildQuery(t *testing.T) {
 		},
 		{
 			name: "WithFilenameAndPathWithSeparator",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -184,7 +184,7 @@ func Test_search(t *testing.T) {
 				glClient: client,
 			}
 
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf-tests",
 				commitSHA: clients.HeadSHA,
 			}
