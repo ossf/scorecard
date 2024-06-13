@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST: githubrepo.releasesHandler", func() {
 	})
 	Context("getReleases()", func() {
 		It("returns releases", func() {
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,

@@ -71,7 +71,7 @@ type checkRunsByRef = map[string][]clients.CheckRun
 type checkrunsHandler struct {
 	client         *github.Client
 	graphClient    *githubv4.Client
-	repourl        *repoURL
+	repourl        *Repo
 	logger         *log.Logger
 	checkData      *checkRunsGraphqlData
 	setupOnce      *sync.Once
@@ -81,7 +81,7 @@ type checkrunsHandler struct {
 	errSetup       error
 }
 
-func (handler *checkrunsHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
+func (handler *checkrunsHandler) init(ctx context.Context, repourl *Repo, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.commitDepth = commitDepth

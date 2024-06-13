@@ -832,10 +832,11 @@ checks:
       or `.md`. It will also detect these files in a directory named `LICENSES`.
       (Files in a `LICENSES` directory are typically named as their
       [SPDX](https://spdx.org/licenses/) license identifier followed by an
-      appropriate file extension, as described in the [REUSE](https://reuse.software/spec/) Specification.)
+      appropriate file extension, as described in the [REUSE Specification](https://reuse.software/spec/).)
 
       License Requirements:
-        - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename (6/10 points)
+        - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename, or license
+          files in a `LICENSES` directory (6/10 points)
         - The detected file is at the top-level directory (3/10 points)
         - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
 
@@ -852,7 +853,7 @@ checks:
         in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or
         `LICENSE-Apache-2.0`.
       - >-
-        Alternately, create a `LICENSE` directory and add a license file(s) with a name
+        Alternately, create a `LICENSES` directory and add a license file(s) with a name
         that matches your [SPDX license identifier](https://spdx.org/licenses/).
         such as `LICENSES/Apache-2.0.txt`.
 

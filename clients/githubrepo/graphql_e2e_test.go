@@ -38,7 +38,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 
 	Context("E2E TEST: Confirm Paging Commits Works", func() {
 		It("Should only have 1 commit", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -71,7 +71,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			Expect(len(commits)).Should(BeEquivalentTo(1))
 		})
 		It("Should have 30 commits", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -104,7 +104,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			Expect(len(commits)).Should(BeEquivalentTo(30))
 		})
 		It("Should have 101 commits", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -140,7 +140,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 
 	Context("E2E TEST: Validate query cost", func() {
 		It("Should not have increased for HEAD query", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -152,7 +152,7 @@ var _ = Describe("E2E TEST: githubrepo.graphqlHandler", func() {
 			Expect(*graphqlhandler.data.RateLimit.Cost).Should(BeNumerically("<=", 1))
 		})
 		It("Should not have increased for commit query", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",

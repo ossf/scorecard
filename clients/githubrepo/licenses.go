@@ -31,11 +31,11 @@ type licensesHandler struct {
 	once     *sync.Once
 	ctx      context.Context
 	errSetup error
-	repourl  *repoURL
+	repourl  *Repo
 	licenses []clients.License
 }
 
-func (handler *licensesHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *licensesHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.errSetup = nil
