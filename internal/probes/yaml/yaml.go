@@ -2,9 +2,9 @@ package yaml
 
 type Remediation struct {
 	OnOutcome string   `yaml:"onOutcome"`
+	Effort    string   `yaml:"effort"`
 	Text      []string `yaml:"text"`
 	Markdown  []string `yaml:"markdown"`
-	Effort    string   `yaml:"effort"`
 }
 
 type Ecosystem struct {
@@ -13,11 +13,11 @@ type Ecosystem struct {
 }
 
 type Probe struct {
+	Remediation    Remediation `yaml:"remediation"`
 	ID             string      `yaml:"id"`
 	Short          string      `yaml:"short"`
 	Motivation     string      `yaml:"motivation"`
 	Implementation string      `yaml:"implementation"`
-	Outcomes       []string    `yaml:"outcome"`
 	Ecosystem      Ecosystem   `yaml:"ecosystem"`
-	Remediation    Remediation `yaml:"remediation"`
+	Outcomes       []string    `yaml:"outcome"`
 }

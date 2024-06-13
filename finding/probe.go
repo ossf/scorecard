@@ -103,7 +103,7 @@ func validate(r *pyaml.Probe, probeID string) error {
 	if err := validateID(r.ID, probeID); err != nil {
 		return err
 	}
-	if err := validateRemediation(r.Remediation); err != nil {
+	if err := validateRemediation(&r.Remediation); err != nil {
 		return err
 	}
 	if err := validateEcosystem(r.Ecosystem); err != nil {
@@ -120,7 +120,7 @@ func validateID(actual, expected string) error {
 	return nil
 }
 
-func validateRemediation(r pyaml.Remediation) error {
+func validateRemediation(r *pyaml.Remediation) error {
 	if err := validateRemediationOutcomeTrigger(Outcome(r.OnOutcome)); err != nil {
 		return fmt.Errorf("remediation: %w", err)
 	}
@@ -196,16 +196,11 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
-	switch n.Value {
-	case "Low":
-		*r = RemediationEffortLow
-	case "Medium":
-		*r = RemediationEffortMedium
-	case "High":
-		*r = RemediationEffortHigh
-	default:
+	*r = toRemediationEffort(n.Value)
+	if *r == RemediationEffortNone {
 		return fmt.Errorf("%w: effort:%q", errInvalid, str)
 	}
+
 	return nil
 }
 
