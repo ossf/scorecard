@@ -402,7 +402,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 
 func createSARIFHeader() sarif210 {
 	return sarif210{
-		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
 		Runs:    []run{},
 	}
