@@ -18,10 +18,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/osv-scanner/pkg/osvscanner"
-	sce "github.com/ossf/scorecard/v5/errors"
 	"os"
 	"runtime/debug"
+
+	"github.com/google/osv-scanner/pkg/osvscanner"
+
+	sce "github.com/ossf/scorecard/v5/errors"
 )
 
 var _ VulnerabilitiesClient = osvClient{}
