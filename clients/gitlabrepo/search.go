@@ -28,10 +28,10 @@ var errEmptyQuery = errors.New("search query is empty")
 
 type searchHandler struct {
 	glClient *gitlab.Client
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *searchHandler) init(repourl *repoURL) {
+func (handler *searchHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 }
 

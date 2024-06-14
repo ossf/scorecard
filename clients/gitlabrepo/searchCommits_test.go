@@ -27,13 +27,13 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		searchReq       clients.SearchCommitsOptions
 		expectedErrType error
 		name            string
-		repourl         *repoURL
+		repourl         *Repo
 		expectedQuery   string
 		hasError        bool
 	}{
 		{
 			name: "Basic",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},
@@ -44,7 +44,7 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 		},
 		{
 			name: "EmptyQuery:",
-			repourl: &repoURL{
+			repourl: &Repo{
 				owner:     "testowner",
 				projectID: "1234",
 			},

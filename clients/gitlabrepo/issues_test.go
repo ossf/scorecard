@@ -109,7 +109,7 @@ func Test_listIssues(t *testing.T) {
 				glClient: client,
 			}
 
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf-tests",
 				commitSHA: clients.HeadSHA,
 			}

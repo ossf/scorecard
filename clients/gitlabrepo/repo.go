@@ -30,7 +30,7 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
-type repoURL struct {
+type Repo struct {
 	scheme        string
 	host          string
 	owner         string
@@ -52,7 +52,7 @@ var errInvalidGitlabRepoURL = errors.New("repo is not a gitlab repo")
 The following input format is not supported:
 	* https://gitlab.<companyDomain:string>.com/projects/<projectID:int>
 */
-func (r *repoURL) parse(input string) error {
+func (r *Repo) parse(input string) error {
 	var t string
 	c := strings.Split(input, "/")
 	switch l := len(c); {
@@ -104,21 +104,21 @@ func withDefaultScheme(uri string) string {
 }
 
 // URI implements Repo.URI().
-func (r *repoURL) URI() string {
+func (r *Repo) URI() string {
 	return fmt.Sprintf("%s/%s/%s", r.host, r.owner, r.project)
 }
 
-func (r *repoURL) Host() string {
+func (r *Repo) Host() string {
 	return r.host
 }
 
 // String implements Repo.String.
-func (r *repoURL) String() string {
+func (r *Repo) String() string {
 	return fmt.Sprintf("%s-%s_%s", r.host, r.owner, r.project)
 }
 
 // IsValid implements Repo.IsValid.
-func (r *repoURL) IsValid() error {
+func (r *Repo) IsValid() error {
 	if strings.TrimSpace(r.owner) == "" || strings.TrimSpace(r.project) == "" {
 		return sce.WithMessage(sce.ErrInvalidURL, "expected full project url: "+r.URI())
 	}
@@ -157,24 +157,24 @@ func (r *repoURL) IsValid() error {
 	return nil
 }
 
-func (r *repoURL) AppendMetadata(metadata ...string) {
+func (r *Repo) AppendMetadata(metadata ...string) {
 	r.metadata = append(r.metadata, metadata...)
 }
 
 // Metadata implements Repo.Metadata.
-func (r *repoURL) Metadata() []string {
+func (r *Repo) Metadata() []string {
 	return r.metadata
 }
 
 // Path() implements RepoClient.Path.
-func (r *repoURL) Path() string {
+func (r *Repo) Path() string {
 	return fmt.Sprintf("%s/%s", r.owner, r.project)
 }
 
 // MakeGitlabRepo takes input of forms in parse and returns and implementation
 // of clients.Repo interface.
 func MakeGitlabRepo(input string) (clients.Repo, error) {
-	var repo repoURL
+	var repo Repo
 	if err := repo.parse(input); err != nil {
 		return nil, fmt.Errorf("error during parse: %w", err)
 	}

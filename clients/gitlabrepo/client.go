@@ -36,7 +36,7 @@ var (
 )
 
 type Client struct {
-	repourl       *repoURL
+	repourl       *Repo
 	repo          *gitlab.Project
 	glClient      *gitlab.Client
 	contributors  *contributorsHandler
@@ -74,7 +74,7 @@ func checkRepoInaccessible(repo *gitlab.Project) error {
 
 // InitRepo sets up the GitLab project in local storage for improving performance and GitLab token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
-	glRepo, ok := inputRepo.(*repoURL)
+	glRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
@@ -97,7 +97,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		client.commitDepth = commitDepth
 	}
 	client.repo = repo
-	client.repourl = &repoURL{
+	client.repourl = &Repo{
 		scheme:        glRepo.scheme,
 		host:          glRepo.host,
 		owner:         glRepo.owner,

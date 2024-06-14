@@ -140,14 +140,14 @@ type graphqlHandler struct {
 	setupOnce   *sync.Once
 	ctx         context.Context
 	errSetup    error
-	repourl     *repoURL
+	repourl     *Repo
 	commits     []clients.Commit
 	issues      []clients.Issue
 	archived    bool
 	commitDepth int
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL, commitDepth int) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *Repo, commitDepth int) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.data = new(graphqlData)
