@@ -45,53 +45,53 @@ func parseFile(c *Config, content []byte) error {
 	return nil
 }
 
-type CheckName = string
+type checkName = string
 
 // Redefining check names here to avoid circular imports.
 const (
-	BinaryArtifacts      CheckName = "Binary-Artifacts"
-	BranchProtection     CheckName = "Branch-Protection"
-	CIIBestPractices     CheckName = "CII-Best-Practices"
-	CITests              CheckName = "CI-Tests"
-	CodeReview           CheckName = "Code-Review"
-	Contributors         CheckName = "Contributors"
-	DangerousWorkflow    CheckName = "Dangerous-Workflow"
-	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
-	Fuzzing              CheckName = "Fuzzing"
-	License              CheckName = "License"
-	Maintained           CheckName = "Maintained"
-	Packaging            CheckName = "Packaging"
-	PinnedDependencies   CheckName = "Pinned-Dependencies"
-	SAST                 CheckName = "SAST"
-	SBOM                 CheckName = "SBOM"
-	SecurityPolicy       CheckName = "Security-Policy"
-	SignedReleases       CheckName = "Signed-Releases"
-	TokenPermissions     CheckName = "Token-Permissions"
-	Vulnerabilities      CheckName = "Vulnerabilities"
-	Webhooks             CheckName = "Webhooks"
+	binaryArtifacts      checkName = "Binary-Artifacts"
+	branchProtection     checkName = "Branch-Protection"
+	ciiBestPractices     checkName = "CII-Best-Practices"
+	ciTests              checkName = "CI-Tests"
+	codeReview           checkName = "Code-Review"
+	contributors         checkName = "Contributors"
+	dangerousWorkflow    checkName = "Dangerous-Workflow"
+	dependencyUpdateTool checkName = "Dependency-Update-Tool"
+	fuzzing              checkName = "Fuzzing"
+	license              checkName = "License"
+	maintained           checkName = "Maintained"
+	packaging            checkName = "Packaging"
+	pinnedDependencies   checkName = "Pinned-Dependencies"
+	sast                 checkName = "SAST"
+	sbom                 checkName = "SBOM"
+	securityPolicy       checkName = "Security-Policy"
+	signedReleases       checkName = "Signed-Releases"
+	tokenPermissions     checkName = "Token-Permissions"
+	vulnerabilities      checkName = "Vulnerabilities"
+	webhooks             checkName = "Webhooks"
 )
 
 var allValidChecks []string = []string{
-	BinaryArtifacts,
-	BranchProtection,
-	CIIBestPractices,
-	CITests,
-	CodeReview,
-	Contributors,
-	DangerousWorkflow,
-	DependencyUpdateTool,
-	Fuzzing,
-	License,
-	Maintained,
-	Packaging,
-	PinnedDependencies,
-	SAST,
-	SBOM,
-	SecurityPolicy,
-	SignedReleases,
-	TokenPermissions,
-	Vulnerabilities,
-	Webhooks,
+	binaryArtifacts,
+	branchProtection,
+	ciiBestPractices,
+	ciTests,
+	codeReview,
+	contributors,
+	dangerousWorkflow,
+	dependencyUpdateTool,
+	fuzzing,
+	license,
+	maintained,
+	packaging,
+	pinnedDependencies,
+	sast,
+	sbom,
+	securityPolicy,
+	signedReleases,
+	tokenPermissions,
+	vulnerabilities,
+	webhooks,
 }
 
 func isValidCheck(check string) bool {
