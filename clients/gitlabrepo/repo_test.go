@@ -27,13 +27,13 @@ func TestRepoURL_IsValid(t *testing.T) {
 	tests := []struct {
 		name         string
 		inputURL     string
-		expected     repoURL
+		expected     Repo
 		wantErr      bool
 		flagRequired bool
 	}{
 		{
 			name: "github repository",
-			expected: repoURL{
+			expected: Repo{
 				scheme:  "https",
 				host:    "https://github.com",
 				owner:   "ossf",
@@ -44,7 +44,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "GitHub project with 'gitlab.' in the title",
-			expected: repoURL{
+			expected: Repo{
 				scheme:  "http",
 				host:    "github.com",
 				owner:   "foo",
@@ -55,7 +55,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "valid gitlab project",
-			expected: repoURL{
+			expected: Repo{
 				host:    "gitlab.com",
 				owner:   "ossf-test",
 				project: "scorecard-check-binary-artifacts-e2e",
@@ -65,7 +65,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "valid gitlab project",
-			expected: repoURL{
+			expected: Repo{
 				host:    "gitlab.com",
 				owner:   "ossf-test",
 				project: "scorecard-check-binary-artifacts-e2e",
@@ -75,7 +75,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "valid https address with trailing slash",
-			expected: repoURL{
+			expected: Repo{
 				scheme:  "https",
 				host:    "gitlab.haskell.org",
 				owner:   "haskell",
@@ -86,7 +86,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "valid hosted gitlab project",
-			expected: repoURL{
+			expected: Repo{
 				scheme:  "https",
 				host:    "salsa.debian.org",
 				owner:   "webmaster-team",
@@ -104,7 +104,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			r := repoURL{
+			r := Repo{
 				host:    tt.expected.host,
 				owner:   tt.expected.owner,
 				project: tt.expected.project,
@@ -119,7 +119,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 				return
 			}
 			t.Log(r.URI())
-			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmpopts.IgnoreUnexported(repoURL{})) {
+			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmpopts.IgnoreUnexported(Repo{})) {
 				t.Logf("expected: %s GOT: %s", tt.expected.host, r.host)
 				t.Logf("expected: %s GOT: %s", tt.expected.owner, r.owner)
 				t.Logf("expected: %s GOT: %s", tt.expected.project, r.project)
@@ -244,7 +244,7 @@ func TestRepoURL_parse_GL_HOST(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("GL_HOST", tt.glHost)
-			var r repoURL
+			var r Repo
 			err := r.parse(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("wanted err: %t, got: %v", tt.wantErr, err)

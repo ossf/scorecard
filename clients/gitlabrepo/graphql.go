@@ -33,10 +33,10 @@ type graphqlHandler struct {
 	client      *http.Client
 	graphClient *graphql.Client
 	ctx         context.Context
-	repourl     *repoURL
+	repourl     *Repo
 }
 
-func (handler *graphqlHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *graphqlHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.err = nil

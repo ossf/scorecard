@@ -24,13 +24,13 @@ func TestRepoURL_IsValid(t *testing.T) {
 	tests := []struct {
 		name     string
 		inputURL string
-		expected repoURL
+		expected Repo
 		wantErr  bool
 		ghHost   bool
 	}{
 		{
 			name: "Valid http address",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.com",
 				owner: "foo",
 				repo:  "kubeflow",
@@ -40,7 +40,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "Valid http address with trailing slash",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.com",
 				owner: "foo",
 				repo:  "kubeflow",
@@ -50,7 +50,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "Non GitHub repository",
-			expected: repoURL{
+			expected: Repo{
 				host:  "gitlab.com",
 				owner: "foo",
 				repo:  "kubeflow",
@@ -60,7 +60,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "GitHub repository",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.com",
 				owner: "foo",
 				repo:  "kubeflow",
@@ -70,7 +70,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "GitHub repository with host",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.com",
 				owner: "foo",
 				repo:  "kubeflow",
@@ -80,7 +80,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "Enterprise github repository with host",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.corp.com",
 				owner: "corpfoo",
 				repo:  "kubeflow",
@@ -91,7 +91,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 		{
 			name: "Enterprise github repository",
-			expected: repoURL{
+			expected: Repo{
 				host:  "github.corp.com",
 				owner: "corpfoo",
 				repo:  "kubeflow",
@@ -108,7 +108,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 				t.Setenv("GH_HOST", "github.corp.com")
 			}
 
-			r := repoURL{
+			r := Repo{
 				host:  tt.expected.host,
 				owner: tt.expected.owner,
 				repo:  tt.expected.repo,
@@ -119,7 +119,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 			if err := r.IsValid(); (err != nil) != tt.wantErr {
 				t.Errorf("repoURL.IsValid() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmp.AllowUnexported(repoURL{})) {
+			if !tt.wantErr && !cmp.Equal(tt.expected, r, cmp.AllowUnexported(Repo{})) {
 				t.Errorf("Got diff: %s", cmp.Diff(tt.expected, r))
 			}
 			if !cmp.Equal(r.Host(), tt.expected.host) {

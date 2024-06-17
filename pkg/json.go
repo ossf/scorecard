@@ -129,9 +129,14 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(writer io.Writer,
-	checkDocs docs.Doc, o AsJSON2ResultOption,
-) error {
+func (r *ScorecardResult) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2ResultOption) error {
+	if opt == nil {
+		opt = &AsJSON2ResultOption{
+			LogLevel:    log.DefaultLevel,
+			Details:     false,
+			Annotations: false,
+		}
+	}
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
 		return err
@@ -170,17 +175,17 @@ func (r *ScorecardResult) AsJSON2(writer io.Writer,
 			Reason: checkResult.Reason,
 			Score:  checkResult.Score,
 		}
-		if o.Details {
+		if opt.Details {
 			for i := range checkResult.Details {
 				d := checkResult.Details[i]
-				m := DetailToString(&d, o.LogLevel)
+				m := DetailToString(&d, opt.LogLevel)
 				if m == "" {
 					continue
 				}
 				tmpResult.Details = append(tmpResult.Details, m)
 			}
 		}
-		if o.Annotations {
+		if opt.Annotations {
 			exempted, reasons := checkResult.IsExempted(r.Config)
 			if exempted {
 				tmpResult.Annotations = reasons
@@ -242,10 +247,4 @@ func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, 
 	}
 
 	return sr, float64(jsr.AggregateScore), nil
-}
-
-func (r *ScorecardResult) AsFJSON(showDetails bool,
-	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
-) error {
-	return sce.WithMessage(sce.ErrScorecardInternal, "WIP: not supported")
 }

@@ -83,7 +83,7 @@ func TestGetBranches(t *testing.T) {
 
 			handler := branchesHandler{
 				once: new(sync.Once),
-				repourl: &repoURL{
+				repourl: &Repo{
 					projectID: "5000",
 				},
 				queryBranch: func(pid interface{}, branch string,

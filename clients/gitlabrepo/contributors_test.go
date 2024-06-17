@@ -64,7 +64,7 @@ func TestContributors(t *testing.T) {
 					return tt.users, nil
 				},
 				once: new(sync.Once),
-				repourl: &repoURL{
+				repourl: &Repo{
 					commitSHA: "HEAD",
 				},
 			}

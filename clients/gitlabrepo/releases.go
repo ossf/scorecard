@@ -28,11 +28,11 @@ type releasesHandler struct {
 	glClient *gitlab.Client
 	once     *sync.Once
 	errSetup error
-	repourl  *repoURL
+	repourl  *Repo
 	releases []clients.Release
 }
 
-func (handler *releasesHandler) init(repourl *repoURL) {
+func (handler *releasesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)

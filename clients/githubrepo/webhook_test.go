@@ -78,7 +78,7 @@ func Test_listWebhooks(t *testing.T) {
 				ctx:      ctx,
 			}
 
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf-tests",
 				repo:      "foo",
 				commitSHA: clients.HeadSHA,

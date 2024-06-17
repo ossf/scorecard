@@ -27,11 +27,11 @@ type languagesHandler struct {
 	glClient  *gitlab.Client
 	once      *sync.Once
 	errSetup  error
-	repourl   *repoURL
+	repourl   *Repo
 	languages []clients.Language
 }
 
-func (handler *languagesHandler) init(repourl *repoURL) {
+func (handler *languagesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)

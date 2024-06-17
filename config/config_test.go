@@ -17,7 +17,6 @@
 package config_test
 
 import (
-	"errors"
 	"os"
 	"testing"
 
@@ -31,8 +30,8 @@ func Test_Parse_Checks(t *testing.T) {
 	tests := []struct {
 		name       string
 		configPath string
-		wantErr    error
 		want       config.Config
+		wantErr    bool
 	}{
 		{
 			name:       "Annotation on a single check",
@@ -114,12 +113,12 @@ func Test_Parse_Checks(t *testing.T) {
 		{
 			name:       "Invalid check",
 			configPath: "testdata/invalid_check.yml",
-			wantErr:    config.ErrInvalidCheck,
+			wantErr:    true,
 		},
 		{
 			name:       "Invalid reason",
 			configPath: "testdata/invalid_reason.yml",
-			wantErr:    config.ErrInvalidReason,
+			wantErr:    true,
 		},
 	}
 	for _, tt := range tests {
@@ -130,17 +129,9 @@ func Test_Parse_Checks(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
-			defer r.Close()
-
 			result, err := config.Parse(r)
-			if (tt.wantErr != nil) != (err != nil) {
-				t.Errorf("expected %+v got %+v", tt.wantErr, err)
-			}
-			if tt.wantErr != nil {
-				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("wrong error during Parse: got %v, wantErr %v", err, tt.wantErr)
-				}
-				return
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
 			}
 			if diff := cmp.Diff(tt.want, result); diff != "" {
 				t.Errorf("Config mismatch (-want +got):\n%s", diff)

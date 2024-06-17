@@ -499,7 +499,7 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			var result bytes.Buffer
-			o := AsJSON2ResultOption{
+			o := &AsJSON2ResultOption{
 				Details:     tt.showDetails,
 				LogLevel:    tt.logLevel,
 				Annotations: tt.showAnnotations,

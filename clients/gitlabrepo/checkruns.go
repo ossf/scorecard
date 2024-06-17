@@ -27,10 +27,10 @@ var gitCommitHashRegex = regexp.MustCompile(`^[a-fA-F0-9]{40}$`)
 
 type checkrunsHandler struct {
 	glClient *gitlab.Client
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *checkrunsHandler) init(repourl *repoURL) {
+func (handler *checkrunsHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 }
 
