@@ -163,7 +163,7 @@ jobs:
           command: |
             go env -w GOFLAGS=-mod=mod
             make generate-docs
-     - name: ensure checks.yaml and checks.md match
+     - name: ensure generated check and probe documentation match the source
        run: git diff --exit-code
   build-proto:
     name: build-proto
