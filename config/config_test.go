@@ -46,7 +46,7 @@ func Test_Parse_Checks(t *testing.T) {
 			},
 		},
 		{
-			name:       "Annotation on all checks",
+			name:       "Annotation on all checks (case insensitive)",
 			configPath: "testdata/all_checks.yml",
 			want: config.Config{
 				Annotations: []config.Annotation{

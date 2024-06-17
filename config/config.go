@@ -18,7 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"slices"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 
@@ -95,7 +95,12 @@ var allValidChecks []string = []string{
 }
 
 func isValidCheck(check string) bool {
-	return slices.Contains(allValidChecks, check)
+	for _, c := range allValidChecks {
+		if strings.EqualFold(c, check) {
+			return true
+		}
+	}
+	return false
 }
 
 func validate(c Config) error {
