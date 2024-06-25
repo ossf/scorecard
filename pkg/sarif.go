@@ -402,7 +402,7 @@ func addDefaultLocation(locs []location, policyFile string) []location {
 
 func createSARIFHeader() sarif210 {
 	return sarif210{
-		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+		Schema:  "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
 		Version: "2.1.0",
 		Runs:    []run{},
 	}
@@ -627,13 +627,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 	for _, check := range r.Checks {
 		check := check
 
-		// SARIF output triggers GitHub security alerts for a repository.
-		// For annotated checks, we don't want to send alerts.
-		exempted, _ := check.IsExempted(r.Config)
-		if exempted {
-			continue
-		}
-
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
@@ -674,6 +667,11 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 
 		// Skip check that do not violate the policy.
 		if check.Score >= minScore || check.Score == checker.InconclusiveResultScore {
+			continue
+		}
+
+		// Skip checks that are annotated
+		if exempted, _ := check.IsExempted(r.Config); exempted {
 			continue
 		}
 

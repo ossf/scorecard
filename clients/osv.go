@@ -18,6 +18,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"runtime/debug"
 
 	"github.com/google/osv-scanner/pkg/osvscanner"
 
@@ -39,6 +41,7 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	defer func() {
 		if r := recover(); r != nil {
 			err = sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("osv-scanner panic: %v", r))
+			fmt.Fprintf(os.Stderr, "osv-scanner panic: %v\n%s\n", r, string(debug.Stack()))
 		}
 	}()
 	directoryPaths := []string{}

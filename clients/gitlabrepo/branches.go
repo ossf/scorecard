@@ -29,7 +29,7 @@ type branchesHandler struct {
 	glClient                 *gitlab.Client
 	once                     *sync.Once
 	errSetup                 error
-	repourl                  *repoURL
+	repourl                  *Repo
 	defaultBranchRef         *clients.BranchRef
 	queryProject             fnProject
 	queryBranch              fnQueryBranch
@@ -38,7 +38,7 @@ type branchesHandler struct {
 	getApprovalConfiguration fnGetApprovalConfiguration
 }
 
-func (handler *branchesHandler) init(repourl *repoURL) {
+func (handler *branchesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -95,12 +95,12 @@ func (handler *branchesHandler) setup() error {
 
 			projectStatusChecks, resp, err := handler.getProjectChecks(handler.repourl.projectID, &gitlab.ListOptions{})
 
-			if resp.StatusCode != 200 || err != nil {
+			if resp.StatusCode != http.StatusOK || err != nil {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
 			}
 
 			projectApprovalRule, resp, err := handler.getApprovalConfiguration(handler.repourl.projectID)
-			if err != nil && resp.StatusCode != 404 {
+			if err != nil && resp.StatusCode != http.StatusNotFound {
 				handler.errSetup = fmt.Errorf("request for project approval rule failed with %w", err)
 				return
 			}
@@ -151,12 +151,12 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 		projectStatusChecks, resp, err := handler.getProjectChecks(
 			handler.repourl.projectID, &gitlab.ListOptions{})
-		if err != nil && resp.StatusCode != 404 {
+		if err != nil && resp.StatusCode != http.StatusNotFound {
 			return nil, fmt.Errorf("request for external status checks failed with error %w", err)
 		}
 
 		projectApprovalRule, resp, err := handler.getApprovalConfiguration(handler.repourl.projectID)
-		if err != nil && resp.StatusCode != 404 {
+		if err != nil && resp.StatusCode != http.StatusNotFound {
 			return nil, fmt.Errorf("request for project approval rule failed with %w", err)
 		}
 

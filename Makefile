@@ -165,10 +165,14 @@ cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN
 	# Generating MockNugetClient
 	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
 
+PROBE_DEFINITION_FILES = $(shell find ./probes/ -name "def.yml")
 generate-docs: ## Generates docs
-generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
+generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go \
+		docs/probes.md $(PROBE_DEFINITION_FILES) docs/probes/internal/generate/*.go
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
+	# Generating probes.md
+	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
 
 validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml

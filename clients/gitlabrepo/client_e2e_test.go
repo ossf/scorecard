@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST: gitlabrepo.client", func() {
 			client, err := CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
 
-			glRepo, ok := repo.(*repoURL)
+			glRepo, ok := repo.(*Repo)
 			Expect(ok).Should(BeTrue())
 
 			// Sanity check.

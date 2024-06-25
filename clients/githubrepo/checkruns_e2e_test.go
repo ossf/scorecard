@@ -40,7 +40,7 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 
 	Context("E2E TEST: Validate query cost", func() {
 		It("Should not have increased query cost", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 	})
 	Context("E2E TEST: listCheckRunsForRef", func() {
 		It("Should return check runs for a valid ref", func() {
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -75,7 +75,7 @@ var _ = Describe("E2E TEST: githubrepo.checkrunsHandler", func() {
 		})
 	})
 	It("Should return an error for an invalid ref", func() {
-		repourl := &repoURL{
+		repourl := &Repo{
 			owner:     "ossf",
 			repo:      "scorecard",
 			commitSHA: clients.HeadSHA,
