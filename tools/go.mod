@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/google/addlicense v1.1.1
 	github.com/google/ko v0.15.4
-	github.com/goreleaser/goreleaser v1.26.2
+	github.com/goreleaser/goreleaser/v2 v2.0.0
 	github.com/onsi/ginkgo/v2 v2.19.0
 	google.golang.org/protobuf v1.34.2
 )
@@ -230,7 +230,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
