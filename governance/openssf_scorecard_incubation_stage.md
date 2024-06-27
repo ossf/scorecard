@@ -1,6 +1,10 @@
-# Project incubation application
+# OpenSSF Scorecard — Incubation application
 
-## Project has met all Sandbox requirement
+## TODO
+
+- [ ] Determine if the project meets [Sandbox requirements](https://github.com/ossf/tac/blob/main/process/project-lifecycle.md#sandbox)
+
+## Project has met all Sandbox requirements
 
 - "link to sandbox PR if one exists"
 
@@ -8,13 +12,22 @@
 
 The project must have a minimum of three maintainers with a minimum of two different organizational affiliations.
 
-- "name, affiliation, GitHub ID"
+- Stephen Augustus, Cisco, [@justaugustus](https://github.com/justaugustus)
+- Raghav Kaul, Google, [@raghavkaul](https://github.com/raghavkaul)
+- Jeff Mendoza, Kusari, [@jeffmendoza](https://github.com/jeffmendoza)
+- Spencer Schrock, Google, [@spencerschrock](https://github.com/spencerschrock)
+- Laurent Simon, Independent, [@laurentsimon](https://github.com/laurentsimon)
+- Naveen Srinivasan, Independent, [@naveensrinivasan](https://github.com/naveensrinivasan)
+
+The current list of OpenSSF Scorecard maintainers can be found [here](https://github.com/ossf/scorecard/blob/main/MAINTAINERS.md).
 
 ## Mission of the project
 
 The project must be aligned with the OpenSSF mission and either be a novel approach for existing areas, address an unfulfilled need, or be code needed to deliver OpenSSF WG work. It is preferred that extensions of existing OpenSSF projects collaborate with the existing project rather than seek a new project.
 
-- "description of the project mission"
+The mission of OpenSSF Scorecard is to automate analysis on the security posture of open source projects.
+
+The current charter of the OpenSSF Scorecard project can be found [here](https://github.com/ossf/scorecard/blob/main/CHARTER.md).
 
 ## Project adoption
 
