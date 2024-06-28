@@ -12,14 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 on:
-  fork:
-  issue_comment:
-    types: [created, edited]
+  issue:
+
+env:
+  ISSUE_BODY: ${{ github.event.issue.body }}
 
 jobs:
-  solution-to-all-repo-problems:
+  fascinating-job:
     steps:
-      - name: where things are done
+      - name: it runs like magic
         run: |
           echo "${{ github.event.issue.title }}"
-          mkdir "${{ github.event.issue.body }}"
+
+  incredible-other-job:
+    steps:
+      - name: absolutely outstanding, safe as nothing else
+        run: |
+          echo "$ISSUE_BODY" 

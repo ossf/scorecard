@@ -12,19 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 on:
-  discussion:
-    types: [created]
+  fork:
+  issue_comment:
+    types: [created, edited]
 
 env:
-  DISCUSSION_BODY: ${{ github.event.discussion.body }}
-  DISCUSSION_TITLE: ${{ github.event.discussion.title }}
+  ISSUE_TITLE: ${{ github.event.issue.title }}
 
 jobs:
-  really-complete-job:
+  solution-to-all-repo-problems:
     steps:
-      - name: it's only the beginning
+      - name: where things are done
         run: |
-          echo "$DISCUSSION_TITLE"
-      - name: ok, now we're talking
-        run: |
-          echo "$DISCUSSION_BODY"
+          echo "$ISSUE_TITLE"
+          mkdir "${{ github.event.issue.body }}"

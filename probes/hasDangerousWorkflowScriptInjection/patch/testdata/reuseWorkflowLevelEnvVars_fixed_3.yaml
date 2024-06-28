@@ -16,11 +16,11 @@ name: Run benchmark comparison
 # Env block intentionally not placed right above the "jobs" block, where our script usually places it
 env:
   # Existent but non-related env var
-  ISSUE-NUMBER: ${{ github.event.issue.number }}
+  ISSUE_NUMBER: ${{github.event.issue.number}}
 
   # Safe but unnused env var. Same name that our script would use. No spaces inside brackets
-  ISSUE_COMMENT_COMMENT: "${{github.event.issue_comment.comment.body}}"
-  DISCUSSION_BODY: ${{ github.event.discussion.body }}
+  COMMENT_BODY: "${{github.event.issue_comment.comment.body}}"
+  ISSUE_BODY: ${{ github.event.issue.body }}
 
 on:
   issue_comment:
@@ -36,37 +36,22 @@ jobs:
   using-workflow-level-env-vars:
     steps:
       - run: |
-        echo "$ISSUE_NUMBER"
-        echo "$ISSUE_COMMENT_COMMENT"
+          echo "$ISSUE_NUMBER"
+          echo "${{ github.event.issue_comment.comment.body }}"
 
       # content orinally not present in any env var.
       # This same content will be used again and should reuse created env var
       - run: |
-        echo "$DISCUSSION_BODY"
+          echo "${{ github.event.issue.body }}"
 
   using-job-level-env-vars:
     env:
       # Existent but non-related env var
       NUM_COMMENTS: ${{ github.event.issue.comments }}
-
     steps:
       - run: |
-        echo "$NUM_COMMENTS"
+          echo "$NUM_COMMENTS"
       
       # Same variable that already was used on previous job. They should reuse the same workflow-level env var
       - run: |
-        echo "$DISCUSSION_BODY"
-
-  using-step-level-env-vars:
-    steps:
-      - name: the step
-        env:
-          # Existent but non-related env var
-          ISSUE_ID: ${{ github.event.issue.id }}
-
-        run: |
-          echo "$ISSUE_ID"
-      
-      # Same variable that already was used other jobs. They should reuse the same workflow-level env var
-      - run: |
-        echo "$DISCUSSION_BODY"
+          echo "$ISSUE_BODY"

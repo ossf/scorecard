@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: it's only the beginning
         run: |
-          echo "${{ github.event.discussion.title }}"
+          echo "${{ github.event.issue.title }}"
       - name: ok, now we're talking
         run: |
-          echo "${{ github.event.discussion.body }}"
+          echo "${{ github.event.issue.body }}"

@@ -36,7 +36,7 @@ jobs:
     steps:
       - run: |
           echo "$ISSUE_NUMBER"
-          echo "${{ github.event.issue_comment.comment.body }}"
+          echo "$COMMENT_BODY"
 
       # content orinally not present in any env var.
       # This same content will be used again and should reuse created env var

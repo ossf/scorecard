@@ -9,7 +9,7 @@ on:
       - '**/CHANGELOG.md'
 
 env:
-  PR_BODY: ${{ github.event.pull_request.body }} 
+  PR_BODY: ${{ github.event.pull_request.body }}
 
 jobs:
   release-image:
