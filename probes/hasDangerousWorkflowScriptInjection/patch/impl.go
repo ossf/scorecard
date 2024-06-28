@@ -30,7 +30,7 @@ TODO:
     `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL).
   - Handle cases where an existing envvar has the same name as what we'd use, but a
     different definition.
-  - Handle cases where an existing envvar (regardless of name) already covers our
+  - Handle cases where an existing envvar with a different name already covers our
     dangerous variable, but wasn't used.
   - Move actionlint.Parse() to the calling function (once per file)
 */
@@ -65,16 +65,20 @@ var (
 // Fixes the script injection identified by the finding and returns a unified diff
 // users can apply (with `git apply` or `patch`) to fix the workflow themselves.
 // Should an error occur, it is handled and an empty patch is returned.
-func GeneratePatch(f checker.File, content string) (string, error) {
-	patchedWorkflow, err := patchWorkflow(f, content)
+func GeneratePatch(f checker.File, content string, workflow *actionlint.Workflow, workflowErrs []*actionlint.Error) (string, error) {
+	patchedWorkflow, err := patchWorkflow(f, content, workflow)
 	if err != nil {
 		return "", err
+	}
+	errs := validatePatchedWorkflow(patchedWorkflow, workflowErrs)
+	if len(errs) > 0 {
+		return "", fileparser.FormatActionlintError(errs)
 	}
 	return getDiff(f.Path, content, patchedWorkflow)
 }
 
 // Returns a patched version of the workflow without the script injection finding.
-func patchWorkflow(f checker.File, content string) (string, error) {
+func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow) (string, error) {
 	unsafeVar := strings.Trim(f.Snippet, " ")
 	runCmdIndex := f.Offset - 1
 
@@ -84,11 +88,6 @@ func patchWorkflow(f checker.File, content string) (string, error) {
 	if !ok {
 		// TODO: return meaningful error for logging, even if we don't throw it.
 		return "", errors.New("AAA")
-	}
-
-	workflow, errs := actionlint.Parse([]byte(content))
-	if len(errs) > 0 && workflow == nil {
-		return "", fileparser.FormatActionlintError(errs)
 	}
 
 	envvars := parseExistingEnvvars(workflow)
@@ -227,7 +226,12 @@ func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pa
 	globalIndentation, ok := findGlobalIndentation(lines)
 	if !ok {
 		// invalid workflow, could not determine global indentation
-		return nil, false
+		return lines, false
+	}
+
+	if _, ok = existingEnvvars[unsafeVar]; ok {
+		// necessary envvar was already defined
+		return lines, ok
 	}
 
 	var insertPos, envvarIndent int
@@ -236,7 +240,7 @@ func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pa
 	} else {
 		lines, insertPos, ok = addNewGlobalEnv(lines, globalIndentation)
 		if !ok {
-			return nil, ok
+			return lines, ok
 		}
 
 		// position now points to `env:`, insert variables below it
@@ -249,7 +253,7 @@ func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pa
 		strings.Repeat(" ", envvarIndent)+envvarDefinition,
 	)
 
-	return lines, ok
+	return lines, true
 }
 
 func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
@@ -259,8 +263,22 @@ func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
 		return envvars
 	}
 
+	r := regexp.MustCompile(`\$\{\{\s*(github\.[^\s]*?)\s*}}`)
 	for _, v := range workflow.Env.Vars {
-		envvars[v.Name.Value] = v.Value.Value
+		value := v.Value.Value
+
+		if strings.Contains(value, "${{") {
+			// extract simple variable definition (without brackets, etc)
+			m := r.FindStringSubmatch(value)
+			if len(m) == 2 {
+				value = m[1]
+				envvars[value] = v.Name.Value
+			} else {
+				envvars[v.Value.Value] = v.Name.Value
+			}
+		} else {
+			envvars[v.Value.Value] = v.Name.Value
+		}
 	}
 
 	return envvars
@@ -337,6 +355,50 @@ func isParentLevelIndent(line string, parentIndent int) bool {
 		return false
 	}
 	return getIndent(line) <= parentIndent
+}
+
+func validatePatchedWorkflow(content string, originalErrs []*actionlint.Error) []*actionlint.Error {
+	_, patchedErrs := actionlint.Parse([]byte(content))
+	if len(patchedErrs) == 0 {
+		return []*actionlint.Error{}
+	}
+	if len(originalErrs) == 0 {
+		return patchedErrs
+	}
+
+	normalizeMsg := func(msg string) string {
+		// one of the error messages contains line metadata that may legitimately change
+		// after a patch. Only looking at the errors' first sentence eliminates this.
+		return strings.Split(msg, ".")[0]
+	}
+
+	var newErrs []*actionlint.Error
+
+	o := 0
+	orig := originalErrs[o]
+	origMsg := normalizeMsg(orig.Message)
+
+	for _, patched := range patchedErrs {
+		if o == len(originalErrs) {
+			// no more errors in the original workflow, must be an error from our patch
+			newErrs = append(newErrs, patched)
+			continue
+		}
+
+		msg := normalizeMsg(patched.Message)
+		if orig.Column == patched.Column && orig.Kind == patched.Kind && origMsg == msg {
+			// Matched error, therefore not due to our patch.
+			o++
+			if o < len(originalErrs) {
+				orig = originalErrs[o]
+				origMsg = normalizeMsg(orig.Message)
+			}
+		} else {
+			newErrs = append(newErrs, patched)
+		}
+	}
+
+	return newErrs
 }
 
 // Returns the changes between the original and patched workflows as a unified diff

@@ -20,13 +20,13 @@ import (
 	"io"
 	"os"
 	"path"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/raw"
@@ -129,36 +129,33 @@ func Test_patchWorkflow(t *testing.T) {
 				t.Errorf("Couldn't read input test file. Error:\n%s", err)
 			}
 
-			numFindings := len(dws)
+			workflow, inputErrs := actionlint.Parse(inputContent)
+			if len(inputErrs) > 0 && workflow == nil {
+				t.Errorf("Couldn't parse file as workflow. Error:\n%s", inputErrs[0])
+			}
 
+			numFindings := len(dws)
 			for i, dw := range dws {
+				i = i + 1 // Only used for error messages, increment for legibility
+
 				if dw.Type == checker.DangerousWorkflowUntrustedCheckout {
-					// Patching not yet implemented
-					continue
+					t.Errorf("Patching of untrusted checkout (finding #%dis not implemented.", i)
 				}
 
-				// Only used for error messages, increment by 1 for human legibility of
-				// errors
-				i = i + 1
-
-				output, err := patchWorkflow(dw.File, string(inputContent))
+				output, err := patchWorkflow(dw.File, string(inputContent), workflow)
 				if err != nil {
 					t.Errorf("Couldn't patch workflow for finding #%d.", i)
 				}
 
-				// build path to fixed version
-				dot := strings.LastIndex(tt.filePath, ".")
-				fixedPath := tt.filePath[:dot] + "_fixed"
-				if numFindings > 1 {
-					fixedPath = fmt.Sprintf("%s_%d", fixedPath, i)
+				patchedErrs := validatePatchedWorkflow(output, inputErrs)
+				if len(patchedErrs) > 0 {
+					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i, patchedErrs[0])
 				}
-				fixedPath = fixedPath + tt.filePath[dot:]
 
-				expectedContent, err := os.ReadFile(path.Join(testDir, fixedPath))
+				expected, err := getExpected(tt.filePath, numFindings, i)
 				if err != nil {
 					t.Errorf("Couldn't read expected output file for finding #%d. Error:\n%s", i, err)
 				}
-				expected := string(expectedContent)
 
 				if diff := cmp.Diff(expected, output); diff != "" {
 					t.Errorf("mismatch for finding #%d. (-want +got):\n%s", i, diff)
@@ -167,6 +164,22 @@ func Test_patchWorkflow(t *testing.T) {
 
 		})
 	}
+}
+
+func getExpected(filePath string, numFindings, findingIndex int) (string, error) {
+	// build path to fixed version
+	dot := strings.LastIndex(filePath, ".")
+	fixedPath := filePath[:dot] + "_fixed"
+	if numFindings > 1 {
+		fixedPath = fmt.Sprintf("%s_%d", fixedPath, findingIndex)
+	}
+	fixedPath = fixedPath + filePath[dot:]
+
+	content, err := os.ReadFile(path.Join(testDir, fixedPath))
+	if err != nil {
+		return "", err
+	}
+	return string(content), nil
 }
 
 func detectDangerousWorkflows(filePath string, t *testing.T) []checker.DangerousWorkflow {
@@ -207,57 +220,4 @@ func detectDangerousWorkflows(filePath string, t *testing.T) []checker.Dangerous
 	})
 
 	return dw.Workflows
-}
-
-// This function parses the diff file and makes a few changes necessary to make a
-// valid comparison with the output of GeneratePatch.
-//
-// For example, the following diff file created with `git diff`:
-//
-//	diff --git a/testdata/foo.yaml b/testdata/foo_fixed.yaml
-//	index 843d0c71..cced3454 100644
-//	--- a/testdata/foo.yaml
-//	+++ b/testdata/foo_fixed.yaml
-//	@@ -6,6 +6,9 @@ jobs:
-//	< ... the diff ... >
-//
-// becomes:
-//
-//	--- a/testdata/foo.yaml
-//	+++ b/testdata/foo_fixed.yaml
-//	@@ -6,6 +6,9 @@
-//	< ... the diff ... >
-//
-// Note that, despite the differences between our output and the official
-// `git diff`, our output is still valid and can be passed to
-// `patch -p1 < path/to/file.diff` to apply the fix to the workflow.
-func parseDiffFile(filepath string) (string, error) {
-	c, err := os.ReadFile(path.Join("./testdata", filepath))
-	if err != nil {
-		return "", err
-	}
-
-	// The real `git diff` includes multiple "headers" (`diff --git ...`, `index ...`)
-	// Our diff does not include these headers; it starts with the "in/out" headers of
-	// --- a/path/to/file
-	// +++ b/path/to/file
-	// We must therefore remove any previous headers from the `git diff`.
-	lines := strings.Split(string(c), "\n")
-	i := 0
-	var line string
-	for i, line = range lines {
-		if strings.HasPrefix(line, "--- ") {
-			break
-		}
-	}
-	content := strings.Join(lines[i:], "\n")
-
-	// The real `git diff` adds contents after the `@@` anchors (the text of the line on
-	// which the anchor is placed):
-	// 		i.e. `@@ 1,2 3,4 @@ jobs:`
-	// while ours does not
-	//		i.e. `@@ 1,2 3,4 @@`
-	// We must therefore remove that extra content to compare with our diff.
-	r := regexp.MustCompile(`(@@[ \d,+-]+@@).*`)
-	return r.ReplaceAllString(string(content), "$1"), nil
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
+	"github.com/rhysd/actionlint"
 )
 
 func init() {
@@ -58,6 +59,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var findings []finding.Finding
 	var curr string
 	var content string
+	var workflow *actionlint.Workflow
+	var errs []*actionlint.Error
 	localPath := raw.Metadata.Metadata["localPath"]
 	for _, e := range r.Workflows {
 		e := e
@@ -76,19 +79,28 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			LineStart: &e.File.Offset,
 			Snippet:   &e.File.Snippet,
 		})
+		findings = append(findings, *f)
 
 		wp := path.Join(localPath, e.File.Path)
 		if curr != wp {
 			curr = wp
 			var c []byte
 			c, err = os.ReadFile(wp)
+			if err != nil {
+				continue
+			}
 			content = string(c)
+
+			workflow, errs = actionlint.Parse([]byte(content))
+			if len(errs) > 0 && workflow == nil {
+				continue
+			}
 		}
-		if err == nil {
-			findingPatch := patch.GeneratePatch(e.File, content)
-			f.WithPatch(&findingPatch)
+		findingPatch, err := patch.GeneratePatch(e.File, content, workflow, errs)
+		if err != nil {
+			continue
 		}
-		findings = append(findings, *f)
+		f.WithPatch(&findingPatch)
 	}
 	if len(findings) == 0 {
 		return falseOutcome()
