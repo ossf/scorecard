@@ -14,25 +14,15 @@
 
 /*
 TODO:
-  - Detects the end of the existing envvars at the first line that does not declare an
-    envvar. This can lead to weird insertion positions if there is a comment in the
-    middle of the `env:` block.
-  - Tried performing a "dumber" implementation than the Python script, with less
-    "parsing" of the workflow. However, the location given by f.Offset isn't precise
-    enough. It only marks the start of the `run:` command, not the line where the
-    variable is actually used. Will therefore need to, at least, parse the `run`
-    command to replace all the instances of the unsafe variable. This means we can
-    have multiple identical remediations if the same variable is used multiple times
-    in the same step... that's just life.
   - Handle array inputs (i.e. workflow using `github.event.commits[0]` and
     `github.event.commits[1]`, which would duplicate $COMMIT_MESSAGE).
   - Handle use of synonyms (i.e `commits.*?\.author\.email` and
-    `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL).
+    `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL). Currently throws
+    an error on validation.
   - Handle cases where an existing envvar has the same name as what we'd use, but a
     different definition.
   - Handle cases where an existing envvar with a different name already covers our
     dangerous variable, but wasn't used.
-  - Move actionlint.Parse() to the calling function (once per file)
 */
 package patch
 
@@ -58,10 +48,6 @@ const (
 	assumedIndent = 2
 )
 
-var (
-	ymlLabelRegex = regexp.MustCompile(`^\s*[^#]:`)
-)
-
 // Fixes the script injection identified by the finding and returns a unified diff
 // users can apply (with `git apply` or `patch`) to fix the workflow themselves.
 // Should an error occur, it is handled and an empty patch is returned.
@@ -84,23 +70,37 @@ func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow
 
 	lines := strings.Split(string(content), "\n")
 
-	unsafePattern, ok := getUnsafePattern(unsafeVar)
+	existingEnvvars := parseExistingEnvvars(workflow)
+	envvarPatterns := buildUnsafePatterns()
+	useExistingEnvvars(envvarPatterns, existingEnvvars, unsafeVar)
+
+	unsafePattern, ok := getUnsafePattern(unsafeVar, envvarPatterns)
 	if !ok {
 		// TODO: return meaningful error for logging, even if we don't throw it.
 		return "", errors.New("AAA")
 	}
 
-	envvars := parseExistingEnvvars(workflow)
-
 	lines = replaceUnsafeVarWithEnvvar(lines, unsafePattern, runCmdIndex)
 
-	lines, ok = addEnvvarsToGlobalEnv(lines, envvars, unsafePattern, unsafeVar)
+	lines, ok = addEnvvarsToGlobalEnv(lines, existingEnvvars, unsafePattern, unsafeVar)
 	if !ok {
 		// TODO: return meaningful error for logging, even if we don't throw it.
 		return "", errors.New("AAA")
 	}
 
 	return strings.Join(lines, "\n"), nil
+}
+
+func useExistingEnvvars(unsafePatterns map[string]unsafePattern, existingEnvvars map[string]string, unsafeVar string) {
+	if envvar, ok := existingEnvvars[unsafeVar]; ok {
+		pattern, ok := getUnsafePattern(unsafeVar, unsafePatterns)
+		if !ok {
+			return
+		}
+
+		pattern.envvarName = envvar
+		unsafePatterns[pattern.ghVarName] = pattern
+	}
 }
 
 // Adds a new global environment to a workflow. Assumes a global environment does not
@@ -198,6 +198,7 @@ func findNewEnvPos(lines []string, globalIndent int) (int, bool) {
 
 type unsafePattern struct {
 	envvarName   string
+	ghVarName    string
 	idRegex      *regexp.Regexp
 	replaceRegex *regexp.Regexp
 }
@@ -205,12 +206,13 @@ type unsafePattern struct {
 func newUnsafePattern(e, p string) unsafePattern {
 	return unsafePattern{
 		envvarName:   e,
+		ghVarName:    p,
 		idRegex:      regexp.MustCompile(p),
 		replaceRegex: regexp.MustCompile(`{{\s*.*?` + p + `.*?\s*}}`),
 	}
 }
 
-func getUnsafePattern(unsafeVar string) (unsafePattern, bool) {
+func getUnsafePattern(unsafeVar string, unsafePatterns map[string]unsafePattern) (unsafePattern, bool) {
 	for _, p := range unsafePatterns {
 		if p.idRegex.MatchString(unsafeVar) {
 			p := p
@@ -229,9 +231,9 @@ func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pa
 		return lines, false
 	}
 
-	if _, ok = existingEnvvars[unsafeVar]; ok {
-		// necessary envvar was already defined
-		return lines, ok
+	if _, ok := existingEnvvars[unsafeVar]; ok {
+		// an existing envvar already handles this unsafe var, we can simply use it
+		return lines, true
 	}
 
 	var insertPos, envvarIndent int
@@ -301,29 +303,39 @@ func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex 
 	return lines
 }
 
-var unsafePatterns = []unsafePattern{
-	newUnsafePattern("AUTHOR_EMAIL", `github\.event\.commits.*?\.author\.email`),
-	newUnsafePattern("AUTHOR_EMAIL", `github\.event\.head_commit\.author\.email`),
-	newUnsafePattern("AUTHOR_NAME", `github\.event\.commits.*?\.author\.name`),
-	newUnsafePattern("AUTHOR_NAME", `github\.event\.head_commit\.author\.name`),
-	newUnsafePattern("COMMENT_BODY", `github\.event\.comment\.body`),
-	newUnsafePattern("COMMENT_BODY", `github\.event\.issue_comment\.comment\.body`),
-	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.commits.*?\.message`),
-	newUnsafePattern("COMMIT_MESSAGE", `github\.event\.head_commit\.message`),
-	newUnsafePattern("DISCUSSION_TITLE", `github\.event\.discussion\.title`),
-	newUnsafePattern("DISCUSSION_BODY", `github\.event\.discussion\.body`),
-	newUnsafePattern("ISSUE_BODY", `github\.event\.issue\.body`),
-	newUnsafePattern("ISSUE_TITLE", `github\.event\.issue\.title`),
-	newUnsafePattern("PAGE_NAME", `github\.event\.pages.*?\.page_name`),
-	newUnsafePattern("PR_BODY", `github\.event\.pull_request\.body`),
-	newUnsafePattern("PR_DEFAULT_BRANCH", `github\.event\.pull_request\.head\.repo\.default_branch`),
-	newUnsafePattern("PR_HEAD_LABEL", `github\.event\.pull_request\.head\.label`),
-	newUnsafePattern("PR_HEAD_REF", `github\.event\.pull_request\.head\.ref`),
-	newUnsafePattern("PR_TITLE", `github\.event\.pull_request\.title`),
-	newUnsafePattern("REVIEW_BODY", `github\.event\.review\.body`),
-	newUnsafePattern("REVIEW_COMMENT_BODY", `github\.event\.review_comment\.body`),
+func buildUnsafePatterns() map[string]unsafePattern {
+	unsafePatterns := []unsafePattern{
+		newUnsafePattern("AUTHOR_EMAIL", `github\.event\.commits.*?\.author\.email`),
+		newUnsafePattern("AUTHOR_EMAIL", `github\.event\.head_commit\.author\.email`),
+		newUnsafePattern("AUTHOR_NAME", `github\.event\.commits.*?\.author\.name`),
+		newUnsafePattern("AUTHOR_NAME", `github\.event\.head_commit\.author\.name`),
+		newUnsafePattern("COMMENT_BODY", `github\.event\.comment\.body`),
+		newUnsafePattern("COMMENT_BODY", `github\.event\.issue_comment\.comment\.body`),
+		newUnsafePattern("COMMIT_MESSAGE", `github\.event\.commits.*?\.message`),
+		newUnsafePattern("COMMIT_MESSAGE", `github\.event\.head_commit\.message`),
+		newUnsafePattern("DISCUSSION_TITLE", `github\.event\.discussion\.title`),
+		newUnsafePattern("DISCUSSION_BODY", `github\.event\.discussion\.body`),
+		newUnsafePattern("ISSUE_BODY", `github\.event\.issue\.body`),
+		newUnsafePattern("ISSUE_TITLE", `github\.event\.issue\.title`),
+		newUnsafePattern("PAGE_NAME", `github\.event\.pages.*?\.page_name`),
+		newUnsafePattern("PR_BODY", `github\.event\.pull_request\.body`),
+		newUnsafePattern("PR_DEFAULT_BRANCH", `github\.event\.pull_request\.head\.repo\.default_branch`),
+		newUnsafePattern("PR_HEAD_LABEL", `github\.event\.pull_request\.head\.label`),
+		newUnsafePattern("PR_HEAD_REF", `github\.event\.pull_request\.head\.ref`),
+		newUnsafePattern("PR_TITLE", `github\.event\.pull_request\.title`),
+		newUnsafePattern("REVIEW_BODY", `github\.event\.review\.body`),
+		newUnsafePattern("REVIEW_COMMENT_BODY", `github\.event\.review_comment\.body`),
 
-	newUnsafePattern("HEAD_REF", `github\.head_ref`),
+		newUnsafePattern("HEAD_REF", `github\.head_ref`),
+	}
+	m := make(map[string]unsafePattern)
+
+	for _, p := range unsafePatterns {
+		p := p
+		m[p.ghVarName] = p
+	}
+
+	return m
 }
 
 // Returns the indentation of the given line. The indentation is all whitespace and

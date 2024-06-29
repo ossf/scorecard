@@ -98,12 +98,10 @@ func Test_patchWorkflow(t *testing.T) {
 			name:     "Reuse existent workflow level env var, if has the same name we'd give",
 			filePath: "reuseWorkflowLevelEnvVars.yaml",
 		},
-		// Test currently failing because we don't look for existent env vars pointing to the same content.
-		// Once proper behavior is implemented, enable this test
-		// {
-		// 	name:             "Reuse existent workflow level env var, if it DOES NOT have the same name we'd give",
-		// 	inputFilepath:    "reuseEnvVarWithDiffName.yaml",
-		// },
+		{
+			name:     "Reuse existent workflow level env var, if it DOES NOT have the same name we'd give",
+			filePath: "reuseEnvVarWithDiffName.yaml",
+		},
 		// Test currently failing because we don't look for existent env vars on smaller scopes -- job-level or step-level.
 		// In this case, we're always creating a new workflow-level env var. Note that this could lead to creation of env vars shadowed
 		// by the ones in smaller scope.
