@@ -26,17 +26,20 @@ func parseDiff(diff string) string {
 	if i == -1 {
 		return diff
 	}
-	//remove everything before """\n
+	// remove everything before """\n
 	diff = diff[i+4:]
 	i = strings.LastIndex(diff, "\"\"\"")
 	if i == -1 {
 		return diff
 	}
-	//remove everything after \n  \t"""
+	// remove everything after \n  \t"""
 	return diff[:i]
 }
 
-// TODO: Receive the dangerous workflow as parameter
+// Placeholder function that should receive the file of a workflow and
+// return the end result of the Script Injection patch
+//
+// TODO: Receive the dangerous workflow as parameter.
 func GeneratePatch(f checker.File) string {
 	// TODO: Implement
 	// example:

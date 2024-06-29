@@ -69,8 +69,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 				LineStart: &e.File.Offset,
 				Snippet:   &e.File.Snippet,
 			})
-			patch := patch.GeneratePatch(e.File)
-			f.WithPatch(&patch)
+			findingPatch := patch.GeneratePatch(e.File)
+			f.WithPatch(&findingPatch)
 			findings = append(findings, *f)
 		}
 	}

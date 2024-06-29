@@ -1,0 +1,67 @@
+# Copyright 2021 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+on:
+  issue:
+
+env:
+  COMMENT_BODY: "${{ github.event.comment.body }}"
+  COMMIT_COMMENT: "${{ github.event.commit_comment.comment.body }}"
+  COMMIT_MESSAGE: "${{ github.event.commits[0].message }}"
+  COMMIT_AUTHOR_EMAIL: "${{ github.event.commits[0].author.email }}"
+  COMMIT_AUTHOR_NAME: "${{ github.event.commits[0].author.name }}"
+  DISCUSSION_BODY: ${{ github.event.discussion.body }}
+  DISCUSSION_TITLE: ${{ github.event.discussion.title }}
+  FORK_FORKEE_NAME: ${{ github.event.fork.forkee.name }}
+  HEAD_COMMIT_MESSAGE: "${{ github.event.head_commit.message }}"
+  HEAD_COMMIT_AUTHOR_EMAIL: "${{ github.event.head_commit.author.email }}"
+  HEAD_COMMIT_AUTHOR_NAME: "${{ github.event.head_commit.author.name }}"
+  ISSUE_TITLE: "${{ github.event.issue.title }}"
+  ISSUE_BODY: "${{ github.event.issue.body }}"
+  ISSUE_COMMENT_COMMENT: "${{ github.event.issue_comment.comment.body }}"
+  PAGE_NAME: "${{ github.event.pages[0].page_name }}"
+  PR_BODY: "${{ github.event.pull_request.body }}"
+  PR_TITLE: "${{ github.event.pull_request.title }}"
+  PR_HEAD_REF: "${{ github.event.pull_request.head.ref }}"
+  PR_HEAD_LABEL: "${{ github.event.pull_request.head.label }}"
+  REPO_PR_DEFAULT_BRANCH: "${{ github.event.pull_request.head.repo.default_branch }}"
+  REVIEW_BODY: "${{ github.event.review.body }}"
+  HEAD_REF: "${{ github.head_ref }}"
+
+jobs:
+  pretty-generic-job:
+    steps:
+      - name: everything everywhere in on job
+        run: |
+          echo "$COMMENT_BODY"
+          echo "$COMMIT_COMMENT"
+          echo "$COMMIT_MESSAGE"
+          echo "$COMMIT_AUTHOR_EMAIL"
+          echo "$COMMIT_AUTHOR_NAME"
+          echo "$DISCUSSION_BODY"
+          echo "$DISCUSSION_TITLE"
+          echo "$FORK_FORKEE_NAME"
+          echo "$HEAD_COMMIT_MESSAGE"
+          echo "$HEAD_COMMIT_AUTHOR_EMAIL"
+          echo "$HEAD_COMMIT_AUTHOR_NAME"
+          echo "$ISSUE_TITLE"
+          echo "$ISSUE_BODY"
+          echo "$ISSUE_COMMENT_COMMENT"
+          echo "$PAGE_NAME"
+          echo "$PR_BODY"
+          echo "$PR_TITLE"
+          echo "$PR_HEAD_REF"
+          echo "$PR_HEAD_LABEL"
+          echo "$REPO_PR_DEFAULT_BRANCH"
+          echo "$REVIEW_BODY"
+          echo "$HEAD_REF"
