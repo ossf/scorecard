@@ -15,11 +15,11 @@
 /*
 TODO:
   - Handle array inputs (i.e. workflow using `github.event.commits[0]` and
-    `github.event.commits[1]`, which would duplicate $COMMIT_MESSAGE).
+    `github.event.commits[1]`, which would duplicate $COMMIT_MESSAGE). Currently throws
+    an error on validation.
   - Handle use of synonyms (i.e `commits.*?\.author\.email` and
     `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL). Currently throws
     an error on validation.
-  - Don't assume an indent of 2, use whatever is used in `jobs`
 */
 package patch
 
@@ -39,10 +39,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/storage/memory"
-)
-
-const (
-	assumedIndent = 2
 )
 
 // Fixes the script injection identified by the finding and returns a unified diff
@@ -258,7 +254,7 @@ func addEnvvarsToGlobalEnv(lines []string, existingEnvvars map[string]string, pa
 
 		// position now points to `env:`, insert variables below it
 		insertPos += 1
-		envvarIndent = globalIndentation + assumedIndent
+		envvarIndent = globalIndentation + getDefaultIndent(lines)
 	}
 
 	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", pattern.envvarName, unsafeVar)
@@ -378,6 +374,29 @@ func isParentLevelIndent(line string, parentIndent int) bool {
 		return false
 	}
 	return getIndent(line) <= parentIndent
+}
+
+func getDefaultIndent(lines []string) int {
+	jobs := regexp.MustCompile(`^\s*jobs:`)
+	var jobsIndex, jobsIndent int
+	for i, line := range lines {
+		if jobs.MatchString(line) {
+			jobsIndex = i
+			jobsIndent = getIndent(line)
+			break
+		}
+	}
+
+	jobIndent := jobsIndent + 2 // default value, should never be used
+	for _, line := range lines[jobsIndex+1:] {
+		if isBlankOrComment(line) {
+			continue
+		}
+		jobIndent = getIndent(line)
+		break
+	}
+
+	return jobIndent - jobsIndent
 }
 
 func validatePatchedWorkflow(content string, originalErrs []*actionlint.Error) []*actionlint.Error {
