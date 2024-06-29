@@ -19,10 +19,7 @@ TODO:
   - Handle use of synonyms (i.e `commits.*?\.author\.email` and
     `head_commit\.author\.email“, which would duplicate $AUTHOR_EMAIL). Currently throws
     an error on validation.
-  - Handle cases where an existing envvar has the same name as what we'd use, but a
-    different definition.
-  - Handle cases where an existing envvar with a different name already covers our
-    dangerous variable, but wasn't used.
+  - Don't assume an indent of 2, use whatever is used in `jobs`
 */
 package patch
 
@@ -93,6 +90,8 @@ func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow
 
 func useExistingEnvvars(unsafePatterns map[string]unsafePattern, existingEnvvars map[string]string, unsafeVar string) {
 	if envvar, ok := existingEnvvars[unsafeVar]; ok {
+		// There already exists an envvar handling our unsafe variable.
+		// Use that envvar instead of creating a separate envvar with the same value.
 		pattern, ok := getUnsafePattern(unsafeVar, unsafePatterns)
 		if !ok {
 			return
@@ -100,6 +99,18 @@ func useExistingEnvvars(unsafePatterns map[string]unsafePattern, existingEnvvars
 
 		pattern.envvarName = envvar
 		unsafePatterns[pattern.ghVarName] = pattern
+		return
+	}
+
+	// if there's an envvar with the same name as what we'd use, add a "_1" suffix to
+	// our envvar name to avoid conflicts. Clumsy but works, and should be rare.
+	for _, e := range existingEnvvars {
+		for k, p := range unsafePatterns {
+			if e == p.envvarName {
+				p.envvarName += "_1"
+				unsafePatterns[k] = p
+			}
+		}
 	}
 }
 

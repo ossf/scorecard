@@ -1,0 +1,36 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+on: [pull_request]
+
+env:
+  # existing envvar with the same name as what we'd use forces us to append a suffix.
+  COMMIT_MESSAGE: "this is a commit message"
+  COMMIT_MESSAGE_1: ${{ github.event.commits[0].message }}
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Check msg
+      run: |
+        msg="$COMMIT_MESSAGE_1"
+        if [[ ! $msg =~ ^.*:\ .*$ ]]; then
+          echo "Bad message "
+          exit 1
+        fi

@@ -102,22 +102,26 @@ func Test_patchWorkflow(t *testing.T) {
 			name:     "Reuse existent workflow level env var, if it DOES NOT have the same name we'd give",
 			filePath: "reuseEnvVarWithDiffName.yaml",
 		},
-		// Test currently failing because we don't look for existent env vars on smaller scopes -- job-level or step-level.
-		// In this case, we're always creating a new workflow-level env var. Note that this could lead to creation of env vars shadowed
-		// by the ones in smaller scope.
-		// Once proper behavior is implemented, enable this test
-		// {
-		// 	name:             "Reuse env var already existent on smaller scope, it converts case of same or different names",
-		// 	inputFilepath:    "reuseEnvVarSmallerScope.yaml",
-		// },
-		// Test currently failing due to lack of style awareness. Currently we always add a blank line after
-		// the env block.
-		// Once proper behavior is implemented, enable this test.
-		// {
-		// 	name:             "Keep style if file doesn't use blank lines between blocks",
-		// 	inputFilepath:    "noLineBreaksBetweenBlocks.yaml",
-		// 	expectedFilepath: "noLineBreaksBetweenBlocks_fixed.yaml",
-		// },
+		{
+			name:     "Avoid conflict with existing envvar with same name but different value",
+			filePath: "envVarNameAlreadyInUse.yaml",
+		},
+		// // Test currently failing because we don't look for existent env vars on smaller scopes -- job-level or step-level.
+		// // In this case, we're always creating a new workflow-level env var. Note that this could lead to creation of env vars shadowed
+		// // by the ones in smaller scope.
+		// // Once proper behavior is implemented, enable this test
+		// // {
+		// // 	name:             "Reuse env var already existent on smaller scope, it converts case of same or different names",
+		// // 	inputFilepath:    "reuseEnvVarSmallerScope.yaml",
+		// // },
+		// // Test currently failing due to lack of style awareness. Currently we always add a blank line after
+		// // the env block.
+		// // Once proper behavior is implemented, enable this test.
+		// // {
+		// // 	name:             "Keep style if file doesn't use blank lines between blocks",
+		// // 	inputFilepath:    "noLineBreaksBetweenBlocks.yaml",
+		// // 	expectedFilepath: "noLineBreaksBetweenBlocks_fixed.yaml",
+		// // },
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
