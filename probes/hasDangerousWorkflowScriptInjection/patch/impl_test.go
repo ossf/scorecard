@@ -92,7 +92,7 @@ func Test_GeneratePatch(t *testing.T) {
 		// by the ones in smaller scope.
 		// Once proper behavior is implemented, enable this test
 		// {
-		// 	name:             "Reuse env var already existent on smaller scope, it convers case of same or different names",
+		// 	name:             "Reuse env var already existent on smaller scope, it converts case of same or different names",
 		// 	inputFilepath:    "reuseEnvVarSmallerScope.yaml",
 		// 	expectedFilepath: "reuseEnvVarSmallerScope_fixed.yaml",
 		// },
@@ -139,7 +139,12 @@ func Test_GeneratePatch(t *testing.T) {
 				t.Errorf("Couldn't read expected testfile. Error:\n%s", err)
 			}
 
-			output := GeneratePatch(inputFile)
+			inputContent, err := os.ReadFile("./testdata/" + tt.inputFilepath)
+			if err != nil {
+				t.Errorf("Couldn't read input testfile. Error:\n%s", err)
+			}
+
+			output := GeneratePatch(inputFile, inputContent)
 			if diff := cmp.Diff(string(expectedContent[:]), output); diff != "" {
 				// Uncomment the line bellow when the script is fully implemented and the tests are adapted to
 				// the official input/output

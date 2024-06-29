@@ -26,33 +26,20 @@ func parseDiff(diff string) string {
 	if i == -1 {
 		return diff
 	}
-	// remove everything before """\n
+
 	diff = diff[i+4:]
 	i = strings.LastIndex(diff, "\"\"\"")
 	if i == -1 {
 		return diff
 	}
-	// remove everything after \n  \t"""
+
 	return diff[:i]
 }
 
-// Placeholder function that should receive the file of a workflow and
-// return the end result of the Script Injection patch
-//
-// TODO: Receive the dangerous workflow as parameter.
-func GeneratePatch(f checker.File) string {
-	// TODO: Implement
-	// example:
-	// type scriptInjection
-	// path {.github/workflows/active-elastic-job~active-elastic-job~build.yml  github.head_ref  91 0 0 1}
-	// snippet github.head_ref
-	src := `asasas
-hello """ola"""
-	message=$(echo "${{ github.event.head_commit.message }}" | tail -n +3)
-adios`
-	dst := `asasas
-hello """ola"""
-	message=$(echo $COMMIT | tail -n +3)
-adios`
+func GeneratePatch(f checker.File, content []byte) string {
+	src := string(content)
+	// TODO: call fix method
+	dst := src + "\n    # random change for testing patch diff"
+
 	return parseDiff(cmp.Diff(src, dst))
 }
