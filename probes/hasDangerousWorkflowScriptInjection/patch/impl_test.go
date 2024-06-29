@@ -40,8 +40,9 @@ const (
 func Test_patchWorkflow(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		filePath string
+		name       string
+		filePath   string
+		duplicates map[int]int // mark findings as duplicates of others, use same fix
 	}{
 		{
 			// Extracted from real Angular fix: https://github.com/angular/angular/pull/51026/files
@@ -73,6 +74,9 @@ func Test_patchWorkflow(t *testing.T) {
 		{
 			name:     "Two incidences in same step",
 			filePath: "twoInjectionsSameStep.yaml",
+			duplicates: map[int]int{
+				2: 1, // finding #2 is a duplicate of #1
+			},
 		},
 		{
 			name:     "4-spaces indentation is kept the same",
@@ -139,7 +143,7 @@ func Test_patchWorkflow(t *testing.T) {
 				i = i + 1 // Only used for error messages, increment for legibility
 
 				if dw.Type == checker.DangerousWorkflowUntrustedCheckout {
-					t.Errorf("Patching of untrusted checkout (finding #%dis not implemented.", i)
+					t.Errorf("Patching of untrusted checkout (finding #%d) is not implemented.", i)
 				}
 
 				output, err := patchWorkflow(dw.File, string(inputContent), workflow)
@@ -150,6 +154,10 @@ func Test_patchWorkflow(t *testing.T) {
 				patchedErrs := validatePatchedWorkflow(output, inputErrs)
 				if len(patchedErrs) > 0 {
 					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i, patchedErrs[0])
+				}
+
+				if dup, ok := tt.duplicates[i]; ok {
+					i = dup
 				}
 
 				expected, err := getExpected(tt.filePath, numFindings, i)

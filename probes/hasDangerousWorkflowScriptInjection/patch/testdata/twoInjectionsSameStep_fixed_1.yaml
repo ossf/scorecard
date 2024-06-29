@@ -25,4 +25,5 @@ jobs:
       - name: where things are done
         run: |
           echo "$ISSUE_TITLE"
+          echo "$ISSUE_TITLE"
           mkdir "${{ github.event.issue.body }}"
