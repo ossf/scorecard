@@ -1,5 +1,5 @@
 annotations:
   - checks:
-      - Binary-Artifacts
+      - binary-artifacts
     reasons:
       - reason: test-data

@@ -39,37 +39,37 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks:  []string{"Binary-Artifacts"},
+						Checks:  []string{"binary-artifacts"},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 				},
 			},
 		},
 		{
-			name:       "Annotation on all checks (case insensitive)",
+			name:       "Annotation on all checks",
 			configPath: "testdata/all_checks.yml",
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
 						Checks: []string{
-							"Binary-Artifacts",
-							"Branch-Protection",
-							"CII-Best-Practices",
-							"CI-Tests",
-							"Code-Review",
-							"Contributors",
-							"Dangerous-Workflow",
-							"Dependency-Update-Tool",
-							"Fuzzing",
-							"License",
-							"Maintained",
-							"Packaging",
-							"Pinned-Dependencies",
-							"SAST",
-							"Security-Policy",
-							"Signed-Releases",
-							"Token-Permissions",
-							"Vulnerabilities",
+							"binary-artifacts",
+							"branch-protection",
+							"cii-best-practices",
+							"ci-tests",
+							"code-review",
+							"contributors",
+							"dangerous-workflow",
+							"dependency-update-tool",
+							"fuzzing",
+							"license",
+							"maintained",
+							"packaging",
+							"pinned-dependencies",
+							"sast",
+							"security-policy",
+							"signed-releases",
+							"token-permissions",
+							"vulnerabilities",
 						},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
@@ -82,7 +82,7 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks: []string{"Binary-Artifacts"},
+						Checks: []string{"binary-artifacts"},
 						Reasons: []config.ReasonGroup{
 							{Reason: "test-data"},
 							{Reason: "remediated"},
@@ -100,11 +100,11 @@ func Test_Parse_Checks(t *testing.T) {
 			want: config.Config{
 				Annotations: []config.Annotation{
 					{
-						Checks:  []string{"Binary-Artifacts"},
+						Checks:  []string{"binary-artifacts"},
 						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
 					},
 					{
-						Checks:  []string{"Pinned-Dependencies"},
+						Checks:  []string{"pinned-dependencies"},
 						Reasons: []config.ReasonGroup{{Reason: "not-applicable"}},
 					},
 				},

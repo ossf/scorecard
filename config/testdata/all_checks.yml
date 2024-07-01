@@ -13,7 +13,7 @@ annotations:
       - maintained
       - packaging
       - pinned-dependencies
-      - Sast
+      - sast
       - security-policy
       - signed-releases
       - token-permissions

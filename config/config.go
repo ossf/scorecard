@@ -23,6 +23,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 var (
@@ -45,57 +46,8 @@ func parseFile(c *Config, content []byte) error {
 	return nil
 }
 
-type checkName = string
-
-// Redefining check names here to avoid circular imports.
-const (
-	binaryArtifacts      checkName = "Binary-Artifacts"
-	branchProtection     checkName = "Branch-Protection"
-	ciiBestPractices     checkName = "CII-Best-Practices"
-	ciTests              checkName = "CI-Tests"
-	codeReview           checkName = "Code-Review"
-	contributors         checkName = "Contributors"
-	dangerousWorkflow    checkName = "Dangerous-Workflow"
-	dependencyUpdateTool checkName = "Dependency-Update-Tool"
-	fuzzing              checkName = "Fuzzing"
-	license              checkName = "License"
-	maintained           checkName = "Maintained"
-	packaging            checkName = "Packaging"
-	pinnedDependencies   checkName = "Pinned-Dependencies"
-	sast                 checkName = "SAST"
-	sbom                 checkName = "SBOM"
-	securityPolicy       checkName = "Security-Policy"
-	signedReleases       checkName = "Signed-Releases"
-	tokenPermissions     checkName = "Token-Permissions"
-	vulnerabilities      checkName = "Vulnerabilities"
-	webhooks             checkName = "Webhooks"
-)
-
-var allValidChecks []string = []string{
-	binaryArtifacts,
-	branchProtection,
-	ciiBestPractices,
-	ciTests,
-	codeReview,
-	contributors,
-	dangerousWorkflow,
-	dependencyUpdateTool,
-	fuzzing,
-	license,
-	maintained,
-	packaging,
-	pinnedDependencies,
-	sast,
-	sbom,
-	securityPolicy,
-	signedReleases,
-	tokenPermissions,
-	vulnerabilities,
-	webhooks,
-}
-
 func isValidCheck(check string) bool {
-	for _, c := range allValidChecks {
+	for _, c := range checknames.AllValidChecks {
 		if strings.EqualFold(c, check) {
 			return true
 		}

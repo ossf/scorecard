@@ -22,12 +22,13 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
-	probes.MustRegister(Probe, Run, []probes.CheckName{probes.CodeReview})
+	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.CodeReview})
 }
 
 //go:embed *.yml
