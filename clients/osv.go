@@ -58,7 +58,8 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		Recursive:      true,
 		GitCommits:     gitCommits,
 		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
-			CompareOffline: v.local,
+			CompareOffline:    v.local,
+			DownloadDatabases: v.local,
 		},
 	}, nil) // TODO: Do logging?
 
