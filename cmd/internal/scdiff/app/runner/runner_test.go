@@ -15,23 +15,20 @@
 package runner
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 func TestNew(t *testing.T) {
 	t.Parallel()
-	r := New(nil)
-	if len(r.enabledChecks) == 0 {
-		t.Errorf("runner has no checks to run: %v", r.enabledChecks)
-	}
 	requestedChecks := []string{"Code-Review"}
-	r = New(requestedChecks)
+	r := New(requestedChecks)
 	if len(r.enabledChecks) != len(requestedChecks) {
 		t.Errorf("requested %d checks but only got: %v", len(requestedChecks), r.enabledChecks)
 	}
@@ -43,11 +40,14 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo := mockrepo.NewMockRepoClient(ctrl)
 	commit := []clients.Commit{{SHA: "foo"}}
 	mockRepo.EXPECT().ListCommits().Return(commit, nil)
+	mockRepo.EXPECT().ListFiles(gomock.Any()).Return(nil, nil)
 	mockRepo.EXPECT().InitRepo(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
 	mockRepo.EXPECT().Close().Return(nil)
 	r := Runner{
-		enabledChecks: checker.CheckNameToFnMap{},
+		ctx: context.Background(),
+		// use a check which works locally, but we declare no files above so no-op
+		enabledChecks: []string{checknames.BinaryArtifacts},
 		githubClient:  mockRepo,
 	}
 	const repo = "github.com/foo/bar"
