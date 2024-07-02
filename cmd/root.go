@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -27,6 +28,9 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -92,16 +96,23 @@ func rootCmd(o *options.Options) error {
 	}
 
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, o.Repo, o.Local, logger) // MODIFIED
-	if err != nil {
-		return fmt.Errorf("GetClients: %w", err)
+	opts := []pkg.Option{
+		pkg.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
+		pkg.WithCommitSHA(o.Commit),
+		pkg.WithCommitDepth(o.CommitDepth),
 	}
 
-	defer repoClient.Close()
-	if ossFuzzRepoClient != nil {
-		defer ossFuzzRepoClient.Close()
+	var repo clients.Repo
+	if o.Local != "" {
+		repo, err = localdir.MakeLocalDirRepo(o.Local)
+		if err != nil {
+			return fmt.Errorf("making local dir: %w", err)
+		}
+	} else {
+		repo, err = makeRepo(o.Repo)
+		if err != nil {
+			return fmt.Errorf("making remote repo: %w", err)
+		}
 	}
 
 	// Read docs.
@@ -117,9 +128,16 @@ func rootCmd(o *options.Options) error {
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
+	// this call to policy is different from the one in pkg.Run
+	// this one is concerned with a policy file, while the pkg.Run call is
+	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
+	}
+	checks := make([]string, 0, len(enabledChecks))
+	for c := range enabledChecks {
+		checks = append(checks, c)
 	}
 
 	enabledProbes := o.Probes()
@@ -130,20 +148,12 @@ func rootCmd(o *options.Options) error {
 			printCheckStart(enabledChecks)
 		}
 	}
-
-	repoResult, err = pkg.ExperimentalRunProbes(
-		ctx,
-		repoURI,
-		o.Commit,
-		o.CommitDepth,
-		enabledChecks,
-		enabledProbes,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
+	opts = append(opts,
+		pkg.WithProbes(enabledProbes),
+		pkg.WithChecks(checks),
 	)
+
+	repoResult, err = pkg.Run(ctx, repo, opts...)
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
 	}
@@ -205,4 +215,19 @@ func printCheckResults(enabledChecks checker.CheckNameToFnMap) {
 		fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 	}
 	fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
+}
+
+// makeRepo helps turn a URI into the appropriate clients.Repo.
+// currently this is a decision between GitHub and GitLab,
+// but may expand in the future.
+func makeRepo(uri string) (clients.Repo, error) {
+	var repo clients.Repo
+	var errGitHub, errGitLab error
+	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub != nil {
+		repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
+		if errGitLab != nil {
+			return nil, fmt.Errorf("unable to parse as github or gitlab: %w", errors.Join(errGitHub, errGitLab))
+		}
+	}
+	return repo, nil
 }
