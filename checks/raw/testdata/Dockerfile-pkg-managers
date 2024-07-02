@@ -127,6 +127,12 @@ RUN choco install --require-checksums 'some-package'
 
 RUN nuget install some-package
 RUN nuget restore
+RUN nuget restore -LockedMode
+RUN dotnet restore
+RUN dotnet restore --locked-mode
+RUN msbuild.exe /t:restore /p:RestoreLockedMode=true
+RUN msbuild.exe /t:restore
+RUN nuget restore -LockedMode
 RUN nuget install some-package -Version 1.2.3
 RUN nuget install packages.config
 RUN dotnet add package some-package

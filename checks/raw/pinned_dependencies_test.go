@@ -281,7 +281,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			unpinned: 49,
+			unpinned: 52,
 		},
 		{
 			name:             "Can't identify OS but doesn't crash",
@@ -1409,7 +1409,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			unpinned: 60,
+			unpinned: 63,
 		},
 		{
 			name:     "download with some python",

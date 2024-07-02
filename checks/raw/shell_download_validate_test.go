@@ -129,9 +129,93 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "nuget.exe install",
+			args: args{
+				cmd: []string{"nuget.exe", "install", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
 			name: "nuget restore",
 			args: args{
 				cmd: []string{"nuget", "restore"},
+			},
+			want: true,
+		},
+		{
+			name: "nuget.exe restore",
+			args: args{
+				cmd: []string{"nuget.exe", "restore"},
+			},
+			want: true,
+		},
+		{
+			name: "msbuild restore",
+			args: args{
+				cmd: []string{"msbuild", "/t:restore"},
+			},
+			want: true,
+		},
+		{
+			name: "msbuild.exe restore",
+			args: args{
+				cmd: []string{"msbuild.exe", "/t:restore"},
+			},
+			want: true,
+		},
+		{
+			name: "nuget restore locked",
+			args: args{
+				cmd: []string{"nuget", "restore", "-LockedMode"},
+			},
+			want: false,
+		},
+		{
+			name: "nuget.exe restore locked",
+			args: args{
+				cmd: []string{"nuget.exe", "restore", "-LockedMode"},
+			},
+			want: false,
+		},
+		{
+			name: "msbuild restore locked",
+			args: args{
+				cmd: []string{"msbuild", "/t:restore", "/p:RestoreLockedMode=true"},
+			},
+			want: false,
+		},
+		{
+			name: "msbuild.exe restore locked",
+			args: args{
+				cmd: []string{"msbuild.exe", "/t:restore", "/p:RestoreLockedMode=true"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet restore",
+			args: args{
+				cmd: []string{"dotnet", "restore"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet.exe restore",
+			args: args{
+				cmd: []string{"dotnet.exe", "restore"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet restore locked",
+			args: args{
+				cmd: []string{"dotnet", "restore", "--locked-mode"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet.exe restore locked",
+			args: args{
+				cmd: []string{"dotnet.exe", "restore", "--locked-mode"},
 			},
 			want: false,
 		},
@@ -143,9 +227,23 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "nuget.exe install with -Version",
+			args: args{
+				cmd: []string{"nuget.exe", "install", "Newtonsoft.Json", "-Version", "2"},
+			},
+			want: false,
+		},
+		{
 			name: "nuget install with packages.config",
 			args: args{
 				cmd: []string{"nuget", "install", "config\\packages.config"},
+			},
+			want: false,
+		},
+		{
+			name: "nuget.exe install with packages.config",
+			args: args{
+				cmd: []string{"nuget.exe", "install", "config\\packages.config"},
 			},
 			want: false,
 		},
@@ -157,6 +255,13 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "dotnet.exe add",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
 			name: "dotnet add to project",
 			args: args{
 				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json"},
@@ -164,9 +269,23 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: true,
 		},
 		{
+			name: "dotnet.exe add to project",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "project1", "package", "Newtonsoft.Json"},
+			},
+			want: true,
+		},
+		{
 			name: "dotnet add reference to project",
 			args: args{
 				cmd: []string{"dotnet", "add", "project1", "reference", "OtherProject"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet.exe add reference to project",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "project1", "reference", "OtherProject"},
 			},
 			want: false,
 		},
@@ -185,9 +304,23 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "dotnet.exe add with -v",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
 			name: "dotnet add to project with -v",
 			args: args{
 				cmd: []string{"dotnet", "add", "project1", "package", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet.exe add to project with -v",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "project1", "package", "Newtonsoft.Json", "-v", "2.0"},
 			},
 			want: false,
 		},
@@ -199,9 +332,23 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			want: false,
 		},
 		{
+			name: "dotnet.exe add reference to project with -v",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "project1", "reference", "Newtonsoft.Json", "-v", "2.0"},
+			},
+			want: false,
+		},
+		{
 			name: "dotnet add with --version",
 			args: args{
 				cmd: []string{"dotnet", "add", "package", "Newtonsoft.Json", "--version", "2.0"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet.exe add with --version",
+			args: args{
+				cmd: []string{"dotnet.exe", "add", "package", "Newtonsoft.Json", "--version", "2.0"},
 			},
 			want: false,
 		},
@@ -210,7 +357,7 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := isNugetUnpinnedDownload(tt.args.cmd); got != tt.want {
+			if got := isNugetUnpinned(tt.args.cmd); got != tt.want {
 				t.Errorf("isNugetUnpinnedDownload() = %v, want %v", got, tt.want)
 			}
 		})

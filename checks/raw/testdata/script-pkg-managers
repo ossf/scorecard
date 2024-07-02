@@ -125,7 +125,9 @@ choco install --requirechecksums 'some-package'
 choco install --require-checksums 'some-package'
 
 nuget install some-package
-nuget restore
+nuget restore -LockedMode
+dotnet restore --locked-mode
+msbuild.exe /t:restore /p:RestoreLockedMode=true
 nuget install some-package -Version 1.2.3
 nuget install packages.config
 dotnet add package some-package
