@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: issueActivityByProjectMember
+lifecycle: stable
 short: Checks that a collaborator, member or owner has participated in issues in the last 90 days.
 motivation: >
   A project which does not respond to issues may not be actively maintained.

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: archived
+lifecycle: stable
 short: Check that the project is archived
 motivation: >
   An archived project will not received security patches, and is not actively tested or used.
