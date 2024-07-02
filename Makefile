@@ -45,7 +45,7 @@ $(GINKGO): $(TOOLS_DIR)/go.mod
 
 GORELEASER := $(TOOLS_BIN_DIR)/goreleaser
 $(GORELEASER): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser/v2
 
 PROTOC_GEN_GO := $(TOOLS_BIN_DIR)/protoc-gen-go
 $(PROTOC_GEN_GO): $(TOOLS_DIR)/go.mod
@@ -200,7 +200,7 @@ scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 	# Run go releaser on the Scorecard repo
 	$(GORELEASER) check && \
 		VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release \
-		--snapshot --rm-dist --skip-publish --skip-sign && \
+		--snapshot --clean --skip=publish,sign && \
 		touch scorecard.releaser
 
 CRON_CONTROLLER_DEPS = $(shell find cron/internal/ -iname "*.go")

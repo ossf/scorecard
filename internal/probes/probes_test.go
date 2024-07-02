@@ -21,6 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
+	. "github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 func emptyImpl(r *checker.RawResults) ([]finding.Finding, string, error) {
