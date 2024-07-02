@@ -402,7 +402,7 @@ func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		for _, checkName := range p.RequiredRawData {
-			checkName := string(checkName)
+			checkName := checkName
 			if !seen[checkName] {
 				err := assignRawData(checkName, request, ret)
 				if err != nil {

@@ -20,39 +20,14 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
-)
-
-type CheckName string
-
-// Redefining check names here to avoid circular imports.
-const (
-	BinaryArtifacts      CheckName = "Binary-Artifacts"
-	BranchProtection     CheckName = "Branch-Protection"
-	CIIBestPractices     CheckName = "CII-Best-Practices"
-	CITests              CheckName = "CI-Tests"
-	CodeReview           CheckName = "Code-Review"
-	Contributors         CheckName = "Contributors"
-	DangerousWorkflow    CheckName = "Dangerous-Workflow"
-	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
-	Fuzzing              CheckName = "Fuzzing"
-	License              CheckName = "License"
-	Maintained           CheckName = "Maintained"
-	Packaging            CheckName = "Packaging"
-	PinnedDependencies   CheckName = "Pinned-Dependencies"
-	SAST                 CheckName = "SAST"
-	SBOM                 CheckName = "SBOM"
-	SecurityPolicy       CheckName = "Security-Policy"
-	SignedReleases       CheckName = "Signed-Releases"
-	TokenPermissions     CheckName = "Token-Permissions"
-	Vulnerabilities      CheckName = "Vulnerabilities"
-	Webhooks             CheckName = "Webhooks"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 type Probe struct {
 	Name                      string
 	Implementation            ProbeImpl
 	IndependentImplementation IndependentProbeImpl
-	RequiredRawData           []CheckName
+	RequiredRawData           []checknames.CheckName
 }
 
 type ProbeImpl func(*checker.RawResults) ([]finding.Finding, string, error)
@@ -62,7 +37,7 @@ type IndependentProbeImpl func(*checker.CheckRequest) ([]finding.Finding, string
 // registered is the mapping of all registered probes.
 var registered = map[string]Probe{}
 
-func MustRegister(name string, impl ProbeImpl, requiredRawData []CheckName) {
+func MustRegister(name string, impl ProbeImpl, requiredRawData []checknames.CheckName) {
 	err := register(Probe{
 		Name:            name,
 		Implementation:  impl,
