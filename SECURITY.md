@@ -20,7 +20,7 @@ to acknowledge your contributions.
 OpenSSF Scorecard leverages GitHub's private vulnerability reporting.
 
 To learn more about this feature and how to submit a vulnerability report,
-review [GitHub's documentation on private reporting](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability).
+review [GitHub's documentation on private reporting](https://docs.github.com/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability).
 
 Here are some helpful details to include in your report:
 
