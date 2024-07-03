@@ -3,6 +3,9 @@
 This document outlines security procedures and general policies for the
 OpenSSF Scorecard project.
 
+This policy adheres to the [vulnerability management guidance](https://www.linuxfoundation.org/security)
+for Linux Foundation projects.
+
 - [Disclosing a security issue](#disclosing-a-security-issue)
 - [Vulnerability management](#vulnerability-management)
 - [Suggesting changes](#suggesting-changes)
@@ -28,9 +31,15 @@ Here are some helpful details to include in your report:
 
 A maintainer will acknowledge the report within 72 hours, and will send a more
 detailed response within an additional 72 hours indicating the next steps in
-handling your report. After the initial reply to your report, the maintainers
-will endeavor to keep you informed of the progress towards a fix and full
-announcement, and may ask for additional information or guidance.
+handling your report.
+
+If you've been unable to successfully draft a vulnerability report via GitHub
+or have not received a response during the alloted response window, please
+reach out via the [OpenSSF security contact email](mailto:security@openssf.org).
+
+After the initial reply to your report, the maintainers will endeavor to keep
+you informed of the progress towards a fix and full announcement, and may ask
+for additional information or guidance.
 
 ## Vulnerability management
 
