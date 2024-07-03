@@ -41,3 +41,12 @@ updates:
   rebase-strategy: disabled
   commit-message:
       prefix: ":seedling:"
+  # currently needed to get PRs which actually update multiple directories in a single PR
+  # https://github.com/dependabot/dependabot-core/issues/2178#issuecomment-2109164992
+  groups:
+    golang:
+      patterns:
+        - "golang"
+    distroless:
+      patterns:
+        - "distroless/base"
