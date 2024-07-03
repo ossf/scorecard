@@ -29,9 +29,9 @@ Here are some helpful details to include in your report:
 - versions of the project that may be affected by the issue
 - if known, any mitigations for the issue
 
-A maintainer will acknowledge the report within 72 hours, and will send a more
-detailed response within an additional 72 hours indicating the next steps in
-handling your report.
+A maintainer will acknowledge the report within three (3) business days, and
+will send a more detailed response within an additional three (3) business days
+indicating the next steps in handling your report.
 
 If you've been unable to successfully draft a vulnerability report via GitHub
 or have not received a response during the alloted response window, please
