@@ -180,11 +180,7 @@ func runScorecard(ctx context.Context,
 		if r != nil {
 			defer r.Close()
 			logger.Info(fmt.Sprintf("using maintainer annotations: %s", path))
-			checks := []string{}
-			for check := range checksToRun {
-				checks = append(checks, check)
-			}
-			c, err := config.Parse(r, checks)
+			c, err := config.Parse(r)
 			if err != nil {
 				logger.Info(fmt.Sprintf("couldn't parse maintainer annotations: %v", err))
 			}

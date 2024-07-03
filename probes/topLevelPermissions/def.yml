@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: topLevelPermissions
+lifecycle: experimental
 short: Checks that the project does not have any top-level write permissions in its workflows.
 motivation: >
   In some circumstances, having "write" permissions at the "top" level may enable attackers to escalate privileges.

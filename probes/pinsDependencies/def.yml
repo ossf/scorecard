@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: pinsDependencies
+lifecycle: stable
 short: Check that the project pins dependencies to a specific digest.
 motivation: >
   Pinned dependencies ensure that checking and deployment are all done with the same software, reducing deployment risks, simplifying debugging, and enabling reproducibility. They can help mitigate compromised dependencies from undermining the security of the project (in the case where you've evaluated the pinned dependency, you are confident it's not compromised, and a later version is released that is compromised).

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: branchProtectionAppliesToAdmins
+lifecycle: stable
 short: Check that the project's branch protection rules apply to project admins.
 motivation: >
   Admins may be able to bypass branch protection settings which could defeat the purpose of having them.

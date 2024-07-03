@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: codeReviewOneReviewers
+lifecycle: experimental
 short: Check that at least one reviewers review a change before merging.
 motivation: >
   To ensure that the review process works, the proposed changes

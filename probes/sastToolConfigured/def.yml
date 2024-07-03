@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: sastToolConfigured
+lifecycle: stable
 short: Check that the project uses a SAST tool
 motivation: >
   SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.

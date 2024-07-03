@@ -1,4 +1,5 @@
 id: effort-high
+lifecycle: stable
 short: short description
 motivation: >
   line1

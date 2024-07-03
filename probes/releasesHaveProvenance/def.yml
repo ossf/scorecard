@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: releasesHaveProvenance
+lifecycle: stable
 short: Check that the projects releases on GitHub and GitLab have provenance.
 motivation: >
   Provenance give users security-critical, verifiable information so that consumers can verify their artifacts before consuming them.

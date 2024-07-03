@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: requiresCodeOwnersReview
+lifecycle: stable
 short: Check that the project requires dedicated code owners to review PRs.
 motivation: >
   Code owners are expected to have deep knowledge about a code; Having experienced reviewers for PRs is expected to prevent security issues.
