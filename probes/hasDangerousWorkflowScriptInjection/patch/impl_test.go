@@ -29,6 +29,7 @@ import (
 	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/checks/raw"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
@@ -40,9 +41,9 @@ const (
 func Test_patchWorkflow(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
+		duplicates map[int]int // mark findings as duplicates of others, use same fix
 		name       string
 		filePath   string
-		duplicates map[int]int // mark findings as duplicates of others, use same fix
 	}{
 		{
 			// Extracted from real Angular fix: https://github.com/angular/angular/pull/51026/files
@@ -128,71 +129,75 @@ func Test_patchWorkflow(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			dws := detectDangerousWorkflows(tt.filePath, t)
+			dws := detectDangerousWorkflows(t, tt.filePath)
 
-			inputContent, err := os.ReadFile(path.Join(testDir, tt.filePath))
+			inputContent, workflow, inputErrs, err := readWorkflow(tt.filePath)
 			if err != nil {
-				t.Errorf("Couldn't read input test file. Error:\n%s", err)
-			}
-
-			workflow, inputErrs := actionlint.Parse(inputContent)
-			if len(inputErrs) > 0 && workflow == nil {
-				t.Errorf("Couldn't parse file as workflow. Error:\n%s", inputErrs[0])
+				t.Errorf("Error reading workflow: %s", err)
 			}
 
 			numFindings := len(dws)
 			for i, dw := range dws {
-				i = i + 1 // Only used for error messages, increment for legibility
-
-				if dw.Type == checker.DangerousWorkflowUntrustedCheckout {
-					t.Errorf("Patching of untrusted checkout (finding #%d) is not implemented.", i)
-				}
+				i++ // Only used for error messages, increment for legibility
 
 				output, err := patchWorkflow(dw.File, string(inputContent), workflow)
 				if err != nil {
-					t.Errorf("Couldn't patch workflow for finding #%d.", i)
+					t.Errorf("Couldn't patch workflow for finding #%d. Error:\n%s", i, err)
 				}
 
 				patchedErrs := validatePatchedWorkflow(output, inputErrs)
 				if len(patchedErrs) > 0 {
-					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i, patchedErrs[0])
+					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i,
+						fileparser.FormatActionlintError(patchedErrs))
 				}
 
 				if dup, ok := tt.duplicates[i]; ok {
 					i = dup
 				}
 
-				expected, err := getExpected(tt.filePath, numFindings, i)
-				if err != nil {
-					t.Errorf("Couldn't read expected output file for finding #%d. Error:\n%s", i, err)
-				}
+				expected := getExpected(t, tt.filePath, numFindings, i)
 
 				if diff := cmp.Diff(expected, output); diff != "" {
 					t.Errorf("mismatch for finding #%d. (-want +got):\n%s", i, diff)
 				}
 			}
-
 		})
 	}
 }
 
-func getExpected(filePath string, numFindings, findingIndex int) (string, error) {
+func readWorkflow(filePath string) ([]byte, *actionlint.Workflow, []*actionlint.Error, error) {
+	inputContent, err := os.ReadFile(path.Join(testDir, filePath))
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
+	workflow, inputErrs := actionlint.Parse(inputContent)
+	if len(inputErrs) > 0 && workflow == nil {
+		return inputContent, nil, inputErrs, inputErrs[0]
+	}
+
+	return inputContent, workflow, inputErrs, nil
+}
+
+func getExpected(t *testing.T, filePath string, numFindings, findingIndex int) string {
+	t.Helper()
 	// build path to fixed version
 	dot := strings.LastIndex(filePath, ".")
 	fixedPath := filePath[:dot] + "_fixed"
 	if numFindings > 1 {
 		fixedPath = fmt.Sprintf("%s_%d", fixedPath, findingIndex)
 	}
-	fixedPath = fixedPath + filePath[dot:]
+	fixedPath += filePath[dot:]
 
 	content, err := os.ReadFile(path.Join(testDir, fixedPath))
 	if err != nil {
-		return "", err
+		t.Errorf("Couldn't read expected output file for finding #%d. Error:\n%s", findingIndex, err)
 	}
-	return string(content), nil
+	return string(content)
 }
 
-func detectDangerousWorkflows(filePath string, t *testing.T) []checker.DangerousWorkflow {
+func detectDangerousWorkflows(t *testing.T, filePath string) []checker.DangerousWorkflow {
+	t.Helper()
 	ctrl := gomock.NewController(t)
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(
@@ -210,7 +215,6 @@ func detectDangerousWorkflows(filePath string, t *testing.T) []checker.Dangerous
 	}
 
 	dw, err := raw.DangerousWorkflow(req)
-
 	if err != nil {
 		t.Errorf("Error running raw.DangerousWorkflow. Error:\n%s", err)
 	}
