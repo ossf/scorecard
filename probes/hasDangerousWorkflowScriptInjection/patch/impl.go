@@ -121,7 +121,14 @@ func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, erro
 	}
 
 	label := strings.Repeat(" ", globalIndentation) + "env:"
-	lines = slices.Insert(lines, envPos, []string{label, ""}...)
+	content := []string{label}
+
+	numBlankLines := getDefaultBlockSpacing(lines, globalIndentation)
+	for i := 0; i < numBlankLines; i++ {
+		content = append(content, "")
+	}
+
+	lines = slices.Insert(lines, envPos, content...)
 	return lines, envPos, nil
 }
 
@@ -345,12 +352,48 @@ func getIndent(line string) int {
 	return len(line) - len(strings.TrimLeft(line, " -"))
 }
 
-// Returns whether the given line is a blank line or only contains comments.
-func isBlankOrComment(line string) bool {
-	blank := regexp.MustCompile(`^\s*$`)
-	comment := regexp.MustCompile(`^\s*#`)
+// Returns the "default" number of blank lines between blocks.
+// The default is taken as the number of blank lines between the `jobs` label and the end of the preceding block.
+func getDefaultBlockSpacing(lines []string, globalIndent int) int {
+	jobsRegex := labelRegex("jobs", globalIndent)
 
-	return blank.MatchString(line) || comment.MatchString(line)
+	var jobsIdx int
+	var line string
+	for jobsIdx, line = range lines {
+		if jobsRegex.MatchString(line) {
+			break
+		}
+	}
+
+	numBlanks := 0
+	for i := jobsIdx - 1; i >= 0; i-- {
+		line := lines[i]
+
+		if isBlank(line) {
+			numBlanks++
+		} else if !isComment(line) {
+			// If the line is neither blank nor a comment, then we've reached the end of the previous block.
+			break
+		}
+	}
+
+	return numBlanks
+}
+
+// Returns whether the given line is a blank line (empty or only whitespace).
+func isBlank(line string) bool {
+	blank := regexp.MustCompile(`^\s*$`)
+	return blank.MatchString(line)
+}
+
+// Returns whether the given line only contains comments.
+func isComment(line string) bool {
+	comment := regexp.MustCompile(`^\s*#`)
+	return comment.MatchString(line)
+}
+
+func isBlankOrComment(line string) bool {
+	return isBlank(line) || isComment(line)
 }
 
 // Returns whether the given line is at the same indentation level as the parent scope.
