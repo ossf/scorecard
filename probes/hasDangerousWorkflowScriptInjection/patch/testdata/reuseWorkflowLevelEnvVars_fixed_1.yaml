@@ -19,7 +19,7 @@ env:
   ISSUE_NUMBER: ${{github.event.issue.number}}
 
   # Safe but unnused env var. Same name that our script would use. No spaces inside brackets
-  COMMENT_BODY: "${{github.event.issue_comment.comment.body}}"
+  ISSUE_COMMENT_BODY: "${{github.event.issue_comment.comment.body}}"
 
 on:
   issue_comment:
@@ -36,7 +36,7 @@ jobs:
     steps:
       - run: |
           echo "$ISSUE_NUMBER"
-          echo "$COMMENT_BODY"
+          echo "$ISSUE_COMMENT_BODY"
 
       # content orinally not present in any env var.
       # This same content will be used again and should reuse created env var

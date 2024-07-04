@@ -14,8 +14,7 @@
 on: [pull_request]
 
 env:
-  # existing envvar with the same name as what we'd use forces us to append a suffix.
-  COMMIT_MESSAGE: "this is a commit message"
+  COMMIT_MESSAGE_0: ${{ github.event.commits[0].message }}
 
 jobs:
   build:
@@ -26,10 +25,6 @@ jobs:
       with:
         ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Check msg
-      run: |
-        msg="${{ github.event.head_commit.message }}"
-        if [[ ! $msg =~ ^.*:\ .*$ ]]; then
-          echo "Bad message "
-          exit 1
-        fi
+    - run: |
+        echo "$COMMIT_MESSAGE_0"
+        echo "${{ github.event.commits[1].message }}"

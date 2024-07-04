@@ -16,7 +16,7 @@ on: [pull_request]
 env:
   # existing envvar with the same name as what we'd use forces us to append a suffix.
   COMMIT_MESSAGE: "this is a commit message"
-  COMMIT_MESSAGE_1: ${{ github.event.commits[0].message }}
+  COMMIT_MESSAGE_1: ${{ github.event.head_commit.message }}
 
 jobs:
   build:

@@ -19,7 +19,7 @@ env:
   ISSUE_NUMBER: ${{github.event.issue.number}}
 
   # Safe but unnused env var. Same name that our script would use. No spaces inside brackets
-  COMMENT_BODY: "${{github.event.issue_comment.comment.body}}"
+  ISSUE_COMMENT_BODY: "${{github.event.issue_comment.comment.body}}"
 
 on:
   issue_comment:

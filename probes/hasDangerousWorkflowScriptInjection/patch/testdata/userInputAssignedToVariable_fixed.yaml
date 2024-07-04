@@ -14,7 +14,7 @@
 on: [pull_request]
 
 env:
-  COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
+  COMMIT_MESSAGE_0: ${{ github.event.commits[0].message }}
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
 
     - name: Check msg
       run: |
-        msg="$COMMIT_MESSAGE"
+        msg="$COMMIT_MESSAGE_0"
         if [[ ! $msg =~ ^.*:\ .*$ ]]; then
           echo "Bad message "
           exit 1

@@ -4,21 +4,13 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//      http://www.apache.org/licenses/LICENSE-2.0
+//	http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-/*
-TODO:
-  - Handle array inputs (i.e. workflow using `github.event.commits[0]` and `github.event.commits[1]`, which would
-    duplicate $COMMIT_MESSAGE). Currently throws an error on validation.
-  - Handle use of synonyms (i.e `commits.*?\.author\.email` and `head_commit\.author\.email“, which would duplicate
-    $AUTHOR_EMAIL). Currently throws an error on validation.
-*/
 package patch
 
 import (
@@ -209,9 +201,13 @@ type unsafePattern struct {
 
 func newUnsafePattern(e, p string) unsafePattern {
 	return unsafePattern{
-		envvarName:   e,
-		ghVarName:    p,
-		idRegex:      regexp.MustCompile(p),
+		envvarName: e,
+		ghVarName:  p,
+		// Regex to simply identify the unsafe variable that triggered the finding.
+		// Must use a regex and not a simple string to identify possible uses of array variables
+		// (i.e. `github.event.commits[0].author.email`).
+		idRegex: regexp.MustCompile(p),
+		// Regex to replace the unsafe variable in a `run` command with the envvar name.
 		replaceRegex: regexp.MustCompile(`{{\s*.*?` + p + `.*?\s*}}`),
 	}
 }
@@ -305,12 +301,12 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 		newUnsafePattern("AUTHOR_NAME", `github\.event\.commits.*?\.author\.name`),
 		newUnsafePattern("AUTHOR_NAME", `github\.event\.head_commit\.author\.name`),
 		newUnsafePattern("COMMENT_BODY", `github\.event\.comment\.body`),
-		newUnsafePattern("COMMENT_BODY", `github\.event\.issue_comment\.comment\.body`),
 		newUnsafePattern("COMMIT_MESSAGE", `github\.event\.commits.*?\.message`),
 		newUnsafePattern("COMMIT_MESSAGE", `github\.event\.head_commit\.message`),
 		newUnsafePattern("DISCUSSION_TITLE", `github\.event\.discussion\.title`),
 		newUnsafePattern("DISCUSSION_BODY", `github\.event\.discussion\.body`),
 		newUnsafePattern("ISSUE_BODY", `github\.event\.issue\.body`),
+		newUnsafePattern("ISSUE_COMMENT_BODY", `github\.event\.issue_comment\.comment\.body`),
 		newUnsafePattern("ISSUE_TITLE", `github\.event\.issue\.title`),
 		newUnsafePattern("PAGE_NAME", `github\.event\.pages.*?\.page_name`),
 		newUnsafePattern("PR_BODY", `github\.event\.pull_request\.body`),
@@ -323,10 +319,20 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 
 		newUnsafePattern("HEAD_REF", `github\.head_ref`),
 	}
+
 	for _, p := range unsafePatterns {
 		p := p
 		if p.idRegex.MatchString(unsafeVar) {
-			return p, nil
+			arrayVarRegex := regexp.MustCompile(`\[(.+?)\]`)
+			arrayIdx := arrayVarRegex.FindStringSubmatch(unsafeVar)
+			if arrayIdx == nil || len(arrayIdx) < 2 {
+				// not an array variable, the default envvar name is sufficient.
+				return p, nil
+			}
+			// Array variable (i.e. `github.event.commits[0].message`), must avoid potential conflicts.
+			// Add the array index to the name as a suffix, and use the exact unsafe variable name instead of the
+			// default, which includes a regex that will catch all instances of the array.
+			return newUnsafePattern(p.envvarName+"_"+arrayIdx[1], regexp.QuoteMeta(unsafeVar)), nil
 		}
 	}
 

@@ -107,6 +107,10 @@ func Test_patchWorkflow(t *testing.T) {
 			name:     "Avoid conflict with existing envvar with same name but different value",
 			filePath: "envVarNameAlreadyInUse.yaml",
 		},
+		{
+			name:     "Avoid conflict between array variables",
+			filePath: "arrayVariables.yaml",
+		},
 		// // Test currently failing because we don't look for existent env vars on smaller scopes -- job-level or step-level.
 		// // In this case, we're always creating a new workflow-level env var. Note that this could lead to creation of env vars shadowed
 		// // by the ones in smaller scope.
