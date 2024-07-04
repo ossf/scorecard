@@ -21,13 +21,14 @@ import (
 	"os"
 	"path"
 
+	"github.com/rhysd/actionlint"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
-	"github.com/rhysd/actionlint"
 )
 
 func init() {
