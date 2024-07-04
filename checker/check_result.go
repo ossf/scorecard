@@ -61,15 +61,15 @@ var errSuccessTotal = errors.New("unexpected number of success is higher than to
 //
 //nolint:govet
 type CheckResult struct {
-	Name    string
-	Version int
 	Error   error
-	Score   int
+	Name    string
 	Reason  string
 	Details []CheckDetail
-
 	// Findings from the check's probes.
 	Findings []finding.Finding
+	ID       uint
+	Version  int
+	Score    int
 }
 
 // CheckDetail contains information for each detail.
