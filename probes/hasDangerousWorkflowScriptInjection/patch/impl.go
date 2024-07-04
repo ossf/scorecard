@@ -30,6 +30,13 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
+type unsafePattern struct {
+	idRegex      *regexp.Regexp
+	replaceRegex *regexp.Regexp
+	envvarName   string
+	ghVarName    string
+}
+
 // Fixes the script injection identified by the finding and returns a unified diff users can apply (with `git apply` or
 // `patch`) to fix the workflow themselves. Should an error occur, an empty patch is returned.
 func GeneratePatch(
@@ -56,11 +63,12 @@ func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow
 
 	lines := strings.Split(content, "\n")
 
-	existingEnvvars := parseExistingEnvvars(workflow)
 	unsafePattern, err := getUnsafePattern(unsafeVar)
 	if err != nil {
 		return "", err
 	}
+
+	existingEnvvars := parseExistingEnvvars(workflow)
 	unsafePattern, err = useExistingEnvvars(unsafePattern, existingEnvvars, unsafeVar)
 	if err != nil {
 		return "", err
@@ -75,230 +83,6 @@ func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow
 	}
 
 	return strings.Join(lines, "\n"), nil
-}
-
-// Identifies whether the original workflow contains envvars which may conflict with our patch.
-// Should an existing envvar already handle our dangerous variable, it will be used in the patch instead of creating a
-// new envvar with the same value.
-// Should an existing envvar have the same name as the one that would ordinarily be used by the patch, the patch appends
-// a suffix to the patch's envvar name to avoid conflicts.
-//
-// Returns the unsafePattern, possibly updated to consider the existing envvars.
-func useExistingEnvvars(
-	pattern unsafePattern,
-	existingEnvvars map[string]string,
-	unsafeVar string,
-) (unsafePattern, error) {
-	if envvar, ok := existingEnvvars[unsafeVar]; ok {
-		// There already exists an envvar handling our unsafe variable.
-		// Use that envvar instead of creating another one with the same value.
-		pattern.envvarName = envvar
-		return pattern, nil
-	}
-
-	// If there's an envvar with the same name as what we'd use, add a hard-coded suffix to our name to avoid conflicts.
-	// Clumsy but works in almost all cases, and should be rare.
-	for _, e := range existingEnvvars {
-		if e == pattern.envvarName {
-			pattern.envvarName += "_1"
-			return pattern, nil
-		}
-	}
-
-	return pattern, nil
-}
-
-// Adds a new global environment followed by a blank line to a workflow.
-// Assumes a global environment does not yet exist.
-//
-// Returns:
-//   - []string: the new array of lines describing the workflow, now with the global `env:` inserted.
-//   - int: the row where the `env:` block was added
-func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, error) {
-	envPos, err := findNewEnvPos(lines, globalIndentation)
-	if err != nil {
-		return nil, -1, err
-	}
-
-	label := strings.Repeat(" ", globalIndentation) + "env:"
-	content := []string{label}
-
-	numBlankLines := getDefaultBlockSpacing(lines, globalIndentation)
-	for i := 0; i < numBlankLines; i++ {
-		content = append(content, "")
-	}
-
-	lines = slices.Insert(lines, envPos, content...)
-	return lines, envPos, nil
-}
-
-// Returns the "global" indentation, as defined by the indentation on the required `on:` block.
-// Will equal 0 in almost all cases.
-func findGlobalIndentation(lines []string) (int, error) {
-	r := regexp.MustCompile(`^\s*on:`)
-	for _, line := range lines {
-		if r.MatchString(line) {
-			return getIndent(line), nil
-		}
-	}
-
-	return -1, sce.WithMessage(sce.ErrScorecardInternal, "Could not determine global indentation")
-}
-
-// Detects where the existing global `env:` block is located.
-//
-// Returns:
-//   - int: the index for the line where a new global envvar should be added (after the last existing envvar)
-//   - int: the indentation used for the declared environment variables
-//
-// Both values return -1 if the `env` block doesn't exist or is invalid.
-func findExistingEnv(lines []string, globalIndent int) (int, int) {
-	var currPos int
-	var line string
-	envRegex := labelRegex("env", globalIndent)
-	for currPos, line = range lines {
-		if envRegex.MatchString(line) {
-			break
-		}
-	}
-
-	if currPos >= len(lines)-1 {
-		// Invalid env, there must be at least one more line for an existing envvar. Shouldn't happen.
-		return -1, -1
-	}
-
-	currPos++            // move to line after `env:`
-	insertPos := currPos // marks the position where new envvars will be added
-	var envvarIndent int
-	for i, line := range lines[currPos:] {
-		if isBlankOrComment(line) {
-			continue
-		}
-
-		if isParentLevelIndent(line, globalIndent) {
-			// no longer declaring envvars
-			break
-		}
-
-		envvarIndent = getIndent(line)
-		insertPos = currPos + i + 1
-	}
-
-	return insertPos, envvarIndent
-}
-
-// Returns the line where a new `env:` block should be inserted: right above the `jobs:` label.
-func findNewEnvPos(lines []string, globalIndent int) (int, error) {
-	jobsRegex := labelRegex("jobs", globalIndent)
-	for i, line := range lines {
-		if jobsRegex.MatchString(line) {
-			return i, nil
-		}
-	}
-
-	return -1, sce.WithMessage(sce.ErrScorecardInternal, "Could not determine location for new environment")
-}
-
-type unsafePattern struct {
-	idRegex      *regexp.Regexp
-	replaceRegex *regexp.Regexp
-	envvarName   string
-	ghVarName    string
-}
-
-func newUnsafePattern(e, p string) unsafePattern {
-	return unsafePattern{
-		envvarName: e,
-		ghVarName:  p,
-		// Regex to simply identify the unsafe variable that triggered the finding.
-		// Must use a regex and not a simple string to identify possible uses of array variables
-		// (i.e. `github.event.commits[0].author.email`).
-		idRegex: regexp.MustCompile(p),
-		// Regex to replace the unsafe variable in a `run` command with the envvar name.
-		replaceRegex: regexp.MustCompile(`{{\s*.*?` + p + `.*?\s*}}`),
-	}
-}
-
-// Adds the necessary environment variable to the global `env:` block.
-// If the `env:` block does not exist, it is created right above the `jobs:` block.
-//
-// Returns the new array of lines describing the workflow after inserting the new envvar.
-func addEnvvarToGlobalEnv(
-	lines []string,
-	existingEnvvars map[string]string,
-	pattern unsafePattern, unsafeVar string,
-) ([]string, error) {
-	globalIndentation, err := findGlobalIndentation(lines)
-	if err != nil {
-		return lines, err
-	}
-
-	if _, ok := existingEnvvars[unsafeVar]; ok {
-		// an existing envvar already handles this unsafe var, we can simply use it
-		return lines, nil
-	}
-
-	var insertPos, envvarIndent int
-	if len(existingEnvvars) > 0 {
-		insertPos, envvarIndent = findExistingEnv(lines, globalIndentation)
-	} else {
-		lines, insertPos, err = addNewGlobalEnv(lines, globalIndentation)
-		if err != nil {
-			return lines, err
-		}
-
-		// position now points to `env:`, insert variables below it
-		insertPos++
-		envvarIndent = globalIndentation + getDefaultIndentStep(lines)
-	}
-
-	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", pattern.envvarName, unsafeVar)
-	lines = slices.Insert(lines, insertPos, strings.Repeat(" ", envvarIndent)+envvarDefinition)
-
-	return lines, nil
-}
-
-// Parses the envvars from the existing global `env:` block.
-// Returns a map from the GitHub variable name to the envvar name (i.e. "github.event.issue.body": "ISSUE_BODY").
-func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
-	envvars := make(map[string]string)
-
-	if workflow.Env == nil {
-		return envvars
-	}
-
-	r := regexp.MustCompile(`\$\{\{\s*(github\.[^\s]*?)\s*}}`)
-	for _, v := range workflow.Env.Vars {
-		value := v.Value.Value
-
-		if strings.Contains(value, "${{") {
-			// extract simple variable definition (without brackets, etc)
-			m := r.FindStringSubmatch(value)
-			if len(m) == 2 {
-				value = m[1]
-				envvars[value] = v.Name.Value
-			} else {
-				envvars[v.Value.Value] = v.Name.Value
-			}
-		} else {
-			envvars[v.Value.Value] = v.Name.Value
-		}
-	}
-
-	return envvars
-}
-
-// Replaces all instances of the given script injection variable with the safe environment variable.
-func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex uint) {
-	runIndent := getIndent(lines[runIndex])
-	for i, line := range lines[runIndex:] {
-		currLine := int(runIndex) + i
-		if i > 0 && isParentLevelIndent(lines[currLine], runIndent) {
-			// anything at the same indent as the first line of the  `- run:` block will mean the end of the run block.
-			break
-		}
-		lines[currLine] = pattern.replaceRegex.ReplaceAllString(line, pattern.envvarName)
-	}
 }
 
 func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
@@ -345,6 +129,223 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 
 	return unsafePattern{}, sce.WithMessage(sce.ErrScorecardInternal,
 		fmt.Sprintf("Unknown dangerous variable: %s", unsafeVar))
+}
+
+func newUnsafePattern(e, p string) unsafePattern {
+	return unsafePattern{
+		envvarName: e,
+		ghVarName:  p,
+		// Regex to simply identify the unsafe variable that triggered the finding.
+		// Must use a regex and not a simple string to identify possible uses of array variables
+		// (i.e. `github.event.commits[0].author.email`).
+		idRegex: regexp.MustCompile(p),
+		// Regex to replace the unsafe variable in a `run` command with the envvar name.
+		replaceRegex: regexp.MustCompile(`{{\s*.*?` + p + `.*?\s*}}`),
+	}
+}
+
+// Parses the envvars from the existing global `env:` block.
+// Returns a map from the GitHub variable name to the envvar name (i.e. "github.event.issue.body": "ISSUE_BODY").
+func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
+	envvars := make(map[string]string)
+
+	if workflow.Env == nil {
+		return envvars
+	}
+
+	r := regexp.MustCompile(`\$\{\{\s*(github\.[^\s]*?)\s*}}`)
+	for _, v := range workflow.Env.Vars {
+		value := v.Value.Value
+
+		if strings.Contains(value, "${{") {
+			// extract simple variable definition (without brackets, etc)
+			m := r.FindStringSubmatch(value)
+			if len(m) == 2 {
+				value = m[1]
+				envvars[value] = v.Name.Value
+			} else {
+				envvars[v.Value.Value] = v.Name.Value
+			}
+		} else {
+			envvars[v.Value.Value] = v.Name.Value
+		}
+	}
+
+	return envvars
+}
+
+// Identifies whether the original workflow contains envvars which may conflict with our patch.
+// Should an existing envvar already handle our dangerous variable, it will be used in the patch instead of creating a
+// new envvar with the same value.
+// Should an existing envvar have the same name as the one that would ordinarily be used by the patch, the patch appends
+// a suffix to the patch's envvar name to avoid conflicts.
+//
+// Returns the unsafePattern, possibly updated to consider the existing envvars.
+func useExistingEnvvars(
+	pattern unsafePattern,
+	existingEnvvars map[string]string,
+	unsafeVar string,
+) (unsafePattern, error) {
+	if envvar, ok := existingEnvvars[unsafeVar]; ok {
+		// There already exists an envvar handling our unsafe variable.
+		// Use that envvar instead of creating another one with the same value.
+		pattern.envvarName = envvar
+		return pattern, nil
+	}
+
+	// If there's an envvar with the same name as what we'd use, add a hard-coded suffix to our name to avoid conflicts.
+	// Clumsy but works in almost all cases, and should be rare.
+	for _, e := range existingEnvvars {
+		if e == pattern.envvarName {
+			pattern.envvarName += "_1"
+			return pattern, nil
+		}
+	}
+
+	return pattern, nil
+}
+
+// Replaces all instances of the given script injection variable with the safe environment variable.
+func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex uint) {
+	runIndent := getIndent(lines[runIndex])
+	for i, line := range lines[runIndex:] {
+		currLine := int(runIndex) + i
+		if i > 0 && isParentLevelIndent(lines[currLine], runIndent) {
+			// anything at the same indent as the first line of the  `- run:` block will mean the end of the run block.
+			break
+		}
+		lines[currLine] = pattern.replaceRegex.ReplaceAllString(line, pattern.envvarName)
+	}
+}
+
+// Adds the necessary environment variable to the global `env:` block.
+// If the `env:` block does not exist, it is created right above the `jobs:` block.
+//
+// Returns the new array of lines describing the workflow after inserting the new envvar.
+func addEnvvarToGlobalEnv(
+	lines []string,
+	existingEnvvars map[string]string,
+	pattern unsafePattern, unsafeVar string,
+) ([]string, error) {
+	globalIndentation, err := findGlobalIndentation(lines)
+	if err != nil {
+		return lines, err
+	}
+
+	if _, ok := existingEnvvars[unsafeVar]; ok {
+		// an existing envvar already handles this unsafe var, we can simply use it
+		return lines, nil
+	}
+
+	var insertPos, envvarIndent int
+	if len(existingEnvvars) > 0 {
+		insertPos, envvarIndent = findExistingEnv(lines, globalIndentation)
+	} else {
+		lines, insertPos, err = addNewGlobalEnv(lines, globalIndentation)
+		if err != nil {
+			return lines, err
+		}
+
+		// position now points to `env:`, insert variables below it
+		insertPos++
+		envvarIndent = globalIndentation + getDefaultIndentStep(lines)
+	}
+
+	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", pattern.envvarName, unsafeVar)
+	lines = slices.Insert(lines, insertPos, strings.Repeat(" ", envvarIndent)+envvarDefinition)
+
+	return lines, nil
+}
+
+// Detects where the existing global `env:` block is located.
+//
+// Returns:
+//   - int: the index for the line where a new global envvar should be added (after the last existing envvar)
+//   - int: the indentation used for the declared environment variables
+//
+// Both values return -1 if the `env` block doesn't exist or is invalid.
+func findExistingEnv(lines []string, globalIndent int) (int, int) {
+	var currPos int
+	var line string
+	envRegex := labelRegex("env", globalIndent)
+	for currPos, line = range lines {
+		if envRegex.MatchString(line) {
+			break
+		}
+	}
+
+	if currPos >= len(lines)-1 {
+		// Invalid env, there must be at least one more line for an existing envvar. Shouldn't happen.
+		return -1, -1
+	}
+
+	currPos++            // move to line after `env:`
+	insertPos := currPos // marks the position where new envvars will be added
+	var envvarIndent int
+	for i, line := range lines[currPos:] {
+		if isBlankOrComment(line) {
+			continue
+		}
+
+		if isParentLevelIndent(line, globalIndent) {
+			// no longer declaring envvars
+			break
+		}
+
+		envvarIndent = getIndent(line)
+		insertPos = currPos + i + 1
+	}
+
+	return insertPos, envvarIndent
+}
+
+// Adds a new global environment followed by a blank line to a workflow.
+// Assumes a global environment does not yet exist.
+//
+// Returns:
+//   - []string: the new array of lines describing the workflow, now with the global `env:` inserted.
+//   - int: the row where the `env:` block was added
+func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, error) {
+	envPos, err := findNewEnvPos(lines, globalIndentation)
+	if err != nil {
+		return nil, -1, err
+	}
+
+	label := strings.Repeat(" ", globalIndentation) + "env:"
+	content := []string{label}
+
+	numBlankLines := getDefaultBlockSpacing(lines, globalIndentation)
+	for i := 0; i < numBlankLines; i++ {
+		content = append(content, "")
+	}
+
+	lines = slices.Insert(lines, envPos, content...)
+	return lines, envPos, nil
+}
+
+// Returns the line where a new `env:` block should be inserted: right above the `jobs:` label.
+func findNewEnvPos(lines []string, globalIndent int) (int, error) {
+	jobsRegex := labelRegex("jobs", globalIndent)
+	for i, line := range lines {
+		if jobsRegex.MatchString(line) {
+			return i, nil
+		}
+	}
+
+	return -1, sce.WithMessage(sce.ErrScorecardInternal, "Could not determine location for new environment")
+}
+
+// Returns the "global" indentation, as defined by the indentation on the required `on:` block.
+// Will equal 0 in almost all cases.
+func findGlobalIndentation(lines []string) (int, error) {
+	r := regexp.MustCompile(`^\s*on:`)
+	for _, line := range lines {
+		if r.MatchString(line) {
+			return getIndent(line), nil
+		}
+	}
+
+	return -1, sce.WithMessage(sce.ErrScorecardInternal, "Could not determine global indentation")
 }
 
 // Returns the indentation of the given line. The indentation is all leading whitespace and dashes.
