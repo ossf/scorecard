@@ -27,7 +27,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/compare"
 	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/format"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 //nolint:gochecknoinits // common for cobra apps
@@ -93,14 +93,14 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 	return nil
 }
 
-func loadResults(x, y *bufio.Scanner) (pkg.ScorecardResult, pkg.ScorecardResult, error) {
-	xResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(x.Text()))
+func loadResults(x, y *bufio.Scanner) (scorecard.ScorecardResult, scorecard.ScorecardResult, error) {
+	xResult, _, err := scorecard.ExperimentalFromJSON2(strings.NewReader(x.Text()))
 	if err != nil {
-		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
+		return scorecard.ScorecardResult{}, scorecard.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
 	}
-	yResult, _, err := pkg.ExperimentalFromJSON2(strings.NewReader(y.Text()))
+	yResult, _, err := scorecard.ExperimentalFromJSON2(strings.NewReader(y.Text()))
 	if err != nil {
-		return pkg.ScorecardResult{}, pkg.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
+		return scorecard.ScorecardResult{}, scorecard.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
 	}
 	format.Normalize(&xResult)
 	format.Normalize(&yResult)

@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 func TestResults(t *testing.T) {
@@ -26,7 +26,7 @@ func TestResults(t *testing.T) {
 	//nolint:govet // field alignment
 	tests := []struct {
 		name      string
-		a, b      *pkg.ScorecardResult
+		a, b      *scorecard.ScorecardResult
 		wantEqual bool
 	}{
 		{
@@ -38,18 +38,18 @@ func TestResults(t *testing.T) {
 		{
 			name:      "one nil",
 			a:         nil,
-			b:         &pkg.ScorecardResult{},
+			b:         &scorecard.ScorecardResult{},
 			wantEqual: false,
 		},
 		{
 			name: "different repo name",
-			a: &pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			a: &scorecard.ScorecardResult{
+				Repo: scorecard.RepoInfo{
 					Name: "a",
 				},
 			},
-			b: &pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			b: &scorecard.ScorecardResult{
+				Repo: scorecard.RepoInfo{
 					Name: "b",
 				},
 			},
@@ -57,7 +57,7 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "unequal amount of checks",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Name: "a1",
@@ -67,7 +67,7 @@ func TestResults(t *testing.T) {
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Name: "b",
@@ -78,14 +78,14 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "different check name",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Name: "a",
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Name: "b",
@@ -96,14 +96,14 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "different check score",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Score: 1,
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Score: 2,
@@ -114,14 +114,14 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "different check reason",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Reason: "a",
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Reason: "b",
@@ -132,14 +132,14 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "unequal number of details",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Details: []checker.CheckDetail{},
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Details: []checker.CheckDetail{
@@ -154,7 +154,7 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "details have different levels",
-			a: &pkg.ScorecardResult{
+			a: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Details: []checker.CheckDetail{
@@ -165,7 +165,7 @@ func TestResults(t *testing.T) {
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
+			b: &scorecard.ScorecardResult{
 				Checks: []checker.CheckResult{
 					{
 						Details: []checker.CheckDetail{
@@ -180,8 +180,8 @@ func TestResults(t *testing.T) {
 		},
 		{
 			name: "equal results",
-			a: &pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			a: &scorecard.ScorecardResult{
+				Repo: scorecard.RepoInfo{
 					Name: "foo",
 				},
 				Checks: []checker.CheckResult{
@@ -195,8 +195,8 @@ func TestResults(t *testing.T) {
 					},
 				},
 			},
-			b: &pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			b: &scorecard.ScorecardResult{
+				Repo: scorecard.RepoInfo{
 					Name: "foo",
 				},
 				Checks: []checker.CheckResult{

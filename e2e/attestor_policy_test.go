@@ -28,7 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/attestor/policy"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/internal/checknames"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
@@ -222,7 +222,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 	})
 })
 
-func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
+func getScorecardResult(repoURL string) (scorecard.ScorecardResult, error) {
 	ctx := context.Background()
 	enabledChecks := []string{
 		checknames.BinaryArtifacts,
@@ -232,7 +232,7 @@ func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
 	}
 	repo, err := githubrepo.MakeGithubRepo(repoURL)
 	if err != nil {
-		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up repo: %w", err)
+		return scorecard.ScorecardResult{}, fmt.Errorf("couldn't set up repo: %w", err)
 	}
-	return pkg.Run(ctx, repo, pkg.WithChecks(enabledChecks))
+	return scorecard.Run(ctx, repo, scorecard.WithChecks(enabledChecks))
 }

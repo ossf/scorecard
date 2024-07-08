@@ -23,7 +23,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 // Runner holds the clients and configuration needed to run Scorecard on multiple repos.
@@ -53,7 +53,7 @@ func New(enabledChecks []string) Runner {
 }
 
 //nolint:wrapcheck
-func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
+func (r *Runner) Run(repoURI string) (scorecard.ScorecardResult, error) {
 	r.log("processing repo: " + repoURI)
 	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
@@ -62,11 +62,11 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 		repoClient = r.gitlabClient
 	}
 	if err != nil {
-		return pkg.ScorecardResult{}, err
+		return scorecard.ScorecardResult{}, err
 	}
-	return pkg.Run(r.ctx, repo,
-		pkg.WithRepoClient(repoClient),
-		pkg.WithChecks(r.enabledChecks),
+	return scorecard.Run(r.ctx, repo,
+		scorecard.WithRepoClient(repoClient),
+		scorecard.WithChecks(r.enabledChecks),
 	)
 }
 

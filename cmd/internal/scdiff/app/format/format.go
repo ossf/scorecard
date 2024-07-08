@@ -21,19 +21,19 @@ import (
 
 	"github.com/ossf/scorecard/v5/docs/checks"
 	"github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 const logLevel = log.DefaultLevel
 
-func Normalize(r *pkg.ScorecardResult) {
+func Normalize(r *scorecard.ScorecardResult) {
 	if r == nil {
 		return
 	}
 
 	// these fields will change run-to-run, and aren't indicative of behavior changes.
 	r.Repo.CommitSHA = ""
-	r.Scorecard = pkg.ScorecardInfo{}
+	r.Scorecard = scorecard.ScorecardInfo{}
 	r.Date = time.Time{}
 
 	sort.Slice(r.Checks, func(i, j int) bool {
@@ -43,20 +43,20 @@ func Normalize(r *pkg.ScorecardResult) {
 	for i := range r.Checks {
 		check := &r.Checks[i]
 		sort.Slice(check.Details, func(i, j int) bool {
-			return pkg.DetailToString(&check.Details[i], logLevel) < pkg.DetailToString(&check.Details[j], logLevel)
+			return scorecard.DetailToString(&check.Details[i], logLevel) < scorecard.DetailToString(&check.Details[j], logLevel)
 		})
 	}
 }
 
 //nolint:wrapcheck
-func JSON(r *pkg.ScorecardResult, w io.Writer) error {
+func JSON(r *scorecard.ScorecardResult, w io.Writer) error {
 	const details = true
 	docs, err := checks.Read()
 	if err != nil {
 		return err
 	}
 	Normalize(r)
-	o := &pkg.AsJSON2ResultOption{
+	o := &scorecard.AsJSON2ResultOption{
 		Details:  details,
 		LogLevel: logLevel,
 	}
