@@ -25,8 +25,6 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks"
-	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	sclog "github.com/ossf/scorecard/v5/log"
 )
@@ -104,24 +102,18 @@ var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
 				return
 			}
 			ctx := context.Background()
-			allChecks := checks.GetAll()
 
-			isolatedLogger := sclog.NewLogger(sclog.DebugLevel)
 			lastRepo := repos[len(repos)-1]
-			repo, rc, ofrc, cc, vc, dc, err := checker.GetClients(ctx, lastRepo, "", isolatedLogger)
+			repo, err := githubrepo.MakeGithubRepo(lastRepo)
 			Expect(err).Should(BeNil())
-			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc, ofrc, cc, vc, dc)
-			Expect(err).Should(BeNil())
-
-			logger := sclog.NewLogger(sclog.DebugLevel)
-			_, rc2, ofrc2, cc2, vc2, dc2, err := checker.GetClients(ctx, repos[0], "", logger)
+			isolatedResult, err := Run(ctx, repo, WithLogLevel(sclog.DebugLevel))
 			Expect(err).Should(BeNil())
 
 			var sharedResult ScorecardResult
 			for i := range repos {
 				repo, err = githubrepo.MakeGithubRepo(repos[i])
 				Expect(err).Should(BeNil())
-				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc2, ofrc2, cc2, vc2, dc2)
+				sharedResult, err = Run(ctx, repo, WithLogLevel(sclog.DebugLevel))
 				Expect(err).Should(BeNil())
 			}
 
