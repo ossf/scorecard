@@ -128,7 +128,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 	}
 }
 
-func TestRunScorecard(t *testing.T) {
+func TestRun(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		uri       string
@@ -188,8 +188,10 @@ func TestRunScorecard(t *testing.T) {
 					},
 				}, nil
 			})
-			defer ctrl.Finish()
-			got, err := RunScorecard(context.Background(), repo, tt.args.commitSHA, 0, nil, mockRepoClient, nil, nil, nil, nil)
+			got, err := Run(context.Background(), repo,
+				WithCommitSHA(tt.args.commitSHA),
+				WithRepoClient(mockRepoClient),
+			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
