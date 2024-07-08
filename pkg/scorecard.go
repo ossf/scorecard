@@ -268,46 +268,27 @@ func RunScorecard(ctx context.Context,
 	)
 }
 
-// ExperimentalRunProbes is experimental. Do not depend on it, it may be removed at any point.
-func ExperimentalRunProbes(ctx context.Context,
-	repo clients.Repo,
-	commitSHA string,
-	commitDepth int,
-	checksToRun checker.CheckNameToFnMap,
-	probesToRun []string,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
-	return runScorecard(ctx,
-		repo,
-		commitSHA,
-		commitDepth,
-		checksToRun,
-		probesToRun,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
-	)
-}
-
 type runConfig struct {
 	client        clients.RepoClient
 	vulnClient    clients.VulnerabilitiesClient
 	ciiClient     clients.CIIBestPracticesClient
 	projectClient packageclient.ProjectPackageClient
 	ossfuzzClient clients.RepoClient
-	checks        []string
 	commit        string
+	logLevel      sclog.Level
+	checks        []string
 	probes        []string
 	commitDepth   int
 }
 
 type Option func(*runConfig) error
+
+func WithLogLevel(level sclog.Level) Option {
+	return func(c *runConfig) error {
+		c.logLevel = level
+		return nil
+	}
+}
 
 func WithCommitDepth(depth int) Option {
 	return func(c *runConfig) error {
@@ -366,16 +347,16 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 }
 
 func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResult, error) {
-	// TODO logger
-	logger := sclog.NewLogger(sclog.InfoLevel)
 	c := runConfig{
-		commit: clients.HeadSHA,
+		commit:   clients.HeadSHA,
+		logLevel: sclog.DefaultLevel,
 	}
 	for _, option := range opts {
 		if err := option(&c); err != nil {
 			return ScorecardResult{}, err
 		}
 	}
+	logger := sclog.NewLogger(c.logLevel)
 	if c.ciiClient == nil {
 		c.ciiClient = clients.DefaultCIIBestPracticesClient()
 	}
