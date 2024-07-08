@@ -193,7 +193,7 @@ func TestRun(t *testing.T) {
 				WithRepoClient(mockRepoClient),
 			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			ignoreDate := cmpopts.IgnoreFields(Result{}, "Date")
@@ -331,7 +331,7 @@ func TestRun_WithProbes(t *testing.T) {
 				WithProbes(tt.args.probes),
 			)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")

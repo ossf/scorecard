@@ -230,7 +230,7 @@ func processRequest(ctx context.Context,
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error during RunScorecard: %w", err)
+			return fmt.Errorf("error during scorecard.Run: %w", err)
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]

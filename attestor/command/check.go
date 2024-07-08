@@ -100,7 +100,7 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 		scorecard.WithVulnerabilitiesClient(vulnsClient),
 	)
 	if err != nil {
-		return policy.Fail, fmt.Errorf("RunScorecard: %w", err)
+		return policy.Fail, fmt.Errorf("scorecard.Run: %w", err)
 	}
 
 	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)

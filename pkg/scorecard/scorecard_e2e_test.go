@@ -95,7 +95,7 @@ func compareScorecardResults(a, b Result) bool {
 	return true
 }
 
-var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
+var _ = Describe("E2E TEST: scorecard.Run with re-used repoClient", func() {
 	Context("E2E TEST: Validate results are identical regardless of order", func() {
 		assertLastResultsIdentical := func(repos []string) {
 			if len(repos) < 2 {

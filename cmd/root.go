@@ -123,8 +123,8 @@ func rootCmd(o *options.Options) error {
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	// this call to policy is different from the one in pkg.Run
-	// this one is concerned with a policy file, while the pkg.Run call is
+	// this call to policy is different from the one in scorecard.Run
+	// this one is concerned with a policy file, while the scorecard.Run call is
 	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
@@ -152,7 +152,7 @@ func rootCmd(o *options.Options) error {
 		scorecard.WithChecks(checks),
 	)
 	if err != nil {
-		return fmt.Errorf("RunScorecard: %w", err)
+		return fmt.Errorf("scorecard.Run: %w", err)
 	}
 
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
