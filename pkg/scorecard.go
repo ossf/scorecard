@@ -268,33 +268,6 @@ func RunScorecard(ctx context.Context,
 	)
 }
 
-// ExperimentalRunProbes is experimental. Do not depend on it, it may be removed at any point.
-func ExperimentalRunProbes(ctx context.Context,
-	repo clients.Repo,
-	commitSHA string,
-	commitDepth int,
-	checksToRun checker.CheckNameToFnMap,
-	probesToRun []string,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
-	return runScorecard(ctx,
-		repo,
-		commitSHA,
-		commitDepth,
-		checksToRun,
-		probesToRun,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
-	)
-}
-
 type runConfig struct {
 	client        clients.RepoClient
 	vulnClient    clients.VulnerabilitiesClient

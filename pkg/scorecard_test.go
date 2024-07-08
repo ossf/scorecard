@@ -204,7 +204,7 @@ func TestRun(t *testing.T) {
 	}
 }
 
-func TestExperimentalRunProbes(t *testing.T) {
+func TestRun_WithProbes(t *testing.T) {
 	t.Parallel()
 	// These values depend on the environment,
 	// so don't encode particular expectations
@@ -285,7 +285,7 @@ func TestExperimentalRunProbes(t *testing.T) {
 			repo.EXPECT().Host().Return("github.com").AnyTimes()
 
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
-
+			mockRepoClient.EXPECT().URI().Return(repo.URI()).AnyTimes()
 			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
 				return nil
 			})
@@ -322,17 +322,13 @@ func TestExperimentalRunProbes(t *testing.T) {
 			mockRepoClient.EXPECT().ListProgrammingLanguages().Return(progLanguages, nil).AnyTimes()
 
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
-			got, err := ExperimentalRunProbes(context.Background(),
-				repo,
-				tt.args.commitSHA,
-				0,
-				nil,
-				tt.args.probes,
-				mockRepoClient,
-				nil,
-				nil,
-				nil,
-				nil,
+			mockOSSFuzzClient := mockrepo.NewMockRepoClient(ctrl)
+			mockOSSFuzzClient.EXPECT().Search(gomock.Any()).Return(clients.SearchResponse{}, nil).AnyTimes()
+			got, err := Run(context.Background(), repo,
+				WithRepoClient(mockRepoClient),
+				WithOSSFuzzClient(mockOSSFuzzClient),
+				WithCommitSHA(tt.args.commitSHA),
+				WithProbes(tt.args.probes),
 			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
