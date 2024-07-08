@@ -257,6 +257,7 @@ type runConfig struct {
 
 type Option func(*runConfig) error
 
+// WithLogLevel configures the log level of the analysis.
 func WithLogLevel(level sclog.Level) Option {
 	return func(c *runConfig) error {
 		c.logLevel = level
@@ -264,6 +265,7 @@ func WithLogLevel(level sclog.Level) Option {
 	}
 }
 
+// WithCommitDepth configures the number of commits to analyze.
 func WithCommitDepth(depth int) Option {
 	return func(c *runConfig) error {
 		c.commitDepth = depth
@@ -271,6 +273,8 @@ func WithCommitDepth(depth int) Option {
 	}
 }
 
+// WithCommitSHA specifies the repository commit to analyze.
+// If this option is not used, the repository is analyzed at HEAD.
 func WithCommitSHA(sha string) Option {
 	return func(c *runConfig) error {
 		c.commit = sha
@@ -278,6 +282,8 @@ func WithCommitSHA(sha string) Option {
 	}
 }
 
+// WithChecks specifies checks which should be run during the analysis
+// of a project. If this option is not used, all checks are run.
 func WithChecks(checks []string) Option {
 	return func(c *runConfig) error {
 		c.checks = checks
@@ -285,6 +291,8 @@ func WithChecks(checks []string) Option {
 	}
 }
 
+// WithProbes specifies individual probes which should be run during the
+// analysis of a project.
 func WithProbes(probes []string) Option {
 	return func(c *runConfig) error {
 		c.probes = probes
@@ -292,6 +300,8 @@ func WithProbes(probes []string) Option {
 	}
 }
 
+// WithRepoClient will set the client used to query a repo host or forge
+// about the given project.
 func WithRepoClient(client clients.RepoClient) Option {
 	return func(c *runConfig) error {
 		c.client = client
@@ -299,6 +309,8 @@ func WithRepoClient(client clients.RepoClient) Option {
 	}
 }
 
+// WithOSSFuzzClient will set the client used to query OSS-Fuzz about a project's
+// integration with OSS-Fuzz.
 func WithOSSFuzzClient(client clients.RepoClient) Option {
 	return func(c *runConfig) error {
 		c.ossfuzzClient = client
@@ -306,6 +318,8 @@ func WithOSSFuzzClient(client clients.RepoClient) Option {
 	}
 }
 
+// WithVulnerabilitiesClient will set the client used to query vulnerabilities
+// present in a project.
 func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
 	return func(c *runConfig) error {
 		c.vulnClient = client
@@ -313,6 +327,8 @@ func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
 	}
 }
 
+// WithOpenSSFBestPraticesClient will set the client used to query the OpenSSF
+// Best Practice API for data about a project.
 func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option {
 	return func(c *runConfig) error {
 		c.ciiClient = client
@@ -320,6 +336,9 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
+// Run analyzes a given repository and returns the result. You can modify the
+// run behavior by passing in [Option] arguments. In the absence of a particular
+// option a default is used. Refer to the various Options for details.
 func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error) {
 	c := runConfig{
 		commit:   clients.HeadSHA,
