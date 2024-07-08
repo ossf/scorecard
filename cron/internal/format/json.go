@@ -83,7 +83,7 @@ type jsonScorecardResultV2 struct {
 }
 
 // AsJSON exports results as JSON for new detail format.
-func AsJSON(r *scorecard.ScorecardResult, showDetails bool, logLevel log.Level, writer io.Writer) error {
+func AsJSON(r *scorecard.Result, showDetails bool, logLevel log.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResult{
@@ -116,7 +116,7 @@ func AsJSON(r *scorecard.ScorecardResult, showDetails bool, logLevel log.Level, 
 }
 
 // AsJSON2 exports results as JSON for the cron job and in the new detail format.
-func AsJSON2(r *scorecard.ScorecardResult, showDetails bool,
+func AsJSON2(r *scorecard.Result, showDetails bool,
 	logLevel log.Level, checkDocs docs.Doc, writer io.Writer,
 ) error {
 	score, err := r.GetAggregateScore(checkDocs)

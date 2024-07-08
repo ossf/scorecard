@@ -17,7 +17,7 @@ package compare
 import "github.com/ossf/scorecard/v5/pkg/scorecard"
 
 // results should be normalized before comparison.
-func Results(r1, r2 *scorecard.ScorecardResult) bool {
+func Results(r1, r2 *scorecard.Result) bool {
 	if r1 == nil && r2 == nil {
 		return true
 	}
@@ -40,7 +40,7 @@ func Results(r1, r2 *scorecard.ScorecardResult) bool {
 	return true
 }
 
-func compareChecks(r1, r2 *scorecard.ScorecardResult) bool {
+func compareChecks(r1, r2 *scorecard.Result) bool {
 	if len(r1.Checks) != len(r2.Checks) {
 		return false
 	}

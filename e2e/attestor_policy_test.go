@@ -222,7 +222,7 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 	})
 })
 
-func getScorecardResult(repoURL string) (scorecard.ScorecardResult, error) {
+func getScorecardResult(repoURL string) (scorecard.Result, error) {
 	ctx := context.Background()
 	enabledChecks := []string{
 		checknames.BinaryArtifacts,
@@ -232,7 +232,7 @@ func getScorecardResult(repoURL string) (scorecard.ScorecardResult, error) {
 	}
 	repo, err := githubrepo.MakeGithubRepo(repoURL)
 	if err != nil {
-		return scorecard.ScorecardResult{}, fmt.Errorf("couldn't set up repo: %w", err)
+		return scorecard.Result{}, fmt.Errorf("couldn't set up repo: %w", err)
 	}
 	return scorecard.Run(ctx, repo, scorecard.WithChecks(enabledChecks))
 }

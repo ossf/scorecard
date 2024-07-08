@@ -141,7 +141,7 @@ func TestRun(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    ScorecardResult
+		want    Result
 		wantErr bool
 	}{
 		{
@@ -150,7 +150,7 @@ func TestRun(t *testing.T) {
 				uri:       "github.com/ossf/scorecard",
 				commitSHA: "",
 			},
-			want: ScorecardResult{
+			want: Result{
 				Repo: RepoInfo{
 					Name: "github.com/ossf/scorecard",
 				},
@@ -196,7 +196,7 @@ func TestRun(t *testing.T) {
 				t.Errorf("RunScorecard() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			ignoreDate := cmpopts.IgnoreFields(Result{}, "Date")
 			if !cmp.Equal(got, tt.want, ignoreDate) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate))
 			}
@@ -219,7 +219,7 @@ func TestRun_WithProbes(t *testing.T) {
 		files   []string
 		name    string
 		args    args
-		want    ScorecardResult
+		want    Result
 		wantErr bool
 	}{
 		{
@@ -229,7 +229,7 @@ func TestRun_WithProbes(t *testing.T) {
 				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
 				probes:    []string{fuzzed.Probe},
 			},
-			want: ScorecardResult{
+			want: Result{
 				Repo: RepoInfo{
 					Name:      "github.com/ossf/scorecard",
 					CommitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
@@ -269,7 +269,7 @@ func TestRun_WithProbes(t *testing.T) {
 				commitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
 				probes:    []string{"nonExistentProbe"},
 			},
-			want:    ScorecardResult{},
+			want:    Result{},
 			wantErr: true,
 		},
 	}
@@ -335,7 +335,7 @@ func TestRun_WithProbes(t *testing.T) {
 				return
 			}
 			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")
-			ignoreDate := cmpopts.IgnoreFields(ScorecardResult{}, "Date")
+			ignoreDate := cmpopts.IgnoreFields(Result{}, "Date")
 			ignoreUnexported := cmpopts.IgnoreUnexported(finding.Finding{})
 			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText, ignoreUnexported) {
 				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,

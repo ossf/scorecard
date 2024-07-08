@@ -93,14 +93,14 @@ func compareReaders(x, y io.Reader, output io.Writer) error {
 	return nil
 }
 
-func loadResults(x, y *bufio.Scanner) (scorecard.ScorecardResult, scorecard.ScorecardResult, error) {
+func loadResults(x, y *bufio.Scanner) (scorecard.Result, scorecard.Result, error) {
 	xResult, _, err := scorecard.ExperimentalFromJSON2(strings.NewReader(x.Text()))
 	if err != nil {
-		return scorecard.ScorecardResult{}, scorecard.ScorecardResult{}, fmt.Errorf("parsing first result: %w", err)
+		return scorecard.Result{}, scorecard.Result{}, fmt.Errorf("parsing first result: %w", err)
 	}
 	yResult, _, err := scorecard.ExperimentalFromJSON2(strings.NewReader(y.Text()))
 	if err != nil {
-		return scorecard.ScorecardResult{}, scorecard.ScorecardResult{}, fmt.Errorf("parsing second result: %w", err)
+		return scorecard.Result{}, scorecard.Result{}, fmt.Errorf("parsing second result: %w", err)
 	}
 	format.Normalize(&xResult)
 	format.Normalize(&yResult)

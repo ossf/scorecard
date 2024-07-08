@@ -39,7 +39,7 @@ type ProbeResultOption struct {
 
 // AsProbe writes results as JSON for flat findings without checks.
 // It accepts an optional argument to configure the output.
-func (r *ScorecardResult) AsProbe(writer io.Writer, o *ProbeResultOption) error {
+func (r *Result) AsProbe(writer io.Writer, o *ProbeResultOption) error {
 	encoder := json.NewEncoder(writer)
 	out := JSONScorecardProbeResult{
 		Repo: jsonRepoV2{

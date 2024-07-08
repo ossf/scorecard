@@ -53,7 +53,7 @@ func New(enabledChecks []string) Runner {
 }
 
 //nolint:wrapcheck
-func (r *Runner) Run(repoURI string) (scorecard.ScorecardResult, error) {
+func (r *Runner) Run(repoURI string) (scorecard.Result, error) {
 	r.log("processing repo: " + repoURI)
 	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
@@ -62,7 +62,7 @@ func (r *Runner) Run(repoURI string) (scorecard.ScorecardResult, error) {
 		repoClient = r.gitlabClient
 	}
 	if err != nil {
-		return scorecard.ScorecardResult{}, err
+		return scorecard.Result{}, err
 	}
 	return scorecard.Run(r.ctx, repo,
 		scorecard.WithRepoClient(repoClient),

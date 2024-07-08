@@ -26,7 +26,7 @@ import (
 
 const logLevel = log.DefaultLevel
 
-func Normalize(r *scorecard.ScorecardResult) {
+func Normalize(r *scorecard.Result) {
 	if r == nil {
 		return
 	}
@@ -49,7 +49,7 @@ func Normalize(r *scorecard.ScorecardResult) {
 }
 
 //nolint:wrapcheck
-func JSON(r *scorecard.ScorecardResult, w io.Writer) error {
+func JSON(r *scorecard.Result, w io.Writer) error {
 	const details = true
 	docs, err := checks.Read()
 	if err != nil {

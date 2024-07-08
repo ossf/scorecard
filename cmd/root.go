@@ -78,7 +78,7 @@ func New(o *options.Options) *cobra.Command {
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
 	var err error
-	var repoResult scorecard.ScorecardResult
+	var repoResult scorecard.Result
 
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.

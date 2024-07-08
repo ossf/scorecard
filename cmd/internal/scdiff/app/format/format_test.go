@@ -29,17 +29,17 @@ func TestJSON(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		a, b scorecard.ScorecardResult
+		a, b scorecard.Result
 	}{
 		{
 			name: "repo commit SHA standardized",
-			a: scorecard.ScorecardResult{
+			a: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      "github.com/foo/bar",
 					CommitSHA: "commit a",
 				},
 			},
-			b: scorecard.ScorecardResult{
+			b: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      "github.com/foo/bar",
 					CommitSHA: "commit b",
@@ -48,22 +48,22 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "dates standardized",
-			a: scorecard.ScorecardResult{
+			a: scorecard.Result{
 				Date: time.Now(),
 			},
-			b: scorecard.ScorecardResult{
+			b: scorecard.Result{
 				Date: time.Now().AddDate(0, 0, -1),
 			},
 		},
 		{
 			name: "scorecard info standardized",
-			a: scorecard.ScorecardResult{
+			a: scorecard.Result{
 				Scorecard: scorecard.ScorecardInfo{
 					Version:   "version a",
 					CommitSHA: "scorecard commit x",
 				},
 			},
-			b: scorecard.ScorecardResult{
+			b: scorecard.Result{
 				Scorecard: scorecard.ScorecardInfo{
 					Version:   "version b",
 					CommitSHA: "scorecard commit y",
@@ -72,7 +72,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "check order standardized",
-			a: scorecard.ScorecardResult{
+			a: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -84,7 +84,7 @@ func TestJSON(t *testing.T) {
 					},
 				},
 			},
-			b: scorecard.ScorecardResult{
+			b: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "License",
@@ -99,7 +99,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "detail order standardized",
-			a: scorecard.ScorecardResult{
+			a: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -121,7 +121,7 @@ func TestJSON(t *testing.T) {
 					},
 				},
 			},
-			b: scorecard.ScorecardResult{
+			b: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -167,7 +167,7 @@ func TestJSON(t *testing.T) {
 
 func Test_normalize_nil_safe(t *testing.T) {
 	t.Parallel()
-	var x, y *scorecard.ScorecardResult
+	var x, y *scorecard.Result
 	Normalize(x)
 	Normalize(y)
 	if !cmp.Equal(x, y) {

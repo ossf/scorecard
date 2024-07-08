@@ -38,12 +38,12 @@ func (rc *resultCounter) Write(p []byte) (n int, err error) {
 
 type stubRunner struct{}
 
-func (s stubRunner) Run(repo string) (scorecard.ScorecardResult, error) {
+func (s stubRunner) Run(repo string) (scorecard.Result, error) {
 	switch repo {
 	case "errorRepo":
-		return scorecard.ScorecardResult{}, errFoo
+		return scorecard.Result{}, errFoo
 	case "badCheck":
-		return scorecard.ScorecardResult{
+		return scorecard.Result{
 			Checks: []checker.CheckResult{
 				{
 					Name:  "not a real check",
@@ -52,7 +52,7 @@ func (s stubRunner) Run(repo string) (scorecard.ScorecardResult, error) {
 			},
 		}, nil
 	default:
-		return scorecard.ScorecardResult{}, nil
+		return scorecard.Result{}, nil
 	}
 }
 

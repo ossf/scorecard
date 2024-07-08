@@ -612,7 +612,7 @@ func toolName(opts *options.Options) string {
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
+func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
 	opts *options.Options,
 ) error {

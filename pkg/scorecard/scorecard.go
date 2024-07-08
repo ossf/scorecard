@@ -99,16 +99,16 @@ func runScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
+) (Result, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
-		return ScorecardResult{}, err
+		return Result{}, err
 	}
 	defer repoClient.Close()
 
 	versionInfo := version.GetVersionInfo()
-	ret := ScorecardResult{
+	ret := Result{
 		Repo: RepoInfo{
 			Name:      repo.URI(),
 			CommitSHA: commitSHA,
@@ -125,14 +125,14 @@ func runScorecard(ctx context.Context,
 	if errors.Is(err, errEmptyRepository) {
 		return ret, nil
 	} else if err != nil {
-		return ScorecardResult{}, err
+		return Result{}, err
 	}
 	ret.Repo.CommitSHA = commitSHA
 
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			return ScorecardResult{},
+			return Result{},
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
 		}
 		defaultBranch = "unknown"
@@ -165,7 +165,7 @@ func runScorecard(ctx context.Context,
 	if len(probesToRun) > 0 {
 		err = runEnabledProbes(request, probesToRun, &ret)
 		if err != nil {
-			return ScorecardResult{}, err
+			return Result{}, err
 		}
 		return ret, nil
 	}
@@ -212,7 +212,7 @@ func findConfigFile(rc clients.RepoClient) (io.ReadCloser, string) {
 
 func runEnabledProbes(request *checker.CheckRequest,
 	probesToRun []string,
-	ret *ScorecardResult,
+	ret *Result,
 ) error {
 	// Add RawResults to request
 	err := populateRawResults(request, probesToRun, ret)
@@ -253,7 +253,7 @@ func RunScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
+) (Result, error) {
 	return runScorecard(ctx,
 		repo,
 		commitSHA,
@@ -346,14 +346,14 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
-func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResult, error) {
+func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error) {
 	c := runConfig{
 		commit:   clients.HeadSHA,
 		logLevel: sclog.DefaultLevel,
 	}
 	for _, option := range opts {
 		if err := option(&c); err != nil {
-			return ScorecardResult{}, err
+			return Result{}, err
 		}
 	}
 	logger := sclog.NewLogger(c.logLevel)
@@ -386,7 +386,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResul
 		if c.client == nil {
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
-				return ScorecardResult{}, fmt.Errorf("creating gitlab client: %w", err)
+				return Result{}, fmt.Errorf("creating gitlab client: %w", err)
 			}
 		}
 	}
@@ -397,7 +397,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResul
 
 	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
 	if err != nil {
-		return ScorecardResult{}, fmt.Errorf("getting enabled checks: %w", err)
+		return Result{}, fmt.Errorf("getting enabled checks: %w", err)
 	}
 
 	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,

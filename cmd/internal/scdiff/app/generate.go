@@ -71,7 +71,7 @@ var (
 )
 
 type scorecardRunner interface {
-	Run(repo string) (scorecard.ScorecardResult, error)
+	Run(repo string) (scorecard.Result, error)
 }
 
 // Runs scorecard on each newline-delimited repo in repos, and writes the output.

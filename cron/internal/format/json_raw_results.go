@@ -263,7 +263,7 @@ func fillJSONRawResults(r *jsonScorecardRawResult, raw *checker.RawResults) erro
 }
 
 // AsRawJSON exports results as JSON for raw results.
-func AsRawJSON(r *scorecard.ScorecardResult, writer io.Writer) error {
+func AsRawJSON(r *scorecard.Result, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResult{
 		Repo: jsonRepoV2{

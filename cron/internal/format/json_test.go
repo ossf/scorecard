@@ -86,14 +86,14 @@ func TestJSONOutput(t *testing.T) {
 		expected    string
 		showDetails bool
 		logLevel    log.Level
-		result      scorecard.ScorecardResult
+		result      scorecard.Result
 	}{
 		{
 			name:        "check-1",
 			showDetails: true,
 			expected:    "./testdata/check1.json",
 			logLevel:    log.DebugLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -130,7 +130,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check2.json",
 			logLevel:    log.DebugLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -166,7 +166,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check3.json",
 			logLevel:    log.InfoLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -256,7 +256,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check4.json",
 			logLevel:    log.DebugLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -346,7 +346,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check5.json",
 			logLevel:    log.WarnLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -383,7 +383,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check6.json",
 			logLevel:    log.WarnLevel,
-			result: scorecard.ScorecardResult{
+			result: scorecard.Result{
 				Repo: scorecard.RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
