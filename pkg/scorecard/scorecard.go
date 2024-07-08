@@ -242,32 +242,6 @@ func runEnabledProbes(request *checker.CheckRequest,
 	return nil
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
-func RunScorecard(ctx context.Context,
-	repo clients.Repo,
-	commitSHA string,
-	commitDepth int,
-	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	projectClient packageclient.ProjectPackageClient,
-) (Result, error) {
-	return runScorecard(ctx,
-		repo,
-		commitSHA,
-		commitDepth,
-		checksToRun,
-		[]string{},
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
-	)
-}
-
 type runConfig struct {
 	client        clients.RepoClient
 	vulnClient    clients.VulnerabilitiesClient
