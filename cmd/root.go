@@ -96,11 +96,6 @@ func rootCmd(o *options.Options) error {
 	}
 
 	ctx := context.Background()
-	opts := []pkg.Option{
-		pkg.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
-		pkg.WithCommitSHA(o.Commit),
-		pkg.WithCommitDepth(o.CommitDepth),
-	}
 
 	var repo clients.Repo
 	if o.Local != "" {
@@ -148,12 +143,14 @@ func rootCmd(o *options.Options) error {
 			printCheckStart(enabledChecks)
 		}
 	}
-	opts = append(opts,
+
+	repoResult, err = pkg.Run(ctx, repo,
+		pkg.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
+		pkg.WithCommitSHA(o.Commit),
+		pkg.WithCommitDepth(o.CommitDepth),
 		pkg.WithProbes(enabledProbes),
 		pkg.WithChecks(checks),
 	)
-
-	repoResult, err = pkg.Run(ctx, repo, opts...)
 	if err != nil {
 		return fmt.Errorf("RunScorecard: %w", err)
 	}
