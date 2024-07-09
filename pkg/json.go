@@ -186,10 +186,7 @@ func (r *ScorecardResult) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJ
 			}
 		}
 		if opt.Annotations {
-			exempted, reasons := checkResult.IsExempted(r.Config)
-			if exempted {
-				tmpResult.Annotations = reasons
-			}
+			tmpResult.Annotations = append(tmpResult.Annotations, checkResult.Annotations(r.Config)...)
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
