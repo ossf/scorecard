@@ -41,7 +41,7 @@ import (
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 	"github.com/ossf/scorecard/v5/stats"
 )
@@ -217,20 +217,20 @@ func processRequest(ctx context.Context,
 			enabledChecks = append(enabledChecks, check)
 		}
 
-		result, err := pkg.Run(ctx, repo,
-			pkg.WithCommitSHA(commitSHA),
-			pkg.WithChecks(enabledChecks),
-			pkg.WithRepoClient(repoClient),
-			pkg.WithOSSFuzzClient(ossFuzzRepoClient),
-			pkg.WithOpenSSFBestPraticesClient(ciiClient),
-			pkg.WithVulnerabilitiesClient(vulnsClient),
+		result, err := scorecard.Run(ctx, repo,
+			scorecard.WithCommitSHA(commitSHA),
+			scorecard.WithChecks(enabledChecks),
+			scorecard.WithRepoClient(repoClient),
+			scorecard.WithOSSFuzzClient(ossFuzzRepoClient),
+			scorecard.WithOpenSSFBestPraticesClient(ciiClient),
+			scorecard.WithVulnerabilitiesClient(vulnsClient),
 		)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error during RunScorecard: %w", err)
+			return fmt.Errorf("error during scorecard.Run: %w", err)
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package pkg defines fns for running Scorecard checks on a Repo.
-package pkg
+// Package scorecard defines functions for running Scorecard checks on a Repo.
+package scorecard
 
 import (
 	"context"
@@ -97,16 +97,16 @@ func runScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
+) (Result, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
 		//nolint:wrapcheck
-		return ScorecardResult{}, err
+		return Result{}, err
 	}
 	defer repoClient.Close()
 
 	versionInfo := version.GetVersionInfo()
-	ret := ScorecardResult{
+	ret := Result{
 		Repo: RepoInfo{
 			Name:      repo.URI(),
 			CommitSHA: commitSHA,
@@ -123,14 +123,14 @@ func runScorecard(ctx context.Context,
 	if errors.Is(err, errEmptyRepository) {
 		return ret, nil
 	} else if err != nil {
-		return ScorecardResult{}, err
+		return Result{}, err
 	}
 	ret.Repo.CommitSHA = commitSHA
 
 	defaultBranch, err := repoClient.GetDefaultBranchName()
 	if err != nil {
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
-			return ScorecardResult{},
+			return Result{},
 				sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetDefaultBranchName:%v", err.Error()))
 		}
 		defaultBranch = "unknown"
@@ -163,7 +163,7 @@ func runScorecard(ctx context.Context,
 	if len(probesToRun) > 0 {
 		err = runEnabledProbes(request, probesToRun, &ret)
 		if err != nil {
-			return ScorecardResult{}, err
+			return Result{}, err
 		}
 		return ret, nil
 	}
@@ -209,7 +209,7 @@ func findConfigFile(rc clients.RepoClient) (io.ReadCloser, string) {
 
 func runEnabledProbes(request *checker.CheckRequest,
 	probesToRun []string,
-	ret *ScorecardResult,
+	ret *Result,
 ) error {
 	// Add RawResults to request
 	err := populateRawResults(request, probesToRun, ret)
@@ -239,32 +239,6 @@ func runEnabledProbes(request *checker.CheckRequest,
 	return nil
 }
 
-// RunScorecard runs enabled Scorecard checks on a Repo.
-func RunScorecard(ctx context.Context,
-	repo clients.Repo,
-	commitSHA string,
-	commitDepth int,
-	checksToRun checker.CheckNameToFnMap,
-	repoClient clients.RepoClient,
-	ossFuzzRepoClient clients.RepoClient,
-	ciiClient clients.CIIBestPracticesClient,
-	vulnsClient clients.VulnerabilitiesClient,
-	projectClient packageclient.ProjectPackageClient,
-) (ScorecardResult, error) {
-	return runScorecard(ctx,
-		repo,
-		commitSHA,
-		commitDepth,
-		checksToRun,
-		[]string{},
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
-	)
-}
-
 type runConfig struct {
 	client        clients.RepoClient
 	vulnClient    clients.VulnerabilitiesClient
@@ -280,6 +254,7 @@ type runConfig struct {
 
 type Option func(*runConfig) error
 
+// WithLogLevel configures the log level of the analysis.
 func WithLogLevel(level sclog.Level) Option {
 	return func(c *runConfig) error {
 		c.logLevel = level
@@ -287,6 +262,7 @@ func WithLogLevel(level sclog.Level) Option {
 	}
 }
 
+// WithCommitDepth configures the number of commits to analyze.
 func WithCommitDepth(depth int) Option {
 	return func(c *runConfig) error {
 		c.commitDepth = depth
@@ -294,6 +270,8 @@ func WithCommitDepth(depth int) Option {
 	}
 }
 
+// WithCommitSHA specifies the repository commit to analyze.
+// If this option is not used, the repository is analyzed at HEAD.
 func WithCommitSHA(sha string) Option {
 	return func(c *runConfig) error {
 		c.commit = sha
@@ -301,6 +279,8 @@ func WithCommitSHA(sha string) Option {
 	}
 }
 
+// WithChecks specifies checks which should be run during the analysis
+// of a project. If this option is not used, all checks are run.
 func WithChecks(checks []string) Option {
 	return func(c *runConfig) error {
 		c.checks = checks
@@ -308,6 +288,8 @@ func WithChecks(checks []string) Option {
 	}
 }
 
+// WithProbes specifies individual probes which should be run during the
+// analysis of a project.
 func WithProbes(probes []string) Option {
 	return func(c *runConfig) error {
 		c.probes = probes
@@ -315,6 +297,8 @@ func WithProbes(probes []string) Option {
 	}
 }
 
+// WithRepoClient will set the client used to query a repo host or forge
+// about the given project.
 func WithRepoClient(client clients.RepoClient) Option {
 	return func(c *runConfig) error {
 		c.client = client
@@ -322,6 +306,8 @@ func WithRepoClient(client clients.RepoClient) Option {
 	}
 }
 
+// WithOSSFuzzClient will set the client used to query OSS-Fuzz about a project's
+// integration with OSS-Fuzz.
 func WithOSSFuzzClient(client clients.RepoClient) Option {
 	return func(c *runConfig) error {
 		c.ossfuzzClient = client
@@ -329,6 +315,8 @@ func WithOSSFuzzClient(client clients.RepoClient) Option {
 	}
 }
 
+// WithVulnerabilitiesClient will set the client used to query vulnerabilities
+// present in a project.
 func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
 	return func(c *runConfig) error {
 		c.vulnClient = client
@@ -336,6 +324,8 @@ func WithVulnerabilitiesClient(client clients.VulnerabilitiesClient) Option {
 	}
 }
 
+// WithOpenSSFBestPraticesClient will set the client used to query the OpenSSF
+// Best Practice API for data about a project.
 func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option {
 	return func(c *runConfig) error {
 		c.ciiClient = client
@@ -343,14 +333,17 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
-func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResult, error) {
+// Run analyzes a given repository and returns the result. You can modify the
+// run behavior by passing in [Option] arguments. In the absence of a particular
+// option a default is used. Refer to the various Options for details.
+func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error) {
 	c := runConfig{
 		commit:   clients.HeadSHA,
 		logLevel: sclog.DefaultLevel,
 	}
 	for _, option := range opts {
 		if err := option(&c); err != nil {
-			return ScorecardResult{}, err
+			return Result{}, err
 		}
 	}
 	logger := sclog.NewLogger(c.logLevel)
@@ -383,7 +376,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResul
 		if c.client == nil {
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
-				return ScorecardResult{}, fmt.Errorf("creating gitlab client: %w", err)
+				return Result{}, fmt.Errorf("creating gitlab client: %w", err)
 			}
 		}
 	}
@@ -394,7 +387,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (ScorecardResul
 
 	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
 	if err != nil {
-		return ScorecardResult{}, fmt.Errorf("getting enabled checks: %w", err)
+		return Result{}, fmt.Errorf("getting enabled checks: %w", err)
 	}
 
 	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,

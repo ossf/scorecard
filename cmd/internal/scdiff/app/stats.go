@@ -27,7 +27,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 //nolint:gochecknoinits // common for cobra apps
@@ -69,7 +69,7 @@ func countScores(input io.Reader, check string) ([12]int, error) {
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(nil, maxResultSize)
 	for scanner.Scan() {
-		result, aggregateScore, err := pkg.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
+		result, aggregateScore, err := scorecard.ExperimentalFromJSON2(strings.NewReader(scanner.Text()))
 		if err != nil {
 			return [12]int{}, fmt.Errorf("parsing result: %w", err)
 		}

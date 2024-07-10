@@ -21,7 +21,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 // Flat JSON structure to hold raw results.
@@ -263,7 +263,7 @@ func fillJSONRawResults(r *jsonScorecardRawResult, raw *checker.RawResults) erro
 }
 
 // AsRawJSON exports results as JSON for raw results.
-func AsRawJSON(r *pkg.ScorecardResult, writer io.Writer) error {
+func AsRawJSON(r *scorecard.Result, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResult{
 		Repo: jsonRepoV2{

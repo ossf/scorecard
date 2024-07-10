@@ -36,7 +36,7 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 )
 
@@ -78,7 +78,7 @@ func New(o *options.Options) *cobra.Command {
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
 	var err error
-	var repoResult pkg.ScorecardResult
+	var repoResult scorecard.Result
 
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
@@ -123,8 +123,8 @@ func rootCmd(o *options.Options) error {
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	// this call to policy is different from the one in pkg.Run
-	// this one is concerned with a policy file, while the pkg.Run call is
+	// this call to policy is different from the one in scorecard.Run
+	// this one is concerned with a policy file, while the scorecard.Run call is
 	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
@@ -144,15 +144,15 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	repoResult, err = pkg.Run(ctx, repo,
-		pkg.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
-		pkg.WithCommitSHA(o.Commit),
-		pkg.WithCommitDepth(o.CommitDepth),
-		pkg.WithProbes(enabledProbes),
-		pkg.WithChecks(checks),
+	repoResult, err = scorecard.Run(ctx, repo,
+		scorecard.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
+		scorecard.WithCommitSHA(o.Commit),
+		scorecard.WithCommitDepth(o.CommitDepth),
+		scorecard.WithProbes(enabledProbes),
+		scorecard.WithChecks(checks),
 	)
 	if err != nil {
-		return fmt.Errorf("RunScorecard: %w", err)
+		return fmt.Errorf("scorecard.Run: %w", err)
 	}
 
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
@@ -170,7 +170,7 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	resultsErr := pkg.FormatResults(
+	resultsErr := scorecard.FormatResults(
 		o,
 		&repoResult,
 		checkDocs,

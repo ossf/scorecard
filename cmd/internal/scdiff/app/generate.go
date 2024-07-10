@@ -25,7 +25,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/format"
 	"github.com/ossf/scorecard/v5/cmd/internal/scdiff/app/runner"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 //nolint:gochecknoinits // common for cobra apps
@@ -71,7 +71,7 @@ var (
 )
 
 type scorecardRunner interface {
-	Run(repo string) (pkg.ScorecardResult, error)
+	Run(repo string) (scorecard.Result, error)
 }
 
 // Runs scorecard on each newline-delimited repo in repos, and writes the output.

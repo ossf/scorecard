@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package pkg
+package scorecard
 
 import (
 	"bytes"
@@ -1265,7 +1265,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 		tt := tt // capture range variable
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			r := &ScorecardResult{
+			r := &Result{
 				Repo:       tt.fields.Repo,
 				Date:       tt.fields.Date,
 				Scorecard:  tt.fields.Scorecard,
