@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"encoding/json"
@@ -612,7 +612,7 @@ func toolName(opts *options.Options) string {
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
+func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
 	opts *options.Options,
 ) error {
@@ -671,7 +671,7 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 		}
 
 		// Skip checks that are annotated
-		if exempted, _ := check.IsExempted(r.Config); exempted {
+		if len(check.Annotations(r.Config)) > 0 {
 			continue
 		}
 

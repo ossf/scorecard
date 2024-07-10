@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"bytes"
@@ -121,7 +121,7 @@ func TestSARIFOutput(t *testing.T) {
 		showDetails    bool
 		showAnotations bool
 		logLevel       log.Level
-		result         ScorecardResult
+		result         Result
 		policy         spol.ScorecardPolicy
 	}{
 		{
@@ -142,7 +142,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -196,7 +196,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -243,7 +243,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -303,7 +303,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -356,7 +356,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -463,7 +463,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -562,7 +562,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -610,7 +610,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -662,7 +662,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -773,7 +773,7 @@ func TestSARIFOutput(t *testing.T) {
 					},
 				},
 			},
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,

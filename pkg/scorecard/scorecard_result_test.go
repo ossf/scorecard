@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"bytes"
@@ -30,7 +30,7 @@ import (
 	spol "github.com/ossf/scorecard/v5/policy"
 )
 
-func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {
+func mockScorecardResultCheck1(t *testing.T) *Result {
 	t.Helper()
 	// Helper variables to mock Scorecard results
 	date, err := time.Parse(time.RFC3339, "2023-03-02T10:30:43-06:00")
@@ -39,7 +39,7 @@ func mockScorecardResultCheck1(t *testing.T) *ScorecardResult {
 	}
 	t.Logf("date: %v", date)
 
-	return &ScorecardResult{
+	return &Result{
 		Repo: RepoInfo{
 			Name:      "org/name",
 			CommitSHA: "68bc59901773ab4c051dfcea0cc4201a1567ab32",
@@ -87,7 +87,7 @@ func Test_formatResults_outputToFile(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		opts    *options.Options
-		results *ScorecardResult
+		results *Result
 		doc     checks.Doc
 		policy  *spol.ScorecardPolicy
 	}

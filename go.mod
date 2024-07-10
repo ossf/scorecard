@@ -14,7 +14,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-containerregistry v0.19.2
+	github.com/google/go-containerregistry v0.20.0
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
@@ -46,7 +46,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/otiai10/copy v1.14.0
-	sigs.k8s.io/release-utils v0.8.2
+	sigs.k8s.io/release-utils v0.8.3
 )
 
 require (
@@ -190,6 +190,6 @@ require (
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.186.0 // indirect
-	google.golang.org/grpc v1.64.0 // indirect
+	google.golang.org/grpc v1.64.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

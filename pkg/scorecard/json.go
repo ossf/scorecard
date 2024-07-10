@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"encoding/json"
@@ -96,7 +96,7 @@ type AsJSON2ResultOption struct {
 }
 
 // AsJSON exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
+func (r *Result) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 
 	out := jsonScorecardResult{
@@ -129,7 +129,7 @@ func (r *ScorecardResult) AsJSON(showDetails bool, logLevel log.Level, writer io
 }
 
 // AsJSON2 exports results as JSON for new detail format.
-func (r *ScorecardResult) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2ResultOption) error {
+func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2ResultOption) error {
 	if opt == nil {
 		opt = &AsJSON2ResultOption{
 			LogLevel:    log.DefaultLevel,
@@ -186,10 +186,7 @@ func (r *ScorecardResult) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJ
 			}
 		}
 		if opt.Annotations {
-			exempted, reasons := checkResult.IsExempted(r.Config)
-			if exempted {
-				tmpResult.Annotations = reasons
-			}
+			tmpResult.Annotations = append(tmpResult.Annotations, checkResult.Annotations(r.Config)...)
 		}
 		out.Checks = append(out.Checks, tmpResult)
 	}
@@ -203,11 +200,11 @@ func (r *ScorecardResult) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJ
 
 // ExperimentalFromJSON2 is experimental. Do not depend on it, it may be removed at any point.
 // Also returns the aggregate score, as the ScorecardResult field does not contain it.
-func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, err error) {
+func ExperimentalFromJSON2(r io.Reader) (result Result, score float64, err error) {
 	var jsr JSONScorecardResultV2
 	decoder := json.NewDecoder(r)
 	if err := decoder.Decode(&jsr); err != nil {
-		return ScorecardResult{}, 0, fmt.Errorf("decode json: %w", err)
+		return Result{}, 0, fmt.Errorf("decode json: %w", err)
 	}
 
 	var parseErr *time.ParseError
@@ -216,10 +213,10 @@ func ExperimentalFromJSON2(r io.Reader) (result ScorecardResult, score float64, 
 		date, err = time.Parse("2006-01-02", jsr.Date)
 	}
 	if err != nil {
-		return ScorecardResult{}, 0, fmt.Errorf("parse scorecard analysis time: %w", err)
+		return Result{}, 0, fmt.Errorf("parse scorecard analysis time: %w", err)
 	}
 
-	sr := ScorecardResult{
+	sr := Result{
 		Repo: RepoInfo{
 			Name:      jsr.Repo.Name,
 			CommitSHA: jsr.Repo.Commit,

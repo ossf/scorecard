@@ -16,6 +16,7 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -44,6 +45,7 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo.EXPECT().InitRepo(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
 	mockRepo.EXPECT().Close().Return(nil)
+	mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("reading files unsupported for this test")).AnyTimes()
 	r := Runner{
 		ctx: context.Background(),
 		// use a check which works locally, but we declare no files above so no-op
