@@ -43,6 +43,9 @@ func Test_Run(t *testing.T) {
 					Workflows: []checker.DangerousWorkflow{
 						{
 							Type: checker.DangerousWorkflowScriptInjection,
+							File: checker.File{
+								Path: "patch/testdata/userInputAssignedToVariable.yaml",
+							},
 						},
 					},
 				},

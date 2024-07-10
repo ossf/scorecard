@@ -18,11 +18,16 @@ package hasDangerousWorkflowScriptInjection
 import (
 	"embed"
 	"fmt"
+	"os"
+	"path"
+
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
@@ -53,25 +58,51 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
+	var curr string
+	var content string
+	var workflow *actionlint.Workflow
+	var errs []*actionlint.Error
+	localPath := raw.Metadata.Metadata["localPath"]
 	for _, e := range r.Workflows {
 		e := e
-		if e.Type == checker.DangerousWorkflowScriptInjection {
-			f, err := finding.NewWith(fs, Probe,
-				fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
-				nil, finding.OutcomeTrue)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithLocation(&finding.Location{
-				Path:      e.File.Path,
-				Type:      e.File.Type,
-				LineStart: &e.File.Offset,
-				Snippet:   &e.File.Snippet,
-			})
-			findings = append(findings, *f)
+		if e.Type != checker.DangerousWorkflowScriptInjection {
+			continue
 		}
-	}
+		f, err := finding.NewWith(fs, Probe,
+			fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
+			nil, finding.OutcomeTrue)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithLocation(&finding.Location{
+			Path:      e.File.Path,
+			Type:      e.File.Type,
+			LineStart: &e.File.Offset,
+			Snippet:   &e.File.Snippet,
+		})
+		findings = append(findings, *f)
 
+		wp := path.Join(localPath, e.File.Path)
+		if curr != wp {
+			curr = wp
+			var c []byte
+			c, err = os.ReadFile(wp)
+			if err != nil {
+				continue
+			}
+			content = string(c)
+
+			workflow, errs = actionlint.Parse([]byte(content))
+			if len(errs) > 0 && workflow == nil {
+				continue
+			}
+		}
+		findingPatch, err := patch.GeneratePatch(e.File, content, workflow, errs)
+		if err != nil {
+			continue
+		}
+		f.WithPatch(&findingPatch)
+	}
 	if len(findings) == 0 {
 		return falseOutcome()
 	}
