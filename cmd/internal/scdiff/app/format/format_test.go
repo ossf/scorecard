@@ -22,25 +22,25 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 func TestJSON(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
-		a, b pkg.ScorecardResult
+		a, b scorecard.Result
 	}{
 		{
 			name: "repo commit SHA standardized",
-			a: pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			a: scorecard.Result{
+				Repo: scorecard.RepoInfo{
 					Name:      "github.com/foo/bar",
 					CommitSHA: "commit a",
 				},
 			},
-			b: pkg.ScorecardResult{
-				Repo: pkg.RepoInfo{
+			b: scorecard.Result{
+				Repo: scorecard.RepoInfo{
 					Name:      "github.com/foo/bar",
 					CommitSHA: "commit b",
 				},
@@ -48,23 +48,23 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "dates standardized",
-			a: pkg.ScorecardResult{
+			a: scorecard.Result{
 				Date: time.Now(),
 			},
-			b: pkg.ScorecardResult{
+			b: scorecard.Result{
 				Date: time.Now().AddDate(0, 0, -1),
 			},
 		},
 		{
 			name: "scorecard info standardized",
-			a: pkg.ScorecardResult{
-				Scorecard: pkg.ScorecardInfo{
+			a: scorecard.Result{
+				Scorecard: scorecard.ScorecardInfo{
 					Version:   "version a",
 					CommitSHA: "scorecard commit x",
 				},
 			},
-			b: pkg.ScorecardResult{
-				Scorecard: pkg.ScorecardInfo{
+			b: scorecard.Result{
+				Scorecard: scorecard.ScorecardInfo{
 					Version:   "version b",
 					CommitSHA: "scorecard commit y",
 				},
@@ -72,7 +72,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "check order standardized",
-			a: pkg.ScorecardResult{
+			a: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -84,7 +84,7 @@ func TestJSON(t *testing.T) {
 					},
 				},
 			},
-			b: pkg.ScorecardResult{
+			b: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "License",
@@ -99,7 +99,7 @@ func TestJSON(t *testing.T) {
 		},
 		{
 			name: "detail order standardized",
-			a: pkg.ScorecardResult{
+			a: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -121,7 +121,7 @@ func TestJSON(t *testing.T) {
 					},
 				},
 			},
-			b: pkg.ScorecardResult{
+			b: scorecard.Result{
 				Checks: []checker.CheckResult{
 					{
 						Name:  "Token-Permissions",
@@ -167,7 +167,7 @@ func TestJSON(t *testing.T) {
 
 func Test_normalize_nil_safe(t *testing.T) {
 	t.Parallel()
-	var x, y *pkg.ScorecardResult
+	var x, y *scorecard.Result
 	Normalize(x)
 	Normalize(y)
 	if !cmp.Equal(x, y) {

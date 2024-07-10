@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"bytes"
@@ -90,14 +90,14 @@ func TestJSONOutput(t *testing.T) {
 		showDetails     bool
 		showAnnotations bool
 		logLevel        log.Level
-		result          ScorecardResult
+		result          Result
 	}{
 		{
 			name:        "check-1",
 			showDetails: true,
 			expected:    "./testdata/check1.json",
 			logLevel:    log.DebugLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -135,7 +135,7 @@ func TestJSONOutput(t *testing.T) {
 			showAnnotations: true,
 			expected:        "./testdata/check1_annotations.json",
 			logLevel:        log.DebugLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -183,7 +183,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check2.json",
 			logLevel:    log.DebugLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -219,7 +219,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check3.json",
 			logLevel:    log.InfoLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -309,7 +309,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check4.json",
 			logLevel:    log.DebugLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -399,7 +399,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check5.json",
 			logLevel:    log.WarnLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,
@@ -436,7 +436,7 @@ func TestJSONOutput(t *testing.T) {
 			showDetails: true,
 			expected:    "./testdata/check6.json",
 			logLevel:    log.WarnLevel,
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      repoName,
 					CommitSHA: repoCommit,

@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 var errFoo = errors.New("arbitrary error")
@@ -38,12 +38,12 @@ func (rc *resultCounter) Write(p []byte) (n int, err error) {
 
 type stubRunner struct{}
 
-func (s stubRunner) Run(repo string) (pkg.ScorecardResult, error) {
+func (s stubRunner) Run(repo string) (scorecard.Result, error) {
 	switch repo {
 	case "errorRepo":
-		return pkg.ScorecardResult{}, errFoo
+		return scorecard.Result{}, errFoo
 	case "badCheck":
-		return pkg.ScorecardResult{
+		return scorecard.Result{
 			Checks: []checker.CheckResult{
 				{
 					Name:  "not a real check",
@@ -52,7 +52,7 @@ func (s stubRunner) Run(repo string) (pkg.ScorecardResult, error) {
 			},
 		}, nil
 	default:
-		return pkg.ScorecardResult{}, nil
+		return scorecard.Result{}, nil
 	}
 }
 

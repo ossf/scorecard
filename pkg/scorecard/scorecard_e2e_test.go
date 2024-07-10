@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 	sclog "github.com/ossf/scorecard/v5/log"
 )
 
-func (r *ScorecardResult) normalize() {
+func (r *Result) normalize() {
 	r.Date = time.Time{}
 	sort.Slice(r.Checks, func(i, j int) bool {
 		return r.Checks[i].Name < r.Checks[j].Name
@@ -51,7 +51,7 @@ func countDetails(c []checker.CheckDetail) (debug, info, warn int) {
 }
 
 //nolint:gocritic // comparison was failing with pointer types
-func compareScorecardResults(a, b ScorecardResult) bool {
+func compareScorecardResults(a, b Result) bool {
 	if a.Repo != b.Repo {
 		fmt.Fprintf(GinkgoWriter, "Unequal repo details in results: %v vs %v\n", a.Repo, b.Repo)
 		return false
@@ -95,7 +95,7 @@ func compareScorecardResults(a, b ScorecardResult) bool {
 	return true
 }
 
-var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
+var _ = Describe("E2E TEST: scorecard.Run with re-used repoClient", func() {
 	Context("E2E TEST: Validate results are identical regardless of order", func() {
 		assertLastResultsIdentical := func(repos []string) {
 			if len(repos) < 2 {
@@ -109,7 +109,7 @@ var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
 			isolatedResult, err := Run(ctx, repo, WithLogLevel(sclog.DebugLevel))
 			Expect(err).Should(BeNil())
 
-			var sharedResult ScorecardResult
+			var sharedResult Result
 			for i := range repos {
 				repo, err = githubrepo.MakeGithubRepo(repos[i])
 				Expect(err).Should(BeNil())

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"bytes"
@@ -30,12 +30,12 @@ func TestAsProbe(t *testing.T) {
 	tests := []struct {
 		name     string
 		expected string
-		result   ScorecardResult
+		result   Result
 	}{
 		{
 			name:     "multiple findings displayed",
 			expected: "./testdata/probe1.json",
-			result: ScorecardResult{
+			result: Result{
 				Repo: RepoInfo{
 					Name:      "foo",
 					CommitSHA: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",

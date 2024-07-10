@@ -22,7 +22,7 @@ import (
 	"github.com/ossf/scorecard/v5/attestor/policy"
 	"github.com/ossf/scorecard/v5/checker"
 	sclog "github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 type EmptyParameterError struct {
@@ -91,16 +91,16 @@ func RunCheckWithParams(repoURL, commitSHA, policyPath string) (policy.PolicyRes
 		}
 	}
 
-	repoResult, err := pkg.Run(ctx, repo,
-		pkg.WithCommitSHA(commitSHA),
-		pkg.WithChecks(enabledChecks),
-		pkg.WithRepoClient(repoClient),
-		pkg.WithOSSFuzzClient(ossFuzzRepoClient),
-		pkg.WithOpenSSFBestPraticesClient(ciiClient),
-		pkg.WithVulnerabilitiesClient(vulnsClient),
+	repoResult, err := scorecard.Run(ctx, repo,
+		scorecard.WithCommitSHA(commitSHA),
+		scorecard.WithChecks(enabledChecks),
+		scorecard.WithRepoClient(repoClient),
+		scorecard.WithOSSFuzzClient(ossFuzzRepoClient),
+		scorecard.WithOpenSSFBestPraticesClient(ciiClient),
+		scorecard.WithVulnerabilitiesClient(vulnsClient),
 	)
 	if err != nil {
-		return policy.Fail, fmt.Errorf("RunScorecard: %w", err)
+		return policy.Fail, fmt.Errorf("scorecard.Run: %w", err)
 	}
 
 	result, err := attestationPolicy.EvaluateResults(&repoResult.RawResults)
