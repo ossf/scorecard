@@ -36,7 +36,7 @@ import (
 var (
 	// supportedShells is the list of shells that are supported by mvdan.cc/sh/v3/syntax.
 	supportedShells = []string{
-		"sh", "bash", "mksh", "powershell",
+		"sh", "bash", "mksh",
 	}
 	// otherShells are not supported by our parser.
 	otherShells = []string{
