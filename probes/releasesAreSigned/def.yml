@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: releasesAreSigned
+lifecycle: stable
 short: Check that the projects GitHub and GitLab releases are signed.
 motivation: >
   Signed releases allow consumers to verify their artifacts before consuming them.

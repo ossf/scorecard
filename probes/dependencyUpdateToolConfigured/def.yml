@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: dependencyUpdateToolConfigured
+lifecycle: stable
 short: Check that a dependency update tool config is present.
 motivation: >
   Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasUnverifiedBinaryArtifacts
+lifecycle: stable
 short: Checks if the project has binary files in its source tree. The probe skips verified binary files which currently are gradle-wrappers.
 motivation: >
   Binary files are not human readable so users and reviewers can't easily see what they do.

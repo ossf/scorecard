@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasSBOM
+lifecycle: experimental
 short: Check that the project has an SBOM file
 motivation: >
   An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.

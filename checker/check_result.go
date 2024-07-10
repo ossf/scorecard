@@ -257,13 +257,15 @@ func LogFinding(dl DetailLogger, f *finding.Finding, level DetailType) {
 	}
 }
 
-// IsExempted verifies if a given check in the results is exempted in annotations.
-func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
+// Annotations returns the applicable annotations for a given configuration.
+// Any annotations on checks with a maximum score are assumed to be out of
+// date and skipped.
+func (check *CheckResult) Annotations(c config.Config) []string {
 	// If check has a maximum score, then there it doesn't make sense anymore to reason the check
 	// This may happen if the check score was once low but then the problem was fixed on Scorecard side
 	// or on the maintainers side
 	if check.Score == MaxResultScore {
-		return false, nil
+		return nil
 	}
 
 	// Collect all annotation reasons for this check
@@ -282,6 +284,5 @@ func (check *CheckResult) IsExempted(c config.Config) (bool, []string) {
 		}
 	}
 
-	// A check is considered exempted if it has annotation reasons
-	return (len(reasons) > 0), reasons
+	return reasons
 }

@@ -45,7 +45,7 @@ $(GINKGO): $(TOOLS_DIR)/go.mod
 
 GORELEASER := $(TOOLS_BIN_DIR)/goreleaser
 $(GORELEASER): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser/v2
 
 PROTOC_GEN_GO := $(TOOLS_BIN_DIR)/protoc-gen-go
 $(PROTOC_GEN_GO): $(TOOLS_DIR)/go.mod
@@ -165,10 +165,14 @@ cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN
 	# Generating MockNugetClient
 	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
 
+PROBE_DEFINITION_FILES = $(shell find ./probes/ -name "def.yml")
 generate-docs: ## Generates docs
-generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go
+generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml docs/checks/internal/*.go docs/checks/internal/generate/*.go \
+		docs/probes.md $(PROBE_DEFINITION_FILES) docs/probes/internal/generate/*.go
 	# Generating checks.md
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
+	# Generating probes.md
+	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
 
 validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
@@ -196,7 +200,7 @@ scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 	# Run go releaser on the Scorecard repo
 	$(GORELEASER) check && \
 		VERSION_LDFLAGS="$(LDFLAGS)" $(GORELEASER) release \
-		--snapshot --rm-dist --skip-publish --skip-sign && \
+		--snapshot --clean --skip=publish,sign && \
 		touch scorecard.releaser
 
 CRON_CONTROLLER_DEPS = $(shell find cron/internal/ -iname "*.go")

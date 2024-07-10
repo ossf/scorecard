@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: jobLevelPermissions
+lifecycle: experimental
 short: Checks that GitHub workflows do not have "write" permissions at the "job" level.
 motivation: >
   In some circumstances, having "write" permissions at the "job" level may enable attackers to escalate privileges.

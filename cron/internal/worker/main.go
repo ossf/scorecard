@@ -40,9 +40,8 @@ import (
 	"github.com/ossf/scorecard/v5/cron/worker"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 	"github.com/ossf/scorecard/v5/stats"
 )
@@ -90,7 +89,6 @@ type ScorecardWorker struct {
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
-	projectClient     packageclient.ProjectPackageClient
 	apiBucketURL      string
 	rawBucketURL      string
 	blacklistedChecks []string
@@ -138,8 +136,6 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 		sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
 	}
 
-	sw.projectClient = packageclient.CreateDepsDevClient()
-
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}
@@ -161,7 +157,7 @@ func (sw *ScorecardWorker) Close() {
 func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
 		sw.checkDocs, sw.githubClient, sw.gitlabClient, sw.ossFuzzRepoClient, sw.ciiClient,
-		sw.vulnsClient, sw.projectClient, sw.logger)
+		sw.vulnsClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
@@ -176,7 +172,6 @@ func processRequest(ctx context.Context,
 	githubClient, gitlabClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
-	projectClient packageclient.ProjectPackageClient,
 	logger *log.Logger,
 ) error {
 	filename := worker.ResultFilename(batchRequest)
@@ -200,6 +195,9 @@ func processRequest(ctx context.Context,
 		}
 		repo.AppendMetadata(repoReq.GetMetadata()...)
 
+		// TODO: realistically the enabled/disabled checks can just be
+		// calculated once in newScorecardWorker as all of the repos use
+		// clients.HeadSHA. but not doing yet to keep refactor small
 		commitSHA := clients.HeadSHA
 		requiredRequestType := []checker.RequestType{}
 		if repoReq.GetCommit() != clients.HeadSHA {
@@ -214,15 +212,25 @@ func processRequest(ctx context.Context,
 		for _, check := range disabledChecks {
 			delete(checksToRun, check)
 		}
+		enabledChecks := make([]string, 0, len(checksToRun))
+		for check := range checksToRun {
+			enabledChecks = append(enabledChecks, check)
+		}
 
-		result, err := pkg.RunScorecard(ctx, repo, commitSHA, 0, checksToRun,
-			repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient)
+		result, err := scorecard.Run(ctx, repo,
+			scorecard.WithCommitSHA(commitSHA),
+			scorecard.WithChecks(enabledChecks),
+			scorecard.WithRepoClient(repoClient),
+			scorecard.WithOSSFuzzClient(ossFuzzRepoClient),
+			scorecard.WithOpenSSFBestPraticesClient(ciiClient),
+			scorecard.WithVulnerabilitiesClient(vulnsClient),
+		)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
 			continue
 		}
 		if err != nil {
-			return fmt.Errorf("error during RunScorecard: %w", err)
+			return fmt.Errorf("error during scorecard.Run: %w", err)
 		}
 		for checkIndex := range result.Checks {
 			check := &result.Checks[checkIndex]

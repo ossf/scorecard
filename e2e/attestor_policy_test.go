@@ -26,11 +26,9 @@ import (
 
 	"github.com/ossf/scorecard/v5/attestor/command"
 	"github.com/ossf/scorecard/v5/attestor/policy"
-	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks"
-	"github.com/ossf/scorecard/v5/clients"
-	sclog "github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/internal/checknames"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
@@ -224,29 +222,17 @@ var _ = Describe("E2E TEST PAT: scorecard-attestor policy", func() {
 	})
 })
 
-func getScorecardResult(repoURL string) (pkg.ScorecardResult, error) {
+func getScorecardResult(repoURL string) (scorecard.Result, error) {
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.DefaultLevel)
-
-	enabledChecks := map[string]checker.Check{
-		checks.CheckBinaryArtifacts: {
-			Fn: checks.BinaryArtifacts,
-		},
-		checks.CheckVulnerabilities: {
-			Fn: checks.Vulnerabilities,
-		},
-		checks.CheckCodeReview: {
-			Fn: checks.CodeReview,
-		},
-		checks.CheckPinnedDependencies: {
-			Fn: checks.PinningDependencies,
-		},
+	enabledChecks := []string{
+		checknames.BinaryArtifacts,
+		checknames.Vulnerabilities,
+		checknames.CodeReview,
+		checknames.PinnedDependencies,
 	}
-	repo, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, repoURL, "", logger)
+	repo, err := githubrepo.MakeGithubRepo(repoURL)
 	if err != nil {
-		return pkg.ScorecardResult{}, fmt.Errorf("couldn't set up clients: %w", err)
+		return scorecard.Result{}, fmt.Errorf("couldn't set up repo: %w", err)
 	}
-
-	return pkg.RunScorecard(ctx, repo, clients.HeadSHA, 0, enabledChecks, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient)
+	return scorecard.Run(ctx, repo, scorecard.WithChecks(enabledChecks))
 }

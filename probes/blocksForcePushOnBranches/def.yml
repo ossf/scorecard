@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: blocksForcePushOnBranches
+lifecycle: stable
 short: Check that the project blocks force push on its branches.
 motivation: >
   Allowing force pushes to branches could allow those with write access to make insecure changes to the behavior of the project.

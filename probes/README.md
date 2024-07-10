@@ -16,6 +16,13 @@ A probe consists of three files:
 - `impl.go`: The actual implementation of the probe.
 - `impl_test.go`: The probe's test.
 
+## Lifecycle
+
+Probes can exist in several different lifecycle states:
+* `Experimental`: The semantics of the probe may change, and there are no stability guarantees.
+* `Stable`: The probe behavior and semantics will not change. There may be bug fixes as needed.
+* `Deprecated`: The probe is no longer supported and callers should not expect it to be maintained.
+
 ## Reusing code in probes
 
 When multiple probes use the same code, the reused code can be placed in a package under `probes/internal/`
