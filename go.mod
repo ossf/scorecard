@@ -14,7 +14,7 @@ require (
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-containerregistry v0.19.2
+	github.com/google/go-containerregistry v0.20.0
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
