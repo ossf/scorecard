@@ -182,51 +182,36 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 }
 
 func TestOptions_AddFlags_Annotations(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
-		opts         *Options
-		name         string
-		experimental bool
+		opts *Options
+		name string
 	}{
 		{
-			name: "Cannot show annotations if experimental is disabled",
+			name: "Show annotations",
 			opts: &Options{
 				ShowAnnotations: true,
 			},
 		},
 		{
-			name: "Show annotations with experimental enabled",
-			opts: &Options{
-				ShowAnnotations: true,
-			},
-			experimental: true,
-		},
-		{
-			name: "Don't show annotations with experimental enabled",
+			name: "Don't show annotations",
 			opts: &Options{
 				ShowAnnotations: false,
 			},
-			experimental: true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			cmd := &cobra.Command{}
-			if tt.experimental {
-				t.Setenv("SCORECARD_EXPERIMENTAL", "1")
-			}
 			tt.opts.AddFlags(cmd)
-			if tt.experimental == false && cmd.Flag(FlagShowAnnotations) != nil {
-				t.Fatal("expected FlagShowAnnotations to be nil since experimental is disabled")
+			value, err := cmd.Flags().GetBool(FlagShowAnnotations)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
 			}
-			if tt.experimental == true {
-				value, err := cmd.Flags().GetBool(FlagShowAnnotations)
-				if err != nil {
-					t.Fatal("expected FlagShowAnnotations to be set but got error %w", err)
-				}
-				if tt.opts.ShowAnnotations != value {
-					t.Fatalf("expected FlagShowAnnotations to be %t, got %t", tt.opts.ShowAnnotations, value)
-				}
+			if tt.opts.ShowAnnotations != value {
+				t.Fatalf("expected FlagShowAnnotations to be %t, got %t", tt.opts.ShowAnnotations, value)
 			}
 		})
 	}
