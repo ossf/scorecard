@@ -671,7 +671,7 @@ func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 		}
 
 		// Skip checks that are annotated
-		if exempted, _ := check.IsExempted(r.Config); exempted {
+		if len(check.Annotations(r.Config)) > 0 {
 			continue
 		}
 

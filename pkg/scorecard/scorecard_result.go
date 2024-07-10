@@ -215,7 +215,7 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 		}
 		x = append(x, doc)
 		if opt.Annotations {
-			_, reasons := row.IsExempted(r.Config)
+			reasons := row.Annotations(r.Config)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
 		data[i] = x

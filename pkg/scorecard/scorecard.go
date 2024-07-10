@@ -20,7 +20,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -39,7 +38,6 @@ import (
 	"github.com/ossf/scorecard/v5/internal/packageclient"
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	sclog "github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/policy"
 )
 
@@ -173,19 +171,18 @@ func runScorecard(ctx context.Context,
 	// If the user runs checks
 	go runEnabledChecks(ctx, repo, request, checksToRun, resultsCh)
 
-	if os.Getenv(options.EnvVarScorecardExperimental) == "1" {
-		r, path := findConfigFile(repoClient)
-		logger := sclog.NewLogger(sclog.DefaultLevel)
+	// get the repository's config file to read annotations
+	r, path := findConfigFile(repoClient)
+	logger := sclog.NewLogger(sclog.DefaultLevel)
 
-		if r != nil {
-			defer r.Close()
-			logger.Info(fmt.Sprintf("using maintainer annotations: %s", path))
-			c, err := config.Parse(r)
-			if err != nil {
-				logger.Info(fmt.Sprintf("couldn't parse maintainer annotations: %v", err))
-			}
-			ret.Config = c
+	if r != nil {
+		defer r.Close()
+		logger.Info(fmt.Sprintf("using maintainer annotations: %s", path))
+		c, err := config.Parse(r)
+		if err != nil {
+			logger.Info(fmt.Sprintf("couldn't parse maintainer annotations: %v", err))
 		}
+		ret.Config = c
 	}
 
 	for result := range resultsCh {
