@@ -22,7 +22,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 var _ = Describe("E2E TEST: config parsing", func() {
@@ -30,8 +30,8 @@ var _ = Describe("E2E TEST: config parsing", func() {
 		It("Should return an annotation from the config", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-config-e2e")
 			Expect(err).Should(BeNil())
-			results, err := pkg.Run(context.Background(), repo,
-				pkg.WithChecks([]string{checks.CheckCodeReview}),
+			results, err := scorecard.Run(context.Background(), repo,
+				scorecard.WithChecks([]string{checks.CheckCodeReview}),
 			)
 			Expect(err).Should(BeNil())
 			Expect(len(results.Config.Annotations)).Should(BeNumerically(">=", 1))
