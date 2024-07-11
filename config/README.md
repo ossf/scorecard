@@ -1,6 +1,6 @@
 # Maintainer Annotations
 
-**Maintainer Annotations** are an experimental feature that let maintainers add context to Scorecard check results. Annotations can inform users when Scorecard is incorrectly assessing a project's security practices.
+**Maintainer Annotations** let maintainers add context to display alongside Scorecard check results. Annotations can provide users additional information when Scorecard has an incomplete assessment of a project's security practices.
 
 ## Annotating Your Project
 
