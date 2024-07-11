@@ -419,12 +419,11 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
-##### Showing Maintainers Annotations (Experimental)
+##### Showing Maintainers Annotations
 
-To see the maintainers annotations for each check, use the `--show-annotations` option.
+**Maintainer Annotations** let maintainers add context to display alongside Scorecard check results. Annotations can provide users additional information when Scorecard has an incomplete assessment of a project's security practices. To see the maintainers annotations for each check, use the `--show-annotations` option.
 
-For more information on how to configure annotations or what are the available annotations, see [the configuration doc](config/README.md).
-
+For more information on available annotations or how to make annotations, see [the configuration doc](config/README.md).
 
 ##### Using a GitLab Repository
 
