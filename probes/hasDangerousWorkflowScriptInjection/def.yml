@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasDangerousWorkflowScriptInjection
+lifecycle: stable
 short: Check whether the project has GitHub Actions workflows that enable script injection.
 motivation: >
   Script injections allow attackers to use untrusted input to access privileged resources (code execution, secret exfiltration, etc.)

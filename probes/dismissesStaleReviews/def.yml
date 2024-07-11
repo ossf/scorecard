@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: dismissesStaleReviews
+lifecycle: stable
 short: Check that the project dismisses stale reviews when new commits are pushed.
 motivation: >
   When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make unreviewed commits.

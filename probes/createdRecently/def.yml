@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: createdRecently
+lifecycle: stable
 short: Checks if the project was created in the last 90 days.
 motivation: >
   Recently created repositories have been used for malicious forks / typosquatting attacks in the past.

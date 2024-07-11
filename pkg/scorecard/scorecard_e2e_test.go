@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"context"
@@ -25,13 +25,11 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks"
-	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	sclog "github.com/ossf/scorecard/v5/log"
 )
 
-func (r *ScorecardResult) normalize() {
+func (r *Result) normalize() {
 	r.Date = time.Time{}
 	sort.Slice(r.Checks, func(i, j int) bool {
 		return r.Checks[i].Name < r.Checks[j].Name
@@ -53,7 +51,7 @@ func countDetails(c []checker.CheckDetail) (debug, info, warn int) {
 }
 
 //nolint:gocritic // comparison was failing with pointer types
-func compareScorecardResults(a, b ScorecardResult) bool {
+func compareScorecardResults(a, b Result) bool {
 	if a.Repo != b.Repo {
 		fmt.Fprintf(GinkgoWriter, "Unequal repo details in results: %v vs %v\n", a.Repo, b.Repo)
 		return false
@@ -97,31 +95,25 @@ func compareScorecardResults(a, b ScorecardResult) bool {
 	return true
 }
 
-var _ = Describe("E2E TEST: RunScorecard with re-used repoClient", func() {
+var _ = Describe("E2E TEST: scorecard.Run with re-used repoClient", func() {
 	Context("E2E TEST: Validate results are identical regardless of order", func() {
 		assertLastResultsIdentical := func(repos []string) {
 			if len(repos) < 2 {
 				return
 			}
 			ctx := context.Background()
-			allChecks := checks.GetAll()
 
-			isolatedLogger := sclog.NewLogger(sclog.DebugLevel)
 			lastRepo := repos[len(repos)-1]
-			repo, rc, ofrc, cc, vc, dc, err := checker.GetClients(ctx, lastRepo, "", isolatedLogger)
+			repo, err := githubrepo.MakeGithubRepo(lastRepo)
 			Expect(err).Should(BeNil())
-			isolatedResult, err := RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc, ofrc, cc, vc, dc)
-			Expect(err).Should(BeNil())
-
-			logger := sclog.NewLogger(sclog.DebugLevel)
-			_, rc2, ofrc2, cc2, vc2, dc2, err := checker.GetClients(ctx, repos[0], "", logger)
+			isolatedResult, err := Run(ctx, repo, WithLogLevel(sclog.DebugLevel))
 			Expect(err).Should(BeNil())
 
-			var sharedResult ScorecardResult
+			var sharedResult Result
 			for i := range repos {
 				repo, err = githubrepo.MakeGithubRepo(repos[i])
 				Expect(err).Should(BeNil())
-				sharedResult, err = RunScorecard(ctx, repo, clients.HeadSHA, 0, allChecks, rc2, ofrc2, cc2, vc2, dc2)
+				sharedResult, err = Run(ctx, repo, WithLogLevel(sclog.DebugLevel))
 				Expect(err).Should(BeNil())
 			}
 

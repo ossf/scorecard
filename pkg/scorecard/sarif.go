@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"encoding/json"
@@ -612,7 +612,7 @@ func toolName(opts *options.Options) string {
 }
 
 // AsSARIF outputs ScorecardResult in SARIF 2.1.0 format.
-func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
+func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 	writer io.Writer, checkDocs docs.Doc, policy *spol.ScorecardPolicy,
 	opts *options.Options,
 ) error {
@@ -626,13 +626,6 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 
 	for _, check := range r.Checks {
 		check := check
-
-		// SARIF output triggers GitHub security alerts for a repository.
-		// For annotated checks, we don't want to send alerts.
-		exempted, _ := check.IsExempted(r.Config)
-		if exempted {
-			continue
-		}
 
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {
@@ -674,6 +667,11 @@ func (r *ScorecardResult) AsSARIF(showDetails bool, logLevel log.Level,
 
 		// Skip check that do not violate the policy.
 		if check.Score >= minScore || check.Score == checker.InconclusiveResultScore {
+			continue
+		}
+
+		// Skip checks that are annotated
+		if len(check.Annotations(r.Config)) > 0 {
 			continue
 		}
 

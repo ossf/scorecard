@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"encoding/json"
@@ -818,7 +818,7 @@ func (r *jsonScorecardRawResult) fillJSONRawResults(raw *checker.RawResults) err
 }
 
 // AsRawJSON exports results as JSON for raw results.
-func (r *ScorecardResult) AsRawJSON(writer io.Writer) error {
+func (r *Result) AsRawJSON(writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	out := jsonScorecardRawResult{
 		Repo: jsonRepoV2{
