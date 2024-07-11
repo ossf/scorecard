@@ -811,15 +811,14 @@ func TestCreateRuntimeErrorResult(t *testing.T) {
 	}
 }
 
-func TestIsExempted(t *testing.T) {
+func TestAnnotations(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		check  CheckResult
 		config config.Config
 	}
 	type want struct {
-		reasons    []config.Reason
-		isExempted bool
+		reasons []config.Reason
 	}
 	tests := []struct {
 		name string
@@ -845,7 +844,6 @@ func TestIsExempted(t *testing.T) {
 				},
 			},
 			want: want{
-				isExempted: true,
 				reasons: []config.Reason{
 					config.TestData,
 				},
@@ -875,9 +873,7 @@ func TestIsExempted(t *testing.T) {
 					},
 				},
 			},
-			want: want{
-				isExempted: false,
-			},
+			want: want{},
 		},
 		{
 			name: "No checks exempted",
@@ -888,9 +884,7 @@ func TestIsExempted(t *testing.T) {
 				},
 				config: config.Config{},
 			},
-			want: want{
-				isExempted: false,
-			},
+			want: want{},
 		},
 		{
 			name: "Exemption is outdated",
@@ -910,9 +904,7 @@ func TestIsExempted(t *testing.T) {
 					},
 				},
 			},
-			want: want{
-				isExempted: false,
-			},
+			want: want{},
 		},
 		{
 			name: "Multiple exemption reasons in a single annotation",
@@ -934,7 +926,6 @@ func TestIsExempted(t *testing.T) {
 				},
 			},
 			want: want{
-				isExempted: true,
 				reasons: []config.Reason{
 					config.TestData,
 					config.Remediated,
@@ -972,7 +963,6 @@ func TestIsExempted(t *testing.T) {
 				},
 			},
 			want: want{
-				isExempted: true,
 				reasons: []config.Reason{
 					config.TestData,
 					config.Remediated,
@@ -984,10 +974,7 @@ func TestIsExempted(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			isExempted, reasons := tt.args.check.IsExempted(tt.args.config)
-			if isExempted != tt.want.isExempted {
-				t.Fatalf("IsExempted() = %v, want %v", isExempted, tt.want.isExempted)
-			}
+			reasons := tt.args.check.Annotations(tt.args.config)
 			wantReasons := []string{}
 			if tt.want.reasons != nil {
 				for _, r := range tt.want.reasons {

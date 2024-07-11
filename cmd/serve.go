@@ -27,7 +27,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 // TODO(cmd): Determine if this should be exported.
@@ -65,10 +65,10 @@ func serveCmd(o *options.Options) *cobra.Command {
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
 				defer ossFuzzRepoClient.Close()
-				repoResult, err := pkg.Run(ctx, repo,
-					pkg.WithCommitDepth(o.CommitDepth),
-					pkg.WithRepoClient(repoClient),
-					pkg.WithOSSFuzzClient(ossFuzzRepoClient),
+				repoResult, err := scorecard.Run(ctx, repo,
+					scorecard.WithCommitDepth(o.CommitDepth),
+					scorecard.WithRepoClient(repoClient),
+					scorecard.WithOSSFuzzClient(ossFuzzRepoClient),
 				)
 				if err != nil {
 					logger.Error(err, "running enabled scorecard checks on repo")
