@@ -14,7 +14,7 @@
 
 
 id: codeApproved
-lifecycle: stable
+lifecycle: experimental
 short: Check that all recent changesets have been approved by someone who is not the author of the changeset.
 motivation: >
   To ensure that the review process works, the proposed changes

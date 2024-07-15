@@ -74,7 +74,7 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 ## codeApproved
 
-**Lifecycle**: stable
+**Lifecycle**: experimental
 
 **Description**: Check that all recent changesets have been approved by someone who is not the author of the changeset.
 
@@ -549,7 +549,7 @@ If the project does not use a SAST tool, or uses a tool we dont currently detect
 
 ## sastToolRunsOnAllCommits
 
-**Lifecycle**: stable
+**Lifecycle**: experimental
 
 **Description**: Checks that a SAST tool runs on all commits in the projects CI.
 
