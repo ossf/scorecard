@@ -1,7 +1,6 @@
 module github.com/ossf/scorecard/tools
 
-go 1.22
-toolchain go1.22.5
+go 1.22.4
 
 require (
 	github.com/golang/mock v1.6.0
