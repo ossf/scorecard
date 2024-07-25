@@ -210,8 +210,7 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
-	logger := log.NewLogger(log.InfoLevel)
-	c := CreateGithubRepoClient(ctx, logger)
+	c := CreateGithubRepoClientWithTransport(ctx, client.repoClient.Client().Transport)
 	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
