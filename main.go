@@ -11,20 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 // Package main of OSSF Scorecard.
 package main
-
-import (
-	"log"
-
+import ("log"
 	"github.com/ossf/scorecard/v5/cmd"
-	"github.com/ossf/scorecard/v5/options"
-)
-
-func main() {
-	opts := options.New()
-	if err := cmd.New(opts).Execute(); err != nil {
-		log.Fatalf("error during command execution: %v", err)
-	}
-}
+	"github.com/ossf/scorecard/v5/options")
+func main()
+{ opts := options.New()
+	if err := cmd.New(opts).Execute();
+ err != nil
+ { log.Fatalf("error during command execution: %v", err)}
