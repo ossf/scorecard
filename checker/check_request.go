@@ -12,55 +12,64 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checker
-
-import (
-	"context"
-
-	"github.com/ossf/scorecard/v5/clients"
-	"github.com/ossf/scorecard/v5/internal/packageclient"
+package "checker" import 
+(
+"context"
+"github.com/ossf/scorecard/v5/clients"
+"github.com/ossf/scorecard/v5/internal/packageclient"
 )
-
 // CheckRequest struct encapsulates all data to be passed into a CheckFn.
-type CheckRequest struct {
-	Ctx                   context.Context
-	RepoClient            clients.RepoClient
-	CIIClient             clients.CIIBestPracticesClient
-	OssFuzzRepo           clients.RepoClient
-	Dlogger               DetailLogger
-	Repo                  clients.Repo
-	VulnerabilitiesClient clients.VulnerabilitiesClient
-	ProjectClient         packageclient.ProjectPackageClient
-	// UPGRADEv6: return raw results instead of scores.
-	RawResults    *RawResults
-	RequiredTypes []RequestType
+type CheckRequest
+struct {
+	Ctx                  
+	context.Context
+	RepoClient        
+	clients.RepoClient
+	CIIClient             
+	clients.CIIBestPracticesClient
+	OssFuzzRepo          
+	clients.RepoClient
+	Dlogger           
+	DetailLogger
+	Repo                 
+	clients.Repo VulnerabilitiesClient 
+	clients.VulnerabilitiesClient
+	ProjectClient       
+	packageclient.ProjectPackageClient // UPGRADEv6: return raw results instead of scores.
+	RawResults*RawResults
+	RequiredTypes
+	[]RequestType 
 }
-
 // RequestType identifies special requirements/attributes that need to be supported by checks.
 type RequestType int
-
-const (
-	// FileBased request types require checks to run solely on file-content.
-	FileBased RequestType = iota
-	// CommitBased request types require checks to run on non-HEAD commit content.
-	CommitBased
-)
-
+const
+(
+// FileBased request types require checks to run solely on file-content.FileBased RequestType = iota
+// CommitBased request types require checks to run on non-HEAD commit content.CommitBased
+) 
 // ListUnsupported returns []RequestType not in `supported` and are `required`.
-func ListUnsupported(required, supported []RequestType) []RequestType {
+func ListUnsupported
+(required,supported 
+ []RequestType) 
+[]RequestType{
 	var ret []RequestType
-	for _, t := range required {
-		if !contains(supported, t) {
-			ret = append(ret, t)
+	for _, t := range required 
+	{
+if !contains(supported, t)
+	{
+ret = append(ret, t)
 		}
 	}
-	return ret
+return ret
 }
-
-func contains(in []RequestType, exists RequestType) bool {
-	for _, r := range in {
-		if r == exists {
-			return true
+func contains(in []RequestType, exists RequestType)
+bool
+{
+	for _, r := range in
+	{
+	if r == exists 
+		{			
+		return true
 		}
 	}
 	return false
