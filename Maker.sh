@@ -5,35 +5,28 @@ SOURCE_DATE_EPOCH=$(shell git log --date=iso8601-strict -1 --pretty=%ct)
 IMAGE_NAME = scorecard
 OUTPUT = output
 PLATFORM="linux/amd64,linux/arm64,linux/386,linux/arm"
-LDFLAGS=$(shell ./scripts/version-ldflags)
-
-
-
-############################### make help #####################################
-.PHONY: help
-help:  ## Display this help
-	@awk 'BEGIN {FS = ":.*##"; \
-			printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ \
-			{ printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } \
-			/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
-
-###############################################################################
-
-##@ Tools
-################################ make install #################################
-TOOLS_DIR := tools
-TOOLS_BIN_DIR := $(abspath $(TOOLS_DIR)/bin)
-GOBIN := $(shell go env GOBIN)
-
-# Golang binaries.
-
-GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
-$(GOLANGCI_LINT): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-KO := $(TOOLS_BIN_DIR)/ko
-$(KO): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/google/ko
+LDFLAGS=$(shell ./scripts/version-ldflags)############################### make help #####################################
+.PHONY: help 
+help:  
+## Display this help @awk 'BEGIN {FS = ":.*##";
+\ printf 
+"\nUsage:\n
+make \033[36m<target>\033[0m\n"}
+/^[a-zA-Z_0-9-]+:.*?##/ \ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 }
+\/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST) #############
+##################################################################
+##@ Tools################################ make install ################################# TOOLS_DIR := tools
+TOOLS_BIN_DIR:=$(abspath $(TOOLS_DIR)/bin)
+GOBIN := $(shell go env GOBIN) # Golang binaries. GOLANGCI_LINT := $(TOOLS_BIN_DIR)
+/golangci-lint $(GOLANGCI_LINT):
+$(TOOLS_DIR)
+/go.mod cd $(TOOLS_DIR);GOBIN=$(TOOLS_BIN_DIR) 
+go install github.com/golangci/golangci
+-lint/cmd/golangci
+-lint KO:=$(TOOLS_BIN_DIR)
+/ko
+$(KO):$(TOOLS_DIR)
+/go.mod -cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/google/ko
 
 MOCKGEN := $(TOOLS_BIN_DIR)/mockgen
 $(MOCKGEN): $(TOOLS_DIR)/go.mod
@@ -447,12 +440,18 @@ cron-github-server-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
 			   KO_DOCKER_REPO=${KO_PREFIX}/$(IMAGE_NAME)-github-server \
 			   LDFLAGS="$(LDFLAGS)" \
-			   KOCACHE=$(KOCACHE_PATH) \
-			   $(KO) build -B \
-			   --push=false \
-			   --sbom=none \
-			   --platform=$(PLATFORM) \
-			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
-			   github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens/server
-
-###############################################################################
+			   KOCACHE=$(KOCACHE_PATH)
+      \		
+      $(KO) 
+      -build 
+      -B
+      \		  
+      --push=false 
+      \			
+   --sbom=none 
+   \	
+--platform=$(PLATFORM) 
+\ --tags latest,
+   $(GIT_VERSION),$(GIT_HASH)  
+   \ github.com/ossf/scorecard/v5/clients
+/ githubrepo/roundtripper/tokens/server ###############################################################################
