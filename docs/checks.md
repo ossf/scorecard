@@ -696,11 +696,12 @@ Risk: `High`  (known vulnerabilities)
 This check determines whether the project has open, unfixed vulnerabilities 
 in its own codebase or its dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
 An open vulnerability is readily exploited by attackers and should be fixed as soon as
-possible.
+possible. You can find a full list of vulnerabilities and a summary of what those vulnerabilities are [here](https://osv.dev/list).
  
 
 **Remediation steps**
-- Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev>.
+- To find your identified vulnerabilities, look under the "Vulnerabilities" tab on your repository scorecard.
+- Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev/list>. See also [Remediation Tools](https://osv.dev/#use-remediation-tools).
 - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
 - If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
 
