@@ -20,7 +20,7 @@ require (
 	github.com/jszwec/csvutil v1.10.0
 	github.com/moby/buildkit v0.15.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/gomega v1.33.1
+	github.com/onsi/gomega v1.34.1
 	github.com/rhysd/actionlint v1.7.1
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
@@ -182,7 +182,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240707233637-46b078467d37 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.7.0 // indirect
