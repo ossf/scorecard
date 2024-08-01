@@ -18,7 +18,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
-	github.com/moby/buildkit v0.15.0
+	github.com/moby/buildkit v0.15.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.33.1
 	github.com/rhysd/actionlint v1.7.1
