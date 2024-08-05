@@ -5,7 +5,7 @@ go 1.21.12
 require (
 	cloud.google.com/go/bigquery v1.62.0
 	cloud.google.com/go/monitoring v1.20.1 // indirect
-	cloud.google.com/go/pubsub v1.40.0
+	cloud.google.com/go/pubsub v1.41.0
 	cloud.google.com/go/trace v1.10.9 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -31,7 +31,7 @@ require (
 	gocloud.dev v0.38.0
 	golang.org/x/text v0.16.0
 	golang.org/x/tools v0.23.0 // indirect
-	google.golang.org/genproto v0.0.0-20240708141625-4ad9e859172b // indirect
+	google.golang.org/genproto v0.0.0-20240722135656-d784300faade // indirect
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -50,9 +50,9 @@ require (
 )
 
 require (
-	cloud.google.com/go/auth v0.7.0 // indirect
-	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
-	cloud.google.com/go/compute/metadata v0.4.0 // indirect
+	cloud.google.com/go/auth v0.7.2 // indirect
+	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/containeranalysis v0.11.8 // indirect
 	cloud.google.com/go/kms v1.18.2 // indirect
 	cloud.google.com/go/longrunning v0.5.9 // indirect
@@ -119,8 +119,8 @@ require (
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/vuln v1.0.4 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240701130421-f6361c86f094 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240708141625-4ad9e859172b // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20240722135656-d784300faade // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240722135656-d784300faade // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	k8s.io/api v0.29.2 // indirect
@@ -159,7 +159,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/google/wire v0.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
-	github.com/googleapis/gax-go/v2 v2.12.5 // indirect
+	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
@@ -188,7 +188,7 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
-	google.golang.org/api v0.188.0 // indirect
+	google.golang.org/api v0.189.0 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
