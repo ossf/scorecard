@@ -27,27 +27,27 @@ import (
 
 var errNotDirectory = errors.New("not a directory")
 
-type repoLocal struct {
+type Repo struct {
 	path     string
 	metadata []string
 }
 
 // URI implements Repo.URI().
-func (r *repoLocal) URI() string {
+func (r *Repo) URI() string {
 	return fmt.Sprintf("file://%s", r.path)
 }
 
-func (r *repoLocal) Host() string {
+func (r *Repo) Host() string {
 	return ""
 }
 
 // String implements Repo.String.
-func (r *repoLocal) String() string {
+func (r *Repo) String() string {
 	return r.URI()
 }
 
 // IsValid implements Repo.IsValid.
-func (r *repoLocal) IsValid() error {
+func (r *Repo) IsValid() error {
 	f, err := os.Stat(r.path)
 	if err != nil {
 		return fmt.Errorf("%w", err)
@@ -60,24 +60,24 @@ func (r *repoLocal) IsValid() error {
 }
 
 // Metadata implements Repo.Metadata.
-func (r *repoLocal) Metadata() []string {
+func (r *Repo) Metadata() []string {
 	return []string{}
 }
 
 // AppendMetadata implements Repo.AppendMetadata.
-func (r *repoLocal) AppendMetadata(m ...string) {
+func (r *Repo) AppendMetadata(m ...string) {
 	r.metadata = append(r.metadata, m...)
 }
 
 // Path() implements RepoClient.Path.
-func (r *repoLocal) Path() string {
+func (r *Repo) Path() string {
 	return r.path
 }
 
 // MakeLocalDirRepo returns an implementation of clients.Repo interface.
 func MakeLocalDirRepo(pathfn string) (clients.Repo, error) {
 	p := path.Clean(pathfn)
-	repo := &repoLocal{
+	repo := &Repo{
 		path: p,
 	}
 

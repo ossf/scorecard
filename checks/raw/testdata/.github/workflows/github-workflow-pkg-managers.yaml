@@ -167,6 +167,16 @@ jobs:
       - name:
         run: nuget restore
       - name:
+        run: nuget restore -LockedMode
+      - name:
+        run: dotnet restore
+      - name:
+        run: dotnet restore --locked-mode
+      - name:
+        run: msbuild /t:restore /p:RestoreLockedMode=true
+      - name:
+        run: msbuild /t:restore
+      - name:
         run: dotnet add package 'some-package'
       - name:
         run: dotnet add SomeProject package 'some-package'

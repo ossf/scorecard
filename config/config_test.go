@@ -12,19 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Warning: config cannot import checks. This is why we declare a different package here
-// and import both config and checks to test config.
-package config_test
+package config
 
 import (
-	"errors"
 	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-
-	"github.com/ossf/scorecard/v5/checks"
-	"github.com/ossf/scorecard/v5/config"
 )
 
 func Test_Parse_Checks(t *testing.T) {
@@ -32,17 +26,17 @@ func Test_Parse_Checks(t *testing.T) {
 	tests := []struct {
 		name       string
 		configPath string
-		wantErr    error
-		want       config.Config
+		want       Config
+		wantErr    bool
 	}{
 		{
 			name:       "Annotation on a single check",
 			configPath: "testdata/single_check.yml",
-			want: config.Config{
-				Annotations: []config.Annotation{
+			want: Config{
+				Annotations: []Annotation{
 					{
 						Checks:  []string{"binary-artifacts"},
-						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
+						Reasons: []ReasonGroup{{Reason: "test-data"}},
 					},
 				},
 			},
@@ -50,8 +44,8 @@ func Test_Parse_Checks(t *testing.T) {
 		{
 			name:       "Annotation on all checks",
 			configPath: "testdata/all_checks.yml",
-			want: config.Config{
-				Annotations: []config.Annotation{
+			want: Config{
+				Annotations: []Annotation{
 					{
 						Checks: []string{
 							"binary-artifacts",
@@ -73,7 +67,7 @@ func Test_Parse_Checks(t *testing.T) {
 							"token-permissions",
 							"vulnerabilities",
 						},
-						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
+						Reasons: []ReasonGroup{{Reason: "test-data"}},
 					},
 				},
 			},
@@ -81,11 +75,11 @@ func Test_Parse_Checks(t *testing.T) {
 		{
 			name:       "Annotating all reasons",
 			configPath: "testdata/all_reasons.yml",
-			want: config.Config{
-				Annotations: []config.Annotation{
+			want: Config{
+				Annotations: []Annotation{
 					{
 						Checks: []string{"binary-artifacts"},
-						Reasons: []config.ReasonGroup{
+						Reasons: []ReasonGroup{
 							{Reason: "test-data"},
 							{Reason: "remediated"},
 							{Reason: "not-applicable"},
@@ -99,15 +93,15 @@ func Test_Parse_Checks(t *testing.T) {
 		{
 			name:       "Multiple annotations",
 			configPath: "testdata/multiple_annotations.yml",
-			want: config.Config{
-				Annotations: []config.Annotation{
+			want: Config{
+				Annotations: []Annotation{
 					{
 						Checks:  []string{"binary-artifacts"},
-						Reasons: []config.ReasonGroup{{Reason: "test-data"}},
+						Reasons: []ReasonGroup{{Reason: "test-data"}},
 					},
 					{
 						Checks:  []string{"pinned-dependencies"},
-						Reasons: []config.ReasonGroup{{Reason: "not-applicable"}},
+						Reasons: []ReasonGroup{{Reason: "not-applicable"}},
 					},
 				},
 			},
@@ -115,32 +109,25 @@ func Test_Parse_Checks(t *testing.T) {
 		{
 			name:       "Invalid check",
 			configPath: "testdata/invalid_check.yml",
-			wantErr:    config.ErrInvalidCheck,
+			wantErr:    true,
 		},
 		{
 			name:       "Invalid reason",
 			configPath: "testdata/invalid_reason.yml",
-			wantErr:    config.ErrInvalidReason,
+			wantErr:    true,
 		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
-		allChecks := []string{}
-		for check := range checks.GetAll() {
-			allChecks = append(allChecks, check)
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			r, err := os.Open(tt.configPath)
 			if err != nil {
 				t.Fatalf("Could not open config test file: %s", tt.configPath)
 			}
-			result, err := config.Parse(r, allChecks)
-			if tt.wantErr != nil {
-				if !errors.Is(err, tt.wantErr) {
-					t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
-				}
-				return
+			result, err := Parse(r)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("Unexpected error during Parse: got %v, wantErr %v", err, tt.wantErr)
 			}
 			if diff := cmp.Diff(tt.want, result); diff != "" {
 				t.Errorf("Config mismatch (-want +got):\n%s", diff)

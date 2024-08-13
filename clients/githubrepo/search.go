@@ -30,10 +30,10 @@ var errEmptyQuery = errors.New("search query is empty")
 type searchHandler struct {
 	ghClient *github.Client
 	ctx      context.Context
-	repourl  *repoURL
+	repourl  *Repo
 }
 
-func (handler *searchHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *searchHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 }

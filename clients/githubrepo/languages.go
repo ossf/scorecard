@@ -30,11 +30,11 @@ type languagesHandler struct {
 	once      *sync.Once
 	ctx       context.Context
 	errSetup  error
-	repourl   *repoURL
+	repourl   *Repo
 	languages []clients.Language
 }
 
-func (handler *languagesHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *languagesHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.errSetup = nil

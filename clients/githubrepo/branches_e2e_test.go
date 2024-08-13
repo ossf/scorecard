@@ -36,7 +36,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should not have increased for HEAD query", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -51,7 +51,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should fail for non-HEAD query", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",
@@ -66,7 +66,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should return the correct default branch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -83,7 +83,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should return a branch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -98,7 +98,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should return an error for nonexistent branch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -114,7 +114,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should return a branch", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,
@@ -126,7 +126,7 @@ var _ = Describe("E2E TEST: githubrepo.branchesHandler", func() {
 		It("Should fail for non-HEAD query", func() {
 			skipIfTokenIsNot(patTokenType, "PAT only")
 
-			repourl := &repoURL{
+			repourl := &Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: "de5224bbc56eceb7a25aece55d2d53bbc561ed2d",

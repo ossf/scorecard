@@ -23,11 +23,12 @@ import (
 	"gopkg.in/yaml.v3"
 
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 var (
-	ErrInvalidCheck  = errors.New("check is not valid")
-	ErrInvalidReason = errors.New("reason is not valid")
+	errInvalidCheck  = errors.New("check is not valid")
+	errInvalidReason = errors.New("reason is not valid")
 )
 
 // Config contains configurations defined by maintainers.
@@ -45,25 +46,25 @@ func parseFile(c *Config, content []byte) error {
 	return nil
 }
 
-func isValidCheck(check string, checks []string) bool {
-	for _, validCheck := range checks {
-		if strings.EqualFold(check, validCheck) {
+func isValidCheck(check string) bool {
+	for _, c := range checknames.AllValidChecks {
+		if strings.EqualFold(c, check) {
 			return true
 		}
 	}
 	return false
 }
 
-func validate(c Config, checks []string) error {
+func validate(c Config) error {
 	for _, annotation := range c.Annotations {
 		for _, check := range annotation.Checks {
-			if !isValidCheck(check, checks) {
-				return fmt.Errorf("%w: %s", ErrInvalidCheck, check)
+			if !isValidCheck(check) {
+				return fmt.Errorf("%w: %s", errInvalidCheck, check)
 			}
 		}
 		for _, reasonGroup := range annotation.Reasons {
-			if !IsValidReason(reasonGroup.Reason) {
-				return fmt.Errorf("%w: %s", ErrInvalidReason, reasonGroup.Reason)
+			if !isValidReason(reasonGroup.Reason) {
+				return fmt.Errorf("%w: %s", errInvalidReason, reasonGroup.Reason)
 			}
 		}
 	}
@@ -71,7 +72,7 @@ func validate(c Config, checks []string) error {
 }
 
 // Parse reads the configuration file from the repo, stored in scorecard.yml, and returns a `Config`.
-func Parse(r io.Reader, checks []string) (Config, error) {
+func Parse(r io.Reader) (Config, error) {
 	c := Config{}
 	// Find scorecard.yml file in the repository's root
 	content, err := io.ReadAll(r)
@@ -84,7 +85,7 @@ func Parse(r io.Reader, checks []string) (Config, error) {
 		return Config{}, fmt.Errorf("fail to parse configuration file: %w", err)
 	}
 
-	err = validate(c, checks)
+	err = validate(c)
 	if err != nil {
 		return Config{}, fmt.Errorf("configuration file is not valid: %w", err)
 	}

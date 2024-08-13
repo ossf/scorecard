@@ -44,7 +44,7 @@ var _ = Describe("E2E TEST: githubrepo.licensesHandler", func() {
 	})
 	Context("listLicenses()", func() {
 		It("returns licenses", func() {
-			repoURL := repoURL{
+			repoURL := Repo{
 				owner:     "ossf",
 				repo:      "scorecard",
 				commitSHA: clients.HeadSHA,

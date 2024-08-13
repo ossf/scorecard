@@ -28,10 +28,10 @@ import (
 type workflowsHandler struct {
 	client  *github.Client
 	ctx     context.Context
-	repourl *repoURL
+	repourl *Repo
 }
 
-func (handler *workflowsHandler) init(ctx context.Context, repourl *repoURL) {
+func (handler *workflowsHandler) init(ctx context.Context, repourl *Repo) {
 	handler.ctx = ctx
 	handler.repourl = repourl
 }

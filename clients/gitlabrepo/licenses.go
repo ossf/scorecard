@@ -29,11 +29,11 @@ type licensesHandler struct {
 	glProject *gitlab.Project
 	once      *sync.Once
 	errSetup  error
-	repourl   *repoURL
+	repourl   *Repo
 	licenses  []clients.License
 }
 
-func (handler *licensesHandler) init(repourl *repoURL, project *gitlab.Project) {
+func (handler *licensesHandler) init(repourl *Repo, project *gitlab.Project) {
 	handler.repourl = repourl
 	handler.glProject = project
 	handler.errSetup = nil

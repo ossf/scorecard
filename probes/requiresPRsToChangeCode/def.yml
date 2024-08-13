@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: requiresPRsToChangeCode
+lifecycle: stable
 short: Check that the project requires pull requests to change code.
 motivation: >
   Changing code through pull requests promotes testing and reviews of the suggested change.

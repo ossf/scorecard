@@ -17,36 +17,22 @@ package runner
 import (
 	"context"
 	"errors"
-	"strings"
 
-	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
-	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/log"
-	"github.com/ossf/scorecard/v5/pkg"
-)
-
-const (
-	commit      = clients.HeadSHA
-	commitDepth = 0 // default
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
 
 // Runner holds the clients and configuration needed to run Scorecard on multiple repos.
 type Runner struct {
 	ctx           context.Context
-	logger        *log.Logger
-	enabledChecks checker.CheckNameToFnMap
 	githubClient  clients.RepoClient
 	gitlabClient  clients.RepoClient
-	ossFuzz       clients.RepoClient
-	cii           clients.CIIBestPracticesClient
-	vuln          clients.VulnerabilitiesClient
-	deps          packageclient.ProjectPackageClient
+	logger        *log.Logger
+	enabledChecks []string
 }
 
 // Creates a Runner which will run the listed checks. If no checks are provided, all will run.
@@ -62,16 +48,12 @@ func New(enabledChecks []string) Runner {
 		logger:        logger,
 		githubClient:  githubrepo.CreateGithubRepoClient(ctx, logger),
 		gitlabClient:  gitlabClient,
-		ossFuzz:       ossfuzz.CreateOSSFuzzClient(ossfuzz.StatusURL),
-		cii:           clients.DefaultCIIBestPracticesClient(),
-		vuln:          clients.DefaultVulnerabilitiesClient(),
-		deps:          packageclient.CreateDepsDevClient(),
-		enabledChecks: parseChecks(enabledChecks),
+		enabledChecks: enabledChecks,
 	}
 }
 
 //nolint:wrapcheck
-func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
+func (r *Runner) Run(repoURI string) (scorecard.Result, error) {
 	r.log("processing repo: " + repoURI)
 	repoClient := r.githubClient
 	repo, err := githubrepo.MakeGithubRepo(repoURI)
@@ -80,10 +62,11 @@ func (r *Runner) Run(repoURI string) (pkg.ScorecardResult, error) {
 		repoClient = r.gitlabClient
 	}
 	if err != nil {
-		return pkg.ScorecardResult{}, err
+		return scorecard.Result{}, err
 	}
-	return pkg.RunScorecard(
-		r.ctx, repo, commit, commitDepth, r.enabledChecks, repoClient, r.ossFuzz, r.cii, r.vuln, r.deps,
+	return scorecard.Run(r.ctx, repo,
+		scorecard.WithRepoClient(repoClient),
+		scorecard.WithChecks(r.enabledChecks),
 	)
 }
 
@@ -92,21 +75,4 @@ func (r *Runner) log(msg string) {
 	if r.logger != nil {
 		r.logger.Info(msg)
 	}
-}
-
-func parseChecks(c []string) checker.CheckNameToFnMap {
-	all := checks.GetAll()
-	if len(c) == 0 {
-		return all
-	}
-
-	ret := checker.CheckNameToFnMap{}
-	for _, requested := range c {
-		for key, fn := range all {
-			if strings.EqualFold(key, requested) {
-				ret[key] = fn
-			}
-		}
-	}
-	return ret
 }

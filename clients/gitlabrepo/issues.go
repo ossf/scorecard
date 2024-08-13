@@ -28,11 +28,11 @@ type issuesHandler struct {
 	glClient *gitlab.Client
 	once     *sync.Once
 	errSetup error
-	repourl  *repoURL
+	repourl  *Repo
 	issues   []clients.Issue
 }
 
-func (handler *issuesHandler) init(repourl *repoURL) {
+func (handler *issuesHandler) init(repourl *Repo) {
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -51,7 +51,7 @@ func (handler *issuesHandler) setup() error {
 		// barbaric, however I couldn't find a better way in the docs.
 		projMemberships, resp, err := handler.glClient.ProjectMembers.ListAllProjectMembers(
 			handler.repourl.projectID, &gitlab.ListProjectMembersOptions{})
-		if err != nil && resp.StatusCode != 401 {
+		if err != nil && resp.StatusCode != http.StatusUnauthorized {
 			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
 			return
 		} else if resp.StatusCode == http.StatusUnauthorized {

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: blocksDeleteOnBranches
+lifecycle: stable
 short: Check that the project blocks non-admins from deleting branches.
 motivation: >
   Allowing non-admins to delete project branches has a similar effect to performing force pushes.

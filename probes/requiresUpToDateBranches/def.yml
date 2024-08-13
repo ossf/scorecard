@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: requiresUpToDateBranches
+lifecycle: stable
 short: Check that the project requires PRs to be in sync with the base branch.
 motivation: >
   Requiring PRs to be in sync with the base branch is good practice.

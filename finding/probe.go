@@ -22,10 +22,14 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/ossf/scorecard/v5/clients"
+	pyaml "github.com/ossf/scorecard/v5/internal/probes/yaml"
 )
 
 // RemediationEffort indicates the estimated effort necessary to remediate a finding.
 type RemediationEffort int
+
+// lifecycle indicates the probe's stability.
+type lifecycle string
 
 const (
 	// RemediationEffortNone indicates a no remediation effort.
@@ -36,6 +40,10 @@ const (
 	RemediationEffortMedium
 	// RemediationEffortHigh indicates a high remediation effort.
 	RemediationEffortHigh
+
+	lifecycleExperimental lifecycle = "experimental"
+	lifecycleStable       lifecycle = "stable"
+	lifecycleDeprecated   lifecycle = "deprecated"
 )
 
 // Remediation represents the remediation for a finding.
@@ -50,31 +58,10 @@ type Remediation struct {
 	Effort RemediationEffort `json:"effort"`
 }
 
-type yamlRemediation struct {
-	OnOutcome Outcome           `yaml:"onOutcome"`
-	Text      []string          `yaml:"text"`
-	Markdown  []string          `yaml:"markdown"`
-	Effort    RemediationEffort `yaml:"effort"`
-}
-
-type yamlEcosystem struct {
-	Languages []string `yaml:"languages"`
-	Clients   []string `yaml:"clients"`
-}
-
 var supportedClients = map[string]bool{
 	"github":   true,
 	"gitlab":   true,
 	"localdir": true,
-}
-
-type yamlProbe struct {
-	ID             string          `yaml:"id"`
-	Short          string          `yaml:"short"`
-	Motivation     string          `yaml:"motivation"`
-	Implementation string          `yaml:"implementation"`
-	Ecosystem      yamlEcosystem   `yaml:"ecosystem"`
-	Remediation    yamlRemediation `yaml:"remediation"`
 }
 
 type probe struct {
@@ -104,9 +91,9 @@ func probeFromBytes(content []byte, probeID string) (*probe, error) {
 		Remediation: &Remediation{
 			Text:     strings.Join(r.Remediation.Text, "\n"),
 			Markdown: strings.Join(r.Remediation.Markdown, "\n"),
-			Effort:   r.Remediation.Effort,
+			Effort:   toRemediationEffort(r.Remediation.Effort),
 		},
-		RemediateOnOutcome: r.Remediation.OnOutcome,
+		RemediateOnOutcome: Outcome(r.Remediation.OnOutcome),
 	}, nil
 }
 
@@ -119,14 +106,17 @@ func newProbe(loc embed.FS, probeID string) (*probe, error) {
 	return probeFromBytes(content, probeID)
 }
 
-func validate(r *yamlProbe, probeID string) error {
+func validate(r *pyaml.Probe, probeID string) error {
 	if err := validateID(r.ID, probeID); err != nil {
 		return err
 	}
-	if err := validateRemediation(r.Remediation); err != nil {
+	if err := validateRemediation(&r.Remediation); err != nil {
 		return err
 	}
 	if err := validateEcosystem(r.Ecosystem); err != nil {
+		return err
+	}
+	if err := validateLifecycle(lifecycle(r.Lifecycle)); err != nil {
 		return err
 	}
 	return nil
@@ -140,11 +130,11 @@ func validateID(actual, expected string) error {
 	return nil
 }
 
-func validateRemediation(r yamlRemediation) error {
-	if err := validateRemediationOutcomeTrigger(r.OnOutcome); err != nil {
-		return err
+func validateRemediation(r *pyaml.Remediation) error {
+	if err := validateRemediationOutcomeTrigger(Outcome(r.OnOutcome)); err != nil {
+		return fmt.Errorf("remediation: %w", err)
 	}
-	switch r.Effort {
+	switch toRemediationEffort(r.Effort) {
 	case RemediationEffortHigh, RemediationEffortMedium, RemediationEffortLow:
 		return nil
 	default:
@@ -152,7 +142,7 @@ func validateRemediation(r yamlRemediation) error {
 	}
 }
 
-func validateEcosystem(r yamlEcosystem) error {
+func validateEcosystem(r pyaml.Ecosystem) error {
 	if err := validateSupportedLanguages(r); err != nil {
 		return err
 	}
@@ -171,7 +161,7 @@ func validateRemediationOutcomeTrigger(o Outcome) error {
 	}
 }
 
-func validateSupportedLanguages(r yamlEcosystem) error {
+func validateSupportedLanguages(r pyaml.Ecosystem) error {
 	for _, lang := range r.Languages {
 		switch clients.LanguageName(lang) {
 		case clients.Go, clients.Python, clients.JavaScript,
@@ -189,7 +179,7 @@ func validateSupportedLanguages(r yamlEcosystem) error {
 	return nil
 }
 
-func validateSupportedClients(r yamlEcosystem) error {
+func validateSupportedClients(r pyaml.Ecosystem) error {
 	for _, lang := range r.Clients {
 		if _, ok := supportedClients[lang]; !ok {
 			return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("client '%v'", r))
@@ -198,8 +188,17 @@ func validateSupportedClients(r yamlEcosystem) error {
 	return nil
 }
 
-func parseFromYAML(content []byte) (*yamlProbe, error) {
-	r := yamlProbe{}
+func validateLifecycle(l lifecycle) error {
+	switch l {
+	case lifecycleExperimental, lifecycleStable, lifecycleDeprecated:
+		return nil
+	default:
+		return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("lifecycle '%v'", l))
+	}
+}
+
+func parseFromYAML(content []byte) (*pyaml.Probe, error) {
+	r := pyaml.Probe{}
 
 	err := yaml.Unmarshal(content, &r)
 	if err != nil {
@@ -216,16 +215,11 @@ func (r *RemediationEffort) UnmarshalYAML(n *yaml.Node) error {
 		return fmt.Errorf("%w: %w", errInvalid, err)
 	}
 
-	switch n.Value {
-	case "Low":
-		*r = RemediationEffortLow
-	case "Medium":
-		*r = RemediationEffortMedium
-	case "High":
-		*r = RemediationEffortHigh
-	default:
+	*r = toRemediationEffort(n.Value)
+	if *r == RemediationEffortNone {
 		return fmt.Errorf("%w: effort:%q", errInvalid, str)
 	}
+
 	return nil
 }
 
@@ -240,5 +234,18 @@ func (r *RemediationEffort) String() string {
 		return "High"
 	default:
 		return ""
+	}
+}
+
+func toRemediationEffort(s string) RemediationEffort {
+	switch s {
+	case "Low":
+		return RemediationEffortLow
+	case "Medium":
+		return RemediationEffortMedium
+	case "High":
+		return RemediationEffortHigh
+	default:
+		return RemediationEffortNone
 	}
 }

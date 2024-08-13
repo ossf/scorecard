@@ -42,7 +42,7 @@ var (
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *repoURL
+	repourl       *Repo
 	repo          *github.Repository
 	repoClient    *github.Client
 	graphClient   *graphqlHandler
@@ -66,7 +66,7 @@ const defaultGhHost = "github.com"
 
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
-	ghRepo, ok := inputRepo.(*repoURL)
+	ghRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
@@ -81,7 +81,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 	client.commitDepth = commitDepth
 	client.repo = repo
-	client.repourl = &repoURL{
+	client.repourl = &Repo{
 		owner:         repo.Owner.GetLogin(),
 		repo:          repo.GetName(),
 		defaultBranch: repo.GetDefaultBranch(),
@@ -210,8 +210,7 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
-	logger := log.NewLogger(log.InfoLevel)
-	c := CreateGithubRepoClient(ctx, logger)
+	c := CreateGithubRepoClientWithTransport(ctx, client.repoClient.Client().Transport)
 	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
