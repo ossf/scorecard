@@ -48,12 +48,11 @@ type jsonCheckDocumentationV2 struct {
 
 //nolint:govet
 type jsonCheckResultV2 struct {
-	Doc     jsonCheckDocumentationV2 `json:"documentation"`
-	Reason  string                   `json:"reason"`
-	Name    string                   `json:"name"`
 	Details []string                 `json:"details"`
 	Score   int                      `json:"score"`
-	ID      uint                     `json:"id"`
+	Reason  string                   `json:"reason"`
+	Name    string                   `json:"name"`
+	Doc     jsonCheckDocumentationV2 `json:"documentation"`
 }
 
 type jsonRepoV2 struct {
@@ -149,7 +148,6 @@ func AsJSON2(r *scorecard.Result, showDetails bool,
 		}
 
 		tmpResult := jsonCheckResultV2{
-			ID:   doc.GetID(),
 			Name: checkResult.Name,
 			Doc: jsonCheckDocumentationV2{
 				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
