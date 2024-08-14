@@ -110,7 +110,7 @@ func Test_probeFromBytes(t *testing.T) {
 
 			content, err := os.ReadFile(tt.path)
 			if err != nil {
-				t.Fatalf(err.Error())
+				t.Fatal(err.Error())
 			}
 
 			r, err := probeFromBytes(content, tt.id)

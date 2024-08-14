@@ -171,7 +171,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			dw, err := DangerousWorkflow(req)
 
 			if !errCmp(err, tt.expected.err) {
-				t.Errorf(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))
+				t.Error(cmp.Diff(err, tt.expected.err, cmpopts.EquateErrors()))
 			}
 			if tt.expected.err != nil {
 				return
@@ -179,7 +179,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 
 			nb := len(dw.Workflows)
 			if nb != tt.expected.nb {
-				t.Errorf(cmp.Diff(nb, tt.expected.nb))
+				t.Error(cmp.Diff(nb, tt.expected.nb))
 			}
 		})
 	}

@@ -371,33 +371,33 @@ func computeFinalScore(scores []levelScore) (int, error) {
 	return int(score), nil
 }
 
-func info(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
+func info(dl checker.DetailLogger, doLogging bool, msg string) {
 	if !doLogging {
 		return
 	}
 
 	dl.Info(&checker.LogMessage{
-		Text: fmt.Sprintf(desc, args...),
+		Text: msg,
 	})
 }
 
-func debug(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
+func debug(dl checker.DetailLogger, doLogging bool, msg string) {
 	if !doLogging {
 		return
 	}
 
 	dl.Debug(&checker.LogMessage{
-		Text: fmt.Sprintf(desc, args...),
+		Text: msg,
 	})
 }
 
-func warn(dl checker.DetailLogger, doLogging bool, desc string, args ...interface{}) {
+func warn(dl checker.DetailLogger, doLogging bool, msg string) {
 	if !doLogging {
 		return
 	}
 
 	dl.Warn(&checker.LogMessage{
-		Text: fmt.Sprintf(desc, args...),
+		Text: msg,
 	})
 }
 
