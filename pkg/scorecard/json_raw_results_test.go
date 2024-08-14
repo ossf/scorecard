@@ -1280,7 +1280,7 @@ func TestScorecardResult_AsRawJSON(t *testing.T) {
 				return
 			}
 			if gotWriter := writer.String(); gotWriter != tt.wantWriter {
-				t.Errorf(cmp.Diff(gotWriter, tt.wantWriter))
+				t.Error(cmp.Diff(gotWriter, tt.wantWriter))
 			}
 		})
 	}
