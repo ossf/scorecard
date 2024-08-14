@@ -189,7 +189,7 @@ func addDependencyUpdateToolRawResults(r *jsonScorecardRawResult,
 			URL:  t.URL,
 			Desc: t.Desc,
 		}
-		if t.Files != nil && len(t.Files) > 0 {
+		if len(t.Files) > 0 {
 			for _, f := range t.Files {
 				jt.Files = append(jt.Files, jsonFile{
 					Path: f.Path,
