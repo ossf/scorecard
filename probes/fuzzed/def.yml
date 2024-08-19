@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: fuzzed
+lifecycle: stable
 short: Check that the project is fuzzed
 motivation: >
   Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data into a program to expose bugs.

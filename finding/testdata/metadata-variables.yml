@@ -1,4 +1,5 @@
 id: metadata-variables
+lifecycle: stable
 short: short description
 motivation: >
   line1

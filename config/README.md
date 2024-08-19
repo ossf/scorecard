@@ -1,6 +1,6 @@
 # Maintainer Annotations
 
-**Maintainer Annotations** are an experimental feature that let maintainers add context to Scorecard check results. Annotations can inform users when Scorecard is incorrectly assessing a project's security practices.
+**Maintainer Annotations** let maintainers add context to display alongside Scorecard check results. Annotations can provide users additional information when Scorecard has an incomplete assessment of a project's security practices.
 
 ## Annotating Your Project
 
@@ -10,40 +10,37 @@ To annotate your repository, create a `scorecard.yml` file in the root of your r
 The file structure is as follows:
 
 ```yml
-exemptions:
+annotations:
   - checks:
       - binary-artifacts
-    annotations:
-      - annotation: test-data # the binary files are only used for testing
+    reasons:
+      - reason: test-data # the binary files are only used for testing
   - checks:
       - dangerous-workflow
-    annotations:
-      - annotation: remediated # the workflow is dangerous but only run under maintainers verification and approval
-      -
+    reasons:
+      - reason: remediated # the workflow is dangerous but only run under maintainers verification and approval
 ```
 
 You can annotate multiple checks at a time:
 
 ```yml
-exemptions:
+annotations:
   - checks:
       - binary-artifacts
       - pinned-dependencies
-    annotations:
-      - annotation: test-data # the binary files and files with unpinned dependencies are only used for testing
- 
+    reasons:
+      - reason: test-data # the binary files and files with unpinned dependencies are only used for testing
 ```
 
 And also provide multiple annotations for checks:
 
 ```yml
-exemptions:
+annotations:
   - checks:
       - binary-artifacts
-    annotations:
-      - annotation: test-data # test.exe is only used for testing 
-      - annotation: remediated # dependency.exe is needed and it's used but the binary signature is verified
-  
+    reasons:
+      - reason: test-data # test.exe is only used for testing 
+      - reason: remediated # dependency.exe is needed and it's used but the binary signature is verified
 ```
 
 The available checks are the Scorecard checks in lower case e.g. Binary-Artifacts is `binary-artifacts`.

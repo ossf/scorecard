@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: requiresLastPushApproval
+lifecycle: stable
 short: Check that the project requires approval of the most recent push.
 motivation: >
   Requiring approval of the most recent push prevents contributors from sneaking malicious commits into a PR after it has been approved.

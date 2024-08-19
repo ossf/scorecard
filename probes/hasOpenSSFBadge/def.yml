@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasOpenSSFBadge
+lifecycle: stable
 short: This check determines whether the project has an OpenSSF (formerly CII) Best Practices Badge.
 motivation: >
   The OpenSSF Best Practices badge indicates whether or not the project uses a set of security-focused best development practices for open source software.

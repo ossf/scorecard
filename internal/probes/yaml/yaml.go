@@ -31,6 +31,7 @@ type Probe struct {
 	ID             string      `yaml:"id"`
 	Short          string      `yaml:"short"`
 	Motivation     string      `yaml:"motivation"`
+	Lifecycle      string      `yaml:"lifecycle"`
 	Implementation string      `yaml:"implementation"`
 	Ecosystem      Ecosystem   `yaml:"ecosystem"`
 	Outcomes       []string    `yaml:"outcome"`

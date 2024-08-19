@@ -39,6 +39,7 @@ func printField(w io.Writer, name string, value any) {
 func printProbe(w io.Writer, p *pyaml.Probe) {
 	// short, motivation, implementation, outcome, remediation, ecosystem
 	fmt.Fprint(w, "\n"+"## "+p.ID+"\n\n")
+	printField(w, "Lifecycle", p.Lifecycle)
 	printField(w, "Description", p.Short)
 	printField(w, "Motivation", p.Motivation)
 	printField(w, "Implementation", p.Implementation)

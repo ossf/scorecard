@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pkg
+package scorecard
 
 import (
 	"fmt"
@@ -52,8 +52,8 @@ type RepoInfo struct {
 	CommitSHA string
 }
 
-// ScorecardResult struct is returned on a successful Scorecard run.
-type ScorecardResult struct {
+// Result struct is returned on a successful Scorecard run.
+type Result struct {
 	Repo       RepoInfo
 	Date       time.Time
 	Scorecard  ScorecardInfo
@@ -79,7 +79,7 @@ func scoreToString(s float64) string {
 }
 
 // GetAggregateScore returns the aggregate score.
-func (r *ScorecardResult) GetAggregateScore(checkDocs docChecks.Doc) (float64, error) {
+func (r *Result) GetAggregateScore(checkDocs docChecks.Doc) (float64, error) {
 	// TODO: calculate the score and make it a field
 	// of ScorecardResult
 	weights := map[string]float64{"Critical": 10, "High": 7.5, "Medium": 5, "Low": 2.5}
@@ -121,7 +121,7 @@ func (r *ScorecardResult) GetAggregateScore(checkDocs docChecks.Doc) (float64, e
 // FormatResults formats scorecard results.
 func FormatResults(
 	opts *options.Options,
-	results *ScorecardResult,
+	results *Result,
 	doc docChecks.Doc,
 	policy *spol.ScorecardPolicy,
 ) error {
@@ -179,7 +179,7 @@ func FormatResults(
 }
 
 // AsString returns ScorecardResult in string format.
-func (r *ScorecardResult) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStringResultOption) error {
+func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStringResultOption) error {
 	if opt == nil {
 		opt = &AsStringResultOption{
 			LogLevel:    log.DefaultLevel,
@@ -215,7 +215,7 @@ func (r *ScorecardResult) AsString(writer io.Writer, checkDocs docChecks.Doc, op
 		}
 		x = append(x, doc)
 		if opt.Annotations {
-			_, reasons := row.IsExempted(r.Config)
+			reasons := row.Annotations(r.Config)
 			x = append(x, strings.Join(reasons, "\n"))
 		}
 		data[i] = x
@@ -255,7 +255,7 @@ func (r *ScorecardResult) AsString(writer io.Writer, checkDocs docChecks.Doc, op
 }
 
 //nolint:gocognit,gocyclo // nothing better to do right now
-func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *ScorecardResult) error {
+func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Result) error {
 	switch probeCheckName {
 	case checks.CheckBinaryArtifacts:
 		rawData, err := raw.BinaryArtifacts(request)
@@ -394,7 +394,7 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Sc
 	return nil
 }
 
-func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *ScorecardResult) error {
+func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *Result) error {
 	seen := map[string]bool{}
 	for _, probeName := range probesToRun {
 		p, err := proberegistration.Get(probeName)
@@ -402,7 +402,7 @@ func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret
 			return fmt.Errorf("getting probe %q: %w", probeName, err)
 		}
 		for _, checkName := range p.RequiredRawData {
-			checkName := string(checkName)
+			checkName := checkName
 			if !seen[checkName] {
 				err := assignRawData(checkName, request, ret)
 				if err != nil {

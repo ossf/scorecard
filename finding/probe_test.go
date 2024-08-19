@@ -90,6 +90,18 @@ func Test_probeFromBytes(t *testing.T) {
 			path: "testdata/invalid-client.yml",
 			err:  errInvalid,
 		},
+		{
+			name: "invalid lifecycle is an error",
+			id:   "invalid-lifecycle",
+			path: "testdata/invalid-lifecycle.yml",
+			err:  errInvalid,
+		},
+		{
+			name: "missing lifecycle is an error",
+			id:   "missing-lifecycle",
+			path: "testdata/missing-lifecycle.yml",
+			err:  errInvalid,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt // Re-initializing variable so it is not changed while executing the closure below
@@ -98,7 +110,7 @@ func Test_probeFromBytes(t *testing.T) {
 
 			content, err := os.ReadFile(tt.path)
 			if err != nil {
-				t.Fatalf(err.Error())
+				t.Fatal(err.Error())
 			}
 
 			r, err := probeFromBytes(content, tt.id)

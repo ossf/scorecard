@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -27,12 +28,15 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
-	"github.com/ossf/scorecard/v5/pkg"
+	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
 )
 
@@ -74,7 +78,7 @@ func New(o *options.Options) *cobra.Command {
 // rootCmd runs scorecard checks given a set of arguments.
 func rootCmd(o *options.Options) error {
 	var err error
-	var repoResult pkg.ScorecardResult
+	var repoResult scorecard.Result
 
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
@@ -92,16 +96,18 @@ func rootCmd(o *options.Options) error {
 	}
 
 	ctx := context.Background()
-	logger := sclog.NewLogger(sclog.ParseLevel(o.LogLevel))
-	repoURI, repoClient, ossFuzzRepoClient, ciiClient, vulnsClient, projectClient, err := checker.GetClients(
-		ctx, o.Repo, o.Local, logger) // MODIFIED
-	if err != nil {
-		return fmt.Errorf("GetClients: %w", err)
-	}
 
-	defer repoClient.Close()
-	if ossFuzzRepoClient != nil {
-		defer ossFuzzRepoClient.Close()
+	var repo clients.Repo
+	if o.Local != "" {
+		repo, err = localdir.MakeLocalDirRepo(o.Local)
+		if err != nil {
+			return fmt.Errorf("making local dir: %w", err)
+		}
+	} else {
+		repo, err = makeRepo(o.Repo)
+		if err != nil {
+			return fmt.Errorf("making remote repo: %w", err)
+		}
 	}
 
 	// Read docs.
@@ -117,9 +123,16 @@ func rootCmd(o *options.Options) error {
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
+	// this call to policy is different from the one in scorecard.Run
+	// this one is concerned with a policy file, while the scorecard.Run call is
+	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
+	}
+	checks := make([]string, 0, len(enabledChecks))
+	for c := range enabledChecks {
+		checks = append(checks, c)
 	}
 
 	enabledProbes := o.Probes()
@@ -131,21 +144,15 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	repoResult, err = pkg.ExperimentalRunProbes(
-		ctx,
-		repoURI,
-		o.Commit,
-		o.CommitDepth,
-		enabledChecks,
-		enabledProbes,
-		repoClient,
-		ossFuzzRepoClient,
-		ciiClient,
-		vulnsClient,
-		projectClient,
+	repoResult, err = scorecard.Run(ctx, repo,
+		scorecard.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
+		scorecard.WithCommitSHA(o.Commit),
+		scorecard.WithCommitDepth(o.CommitDepth),
+		scorecard.WithProbes(enabledProbes),
+		scorecard.WithChecks(checks),
 	)
 	if err != nil {
-		return fmt.Errorf("RunScorecard: %w", err)
+		return fmt.Errorf("scorecard.Run: %w", err)
 	}
 
 	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
@@ -163,7 +170,7 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	resultsErr := pkg.FormatResults(
+	resultsErr := scorecard.FormatResults(
 		o,
 		&repoResult,
 		checkDocs,
@@ -205,4 +212,19 @@ func printCheckResults(enabledChecks checker.CheckNameToFnMap) {
 		fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
 	}
 	fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
+}
+
+// makeRepo helps turn a URI into the appropriate clients.Repo.
+// currently this is a decision between GitHub and GitLab,
+// but may expand in the future.
+func makeRepo(uri string) (clients.Repo, error) {
+	var repo clients.Repo
+	var errGitHub, errGitLab error
+	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub != nil {
+		repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
+		if errGitLab != nil {
+			return nil, fmt.Errorf("unable to parse as github or gitlab: %w", errors.Join(errGitHub, errGitLab))
+		}
+	}
+	return repo, nil
 }

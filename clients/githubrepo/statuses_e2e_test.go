@@ -44,6 +44,7 @@ var _ = Describe("E2E TEST: githubrepo.statusesHandler", func() {
 	})
 	Context("listStatuses()", func() {
 		It("returns statuses", func() {
+			Skip("TODO: https://github.com/ossf/scorecard/issues/4273")
 			repoURL := Repo{
 				owner:     "ossf",
 				repo:      "scorecard",

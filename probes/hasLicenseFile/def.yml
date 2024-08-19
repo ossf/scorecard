@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasLicenseFile
+lifecycle: stable
 short: Check that the project has a license file
 motivation: >
   A license can give users information about how the source code may or may not be used.

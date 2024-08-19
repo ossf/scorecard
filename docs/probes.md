@@ -7,6 +7,8 @@ please [contribute](../CONTRIBUTING.md)!
 
 ## archived
 
+**Lifecycle**: stable
+
 **Description**: Check that the project is archived
 
 **Motivation**: An archived project will not received security patches, and is not actively tested or used.
@@ -19,6 +21,8 @@ If the project is not archived, the outcome is OutcomeFalse.
 
 ## blocksDeleteOnBranches
 
+**Lifecycle**: stable
+
 **Description**: Check that the project blocks non-admins from deleting branches.
 
 **Motivation**: Allowing non-admins to delete project branches has a similar effect to performing force pushes.
@@ -29,6 +33,8 @@ If the project is not archived, the outcome is OutcomeFalse.
 
 
 ## blocksForcePushOnBranches
+
+**Lifecycle**: stable
 
 **Description**: Check that the project blocks force push on its branches.
 
@@ -42,6 +48,8 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 ## branchProtectionAppliesToAdmins
 
+**Lifecycle**: stable
+
 **Description**: Check that the project's branch protection rules apply to project admins.
 
 **Motivation**: Admins may be able to bypass branch protection settings which could defeat the purpose of having them.
@@ -53,6 +61,8 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 ## branchesAreProtected
 
+**Lifecycle**: stable
+
 **Description**: Check that the project uses protected branches.
 
 **Motivation**: Unprotected branches may allow actions that could compromise the project's security.
@@ -63,6 +73,8 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 
 ## codeApproved
+
+**Lifecycle**: experimental
 
 **Description**: Check that all recent changesets have been approved by someone who is not the author of the changeset.
 
@@ -77,6 +89,8 @@ If there are no changes, the probe returns OutcomeNotApplicable
 
 ## codeReviewOneReviewers
 
+**Lifecycle**: experimental
+
 **Description**: Check that at least one reviewers review a change before merging.
 
 **Motivation**: To ensure that the review process works, the proposed changes should have a minimum number of approvals.
@@ -88,6 +102,8 @@ If the changes had fewer than one reviewers, the prove returns OutcomeFalse (0)
 
 
 ## contributorsFromOrgOrCompany
+
+**Lifecycle**: experimental
 
 **Description**: Checks whether a project has a contributions from users associated with a company or organization.
 
@@ -101,6 +117,8 @@ If the project has contributing organizations, the probe returns 1 OutcomeTrue p
 
 ## createdRecently
 
+**Lifecycle**: stable
+
 **Description**: Checks if the project was created in the last 90 days.
 
 **Motivation**: Recently created repositories have been used for malicious forks / typosquatting attacks in the past. A newly created repo is not a strong signal on its own, but can be a useful piece of information.
@@ -112,6 +130,8 @@ If the project is older than 90 days, the outcome is OutcomeFalse. The finding w
 
 
 ## dependencyUpdateToolConfigured
+
+**Lifecycle**: stable
 
 **Description**: Check that a dependency update tool config is present.
 
@@ -125,6 +145,8 @@ If no tool is detected, the probe returns OutcomeFalse.
 
 ## dismissesStaleReviews
 
+**Lifecycle**: stable
+
 **Description**: Check that the project dismisses stale reviews when new commits are pushed.
 
 **Motivation**: When a project does not dismiss stale reviews, contributors can bring their pull requests to an approved state and then make unreviewed commits.
@@ -135,6 +157,8 @@ If no tool is detected, the probe returns OutcomeFalse.
 
 
 ## fuzzed
+
+**Lifecycle**: stable
 
 **Description**: Check that the project is fuzzed
 
@@ -148,6 +172,8 @@ If no fuzzing tool is found, or the project uses a tool we don't detect, one fin
 
 ## hasBinaryArtifacts
 
+**Lifecycle**: stable
+
 **Description**: Checks if the project has any binary files in its source tree.
 
 **Motivation**: Binary files are not human readable so users and reviewers can't easily see what they do.
@@ -159,6 +185,8 @@ If the probe finds no binary files, it returns a single OutcomeFalse.
 
 
 ## hasDangerousWorkflowScriptInjection
+
+**Lifecycle**: stable
 
 **Description**: Check whether the project has GitHub Actions workflows that enable script injection.
 
@@ -172,6 +200,8 @@ If no dangerous patterns are found, the probe returns one finding with OutcomeFa
 
 ## hasDangerousWorkflowUntrustedCheckout
 
+**Lifecycle**: stable
+
 **Description**: Check whether the project has GitHub Actions workflows that does untrusted checkouts.
 
 **Motivation**: GitHub workflows triggered with pull_request_target or workflow_run have write permission to the target repository and access to target repository secrets. Combined with a dangerous checkout of PR contents, attackers may be able to compromise the repository, for example, by using build scripts controlled by the PR author.
@@ -183,6 +213,8 @@ The probe returns one finding with OutcomeFalse if no untrusted checkouts are de
 
 
 ## hasFSFOrOSIApprovedLicense
+
+**Lifecycle**: stable
 
 **Description**: Check that the project has an FSF or OSI approved license.
 
@@ -197,6 +229,8 @@ If the license is not of an approved format, the probe returns a single OutcomeF
 
 ## hasLicenseFile
 
+**Lifecycle**: stable
+
 **Description**: Check that the project has a license file
 
 **Motivation**: A license can give users information about how the source code may or may not be used. The lack of a license will impede any kind of security review or audit and creates a legal risk for potential users.
@@ -208,6 +242,8 @@ If a license file is not found, the probe returns a single OutcomeFalse.
 
 
 ## hasNoGitHubWorkflowPermissionUnknown
+
+**Lifecycle**: experimental
 
 **Description**: Checks that GitHub workflows have workflows with unknown permissions
 
@@ -221,6 +257,8 @@ The probe returns 1 true outcome if the project has no workflows with unknown pe
 
 ## hasOSVVulnerabilities
 
+**Lifecycle**: stable
+
 **Description**: Check whether the project has known vulnerabilities
 
 **Motivation**: This check determines whether the project has open, unfixed vulnerabilities in its own codebase or its dependencies using the OSV (Open Source Vulnerabilities) service. An open vulnerability may be exploited by attackers and should be fixed as soon as possible.
@@ -233,6 +271,8 @@ If there are no known vulnerabilities detected, the probe returns one false outc
 
 ## hasOpenSSFBadge
 
+**Lifecycle**: stable
+
 **Description**: This check determines whether the project has an OpenSSF (formerly CII) Best Practices Badge.
 
 **Motivation**: The OpenSSF Best Practices badge indicates whether or not the project uses a set of security-focused best development practices for open source software.
@@ -244,6 +284,8 @@ If the project does not have a badge, the probe returns one OutcomeFalse.
 
 
 ## hasPermissiveLicense
+
+**Lifecycle**: stable
 
 **Description**: Check that the project has an permissive license.
 
@@ -258,6 +300,8 @@ If the license is not permissive, the probe returns a single OutcomeFalse.
 
 ## hasRecentCommits
 
+**Lifecycle**: stable
+
 **Description**: Check whether the project has at least one commit per week over the last 90 days.
 
 **Motivation**: A project which is not active might not be patched, have its dependencies patched, or be actively tested and used. A lack of active maintenance should signal that potential users should investigate further to judge the situation. A project may not need further features or maintenance; In this case, the probe results can be disregarded.
@@ -269,6 +313,8 @@ If the project does not have commits in the last 90 days, the probe returns a si
 
 
 ## hasReleaseSBOM
+
+**Lifecycle**: experimental
 
 **Description**: Check that the project publishes an SBOM as part of its release artifacts.
 
@@ -282,6 +328,8 @@ If an SBOM artifact is not found, the probe returns a single OutcomeFalse.
 
 ## hasSBOM
 
+**Lifecycle**: experimental
+
 **Description**: Check that the project has an SBOM file
 
 **Motivation**: An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.
@@ -293,6 +341,8 @@ If an SBOM file is not found, the probe returns a single OutcomeFalse.
 
 
 ## hasUnverifiedBinaryArtifacts
+
+**Lifecycle**: stable
 
 **Description**: Checks if the project has binary files in its source tree. The probe skips verified binary files which currently are gradle-wrappers.
 
@@ -306,6 +356,8 @@ If the probe finds no unverified binary files, it returns OutcomeFalse.
 
 ## issueActivityByProjectMember
 
+**Lifecycle**: stable
+
 **Description**: Checks that a collaborator, member or owner has participated in issues in the last 90 days.
 
 **Motivation**: A project which does not respond to issues may not be actively maintained. A lack of active maintenance should signal that potential users should investigate further to judge the situation. However a project may simply not have any recent issues; In this case, the probe results can be disregarded.
@@ -317,6 +369,8 @@ If collaborators, members or owners have NOT participated in issues in the last 
 
 
 ## jobLevelPermissions
+
+**Lifecycle**: experimental
 
 **Description**: Checks that GitHub workflows do not have "write" permissions at the "job" level.
 
@@ -330,6 +384,8 @@ The probe returns 1 true outcome if the project has no workflows "write" permiss
 
 ## packagedWithAutomatedWorkflow
 
+**Lifecycle**: stable
+
 **Description**: Checks whether the project uses automated packaging.
 
 **Motivation**: Packages give users of a project an easy way to download, install, update, and uninstall the software by a package manager. In particular, they make it easy for users to receive security patches as updates.
@@ -341,6 +397,8 @@ If the project doesn't use automated packaing we can detect, the outcome is nega
 
 
 ## pinsDependencies
+
+**Lifecycle**: stable
 
 **Description**: Check that the project pins dependencies to a specific digest.
 
@@ -355,6 +413,8 @@ If the project has no supported dependencies, the probe returns OutcomeNotApplic
 
 ## releasesAreSigned
 
+**Lifecycle**: stable
+
 **Description**: Check that the projects GitHub and GitLab releases are signed.
 
 **Motivation**: Signed releases allow consumers to verify their artifacts before consuming them.
@@ -367,6 +427,8 @@ If the project has no releases, the probe returns OutcomeNotApplicable.
 
 
 ## releasesHaveProvenance
+
+**Lifecycle**: stable
 
 **Description**: Check that the projects releases on GitHub and GitLab have provenance.
 
@@ -381,6 +443,8 @@ If the project has no releases, the probe returns OutcomeNotApplicable.
 
 ## releasesHaveVerifiedProvenance
 
+**Lifecycle**: experimental
+
 **Description**: Checks if the project releases with provenance attestations that have been verified
 
 **Motivation**: Package provenance attestations provide a greater guarantee of authenticity and integrity than package signatures alone, since the attestation can be performed over a hash of both the package contents and metadata. Developers can attest to particular qualities of the build, such as the build environment, build steps or builder identity.
@@ -393,6 +457,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 ## requiresApproversForPullRequests
 
+**Lifecycle**: stable
+
 **Description**: Check that the project requires approvers for pull requests.
 
 **Motivation**: Requiring approvers for pull requests makes it harder to introduce vulnerable code to the project.
@@ -403,6 +469,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 
 ## requiresCodeOwnersReview
+
+**Lifecycle**: stable
 
 **Description**: Check that the project requires dedicated code owners to review PRs.
 
@@ -415,6 +483,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 ## requiresLastPushApproval
 
+**Lifecycle**: stable
+
 **Description**: Check that the project requires approval of the most recent push.
 
 **Motivation**: Requiring approval of the most recent push prevents contributors from sneaking malicious commits into a PR after it has been approved.
@@ -425,6 +495,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 
 ## requiresPRsToChangeCode
+
+**Lifecycle**: stable
 
 **Description**: Check that the project requires pull requests to change code.
 
@@ -437,6 +509,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 ## requiresUpToDateBranches
 
+**Lifecycle**: stable
+
 **Description**: Check that the project requires PRs to be in sync with the base branch.
 
 **Motivation**: Requiring PRs to be in sync with the base branch is good practice.
@@ -447,6 +521,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 
 ## runsStatusChecksBeforeMerging
+
+**Lifecycle**: stable
 
 **Description**: Check that the project runs required status checks
 
@@ -459,6 +535,8 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 ## sastToolConfigured
 
+**Lifecycle**: stable
+
 **Description**: Check that the project uses a SAST tool
 
 **Motivation**: SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.
@@ -470,6 +548,8 @@ If the project does not use a SAST tool, or uses a tool we dont currently detect
 
 
 ## sastToolRunsOnAllCommits
+
+**Lifecycle**: experimental
 
 **Description**: Checks that a SAST tool runs on all commits in the projects CI.
 
@@ -484,6 +564,8 @@ If the project does not run any SAST tools successfully on every pull request be
 
 ## securityPolicyContainsLinks
 
+**Lifecycle**: stable
+
 **Description**: Check that the security policy contains web or email links.
 
 **Motivation**: URLs point users to additional information as well as online disclosure forms. Emails provide a point of contact for vulnerability disclosure.
@@ -496,6 +578,8 @@ If no security policy files are found, one finding with OutcomeFalse is returned
 
 
 ## securityPolicyContainsText
+
+**Lifecycle**: stable
 
 **Description**: Check that the security policy contains enough text and not just links.
 
@@ -510,6 +594,8 @@ If no security policy is found, one finding with OutcomeFalse is returned.
 
 ## securityPolicyContainsVulnerabilityDisclosure
 
+**Lifecycle**: stable
+
 **Description**: Check that the security policy indicates a vulnerability disclosure process.
 
 **Motivation**: If someone finds a vulnerability in the project, it is important for them to be able to communicate it to the maintainers.
@@ -523,6 +609,8 @@ If no security policy is found, the probe returns one finding with OutcomeFalse.
 
 ## securityPolicyPresent
 
+**Lifecycle**: stable
+
 **Description**: Check if a security policy is defined in the repository or in the org's .github repository.
 
 **Motivation**: A security policy (typically a SECURITY.md file) can give users information about what constitutes a vulnerability and how to report one securely so that information about a bug is not publicly visible. If you have a large organization, having a unified security policy across all your repositories may simplify the vulnerability disclosure response.
@@ -534,6 +622,8 @@ If no security file is found, one finding with OutcomeFalse is returned.
 
 
 ## testsRunInCI
+
+**Lifecycle**: stable
 
 **Description**: Checks that the project runs tests in the CI for example with GitHub Actions or Prow.
 
@@ -547,6 +637,8 @@ The probe returns a single OutcomeNotApplicable if the projects has had no pull 
 
 ## topLevelPermissions
 
+**Lifecycle**: experimental
+
 **Description**: Checks that the project does not have any top-level write permissions in its workflows.
 
 **Motivation**: In some circumstances, having "write" permissions at the "top" level may enable attackers to escalate privileges.
@@ -558,6 +650,8 @@ The probe returns 1 true outcome if the project has no workflows "write" permiss
 
 
 ## webhooksUseSecrets
+
+**Lifecycle**: experimental
 
 **Description**: This check determines whether the webhooks defined in the repository have secrets configured to authenticate the origins of requests.
 

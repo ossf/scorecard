@@ -13,6 +13,7 @@
 # limitations under the License.
 
 id: hasDangerousWorkflowUntrustedCheckout
+lifecycle: stable
 short: Check whether the project has GitHub Actions workflows that does untrusted checkouts.
 motivation: >
   GitHub workflows triggered with pull_request_target or workflow_run have write permission to the target repository and access to target repository secrets.
