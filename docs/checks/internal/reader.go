@@ -35,9 +35,10 @@ type Check struct {
 	Description string   `yaml:"description"`
 	Tags        string   `yaml:"tags"`
 	Repos       string   `yaml:"repos"`
-	Remediation []string `yaml:"remediation"`
 	Name        string   `yaml:"-"`
 	URL         string   `yaml:"-"`
+	Remediation []string `yaml:"remediation"`
+	ID          uint     `yaml:"id"`
 }
 
 // Doc stores the documentation for all checks.

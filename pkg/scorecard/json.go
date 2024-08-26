@@ -55,6 +55,7 @@ type jsonCheckResultV2 struct {
 	Name        string                   `json:"name"`
 	Doc         jsonCheckDocumentationV2 `json:"documentation"`
 	Annotations []string                 `json:"annotations,omitempty"`
+	ID          uint                     `json:"id"`
 }
 
 type jsonRepoV2 struct {
@@ -80,12 +81,12 @@ func (s jsonFloatScore) MarshalJSON() ([]byte, error) {
 //
 //nolint:govet
 type JSONScorecardResultV2 struct {
-	Date           string              `json:"date"`
 	Repo           jsonRepoV2          `json:"repo"`
 	Scorecard      jsonScorecardV2     `json:"scorecard"`
-	AggregateScore jsonFloatScore      `json:"score"`
+	Date           string              `json:"date"`
 	Checks         []jsonCheckResultV2 `json:"checks"`
 	Metadata       []string            `json:"metadata"`
+	AggregateScore jsonFloatScore      `json:"score"`
 }
 
 // AsJSON2ResultOption provides configuration options for JSON2 Scorecard results.
@@ -167,6 +168,7 @@ func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2Resul
 		}
 
 		tmpResult := jsonCheckResultV2{
+			ID:   doc.GetID(),
 			Name: checkResult.Name,
 			Doc: jsonCheckDocumentationV2{
 				URL:   doc.GetDocumentationURL(r.Scorecard.CommitSHA),
@@ -232,6 +234,7 @@ func ExperimentalFromJSON2(r io.Reader) (result Result, score float64, err error
 
 	for _, check := range jsr.Checks {
 		cr := checker.CheckResult{
+			ID:     check.ID,
 			Name:   check.Name,
 			Score:  check.Score,
 			Reason: check.Reason,

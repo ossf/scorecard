@@ -24,6 +24,8 @@ import (
 var allowedRisks = map[string]bool{"Critical": true, "High": true, "Medium": true, "Low": true}
 
 func main() {
+	CheckIDMap := make(map[uint]string)
+
 	m, err := docs.Read()
 	if err != nil {
 		panic(fmt.Sprintf("docs.Read: %v", err))
@@ -35,10 +37,20 @@ func main() {
 		if e != nil {
 			panic(fmt.Sprintf("GetCheck: %v: %s", e, check))
 		}
-
 		if check != c.GetName() {
 			panic(fmt.Sprintf("invalid checkName: %s != %s", check, c.GetName()))
 		}
+		id := c.GetID()
+		if id == 0 {
+			panic(fmt.Sprintf("invalid ID for %s Check: %d", check, id))
+		}
+		// check if id is already used with another check
+		dupe, ok := CheckIDMap[id]
+		if ok {
+			panic(fmt.Sprintf("Duplicate ID (%d) for Checks: %s and %s", id, check, dupe))
+		}
+		CheckIDMap[id] = check
+
 		if c.GetDescription() == "" {
 			panic(fmt.Sprintf("description for checkName: %s is empty", check))
 		}
