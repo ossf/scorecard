@@ -395,12 +395,6 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 }
 
 func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *Result) error {
-	localPath, err := request.RepoClient.LocalPath()
-	if err != nil {
-		return fmt.Errorf("RepoClient.LocalPath: %w", err)
-	}
-	ret.RawResults.Metadata.Metadata["localPath"] = localPath
-
 	seen := map[string]bool{}
 	for _, probeName := range probesToRun {
 		p, err := proberegistration.Get(probeName)
