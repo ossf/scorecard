@@ -92,7 +92,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			}
 			content = string(c)
 
-			workflow, errs = actionlint.Parse([]byte(content))
+			workflow, errs = actionlint.Parse(c)
 			if len(errs) > 0 && workflow == nil {
 				continue
 			}
