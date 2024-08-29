@@ -34,7 +34,6 @@ type unsafePattern struct {
 	idRegex      *regexp.Regexp
 	replaceRegex *regexp.Regexp
 	envvarName   string
-	ghVarName    string
 }
 
 // Fixes the script injection identified by the finding and returns a unified diff users can apply (with `git apply` or
@@ -58,7 +57,11 @@ func GeneratePatch(
 
 // Returns a patched version of the workflow without the script injection finding.
 func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow) (string, error) {
-	unsafeVar := strings.Trim(f.Snippet, " ")
+	unsafeVar := strings.TrimSpace(f.Snippet)
+
+	if f.Offset <= 0 {
+		return "", sce.WithMessage(sce.ErrScorecardInternal, "Invalid dangerous workflow offset")
+	}
 	runCmdIndex := f.Offset - 1
 
 	lines := strings.Split(content, "\n")
@@ -134,7 +137,6 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 func newUnsafePattern(e, p string) unsafePattern {
 	return unsafePattern{
 		envvarName: e,
-		ghVarName:  p,
 		// Regex to simply identify the unsafe variable that triggered the finding.
 		// Must use a regex and not a simple string to identify possible uses of array variables
 		// (i.e. `github.event.commits[0].author.email`).
