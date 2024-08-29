@@ -59,8 +59,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	var findings []finding.Finding
 	var curr string
-	var content string
 	var workflow *actionlint.Workflow
+	var content []byte
 	var errs []*actionlint.Error
 	localPath := raw.Metadata.Metadata["localPath"]
 	for _, e := range r.Workflows {
@@ -85,15 +85,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		wp := path.Join(localPath, e.File.Path)
 		if curr != wp {
 			curr = wp
-			var c []byte
-			c, err = os.ReadFile(wp)
+			content, err = os.ReadFile(wp)
 			if err != nil {
 				continue
 			}
-			content = string(c)
 
-			workflow, errs = actionlint.Parse(c)
+			workflow, errs = actionlint.Parse(content)
 			if len(errs) > 0 && workflow == nil {
+				// the workflow contains unrecoverable parsing errors, skip.
 				continue
 			}
 		}

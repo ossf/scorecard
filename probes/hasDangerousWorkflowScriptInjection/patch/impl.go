@@ -14,6 +14,7 @@
 package patch
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"slices"
@@ -40,7 +41,7 @@ type unsafePattern struct {
 // `patch`) to fix the workflow themselves. Should an error occur, an empty patch is returned.
 func GeneratePatch(
 	f checker.File,
-	content string,
+	content []byte,
 	workflow *actionlint.Workflow,
 	workflowErrs []*actionlint.Error,
 ) (string, error) {
@@ -56,36 +57,35 @@ func GeneratePatch(
 }
 
 // Returns a patched version of the workflow without the script injection finding.
-func patchWorkflow(f checker.File, content string, workflow *actionlint.Workflow) (string, error) {
+func patchWorkflow(f checker.File, content []byte, workflow *actionlint.Workflow) ([]byte, error) {
 	unsafeVar := strings.TrimSpace(f.Snippet)
 
 	if f.Offset <= 0 {
-		return "", sce.WithMessage(sce.ErrScorecardInternal, "Invalid dangerous workflow offset")
+		return []byte(""), sce.WithMessage(sce.ErrScorecardInternal, "Invalid dangerous workflow offset")
 	}
 	runCmdIndex := f.Offset - 1
-
-	lines := strings.Split(content, "\n")
+	lines := bytes.Split(content, []byte("\n"))
 
 	unsafePattern, err := getUnsafePattern(unsafeVar)
 	if err != nil {
-		return "", err
+		return []byte(""), err
 	}
 
 	existingEnvvars := parseExistingEnvvars(workflow)
 	unsafePattern, err = useExistingEnvvars(unsafePattern, existingEnvvars, unsafeVar)
 	if err != nil {
-		return "", err
+		return []byte(""), err
 	}
 
 	replaceUnsafeVarWithEnvvar(lines, unsafePattern, runCmdIndex)
 
 	lines, err = addEnvvarToGlobalEnv(lines, existingEnvvars, unsafePattern, unsafeVar)
 	if err != nil {
-		return "", sce.WithMessage(sce.ErrScorecardInternal,
+		return []byte(""), sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("Unknown dangerous variable: %s", unsafeVar))
 	}
 
-	return strings.Join(lines, "\n"), nil
+	return bytes.Join(lines, []byte("\n")), nil
 }
 
 func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
@@ -126,7 +126,8 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 			// Array variable (i.e. `github.event.commits[0].message`), must avoid potential conflicts.
 			// Add the array index to the name as a suffix, and use the exact unsafe variable name instead of the
 			// default, which includes a regex that will catch all instances of the array.
-			return newUnsafePattern(p.envvarName+"_"+arrayIdx[1], regexp.QuoteMeta(unsafeVar)), nil
+			envvarName := fmt.Sprintf("%s_%s", p.envvarName, arrayIdx[1])
+			return newUnsafePattern(envvarName, regexp.QuoteMeta(unsafeVar)), nil
 		}
 	}
 
@@ -208,7 +209,7 @@ func useExistingEnvvars(
 }
 
 // Replaces all instances of the given script injection variable with the safe environment variable.
-func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex uint) {
+func replaceUnsafeVarWithEnvvar(lines [][]byte, pattern unsafePattern, runIndex uint) {
 	runIndent := getIndent(lines[runIndex])
 	for i, line := range lines[runIndex:] {
 		currLine := int(runIndex) + i
@@ -216,7 +217,7 @@ func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex 
 			// anything at the same indent as the first line of the  `- run:` block will mean the end of the run block.
 			break
 		}
-		lines[currLine] = pattern.replaceRegex.ReplaceAllString(line, pattern.envvarName)
+		lines[currLine] = pattern.replaceRegex.ReplaceAll(line, []byte(pattern.envvarName))
 	}
 }
 
@@ -225,10 +226,10 @@ func replaceUnsafeVarWithEnvvar(lines []string, pattern unsafePattern, runIndex 
 //
 // Returns the new array of lines describing the workflow after inserting the new envvar.
 func addEnvvarToGlobalEnv(
-	lines []string,
+	lines [][]byte,
 	existingEnvvars map[string]string,
 	pattern unsafePattern, unsafeVar string,
-) ([]string, error) {
+) ([][]byte, error) {
 	globalIndentation, err := findGlobalIndentation(lines)
 	if err != nil {
 		return lines, err
@@ -254,7 +255,7 @@ func addEnvvarToGlobalEnv(
 	}
 
 	envvarDefinition := fmt.Sprintf("%s: ${{ %s }}", pattern.envvarName, unsafeVar)
-	lines = slices.Insert(lines, insertPos, strings.Repeat(" ", envvarIndent)+envvarDefinition)
+	lines = slices.Insert(lines, insertPos, append(bytes.Repeat([]byte(" "), envvarIndent), []byte(envvarDefinition)...))
 
 	return lines, nil
 }
@@ -266,12 +267,12 @@ func addEnvvarToGlobalEnv(
 //   - int: the indentation used for the declared environment variables
 //
 // Both values return -1 if the `env` block doesn't exist or is invalid.
-func findExistingEnv(lines []string, globalIndent int) (int, int) {
+func findExistingEnv(lines [][]byte, globalIndent int) (int, int) {
 	var currPos int
-	var line string
+	var line []byte
 	envRegex := labelRegex("env", globalIndent)
 	for currPos, line = range lines {
-		if envRegex.MatchString(line) {
+		if envRegex.Match(line) {
 			break
 		}
 	}
@@ -307,18 +308,18 @@ func findExistingEnv(lines []string, globalIndent int) (int, int) {
 // Returns:
 //   - []string: the new array of lines describing the workflow, now with the global `env:` inserted.
 //   - int: the row where the `env:` block was added
-func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, error) {
+func addNewGlobalEnv(lines [][]byte, globalIndentation int) ([][]byte, int, error) {
 	envPos, err := findNewEnvPos(lines, globalIndentation)
 	if err != nil {
 		return nil, -1, err
 	}
 
-	label := strings.Repeat(" ", globalIndentation) + "env:"
-	content := []string{label}
+	label := append(bytes.Repeat([]byte(" "), globalIndentation), []byte("env:")...)
+	content := [][]byte{label}
 
 	numBlankLines := getDefaultBlockSpacing(lines, globalIndentation)
 	for i := 0; i < numBlankLines; i++ {
-		content = append(content, "")
+		content = append(content, []byte(""))
 	}
 
 	lines = slices.Insert(lines, envPos, content...)
@@ -326,10 +327,10 @@ func addNewGlobalEnv(lines []string, globalIndentation int) ([]string, int, erro
 }
 
 // Returns the line where a new `env:` block should be inserted: right above the `jobs:` label.
-func findNewEnvPos(lines []string, globalIndent int) (int, error) {
+func findNewEnvPos(lines [][]byte, globalIndent int) (int, error) {
 	jobsRegex := labelRegex("jobs", globalIndent)
 	for i, line := range lines {
-		if jobsRegex.MatchString(line) {
+		if jobsRegex.Match(line) {
 			return i, nil
 		}
 	}
@@ -339,10 +340,10 @@ func findNewEnvPos(lines []string, globalIndent int) (int, error) {
 
 // Returns the "global" indentation, as defined by the indentation on the required `on:` block.
 // Will equal 0 in almost all cases.
-func findGlobalIndentation(lines []string) (int, error) {
+func findGlobalIndentation(lines [][]byte) (int, error) {
 	r := regexp.MustCompile(`^\s*on:`)
 	for _, line := range lines {
-		if r.MatchString(line) {
+		if r.Match(line) {
 			return getIndent(line), nil
 		}
 	}
@@ -351,19 +352,19 @@ func findGlobalIndentation(lines []string) (int, error) {
 }
 
 // Returns the indentation of the given line. The indentation is all leading whitespace and dashes.
-func getIndent(line string) int {
-	return len(line) - len(strings.TrimLeft(line, " -"))
+func getIndent(line []byte) int {
+	return len(line) - len(bytes.TrimLeft(line, " -"))
 }
 
 // Returns the "default" number of blank lines between blocks.
 // The default is taken as the number of blank lines between the `jobs` label and the end of the preceding block.
-func getDefaultBlockSpacing(lines []string, globalIndent int) int {
+func getDefaultBlockSpacing(lines [][]byte, globalIndent int) int {
 	jobsRegex := labelRegex("jobs", globalIndent)
 
 	var jobsIdx int
-	var line string
+	var line []byte
 	for jobsIdx, line = range lines {
-		if jobsRegex.MatchString(line) {
+		if jobsRegex.Match(line) {
 			break
 		}
 	}
@@ -384,18 +385,18 @@ func getDefaultBlockSpacing(lines []string, globalIndent int) int {
 }
 
 // Returns whether the given line is a blank line (empty or only whitespace).
-func isBlank(line string) bool {
+func isBlank(line []byte) bool {
 	blank := regexp.MustCompile(`^\s*$`)
-	return blank.MatchString(line)
+	return blank.Match(line)
 }
 
 // Returns whether the given line only contains comments.
-func isComment(line string) bool {
+func isComment(line []byte) bool {
 	comment := regexp.MustCompile(`^\s*#`)
-	return comment.MatchString(line)
+	return comment.Match(line)
 }
 
-func isBlankOrComment(line string) bool {
+func isBlankOrComment(line []byte) bool {
 	return isBlank(line) || isComment(line)
 }
 
@@ -410,7 +411,7 @@ func isBlankOrComment(line string) bool {
 //	job_bar:  # this line has job_foo's indentation, so we know job_foo is done
 //
 // Blank lines and those containing only comments are ignored and always return false.
-func isParentLevelIndent(line string, parentIndent int) bool {
+func isParentLevelIndent(line []byte, parentIndent int) bool {
 	if isBlankOrComment(line) {
 		return false
 	}
@@ -423,11 +424,11 @@ func labelRegex(label string, indent int) *regexp.Regexp {
 
 // Returns the default indentation step adopted in the document.
 // This is taken from the difference in indentation between the `jobs:` label and the first job's label.
-func getDefaultIndentStep(lines []string) int {
+func getDefaultIndentStep(lines [][]byte) int {
 	jobs := regexp.MustCompile(`^\s*jobs:`)
 	var jobsIndex, jobsIndent int
 	for i, line := range lines {
-		if jobs.MatchString(line) {
+		if jobs.Match(line) {
 			jobsIndex = i
 			jobsIndent = getIndent(line)
 			break
@@ -450,8 +451,8 @@ func getDefaultIndentStep(lines []string) int {
 // errors, then the patched version also might. As long as all the patch's errors match the original's, it is validated.
 //
 // Returns the array of new parsing errors caused by the patch.
-func validatePatchedWorkflow(content string, originalErrs []*actionlint.Error) []*actionlint.Error {
-	_, patchedErrs := actionlint.Parse([]byte(content))
+func validatePatchedWorkflow(content []byte, originalErrs []*actionlint.Error) []*actionlint.Error {
+	_, patchedErrs := actionlint.Parse(content)
 	if len(patchedErrs) == 0 {
 		return []*actionlint.Error{}
 	}
@@ -495,7 +496,7 @@ func validatePatchedWorkflow(content string, originalErrs []*actionlint.Error) [
 }
 
 // Returns the changes between the original and patched workflows as a unified diff (same as `git diff` or `diff -u`).
-func getDiff(path, original, patched string) (string, error) {
+func getDiff(path string, original, patched []byte) (string, error) {
 	// initialize an in-memory repository
 	repo, err := newInMemoryRepo()
 	if err != nil {
@@ -528,7 +529,7 @@ func newInMemoryRepo() (*git.Repository, error) {
 }
 
 // Commits the workflow at the given path to the in-memory repository.
-func commitWorkflow(path, contents string, repo *git.Repository) (*object.Commit, error) {
+func commitWorkflow(path string, contents []byte, repo *git.Repository) (*object.Commit, error) {
 	worktree, err := repo.Worktree()
 	if err != nil {
 		return nil, fmt.Errorf("repo.Worktree: %w", err)
@@ -541,7 +542,7 @@ func commitWorkflow(path, contents string, repo *git.Repository) (*object.Commit
 		return nil, fmt.Errorf("filesystem.Create: %w", err)
 	}
 
-	_, err = df.Write([]byte(contents))
+	_, err = df.Write(contents)
 	if err != nil {
 		return nil, fmt.Errorf("df.Write: %w", err)
 	}

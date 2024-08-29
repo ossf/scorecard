@@ -144,7 +144,7 @@ func Test_patchWorkflow(t *testing.T) {
 			for i, dw := range dws {
 				i++ // Only used for error messages, increment for legibility
 
-				output, err := patchWorkflow(dw.File, string(inputContent), workflow)
+				output, err := patchWorkflow(dw.File, inputContent, workflow)
 				if err != nil {
 					t.Errorf("Couldn't patch workflow for finding #%d. Error:\n%s", i, err)
 				}
@@ -183,7 +183,7 @@ func readWorkflow(filePath string) ([]byte, *actionlint.Workflow, []*actionlint.
 	return inputContent, workflow, inputErrs, nil
 }
 
-func getExpected(t *testing.T, filePath string, numFindings, findingIndex int) string {
+func getExpected(t *testing.T, filePath string, numFindings, findingIndex int) []byte {
 	t.Helper()
 	// build path to fixed version
 	dot := strings.LastIndex(filePath, ".")
@@ -197,7 +197,7 @@ func getExpected(t *testing.T, filePath string, numFindings, findingIndex int) s
 	if err != nil {
 		t.Errorf("Couldn't read expected output file for finding #%d. Error:\n%s", findingIndex, err)
 	}
-	return string(content)
+	return content
 }
 
 func detectDangerousWorkflows(t *testing.T, filePath string) []checker.DangerousWorkflow {
