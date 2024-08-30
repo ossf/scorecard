@@ -387,7 +387,7 @@ type fsfOsiLicenseType struct {
 	Name string
 }
 
-// SPDX license list avaliable here: https://spdx.org/licenses (OSI approved / FSF licenses only)
+// SPDX license list available here: https://spdx.org/licenses (OSI approved / FSF licenses only)
 // JSON formatted list: https://github.com/spdx/license-list-data/blob/main/json/licenses.json
 var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"0BSD":                            {Name: "BSD Zero Clause License"},
