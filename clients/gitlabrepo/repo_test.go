@@ -182,7 +182,6 @@ func TestRepoURL_MakeGitLabRepo(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // uses t.Setenv, can't be parallelized
 func TestRepoURL_parse_GL_HOST(t *testing.T) {
 	tests := []struct {
 		name                 string
