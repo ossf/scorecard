@@ -1,11 +1,11 @@
 module github.com/ossf/scorecard/v5
 
-go 1.21.12
+go 1.22.0
 
 require (
 	cloud.google.com/go/bigquery v1.62.0
 	cloud.google.com/go/monitoring v1.20.4 // indirect
-	cloud.google.com/go/pubsub v1.41.0
+	cloud.google.com/go/pubsub v1.42.0
 	cloud.google.com/go/trace v1.10.12 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -30,12 +30,12 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.39.0
 	golang.org/x/text v0.17.0
-	golang.org/x/tools v0.23.0 // indirect
+	golang.org/x/tools v0.24.0 // indirect
 	google.golang.org/genproto v0.0.0-20240812133136-8ffd90a71988 // indirect
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
-	mvdan.cc/sh/v3 v3.8.0
+	mvdan.cc/sh/v3 v3.9.0
 )
 
 require (
@@ -44,7 +44,7 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/osv-scanner v1.8.4
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.19.1
+	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/otiai10/copy v1.14.0
 	sigs.k8s.io/release-utils v0.8.4
 )
@@ -83,7 +83,7 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-github/v62 v62.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/pprof v0.0.0-20240711041743-f6c9dda6c6da // indirect
+	github.com/google/pprof v0.0.0-20240827171923-fa2c70bbbfe5 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
