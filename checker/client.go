@@ -17,8 +17,10 @@ package checker
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/ossf/scorecard/v5/clients"
+	azdorepo "github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	ghrepo "github.com/ossf/scorecard/v5/clients/githubrepo"
 	glrepo "github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
@@ -56,11 +58,19 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 			retErr
 	}
 
+	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	var repoClient clients.RepoClient
 
 	repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
 	if repo != nil && makeRepoError == nil {
 		repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
+	}
+
+	if experimental && (makeRepoError != nil || repo == nil) {
+		repo, makeRepoError = azdorepo.MakeAzureDevOpsRepo(repoURI)
+		if repo != nil && makeRepoError == nil {
+			repoClient, makeRepoError = azdorepo.CreateAzureDevOpsClient(ctx, repo)
+		}
 	}
 
 	if makeRepoError != nil || repo == nil {
