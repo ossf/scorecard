@@ -60,11 +60,11 @@ func GeneratePatch(
 func patchWorkflow(f checker.File, content []byte, workflow *actionlint.Workflow) ([]byte, error) {
 	unsafeVar := strings.TrimSpace(f.Snippet)
 
-	if f.Offset <= 0 {
+	lines := bytes.Split(content, []byte("\n"))
+	if f.Offset == 0 || int(f.Offset) >= len(lines) {
 		return []byte(""), sce.WithMessage(sce.ErrScorecardInternal, "Invalid dangerous workflow offset")
 	}
 	runCmdIndex := f.Offset - 1
-	lines := bytes.Split(content, []byte("\n"))
 
 	unsafePattern, err := getUnsafePattern(unsafeVar)
 	if err != nil {
