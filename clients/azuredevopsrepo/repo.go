@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package azuredevops
+package azuredevopsrepo
 
 import (
 	"fmt"
@@ -24,12 +24,15 @@ import (
 )
 
 type Repo struct {
-	scheme       string
-	host         string
-	organization string
-	project      string
-	name         string
-	metadata     []string
+	scheme        string
+	host          string
+	organization  string
+	project       string
+	name          string
+	ID            string
+	defaultBranch string
+	commitSHA     string
+	metadata      []string
 }
 
 // Parses input string into repoURL struct
