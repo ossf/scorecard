@@ -101,6 +101,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 		f.WithPatch(&findingPatch)
+		f.WithRemediationMetadata(map[string]string{
+			"patch": findingPatch,
+		})
 	}
 	if len(findings) == 0 {
 		return falseOutcome()
