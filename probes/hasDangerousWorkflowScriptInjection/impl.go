@@ -27,7 +27,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
-	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/patch"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/internal/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
