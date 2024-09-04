@@ -149,7 +149,7 @@ number of vulnerabilities that find their way into a project.
 The check works by looking for a set of CI-system names in GitHub `CheckRuns`
 and `Statuses` among the recent commits (~30). A CI-system is considered
 well-known if its name contains any of the following: appveyor, buildkite,
-circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci.
+circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci, woodpecker.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement CI testing, and it is
