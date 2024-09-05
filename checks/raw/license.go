@@ -389,6 +389,17 @@ type fsfOsiLicenseType struct {
 
 // SPDX license list available here: https://spdx.org/licenses (OSI approved / FSF licenses only)
 // JSON formatted list: https://github.com/spdx/license-list-data/blob/main/json/licenses.json
+//
+// To filter and format the supported licenses, you can try the following curl command:
+//
+// curl https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json | \
+//	jq -c '.licenses[] | select((.isOsiApproved == true) or (.isFsfLibre == true)) | [.licenseId,.name]' | \
+//	sed 's/","/": \{ Name: "/;s/\["/"/;s/"\]/" },/' | \
+//	sort | \
+//	uniq
+//
+// NOTE: You may need to do additional sorting by hand to match the current alphabetization.
+
 var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"0BSD":                            {Name: "BSD Zero Clause License"},
 	"AAL":                             {Name: "Attribution Assurance License"},
