@@ -18,7 +18,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
-	github.com/moby/buildkit v0.15.1
+	github.com/moby/buildkit v0.16.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.34.1
 	github.com/rhysd/actionlint v1.7.1
@@ -66,7 +66,7 @@ require (
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/apache/arrow/go/v15 v15.0.2 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
-	github.com/containerd/typeurl/v2 v2.1.1 // indirect
+	github.com/containerd/typeurl/v2 v2.2.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dghubble/trie v0.1.0 // indirect
@@ -144,7 +144,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.15.1 // indirect
-	github.com/docker/cli v27.1.1+incompatible // indirect
+	github.com/docker/cli v27.2.1+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
