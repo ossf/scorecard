@@ -165,7 +165,7 @@ func isTest(s string) bool {
 	for _, pattern := range []string{
 		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
 		"mergeable", "packit-as-a-service", "semaphoreci", "test", "travis-ci",
-		"flutter-dashboard", "Cirrus CI", "azure-pipelines", "woodpecker",
+		"flutter-dashboard", "Cirrus CI", "azure-pipelines", "ci/woodpecker",
 	} {
 		if strings.Contains(l, pattern) {
 			return true
