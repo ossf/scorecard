@@ -387,25 +387,19 @@ type fsfOsiLicenseType struct {
 	Name string
 }
 
-// (there's no magic here)
-// created from the table at https://spdx.org/licenses
-// 1) convert table to CSV and convert to json
-// (inspired from inspired from https://stackoverflow.com/questions/17912307/u-ufeff-in-python-string)
+// SPDX license list available here: https://spdx.org/licenses (OSI approved / FSF licenses only)
+// JSON formatted list: https://github.com/spdx/license-list-data/blob/main/json/licenses.json
 //
-//	cat SPDX-license-IDs-202211131030CST.csv | \
-//	 python -c \
-//	   'import csv, json, sys; print(json.dumps([dict(r) for r in csv.DictReader(sys.stdin)]))' | \
-//	 sed 's/\\ufeff//g' > SPDX-license-IDs-202211131030CST.json
+// To filter and format the supported licenses, you can try the following curl command:
 //
-// 2) convert json to go lang compatible map
+// curl https://raw.githubusercontent.com/spdx/license-list-data/main/json/licenses.json | \
+//	jq -c '.licenses[] | select((.isOsiApproved == true) or (.isFsfLibre == true)) | [.licenseId,.name]' | \
+//	sed 's/","/": \{ Name: "/;s/\["/"/;s/"\]/" },/' | \
+//	sort | \
+//	uniq
 //
-//	cat SPDX-license-IDs-202211131030CST.json | \
-//	 jq -c '.[] | select((."FSF Free/Libre?"=="Y") or (."OSI Approved?"=="Y")) | \
-//	   [."Identifier",."Full Name"]' | \
-//	 sed 's/","/": \{ Name: "/;s/\["/"/;s/"\]/" },/' | \
-//	 sed 's/[- ]only//g;s/[- ]or[- ]later//g' | \
-//	 sort | \
-//	 uniq
+// NOTE: You may need to do additional sorting by hand to match the current alphabetization.
+
 var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"0BSD":                            {Name: "BSD Zero Clause License"},
 	"AAL":                             {Name: "Attribution Assurance License"},
@@ -414,7 +408,10 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"AFL-2.0":                         {Name: "Academic Free License v2.0"},
 	"AFL-2.1":                         {Name: "Academic Free License v2.1"},
 	"AFL-3.0":                         {Name: "Academic Free License v3.0"},
+	"AGPL-1.0":                        {Name: "Affero General Public License v1.0"},
 	"AGPL-3.0":                        {Name: "GNU Affero General Public License v3.0"},
+	"AGPL-3.0-only":                   {Name: "GNU Affero General Public License v3.0 only"},
+	"AGPL-3.0-or-later":               {Name: "GNU Affero General Public License v3.0 or later"},
 	"APL-1.0":                         {Name: "Adaptive Public License 1.0"},
 	"APSL-1.0":                        {Name: "Apple Public Source License 1.0"},
 	"APSL-1.1":                        {Name: "Apple Public Source License 1.1"},
@@ -429,6 +426,8 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"Artistic-2.0":                    {Name: "Artistic License 2.0"},
 	"BSD-1-Clause":                    {Name: "BSD 1-Clause License"},
 	"BSD-2-Clause":                    {Name: "BSD 2-Clause \"Simplified\" License"},
+	"BSD-2-Clause-FreeBSD":            {Name: "BSD 2-Clause FreeBSD License"},
+	"BSD-2-Clause-NetBSD":             {Name: "BSD 2-Clause NetBSD License"},
 	"BSD-2-Clause-Patent":             {Name: "BSD-2-Clause Plus Patent License"},
 	"BSD-3-Clause":                    {Name: "BSD 3-Clause \"New\" or \"Revised\" License"},
 	"BSD-3-Clause-Clear":              {Name: "BSD 3-Clause Clear License"},
@@ -436,6 +435,7 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"BSD-4-Clause":                    {Name: "BSD 4-Clause \"Original\" or \"Old\" License"},
 	"BSL-1.0":                         {Name: "Boost Software License 1.0"},
 	"BitTorrent-1.1":                  {Name: "BitTorrent Open Source License v1.1"},
+	"BlueOak-1.0.0":                   {Name: "Blue Oak Model License 1.0.0"},
 	"CAL-1.0":                         {Name: "Cryptographic Autonomy License 1.0"},
 	"CAL-1.0-Combined-Work-Exception": {Name: "Cryptographic Autonomy License 1.0 (Combined Work Exception)"},
 	"CATOSL-1.1":                      {Name: "Computer Associates Trusted Open Source License 1.1"},
@@ -471,11 +471,25 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"Fair":                            {Name: "Fair License"},
 	"Frameworx-1.0":                   {Name: "Frameworx Open License 1.0"},
 	"GFDL-1.1":                        {Name: "GNU Free Documentation License v1.1"},
+	"GFDL-1.1-only":                   {Name: "GNU Free Documentation License v1.1 only"},
+	"GFDL-1.1-or-later":               {Name: "GNU Free Documentation License v1.1 or later"},
 	"GFDL-1.2":                        {Name: "GNU Free Documentation License v1.2"},
+	"GFDL-1.2-only":                   {Name: "GNU Free Documentation License v1.2 only"},
+	"GFDL-1.2-or-later":               {Name: "GNU Free Documentation License v1.2 or later"},
 	"GFDL-1.3":                        {Name: "GNU Free Documentation License v1.3"},
-	"GPL-2.0":                         {Name: "GNU General Public License v2.0"},
-	"GPL-3.0":                         {Name: "GNU General Public License v3.0"},
+	"GFDL-1.3-only":                   {Name: "GNU Free Documentation License v1.3 only"},
+	"GFDL-1.3-or-later":               {Name: "GNU Free Documentation License v1.3 or later"},
+	"GPL-2.0":                         {Name: "GNU General Public License v2.0 only"},
+	"GPL-2.0+":                        {Name: "GNU General Public License v2.0 or later"},
+	"GPL-2.0-only":                    {Name: "GNU General Public License v2.0 only"},
+	"GPL-2.0-or-later":                {Name: "GNU General Public License v2.0 or later"},
+	"GPL-3.0":                         {Name: "GNU General Public License v3.0 only"},
+	"GPL-3.0+":                        {Name: "GNU General Public License v3.0 or later"},
+	"GPL-3.0-only":                    {Name: "GNU General Public License v3.0 only"},
+	"GPL-3.0-or-later":                {Name: "GNU General Public License v3.0 or later"},
+	"GPL-3.0-with-GCC-exception":      {Name: "GNU General Public License v3.0 w/GCC Runtime Library exception"},
 	"HPND":                            {Name: "Historical Permission Notice and Disclaimer"},
+	"ICU":                             {Name: "ICU License"},
 	"IJG":                             {Name: "Independent JPEG Group License"},
 	"IPA":                             {Name: "IPA Font License"},
 	"IPL-1.0":                         {Name: "IBM Public License v1.0"},
@@ -483,9 +497,18 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"Imlib2":                          {Name: "Imlib2 License"},
 	"Intel":                           {Name: "Intel Open Source License"},
 	"Jam":                             {Name: "Jam License"},
-	"LGPL-2.0":                        {Name: "GNU Library General Public License v2"},
-	"LGPL-2.1":                        {Name: "GNU Lesser General Public License v2.1"},
-	"LGPL-3.0":                        {Name: "GNU Lesser General Public License v3.0"},
+	"LGPL-2.0":                        {Name: "GNU Library General Public License v2 only"},
+	"LGPL-2.0+":                       {Name: "GNU Library General Public License v2 or later"},
+	"LGPL-2.0-only":                   {Name: "GNU Library General Public License v2 only"},
+	"LGPL-2.0-or-later":               {Name: "GNU Library General Public License v2 or later"},
+	"LGPL-2.1":                        {Name: "GNU Lesser General Public License v2.1 only"},
+	"LGPL-2.1+":                       {Name: "GNU Lesser General Public License v2.1 or later"},
+	"LGPL-2.1-only":                   {Name: "GNU Lesser General Public License v2.1 only"},
+	"LGPL-2.1-or-later":               {Name: "GNU Lesser General Public License v2.1 or later"},
+	"LGPL-3.0":                        {Name: "GNU Lesser General Public License v3.0 only"},
+	"LGPL-3.0+":                       {Name: "GNU Lesser General Public License v3.0 or later"},
+	"LGPL-3.0-only":                   {Name: "GNU Lesser General Public License v3.0 only"},
+	"LGPL-3.0-or-later":               {Name: "GNU Lesser General Public License v3.0 or later"},
 	"LPL-1.0":                         {Name: "Lucent Public License Version 1.0"},
 	"LPL-1.02":                        {Name: "Lucent Public License v1.02"},
 	"LPPL-1.2":                        {Name: "LaTeX Project Public License v1.2"},
@@ -517,6 +540,7 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"NTP":                             {Name: "NTP License"},
 	"Naumen":                          {Name: "Naumen Public License"},
 	"Nokia":                           {Name: "Nokia Open Source License"},
+	"Nunit":                           {Name: "Nunit License"},
 	"OCLC-2.0":                        {Name: "OCLC Research Public License 2.0"},
 	"ODbL-1.0":                        {Name: "Open Data Commons Open Database License v1.0"},
 	"OFL-1.0":                         {Name: "SIL Open Font License 1.0"},
@@ -527,6 +551,7 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"OLDAP-2.3":                       {Name: "Open LDAP Public License v2.3"},
 	"OLDAP-2.7":                       {Name: "Open LDAP Public License v2.7"},
 	"OLDAP-2.8":                       {Name: "Open LDAP Public License v2.8"},
+	"OLFL-1.3":                        {Name: "Open Logistics Foundation License Version 1.3"},
 	"OSET-PL-2.1":                     {Name: "OSET Public License version 2.1"},
 	"OSL-1.0":                         {Name: "Open Software License 1.0"},
 	"OSL-1.1":                         {Name: "Open Software License 1.1"},
@@ -550,13 +575,16 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"SPL-1.0":                         {Name: "Sun Public License v1.0"},
 	"SimPL-2.0":                       {Name: "Simple Public License 2.0"},
 	"Sleepycat":                       {Name: "Sleepycat License"},
+	"StandardML-NJ":                   {Name: "Standard ML of New Jersey License"},
 	"UCL-1.0":                         {Name: "Upstream Compatibility License v1.0"},
 	"UPL-1.0":                         {Name: "Universal Permissive License v1.0"},
+	"Unicode-3.0":                     {Name: "Unicode License v3"},
 	"Unicode-DFS-2016":                {Name: "Unicode License Agreement - Data Files and Software (2016)"},
 	"Unlicense":                       {Name: "The Unlicense"},
 	"VSL-1.0":                         {Name: "Vovida Software License v1.0"},
 	"Vim":                             {Name: "Vim License"},
 	"W3C":                             {Name: "W3C Software Notice and License (2002-12-31)"},
+	"W3C-20150513":                    {Name: "W3C Software Notice and Document License (2015-05-13)"},
 	"WTFPL":                           {Name: "Do What The F*ck You Want To Public License"},
 	"Watcom-1.0":                      {Name: "Sybase Open Watcom Public License 1.0"},
 	"X11":                             {Name: "X11 License"},
@@ -568,7 +596,9 @@ var fsfOsiApprovedLicenseMap = map[string]fsfOsiLicenseType{
 	"Zend-2.0":                        {Name: "Zend License v2.0"},
 	"Zimbra-1.3":                      {Name: "Zimbra Public License v1.3"},
 	"Zlib":                            {Name: "zlib License"},
+	"eCos-2.0":                        {Name: "eCos license version 2.0"},
 	"gnuplot":                         {Name: "gnuplot License"},
 	"iMatix":                          {Name: "iMatix Standard Function Library Agreement"},
+	"wxWindows":                       {Name: "wxWindows Library License"},
 	"xinetd":                          {Name: "xinetd License"},
 }
