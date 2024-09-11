@@ -238,6 +238,13 @@ func Test_isTest(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "woodpecker",
+			args: args{
+				s: "ci/woodpecker/pr/test-release",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
