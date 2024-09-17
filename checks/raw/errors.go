@@ -24,4 +24,5 @@ var (
 	errInvalidArgType            = errors.New("invalid arg type")
 	errInvalidArgLength          = errors.New("invalid arg length")
 	errInvalidGitHubWorkflow     = errors.New("invalid GitHub workflow")
+	errInvalidCsProjFile         = errors.New("error parsing csproj file")
 )

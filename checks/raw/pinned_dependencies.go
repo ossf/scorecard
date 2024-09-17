@@ -61,7 +61,110 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	if isStagedNugetDepsUnpinned(&results) {
+		if err := collectInsecureNugetCsproj(c, &results); err != nil {
+			return checker.PinningDependenciesData{}, err
+		}
+	}
+
 	return results, nil
+}
+
+func collectInsecureNugetCsproj(c *checker.CheckRequest, dependencies *checker.PinningDependenciesData) error {
+	csprojDeps, pinnedCsprojDeps, err := collectCsprojDependenciesData(c)
+	if err != nil {
+		return err
+	}
+	// some csproj files are pinned, output these to the user
+	if pinnedCsprojDeps > 0 && pinnedCsprojDeps <= len(csprojDeps) {
+		dependencies.Dependencies = append(dependencies.Dependencies, csprojDeps...)
+	} else {
+		allDependenciesArePinned := pinnedCsprojDeps == len(csprojDeps)
+		promoteStagedNugetDependencies(dependencies, allDependenciesArePinned)
+	}
+
+	return nil
+}
+
+func promoteStagedNugetDependencies(dependencies *checker.PinningDependenciesData, updateDependencyPinning bool) {
+	nugetDeps := dependencies.GetStagedDependencies(checker.DependencyUseTypeNugetCommand)
+
+	// all csproj files are pinned, negate the pinned status of all nuget dependencies
+	if updateDependencyPinning {
+		for i := 0; i < len(nugetDeps); i++ {
+			nugetDeps[i].Pinned = asBoolPointer(true)
+			nugetDeps[i].Remediation = nil
+		}
+	}
+
+	// add all NugetDependencies to Dependencies
+	dependencies.Dependencies = append(dependencies.Dependencies, nugetDeps...)
+}
+
+func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependency, int, error) {
+	var csprojDeps []checker.Dependency
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.csproj",
+		CaseSensitive: false,
+	}, analyseCsprojLockedMode, &csprojDeps); err != nil {
+		return nil, 0, err
+	}
+
+	pinnedDependencies := countPinned(csprojDeps)
+	return csprojDeps, pinnedDependencies, nil
+}
+
+func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*[]checker.Dependency)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
+	}
+
+	err, pinned := isRestoreLockedModeEnabled(content)
+	if err != nil {
+		return true, err
+	}
+
+	dependency := checker.Dependency{
+		Location: &checker.File{
+			Path:      path,
+			Type:      finding.FileTypeSource,
+			Offset:    1,
+			EndOffset: 1,
+			Snippet:   "hello",
+		},
+		Pinned: asBoolPointer(pinned),
+		Type:   checker.DependencyUseTypeNugetCommand,
+	}
+
+	if !pinned {
+		dependency.Remediation = &finding.Remediation{
+			Text: "update your csproj to use RestoreLockedMode",
+		}
+	}
+
+	*pdata = append(*pdata, dependency)
+	return true, nil
+}
+
+func countPinned(dependencies []checker.Dependency) int {
+	count := 0
+	for _, dep := range dependencies {
+		if *dep.Pinned {
+			count++
+		}
+	}
+	return count
+}
+
+func isStagedNugetDepsUnpinned(dependencies *checker.PinningDependenciesData) bool {
+	for _, dep := range dependencies.StagedDependencies {
+		if dep.Type == checker.DependencyUseTypeNugetCommand && !*dep.Pinned {
+			return true
+		}
+	}
+	return false
 }
 
 func dataAsPinnedDependenciesPointer(data interface{}) *checker.PinningDependenciesData {

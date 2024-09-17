@@ -124,8 +124,19 @@ const (
 
 // PinningDependenciesData represents pinned dependency data.
 type PinningDependenciesData struct {
-	Dependencies     []Dependency
-	ProcessingErrors []ElementError // jobs or files with errors may have incomplete results
+	Dependencies       []Dependency
+	StagedDependencies []Dependency
+	ProcessingErrors   []ElementError // jobs or files with errors may have incomplete results
+}
+
+func (p *PinningDependenciesData) GetStagedDependencies(useType DependencyUseType) []Dependency {
+	var deps []Dependency
+	for _, dep := range p.StagedDependencies {
+		if dep.Type == useType {
+			deps = append(deps, dep)
+		}
+	}
+	return deps
 }
 
 // Dependency represents a dependency.
