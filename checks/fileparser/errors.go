@@ -21,5 +21,5 @@ import (
 var (
 	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
 	errInternalFilenameMatch = errors.New("filename match error")
-	ErrInvalidCsProjFile     = errors.New("error parsing csproj file")
+	errInvalidCsProjFile     = errors.New("error parsing csproj file")
 )
