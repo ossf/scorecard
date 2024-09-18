@@ -122,7 +122,7 @@ func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (
 		panic(fmt.Sprintf("expected type []checker.Dependency, got %v", reflect.TypeOf(args[0])))
 	}
 
-	err, pinned := isRestoreLockedModeEnabled(content)
+	err, pinned := fileparser.IsRestoreLockedModeEnabled(content)
 	if err != nil {
 		return true, err
 	}

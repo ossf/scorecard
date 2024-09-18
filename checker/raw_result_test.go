@@ -47,6 +47,7 @@ func TestFile_Location(t *testing.T) {
 		t.Errorf("Expected *loc.Snippet to be 'some code', got %v", *loc.Snippet)
 	}
 }
+
 func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 	t.Parallel()
 
@@ -144,9 +145,10 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 			expected: []Dependency{},
 		},
 	}
-
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := tt.data.GetStagedDependencies(tt.useType)
 			if len(result) != len(tt.expected) {
 				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
