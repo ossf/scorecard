@@ -65,8 +65,9 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		if err := collectInsecureNugetCsproj(c, &results); err != nil {
 			return checker.PinningDependenciesData{}, err
 		}
+	} else {
+		promoteStagedNugetDependencies(&results, false)
 	}
-
 	return results, nil
 }
 

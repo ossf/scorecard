@@ -2166,6 +2166,25 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 		expectError         bool
 	}{
 		{
+			name:        "pinned by command and 'locked mode' disabled implicitly",
+			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
+			expectError: false,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+		},
+		{
 			name:        "unpinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
 			expectError: false,

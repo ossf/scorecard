@@ -47,3 +47,119 @@ func TestFile_Location(t *testing.T) {
 		t.Errorf("Expected *loc.Snippet to be 'some code', got %v", *loc.Snippet)
 	}
 }
+func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		data     PinningDependenciesData
+		useType  DependencyUseType
+		expected []Dependency
+	}{
+		{
+			name: "No staged dependencies",
+			data: PinningDependenciesData{
+				StagedDependencies: []Dependency{},
+			},
+			useType:  DependencyUseTypeGHAction,
+			expected: []Dependency{},
+		},
+		{
+			name: "Single matching dependency",
+			data: PinningDependenciesData{
+				StagedDependencies: []Dependency{
+					{
+						Name: newString("dep1"),
+						Type: DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: DependencyUseTypeGHAction,
+			expected: []Dependency{
+				{
+					Name: newString("dep1"),
+					Type: DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with one match",
+			data: PinningDependenciesData{
+				StagedDependencies: []Dependency{
+					{
+						Name: newString("dep1"),
+						Type: DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType: DependencyUseTypeGHAction,
+			expected: []Dependency{
+				{
+					Name: newString("dep1"),
+					Type: DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with multiple matches",
+			data: PinningDependenciesData{
+				StagedDependencies: []Dependency{
+					{
+						Name: newString("dep1"),
+						Type: DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: DependencyUseTypeGHAction,
+			expected: []Dependency{
+				{
+					Name: newString("dep1"),
+					Type: DependencyUseTypeGHAction,
+				},
+				{
+					Name: newString("dep2"),
+					Type: DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "No matching dependencies",
+			data: PinningDependenciesData{
+				StagedDependencies: []Dependency{
+					{
+						Name: newString("dep1"),
+						Type: DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType:  DependencyUseTypeGHAction,
+			expected: []Dependency{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.data.GetStagedDependencies(tt.useType)
+			if len(result) != len(tt.expected) {
+				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
+			}
+			for i, dep := range result {
+				if *dep.Name != *tt.expected[i].Name || dep.Type != tt.expected[i].Type {
+					t.Errorf("Expected dependency %v, got %v", tt.expected[i], dep)
+				}
+			}
+		})
+	}
+}
+
+func newString(s string) *string {
+	return &s
+}
