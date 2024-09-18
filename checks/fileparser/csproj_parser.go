@@ -33,7 +33,7 @@ func IsRestoreLockedModeEnabled(content []byte) (error, bool) {
 
 	err := xml.Unmarshal(content, &project)
 	if err != nil {
-		return ErrInvalidCsProjFile, false
+		return errInvalidCsProjFile, false
 	}
 
 	for _, propertyGroup := range project.PropertyGroups {
