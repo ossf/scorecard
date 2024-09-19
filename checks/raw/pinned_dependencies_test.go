@@ -2090,35 +2090,35 @@ func TestCsProjAnalysis(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		warns       int
-		expectError bool
-		name        string
-		filename    string
+		unpinned        int
+		expectErrorLogs bool
+		name            string
+		filename        string
 	}{
 		{
-			name:        "empty file",
-			filename:    "./testdata/dotnet-empty.csproj",
-			expectError: true,
+			name:            "empty file",
+			filename:        "./testdata/dotnet-empty.csproj",
+			expectErrorLogs: true,
 		},
 		{
 			name:     "locked mode enabled",
 			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
-			warns:    0,
+			unpinned: 0,
 		},
 		{
 			name:     "locked mode disabled",
 			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
-			warns:    1,
+			unpinned: 1,
 		},
 		{
 			name:     "locked mode disabled implicitly",
 			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
-			warns:    1,
+			unpinned: 1,
 		},
 		{
-			name:        "invalid file",
-			filename:    "./testdata/dotnet-invalid.csproj",
-			expectError: true,
+			name:            "invalid file",
+			filename:        "./testdata/dotnet-invalid.csproj",
+			expectErrorLogs: true,
 		},
 	}
 	for _, tt := range tests {
@@ -2137,20 +2137,24 @@ func TestCsProjAnalysis(t *testing.T) {
 			p = strings.Replace(p, "../testdata/", "", 1)
 
 			var r []checker.Dependency
+			dl := scut.TestDetailLogger{}
 
-			_, err = analyseCsprojLockedMode(p, content, &r)
-			if err != nil && !tt.expectError {
-				t.Errorf("unexpected error %e", err)
-			}
-
+			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
 			if err != nil {
+				t.Errorf("unexpected error %e", err)
 				return
+			}
+			if tt.expectErrorLogs {
+				messages := dl.Flush()
+				if len(messages) != 0 && messages[0].Type != checker.DetailWarn {
+					t.Errorf("expected logged warning, got none")
+				}
 			}
 
 			unpinned := countUnpinned(r)
 
-			if tt.warns != unpinned {
-				t.Errorf("expected %v. Got %v", tt.warns, unpinned)
+			if tt.unpinned != unpinned {
+				t.Errorf("expected %v. Got %v", tt.unpinned, unpinned)
 			}
 		})
 	}
@@ -2225,7 +2229,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type: checker.DependencyUseTypeNugetCommand,
 					Location: &checker.File{
 						Path:      "./dotnet-locked-mode-enabled.csproj",
-						Snippet:   "hello",
+						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
 						Offset:    1,
 						EndOffset: 1,
 						Type:      1,
@@ -2250,7 +2254,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type: checker.DependencyUseTypeNugetCommand,
 					Location: &checker.File{
 						Path:      "./dotnet-locked-mode-enabled.csproj",
-						Snippet:   "hello",
+						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
 						Offset:    1,
 						EndOffset: 1,
 						Type:      1,
@@ -2262,7 +2266,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type: checker.DependencyUseTypeNugetCommand,
 					Location: &checker.File{
 						Path:      "./dotnet-locked-mode-disabled.csproj",
-						Snippet:   "hello",
+						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
 						Offset:    1,
 						EndOffset: 1,
 						Type:      1,
