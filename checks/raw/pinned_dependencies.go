@@ -107,7 +107,7 @@ func collectCsprojDependenciesData(c *checker.CheckRequest) ([]checker.Dependenc
 	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*.csproj",
 		CaseSensitive: false,
-	}, analyseCsprojLockedMode, &csprojDeps); err != nil {
+	}, analyseCsprojLockedMode, &csprojDeps, c.Dlogger); err != nil {
 		return nil, 0, err
 	}
 
@@ -124,7 +124,16 @@ func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (
 
 	err, pinned := fileparser.IsRestoreLockedModeEnabled(content)
 	if err != nil {
-		return true, err
+		dl, ok := args[1].(checker.DetailLogger)
+		if !ok {
+			// panic if it is not correct type
+			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+		}
+
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("malformed csproj file: %e", err),
+		})
+		return true, nil
 	}
 
 	dependency := checker.Dependency{
@@ -133,7 +142,7 @@ func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (
 			Type:      finding.FileTypeSource,
 			Offset:    1,
 			EndOffset: 1,
-			Snippet:   "hello",
+			Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
 		},
 		Pinned: asBoolPointer(pinned),
 		Type:   checker.DependencyUseTypeNugetCommand,
