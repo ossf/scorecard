@@ -223,7 +223,7 @@ checks:
         Enable branch protection settings in your source hosting provider to
         avoid force pushes or deletion of your important branches.
       - >-
-        For GitHub, check out the steps [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
+        For GitHub, check out the steps for rulesets [here](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository) and rules [here](https://docs.github.com/en/github/administering-a-repository/managing-a-branch-protection-rule).
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
@@ -242,7 +242,7 @@ checks:
       The check works by looking for a set of CI-system names in GitHub `CheckRuns`
       and `Statuses` among the recent commits (~30). A CI-system is considered
       well-known if its name contains any of the following: appveyor, buildkite,
-      circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci.
+      circleci, e2e, github-actions, jenkins, mergeable, test, travis-ci, woodpecker.
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement CI testing, and it is
