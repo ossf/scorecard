@@ -1,7 +1,6 @@
 module github.com/ossf/scorecard/v5
 
 go 1.22.0
-
 require (
 	cloud.google.com/go/bigquery v1.62.0
 	cloud.google.com/go/monitoring v1.20.4 // indirect
@@ -42,7 +41,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.8.4
+	github.com/google/osv-scanner v1.8.5
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/otiai10/copy v1.14.0
@@ -57,10 +56,10 @@ require (
 	cloud.google.com/go/kms v1.18.5 // indirect
 	cloud.google.com/go/longrunning v0.5.12 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	deps.dev/api/v3 v3.0.0-20240730004939-e80e6658c33b // indirect
-	deps.dev/util/maven v0.0.0-20240730004939-e80e6658c33b // indirect
-	deps.dev/util/resolve v0.0.0-20240730004939-e80e6658c33b // indirect
-	deps.dev/util/semver v0.0.0-20240730004939-e80e6658c33b // indirect
+	deps.dev/api/v3 v3.0.0-20240807013505-16da96fe8b66 // indirect
+	deps.dev/util/maven v0.0.0-20240807013505-16da96fe8b66 // indirect
+	deps.dev/util/resolve v0.0.0-20240807013505-16da96fe8b66 // indirect
+	deps.dev/util/semver v0.0.0-20240807013505-16da96fe8b66 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.9.0 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
@@ -87,7 +86,7 @@ require (
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
-	github.com/ianlancetaylor/demangle v0.0.0-20240312041847-bd984b5ce465 // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20240805132620-81f5be970eca // indirect
 	github.com/jedib0t/go-pretty/v6 v6.5.9 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -168,7 +167,7 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
@@ -182,7 +181,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.26.0 // indirect
-	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
+	golang.org/x/exp v0.0.0-20240822175202-778ce7bba035 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.22.0
 	golang.org/x/sync v0.8.0 // indirect
