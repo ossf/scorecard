@@ -1,6 +1,7 @@
 module github.com/ossf/scorecard/v5
 
-go 1.22.0
+go 1.22.7
+
 require (
 	cloud.google.com/go/bigquery v1.62.0
 	cloud.google.com/go/monitoring v1.20.4 // indirect
