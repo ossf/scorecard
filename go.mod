@@ -21,7 +21,7 @@ require (
 	github.com/moby/buildkit v0.16.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.34.2
-	github.com/rhysd/actionlint v1.7.1
+	github.com/rhysd/actionlint v1.7.2
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
 	github.com/sirupsen/logrus v1.9.3
@@ -186,7 +186,7 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.23.0
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 	google.golang.org/api v0.196.0 // indirect
 	google.golang.org/grpc v1.66.0 // indirect
