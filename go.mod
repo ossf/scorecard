@@ -3,7 +3,7 @@ module github.com/ossf/scorecard/v5
 go 1.22.7
 
 require (
-	cloud.google.com/go/bigquery v1.62.0
+	cloud.google.com/go/bigquery v1.63.0
 	cloud.google.com/go/monitoring v1.21.0 // indirect
 	cloud.google.com/go/pubsub v1.43.0
 	cloud.google.com/go/trace v1.11.0 // indirect
@@ -187,7 +187,7 @@ require (
 	golang.org/x/oauth2 v0.23.0
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
+	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.196.0 // indirect
 	google.golang.org/grpc v1.66.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
