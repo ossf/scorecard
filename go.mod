@@ -1,6 +1,7 @@
 module github.com/ossf/scorecard/v5
 
 go 1.22.7
+toolchain go1.23.1
 
 require (
 	cloud.google.com/go/bigquery v1.62.0
@@ -46,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/otiai10/copy v1.14.0
-	sigs.k8s.io/release-utils v0.8.4
+	sigs.k8s.io/release-utils v0.8.5
 )
 
 require (
