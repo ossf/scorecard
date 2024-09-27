@@ -131,7 +131,7 @@ func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (
 		}
 
 		dl.Warn(&checker.LogMessage{
-			Text: fmt.Sprintf("malformed csproj file: %e", err),
+			Text: fmt.Sprintf("malformed csproj file: %v", err),
 		})
 		return true, nil
 	}

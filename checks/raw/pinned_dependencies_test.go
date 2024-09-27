@@ -2141,7 +2141,7 @@ func TestCsProjAnalysis(t *testing.T) {
 
 			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
 			if err != nil {
-				t.Errorf("unexpected error %e", err)
+				t.Errorf("unexpected error %v", err)
 				return
 			}
 			if tt.expectErrorLogs {
