@@ -314,7 +314,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
@@ -1448,7 +1448,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, unpinned)
@@ -1585,7 +1585,7 @@ func TestShellScriptDownload(t *testing.T) {
 				return
 			}
 
-			unpinned := countUnpinned(append(r.Dependencies, r.StagedDependencies...))
+			unpinned := countUnpinned(r.Dependencies)
 
 			if tt.unpinned != unpinned {
 				t.Errorf("expected %v unpinned. Got %v", tt.unpinned, len(r.Dependencies))
@@ -2090,7 +2090,7 @@ func TestCsProjAnalysis(t *testing.T) {
 
 	//nolint:govet
 	tests := []struct {
-		unpinned        int
+		unlocked        int
 		expectErrorLogs bool
 		name            string
 		filename        string
@@ -2103,17 +2103,17 @@ func TestCsProjAnalysis(t *testing.T) {
 		{
 			name:     "locked mode enabled",
 			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
-			unpinned: 0,
+			unlocked: 0,
 		},
 		{
 			name:     "locked mode disabled",
 			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
-			unpinned: 1,
+			unlocked: 1,
 		},
 		{
 			name:     "locked mode disabled implicitly",
 			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
-			unpinned: 1,
+			unlocked: 1,
 		},
 		{
 			name:            "invalid file",
@@ -2136,7 +2136,7 @@ func TestCsProjAnalysis(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			p = strings.Replace(p, "../testdata/", "", 1)
 
-			var r []checker.Dependency
+			var r []checker.DotnetCsprojLockedData
 			dl := scut.TestDetailLogger{}
 
 			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
@@ -2151,10 +2151,15 @@ func TestCsProjAnalysis(t *testing.T) {
 				}
 			}
 
-			unpinned := countUnpinned(r)
+			unlocked := 0
+			for _, d := range r {
+				if !*d.LockedModeSet {
+					unlocked++
+				}
+			}
 
-			if tt.unpinned != unpinned {
-				t.Errorf("expected %v. Got %v", tt.unpinned, unpinned)
+			if tt.unlocked != unlocked {
+				t.Errorf("expected %v. Got %v", tt.unlocked, unlocked)
 			}
 		})
 	}
@@ -2165,7 +2170,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 	tests := []struct {
 		name                string
 		filenames           []string
-		stagedDependencies  []checker.Dependency
+		stagedDependencies  []*checker.Dependency
 		outcomeDependencies []checker.Dependency
 		expectError         bool
 	}{
@@ -2173,7 +2178,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "pinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
 			expectError: false,
-			stagedDependencies: []checker.Dependency{
+			stagedDependencies: []*checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
@@ -2192,7 +2197,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
 			expectError: false,
-			stagedDependencies: []checker.Dependency{
+			stagedDependencies: []*checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2215,7 +2220,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' enabled",
 			filenames:   []string{"./dotnet-locked-mode-enabled.csproj"},
 			expectError: false,
-			stagedDependencies: []checker.Dependency{
+			stagedDependencies: []*checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2226,14 +2231,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			},
 			outcomeDependencies: []checker.Dependency{
 				{
-					Type: checker.DependencyUseTypeNugetCommand,
-					Location: &checker.File{
-						Path:      "./dotnet-locked-mode-enabled.csproj",
-						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
-						Offset:    1,
-						EndOffset: 1,
-						Type:      1,
-					},
+					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
 					Remediation: nil,
 				},
@@ -2243,36 +2241,18 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' enabled and disabled in different csproj files",
 			filenames:   []string{"./dotnet-locked-mode-enabled.csproj", "./dotnet-locked-mode-disabled.csproj"},
 			expectError: false,
-			stagedDependencies: []checker.Dependency{
+			stagedDependencies: []*checker.Dependency{
 				{
-					Type:   checker.DependencyUseTypeNugetCommand,
-					Pinned: boolAsPointer(false),
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "remediate"},
 				},
 			},
 			outcomeDependencies: []checker.Dependency{
 				{
-					Type: checker.DependencyUseTypeNugetCommand,
-					Location: &checker.File{
-						Path:      "./dotnet-locked-mode-enabled.csproj",
-						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
-						Offset:    1,
-						EndOffset: 1,
-						Type:      1,
-					},
-					Pinned:      boolAsPointer(true),
-					Remediation: nil,
-				},
-				{
-					Type: checker.DependencyUseTypeNugetCommand,
-					Location: &checker.File{
-						Path:      "./dotnet-locked-mode-disabled.csproj",
-						Snippet:   "<RestoreLockedMode>true</RestoreLockedMode>",
-						Offset:    1,
-						EndOffset: 1,
-						Type:      1,
-					},
+					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(false),
-					Remediation: &finding.Remediation{Text: "update your csproj to use RestoreLockedMode"},
+					Remediation: &finding.Remediation{Text: "remediate: some of your csproj files set the RestoreLockedMode property to true, while other do not set it: ./dotnet-locked-mode-disabled.csproj"},
 				},
 			},
 		},
@@ -2295,19 +2275,17 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
 			}
-			r := checker.PinningDependenciesData{
-				StagedDependencies: tt.stagedDependencies,
-			}
-			err := collectInsecureNugetCsproj(&req, &r)
+
+			err := processCsprojLockedMode(&req, tt.stagedDependencies)
 			if err != nil {
 				if !tt.expectError {
 					t.Error(err.Error())
 				}
 			}
-			t.Log(r.Dependencies)
+			t.Log(tt.stagedDependencies)
 			for i := range tt.outcomeDependencies {
 				outcomeDependency := &tt.outcomeDependencies[i]
-				depend := &r.Dependencies[i]
+				depend := tt.stagedDependencies[i]
 				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
 					t.Errorf("mismatch (-want +got):\n%s", diff)
 				}

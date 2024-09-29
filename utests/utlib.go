@@ -131,7 +131,7 @@ func ValidateTestReturn(
 func ValidatePinningDependencies(isExpectedDependency func(checker.Dependency) bool,
 	r *checker.PinningDependenciesData,
 ) bool {
-	for _, dep := range append(r.Dependencies, r.StagedDependencies...) {
+	for _, dep := range r.Dependencies {
 		if isExpectedDependency(dep) {
 			return true
 		}

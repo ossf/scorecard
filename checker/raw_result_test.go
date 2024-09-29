@@ -48,7 +48,7 @@ func TestFile_Location(t *testing.T) {
 	}
 }
 
-func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
+func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -60,7 +60,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		{
 			name: "No staged dependencies",
 			data: PinningDependenciesData{
-				StagedDependencies: []Dependency{},
+				Dependencies: []Dependency{},
 			},
 			useType:  DependencyUseTypeGHAction,
 			expected: []Dependency{},
@@ -68,7 +68,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		{
 			name: "Single matching dependency",
 			data: PinningDependenciesData{
-				StagedDependencies: []Dependency{
+				Dependencies: []Dependency{
 					{
 						Name: newString("dep1"),
 						Type: DependencyUseTypeGHAction,
@@ -86,7 +86,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		{
 			name: "Multiple dependencies with one match",
 			data: PinningDependenciesData{
-				StagedDependencies: []Dependency{
+				Dependencies: []Dependency{
 					{
 						Name: newString("dep1"),
 						Type: DependencyUseTypeGHAction,
@@ -108,7 +108,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		{
 			name: "Multiple dependencies with multiple matches",
 			data: PinningDependenciesData{
-				StagedDependencies: []Dependency{
+				Dependencies: []Dependency{
 					{
 						Name: newString("dep1"),
 						Type: DependencyUseTypeGHAction,
@@ -134,7 +134,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		{
 			name: "No matching dependencies",
 			data: PinningDependenciesData{
-				StagedDependencies: []Dependency{
+				Dependencies: []Dependency{
 					{
 						Name: newString("dep1"),
 						Type: DependencyUseTypeDockerfileContainerImage,
@@ -149,7 +149,7 @@ func TestPinningDependenciesData_GetStagedDependencies(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := tt.data.GetStagedDependencies(tt.useType)
+			result := tt.data.GetDependenciesByType(tt.useType)
 			if len(result) != len(tt.expected) {
 				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
 			}
