@@ -20,7 +20,7 @@ motivation: >
 implementation: >
   The probe analyzes the repository's workflows for known dangerous patterns.
 outcome:
-  - The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected. Each finding includes a suggested patch to fix the respective script injection.
+  - The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected. Each finding may include a suggested patch to fix the respective script injection.
   - If no dangerous patterns are found, the probe returns one finding with OutcomeFalse.
 remediation:
   onOutcome: True

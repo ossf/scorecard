@@ -58,7 +58,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	var curr string
+	var currWorkflow string
 	var workflow *actionlint.Workflow
 	var content []byte
 	var errs []*actionlint.Error
@@ -83,8 +83,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		findings = append(findings, *f)
 
 		wp := path.Join(localPath, e.File.Path)
-		if curr != wp {
-			curr = wp
+		if currWorkflow != wp {
+			// update current open file if injection in different file
+			currWorkflow = wp
 			content, err = os.ReadFile(wp)
 			if err != nil {
 				continue

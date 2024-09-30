@@ -61,10 +61,11 @@ func patchWorkflow(f checker.File, content []byte, workflow *actionlint.Workflow
 	unsafeVar := strings.TrimSpace(f.Snippet)
 
 	lines := bytes.Split(content, []byte("\n"))
-	if f.Offset == 0 || int(f.Offset) >= len(lines) {
+	runCmdIndex := int(f.Offset - 1)
+
+	if runCmdIndex < 0 || runCmdIndex >= len(lines) {
 		return []byte(""), sce.WithMessage(sce.ErrScorecardInternal, "Invalid dangerous workflow offset")
 	}
-	runCmdIndex := f.Offset - 1
 
 	unsafePattern, err := getUnsafePattern(unsafeVar)
 	if err != nil {
@@ -209,10 +210,10 @@ func useExistingEnvvars(
 }
 
 // Replaces all instances of the given script injection variable with the safe environment variable.
-func replaceUnsafeVarWithEnvvar(lines [][]byte, pattern unsafePattern, runIndex uint) {
+func replaceUnsafeVarWithEnvvar(lines [][]byte, pattern unsafePattern, runIndex int) {
 	runIndent := getIndent(lines[runIndex])
 	for i, line := range lines[runIndex:] {
-		currLine := int(runIndex) + i
+		currLine := runIndex + i
 		if i > 0 && isParentLevelIndent(lines[currLine], runIndent) {
 			// anything at the same indent as the first line of the  `- run:` block will mean the end of the run block.
 			break
