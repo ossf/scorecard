@@ -60,7 +60,7 @@ jobs:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
     - name: Checkout repository
-      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
 
     # don't use the default version of Go from GitHub runners
     # https://github.com/github/codeql-action/issues/1842#issuecomment-1704398087
@@ -73,7 +73,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@294a9d92911152fe08befb9ec03e240add280cb3 # v3.26.8
+      uses: github/codeql-action/init@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
       with:
         languages: ${{ matrix.language }}
         queries: +security-extended
@@ -85,7 +85,7 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@294a9d92911152fe08befb9ec03e240add280cb3 # v3.26.8
+      uses: github/codeql-action/autobuild@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -99,4 +99,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@294a9d92911152fe08befb9ec03e240add280cb3 # v3.26.8
+      uses: github/codeql-action/analyze@461ef6c76dfe95d5c364de2f431ddbd31a417628 # v3.26.9
