@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fileparser
+package csproj
 
 import (
 	"encoding/xml"
@@ -28,19 +28,19 @@ type Project struct {
 	PropertyGroups []PropertyGroup `xml:"PropertyGroup"`
 }
 
-func IsRestoreLockedModeEnabled(content []byte) (error, bool) {
+func IsRestoreLockedModeEnabled(content []byte) (bool, error) {
 	var project Project
 
 	err := xml.Unmarshal(content, &project)
 	if err != nil {
-		return errInvalidCsProjFile, false
+		return false, errInvalidCsProjFile
 	}
 
 	for _, propertyGroup := range project.PropertyGroups {
 		if propertyGroup.RestoreLockedMode {
-			return nil, true
+			return true, nil
 		}
 	}
 
-	return nil, false
+	return false, nil
 }

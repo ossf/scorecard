@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fileparser
+package csproj
 
 import (
 	"errors"
 )
 
-var (
-	errInvalidGitHubWorkflow = errors.New("invalid GitHub workflow")
-	errInternalFilenameMatch = errors.New("filename match error")
-)
+var errInvalidCsProjFile = errors.New("error parsing csproj file")

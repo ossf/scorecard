@@ -128,16 +128,6 @@ type PinningDependenciesData struct {
 	ProcessingErrors []ElementError // jobs or files with errors may have incomplete results
 }
 
-func (p *PinningDependenciesData) GetDependenciesByType(useType DependencyUseType) []*Dependency {
-	var deps []*Dependency
-	for i := 0; i < len(p.Dependencies); i++ {
-		if p.Dependencies[i].Type == useType {
-			deps = append(deps, &p.Dependencies[i])
-		}
-	}
-	return deps
-}
-
 // Dependency represents a dependency.
 type Dependency struct {
 	// TODO: unique dependency name.
@@ -149,11 +139,6 @@ type Dependency struct {
 	Pinned      *bool
 	Remediation *finding.Remediation
 	Type        DependencyUseType
-}
-
-type DotnetCsprojLockedData struct {
-	Path          *string
-	LockedModeSet *bool
 }
 
 // MaintainedData contains the raw results

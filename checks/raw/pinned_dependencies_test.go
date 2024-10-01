@@ -2130,18 +2130,18 @@ func TestCsProjAnalysis(t *testing.T) {
 
 			content, err = os.ReadFile(tt.filename)
 			if err != nil {
-				t.Errorf("cannot read file: %v", err)
+				t.Fatalf("cannot read file: %v", err)
 			}
 
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			p = strings.Replace(p, "../testdata/", "", 1)
 
-			var r []checker.DotnetCsprojLockedData
+			var r []dotnetCsprojLockedData
 			dl := scut.TestDetailLogger{}
 
 			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
 			if err != nil {
-				t.Errorf("unexpected error %v", err)
+				t.Fatalf("unexpected error %v", err)
 				return
 			}
 			if tt.expectErrorLogs {
@@ -2153,7 +2153,7 @@ func TestCsProjAnalysis(t *testing.T) {
 
 			unlocked := 0
 			for _, d := range r {
-				if !*d.LockedModeSet {
+				if !d.LockedModeSet {
 					unlocked++
 				}
 			}
@@ -2171,7 +2171,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 		name                string
 		filenames           []string
 		stagedDependencies  []*checker.Dependency
-		outcomeDependencies []checker.Dependency
+		outcomeDependencies []*checker.Dependency
 		expectError         bool
 	}{
 		{
@@ -2185,7 +2185,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Remediation: nil,
 				},
 			},
-			outcomeDependencies: []checker.Dependency{
+			outcomeDependencies: []*checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
@@ -2206,7 +2206,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					},
 				},
 			},
-			outcomeDependencies: []checker.Dependency{
+			outcomeDependencies: []*checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2229,7 +2229,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					},
 				},
 			},
-			outcomeDependencies: []checker.Dependency{
+			outcomeDependencies: []*checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
@@ -2248,7 +2248,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Remediation: &finding.Remediation{Text: "remediate"},
 				},
 			},
-			outcomeDependencies: []checker.Dependency{
+			outcomeDependencies: []*checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(false),
@@ -2283,13 +2283,127 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 				}
 			}
 			t.Log(tt.stagedDependencies)
-			for i := range tt.outcomeDependencies {
-				outcomeDependency := &tt.outcomeDependencies[i]
-				depend := tt.stagedDependencies[i]
-				if diff := cmp.Diff(outcomeDependency, depend); diff != "" {
-					t.Errorf("mismatch (-want +got):\n%s", diff)
+			if diff := cmp.Diff(tt.outcomeDependencies, tt.stagedDependencies); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		data     checker.PinningDependenciesData
+		useType  checker.DependencyUseType
+		expected []checker.Dependency
+	}{
+		{
+			name: "No staged dependencies",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{},
+			},
+			useType:  checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{},
+		},
+		{
+			name: "Single matching dependency",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with one match",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: checker.DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with multiple matches",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+				{
+					Name: newString("dep2"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "No matching dependencies",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType:  checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := getDependenciesByType(&tt.data, tt.useType)
+			if len(result) != len(tt.expected) {
+				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
+			}
+			for i, dep := range result {
+				if *dep.Name != *tt.expected[i].Name || dep.Type != tt.expected[i].Type {
+					t.Errorf("Expected dependency %v, got %v", tt.expected[i], dep)
 				}
 			}
 		})
 	}
+}
+
+func newString(s string) *string {
+	return &s
 }
