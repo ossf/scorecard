@@ -33,50 +33,55 @@ The current charter of the OpenSSF Scorecard project can be found [here](https:/
 
 The project should be able to show adoption by multiple parties and the adoption's value to the open source community and/or end users (may include adoption of beta/early versions).
 
-- "description of adoption"
+- OpenSSF Scorecard results are required as part of all current applications for OpenSSF [Incubating](https://github.com/ossf/tac/blob/c76e94ed192379ede5b3e5e143c372125bac6aa8/process/templates/PROJECT_NAME_incubation_stage.md) and [Graduated](https://github.com/ossf/tac/blob/c76e94ed192379ede5b3e5e143c372125bac6aa8/process/templates/PROJECT_NAME_graduation_stage.md) projects
+- [CLOMonitor](https://github.com/cncf/clomonitor), a CNCF tool that periodically checks open source projects repositories to verify they meet certain project health best practices, leverages OpenSSF Scorecard for several of its checks.
+- [Allstar](https://github.com/ossf/allstar) is a GitHub App that continuously monitors GitHub organizations or repositories for adherence to security best practices. Allstar has since been added an OpenSSF Scorecard project.
+- [Prominent OpenSSF Scorecard Users](https://github.com/ossf/scorecard?tab=readme-ov-file#prominent-scorecard-users)
+- [4.5k stars](https://github.com/ossf/scorecard/stargazers), [~500 forks](https://github.com/ossf/scorecard/forks)
+- [GitHub dependency graph](https://github.com/ossf/scorecard/network/dependents)
 
 ## Governance
 
 Project must have met publicly at least 5 times in the last quarter since becoming Sandbox
 
-- Link to public meeting notes (or ideally recordings)
+- Link to public meeting notes (or ideally recordings): https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing
 
 Projects must have documented, initial project governance
 
-- "link to governance documents/Charter"
+- https://github.com/ossf/scorecard/blob/main/CHARTER.md
 
 Project must have defined Contributor Guide
 
-- "link to contributor guide"
+- https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md
 
 Project has attained an OpenSSF Best Practice Badge at "passing" level
 
-- "link to OpenSSF Badge"
+- https://www.bestpractices.dev/en/projects/5621
 
 Project is integrated into the OpenSSF Scorecard
 
-- "link to Scorecard output"
+- https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard
 
 ## IP policy and licensing due diligence
 
 When contributing an existing Project to the OpenSSF, the contribution must undergo license and IP due diligence by the Linux Foundation (LF). This step is only needed for the initial donation and only applicable here, if the project intends to join the OpenSSF Incubation stage.
 
-- "yes / no / not applicable. If yes, provide a link to the corresponding GitHub issue."
+N/A, this project has been under OpenSSF governance for multiple years
 
 ## Project References
 
 The project should provide a list of existing resources with links to the repository, website, a roadmap, contributing guide, demos and walkthroughs, and any other material to showcase the existing breadth, maturity, and direction of the project.
 
-| Reference             | URL |
-|-----------------------|-----|
-| Repo                  |     |
-| Meeting Agenda        |     |
-| OSSF Calendar Entry   |     |
-| Website               |     |
-| Contributing guide    |     |
-| Security.md           |     |
-| Roadmap               |     |
-| Demos                 |     |
-| Best Practices Badge  |     |
-| Scorecard integration |     |
-| Other                 |     |
+| Reference | URL |
+|---|---|
+| Repo | https://github.com/ossf/scorecard |
+| Meeting Agenda | https://docs.google.com/document/d/1b6d3CVJLsl7YnTE7ZaZQHdkdYIvuOQ8rzAmvVdypOWM/edit?usp=sharing |
+| OSSF Calendar Entry | https://github.com/ossf/scorecard?tab=readme-ov-file#join-the-scorecard-project-meeting |
+| Website | https://scorecard.dev/ |
+| Contributing guide | https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md |
+| Security.md | https://github.com/ossf/scorecard/blob/main/SECURITY.md |
+| Roadmap | https://github.com/orgs/ossf/projects/24/views/4 |
+| Demos | https://openssf.org/training/securing-projects-with-openssf-scorecard-course/ |
+| Best Practices Badge | https://www.bestpractices.dev/en/projects/5621 |
+| Scorecard integration | https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard |
+| Other | N/A |
