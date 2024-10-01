@@ -1,12 +1,14 @@
 # OpenSSF Scorecard — Incubation application
 
-## TODO
-
-- [ ] Determine if the project meets [Sandbox requirements](https://github.com/ossf/tac/blob/main/process/project-lifecycle.md#sandbox)
-
 ## Project has met all Sandbox requirements
 
-- "link to sandbox PR if one exists"
+The only Sandbox application requirement that is not listed as part of the Incubation application superset is the matter of project sponsorship.
+
+### Sponsor
+
+Most projects will report to an existing OpenSSF Working Group, although in some cases a project may report directly to the TAC. The project commits to providing quarterly updates on progress to the group they report to.
+
+OpenSSF Scorecard is a project of the Best Practices Working Group.
 
 ## List of project maintainers
 
