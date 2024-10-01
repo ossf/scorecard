@@ -41,7 +41,7 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
      - name: Setup Go
        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
        with:
@@ -117,7 +117,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -147,7 +147,7 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
      - name: Setup Go
        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
        with:
@@ -182,7 +182,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -237,7 +237,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
      - name: Setup Go
        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
        with:
@@ -277,7 +277,7 @@ jobs:
          restore-keys: |
            ${{ runner.os }}-go-
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -306,7 +306,7 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
      - name: Setup Go
        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
        with:
@@ -340,7 +340,7 @@ jobs:
         version: ${{ env.PROTOC_VERSION }}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Clone the code
-       uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+       uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
        with:
           fetch-depth: 0
      - name: Setup Go
@@ -369,7 +369,7 @@ jobs:
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
