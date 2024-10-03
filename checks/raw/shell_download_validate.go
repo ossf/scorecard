@@ -994,6 +994,16 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 
 	// Nuget install and restore
 	if isNuget(c) {
+		pinned := !isNugetUnpinned(c)
+		var remediation *finding.Remediation
+		if !pinned {
+			remediation = &finding.Remediation{
+				Text: "pin your dependecies by either enabling central package management " +
+					"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
+					"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
+					"package-references-in-project-files#locking-dependencies)",
+			}
+		}
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -1003,11 +1013,10 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(!isNugetUnpinned(c)),
-				Type:   checker.DependencyUseTypeNugetCommand,
-			},
-		)
-
+				Pinned:      &pinned,
+				Type:        checker.DependencyUseTypeNugetCommand,
+				Remediation: remediation,
+			})
 		return
 	}
 

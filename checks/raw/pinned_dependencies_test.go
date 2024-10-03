@@ -2084,3 +2084,326 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 		})
 	}
 }
+
+func TestCsProjAnalysis(t *testing.T) {
+	t.Parallel()
+
+	//nolint:govet
+	tests := []struct {
+		unlocked        int
+		expectErrorLogs bool
+		name            string
+		filename        string
+	}{
+		{
+			name:            "empty file",
+			filename:        "./testdata/dotnet-empty.csproj",
+			expectErrorLogs: true,
+		},
+		{
+			name:     "locked mode enabled",
+			filename: "./testdata/dotnet-locked-mode-enabled.csproj",
+			unlocked: 0,
+		},
+		{
+			name:     "locked mode disabled",
+			filename: "./testdata/dotnet-locked-mode-disabled.csproj",
+			unlocked: 1,
+		},
+		{
+			name:     "locked mode disabled implicitly",
+			filename: "./testdata/dotnet-locked-mode-disabled-implicitly.csproj",
+			unlocked: 1,
+		},
+		{
+			name:            "invalid file",
+			filename:        "./testdata/dotnet-invalid.csproj",
+			expectErrorLogs: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+
+			content, err = os.ReadFile(tt.filename)
+			if err != nil {
+				t.Fatalf("cannot read file: %v", err)
+			}
+
+			p := strings.Replace(tt.filename, "./testdata/", "", 1)
+			p = strings.Replace(p, "../testdata/", "", 1)
+
+			var r []dotnetCsprojLockedData
+			dl := scut.TestDetailLogger{}
+
+			_, err = analyseCsprojLockedMode(p, content, &r, &dl)
+			if err != nil {
+				t.Fatalf("unexpected error %v", err)
+				return
+			}
+			if tt.expectErrorLogs {
+				messages := dl.Flush()
+				if len(messages) != 0 && messages[0].Type != checker.DetailWarn {
+					t.Errorf("expected logged warning, got none")
+				}
+			}
+
+			unlocked := 0
+			for _, d := range r {
+				if !d.LockedModeSet {
+					unlocked++
+				}
+			}
+
+			if tt.unlocked != unlocked {
+				t.Errorf("expected %v. Got %v", tt.unlocked, unlocked)
+			}
+		})
+	}
+}
+
+func TestCollectInsecureNugetCsproj(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		filenames           []string
+		stagedDependencies  []*checker.Dependency
+		outcomeDependencies []*checker.Dependency
+		expectError         bool
+	}{
+		{
+			name:        "pinned by command and 'locked mode' disabled implicitly",
+			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
+			expectError: false,
+			stagedDependencies: []*checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+			outcomeDependencies: []*checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and 'locked mode' disabled implicitly",
+			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
+			expectError: false,
+			stagedDependencies: []*checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+			outcomeDependencies: []*checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and 'locked mode' enabled",
+			filenames:   []string{"./dotnet-locked-mode-enabled.csproj"},
+			expectError: false,
+			stagedDependencies: []*checker.Dependency{
+				{
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+					},
+				},
+			},
+			outcomeDependencies: []*checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(true),
+					Remediation: nil,
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and 'locked mode' enabled and disabled in different csproj files",
+			filenames:   []string{"./dotnet-locked-mode-enabled.csproj", "./dotnet-locked-mode-disabled.csproj"},
+			expectError: false,
+			stagedDependencies: []*checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "remediate"},
+				},
+			},
+			outcomeDependencies: []*checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "remediate: some of your csproj files set the RestoreLockedMode property to true, while other do not set it: ./dotnet-locked-mode-disabled.csproj"},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.filenames, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(file string) (io.ReadCloser, error) {
+				return os.Open(filepath.Join("testdata", file))
+			})
+
+			req := checker.CheckRequest{
+				RepoClient: mockRepoClient,
+			}
+
+			err := processCsprojLockedMode(&req, tt.stagedDependencies)
+			if err != nil {
+				if !tt.expectError {
+					t.Error(err.Error())
+				}
+			}
+			t.Log(tt.stagedDependencies)
+			if diff := cmp.Diff(tt.outcomeDependencies, tt.stagedDependencies); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		data     checker.PinningDependenciesData
+		useType  checker.DependencyUseType
+		expected []checker.Dependency
+	}{
+		{
+			name: "No staged dependencies",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{},
+			},
+			useType:  checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{},
+		},
+		{
+			name: "Single matching dependency",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with one match",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: checker.DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "Multiple dependencies with multiple matches",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+					{
+						Name: newString("dep2"),
+						Type: checker.DependencyUseTypeGHAction,
+					},
+				},
+			},
+			useType: checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{
+				{
+					Name: newString("dep1"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+				{
+					Name: newString("dep2"),
+					Type: checker.DependencyUseTypeGHAction,
+				},
+			},
+		},
+		{
+			name: "No matching dependencies",
+			data: checker.PinningDependenciesData{
+				Dependencies: []checker.Dependency{
+					{
+						Name: newString("dep1"),
+						Type: checker.DependencyUseTypeDockerfileContainerImage,
+					},
+				},
+			},
+			useType:  checker.DependencyUseTypeGHAction,
+			expected: []checker.Dependency{},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := getDependenciesByType(&tt.data, tt.useType)
+			if len(result) != len(tt.expected) {
+				t.Errorf("Expected %d dependencies, got %d", len(tt.expected), len(result))
+			}
+			for i, dep := range result {
+				if *dep.Name != *tt.expected[i].Name || dep.Type != tt.expected[i].Type {
+					t.Errorf("Expected dependency %v, got %v", tt.expected[i], dep)
+				}
+			}
+		})
+	}
+}
+
+func newString(s string) *string {
+	return &s
+}
