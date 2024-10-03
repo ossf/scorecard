@@ -53,7 +53,7 @@ You must install these tools:
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
 1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.21.8](https://golang.org/dl/) or higher.
+    [v1.22.0](https://golang.org/dl/) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
@@ -225,16 +225,13 @@ A summary for each check needs to be included in the `README.md`.
 In most cases, to update the documentation simply edit the corresponding
 `.md` file, with the notable exception of the auto-generated file `checks.md`.
 
+> [!IMPORTANT]  
+> **DO NOT** edit `docs/checks.md` directly, as that is an
+> auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
+
 Details about each check need to be  provided in
 [docs/checks/internal/checks.yaml](docs/checks/internal/checks.yaml).
-If you want to update its documentation, update that `checks.yaml` file.
-
-Whenever you modify the `checks.yaml` file, run the following to
-generate `docs/checks.md`:
-
-```shell
-make generate-docs
-```
-
-**DO NOT** edit `docs/checks.md` directly, as that is an
-auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
+If you want to update its documentation:
+1. Make your edits in `docs/checks/internal/checks.yaml`.
+2. Regenerate `docs/checks.md` by running `make generate-docs`
+3. Commit both `docs/checks/internal/checks.yaml` and `docs/checks.md`

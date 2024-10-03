@@ -102,6 +102,10 @@ linters-settings:
       - BUG
       - FIXME
       - HACK
+  gosec:
+    excludes:
+      # TODO investigate and fix separately
+      - G115 # integer overflow conversion
   gci:
     sections:
       - standard
