@@ -16,7 +16,10 @@ package csproj
 
 import (
 	"encoding/xml"
+	"errors"
 )
+
+var errInvalidCsProjFile = errors.New("error parsing csproj file")
 
 type PropertyGroup struct {
 	XMLName           xml.Name `xml:"PropertyGroup"`
