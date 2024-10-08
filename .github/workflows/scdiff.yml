@@ -60,6 +60,7 @@ jobs:
             authorAssociation = '${{ github.event.comment.author_association }}'
             if (!allowedAssociations.includes(authorAssociation)) {
               core.setFailed("You don't have access to run scdiff");
+              return
             }
 
             const response = await github.rest.pulls.get({
@@ -67,6 +68,16 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number,
             })
+
+            // avoid race condition between scdiff comment and fetching PR head sha
+            const commentTime = new Date('${{ github.event.comment.created_at }}');
+            const prTime = new Date(response.data.head.repo.pushed_at)
+            if (prTime >= commentTime) {
+              core.setFailed("The PR may have been updated since the scdiff request, " +
+                             "please review any changes and relaunch if safe.");
+              return
+            }
+
             core.setOutput('base', response.data.base.sha)
             core.setOutput('head', response.data.head.sha)
 
