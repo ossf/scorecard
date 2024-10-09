@@ -194,7 +194,7 @@ If the probe finds no binary files, it returns a single OutcomeFalse.
 
 **Implementation**: The probe analyzes the repository's workflows for known dangerous patterns.
 
-**Outcomes**: The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected.
+**Outcomes**: The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected. Each finding may include a suggested patch to fix the respective script injection.
 If no dangerous patterns are found, the probe returns one finding with OutcomeFalse.
 
 

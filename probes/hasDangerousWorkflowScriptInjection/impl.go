@@ -18,11 +18,16 @@ package hasDangerousWorkflowScriptInjection
 import (
 	"embed"
 	"fmt"
+	"os"
+	"path"
+
+	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/internal/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
@@ -53,23 +58,37 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	var findings []finding.Finding
-	for _, e := range r.Workflows {
-		e := e
-		if e.Type == checker.DangerousWorkflowScriptInjection {
-			f, err := finding.NewWith(fs, Probe,
-				fmt.Sprintf("script injection with untrusted input '%v'", e.File.Snippet),
-				nil, finding.OutcomeTrue)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("create finding: %w", err)
-			}
-			f = f.WithLocation(&finding.Location{
-				Path:      e.File.Path,
-				Type:      e.File.Type,
-				LineStart: &e.File.Offset,
-				Snippet:   &e.File.Snippet,
-			})
-			findings = append(findings, *f)
+	var currWorkflow string
+	var workflow *actionlint.Workflow
+	var content []byte
+	var errs []*actionlint.Error
+	localPath := raw.Metadata.Metadata["localPath"]
+	for _, w := range r.Workflows {
+		w := w
+		if w.Type != checker.DangerousWorkflowScriptInjection {
+			continue
 		}
+
+		f, err := finding.NewWith(fs, Probe,
+			fmt.Sprintf("script injection with untrusted input '%v'", w.File.Snippet),
+			nil, finding.OutcomeTrue)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+
+		f = f.WithLocation(&finding.Location{
+			Path:      w.File.Path,
+			Type:      w.File.Type,
+			LineStart: &w.File.Offset,
+			Snippet:   &w.File.Snippet,
+		})
+
+		err = parseWorkflow(localPath, &w, &currWorkflow, &content, &workflow, &errs)
+		if err == nil {
+			generatePatch(&w, content, workflow, errs, f)
+		}
+
+		findings = append(findings, *f)
 	}
 
 	if len(findings) == 0 {
@@ -77,6 +96,50 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	return findings, Probe, nil
+}
+
+func parseWorkflow(
+	localPath string,
+	e *checker.DangerousWorkflow,
+	currWorkflow *string,
+	content *[]byte,
+	workflow **actionlint.Workflow,
+	errs *[]*actionlint.Error,
+) error {
+	var err error
+	wp := path.Join(localPath, e.File.Path)
+	if *currWorkflow != wp {
+		// update current open file if injection in different file
+		*currWorkflow = wp
+		*content, err = os.ReadFile(wp)
+		if err != nil {
+			return err //nolint:wrapcheck // we only care about the error's existence
+		}
+
+		*workflow, *errs = actionlint.Parse(*content)
+		if len(*errs) > 0 && *workflow == nil {
+			// the workflow contains unrecoverable parsing errors, skip.
+			return err //nolint:wrapcheck // we only care about the error's existence
+		}
+	}
+	return nil
+}
+
+func generatePatch(
+	e *checker.DangerousWorkflow,
+	content []byte,
+	workflow *actionlint.Workflow,
+	errs []*actionlint.Error,
+	f *finding.Finding,
+) {
+	findingPatch, err := patch.GeneratePatch(e.File, content, workflow, errs)
+	if err != nil {
+		return
+	}
+	f.WithPatch(&findingPatch)
+	f.WithRemediationMetadata(map[string]string{
+		"patch": findingPatch,
+	})
 }
 
 func falseOutcome() ([]finding.Finding, string, error) {
