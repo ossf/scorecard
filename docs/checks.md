@@ -554,7 +554,7 @@ allows them to identify vulnerabilities in the software supply chain.
 
 Standards to be used during checks;
 - OSSF SBOM Everywhere SIG naming and directory conventions:
-  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
+  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/sbom_naming.md#consistent-naming-conventions>
 
 This check currently looks for the existence of an SBOM in the
 source of a project and as a pipeline or release artifact.
