@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -43,13 +42,13 @@ type Client struct {
 	commitDepth int
 }
 
-func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
+func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	azdoRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
 	}
 
-	repo, err := client.azdoClient.GetRepository(context.Background(), git.GetRepositoryArgs{
+	repo, err := c.azdoClient.GetRepository(c.ctx, git.GetRepositoryArgs{
 		Project:      &azdoRepo.project,
 		RepositoryId: &azdoRepo.name,
 	})
@@ -58,14 +57,14 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 
 	if commitDepth <= 0 {
-		client.commitDepth = 30 // default
+		c.commitDepth = 30 // default
 	} else {
-		client.commitDepth = commitDepth
+		c.commitDepth = commitDepth
 	}
 
-	branch, _ := strings.CutPrefix(*repo.DefaultBranch, "refs/heads/")
+	branch := strings.TrimPrefix(*repo.DefaultBranch, "refs/heads/")
 
-	client.repourl = &Repo{
+	c.repourl = &Repo{
 		scheme:        azdoRepo.scheme,
 		host:          azdoRepo.host,
 		organization:  azdoRepo.organization,
@@ -76,19 +75,19 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		commitSHA:     commitSHA,
 	}
 
-	client.branches.init(client.repourl)
+	c.branches.init(c.ctx, c.repourl)
 
-	client.commits.init(client.repourl, client.commitDepth)
+	c.commits.init(c.ctx, c.repourl, c.commitDepth)
 
 	return nil
 }
 
-func (client *Client) URI() string {
-	return fmt.Sprintf("%s/%s/_git/%s", client.repourl.host, client.repourl.organization, client.repourl.project)
+func (c *Client) URI() string {
+	return fmt.Sprintf("%s/%s", c.repourl.host, c.repourl.Path())
 }
 
-func (client *Client) IsArchived() (bool, error) {
-	repo, err := client.azdoClient.GetRepository(context.Background(), git.GetRepositoryArgs{RepositoryId: &client.repourl.ID})
+func (c *Client) IsArchived() (bool, error) {
+	repo, err := c.azdoClient.GetRepository(c.ctx, git.GetRepositoryArgs{RepositoryId: &c.repourl.ID})
 	if err != nil {
 		return false, fmt.Errorf("could not get repository with error: %w", err)
 	}
@@ -96,91 +95,91 @@ func (client *Client) IsArchived() (bool, error) {
 	return *repo.IsDisabled, nil
 }
 
-func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return []string{}, nil
+func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	return []string{}, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) LocalPath() (string, error) {
-	return "", nil
+func (c *Client) LocalPath() (string, error) {
+	return "", clients.ErrUnsupportedFeature
 }
 
-func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
-	return nil, nil
+func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
-	return nil, nil
+func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) GetCreatedAt() (time.Time, error) {
-	return time.Time{}, nil
+func (c *Client) GetCreatedAt() (time.Time, error) {
+	return time.Time{}, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) GetDefaultBranchName() (string, error) {
-	if len(client.repourl.defaultBranch) > 0 {
-		return client.repourl.defaultBranch, nil
+func (c *Client) GetDefaultBranchName() (string, error) {
+	if len(c.repourl.defaultBranch) > 0 {
+		return c.repourl.defaultBranch, nil
 	}
 
 	return "", fmt.Errorf("%s", "default branch name is empty")
 }
 
-func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
-	return client.branches.getDefaultBranch()
+func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+	return c.branches.getDefaultBranch()
 }
 
-func (client *Client) GetOrgRepoClient(context.Context) (clients.RepoClient, error) {
-	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
+func (c *Client) GetOrgRepoClient(context.Context) (clients.RepoClient, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListCommits() ([]clients.Commit, error) {
-	return client.commits.listCommits()
+func (c *Client) ListCommits() ([]clients.Commit, error) {
+	return c.commits.listCommits()
 }
 
-func (client *Client) ListIssues() ([]clients.Issue, error) {
-	return nil, nil
+func (c *Client) ListIssues() ([]clients.Issue, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListLicenses() ([]clients.License, error) {
-	return nil, nil
+func (c *Client) ListLicenses() ([]clients.License, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListReleases() ([]clients.Release, error) {
-	return nil, nil
+func (c *Client) ListReleases() ([]clients.Release, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListContributors() ([]clients.User, error) {
-	return nil, nil
+func (c *Client) ListContributors() ([]clients.User, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	return nil, nil
+func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	return nil, nil
+func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
-	return nil, nil
+func (c *Client) ListStatuses(ref string) ([]clients.Status, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
-	return nil, nil
+func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
-	return nil, nil
+func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	return clients.SearchResponse{}, nil
+func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
+	return clients.SearchResponse{}, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	return nil, nil
+func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) Close() error {
+func (c *Client) Close() error {
 	return nil
 }
 
@@ -209,8 +208,4 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 			gitClient: gitClient,
 		},
 	}, nil
-}
-
-func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
-	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
 }
