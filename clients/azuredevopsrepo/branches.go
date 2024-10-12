@@ -25,6 +25,7 @@ import (
 
 type branchesHandler struct {
 	gitClient        git.Client
+	ctx              context.Context
 	once             *sync.Once
 	errSetup         error
 	repourl          *Repo
@@ -32,7 +33,8 @@ type branchesHandler struct {
 	queryBranch      fnQueryBranch
 }
 
-func (handler *branchesHandler) init(repourl *Repo) {
+func (handler *branchesHandler) init(ctx context.Context, repourl *Repo) {
+	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -45,7 +47,7 @@ type (
 
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
-		branch, err := handler.queryBranch(context.Background(), git.GetBranchArgs{
+		branch, err := handler.queryBranch(handler.ctx, git.GetBranchArgs{
 			RepositoryId: &handler.repourl.ID,
 			Name:         &handler.repourl.defaultBranch,
 		})

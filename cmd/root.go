@@ -223,9 +223,14 @@ func makeRepo(uri string) (clients.Repo, error) {
 	var errGitHub, errGitLab, errAzureDevOps error
 	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub != nil {
 		if repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri); errGitLab != nil {
-			repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
-			if errAzureDevOps != nil {
-				return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", errors.Join(errGitHub, errGitLab))
+			_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
+			if experimental {
+				repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
+				if errAzureDevOps != nil {
+					return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", errors.Join(errGitHub, errGitLab, errAzureDevOps))
+				}
+			} else {
+				return nil, fmt.Errorf("unable to parse as github or gitlab: %w", errors.Join(errGitHub, errGitLab))
 			}
 		}
 	}

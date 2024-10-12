@@ -25,6 +25,7 @@ import (
 
 type commitsHandler struct {
 	gitClient           git.Client
+	ctx                 context.Context
 	once                *sync.Once
 	errSetup            error
 	repourl             *Repo
@@ -35,7 +36,8 @@ type commitsHandler struct {
 	getPullRequestQuery fnGetPullRequestQuery
 }
 
-func (handler *commitsHandler) init(repourl *Repo, commitDepth int) {
+func (handler *commitsHandler) init(ctx context.Context, repourl *Repo, commitDepth int) {
+	handler.ctx = ctx
 	handler.repourl = repourl
 	handler.errSetup = nil
 	handler.once = new(sync.Once)
@@ -51,18 +53,28 @@ type (
 
 func (handler *commitsHandler) setup() error {
 	handler.once.Do(func() {
+		var itemVersion git.GitVersionDescriptor
+		if handler.repourl.commitSHA == "HEAD" {
+			itemVersion = git.GitVersionDescriptor{
+				VersionType: &git.GitVersionTypeValues.Branch,
+				Version:     &handler.repourl.defaultBranch,
+			}
+		} else {
+			itemVersion = git.GitVersionDescriptor{
+				VersionType: &git.GitVersionTypeValues.Commit,
+				Version:     &handler.repourl.commitSHA,
+			}
+		}
+
 		opt := git.GetCommitsArgs{
 			RepositoryId: &handler.repourl.ID,
 			Top:          &handler.commitDepth,
 			SearchCriteria: &git.GitQueryCommitsCriteria{
-				ItemVersion: &git.GitVersionDescriptor{
-					VersionType: &git.GitVersionTypeValues.Branch,
-					Version:     &handler.repourl.defaultBranch,
-				},
+				ItemVersion: &itemVersion,
 			},
 		}
 
-		commits, err := handler.getCommits(context.Background(), opt)
+		commits, err := handler.getCommits(handler.ctx, opt)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for commits failed with %w", err)
 			return
@@ -84,7 +96,7 @@ func (handler *commitsHandler) setup() error {
 				},
 			},
 		}
-		pullRequests, err := handler.getPullRequestQuery(context.Background(), pullRequestQuery)
+		pullRequests, err := handler.getPullRequestQuery(handler.ctx, pullRequestQuery)
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for pull requests failed with %w", err)
 			return
