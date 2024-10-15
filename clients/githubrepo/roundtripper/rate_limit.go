@@ -79,14 +79,8 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		// TODO(log): Previously Warn. Consider logging an error here.
-		gh.logger.Info(fmt.Sprintf("Rate limit exceeded. Waiting %s to retry...", duration))
-
-		// Retry
-		time.Sleep(duration)
-		// TODO(log): Previously Warn. Consider logging an error here.
-		gh.logger.Info("Rate limit exceeded. Retrying...")
-		return gh.RoundTrip(r)
+		rateLimitExceeded := fmt.Sprintf("Github rate limit exceeded. Wait %s to retry...", duration)
+		return nil, fmt.Errorf(rateLimitExceeded)
 	}
 
 	return resp, nil
