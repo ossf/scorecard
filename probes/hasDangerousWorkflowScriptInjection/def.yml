@@ -20,7 +20,7 @@ motivation: >
 implementation: >
   The probe analyzes the repository's workflows for known dangerous patterns.
 outcome:
-  - The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected.
+  - The probe returns one finding with OutcomeTrue for each dangerous script injection pattern detected. Each finding may include a suggested patch to fix the respective script injection.
   - If no dangerous patterns are found, the probe returns one finding with OutcomeFalse.
 remediation:
   onOutcome: True
@@ -30,6 +30,11 @@ remediation:
   markdown:
     - Avoid the dangerous workflow patterns.
     - See [this document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
+    - |
+      Here is a proposed patch to eliminate this risk:
+      ```yml
+      ${{ metadata.patch }}
+      ```
 ecosystem:
   languages:
     - all
