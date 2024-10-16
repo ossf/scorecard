@@ -82,6 +82,36 @@ The inspiration for Scorecard’s logo:
 1.  Use this data to proactively improve the security posture of the critical
     projects the world depends on.
 
+1. Act as a measurement tool for existing policies
+
+    If OSS consumers require certain behaviors from their dependencies,
+    Scorecard can be used to measure those. With the V5 release, we see
+    Structured Results as a way of doing this if there is a supported analysis.
+    Instead of relying on an aggregate score of X/10, or a Maintained score of
+    Y/10, an OSS consumer may want to ensure the repo they're depending on
+    isn't archived (which is covered by the `archived` probe). The OpenSSF
+    takes this approach with its own Security Baseline for projects.
+
+#### Project Non-Goals
+
+1.  To be a definitive report or requirement that all projects should follow.
+
+    Scorecard is not intended to be a one-size-fits-all solution. Every step of
+    making our results is opinionated: what checks get included or excluded,
+    the importance of each check, and how scores are calculated. The checks
+    themselves are heuristics; there are false positives and false negatives.
+
+    Whether it’s due to applicability, or feasibility, or a matter of opinion,
+    what's included or excluded from Scorecard results leads to a lot of
+    discussion. It’s impossible to create a Scorecard that satisfies everyone
+    because different audiences will care about different subsets of behavior.
+
+    Aggregate scores in particular tells you nothing about what individual
+    behaviors a repository is or is not doing. Many check scores are aggregated
+    into a single score, and there’s multiple ways of arriving at the same
+    score. These scores change as we add new heuristics or refine the existing
+    ones.
+
 ### Prominent Scorecard Users
 
 Scorecard has been run on thousands of projects to monitor and track security

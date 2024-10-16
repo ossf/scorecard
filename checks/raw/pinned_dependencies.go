@@ -29,8 +29,14 @@ import (
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/csproj"
 	"github.com/ossf/scorecard/v5/remediation"
 )
+
+type dotnetCsprojLockedData struct {
+	Path          string
+	LockedModeSet bool
+}
 
 // PinningDependencies checks for (un)pinned dependencies.
 func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesData, error) {
@@ -61,7 +67,123 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	if unpinnedNugetDependencies := getUnpinnedNugetDependencies(&results); len(unpinnedNugetDependencies) > 0 {
+		if err := processCsprojLockedMode(c, unpinnedNugetDependencies); err != nil {
+			return checker.PinningDependenciesData{}, err
+		}
+	}
 	return results, nil
+}
+
+func getUnpinnedNugetDependencies(pinningDependenciesData *checker.PinningDependenciesData) []*checker.Dependency {
+	var unpinnedNugetDependencies []*checker.Dependency
+	nugetDependencies := getDependenciesByType(pinningDependenciesData, checker.DependencyUseTypeNugetCommand)
+	for i := range nugetDependencies {
+		if !*nugetDependencies[i].Pinned {
+			unpinnedNugetDependencies = append(unpinnedNugetDependencies, nugetDependencies[i])
+		}
+	}
+	return unpinnedNugetDependencies
+}
+
+func getDependenciesByType(p *checker.PinningDependenciesData,
+	useType checker.DependencyUseType,
+) []*checker.Dependency {
+	var deps []*checker.Dependency
+	for i := range p.Dependencies {
+		if p.Dependencies[i].Type == useType {
+			deps = append(deps, &p.Dependencies[i])
+		}
+	}
+	return deps
+}
+
+func processCsprojLockedMode(c *checker.CheckRequest, dependencies []*checker.Dependency) error {
+	csprojDeps, err := collectCsprojLockedModeData(c)
+	if err != nil {
+		return err
+	}
+	unlockedCsprojDeps, unlockedPath := countUnlocked(csprojDeps)
+
+	// none of the csproject files set RestoreLockedMode. Keep the same status of the nuget dependencies
+	if unlockedCsprojDeps == len(csprojDeps) {
+		return nil
+	}
+
+	// all csproj files set RestoreLockedMode, update the dependency pinning status of all nuget dependencies to pinned
+	if unlockedCsprojDeps == 0 {
+		pinAllNugetDependencies(dependencies)
+	} else {
+		// only some csproj files are locked, keep the same status of the nuget dependencies but create a remediation
+		for i := range dependencies {
+			(dependencies)[i].Remediation.Text = (dependencies)[i].Remediation.Text +
+				": some of your csproj files set the RestoreLockedMode property to true, " +
+				"while other do not set it: " + unlockedPath
+		}
+	}
+	return nil
+}
+
+func pinAllNugetDependencies(dependencies []*checker.Dependency) {
+	for i := range dependencies {
+		if dependencies[i].Type == checker.DependencyUseTypeNugetCommand {
+			dependencies[i].Pinned = asBoolPointer(true)
+			dependencies[i].Remediation = nil
+		}
+	}
+}
+
+func collectCsprojLockedModeData(c *checker.CheckRequest) ([]dotnetCsprojLockedData, error) {
+	var csprojDeps []dotnetCsprojLockedData
+	if err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.csproj",
+		CaseSensitive: false,
+	}, analyseCsprojLockedMode, &csprojDeps, c.Dlogger); err != nil {
+		return nil, err
+	}
+
+	return csprojDeps, nil
+}
+
+func analyseCsprojLockedMode(path string, content []byte, args ...interface{}) (bool, error) {
+	pdata, ok := args[0].(*[]dotnetCsprojLockedData)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type *[]dotnetCsprojLockedData, got %v", reflect.TypeOf(args[0])))
+	}
+
+	pinned, err := csproj.IsRestoreLockedModeEnabled(content)
+	if err != nil {
+		dl, ok := args[1].(checker.DetailLogger)
+		if !ok {
+			// panic if it is not correct type
+			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+		}
+
+		dl.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("malformed csproj file: %v", err),
+		})
+		return true, nil
+	}
+
+	csprojData := dotnetCsprojLockedData{
+		Path:          path,
+		LockedModeSet: pinned,
+	}
+
+	*pdata = append(*pdata, csprojData)
+	return true, nil
+}
+
+func countUnlocked(csprojFiles []dotnetCsprojLockedData) (int, string) {
+	var unlockedPaths []string
+
+	for i := range csprojFiles {
+		if !csprojFiles[i].LockedModeSet {
+			unlockedPaths = append(unlockedPaths, csprojFiles[i].Path)
+		}
+	}
+	return len(unlockedPaths), strings.Join(unlockedPaths, ", ")
 }
 
 func dataAsPinnedDependenciesPointer(data interface{}) *checker.PinningDependenciesData {
