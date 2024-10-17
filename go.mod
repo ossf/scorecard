@@ -5,7 +5,7 @@ go 1.22.7
 require (
 	cloud.google.com/go/bigquery v1.63.1
 	cloud.google.com/go/monitoring v1.21.0 // indirect
-	cloud.google.com/go/pubsub v1.43.0
+	cloud.google.com/go/pubsub v1.44.0
 	cloud.google.com/go/trace v1.11.0 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
@@ -54,7 +54,7 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/containeranalysis v0.13.0 // indirect
-	cloud.google.com/go/kms v1.19.0 // indirect
+	cloud.google.com/go/kms v1.19.1 // indirect
 	cloud.google.com/go/longrunning v0.6.1 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	deps.dev/api/v3 v3.0.0-20240923041156-0312db85d6d6 // indirect
