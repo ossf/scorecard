@@ -15,6 +15,7 @@
 package roundtripper
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -27,6 +28,8 @@ import (
 	sce "github.com/ossf/scorecard/v4/errors"
 	"github.com/ossf/scorecard/v4/log"
 )
+
+var errGitHubRateLimitExceeded = errors.New("github rate limit exceeded")
 
 // MakeRateLimitedTransport returns a RoundTripper which rate limits GitHub requests.
 func MakeRateLimitedTransport(innerTransport http.RoundTripper, logger *log.Logger) http.RoundTripper {
@@ -79,7 +82,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		return nil, fmt.Errorf("github rate limit exceeded. wait %s to retry", duration)
+		return nil, fmt.Errorf("%w: wait %s to retry", errGitHubRateLimitExceeded, duration)
 	}
 
 	return resp, nil
