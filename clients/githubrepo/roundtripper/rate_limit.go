@@ -79,8 +79,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		}
 
 		duration := time.Until(time.Unix(int64(reset), 0))
-		rateLimitExceeded := fmt.Sprintf("Github rate limit exceeded. Wait %s to retry...", duration)
-		return nil, fmt.Errorf(rateLimitExceeded)
+		return nil, fmt.Errorf("github rate limit exceeded. wait %s to retry", duration)
 	}
 
 	return resp, nil
