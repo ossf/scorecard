@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v53/github"
@@ -41,11 +42,14 @@ func (handler *workflowsHandler) listSuccessfulWorkflowRuns(filename string) ([]
 		return nil, fmt.Errorf(
 			"%w: ListWorkflowRunsByFileName only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
-	workflowRuns, _, err := handler.client.Actions.ListWorkflowRunsByFileName(
+	workflowRuns, resp, err := handler.client.Actions.ListWorkflowRunsByFileName(
 		handler.ctx, handler.repourl.owner, handler.repourl.repo, filename, &github.ListWorkflowRunsOptions{
 			Status: "success",
 		})
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return make([]clients.WorkflowRun, 0), nil
+		}
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListWorkflowRunsByFileName: %v", err))
 	}
 	return workflowsRunsFrom(workflowRuns), nil
