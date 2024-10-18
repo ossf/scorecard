@@ -221,18 +221,28 @@ func printCheckResults(enabledChecks checker.CheckNameToFnMap) {
 func makeRepo(uri string) (clients.Repo, error) {
 	var repo clients.Repo
 	var errGitHub, errGitLab, errAzureDevOps error
-	if repo, errGitHub = githubrepo.MakeGithubRepo(uri); errGitHub != nil {
-		if repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri); errGitLab != nil {
-			_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
-			if experimental {
-				repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
-				if errAzureDevOps != nil {
-					return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", errors.Join(errGitHub, errGitLab, errAzureDevOps))
-				}
-			} else {
-				return nil, fmt.Errorf("unable to parse as github or gitlab: %w", errors.Join(errGitHub, errGitLab))
-			}
-		}
+	var compositeErr error
+
+	repo, errGitHub = githubrepo.MakeGithubRepo(uri)
+	if errGitHub == nil {
+		return repo, nil
 	}
-	return repo, nil
+	compositeErr = errors.Join(compositeErr, errGitHub)
+
+	repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
+	if errGitLab == nil {
+		return repo, nil
+	}
+	compositeErr = errors.Join(compositeErr, errGitLab)
+
+	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
+	if experimental {
+		repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
+		if errAzureDevOps == nil {
+			return repo, nil
+		}
+		compositeErr = errors.Join(compositeErr, errAzureDevOps)
+	}
+
+	return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
 }

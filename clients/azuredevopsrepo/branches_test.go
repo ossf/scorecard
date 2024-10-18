@@ -24,11 +24,12 @@ import (
 )
 
 func TestGetDefaultBranch(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
-		name          string
 		setupMock     func() fnQueryBranch
-		expectedError bool
+		name          string
 		expectedName  string
+		expectedError bool
 	}{
 		{
 			name: "successful branch retrieval",
@@ -53,6 +54,7 @@ func TestGetDefaultBranch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			handler := &branchesHandler{
 				queryBranch: tt.setupMock(),
 				once:        new(sync.Once),

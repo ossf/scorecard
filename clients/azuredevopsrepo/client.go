@@ -26,22 +26,24 @@ import (
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+
 	"github.com/ossf/scorecard/v5/clients"
 )
 
 var (
-	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type azuredevopsrepo.Repo")
+	_                        clients.RepoClient = &Client{}
+	errInputRepoType                            = errors.New("input repo should be of type azuredevopsrepo.Repo")
+	errDefaultBranchNotFound                    = errors.New("default branch not found")
 )
 
 type Client struct {
-	repourl     *Repo
 	azdoClient  git.Client
-	once        sync.Once
+	ctx         context.Context
+	repourl     *Repo
 	branches    *branchesHandler
 	commits     *commitsHandler
-	ctx         context.Context
 	commitDepth int
+	once        sync.Once
 }
 
 func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
@@ -135,7 +137,7 @@ func (c *Client) GetDefaultBranchName() (string, error) {
 		return c.repourl.defaultBranch, nil
 	}
 
-	return "", fmt.Errorf("%s", "default branch name is empty")
+	return "", fmt.Errorf("%w", errDefaultBranchNotFound)
 }
 
 func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {

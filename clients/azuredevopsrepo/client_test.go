@@ -24,8 +24,8 @@ import (
 
 type mockGitClient struct {
 	git.Client
-	isDisabled bool
 	err        error
+	isDisabled bool
 }
 
 func (m *mockGitClient) GetRepository(ctx context.Context, args git.GetRepositoryArgs) (*git.GitRepository, error) {
@@ -36,10 +36,11 @@ func (m *mockGitClient) GetRepository(ctx context.Context, args git.GetRepositor
 }
 
 func TestIsArchived(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
+		err        error
 		name       string
 		isDisabled bool
-		err        error
 		want       bool
 		wantErr    bool
 	}{
@@ -65,6 +66,7 @@ func TestIsArchived(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			client := &Client{
 				azdoClient: &mockGitClient{
 					isDisabled: tt.isDisabled,
