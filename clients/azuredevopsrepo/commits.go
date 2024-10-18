@@ -67,7 +67,7 @@ func (handler *commitsHandler) setup() error {
 		}
 
 		opt := git.GetCommitsArgs{
-			RepositoryId: &handler.repourl.ID,
+			RepositoryId: &handler.repourl.id,
 			Top:          &handler.commitDepth,
 			SearchCriteria: &git.GitQueryCommitsCriteria{
 				ItemVersion: &itemVersion,
@@ -86,7 +86,7 @@ func (handler *commitsHandler) setup() error {
 		}
 
 		pullRequestQuery := git.GetPullRequestQueryArgs{
-			RepositoryId: &handler.repourl.ID,
+			RepositoryId: &handler.repourl.id,
 			Queries: &git.GitPullRequestQuery{
 				Queries: &[]git.GitPullRequestQueryInput{
 					{
@@ -140,8 +140,7 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 			continue
 		}
 
-		commit.AssociatedMergeRequest = associatedPullRequest
-		commits[i] = commit
+		commits[i].AssociatedMergeRequest = associatedPullRequest
 	}
 
 	return commits, nil

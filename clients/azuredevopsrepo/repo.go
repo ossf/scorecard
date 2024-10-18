@@ -29,7 +29,7 @@ type Repo struct {
 	organization  string
 	project       string
 	name          string
-	ID            string
+	id            string
 	defaultBranch string
 	commitSHA     string
 	metadata      []string

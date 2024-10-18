@@ -21,6 +21,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
@@ -30,12 +31,13 @@ import (
 
 var (
 	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+	errInputRepoType                    = errors.New("input repo should be of type azuredevopsrepo.Repo")
 )
 
 type Client struct {
 	repourl     *Repo
 	azdoClient  git.Client
+	once        sync.Once
 	branches    *branchesHandler
 	commits     *commitsHandler
 	ctx         context.Context
@@ -70,7 +72,7 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 		organization:  azdoRepo.organization,
 		project:       azdoRepo.project,
 		name:          azdoRepo.name,
-		ID:            fmt.Sprint(*repo.Id),
+		id:            fmt.Sprint(*repo.Id),
 		defaultBranch: branch,
 		commitSHA:     commitSHA,
 	}
@@ -83,16 +85,29 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 }
 
 func (c *Client) URI() string {
-	return fmt.Sprintf("%s/%s", c.repourl.host, c.repourl.Path())
+	return c.repourl.URI()
 }
 
 func (c *Client) IsArchived() (bool, error) {
-	repo, err := c.azdoClient.GetRepository(c.ctx, git.GetRepositoryArgs{RepositoryId: &c.repourl.ID})
-	if err != nil {
-		return false, fmt.Errorf("could not get repository with error: %w", err)
+	var (
+		isArchived    bool
+		isArchivedErr error
+	)
+
+	c.once.Do(func() {
+		repo, err := c.azdoClient.GetRepository(c.ctx, git.GetRepositoryArgs{RepositoryId: &c.repourl.id})
+		if err != nil {
+			isArchivedErr = fmt.Errorf("could not get repository with error: %w", err)
+			return
+		}
+		isArchived = *repo.IsDisabled
+	})
+
+	if isArchivedErr != nil {
+		return false, isArchivedErr
 	}
 
-	return *repo.IsDisabled, nil
+	return isArchived, nil
 }
 
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
