@@ -48,7 +48,7 @@ type (
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		branch, err := handler.queryBranch(handler.ctx, git.GetBranchArgs{
-			RepositoryId: &handler.repourl.ID,
+			RepositoryId: &handler.repourl.id,
 			Name:         &handler.repourl.defaultBranch,
 		})
 		if err != nil {

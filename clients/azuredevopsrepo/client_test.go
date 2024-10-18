@@ -70,7 +70,7 @@ func TestIsArchived(t *testing.T) {
 					isDisabled: tt.isDisabled,
 					err:        tt.err,
 				},
-				repourl: &Repo{ID: "test-repo-id"},
+				repourl: &Repo{id: "test-repo-id"},
 			}
 
 			got, err := client.IsArchived()

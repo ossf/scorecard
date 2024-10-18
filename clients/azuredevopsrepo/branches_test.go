@@ -57,7 +57,7 @@ func TestGetDefaultBranch(t *testing.T) {
 				queryBranch: tt.setupMock(),
 				once:        new(sync.Once),
 				repourl: &Repo{
-					ID:            "repo-id",
+					id:            "repo-id",
 					defaultBranch: "main",
 				},
 			}
