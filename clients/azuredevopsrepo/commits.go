@@ -16,24 +16,28 @@ package azuredevopsrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+
 	"github.com/ossf/scorecard/v5/clients"
 )
+
+var errMultiplePullRequests = errors.New("expected 1 pull request for commit, got multiple")
 
 type commitsHandler struct {
 	gitClient           git.Client
 	ctx                 context.Context
-	once                *sync.Once
 	errSetup            error
+	once                *sync.Once
 	repourl             *Repo
 	commitsRaw          *[]git.GitCommitRef
 	pullRequestsRaw     *git.GitPullRequestQuery
-	commitDepth         int
 	getCommits          fnGetCommits
 	getPullRequestQuery fnGetPullRequestQuery
+	commitDepth         int
 }
 
 func (handler *commitsHandler) init(ctx context.Context, repourl *Repo, commitDepth int) {
@@ -81,8 +85,8 @@ func (handler *commitsHandler) setup() error {
 		}
 
 		commitIds := make([]string, len(*commits))
-		for i, commit := range *commits {
-			commitIds[i] = *commit.CommitId
+		for i := range *commits {
+			commitIds[i] = *(*commits)[i].CommitId
 		}
 
 		pullRequestQuery := git.GetPullRequestQueryArgs{
@@ -117,7 +121,8 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 	}
 
 	commits := make([]clients.Commit, len(*handler.commitsRaw))
-	for i, commit := range *handler.commitsRaw {
+	for i := range *handler.commitsRaw {
+		commit := &(*handler.commitsRaw)[i]
 		commits[i] = clients.Commit{
 			SHA:           *commit.CommitId,
 			Message:       *commit.Comment,
@@ -134,13 +139,14 @@ func (handler *commitsHandler) listCommits() ([]clients.Commit, error) {
 		return nil, fmt.Errorf("error during commitsHandler.listPullRequests: %w", err)
 	}
 
-	for i, commit := range commits {
+	for i := range commits {
+		commit := &commits[i]
 		associatedPullRequest, ok := pullRequests[commit.SHA]
 		if !ok {
 			continue
 		}
 
-		commits[i].AssociatedMergeRequest = associatedPullRequest
+		commit.AssociatedMergeRequest = associatedPullRequest
 	}
 
 	return commits, nil
@@ -159,7 +165,7 @@ func (handler *commitsHandler) listPullRequests() (map[string]clients.PullReques
 		}
 
 		if len(azdoPullRequests) > 1 {
-			return nil, fmt.Errorf("expected 1 pull request for commit %s, got %d", commit, len(azdoPullRequests))
+			return nil, errMultiplePullRequests
 		}
 
 		azdoPullRequest := azdoPullRequests[0]

@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+
 	"github.com/ossf/scorecard/v5/clients"
 )
 
@@ -62,7 +63,6 @@ func (handler *branchesHandler) setup() error {
 		handler.errSetup = nil
 	})
 	return handler.errSetup
-
 }
 
 func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
