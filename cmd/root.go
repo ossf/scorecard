@@ -34,6 +34,7 @@ import (
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
@@ -164,9 +165,8 @@ func rootCmd(o *options.Options) error {
 
 	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
-			printProbeResults(enabledProbes)
-		} else {
-			printCheckResults(enabledChecks)
+			printProbeResults(enabledProbes, repoResult.Findings)
+			return nil
 		}
 	}
 
@@ -180,6 +180,7 @@ func rootCmd(o *options.Options) error {
 		return fmt.Errorf("failed to format results: %w", resultsErr)
 	}
 
+	printCheckResults(enabledChecks)
 	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
 	for _, result := range repoResult.Checks {
 		if result.Error != nil {
@@ -201,9 +202,16 @@ func printCheckStart(enabledChecks checker.CheckNameToFnMap) {
 	}
 }
 
-func printProbeResults(enabledProbes []string) {
+func printProbeResults(enabledProbes []string, findings []finding.Finding) {
 	for _, probeName := range enabledProbes {
 		fmt.Fprintf(os.Stderr, "Finished probe %s\n", probeName)
+	}
+	for _, result := range findings {
+		if result.Remediation != nil {
+			fmt.Fprintf(os.Stderr, "[%s] Remediation required: %s\n", result.Probe, result.Remediation.Text)
+		} else {
+			fmt.Fprintf(os.Stderr, "[%s] Passed: %s\n", result.Probe, result.Message)
+		}
 	}
 }
 
