@@ -141,6 +141,14 @@ func (mr *MockRepoClientMockRecorder) GetFileReader(filename interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileReader", reflect.TypeOf((*MockRepoClient)(nil).GetFileReader), filename)
 }
 
+func (m *MockRepoClient) GetMFARequired() (required bool, err error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMFARequired")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // GetOrgRepoClient mocks base method.
 func (m *MockRepoClient) GetOrgRepoClient(arg0 context.Context) (clients.RepoClient, error) {
 	m.ctrl.T.Helper()

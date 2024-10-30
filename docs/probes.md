@@ -382,6 +382,21 @@ If collaborators, members or owners have NOT participated in issues in the last 
 The probe returns 1 true outcome if the project has no workflows "write" permissions a the "job" level.
 
 
+## orgRequiresMFA
+
+**Lifecycle**: experimental
+
+**Description**: A short description of this probe
+
+**Motivation**: What is the motivation for this probe?
+
+**Implementation**: How does this probe work under-the-hood?
+
+**Outcomes**: If MFA is found to be required, the probe returns OutcomeTrue
+IF MFA is not found to be required, the probe returns OutcomeFalse
+If the runtime environment does not have authentication for the target project, the probe returns OutcomeNotAvailable
+
+
 ## packagedWithAutomatedWorkflow
 
 **Lifecycle**: stable

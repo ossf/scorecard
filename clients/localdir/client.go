@@ -194,6 +194,11 @@ func (client *localDirClient) GetDefaultBranchName() (string, error) {
 	return "", fmt.Errorf("GetDefaultBranchName: %w", clients.ErrUnsupportedFeature)
 }
 
+func (c *localDirClient) GetMFARequired() (required bool, err error) {
+	err = fmt.Errorf("GetMFARequired: %w", clients.ErrUnsupportedFeature)
+	return
+}
+
 // ListCommits implements RepoClient.ListCommits.
 func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)

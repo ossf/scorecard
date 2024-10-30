@@ -236,6 +236,11 @@ func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
 }
 
+func (c *Client) GetMFARequired() (required bool, err error) {
+	err = fmt.Errorf("GetMFARequired: %w", clients.ErrUnsupportedFeature)
+	return
+}
+
 func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
 }

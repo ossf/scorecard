@@ -333,6 +333,10 @@ func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+func (c *Client) GetMFARequired() (required bool, err error) {
+	return required, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	return nil, clients.ErrUnsupportedFeature
 }

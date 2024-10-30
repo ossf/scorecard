@@ -204,6 +204,17 @@ func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.repo.CreatedAt.Time, nil
 }
 
+func (client *Client) GetMFARequired() (required bool, err error) {
+	org, _, err := client.repoClient.Organizations.Get(context.Background(), client.repourl.owner)
+	if err != nil {
+		return
+	}
+	if org.TwoFactorRequirementEnabled != nil {
+		return *org.TwoFactorRequirementEnabled, nil
+	}
+	return false, nil
+}
+
 func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	dotGithubRepo, err := MakeGithubRepo(fmt.Sprintf("%s/.github", client.repourl.owner))
 	if err != nil {

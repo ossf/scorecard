@@ -197,6 +197,11 @@ func (c *client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
+func (c *client) GetMFARequired() (required bool, err error) {
+	err = fmt.Errorf("GetMFARequired: %w", clients.ErrUnsupportedFeature)
+	return
+}
+
 // GetOrgRepoClient implements RepoClient.GetOrgRepoClient.
 func (c *client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
