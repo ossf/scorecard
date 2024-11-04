@@ -20,8 +20,8 @@ motivation: >
 implementation: >
  How does this probe work under-the-hood?
 outcome:
- - If MFA is found to be required, the probe returns OutcomeTrue
- - IF MFA is not found to be required, the probe returns OutcomeFalse
+ - If MFA is required by the organization that owns the repo, the probe returns OutcomeTrue
+ - IF MFA is not required by the organization that owns the repo, the probe returns OutcomeFalse
  - If the runtime environment does not have authentication for the target project, the probe returns OutcomeNotAvailable
 remediation:
  onOutcome: False # required
