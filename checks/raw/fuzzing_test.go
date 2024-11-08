@@ -395,6 +395,43 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "import Test.Hspec",
 		},
 		{
+			name:     "Elixir QuickCheck through PropCheck",
+			want:     true,
+			fileName: []string{"Test.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Elixir,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use PropCheck, default_opts: &PropCheck.TestHelpers.config/0",
+		},
+		{
+			name:     "Elixir QuickCheck through StreamData",
+			want:     true,
+			fileName: []string{"Test.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Elixir,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use ExUnitProperties",
+		},
+		{
+			name:     "Elixir with no property-based testing",
+			want:     false,
+			fileName: []string{"NoPropTest.exs"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.Haskell,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use ExUnit.Case, async: true",
+		},
+		{
 			name:     "JavaScript fast-check via require",
 			want:     true,
 			fileName: []string{"main.spec.js"},

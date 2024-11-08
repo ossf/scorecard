@@ -85,6 +85,15 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Name:        fuzzers.PropertyBasedHaskell,
 		Desc:        propertyBasedDescription("Haskell"),
 	},
+
+	// Fuzz patterns for Elixir based on property-based testing.
+	clients.Elixir: {
+		filePatterns: []string{"*.ex", "*.exs"},
+		// Look for direct imports of PropCheck, and StreamData.
+		funcPattern: `use\s+(PropCheck|ExUnitProperties)`,
+		Name:        fuzzers.PropertyBasedElixir,
+		Desc:        propertyBasedDescription("Elixir"),
+	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
 	// Based on the import of one of these packages:
