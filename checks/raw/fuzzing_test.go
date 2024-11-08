@@ -261,6 +261,43 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "func TestFoo (t *testing.T)",
 		},
 		{
+			name:     "Erlang QuickCheck",
+			want:     true,
+			fileName: []string{"erlang-eqc.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Erlang,
+					NumLines: 50,
+				},
+			},
+			fileContent: "-include_lib(\"eqc/include/eqc.hrl\").",
+		},
+		{
+			name:     "Erlang Proper",
+			want:     true,
+			fileName: []string{"erlang-proper.hs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Erlang,
+					NumLines: 50,
+				},
+			},
+			fileContent: "-include_lib(\"proper/include/proper.hrl\").",
+		},
+		{
+			name:     "Erlang with no property-based testing",
+			want:     false,
+			fileName: []string{"erlang-ct.erl"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.Erlang,
+					NumLines: 50,
+				},
+			},
+			fileContent: "-include_lib(\"common_test/include/ct.hrl\").",
+		},
+		{
 			name:     "Haskell QuickCheck",
 			want:     true,
 			fileName: []string{"ModuleSpec.hs"},

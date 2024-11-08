@@ -19,6 +19,7 @@ const (
 	OSSFuzz                 = "OSSFuzz"
 	ClusterFuzzLite         = "ClusterFuzzLite"
 	BuiltInGo               = "GoBuiltInFuzzer"
+	PropertyBasedErlang     = "ErlangPropertyBasedTesting"
 	PropertyBasedHaskell    = "HaskellPropertyBasedTesting"
 	PropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
 	PropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
