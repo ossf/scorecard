@@ -94,6 +94,17 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Name:        fuzzers.PropertyBasedElixir,
 		Desc:        propertyBasedDescription("Elixir"),
 	},
+
+	// Fuzz patterns for Gleam based on property-based testing.
+	clients.Gleam: {
+		filePatterns: []string{"*.ex", "*.exs", "*.erl", "*.hrl"},
+		// Look for direct imports of PropCheck, and StreamData.
+		funcPattern: `(use\s+(PropCheck|ExUnitProperties)|` + // Elixir libraries
+			`-include_lib\("(eqc|proper)/include/(eqc|proper).hrl"\)\.|` + // Erlang libraries
+			`import\s+qcheck)`, // Gleam library
+		Name: fuzzers.PropertyBasedGleam,
+		Desc: propertyBasedDescription("Gleam"),
+	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
 	// Based on the import of one of these packages:

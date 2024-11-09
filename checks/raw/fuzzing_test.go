@@ -432,6 +432,79 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "use ExUnit.Case, async: true",
 		},
 		{
+			name:     "Gleam QuickCheck through Erlang",
+			want:     true,
+			fileName: []string{"gleam-erlang-eqc.erl"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "-include_lib(\"eqc/include/eqc.hrl\").",
+		},
+		{
+			name:     "Gleam Proper through Erlang",
+			want:     true,
+			fileName: []string{"gleam-erlang-proper.erl"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "-include_lib(\"proper/include/proper.hrl\").",
+		},
+		{
+			name:     "Gleam with no property-based testing",
+			want:     false,
+			fileName: []string{"test.gleam"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import gleeunit",
+		},
+		{
+			name:     "Gleam QuickCheck through StreamData",
+			want:     true,
+			fileName: []string{"gleam-elixir-streamdata.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use ExUnitProperties",
+		},
+		{
+			name:     "Gleam Proper through Elixir",
+			want:     true,
+			fileName: []string{"gleam-elixir-proper.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use PropCheck",
+		},
+		{
+			name:     "Gleam QCheck",
+			want:     true,
+			fileName: []string{"gleam-qcheck.gleam"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import qcheck",
+		},
+		{
 			name:     "JavaScript fast-check via require",
 			want:     true,
 			fileName: []string{"main.spec.js"},
