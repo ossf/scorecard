@@ -56,6 +56,14 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Desc: asPointer(
 			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
 	},
+	// Fuzz patterns for Erlang based on property-based testing.
+	clients.Erlang: {
+		filePatterns: []string{"*.erl", "*.hrl"},
+		// Look for direct imports of QuickCheck or Proper,
+		funcPattern: `-include_lib\("(eqc|proper)/include/(eqc|proper).hrl"\)\.`,
+		Name:        fuzzers.PropertyBasedErlang,
+		Desc:        propertyBasedDescription("Erlang"),
+	},
 	// Fuzz patterns for Haskell based on property-based testing.
 	//
 	// Based on the import of one of these packages:

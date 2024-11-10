@@ -343,6 +343,7 @@ This check tries to determine if the project uses
    - currently only supports [Go fuzzing](https://go.dev/doc/fuzz/),
    - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
    - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
+   - a limited set of property-based testing libraries for Erlang, including proper and quickcheck.
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
 into a program to expose bugs. Regular fuzzing is important to detect
@@ -554,7 +555,7 @@ allows them to identify vulnerabilities in the software supply chain.
 
 Standards to be used during checks;
 - OSSF SBOM Everywhere SIG naming and directory conventions:
-  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/SBOM_naming.md#consistent-naming-conventions>
+  - <https://github.com/ossf/SBOM-everywhere/blob/main/reference/sbom_naming.md#consistent-naming-conventions>
 
 This check currently looks for the existence of an SBOM in the
 source of a project and as a pipeline or release artifact.
