@@ -74,6 +74,9 @@ const (
 	// Dockerfile: https://docs.docker.com/engine/reference/builder/
 	Dockerfile LanguageName = "dockerfile"
 
+	// Erlang: https://www.erlang.org/
+	Erlang LanguageName = "erlang"
+
 	// Haskell: https://www.haskell.org/
 	Haskell LanguageName = "haskell"
 
