@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
@@ -383,6 +384,13 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
 				return Result{}, fmt.Errorf("creating gitlab client: %w", err)
+			}
+		}
+	case *azuredevopsrepo.Repo:
+		if c.client == nil {
+			c.client, err = azuredevopsrepo.CreateAzureDevOpsClient(ctx, repo)
+			if err != nil {
+				return Result{}, fmt.Errorf("creating azure devops client: %w", err)
 			}
 		}
 	}
