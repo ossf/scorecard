@@ -21,7 +21,6 @@ import (
 	"io"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
@@ -40,10 +39,10 @@ type Client struct {
 	azdoClient  git.Client
 	ctx         context.Context
 	repourl     *Repo
+	repo        *git.GitRepository
 	branches    *branchesHandler
 	commits     *commitsHandler
 	commitDepth int
-	once        sync.Once
 }
 
 func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
@@ -59,6 +58,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	if err != nil {
 		return fmt.Errorf("could not get repository with error: %w", err)
 	}
+
+	c.repo = repo
 
 	if commitDepth <= 0 {
 		c.commitDepth = 30 // default
@@ -91,25 +92,7 @@ func (c *Client) URI() string {
 }
 
 func (c *Client) IsArchived() (bool, error) {
-	var (
-		isArchived    bool
-		isArchivedErr error
-	)
-
-	c.once.Do(func() {
-		repo, err := c.azdoClient.GetRepository(c.ctx, git.GetRepositoryArgs{RepositoryId: &c.repourl.id})
-		if err != nil {
-			isArchivedErr = fmt.Errorf("could not get repository with error: %w", err)
-			return
-		}
-		isArchived = *repo.IsDisabled
-	})
-
-	if isArchivedErr != nil {
-		return false, isArchivedErr
-	}
-
-	return isArchived, nil
+	return *c.repo.IsDisabled, nil
 }
 
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
@@ -137,7 +120,7 @@ func (c *Client) GetDefaultBranchName() (string, error) {
 		return c.repourl.defaultBranch, nil
 	}
 
-	return "", fmt.Errorf("%w", errDefaultBranchNotFound)
+	return "", errDefaultBranchNotFound
 }
 
 func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {

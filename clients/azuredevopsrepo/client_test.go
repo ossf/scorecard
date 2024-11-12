@@ -15,25 +15,10 @@
 package azuredevopsrepo
 
 import (
-	"context"
-	"errors"
 	"testing"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 )
-
-type mockGitClient struct {
-	git.Client
-	err        error
-	isDisabled bool
-}
-
-func (m *mockGitClient) GetRepository(ctx context.Context, args git.GetRepositoryArgs) (*git.GitRepository, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return &git.GitRepository{IsDisabled: &m.isDisabled}, nil
-}
 
 func TestIsArchived(t *testing.T) {
 	t.Parallel()
@@ -56,21 +41,14 @@ func TestIsArchived(t *testing.T) {
 			want:       false,
 			wantErr:    false,
 		},
-		{
-			name:    "error getting repository",
-			err:     errors.New("some error"),
-			want:    false,
-			wantErr: true,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			client := &Client{
-				azdoClient: &mockGitClient{
-					isDisabled: tt.isDisabled,
-					err:        tt.err,
+				repo: &git.GitRepository{
+					IsDisabled: &tt.isDisabled,
 				},
 				repourl: &Repo{id: "test-repo-id"},
 			}
