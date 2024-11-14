@@ -42,6 +42,7 @@ type Client struct {
 	repo        *git.GitRepository
 	branches    *branchesHandler
 	commits     *commitsHandler
+	zip         *zipHandler
 	commitDepth int
 }
 
@@ -84,6 +85,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
 
+	c.zip.init(c.ctx, c.repourl)
+
 	return nil
 }
 
@@ -96,15 +99,15 @@ func (c *Client) IsArchived() (bool, error) {
 }
 
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
-	return []string{}, clients.ErrUnsupportedFeature
+	return c.zip.listFiles(predicate)
 }
 
 func (c *Client) LocalPath() (string, error) {
-	return "", clients.ErrUnsupportedFeature
+	return c.zip.getLocalPath()
 }
 
 func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.zip.getFile(filename)
 }
 
 func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
@@ -193,6 +196,8 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 	url := "https://" + repo.Host() + "/" + strings.Split(repo.Path(), "/")[0]
 	connection := azuredevops.NewPatConnection(url, token)
 
+	client := connection.GetClientByUrl(url)
+
 	gitClient, err := git.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
@@ -206,6 +211,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		},
 		commits: &commitsHandler{
 			gitClient: gitClient,
+		},
+		zip: &zipHandler{
+			client: client,
 		},
 	}, nil
 }
