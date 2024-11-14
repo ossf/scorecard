@@ -425,7 +425,7 @@ func Test_checkFuzzFunc(t *testing.T) {
 			wantErr:  true,
 			langs: []clients.Language{
 				{
-					Name:     clients.Haskell,
+					Name:     clients.Elixir,
 					NumLines: 50,
 				},
 			},
