@@ -288,7 +288,6 @@ func Test_checkFuzzFunc(t *testing.T) {
 			name:     "Erlang with no property-based testing",
 			want:     false,
 			fileName: []string{"erlang-ct.erl"},
-			wantErr:  true,
 			langs: []clients.Language{
 				{
 					Name:     clients.Erlang,
@@ -393,6 +392,66 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "import Test.Hspec",
+		},
+		{
+			name:     "Elixir QuickCheck through PropCheck",
+			want:     true,
+			fileName: []string{"Test.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Elixir,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use PropCheck, default_opts: &PropCheck.TestHelpers.config/0",
+		},
+		{
+			name:     "Elixir QuickCheck through StreamData",
+			want:     true,
+			fileName: []string{"Test.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Elixir,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use ExUnitProperties",
+		},
+		{
+			name:     "Elixir with no property-based testing",
+			want:     false,
+			fileName: []string{"NoPropTest.exs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Elixir,
+					NumLines: 50,
+				},
+			},
+			fileContent: "use ExUnit.Case, async: true",
+		},
+		{
+			name:     "Gleam with no property-based testing",
+			want:     false,
+			fileName: []string{"test.gleam"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import gleeunit",
+		},
+		{
+			name:     "Gleam QCheck",
+			want:     true,
+			fileName: []string{"gleam-qcheck.gleam"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Gleam,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import qcheck",
 		},
 		{
 			name:     "JavaScript fast-check via require",

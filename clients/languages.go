@@ -80,6 +80,12 @@ const (
 	// Haskell: https://www.haskell.org/
 	Haskell LanguageName = "haskell"
 
+	// Elixir: https://www.elixir.org/
+	Elixir LanguageName = "elixir"
+
+	// Gleam: https://www.gleam.org/
+	Gleam LanguageName = "gleam"
+
 	// Other indicates other languages not listed by the GitHub API.
 	Other LanguageName = "other"
 

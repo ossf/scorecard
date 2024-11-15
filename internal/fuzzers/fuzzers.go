@@ -21,6 +21,8 @@ const (
 	BuiltInGo               = "GoBuiltInFuzzer"
 	PropertyBasedErlang     = "ErlangPropertyBasedTesting"
 	PropertyBasedHaskell    = "HaskellPropertyBasedTesting"
+	PropertyBasedElixir     = "ElixirPropertyBasedTesting"
+	PropertyBasedGleam      = "GleamPropertyBasedTesting"
 	PropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
 	PropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
 	PythonAtheris           = "PythonAtherisFuzzer"
