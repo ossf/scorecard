@@ -183,7 +183,7 @@ func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.
 }
 
 func (c *Client) Close() error {
-	return nil
+	return c.zip.cleanup()
 }
 
 func CreateAzureDevOpsClient(ctx context.Context, repo clients.Repo) (*Client, error) {

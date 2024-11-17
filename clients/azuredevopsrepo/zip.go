@@ -159,20 +159,11 @@ func (z *zipHandler) getLocalPath() (string, error) {
 }
 
 func (z *zipHandler) extractZip() error {
-	in, err := os.OpenFile(z.tempZipFile, os.O_RDONLY, 0o644)
+	zipReader, err := zip.OpenReader(z.tempZipFile)
 	if err != nil {
-		return fmt.Errorf("os.OpenFile: %w", err)
+		return fmt.Errorf("zip.OpenReader: %w", err)
 	}
-
-	stat, err := in.Stat()
-	if err != nil {
-		return fmt.Errorf("os.File.Stat: %w", err)
-	}
-
-	zipReader, err := zip.NewReader(in, stat.Size())
-	if err != nil {
-		return fmt.Errorf("zip.NewReader: %w", err)
-	}
+	defer zipReader.Close()
 
 	z.files = make([]string, 0, len(zipReader.File))
 	for _, file := range zipReader.File {
