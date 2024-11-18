@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.23.2@sha256:ad5c126b5cf501a8caef751a243bb717ec204ab1aa56dc41dc11be089fafcb4f AS base
+FROM golang:1.23.3@sha256:73f06be4578c9987ce560087e2e2ea6485fb605e3910542cadd8fa09fc5f3e31 AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -24,6 +24,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-cii-worker
 
-FROM gcr.io/distroless/base:nonroot@sha256:c3584d9160af7bbc6a0a6089dc954d0938bb7f755465bb4ef4265aad0221343e
+FROM gcr.io/distroless/base:nonroot@sha256:350980ee07b2fc28336bb730cdb02b7c83d4a4d7832b1a49c827c8cc28f7f06b
 COPY --from=cii /src/cron/internal/cii/cii-worker cron/internal/cii/cii-worker
 ENTRYPOINT ["cron/internal/cii/cii-worker"]
