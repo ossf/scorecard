@@ -165,11 +165,12 @@ func (z *zipHandler) extractZip() error {
 	}
 	defer zipReader.Close()
 
+	destinationPrefix := filepath.Clean(z.tempDir) + string(os.PathSeparator)
 	z.files = make([]string, 0, len(zipReader.File))
 	for _, file := range zipReader.File {
 		//nolint:gosec // G305: Handling of file paths is done below
 		filenamepath := filepath.Join(z.tempDir, file.Name)
-		if !strings.HasPrefix(filepath.Clean(filenamepath), filepath.Clean(z.tempDir)) {
+		if !strings.HasPrefix(filepath.Clean(filenamepath), destinationPrefix) {
 			return errInvalidFilePath
 		}
 		if file.FileInfo().IsDir() {
@@ -193,12 +194,12 @@ func (z *zipHandler) extractZip() error {
 		if err != nil && !errors.Is(err, io.EOF) {
 			return fmt.Errorf("%w io.Copy: %w", errZipNotFound, err)
 		}
-		if written >= maxSize {
+		if written > maxSize {
 			return errFileTooLarge
 		}
 		outFile.Close()
 
-		filename := strings.TrimPrefix(filenamepath, filepath.Clean(z.tempDir)+string(os.PathSeparator))
+		filename := strings.TrimPrefix(filenamepath, destinationPrefix)
 		z.files = append(z.files, filename)
 	}
 	return nil
