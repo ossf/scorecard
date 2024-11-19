@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 
@@ -28,16 +29,18 @@ import (
 var errMultiplePullRequests = errors.New("expected 1 pull request for commit, got multiple")
 
 type commitsHandler struct {
-	gitClient           git.Client
-	ctx                 context.Context
-	errSetup            error
-	once                *sync.Once
-	repourl             *Repo
-	commitsRaw          *[]git.GitCommitRef
-	pullRequestsRaw     *git.GitPullRequestQuery
-	getCommits          fnGetCommits
-	getPullRequestQuery fnGetPullRequestQuery
-	commitDepth         int
+	gitClient            git.Client
+	ctx                  context.Context
+	errSetup             error
+	once                 *sync.Once
+	repourl              *Repo
+	commitsRaw           *[]git.GitCommitRef
+	pullRequestsRaw      *git.GitPullRequestQuery
+	firstCommitCreatedAt time.Time
+	getCommits           fnGetCommits
+	getPullRequestQuery  fnGetPullRequestQuery
+	getFirstCommit       fnGetFirstCommit
+	commitDepth          int
 }
 
 func (handler *commitsHandler) init(ctx context.Context, repourl *Repo, commitDepth int) {
@@ -48,11 +51,13 @@ func (handler *commitsHandler) init(ctx context.Context, repourl *Repo, commitDe
 	handler.commitDepth = commitDepth
 	handler.getCommits = handler.gitClient.GetCommits
 	handler.getPullRequestQuery = handler.gitClient.GetPullRequestQuery
+	handler.getFirstCommit = handler.gitClient.GetCommits
 }
 
 type (
 	fnGetCommits          func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error)
 	fnGetPullRequestQuery func(ctx context.Context, args git.GetPullRequestQueryArgs) (*git.GitPullRequestQuery, error)
+	fnGetFirstCommit      func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error)
 )
 
 func (handler *commitsHandler) setup() error {
@@ -104,6 +109,29 @@ func (handler *commitsHandler) setup() error {
 		if err != nil {
 			handler.errSetup = fmt.Errorf("request for pull requests failed with %w", err)
 			return
+		}
+
+		// If there are fewer commits than requested, the first commit is the createdAt date
+		if len(*commits) < handler.commitDepth {
+			handler.firstCommitCreatedAt = (*commits)[len(*commits)-1].Committer.Date.Time
+		} else {
+			firstCommit, err := handler.getFirstCommit(handler.ctx, git.GetCommitsArgs{
+				RepositoryId: &handler.repourl.id,
+				SearchCriteria: &git.GitQueryCommitsCriteria{
+					Top:                    &[]int{1}[0],
+					ShowOldestCommitsFirst: &[]bool{true}[0],
+					ItemVersion: &git.GitVersionDescriptor{
+						VersionType: &git.GitVersionTypeValues.Branch,
+						Version:     &handler.repourl.defaultBranch,
+					},
+				},
+			})
+			if err != nil {
+				handler.errSetup = fmt.Errorf("request for first commit failed with %w", err)
+				return
+			}
+
+			handler.firstCommitCreatedAt = (*firstCommit)[0].Committer.Date.Time
 		}
 
 		handler.commitsRaw = commits
@@ -181,4 +209,12 @@ func (handler *commitsHandler) listPullRequests() (map[string]clients.PullReques
 	}
 
 	return pullRequests, nil
+}
+
+func (handler *commitsHandler) getFirstCommitCreatedAt() (time.Time, error) {
+	if err := handler.setup(); err != nil {
+		return time.Time{}, fmt.Errorf("error during commitsHandler.setup: %w", err)
+	}
+
+	return handler.firstCommitCreatedAt, nil
 }
