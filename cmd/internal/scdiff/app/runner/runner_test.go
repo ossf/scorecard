@@ -46,6 +46,7 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil)
 	mockRepo.EXPECT().Close().Return(nil)
 	mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("reading files unsupported for this test")).AnyTimes()
+	mockRepo.EXPECT().LocalPath().Return(".", nil)
 	r := Runner{
 		ctx: context.Background(),
 		// use a check which works locally, but we declare no files above so no-op

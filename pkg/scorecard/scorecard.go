@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
@@ -138,6 +139,11 @@ func runScorecard(ctx context.Context,
 
 	resultsCh := make(chan checker.CheckResult)
 
+	localPath, err := repoClient.LocalPath()
+	if err != nil {
+		return Result{}, fmt.Errorf("RepoClient.LocalPath: %w", err)
+	}
+
 	// Set metadata for all checks to use. This is necessary
 	// to create remediations from the probe yaml files.
 	ret.RawResults.Metadata.Metadata = map[string]string{
@@ -146,6 +152,7 @@ func runScorecard(ctx context.Context,
 		"repository.uri":           repo.URI(),
 		"repository.sha1":          commitSHA,
 		"repository.defaultBranch": defaultBranch,
+		"localPath":                localPath,
 	}
 
 	request := &checker.CheckRequest{
@@ -377,6 +384,13 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
 				return Result{}, fmt.Errorf("creating gitlab client: %w", err)
+			}
+		}
+	case *azuredevopsrepo.Repo:
+		if c.client == nil {
+			c.client, err = azuredevopsrepo.CreateAzureDevOpsClient(ctx, repo)
+			if err != nil {
+				return Result{}, fmt.Errorf("creating azure devops client: %w", err)
 			}
 		}
 	}
