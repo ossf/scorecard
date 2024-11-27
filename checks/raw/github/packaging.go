@@ -15,6 +15,7 @@
 package github
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
 )
 
@@ -73,7 +75,12 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 
 		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
 		if err != nil {
-			return data, fmt.Errorf("Client.Actions.ListWorkflowRunsByFileName: %w", err)
+			// appending empty run for localdir client
+			if errors.Is(err, clients.ErrUnsupportedFeature) {
+				runs = append(runs, clients.WorkflowRun{})
+			} else {
+				return data, fmt.Errorf("Client.Actions.ListWorkflowRunsByFileName: %w", err)
+			}
 		}
 
 		if len(runs) > 0 {

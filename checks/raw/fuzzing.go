@@ -16,6 +16,7 @@ package raw
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -208,6 +209,10 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 
 	langs, err := c.RepoClient.ListProgrammingLanguages()
 	if err != nil {
+		// ListProgrammingLanguages is unsupported by local client so just return
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return checker.FuzzingData{Fuzzers: detectedFuzzers}, nil
+		}
 		return checker.FuzzingData{}, fmt.Errorf("cannot get langs of repo: %w", err)
 	}
 	prominentLangs := getProminentLanguages(langs)

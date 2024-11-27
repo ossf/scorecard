@@ -34,12 +34,12 @@ import (
 )
 
 var (
-	_                clients.RepoClient = &localDirClient{}
+	_                clients.RepoClient = &LocalDirClient{}
 	errInputRepoType                    = errors.New("input repo should be of type repoLocal")
 )
 
 //nolint:govet
-type localDirClient struct {
+type LocalDirClient struct {
 	logger      *log.Logger
 	ctx         context.Context
 	path        string
@@ -50,7 +50,7 @@ type localDirClient struct {
 }
 
 // InitRepo sets up the local repo.
-func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
+func (client *LocalDirClient) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	localRepo, ok := inputRepo.(*Repo)
 	if !ok {
 		return fmt.Errorf("%w: %v", errInputRepoType, inputRepo)
@@ -66,12 +66,12 @@ func (client *localDirClient) InitRepo(inputRepo clients.Repo, commitSHA string,
 }
 
 // URI implements RepoClient.URI.
-func (client *localDirClient) URI() string {
+func (client *LocalDirClient) URI() string {
 	return fmt.Sprintf("file://%s", client.path)
 }
 
 // IsArchived implements RepoClient.IsArchived.
-func (client *localDirClient) IsArchived() (bool, error) {
+func (client *LocalDirClient) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
 }
 
@@ -148,7 +148,7 @@ func applyPredicate(
 }
 
 // LocalPath implements RepoClient.LocalPath.
-func (client *localDirClient) LocalPath() (string, error) {
+func (client *LocalDirClient) LocalPath() (string, error) {
 	clientPath, err := filepath.Abs(client.path)
 	if err != nil {
 		return "", fmt.Errorf("error during filepath.Abs: %w", err)
@@ -157,7 +157,7 @@ func (client *localDirClient) LocalPath() (string, error) {
 }
 
 // ListFiles implements RepoClient.ListFiles.
-func (client *localDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+func (client *LocalDirClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	client.once.Do(func() {
 		client.files, client.errFiles = listFiles(client.path)
 	})
@@ -175,102 +175,102 @@ func getFile(clientpath, filename string) (*os.File, error) {
 }
 
 // GetFileReader implements RepoClient.GetFileReader.
-func (client *localDirClient) GetFileReader(filename string) (io.ReadCloser, error) {
+func (client *LocalDirClient) GetFileReader(filename string) (io.ReadCloser, error) {
 	return getFile(client.path, filename)
 }
 
 // GetBranch implements RepoClient.GetBranch.
-func (client *localDirClient) GetBranch(branch string) (*clients.BranchRef, error) {
+func (client *LocalDirClient) GetBranch(branch string) (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
-func (client *localDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
+func (client *LocalDirClient) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
-func (client *localDirClient) GetDefaultBranchName() (string, error) {
+func (client *LocalDirClient) GetDefaultBranchName() (string, error) {
 	return "", fmt.Errorf("GetDefaultBranchName: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListCommits implements RepoClient.ListCommits.
-func (client *localDirClient) ListCommits() ([]clients.Commit, error) {
+func (client *LocalDirClient) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListIssues implements RepoClient.ListIssues.
-func (client *localDirClient) ListIssues() ([]clients.Issue, error) {
+func (client *LocalDirClient) ListIssues() ([]clients.Issue, error) {
 	return nil, fmt.Errorf("ListIssues: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListReleases implements RepoClient.ListReleases.
-func (client *localDirClient) ListReleases() ([]clients.Release, error) {
+func (client *LocalDirClient) ListReleases() ([]clients.Release, error) {
 	return nil, fmt.Errorf("ListReleases: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListContributors implements RepoClient.ListContributors.
-func (client *localDirClient) ListContributors() ([]clients.User, error) {
+func (client *LocalDirClient) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
-func (client *localDirClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
+func (client *LocalDirClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.
-func (client *localDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
+func (client *LocalDirClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	return nil, fmt.Errorf("ListCheckRunsForRef: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListStatuses implements RepoClient.ListStatuses.
-func (client *localDirClient) ListStatuses(ref string) ([]clients.Status, error) {
+func (client *LocalDirClient) ListStatuses(ref string) ([]clients.Status, error) {
 	return nil, fmt.Errorf("ListStatuses: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListWebhooks implements RepoClient.ListWebhooks.
-func (client *localDirClient) ListWebhooks() ([]clients.Webhook, error) {
+func (client *LocalDirClient) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 
 // Search implements RepoClient.Search.
-func (client *localDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
+func (client *LocalDirClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
 // SearchCommits implements RepoClient.SearchCommits.
-func (client *localDirClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
+func (client *LocalDirClient) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return nil, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)
 }
 
-func (client *localDirClient) Close() error {
+func (client *LocalDirClient) Close() error {
 	return nil
 }
 
 // ListProgrammingLanguages implements RepoClient.ListProgrammingLanguages.
 // TODO: add ListProgrammingLanguages support for local directories.
-func (client *localDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
+func (client *LocalDirClient) ListProgrammingLanguages() ([]clients.Language, error) {
 	return nil, fmt.Errorf("ListProgrammingLanguages: %w", clients.ErrUnsupportedFeature)
 }
 
 // ListLicenses implements RepoClient.ListLicenses.
 // TODO: add ListLicenses support for local directories.
-func (client *localDirClient) ListLicenses() ([]clients.License, error) {
+func (client *LocalDirClient) ListLicenses() ([]clients.License, error) {
 	return nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)
 }
 
-func (client *localDirClient) GetCreatedAt() (time.Time, error) {
+func (client *LocalDirClient) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }
 
-func (client *localDirClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
+func (client *LocalDirClient) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
 // CreateLocalDirClient returns a client which implements RepoClient interface.
 func CreateLocalDirClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
-	return &localDirClient{
+	return &LocalDirClient{
 		ctx:    ctx,
 		logger: logger,
 	}

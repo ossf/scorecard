@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
@@ -31,7 +32,10 @@ const CheckPackaging = "Packaging"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckPackaging, Packaging, nil); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckPackaging, Packaging, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
@@ -39,10 +43,23 @@ func init() {
 
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
-	var rawData checker.PackagingData
-	var err error
+	var rawData, rawDataGithub, rawDataGitlab checker.PackagingData
+	var err, errG, errGL error
 
 	switch v := c.RepoClient.(type) {
+	case *localdir.LocalDirClient:
+		// Performing both packaging checks since we dont know when local
+		rawDataGithub, errG = github.Packaging(c)
+		rawDataGitlab, errGL = gitlab.Packaging(c)
+		// Appending results of checks
+		rawData.Packages = append(rawData.Packages, rawDataGithub.Packages...)
+		rawData.Packages = append(rawData.Packages, rawDataGitlab.Packages...)
+		// checking for errors
+		if errG != nil {
+			err = errG
+		} else if errGL != nil {
+			err = errGL
+		}
 	case *githubrepo.Client:
 		rawData, err = github.Packaging(c)
 	case *gitlabrepo.Client:

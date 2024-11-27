@@ -28,7 +28,10 @@ const CheckFuzzing = "Fuzzing"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckFuzzing, Fuzzing, nil); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckFuzzing, Fuzzing, supportedRequestTypes); err != nil {
 		// this should never happen
 		panic(err)
 	}
