@@ -30,7 +30,7 @@ require (
 	go.opencensus.io v0.24.0
 	gocloud.dev v0.40.0
 	golang.org/x/text v0.19.0
-	golang.org/x/tools v0.25.0 // indirect
+	golang.org/x/tools v0.26.0 // indirect
 	google.golang.org/genproto v0.0.0-20241015192408-796eee8c2d53 // indirect
 	google.golang.org/protobuf v1.35.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -42,7 +42,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.0
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
-	github.com/google/osv-scanner v1.9.0
+	github.com/google/osv-scanner v1.9.1
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/otiai10/copy v1.14.0
@@ -57,10 +57,10 @@ require (
 	cloud.google.com/go/kms v1.20.0 // indirect
 	cloud.google.com/go/longrunning v0.6.1 // indirect
 	dario.cat/mergo v1.0.0 // indirect
-	deps.dev/api/v3 v3.0.0-20240923041156-0312db85d6d6 // indirect
-	deps.dev/util/maven v0.0.0-20240923041156-0312db85d6d6 // indirect
-	deps.dev/util/resolve v0.0.0-20240923041156-0312db85d6d6 // indirect
-	deps.dev/util/semver v0.0.0-20240923041156-0312db85d6d6 // indirect
+	deps.dev/api/v3 v3.0.0-20241010035105-b3ba03369df1 // indirect
+	deps.dev/util/maven v0.0.0-20241010035105-b3ba03369df1 // indirect
+	deps.dev/util/resolve v0.0.0-20241010035105-b3ba03369df1 // indirect
+	deps.dev/util/semver v0.0.0-20241010035105-b3ba03369df1 // indirect
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.9.1 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
@@ -88,7 +88,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20240912202439-0a2b6291aafd // indirect
-	github.com/jedib0t/go-pretty/v6 v6.5.9 // indirect
+	github.com/jedib0t/go-pretty/v6 v6.6.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.5 // indirect
@@ -106,7 +106,7 @@ require (
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/spdx/gordf v0.0.0-20221230105357-b735bd5aac89 // indirect
 	github.com/spdx/tools-golang v0.5.5 // indirect
-	github.com/tidwall/gjson v1.17.3 // indirect
+	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/zeebo/xxh3 v1.0.2 // indirect
@@ -183,7 +183,7 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
-	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
+	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c // indirect
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/oauth2 v0.23.0
 	golang.org/x/sync v0.8.0 // indirect
