@@ -44,21 +44,21 @@ func init() {
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	var rawData, rawDataGithub, rawDataGitlab checker.PackagingData
-	var err, errG, errGL error
+	var err, errGithub, errGitlab error
 
 	switch v := c.RepoClient.(type) {
-	case *localdir.LocalDirClient:
+	case *localdir.Client:
 		// Performing both packaging checks since we dont know when local
-		rawDataGithub, errG = github.Packaging(c)
-		rawDataGitlab, errGL = gitlab.Packaging(c)
+		rawDataGithub, errGithub = github.Packaging(c)
+		rawDataGitlab, errGitlab = gitlab.Packaging(c)
 		// Appending results of checks
 		rawData.Packages = append(rawData.Packages, rawDataGithub.Packages...)
 		rawData.Packages = append(rawData.Packages, rawDataGitlab.Packages...)
 		// checking for errors
-		if errG != nil {
-			err = errG
-		} else if errGL != nil {
-			err = errGL
+		if errGithub != nil {
+			err = errGithub
+		} else if errGitlab != nil {
+			err = errGitlab
 		}
 	case *githubrepo.Client:
 		rawData, err = github.Packaging(c)

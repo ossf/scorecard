@@ -75,7 +75,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 
 		runs, err := c.RepoClient.ListSuccessfulWorkflowRuns(filepath.Base(fp))
 		if err != nil {
-			// appending empty run for localdir client
+			// assume the workflow will have run for localdir client
 			if errors.Is(err, clients.ErrUnsupportedFeature) {
 				runs = append(runs, clients.WorkflowRun{})
 			} else {
