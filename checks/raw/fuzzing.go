@@ -338,7 +338,7 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	numLangs := len(langs)
 	if numLangs == 0 {
 		return nil
-	} else if len(langs) == 1 && langs[0].Name == clients.All{
+	} else if len(langs) == 1 && langs[0].Name == clients.All {
 		return getAllLanguages()
 	}
 	totalLoC := 0
