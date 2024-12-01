@@ -111,10 +111,12 @@ func (handler *commitsHandler) setup() error {
 			return
 		}
 
-		// If there are fewer commits than requested, the first commit is the createdAt date
-		if len(*commits) < handler.commitDepth {
+		switch {
+		case len(*commits) == 0:
+			handler.firstCommitCreatedAt = time.Time{}
+		case len(*commits) < handler.commitDepth:
 			handler.firstCommitCreatedAt = (*commits)[len(*commits)-1].Committer.Date.Time
-		} else {
+		default:
 			firstCommit, err := handler.getFirstCommit(handler.ctx, git.GetCommitsArgs{
 				RepositoryId: &handler.repourl.id,
 				SearchCriteria: &git.GitQueryCommitsCriteria{

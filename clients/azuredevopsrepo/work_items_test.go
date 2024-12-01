@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -31,10 +32,10 @@ import (
 func TestWorkItemsHandler_listIssues(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
+		name       string
+		wantErrStr string
 		mockSetup  func(*workItemsHandler)
 		want       []clients.Issue
-		wantErrStr string
-		name       string
 	}{
 		{
 			name: "happy path",
@@ -51,9 +52,14 @@ func TestWorkItemsHandler_listIssues(t *testing.T) {
 				createdDate := "2024-01-01T00:00:00Z"
 				workItemDetails := &[]workitemtracking.WorkItem{
 					{
-						Id:     toPtr(1),
-						Url:    toPtr("http://example.com"),
-						Fields: &map[string]interface{}{"System.CreatedDate": createdDate},
+						Id:  toPtr(1),
+						Url: toPtr("http://example.com"),
+						Fields: &map[string]interface{}{
+							"System.CreatedDate": createdDate,
+							"System.CreatedBy": map[string]interface{}{
+								"uniqueName": "test-user",
+							},
+						},
 					},
 				}
 				w.getWorkItems = func(ctx context.Context, args workitemtracking.GetWorkItemsArgs) (*[]workitemtracking.WorkItem, error) {
@@ -63,7 +69,7 @@ func TestWorkItemsHandler_listIssues(t *testing.T) {
 				commentTime := time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)
 				comments := &workitemtracking.CommentList{
 					Comments: &[]workitemtracking.Comment{
-						{CreatedDate: &azuredevops.Time{Time: commentTime}},
+						{CreatedDate: &azuredevops.Time{Time: commentTime}, CreatedBy: &webapi.IdentityRef{UniqueName: toPtr("test-user")}},
 					},
 				}
 				w.getWorkItemComments = func(ctx context.Context, args workitemtracking.GetCommentsArgs) (*workitemtracking.CommentList, error) {
@@ -72,10 +78,16 @@ func TestWorkItemsHandler_listIssues(t *testing.T) {
 			},
 			want: []clients.Issue{
 				{
-					URI:       toPtr("http://example.com"),
-					CreatedAt: toPtr(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),
+					URI:               toPtr("http://example.com"),
+					CreatedAt:         toPtr(time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)),
+					Author:            &clients.User{Login: "test-user"},
+					AuthorAssociation: toPtr(clients.RepoAssociationMember),
 					Comments: []clients.IssueComment{
-						{CreatedAt: toPtr(time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC))},
+						{
+							CreatedAt:         toPtr(time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC)),
+							Author:            &clients.User{Login: "test-user"},
+							AuthorAssociation: toPtr(clients.RepoAssociationMember),
+						},
 					},
 				},
 			},
@@ -120,9 +132,14 @@ func TestWorkItemsHandler_listIssues(t *testing.T) {
 				createdDate := "2024-01-01T00:00:00Z"
 				workItemDetails := &[]workitemtracking.WorkItem{
 					{
-						Id:     toPtr(1),
-						Url:    toPtr("http://example.com"),
-						Fields: &map[string]interface{}{"System.CreatedDate": createdDate},
+						Id:  toPtr(1),
+						Url: toPtr("http://example.com"),
+						Fields: &map[string]interface{}{
+							"System.CreatedDate": createdDate,
+							"System.CreatedBy": map[string]interface{}{
+								"uniqueName": "test-user",
+							},
+						},
 					},
 				}
 				w.getWorkItems = func(ctx context.Context, args workitemtracking.GetWorkItemsArgs) (*[]workitemtracking.WorkItem, error) {

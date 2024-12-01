@@ -64,14 +64,14 @@ func (a *auditHandler) setup() error {
 					*entry.ProjectName == a.repourl.project &&
 					(*entry.Data)["RepoName"] == a.repourl.name {
 					a.createdAt = entry.Timestamp.Time
-					break
+					return
 				}
 			}
 
 			if *auditLog.HasMore {
 				continuationToken = *auditLog.ContinuationToken
 			} else {
-				break
+				return
 			}
 		}
 	})

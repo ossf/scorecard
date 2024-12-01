@@ -26,8 +26,9 @@ import (
 )
 
 var (
-	errSystemCreatedByFieldNotMap      = fmt.Errorf("error: System.CreatedBy field is not a map")
-	errSystemCreatedDateFieldNotString = fmt.Errorf("error: System.CreatedDate field is not a string")
+	errSystemCreatedByFieldNotMap        = fmt.Errorf("error: System.CreatedBy field is not a map")
+	errSystemCreatedByFieldNotUniqueName = fmt.Errorf("error: System.CreatedBy field does not contain a UniqueName")
+	errSystemCreatedDateFieldNotString   = fmt.Errorf("error: System.CreatedDate field is not a string")
 )
 
 type (
@@ -71,7 +72,6 @@ func (w *workItemsHandler) init(ctx context.Context, repourl *Repo) {
 
 func (w *workItemsHandler) setup() error {
 	w.once.Do(func() {
-		// Fetch URI, CreatedAt, Author, and Issue comments
 		wiql := `
 			SELECT [System.Id]
 			FROM WorkItems
@@ -112,6 +112,11 @@ func (w *workItemsHandler) setup() error {
 				w.errSetup = errSystemCreatedByFieldNotMap
 				return
 			}
+			uniqueName, ok := createdBy["uniqueName"].(string)
+			if !ok {
+				w.errSetup = errSystemCreatedByFieldNotUniqueName
+				return
+			}
 			createdDate, ok := (*wi.Fields)["System.CreatedDate"].(string)
 			if !ok {
 				w.errSetup = errSystemCreatedDateFieldNotString
@@ -129,7 +134,7 @@ func (w *workItemsHandler) setup() error {
 			issue := clients.Issue{
 				URI:               wi.Url,
 				CreatedAt:         &parsedTime,
-				Author:            &clients.User{Login: createdBy["uniqueName"].(string)},
+				Author:            &clients.User{Login: uniqueName},
 				AuthorAssociation: &repoAssociation,
 				Comments:          make([]clients.IssueComment, 0),
 			}
@@ -152,7 +157,7 @@ func (w *workItemsHandler) setup() error {
 
 				comment := clients.IssueComment{
 					CreatedAt:         &workItemComment.CreatedDate.Time,
-					Author:            &clients.User{Login: *workItemComment.CreatedBy.DisplayName},
+					Author:            &clients.User{Login: *workItemComment.CreatedBy.UniqueName},
 					AuthorAssociation: &repoAssociation,
 				}
 
