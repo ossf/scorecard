@@ -68,6 +68,7 @@ func (w *workItemsHandler) init(ctx context.Context, repourl *Repo) {
 	w.queryWorkItems = w.workItemsClient.QueryByWiql
 	w.getWorkItems = w.workItemsClient.GetWorkItems
 	w.getWorkItemComments = w.workItemsClient.GetComments
+	w.issues = nil
 }
 
 func (w *workItemsHandler) setup() error {
@@ -103,7 +104,7 @@ func (w *workItemsHandler) setup() error {
 			return
 		}
 
-		// Get comments for each work item
+		w.issues = make([]clients.Issue, 0, len(*workItemDetails))
 		for i := range *workItemDetails {
 			wi := &(*workItemDetails)[i]
 
