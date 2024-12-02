@@ -29,8 +29,8 @@ const CheckPinnedDependencies = "Pinned-Dependencies"
 //nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckPinnedDependencies, PinningDependencies, supportedRequestTypes); err != nil {
 		// This should never happen.

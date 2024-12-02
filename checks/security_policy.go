@@ -30,6 +30,7 @@ const CheckSecurityPolicy = "Security-Policy"
 func init() {
 	supportedRequestTypes := []checker.RequestType{
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy, supportedRequestTypes); err != nil {
 		// This should never happen.

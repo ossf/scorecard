@@ -118,9 +118,11 @@ func rootCmd(o *options.Options) error {
 	}
 
 	var requiredRequestTypes []checker.RequestType
+	// if local option not set add file based
 	if o.Local != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
+	// if commit option set to anything other than HEAD add commit based
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}

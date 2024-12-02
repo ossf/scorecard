@@ -29,8 +29,8 @@ const CheckTokenPermissions = "Token-Permissions"
 //nolint:gochecknoinits
 func init() {
 	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
 		checker.CommitBased,
+		checker.FileBased,
 	}
 	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
 		// This should never happen.
