@@ -26,7 +26,6 @@ import (
 var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
 	Context("Search - Azure DevOps", func() {
 		It("Should return search results", func() {
-			Skip("We don't have a public Azure DevOps repo to test against")
 			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/jamiemagee/jamiemagee/_git/scorecard")
 			Expect(err).Should(BeNil())
 
