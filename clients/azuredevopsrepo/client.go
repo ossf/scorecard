@@ -26,6 +26,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -45,6 +46,7 @@ type Client struct {
 	audit       *auditHandler
 	branches    *branchesHandler
 	commits     *commitsHandler
+	search      *searchHandler
 	workItems   *workItemsHandler
 	zip         *zipHandler
 	commitDepth int
@@ -90,6 +92,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	c.branches.init(c.ctx, c.repourl)
 
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
+
+	c.search.init(c.ctx, c.repourl)
 
 	c.workItems.init(c.ctx, c.repourl)
 
@@ -192,7 +196,7 @@ func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 }
 
 func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	return clients.SearchResponse{}, clients.ErrUnsupportedFeature
+	return c.search.search(request)
 }
 
 func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
@@ -225,6 +229,11 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
 	}
 
+	searchClient, err := search.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops search client with error: %w", err)
+	}
+
 	workItemsClient, err := workitemtracking.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops work item tracking client with error: %w", err)
@@ -241,6 +250,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		},
 		commits: &commitsHandler{
 			gitClient: gitClient,
+		},
+		search: &searchHandler{
+			searchClient: searchClient,
 		},
 		workItems: &workItemsHandler{
 			workItemsClient: workItemsClient,
