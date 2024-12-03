@@ -73,7 +73,7 @@ func (s *searchHandler) buildFilters(request clients.SearchRequest) (map[string]
 	filters := make(map[string][]string)
 	query := strings.Builder{}
 	if request.Query == "" {
-		return filters, query.String(), fmt.Errorf("%w", errEmptyQuery)
+		return filters, query.String(), errEmptyQuery
 	}
 	query.WriteString(request.Query)
 	query.WriteString(" ")

@@ -17,10 +17,10 @@ package azuredevopsrepo
 import (
 	"context"
 
-	"github.com/ossf/scorecard/v5/clients"
-
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
