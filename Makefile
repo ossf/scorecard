@@ -356,6 +356,14 @@ e2e-gitlab: ## Runs e2e tests for GitLab only. TOKEN_TYPE is not used (since the
 e2e-gitlab: build-scorecard | $(GINKGO)
 	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO)  --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus ".*GitLab" ./...
 
+e2e-azure-devops-token: ## Runs e2e tests that require a AZURE_DEVOPS_AUTH_TOKEN
+e2e-azure-devops-token: build-scorecard check-env-gitlab | $(GINKGO)
+	TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus '.*Azure DevOps' ./...
+
+e2e-azure-devops: ## Runs e2e tests for Azure DevOps only. TOKEN_TYPE is not used (since these are public APIs), but must be set to something
+e2e-azure-devops: build-scorecard | $(GINKGO)
+	TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO)  --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus ".*Azure DevOps" ./...
+
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
 	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
 

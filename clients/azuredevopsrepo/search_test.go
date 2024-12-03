@@ -32,6 +32,7 @@ func Test_buildFilters(t *testing.T) {
 		repourl         *Repo
 		request         clients.SearchRequest
 		expectedErr     error
+		expectedQuery   string
 		name            string
 	}{
 		{
@@ -44,6 +45,7 @@ func Test_buildFilters(t *testing.T) {
 				name:    "repo",
 			},
 			expectedFilters: make(map[string][]string),
+			expectedQuery:   "",
 			expectedErr:     errEmptyQuery,
 		},
 		{
@@ -59,7 +61,8 @@ func Test_buildFilters(t *testing.T) {
 				"Project":    {"project"},
 				"Repository": {"repo"},
 			},
-			expectedErr: nil,
+			expectedQuery: "query ",
+			expectedErr:   nil,
 		},
 		{
 			name: "query and path",
@@ -76,7 +79,8 @@ func Test_buildFilters(t *testing.T) {
 				"Repository": {"repo"},
 				"Path":       {"path"},
 			},
-			expectedErr: nil,
+			expectedQuery: "query ",
+			expectedErr:   nil,
 		},
 		{
 			name: "query and filename",
@@ -91,9 +95,9 @@ func Test_buildFilters(t *testing.T) {
 			expectedFilters: map[string][]string{
 				"Project":    {"project"},
 				"Repository": {"repo"},
-				"Filename":   {"filename"},
 			},
-			expectedErr: nil,
+			expectedQuery: "query file:filename",
+			expectedErr:   nil,
 		},
 		{
 			name: "query, path, and filename",
@@ -110,9 +114,9 @@ func Test_buildFilters(t *testing.T) {
 				"Project":    {"project"},
 				"Repository": {"repo"},
 				"Path":       {"path"},
-				"Filename":   {"filename"},
 			},
-			expectedErr: nil,
+			expectedQuery: "query file:filename",
+			expectedErr:   nil,
 		},
 	}
 
@@ -122,9 +126,12 @@ func Test_buildFilters(t *testing.T) {
 			s := searchHandler{
 				repourl: tt.repourl,
 			}
-			filters, err := s.buildFilters(tt.request)
+			filters, query, err := s.buildFilters(tt.request)
 			if tt.expectedErr != nil && !errors.Is(err, tt.expectedErr) {
 				t.Fatalf("buildFilters() error = %v, ExpectedErr %v", err, tt.expectedErr)
+			}
+			if query != tt.expectedQuery {
+				t.Errorf("buildFilters() query = %v, ExpectedQuery %v", query, tt.expectedQuery)
 			}
 			if diff := cmp.Diff(filters, tt.expectedFilters); diff != "" {
 				t.Errorf("buildFilters() mismatch (-want +got):\n%s", diff)
