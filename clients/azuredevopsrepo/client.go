@@ -26,6 +26,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
@@ -46,6 +47,7 @@ type Client struct {
 	audit       *auditHandler
 	branches    *branchesHandler
 	commits     *commitsHandler
+	languages   *languagesHandler
 	search      *searchHandler
 	workItems   *workItemsHandler
 	zip         *zipHandler
@@ -92,6 +94,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	c.branches.init(c.ctx, c.repourl)
 
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
+
+	c.languages.init(c.ctx, c.repourl)
 
 	c.search.init(c.ctx, c.repourl)
 
@@ -192,7 +196,7 @@ func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
 }
 
 func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.languages.listProgrammingLanguages()
 }
 
 func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
@@ -229,6 +233,11 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
 	}
 
+	projectAnalysisClient, err := projectanalysis.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops project analysis client with error: %w", err)
+	}
+
 	searchClient, err := search.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops search client with error: %w", err)
@@ -250,6 +259,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		},
 		commits: &commitsHandler{
 			gitClient: gitClient,
+		},
+		languages: &languagesHandler{
+			projectAnalysisClient: projectAnalysisClient,
 		},
 		search: &searchHandler{
 			searchClient: searchClient,

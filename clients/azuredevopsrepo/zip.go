@@ -173,11 +173,9 @@ func (z *zipHandler) extractZip() error {
 		if !strings.HasPrefix(filepath.Clean(filenamepath), destinationPrefix) {
 			return errInvalidFilePath
 		}
-		if file.FileInfo().IsDir() {
-			if err := os.MkdirAll(filenamepath, 0o755); err != nil {
-				return fmt.Errorf("error during os.MkdirAll: %w", err)
-			}
-			continue
+
+		if err := os.MkdirAll(filepath.Dir(filenamepath), 0o755); err != nil {
+			return fmt.Errorf("error during os.MkdirAll: %w", err)
 		}
 
 		outFile, err := os.OpenFile(filenamepath, os.O_CREATE|os.O_WRONLY, 0o644)
