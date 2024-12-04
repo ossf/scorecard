@@ -81,7 +81,6 @@ func (l *languagesHandler) setup() error {
 					},
 				)
 			}
-
 		}
 	})
 	return l.errSetup
