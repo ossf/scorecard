@@ -48,6 +48,7 @@ type (
 		args projectanalysis.GetProjectLanguageAnalyticsArgs,
 	) (*projectanalysis.ProjectLanguageAnalytics, error)
 )
+
 func (l *languagesHandler) setup() error {
 	l.once.Do(func() {
 		args := projectanalysis.GetProjectLanguageAnalyticsArgs{
