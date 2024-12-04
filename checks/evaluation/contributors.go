@@ -16,6 +16,7 @@ package evaluation
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -69,14 +70,17 @@ func getNumberOfTrue(findings []finding.Finding) int {
 }
 
 func logFindings(findings []finding.Finding, dl checker.DetailLogger) {
-	var sb strings.Builder
+	var orgs []string
+	const suffix = " contributor org/company found"
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeTrue {
-			sb.WriteString(fmt.Sprintf("%s, ", f.Message))
+			org := strings.TrimSuffix(f.Message, suffix)
+			orgs = append(orgs, org)
 		}
 	}
+	slices.Sort(orgs)
 	dl.Info(&checker.LogMessage{
-		Text: sb.String(),
+		Text: "found contributions from: " + strings.Join(orgs, ", "),
 	})
 }

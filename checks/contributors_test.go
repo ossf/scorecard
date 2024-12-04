@@ -16,6 +16,7 @@ package checks
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -30,10 +31,11 @@ import (
 func TestContributors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		err      error
-		name     string
-		contrib  []clients.User
-		expected checker.CheckResult
+		err            error
+		name           string
+		contrib        []clients.User
+		expectedDetail string
+		expected       checker.CheckResult
 	}{
 		{
 			err:  nil,
@@ -133,6 +135,7 @@ func TestContributors(t *testing.T) {
 			expected: checker.CheckResult{
 				Score: 10,
 			},
+			expectedDetail: "found contributions from: company1, company2, company3, company4, company5, org1, org2",
 		},
 		{
 			err:     nil,
@@ -182,7 +185,17 @@ func TestContributors(t *testing.T) {
 			if res.Score != tt.expected.Score {
 				t.Errorf("Expected score %d, got %d for %v", tt.expected.Score, res.Score, tt.name)
 			}
-			ctrl.Finish()
+			// make sure the output stays relatively stable
+			if tt.expectedDetail != "" {
+				details := req.Dlogger.Flush()
+				if len(details) != 1 {
+					t.Errorf("expected one check detail, got %d", len(details))
+				}
+				detail := details[0].Msg.Text
+				if !strings.Contains(detail, tt.expectedDetail) {
+					t.Errorf("expected %q but didn't find it: %q", tt.expectedDetail, detail)
+				}
+			}
 		})
 	}
 }
