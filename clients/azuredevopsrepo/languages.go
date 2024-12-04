@@ -40,6 +40,7 @@ func (l *languagesHandler) init(ctx context.Context, repourl *Repo) {
 	l.repourl = repourl
 	l.languages = []clients.Language{}
 	l.projectAnalysis = l.projectAnalysisClient.GetProjectLanguageAnalytics
+	l.errSetup = nil
 }
 
 type (

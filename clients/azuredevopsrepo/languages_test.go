@@ -69,6 +69,39 @@ func Test_listProgrammingLanguages(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "multiple response",
+			projectAnalysis: func(ctx context.Context, args projectanalysis.GetProjectLanguageAnalyticsArgs) (*projectanalysis.ProjectLanguageAnalytics, error) {
+				return &projectanalysis.ProjectLanguageAnalytics{
+					RepositoryLanguageAnalytics: &[]projectanalysis.RepositoryLanguageAnalytics{
+						{
+							Id: toPtr(uuid.Nil),
+							LanguageBreakdown: &[]projectanalysis.LanguageStatistics{
+								{
+									Name:               toPtr("test1"),
+									LanguagePercentage: toPtr(float64(50)),
+								},
+								{
+									Name:               toPtr("test2"),
+									LanguagePercentage: toPtr(float64(50)),
+								},
+							},
+						},
+					},
+				}, nil
+			},
+			want: []clients.Language{
+				{
+					Name:     "test1",
+					NumLines: 50,
+				},
+				{
+					Name:     "test2",
+					NumLines: 50,
+				},
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
