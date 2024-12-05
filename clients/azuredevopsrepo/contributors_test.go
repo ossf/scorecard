@@ -45,13 +45,17 @@ func Test_listContributors(t *testing.T) {
 		{
 			name: "single contributor",
 			getCommits: func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error) {
-				return &[]git.GitCommitRef{
-					{
-						Author: &git.GitUserDate{
-							Email: toPtr("test@example.com"),
+				if *args.SearchCriteria.Skip == 0 {
+					return &[]git.GitCommitRef{
+						{
+							Author: &git.GitUserDate{
+								Email: toPtr("test@example.com"),
+							},
 						},
-					},
-				}, nil
+					}, nil
+				} else {
+					return &[]git.GitCommitRef{}, nil
+				}
 			},
 			wantContribs: []clients.User{
 				{
@@ -65,23 +69,27 @@ func Test_listContributors(t *testing.T) {
 		{
 			name: "multiple contributors",
 			getCommits: func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error) {
-				return &[]git.GitCommitRef{
-					{
-						Author: &git.GitUserDate{
-							Email: toPtr("test@example.com"),
+				if *args.SearchCriteria.Skip == 0 {
+					return &[]git.GitCommitRef{
+						{
+							Author: &git.GitUserDate{
+								Email: toPtr("test@example.com"),
+							},
 						},
-					},
-					{
-						Author: &git.GitUserDate{
-							Email: toPtr("test2@example.com"),
+						{
+							Author: &git.GitUserDate{
+								Email: toPtr("test2@example.com"),
+							},
 						},
-					},
-					{
-						Author: &git.GitUserDate{
-							Email: toPtr("test2@example.com"),
+						{
+							Author: &git.GitUserDate{
+								Email: toPtr("test2@example.com"),
+							},
 						},
-					},
-				}, nil
+					}, nil
+				} else {
+					return &[]git.GitCommitRef{}, nil
+				}
 			},
 			wantContribs: []clients.User{
 				{

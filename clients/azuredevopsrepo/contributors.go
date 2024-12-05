@@ -39,6 +39,7 @@ func (c *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 	c.repourl = repourl
 	c.errSetup = nil
 	c.getCommits = c.gitClient.GetCommits
+	c.contributors = nil
 }
 
 func (c *contributorsHandler) setup() error {
