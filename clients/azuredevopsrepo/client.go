@@ -40,18 +40,19 @@ var (
 )
 
 type Client struct {
-	azdoClient  git.Client
-	ctx         context.Context
-	repourl     *Repo
-	repo        *git.GitRepository
-	audit       *auditHandler
-	branches    *branchesHandler
-	commits     *commitsHandler
-	languages   *languagesHandler
-	search      *searchHandler
-	workItems   *workItemsHandler
-	zip         *zipHandler
-	commitDepth int
+	azdoClient   git.Client
+	ctx          context.Context
+	repourl      *Repo
+	repo         *git.GitRepository
+	audit        *auditHandler
+	branches     *branchesHandler
+	commits      *commitsHandler
+	contributors *contributorsHandler
+	languages    *languagesHandler
+	search       *searchHandler
+	workItems    *workItemsHandler
+	zip          *zipHandler
+	commitDepth  int
 }
 
 func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
@@ -94,6 +95,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	c.branches.init(c.ctx, c.repourl)
 
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
+
+	c.contributors.init(c.ctx, c.repourl)
 
 	c.languages.init(c.ctx, c.repourl)
 
@@ -176,7 +179,7 @@ func (c *Client) ListReleases() ([]clients.Release, error) {
 }
 
 func (c *Client) ListContributors() ([]clients.User, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.contributors.listContributors()
 }
 
 func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
@@ -258,6 +261,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 			gitClient: gitClient,
 		},
 		commits: &commitsHandler{
+			gitClient: gitClient,
+		},
+		contributors: &contributorsHandler{
 			gitClient: gitClient,
 		},
 		languages: &languagesHandler{
