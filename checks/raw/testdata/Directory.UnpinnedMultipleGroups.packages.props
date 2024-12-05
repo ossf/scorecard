@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="SomePackage" Version="4.4.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageVersion Include="SomeOtherPackage" />
+  </ItemGroup>
+</Project>
