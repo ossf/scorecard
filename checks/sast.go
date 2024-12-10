@@ -28,7 +28,10 @@ const CheckSAST = "SAST"
 
 //nolint:gochecknoinits
 func init() {
-	if err := registerCheck(CheckSAST, SAST, nil); err != nil {
+	supportedRequestTypes := []checker.RequestType{
+		checker.FileBased,
+	}
+	if err := registerCheck(CheckSAST, SAST, supportedRequestTypes); err != nil {
 		// This should never happen.
 		panic(err)
 	}

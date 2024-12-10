@@ -338,6 +338,8 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 	numLangs := len(langs)
 	if numLangs == 0 {
 		return nil
+	} else if len(langs) == 1 && langs[0].Name == clients.All {
+		return getAllLanguages()
 	}
 	totalLoC := 0
 	// Use a map to record languages and their lines of code to drop potential duplicates.
@@ -359,6 +361,14 @@ func getProminentLanguages(langs []clients.Language) []clients.LanguageName {
 		}
 	}
 	return ret
+}
+
+func getAllLanguages() []clients.LanguageName {
+	allLanguages := make([]clients.LanguageName, 0, len(languageFuzzSpecs))
+	for l := range languageFuzzSpecs {
+		allLanguages = append(allLanguages, l)
+	}
+	return allLanguages
 }
 
 func propertyBasedDescription(language string) *string {

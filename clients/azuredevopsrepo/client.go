@@ -24,7 +24,11 @@ import (
 	"time"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -40,8 +44,12 @@ type Client struct {
 	ctx         context.Context
 	repourl     *Repo
 	repo        *git.GitRepository
+	audit       *auditHandler
 	branches    *branchesHandler
 	commits     *commitsHandler
+	languages   *languagesHandler
+	search      *searchHandler
+	workItems   *workItemsHandler
 	zip         *zipHandler
 	commitDepth int
 }
@@ -81,9 +89,17 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 		commitSHA:     commitSHA,
 	}
 
+	c.audit.init(c.ctx, c.repourl)
+
 	c.branches.init(c.ctx, c.repourl)
 
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
+
+	c.languages.init(c.ctx, c.repourl)
+
+	c.search.init(c.ctx, c.repourl)
+
+	c.workItems.init(c.ctx, c.repourl)
 
 	c.zip.init(c.ctx, c.repourl)
 
@@ -115,7 +131,16 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 }
 
 func (c *Client) GetCreatedAt() (time.Time, error) {
-	return time.Time{}, clients.ErrUnsupportedFeature
+	createdAt, err := c.audit.getRepsitoryCreatedAt()
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// The audit log may not be enabled on the repository
+	if createdAt.IsZero() {
+		return c.commits.getFirstCommitCreatedAt()
+	}
+	return createdAt, nil
 }
 
 func (c *Client) GetDefaultBranchName() (string, error) {
@@ -139,7 +164,7 @@ func (c *Client) ListCommits() ([]clients.Commit, error) {
 }
 
 func (c *Client) ListIssues() ([]clients.Issue, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.workItems.listIssues()
 }
 
 func (c *Client) ListLicenses() ([]clients.License, error) {
@@ -171,11 +196,11 @@ func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
 }
 
 func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.languages.listProgrammingLanguages()
 }
 
 func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
-	return clients.SearchResponse{}, clients.ErrUnsupportedFeature
+	return c.search.search(request)
 }
 
 func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
@@ -198,19 +223,51 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 
 	client := connection.GetClientByUrl(url)
 
+	auditClient, err := audit.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops audit client with error: %w", err)
+	}
+
 	gitClient, err := git.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
 	}
 
+	projectAnalysisClient, err := projectanalysis.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops project analysis client with error: %w", err)
+	}
+
+	searchClient, err := search.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops search client with error: %w", err)
+	}
+
+	workItemsClient, err := workitemtracking.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops work item tracking client with error: %w", err)
+	}
+
 	return &Client{
 		ctx:        ctx,
 		azdoClient: gitClient,
+		audit: &auditHandler{
+			auditClient: auditClient,
+		},
 		branches: &branchesHandler{
 			gitClient: gitClient,
 		},
 		commits: &commitsHandler{
 			gitClient: gitClient,
+		},
+		languages: &languagesHandler{
+			projectAnalysisClient: projectAnalysisClient,
+		},
+		search: &searchHandler{
+			searchClient: searchClient,
+		},
+		workItems: &workItemsHandler{
+			workItemsClient: workItemsClient,
 		},
 		zip: &zipHandler{
 			client: client,
