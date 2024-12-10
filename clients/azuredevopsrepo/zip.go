@@ -110,7 +110,7 @@ func (z *zipHandler) getZipfile() error {
 	queryParams.Add("resolveLfs", "true")
 	queryParams.Add("$format", "zip")
 
-	if z.repourl.commitSHA == "HEAD" {
+	if z.repourl.commitSHA == HeadCommit {
 		queryParams.Add("versionDescriptor.versionType", "branch")
 		queryParams.Add("versionDescriptor.version", z.repourl.defaultBranch)
 	} else {
@@ -118,15 +118,22 @@ func (z *zipHandler) getZipfile() error {
 		queryParams.Add("versionDescriptor.version", z.repourl.commitSHA)
 	}
 
-	parsedURL, err := url.Parse(baseURL + "?" + queryParams.Encode())
+	parsedURL := fmt.Sprintf("%s?%s", baseURL, queryParams.Encode())
+
+	req, err := z.client.CreateRequestMessage(
+		z.ctx,
+		http.MethodGet,
+		parsedURL,
+		"7.1",
+		nil,
+		"",
+		"application/zip",
+		map[string]string{},
+	)
 	if err != nil {
-		return fmt.Errorf("url.Parse: %w", err)
+		return fmt.Errorf("client.CreateRequestMessage: %w", err)
 	}
 
-	req := &http.Request{
-		Method: http.MethodGet,
-		URL:    parsedURL,
-	}
 	res, err := z.client.SendRequest(req)
 	if err != nil {
 		return fmt.Errorf("client.SendRequest: %w", err)
