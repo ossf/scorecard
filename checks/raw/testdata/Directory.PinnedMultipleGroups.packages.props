@@ -3,9 +3,9 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="SomePackage" Version="4.4.5" />
+    <PackageVersion Include="SomePackage" Version="[4.4.5]" />
   </ItemGroup>
   <ItemGroup>
-    <PackageVersion Include="SomeOtherPackage" Version="1.2.3" />
+    <PackageVersion Include="SomeOtherPackage" Version="[1.2.3]" />
   </ItemGroup>
 </Project>

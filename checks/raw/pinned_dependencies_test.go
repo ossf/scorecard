@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
 	"github.com/ossf/scorecard/v5/remediation"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -2315,6 +2316,138 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 	}
 }
 
+func TestCollectPostProcessNugetCPMDependencies(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                            string
+		inputNugetDependencies          []*checker.Dependency
+		data                            *nugetPostProcessData
+		expectedOutputNugetDependencies []checker.Dependency
+	}{
+		{
+			name: "All dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(true),
+				},
+			},
+		},
+		{
+			name: "Some dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+				},
+			},
+		},
+		{
+			name: "No dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			collectPostProcessNugetCPMDependencies(tt.inputNugetDependencies, tt.data)
+			for i, dep := range tt.inputNugetDependencies {
+				if *dep.Pinned != *tt.expectedOutputNugetDependencies[i].Pinned {
+					t.Errorf("Expected dependency %v, got %v", tt.expectedOutputNugetDependencies[i], dep)
+				}
+			}
+		})
+	}
+}
+
 func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
 	t.Parallel()
 
@@ -2506,7 +2639,7 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 			if err != nil {
 				t.Fatalf("cannot read file: %v", err)
 			}
-			var nugetPostProcessData NugetPostProcessData
+			var nugetPostProcessData nugetPostProcessData
 			dl := scut.TestDetailLogger{}
 			_, err = processDirectoryPropsFile(tt.filename, content, &nugetPostProcessData, dl)
 			if tt.expectedError {

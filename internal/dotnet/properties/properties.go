@@ -100,17 +100,13 @@ func extractNugetPackages(project *DirectoryPropsProject) []NugetPackage {
 
 // isValidFixedVersion checks if the version string is a valid, fixed version.
 // more on version numbers here: https://learn.microsoft.com/en-us/nuget/concepts/package-versioning?tabs=semver20sort
-// ^ asserts the start of the string
-// (\d+)\.(\d+)\.(\d+) matches major.minor.patch version (e.g., 1.0.1)
-// (-[a-zA-Z]+(\.\d+)?|[a-zA-Z]+\d+)? matches optional pre-release tag
-//
-//	-[a-zA-Z]+(\.\d+)? handles pre-release versions with dots (e.g., -beta.12, -rc.10)
-//	-[a-zA-Z]+\d+ handles versions like -alpha2 and -alpha10
-//
-// \[\d+\.\d+\] or \[\d+\.\d+\.\d+\] matches cases like [1.0] and [1.0.1]
-// \$\(ComponentDetectionPackageVersion\) matches special case like $(ComponentDetectionPackageVersion).
+// ^: Ensures the match starts at the beginning of the string.
+// \[: Matches the opening square bracket [.
+// [^\[,]+: Matches one or more characters that are not a comma (,) or a square bracket ([) (to avoid nested brackets).
+// \]: Matches the closing square bracket ].
+// $: Ensures the match ends at the end of the string.
 func isValidFixedVersion(version string) bool {
-	pattern := `^(\d+)\.(\d+)\.(\d+)(-[a-zA-Z]+(\.\d+)?|-[a-zA-Z]+\d*)?$|^\[\d+\.\d+\]$|^\[\d+\.\d+\.\d+\]$|^\$\(.+\)$`
+	pattern := `^\[[^\[,]+\]$`
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(version)
 }
