@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
 	"github.com/ossf/scorecard/v5/remediation"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -2170,22 +2171,22 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 	tests := []struct {
 		name                string
 		filenames           []string
-		stagedDependencies  []*checker.Dependency
-		outcomeDependencies []*checker.Dependency
+		stagedDependencies  []checker.Dependency
+		outcomeDependencies []checker.Dependency
 		expectError         bool
 	}{
 		{
 			name:        "pinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
 			expectError: false,
-			stagedDependencies: []*checker.Dependency{
+			stagedDependencies: []checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
 					Remediation: nil,
 				},
 			},
-			outcomeDependencies: []*checker.Dependency{
+			outcomeDependencies: []checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
@@ -2197,7 +2198,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' disabled implicitly",
 			filenames:   []string{"./dotnet-locked-mode-disabled-implicitly.csproj"},
 			expectError: false,
-			stagedDependencies: []*checker.Dependency{
+			stagedDependencies: []checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2206,7 +2207,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					},
 				},
 			},
-			outcomeDependencies: []*checker.Dependency{
+			outcomeDependencies: []checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2220,7 +2221,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' enabled",
 			filenames:   []string{"./dotnet-locked-mode-enabled.csproj"},
 			expectError: false,
-			stagedDependencies: []*checker.Dependency{
+			stagedDependencies: []checker.Dependency{
 				{
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
@@ -2229,7 +2230,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					},
 				},
 			},
-			outcomeDependencies: []*checker.Dependency{
+			outcomeDependencies: []checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(true),
@@ -2241,18 +2242,37 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			name:        "unpinned by command and 'locked mode' enabled and disabled in different csproj files",
 			filenames:   []string{"./dotnet-locked-mode-enabled.csproj", "./dotnet-locked-mode-disabled.csproj"},
 			expectError: false,
-			stagedDependencies: []*checker.Dependency{
+			stagedDependencies: []checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(false),
 					Remediation: &finding.Remediation{Text: "remediate"},
 				},
 			},
-			outcomeDependencies: []*checker.Dependency{
+			outcomeDependencies: []checker.Dependency{
 				{
 					Type:        checker.DependencyUseTypeNugetCommand,
 					Pinned:      boolAsPointer(false),
 					Remediation: &finding.Remediation{Text: "remediate: some of your csproj files set the RestoreLockedMode property to true, while other do not set it: ./dotnet-locked-mode-disabled.csproj"},
+				},
+			},
+		},
+		{
+			name:        "unpinned by command and error in csproj files",
+			filenames:   []string{"./dotnet-invalid.csproj"},
+			expectError: true,
+			stagedDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "remediate"},
+				},
+			},
+			outcomeDependencies: []checker.Dependency{
+				{
+					Type:        checker.DependencyUseTypeNugetCommand,
+					Pinned:      boolAsPointer(false),
+					Remediation: &finding.Remediation{Text: "remediate"},
 				},
 			},
 		},
@@ -2271,12 +2291,18 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(file string) (io.ReadCloser, error) {
 				return os.Open(filepath.Join("testdata", file))
 			})
+			testPinningData := checker.PinningDependenciesData{
+				Dependencies: tt.stagedDependencies,
+			}
+
+			dl := scut.TestDetailLogger{}
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
+				Dlogger:    &dl,
 			}
 
-			err := processCsprojLockedMode(&req, tt.stagedDependencies)
+			err := postProcessNugetDependencies(&req, &testPinningData)
 			if err != nil {
 				if !tt.expectError {
 					t.Error(err.Error())
@@ -2285,6 +2311,138 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 			t.Log(tt.stagedDependencies)
 			if diff := cmp.Diff(tt.outcomeDependencies, tt.stagedDependencies); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestCollectPostProcessNugetCPMDependencies(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name                            string
+		inputNugetDependencies          []*checker.Dependency
+		data                            *nugetPostProcessData
+		expectedOutputNugetDependencies []checker.Dependency
+	}{
+		{
+			name: "All dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(true),
+				},
+			},
+		},
+		{
+			name: "Some dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: true,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+				},
+			},
+		},
+		{
+			name: "No dependencies are fixed",
+			inputNugetDependencies: []*checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+					Remediation: &finding.Remediation{
+						Text: "remediate",
+					},
+				},
+			},
+			data: &nugetPostProcessData{
+				CpmConfig: properties.CentralPackageManagementConfig{
+					PackageVersions: []properties.NugetPackage{
+						{
+							Name:    "dep1",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+						{
+							Name:    "dep2",
+							Version: "1.0.0",
+							IsFixed: false,
+						},
+					},
+				},
+			},
+			expectedOutputNugetDependencies: []checker.Dependency{
+				{
+					Name:   newString("dep1"),
+					Type:   checker.DependencyUseTypeNugetCommand,
+					Pinned: boolAsPointer(false),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			collectPostProcessNugetCPMDependencies(tt.inputNugetDependencies, tt.data)
+			for i, dep := range tt.inputNugetDependencies {
+				if *dep.Pinned != *tt.expectedOutputNugetDependencies[i].Pinned {
+					t.Errorf("Expected dependency %v, got %v", tt.expectedOutputNugetDependencies[i], dep)
+				}
 			}
 		})
 	}
@@ -2399,6 +2557,113 @@ func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
 				if *dep.Name != *tt.expected[i].Name || dep.Type != tt.expected[i].Type {
 					t.Errorf("Expected dependency %v, got %v", tt.expected[i], dep)
 				}
+			}
+		})
+	}
+}
+
+func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                 string
+		filename             string
+		pinnedDependencies   int
+		unpinnedDependencies int
+		expectedError        bool
+		IsCPMEnabled         bool
+	}{
+		{
+			name:                 "Pinned dependencies",
+			filename:             "./testdata/Directory.Pinned.packages.props",
+			IsCPMEnabled:         true,
+			pinnedDependencies:   1,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Pinned multiple dependencies",
+			filename:             "./testdata/Directory.PinnedMultipleGroups.packages.props",
+			IsCPMEnabled:         true,
+			pinnedDependencies:   2,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned CPM false",
+			filename:             "./testdata/Directory.CPMFalse.packages.props",
+			IsCPMEnabled:         false,
+			pinnedDependencies:   0,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned CPM undeclared",
+			filename:             "./testdata/Directory.Undeclared.packages.props",
+			IsCPMEnabled:         false,
+			pinnedDependencies:   0,
+			unpinnedDependencies: 0,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version undeclared",
+			filename:             "./testdata/Directory.UndeclaredVersions.packages.props",
+			IsCPMEnabled:         true,
+			pinnedDependencies:   0,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version range",
+			filename:             "./testdata/Directory.UnpinnedVersions.packages.props",
+			IsCPMEnabled:         true,
+			pinnedDependencies:   0,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+		{
+			name:                 "Unpinned version range in second group",
+			filename:             "./testdata/Directory.UnpinnedMultipleGroups.packages.props",
+			IsCPMEnabled:         true,
+			pinnedDependencies:   1,
+			unpinnedDependencies: 1,
+			expectedError:        false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var content []byte
+			var err error
+			content, err = os.ReadFile(tt.filename)
+			if err != nil {
+				t.Fatalf("cannot read file: %v", err)
+			}
+			var nugetPostProcessData nugetPostProcessData
+			dl := scut.TestDetailLogger{}
+			_, err = processDirectoryPropsFile(tt.filename, content, &nugetPostProcessData, dl)
+			if tt.expectedError {
+				if err == nil {
+					t.Errorf("expected error is nil")
+					return
+				}
+			}
+			if tt.IsCPMEnabled != nugetPostProcessData.CpmConfig.IsCPMEnabled {
+				t.Errorf("expected %t cpm enabled. Got %t", tt.IsCPMEnabled, nugetPostProcessData.CpmConfig.IsCPMEnabled)
+			}
+			pinned, unpinned := 0, 0
+			for _, version := range nugetPostProcessData.CpmConfig.PackageVersions {
+				if version.IsFixed {
+					pinned++
+				} else {
+					unpinned++
+				}
+			}
+			if pinned != tt.pinnedDependencies {
+				t.Errorf("expected %v pinned dependencies. Got %v", tt.pinnedDependencies, pinned)
+			}
+			if unpinned != tt.unpinnedDependencies {
+				t.Errorf("expected %v unpinned dependencies. Got %v", tt.unpinnedDependencies, unpinned)
 			}
 		})
 	}
