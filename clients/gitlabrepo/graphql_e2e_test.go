@@ -31,7 +31,9 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
 			Expect(err).Should(BeNil())
 
-			graphqlhandler.init(context.Background(), repo.(*Repo))
+			glRepo, ok := repo.(*Repo)
+			Expect(ok).Should(BeTrue())
+			graphqlhandler.init(context.Background(), glRepo)
 			data := graphqlData{}
 
 			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
@@ -51,7 +53,9 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
 			Expect(err).Should(BeNil())
 
-			graphqlhandler.init(context.Background(), repo.(*Repo))
+			glRepo, ok := repo.(*Repo)
+			Expect(ok).Should(BeTrue())
+			graphqlhandler.init(context.Background(), glRepo)
 			data := graphqlData{}
 
 			path := fmt.Sprintf("%s/%s", graphqlhandler.repourl.owner, graphqlhandler.repourl.project)
