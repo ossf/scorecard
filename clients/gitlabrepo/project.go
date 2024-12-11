@@ -19,7 +19,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 type projectHandler struct {
