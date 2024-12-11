@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"strings"
 
+	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
 	"github.com/google/osv-scanner/pkg/grouper"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -60,11 +61,14 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
+	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
 	aliasVulnerabilities := []grouper.IDAliases{}
 	for _, vuln := range raw.VulnerabilitiesResults.Vulnerabilities {
+		//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
 		aliasVulnerabilities = append(aliasVulnerabilities, grouper.IDAliases(vuln))
 	}
 
+	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
 	IDs := grouper.Group(aliasVulnerabilities)
 
 	for _, vuln := range IDs {
