@@ -17,6 +17,8 @@ package data
 import "strings"
 
 // CSVStrings is []string with support for CSV formatting.
+//
+//nolint:recvcheck // This would be a breaking change. Possible for V6?
 type CSVStrings []string
 
 // MarshalCSV implements []string -> []byte serialization.
