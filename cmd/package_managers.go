@@ -97,7 +97,7 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 	}
 	if nuget != "" {
 		nugetClient := ngt.NugetClient{Manager: manager}
-		gitRepo, err := fetchGitRepositoryFromNuget(nuget, nugetClient)
+		gitRepo, err := fetchGitRepositoryFromNuget(nuget, &nugetClient)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,

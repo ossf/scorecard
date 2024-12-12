@@ -45,7 +45,7 @@ func (set *branchSet) add(branch *clients.BranchRef) bool {
 	return false
 }
 
-func (set branchSet) contains(branch string) bool {
+func (set *branchSet) contains(branch string) bool {
 	_, contains := set.exists[branch]
 	return contains
 }

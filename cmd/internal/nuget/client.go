@@ -141,7 +141,7 @@ type NugetClient struct {
 	Manager pmc.Client
 }
 
-func (c NugetClient) GitRepositoryByPackageName(packageName string) (string, error) {
+func (c *NugetClient) GitRepositoryByPackageName(packageName string) (string, error) {
 	packageBaseURL, registrationBaseURL, err := c.baseUrls()
 	if err != nil {
 		return "", err

@@ -30,6 +30,8 @@ const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 
 // DocImpl implements `Doc` interface and
 // contains checks' documentation.
+//
+//nolint:recvcheck // Fixing would be a breaking change. Possible for V6?
 type DocImpl struct {
 	internaldoc internal.Doc
 }
