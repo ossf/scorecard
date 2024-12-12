@@ -19,7 +19,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 )
 
 func TestGetBranches(t *testing.T) {
