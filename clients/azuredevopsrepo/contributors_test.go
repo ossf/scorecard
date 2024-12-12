@@ -122,7 +122,8 @@ func Test_listContributors(t *testing.T) {
 				t.Errorf("contributorsHandler.setup() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if diff := cmp.Diff(tt.wantContribs, c.contributors, cmpopts.SortSlices(func(a, b string) bool { return a < b })); diff != "" {
+			sortUsers := func(a, b clients.User) bool { return a.Login < b.Login }
+			if diff := cmp.Diff(tt.wantContribs, c.contributors, cmpopts.SortSlices(sortUsers)); diff != "" {
 				t.Errorf("contributorsHandler.setup() mismatch (-want +got):\n%s", diff)
 			}
 		})
