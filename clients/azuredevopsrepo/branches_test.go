@@ -20,33 +20,34 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
-func TestGetDefaultBranch(t *testing.T) {
+func Test_getDefaultBranch(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		setupMock     func() fnQueryBranch
+		queryBranch   fnQueryBranch
 		name          string
 		expectedName  string
 		expectedError bool
 	}{
 		{
 			name: "successful branch retrieval",
-			setupMock: func() fnQueryBranch {
-				return func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
-					return &git.GitBranchStats{Name: args.Name}, nil
-				}
+			queryBranch: func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
+				return &git.GitBranchStats{Name: args.Name}, nil
 			},
 			expectedError: false,
 			expectedName:  "main",
 		},
 		{
 			name: "error during branch retrieval",
-			setupMock: func() fnQueryBranch {
-				return func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
-					return nil, fmt.Errorf("error")
-				}
+			queryBranch: func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
+				return nil, fmt.Errorf("error")
 			},
 			expectedError: true,
 		},
@@ -56,7 +57,7 @@ func TestGetDefaultBranch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			handler := &branchesHandler{
-				queryBranch: tt.setupMock(),
+				queryBranch: tt.queryBranch,
 				once:        new(sync.Once),
 				repourl: &Repo{
 					id:            "repo-id",
@@ -70,6 +71,83 @@ func TestGetDefaultBranch(t *testing.T) {
 			}
 			if branch != nil && *branch.Name != tt.expectedName {
 				t.Errorf("expected branch name: %v, got: %v", tt.expectedName, *branch.Name)
+			}
+		})
+	}
+}
+
+func Test_getBranch(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		getBranch               fnQueryBranch
+		getPolicyConfigurations fnGetPolicyConfigurations
+		expected                *clients.BranchRef
+		name                    string
+		branchName              string
+		expectedError           bool
+	}{
+		{
+			name:       "successful branch retrieval",
+			branchName: "main",
+			getBranch: func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
+				return &git.GitBranchStats{Name: args.Name}, nil
+			},
+			getPolicyConfigurations: func(ctx context.Context, args git.GetPolicyConfigurationsArgs) (*git.GitPolicyConfigurationResponse, error) {
+				return &git.GitPolicyConfigurationResponse{
+					PolicyConfigurations: &[]policy.PolicyConfiguration{},
+				}, nil
+			},
+			expected: &clients.BranchRef{
+				Name:      toPtr("main"),
+				Protected: toPtr(false),
+			},
+			expectedError: false,
+		},
+		{
+			name:       "error during branch retrieval",
+			branchName: "main",
+			getBranch: func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
+				return nil, fmt.Errorf("error")
+			},
+			getPolicyConfigurations: func(ctx context.Context, args git.GetPolicyConfigurationsArgs) (*git.GitPolicyConfigurationResponse, error) {
+				return &git.GitPolicyConfigurationResponse{}, nil
+			},
+			expected:      nil,
+			expectedError: true,
+		},
+		{
+			name:       "error during policy configuration retrieval",
+			branchName: "main",
+			getBranch: func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error) {
+				return &git.GitBranchStats{Name: args.Name}, nil
+			},
+			getPolicyConfigurations: func(ctx context.Context, args git.GetPolicyConfigurationsArgs) (*git.GitPolicyConfigurationResponse, error) {
+				return nil, fmt.Errorf("error")
+			},
+			expected:      nil,
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			handler := &branchesHandler{
+				queryBranch:             tt.getBranch,
+				getPolicyConfigurations: tt.getPolicyConfigurations,
+				once:                    new(sync.Once),
+				repourl: &Repo{
+					id:            uuid.Nil.String(),
+					defaultBranch: "main",
+				},
+			}
+
+			branch, err := handler.getBranch(tt.branchName)
+			if (err != nil) != tt.expectedError {
+				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
+			}
+			if diff := cmp.Diff(branch, tt.expected); diff != "" {
+				t.Errorf("mismatch in branch ref (-want +got):\n%s", diff)
 			}
 		})
 	}
