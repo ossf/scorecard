@@ -47,7 +47,7 @@ func (s *searchCommitsHandler) searchCommits(searchOptions clients.SearchCommits
 	skip := 0
 
 	var itemVersion git.GitVersionDescriptor
-	if s.repourl.commitSHA == HeadCommit {
+	if s.repourl.commitSHA == headCommit {
 		itemVersion = git.GitVersionDescriptor{
 			VersionType: &git.GitVersionTypeValues.Branch,
 			Version:     &s.repourl.defaultBranch,

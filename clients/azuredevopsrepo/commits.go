@@ -73,7 +73,7 @@ type (
 func (c *commitsHandler) setup() error {
 	c.once.Do(func() {
 		var itemVersion git.GitVersionDescriptor
-		if c.repourl.commitSHA == HeadCommit {
+		if c.repourl.commitSHA == headCommit {
 			itemVersion = git.GitVersionDescriptor{
 				VersionType: &git.GitVersionTypeValues.Branch,
 				Version:     &c.repourl.defaultBranch,
@@ -232,7 +232,7 @@ func (c *commitsHandler) getFirstCommitCreatedAt() (time.Time, error) {
 }
 
 func (c *commitsHandler) listStatuses(ref string) ([]clients.Status, error) {
-	matched, err := regexp.MatchString("^[0-9a-f]{5,40}$", ref)
+	matched, err := regexp.MatchString("^[0-9a-fA-F]{40}$", ref)
 	if err != nil {
 		return nil, fmt.Errorf("error matching ref: %w", err)
 	}

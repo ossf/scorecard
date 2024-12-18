@@ -16,7 +16,6 @@ package azuredevopsrepo
 
 import (
 	"context"
-	"sync"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 
@@ -25,7 +24,6 @@ import (
 
 type buildsHandler struct {
 	ctx                 context.Context
-	once                *sync.Once
 	repourl             *Repo
 	buildClient         build.Client
 	getBuildDefinitions fnListBuildDefinitions
@@ -45,7 +43,6 @@ type (
 
 func (b *buildsHandler) init(ctx context.Context, repourl *Repo) {
 	b.ctx = ctx
-	b.once = new(sync.Once)
 	b.repourl = repourl
 	b.getBuildDefinitions = b.buildClient.GetDefinitions
 	b.getBuilds = b.buildClient.GetBuilds
@@ -80,12 +77,11 @@ func (b *buildsHandler) listSuccessfulBuilds(filename string) ([]clients.Workflo
 		continuationToken = response.ContinuationToken
 	}
 
-	buildIds := make([]int, 0)
+	buildIds := make([]int, 0, len(buildDefinitions))
 	for i := range buildDefinitions {
 		buildIds = append(buildIds, *buildDefinitions[i].Id)
 	}
 
-	workflowRuns := make([]clients.WorkflowRun, 0)
 	args := build.GetBuildsArgs{
 		Project:      &b.repourl.project,
 		Definitions:  &buildIds,
@@ -96,6 +92,7 @@ func (b *buildsHandler) listSuccessfulBuilds(filename string) ([]clients.Workflo
 		return nil, err
 	}
 
+	workflowRuns := make([]clients.WorkflowRun, 0, len(builds.Value))
 	for i := range builds.Value {
 		currentBuild := builds.Value[i]
 		workflowRuns = append(workflowRuns, clients.WorkflowRun{

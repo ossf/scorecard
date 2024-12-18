@@ -91,7 +91,10 @@ func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, erro
 	}
 
 	refName := fmt.Sprintf("refs/heads/%s", *branch.Name)
-	repositoryID := uuid.MustParse(b.repourl.id)
+	repositoryID, err := uuid.Parse(b.repourl.id)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing repository ID %s: %w", b.repourl.id, err)
+	}
 	args := git.GetPolicyConfigurationsArgs{
 		RepositoryId: &repositoryID,
 		RefName:      &refName,

@@ -15,5 +15,5 @@
 package azuredevopsrepo
 
 const (
-	HeadCommit = "HEAD"
+	headCommit = "HEAD"
 )
