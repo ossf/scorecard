@@ -68,7 +68,7 @@ func Test_listStatuses(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "HEAD - no statuses",
+			name: "main - no statuses",
 			ref:  "main",
 			getRefs: func(ctx context.Context, args git.GetRefsArgs) (*git.GetRefsResponseValue, error) {
 				return &git.GetRefsResponseValue{
@@ -83,7 +83,7 @@ func Test_listStatuses(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "HEAD - single status",
+			name: "main - single status",
 			ref:  "main",
 			getRefs: func(ctx context.Context, args git.GetRefsArgs) (*git.GetRefsResponseValue, error) {
 				return &git.GetRefsResponseValue{
