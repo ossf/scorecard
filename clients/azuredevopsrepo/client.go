@@ -25,9 +25,12 @@ import (
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -40,19 +43,23 @@ var (
 )
 
 type Client struct {
-	azdoClient   git.Client
-	ctx          context.Context
-	repourl      *Repo
-	repo         *git.GitRepository
-	audit        *auditHandler
-	branches     *branchesHandler
-	commits      *commitsHandler
-	contributors *contributorsHandler
-	languages    *languagesHandler
-	search       *searchHandler
-	workItems    *workItemsHandler
-	zip          *zipHandler
-	commitDepth  int
+	azdoClient    git.Client
+	ctx           context.Context
+	repourl       *Repo
+	repo          *git.GitRepository
+	audit         *auditHandler
+	branches      *branchesHandler
+	builds        *buildsHandler
+	commits       *commitsHandler
+	contributors  *contributorsHandler
+	languages     *languagesHandler
+	policy        *policyHandler
+	search        *searchHandler
+	searchCommits *searchCommitsHandler
+	servicehooks  *servicehooksHandler
+	workItems     *workItemsHandler
+	zip           *zipHandler
+	commitDepth   int
 }
 
 func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
@@ -84,8 +91,9 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 		host:          azdoRepo.host,
 		organization:  azdoRepo.organization,
 		project:       azdoRepo.project,
+		projectID:     repo.Project.Id.String(),
 		name:          azdoRepo.name,
-		id:            fmt.Sprint(*repo.Id),
+		id:            repo.Id.String(),
 		defaultBranch: branch,
 		commitSHA:     commitSHA,
 	}
@@ -94,13 +102,21 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 
 	c.branches.init(c.ctx, c.repourl)
 
+	c.builds.init(c.ctx, c.repourl)
+
 	c.commits.init(c.ctx, c.repourl, c.commitDepth)
 
 	c.contributors.init(c.ctx, c.repourl)
 
 	c.languages.init(c.ctx, c.repourl)
 
+	c.policy.init(c.ctx, c.repourl)
+
 	c.search.init(c.ctx, c.repourl)
+
+	c.searchCommits.init(c.ctx, c.repourl)
+
+	c.servicehooks.init(c.ctx, c.repourl)
 
 	c.workItems.init(c.ctx, c.repourl)
 
@@ -130,7 +146,7 @@ func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 }
 
 func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.branches.getBranch(branch)
 }
 
 func (c *Client) GetCreatedAt() (time.Time, error) {
@@ -158,6 +174,7 @@ func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return c.branches.getDefaultBranch()
 }
 
+// Org repository, AKA the <org>/.github repository, is a GitHub-specific feature.
 func (c *Client) GetOrgRepoClient(context.Context) (clients.RepoClient, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
@@ -170,6 +187,8 @@ func (c *Client) ListIssues() ([]clients.Issue, error) {
 	return c.workItems.listIssues()
 }
 
+// Azure DevOps doesn't have a license detection feature.
+// Thankfully, the License check falls back to file-based detection.
 func (c *Client) ListLicenses() ([]clients.License, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
@@ -183,19 +202,19 @@ func (c *Client) ListContributors() ([]clients.User, error) {
 }
 
 func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.builds.listSuccessfulBuilds(filename)
 }
 
 func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.policy.listCheckRunsForRef(ref)
 }
 
 func (c *Client) ListStatuses(ref string) ([]clients.Status, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.commits.listStatuses(ref)
 }
 
 func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.servicehooks.listWebhooks()
 }
 
 func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
@@ -207,7 +226,7 @@ func (c *Client) Search(request clients.SearchRequest) (clients.SearchResponse, 
 }
 
 func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.searchCommits.searchCommits(request)
 }
 
 func (c *Client) Close() error {
@@ -224,16 +243,26 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 	url := "https://" + repo.Host() + "/" + strings.Split(repo.Path(), "/")[0]
 	connection := azuredevops.NewPatConnection(url, token)
 
-	client := connection.GetClientByUrl(url)
+	client := azuredevops.NewClient(connection, url)
 
 	auditClient, err := audit.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops audit client with error: %w", err)
 	}
 
+	buildClient, err := build.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops build client with error: %w", err)
+	}
+
 	gitClient, err := git.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
+	}
+
+	policyClient, err := policy.NewClient(ctx, connection)
+	if err != nil {
+		return nil, fmt.Errorf("could not create azure devops policy client with error: %w", err)
 	}
 
 	projectAnalysisClient, err := projectanalysis.NewClient(ctx, connection)
@@ -245,6 +274,8 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops search client with error: %w", err)
 	}
+
+	servicehooksClient := servicehooks.NewClient(ctx, connection)
 
 	workItemsClient, err := workitemtracking.NewClient(ctx, connection)
 	if err != nil {
@@ -260,6 +291,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		branches: &branchesHandler{
 			gitClient: gitClient,
 		},
+		builds: &buildsHandler{
+			buildClient: buildClient,
+		},
 		commits: &commitsHandler{
 			gitClient: gitClient,
 		},
@@ -269,8 +303,18 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		languages: &languagesHandler{
 			projectAnalysisClient: projectAnalysisClient,
 		},
+		policy: &policyHandler{
+			gitClient:    gitClient,
+			policyClient: policyClient,
+		},
 		search: &searchHandler{
 			searchClient: searchClient,
+		},
+		searchCommits: &searchCommitsHandler{
+			gitClient: gitClient,
+		},
+		servicehooks: &servicehooksHandler{
+			servicehooksClient: servicehooksClient,
 		},
 		workItems: &workItemsHandler{
 			workItemsClient: workItemsClient,

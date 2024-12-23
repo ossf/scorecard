@@ -16,10 +16,10 @@ package azuredevopsrepo
 
 import (
 	"context"
-	"reflect"
 	"sync"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
 
@@ -120,7 +120,7 @@ func Test_listProgrammingLanguages(t *testing.T) {
 				t.Errorf("listProgrammingLanguages() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !cmp.Equal(got, tt.want) {
 				t.Errorf("listProgrammingLanguages() got = %v, want %v", got, tt.want)
 			}
 		})
