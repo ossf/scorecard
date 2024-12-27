@@ -382,6 +382,21 @@ If collaborators, members or owners have NOT participated in issues in the last 
 The probe returns 1 true outcome if the project has no workflows "write" permissions a the "job" level.
 
 
+## memorySafe
+
+**Lifecycle**: experimental
+
+**Description**: Flags non memory safe practices in this project.
+
+**Motivation**: Memory safety in software should be considered a continuum, rather than being binary. This probe does not consider a specific ecosystem more or less memory safe than another, but rather tries to surface non memory safe code or practices in the project, in the context of the ecosystems it is using.
+
+**Implementation**: The probe is ecosystem-specific and tries to flag non memory safe code blocks in the project by looking at the code and practices used in the project. It may look for specific memory safety practices, such as the use tools or non memory-safe patterns and code.
+
+**Outcomes**: For supported ecosystem, the probe returns OutcomeTrue per safe method or tool.
+For supported ecosystem, the probe returns OutcomeFalse per unsafe code or method.
+If the project has no supported ecosystems, the probe returns OutcomeNotApplicable.
+
+
 ## packagedWithAutomatedWorkflow
 
 **Lifecycle**: stable
