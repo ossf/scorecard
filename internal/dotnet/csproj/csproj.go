@@ -24,6 +24,7 @@ var errInvalidCsProjFile = errors.New("error parsing csproj file")
 type PropertyGroup struct {
 	XMLName           xml.Name `xml:"PropertyGroup"`
 	RestoreLockedMode bool     `xml:"RestoreLockedMode"`
+	AllowUnsafeBlocks bool     `xml:"AllowUnsafeBlocks"`
 }
 
 type Project struct {
@@ -32,6 +33,18 @@ type Project struct {
 }
 
 func IsRestoreLockedModeEnabled(content []byte) (bool, error) {
+	return isCsProjFilePropertyGroupEnabled(content, func(propertyGroup *PropertyGroup) bool {
+		return propertyGroup.RestoreLockedMode
+	})
+}
+
+func IsAllowUnsafeBlocksEnabled(content []byte) (bool, error) {
+	return isCsProjFilePropertyGroupEnabled(content, func(propertyGroup *PropertyGroup) bool {
+		return propertyGroup.AllowUnsafeBlocks
+	})
+}
+
+func isCsProjFilePropertyGroupEnabled(content []byte, predicate func(*PropertyGroup) bool) (bool, error) {
 	var project Project
 
 	err := xml.Unmarshal(content, &project)
@@ -40,7 +53,7 @@ func IsRestoreLockedModeEnabled(content []byte) (bool, error) {
 	}
 
 	for _, propertyGroup := range project.PropertyGroups {
-		if propertyGroup.RestoreLockedMode {
+		if predicate(&propertyGroup) {
 			return true, nil
 		}
 	}
