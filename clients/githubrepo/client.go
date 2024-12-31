@@ -57,9 +57,11 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	licenses      *licensesHandler
+	git           *gitHandler
 	ctx           context.Context
 	tarball       tarballHandler
 	commitDepth   int
+	gitMode       bool
 }
 
 const defaultGhHost = "github.com"
@@ -88,8 +90,12 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		commitSHA:     commitSHA,
 	}
 
-	// Init tarballHandler.
-	client.tarball.init(client.ctx, client.repo, commitSHA)
+	if client.gitMode {
+		client.git.init(client.ctx, client.repo, commitSHA)
+	} else {
+		// Init tarballHandler.
+		client.tarball.init(client.ctx, client.repo, commitSHA)
+	}
 
 	// Setup GraphQL.
 	client.graphClient.init(client.ctx, client.repourl, client.commitDepth)
@@ -141,16 +147,25 @@ func (client *Client) URI() string {
 
 // LocalPath implements RepoClient.LocalPath.
 func (client *Client) LocalPath() (string, error) {
+	if client.gitMode {
+		return client.git.getLocalPath()
+	}
 	return client.tarball.getLocalPath()
 }
 
 // ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	if client.gitMode {
+		return client.git.listFiles(predicate)
+	}
 	return client.tarball.listFiles(predicate)
 }
 
 // GetFileReader implements RepoClient.GetFileReader.
 func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
+	if client.gitMode {
+		return client.git.getFile(filename)
+	}
 	return client.tarball.getFile(filename)
 }
 
@@ -260,6 +275,9 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 
 // Close implements RepoClient.Close.
 func (client *Client) Close() error {
+	if client.gitMode {
+		return client.git.cleanup()
+	}
 	return client.tarball.cleanup()
 }
 
@@ -288,6 +306,8 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)
 	}
+
+	_, gitMode := os.LookupEnv("SCORECARD_GH_GIT_MODE")
 
 	return &Client{
 		ctx:        ctx,
@@ -333,6 +353,8 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		tarball: tarballHandler{
 			httpClient: httpClient,
 		},
+		gitMode: gitMode,
+		git:     &gitHandler{},
 	}
 }
 
