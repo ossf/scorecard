@@ -19,57 +19,99 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
 
 type branchesHandler struct {
-	gitClient        git.Client
-	ctx              context.Context
-	once             *sync.Once
-	errSetup         error
-	repourl          *Repo
-	defaultBranchRef *clients.BranchRef
-	queryBranch      fnQueryBranch
+	gitClient               git.Client
+	ctx                     context.Context
+	once                    *sync.Once
+	errSetup                error
+	repourl                 *Repo
+	defaultBranchRef        *clients.BranchRef
+	queryBranch             fnQueryBranch
+	getPolicyConfigurations fnGetPolicyConfigurations
 }
 
-func (handler *branchesHandler) init(ctx context.Context, repourl *Repo) {
-	handler.ctx = ctx
-	handler.repourl = repourl
-	handler.errSetup = nil
-	handler.once = new(sync.Once)
-	handler.queryBranch = handler.gitClient.GetBranch
+func (b *branchesHandler) init(ctx context.Context, repourl *Repo) {
+	b.ctx = ctx
+	b.repourl = repourl
+	b.errSetup = nil
+	b.once = new(sync.Once)
+	b.queryBranch = b.gitClient.GetBranch
+	b.getPolicyConfigurations = b.gitClient.GetPolicyConfigurations
 }
 
 type (
-	fnQueryBranch func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error)
+	fnQueryBranch             func(ctx context.Context, args git.GetBranchArgs) (*git.GitBranchStats, error)
+	fnGetPolicyConfigurations func(
+		ctx context.Context,
+		args git.GetPolicyConfigurationsArgs,
+	) (*git.GitPolicyConfigurationResponse, error)
 )
 
-func (handler *branchesHandler) setup() error {
-	handler.once.Do(func() {
-		branch, err := handler.queryBranch(handler.ctx, git.GetBranchArgs{
-			RepositoryId: &handler.repourl.id,
-			Name:         &handler.repourl.defaultBranch,
-		})
+func (b *branchesHandler) setup() error {
+	b.once.Do(func() {
+		args := git.GetBranchArgs{
+			RepositoryId: &b.repourl.id,
+			Name:         &b.repourl.defaultBranch,
+		}
+		branch, err := b.queryBranch(b.ctx, args)
 		if err != nil {
-			handler.errSetup = fmt.Errorf("request for default branch failed with error %w", err)
+			b.errSetup = fmt.Errorf("request for default branch failed with error %w", err)
 			return
 		}
-		handler.defaultBranchRef = &clients.BranchRef{
+		b.defaultBranchRef = &clients.BranchRef{
 			Name: branch.Name,
 		}
 
-		handler.errSetup = nil
+		b.errSetup = nil
 	})
-	return handler.errSetup
+	return b.errSetup
 }
 
-func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
-	err := handler.setup()
-	if err != nil {
+func (b *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
+	if err := b.setup(); err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
 	}
 
-	return handler.defaultBranchRef, nil
+	return b.defaultBranchRef, nil
+}
+
+func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, error) {
+	branch, err := b.queryBranch(b.ctx, git.GetBranchArgs{
+		RepositoryId: &b.repourl.id,
+		Name:         &branchName,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("request for branch %s failed with error %w", branchName, err)
+	}
+
+	refName := fmt.Sprintf("refs/heads/%s", *branch.Name)
+	repositoryID, err := uuid.Parse(b.repourl.id)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing repository ID %s: %w", b.repourl.id, err)
+	}
+	args := git.GetPolicyConfigurationsArgs{
+		RepositoryId: &repositoryID,
+		RefName:      &refName,
+	}
+	response, err := b.getPolicyConfigurations(b.ctx, args)
+	if err != nil {
+		return nil, fmt.Errorf("request for policy configurations failed with error %w", err)
+	}
+
+	isBranchProtected := false
+	if len(*response.PolicyConfigurations) > 0 {
+		isBranchProtected = true
+	}
+
+	// TODO: map Azure DevOps branch protection to Scorecard branch protection
+	return &clients.BranchRef{
+		Name:      branch.Name,
+		Protected: &isBranchProtected,
+	}, nil
 }

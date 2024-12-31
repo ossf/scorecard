@@ -67,14 +67,17 @@ func (c *contributorsHandler) setup() error {
 
 			for i := range *commits {
 				commit := (*commits)[i]
-				email := *commit.Author.Email
-				if _, ok := contributors[email]; ok {
-					user := contributors[email]
+				login := commit.Author.Email
+				if login == nil {
+					login = commit.Author.Name
+				}
+				if _, ok := contributors[*login]; ok {
+					user := contributors[*login]
 					user.NumContributions++
-					contributors[email] = user
+					contributors[*login] = user
 				} else {
-					contributors[email] = clients.User{
-						Login:            email,
+					contributors[*login] = clients.User{
+						Login:            *login,
 						NumContributions: 1,
 						Companies:        []string{c.repourl.organization},
 					}
