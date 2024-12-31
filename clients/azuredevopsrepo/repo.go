@@ -28,6 +28,7 @@ type Repo struct {
 	host          string
 	organization  string
 	project       string
+	projectID     string
 	name          string
 	id            string
 	defaultBranch string

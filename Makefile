@@ -338,6 +338,11 @@ ifndef GITLAB_AUTH_TOKEN
 	$(error GITLAB_AUTH_TOKEN is undefined)
 endif
 
+check-env-azure-devops:
+ifndef AZURE_DEVOPS_AUTH_TOKEN
+	$(error AZURE_DEVOPS_AUTH_TOKEN is undefined)
+endif
+
 e2e-pat: ## Runs e2e tests. Requires GITHUB_AUTH_TOKEN env var to be set to GitHub personal access token
 e2e-pat: build-scorecard check-env | $(GINKGO)
 	# Run e2e tests. GITHUB_AUTH_TOKEN with personal access token must be exported to run this
@@ -357,8 +362,8 @@ e2e-gitlab: build-scorecard | $(GINKGO)
 	TEST_GITLAB_EXTERNAL=1 TOKEN_TYPE="PAT" $(GINKGO)  --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus ".*GitLab" ./...
 
 e2e-azure-devops-token: ## Runs e2e tests that require a AZURE_DEVOPS_AUTH_TOKEN
-e2e-azure-devops-token: build-scorecard check-env-gitlab | $(GINKGO)
-	TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="GITLAB_PAT" $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus '.*Azure DevOps' ./...
+e2e-azure-devops-token: build-scorecard check-env-azure-devops | $(GINKGO)
+	TEST_AZURE_DEVOPS_EXTERNAL=1 $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus "Azure DevOps" ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
 	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
