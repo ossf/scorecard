@@ -155,12 +155,9 @@ func rootCmd(o *options.Options) error {
 		scorecard.WithChecks(checks),
 	}
 	if o.GitMode {
-		rc, err := githubrepo.NewRepoClient(ctx, githubrepo.WithGitMode())
-		if err != nil {
-			return fmt.Errorf("enabling github git mode: %w", err)
-		}
-		opts = append(opts, scorecard.WithRepoClient(rc))
+		opts = append(opts, scorecard.WithGitMode())
 	}
+
 	repoResult, err = scorecard.Run(ctx, repo, opts...)
 	if err != nil {
 		return fmt.Errorf("scorecard.Run: %w", err)

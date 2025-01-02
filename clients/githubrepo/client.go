@@ -334,13 +334,6 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	return rc
 }
 
-// CreateGithubRepoClient returns a Client which implements RepoClient interface.
-func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
-	// Use our custom roundtripper
-	rt := roundtripper.NewTransport(ctx, logger)
-	return CreateGithubRepoClientWithTransport(ctx, rt)
-}
-
 // NewRepoClient returns a Client which implements RepoClient interface.
 // It can be configured with various [Option]s.
 func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, error) {
@@ -428,6 +421,13 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		gitMode: config.gitMode,
 		git:     &gitfile.Handler{},
 	}, nil
+}
+
+// CreateGithubRepoClient returns a Client which implements RepoClient interface.
+func CreateGithubRepoClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
+	// Use our custom roundtripper
+	rt := roundtripper.NewTransport(ctx, logger)
+	return CreateGithubRepoClientWithTransport(ctx, rt)
 }
 
 // CreateOssFuzzRepoClient returns a RepoClient implementation
