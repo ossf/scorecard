@@ -154,7 +154,7 @@ func rootCmd(o *options.Options) error {
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
 	}
-	if o.GithubGitMode {
+	if o.GitMode {
 		rc, err := githubrepo.NewRepoClient(ctx, githubrepo.WithGitMode())
 		if err != nil {
 			return fmt.Errorf("enabling github git mode: %w", err)

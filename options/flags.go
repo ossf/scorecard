@@ -54,8 +54,8 @@ const (
 	// FlagShowDetails is the flag name for outputting additional check info.
 	FlagShowDetails = "show-details"
 
-	// Flag FlagGithubGitMode is the flag name for enabling git compatibility mode.
-	FlagGithubGitMode = "gh-git-mode"
+	// Flag FlagGitMode is the flag name for enabling git compatibility mode.
+	FlagGitMode = "git-mode"
 
 	// FlagShowAnnotations is the flag name for outputting annotations on checks.
 	FlagShowAnnotations = "show-annotations"
@@ -227,9 +227,9 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 	)
 
 	cmd.Flags().BoolVar(
-		&o.GithubGitMode,
-		FlagGithubGitMode,
-		o.GithubGitMode,
-		"fetch GitHub files using git for maximum compatibility",
+		&o.GitMode,
+		FlagGitMode,
+		o.GitMode,
+		"fetch repository files using git for maximum compatibility",
 	)
 }
