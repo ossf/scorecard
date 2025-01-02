@@ -16,6 +16,7 @@ package gitfile
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -66,6 +67,19 @@ func TestHandler(t *testing.T) {
 	err = h.Cleanup()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestHandlerPathTraversal(t *testing.T) {
+	t.Parallel()
+	dir := setupGitRepo(t)
+
+	var h Handler
+	h.Init(context.Background(), dir, "HEAD")
+
+	_, err := h.GetFile("../example.txt")
+	if !errors.Is(err, errPathTraversal) {
+		t.Fatalf("expected path traversal error: got %v", err)
 	}
 }
 
