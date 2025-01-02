@@ -31,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/gitfile"
 	"github.com/ossf/scorecard/v5/log"
 )
 
@@ -59,7 +60,7 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	licenses      *licensesHandler
-	git           *gitHandler
+	git           *gitfile.Handler
 	ctx           context.Context
 	tarball       tarballHandler
 	commitDepth   int
@@ -114,7 +115,7 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	}
 
 	if client.gitMode {
-		client.git.init(client.ctx, client.repo, commitSHA)
+		client.git.Init(client.ctx, client.repo.GetCloneURL(), commitSHA)
 	} else {
 		// Init tarballHandler.
 		client.tarball.init(client.ctx, client.repo, commitSHA)
@@ -171,7 +172,11 @@ func (client *Client) URI() string {
 // LocalPath implements RepoClient.LocalPath.
 func (client *Client) LocalPath() (string, error) {
 	if client.gitMode {
-		return client.git.getLocalPath()
+		path, err := client.git.GetLocalPath()
+		if err != nil {
+			return "", fmt.Errorf("git local path: %w", err)
+		}
+		return path, nil
 	}
 	return client.tarball.getLocalPath()
 }
@@ -179,7 +184,11 @@ func (client *Client) LocalPath() (string, error) {
 // ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	if client.gitMode {
-		return client.git.listFiles(predicate)
+		files, err := client.git.ListFiles(predicate)
+		if err != nil {
+			return nil, fmt.Errorf("git listfiles: %w", err)
+		}
+		return files, nil
 	}
 	return client.tarball.listFiles(predicate)
 }
@@ -187,7 +196,11 @@ func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string,
 // GetFileReader implements RepoClient.GetFileReader.
 func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 	if client.gitMode {
-		return client.git.getFile(filename)
+		f, err := client.git.GetFile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("git getfile: %w", err)
+		}
+		return f, nil
 	}
 	return client.tarball.getFile(filename)
 }
@@ -306,7 +319,10 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 // Close implements RepoClient.Close.
 func (client *Client) Close() error {
 	if client.gitMode {
-		return client.git.cleanup()
+		if err := client.git.Cleanup(); err != nil {
+			return fmt.Errorf("git cleanup: %w", err)
+		}
+		return nil
 	}
 	return client.tarball.cleanup()
 }
@@ -410,7 +426,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 			httpClient: httpClient,
 		},
 		gitMode: config.gitMode,
-		git:     &gitHandler{},
+		git:     &gitfile.Handler{},
 	}, nil
 }
 
