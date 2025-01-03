@@ -147,13 +147,18 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	repoResult, err = scorecard.Run(ctx, repo,
+	opts := []scorecard.Option{
 		scorecard.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
 		scorecard.WithCommitSHA(o.Commit),
 		scorecard.WithCommitDepth(o.CommitDepth),
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
-	)
+	}
+	if o.GitMode {
+		opts = append(opts, scorecard.WithGitMode())
+	}
+
+	repoResult, err = scorecard.Run(ctx, repo, opts...)
 	if err != nil {
 		return fmt.Errorf("scorecard.Run: %w", err)
 	}
