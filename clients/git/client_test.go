@@ -31,13 +31,8 @@ import (
 
 func createTestRepo(t *testing.T) (path string) {
 	t.Helper()
-	dir, err := os.MkdirTemp("", "testrepo")
-	if err != nil {
-		t.Fatalf("Failed to create temporary directory: %v", err)
-	}
-	t.Cleanup(func() {
-		os.RemoveAll(dir)
-	})
+	dir := t.TempDir()
+
 	r, err := gitV5.PlainInit(dir, false)
 	if err != nil {
 		t.Fatalf("Failed to initialize git repo: %v", err)
