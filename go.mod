@@ -1,6 +1,7 @@
 module github.com/ossf/scorecard/v5
 
 go 1.22.10
+toolchain go1.23.4
 
 require (
 	cloud.google.com/go/bigquery v1.65.0
@@ -9,8 +10,8 @@ require (
 	cloud.google.com/go/trace v1.11.2 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/bradleyfalzon/ghinstallation/v2 v2.12.0
-	github.com/go-git/go-git/v5 v5.13.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.13.0
+	github.com/go-git/go-git/v5 v5.13.1
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.6.0
@@ -44,10 +45,10 @@ require (
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/osv-scanner v1.9.2
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.22.1
-	github.com/otiai10/copy v1.14.0
+	github.com/onsi/ginkgo/v2 v2.22.2
+	github.com/otiai10/copy v1.14.1
 	gitlab.com/gitlab-org/api/client-go v0.116.0
-	sigs.k8s.io/release-utils v0.8.4
+	sigs.k8s.io/release-utils v0.9.0
 )
 
 require (
@@ -83,7 +84,7 @@ require (
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-github/v66 v66.0.0 // indirect
+	github.com/google/go-github/v68 v68.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
@@ -98,6 +99,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/owenrumney/go-sarif/v2 v2.3.3 // indirect
 	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
@@ -187,7 +189,7 @@ require (
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/oauth2 v0.24.0
+	golang.org/x/oauth2 v0.25.0
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
