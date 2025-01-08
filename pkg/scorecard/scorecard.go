@@ -341,12 +341,12 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
-// WithGitMode will configure supporting repository clients to download files
-// using git, instead of the archive tarball. This is useful for repositories
-// which "export-ignore" files in a .gitattributes file.
+// WithFileModeGit will configure supporting repository clients to download files
+// using git. This is useful for repositories which "export-ignore" files in its
+// .gitattributes file.
 //
 // Repository analysis may be slower.
-func WithGitMode() Option {
+func WithFileModeGit() Option {
 	return func(c *runConfig) error {
 		c.gitMode = true
 		return nil
@@ -392,7 +392,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 		if c.client == nil {
 			var opts []githubrepo.Option
 			if c.gitMode {
-				opts = append(opts, githubrepo.WithGitMode())
+				opts = append(opts, githubrepo.WithFileModeGit())
 			}
 			client, err := githubrepo.NewRepoClient(ctx, opts...)
 			if err != nil {

@@ -154,8 +154,8 @@ func rootCmd(o *options.Options) error {
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
 	}
-	if o.GitMode {
-		opts = append(opts, scorecard.WithGitMode())
+	if strings.EqualFold(o.FileMode, options.FileModeGit) {
+		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
 	repoResult, err = scorecard.Run(ctx, repo, opts...)

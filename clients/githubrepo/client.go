@@ -67,8 +67,8 @@ type Client struct {
 	gitMode       bool
 }
 
-// WithGitMode configures the repo client to fetch files using git.
-func WithGitMode() Option {
+// WithFileModeGit configures the repo client to fetch files using git.
+func WithFileModeGit() Option {
 	return func(c *repoClientConfig) error {
 		c.gitMode = true
 		return nil
@@ -263,7 +263,7 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 
 	options := []Option{WithRoundTripper(client.repoClient.Client().Transport)}
 	if client.gitMode {
-		options = append(options, WithGitMode())
+		options = append(options, WithFileModeGit())
 	}
 	c, err := NewRepoClient(ctx, options...)
 	if err != nil {
