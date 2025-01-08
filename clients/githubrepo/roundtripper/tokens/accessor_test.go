@@ -91,3 +91,79 @@ func testServer(t *testing.T) {
 		t.Errorf("MakeTokenAccessor() = nil, want not nil")
 	}
 }
+
+func TestClashingTokensDisplayWarning(t *testing.T) {
+	t.Helper()
+	someToken := "test_token"
+	otherToken := "clashing_token"
+	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
+	t.Setenv("GITHUB_TOKEN", otherToken)
+
+	warningCalled := false
+	originalLogWarning := logDuplicateTokenWarning
+	logDuplicateTokenWarning = func(firstName string, clashingName string) {
+		warningCalled = true
+	}
+	defer func() { logDuplicateTokenWarning = originalLogWarning }()
+
+	token, exists := readGitHubTokens()
+
+	if token != someToken {
+		t.Errorf("Received wrong token")
+	}
+	if !exists {
+		t.Errorf("Token is expected to exist")
+	}
+	if !warningCalled {
+		t.Errorf("Expected logWarning to be called for clashing tokens, but it was not.")
+	}
+}
+
+func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
+	t.Helper()
+	someToken := "test_token"
+	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
+	t.Setenv("GITHUB_TOKEN", someToken)
+
+	warningCalled := false
+	originalLogWarning := logDuplicateTokenWarning
+	logDuplicateTokenWarning = func(firstName string, clashingName string) {
+		warningCalled = true
+	}
+	defer func() { logDuplicateTokenWarning = originalLogWarning }()
+
+	token, exists := readGitHubTokens()
+
+	if token != someToken {
+		t.Errorf("Received wrong token")
+	}
+	if !exists {
+		t.Errorf("Token is expected to exist")
+	}
+	if warningCalled {
+		t.Errorf("Expected logWarning to not have been called for consistent tokens, but it was.")
+	}
+}
+
+func TestNoTokensDoNoDisplayWarning(t *testing.T) {
+	t.Helper()
+
+	warningCalled := false
+	originalLogWarning := logDuplicateTokenWarning
+	logDuplicateTokenWarning = func(firstName string, clashingName string) {
+		warningCalled = true
+	}
+	defer func() { logDuplicateTokenWarning = originalLogWarning }()
+
+	token, exists := readGitHubTokens()
+
+	if token != "" {
+		t.Errorf("Scorecard found a token somewhere")
+	}
+	if exists {
+		t.Errorf("Token is not expected to exist")
+	}
+	if warningCalled {
+		t.Errorf("Expected logWarning to not have been called for no set tokens, but it was not.")
+	}
+}
