@@ -1,4 +1,4 @@
-# Copyright 2024 OpenSSF Scorecard Authors
+# Copyright 2025 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@ id: memorysafe
 lifecycle: experimental
 short: Flags non memory safe practices in this project.
 motivation: >
-  Memory safety in software should be considered a continuum, rather than being binary. This probe does not consider a specific ecosystem more or less memory safe than another, but rather tries to surface non memory safe code or practices in the project, in the context of the ecosystems it is using.
+  Memory safety in software should be considered a continuum, rather than being binary.
+  This probe does not consider a specific ecosystem more or less memory safe than another, but rather tries to surface non memory safe code or practices in the project, in the context of the ecosystems it is using.
 implementation: >
-  The probe is ecosystem-specific and tries to flag non memory safe code blocks in the project by looking at the code and practices used in the project. It may look for specific memory safety practices, such as the use tools or non memory-safe patterns and code.
+  The probe is ecosystem-specific and tries to flag non memory safe code blocks in the project by looking at the code and practices used in the project.
+  It may look for specific memory safety practices, such as the use tools or non memory-safe patterns and code.
 outcome:
   - For supported ecosystem, the probe returns OutcomeTrue per safe method or tool.
   - For supported ecosystem, the probe returns OutcomeFalse per unsafe code or method.
@@ -27,7 +29,9 @@ remediation:
   onOutcome: False
   effort: Medium
   text:
-    - TBD
+    - Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.
+    - Guidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)
+    - Guidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)
 ecosystem:
   languages:
     - go
