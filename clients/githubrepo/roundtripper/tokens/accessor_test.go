@@ -16,11 +16,12 @@ package tokens
 import (
 	"net/http/httptest"
 	"net/rpc"
+	"os"
 	"strings"
 	"testing"
 )
 
-//nolint:paralleltest // test uses t.Setenv
+//nolint:paralleltest // test uses t.Setenv indirectly
 func TestMakeTokenAccessor(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -40,10 +41,7 @@ func TestMakeTokenAccessor(t *testing.T) {
 			useServer: true,
 		},
 	}
-	// clear all env variables devs may have defined, or the test will fail locally
-	for _, envVar := range githubAuthTokenEnvVars {
-		t.Setenv(envVar, "")
-	}
+	unsetTokens(t)
 	t.Setenv(githubAuthServer, "")
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -92,7 +90,10 @@ func testServer(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // test uses t.Setenv indirectly
 func TestClashingTokensDisplayWarning(t *testing.T) {
+	unsetTokens(t)
+
 	someToken := "test_token"
 	otherToken := "clashing_token"
 	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
@@ -118,7 +119,10 @@ func TestClashingTokensDisplayWarning(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // test uses t.Setenv indirectly
 func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
+	unsetTokens(t)
+
 	someToken := "test_token"
 	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
 	t.Setenv("GITHUB_TOKEN", someToken)
@@ -143,7 +147,10 @@ func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // test uses t.Setenv indirectly
 func TestNoTokensDoNoDisplayWarning(t *testing.T) {
+	unsetTokens(t)
+
 	warningCalled := false
 	originalLogWarning := logDuplicateTokenWarning
 	logDuplicateTokenWarning = func(firstName string, clashingName string) {
@@ -161,5 +168,16 @@ func TestNoTokensDoNoDisplayWarning(t *testing.T) {
 	}
 	if warningCalled {
 		t.Errorf("Expected logWarning to not have been called for no set tokens, but it was not.")
+	}
+}
+
+// temporarily unset all of the github token env vars,
+// as tests may otherwise fail depending on the local environment.
+func unsetTokens(t *testing.T) {
+	t.Helper()
+	for _, name := range githubAuthTokenEnvVars {
+		// equivalent to t.Unsetenv (which does not exist)
+		t.Setenv(name, "")
+		os.Unsetenv(name)
 	}
 }
