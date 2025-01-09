@@ -93,7 +93,6 @@ func testServer(t *testing.T) {
 }
 
 func TestClashingTokensDisplayWarning(t *testing.T) {
-	t.Helper()
 	someToken := "test_token"
 	otherToken := "clashing_token"
 	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
@@ -120,7 +119,6 @@ func TestClashingTokensDisplayWarning(t *testing.T) {
 }
 
 func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
-	t.Helper()
 	someToken := "test_token"
 	t.Setenv("GITHUB_AUTH_TOKEN", someToken)
 	t.Setenv("GITHUB_TOKEN", someToken)
@@ -146,8 +144,6 @@ func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
 }
 
 func TestNoTokensDoNoDisplayWarning(t *testing.T) {
-	t.Helper()
-
 	warningCalled := false
 	originalLogWarning := logDuplicateTokenWarning
 	logDuplicateTokenWarning = func(firstName string, clashingName string) {
