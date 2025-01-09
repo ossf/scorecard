@@ -90,7 +90,6 @@ func testServer(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // test uses t.Setenv indirectly
 func TestClashingTokensDisplayWarning(t *testing.T) {
 	unsetTokens(t)
 
@@ -119,7 +118,6 @@ func TestClashingTokensDisplayWarning(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // test uses t.Setenv indirectly
 func TestConsistentTokensDoNotDisplayWarning(t *testing.T) {
 	unsetTokens(t)
 

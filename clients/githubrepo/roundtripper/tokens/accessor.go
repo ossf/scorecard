@@ -35,7 +35,13 @@ type TokenAccessor interface {
 }
 
 var logDuplicateTokenWarning = func(firstName string, clashingName string) {
-	log.Printf("Warning: PATs stored in env variables %s and %s differ. Scorecard will use the former.\n", firstName, clashingName)
+	var stringBuilder strings.Builder
+	stringBuilder.WriteString("Warning: PATs stored in env variables ")
+	stringBuilder.WriteString(firstName)
+	stringBuilder.WriteString(" and ")
+	stringBuilder.WriteString(clashingName)
+	stringBuilder.WriteString(" differ. Scorecard will use the former.")
+	log.Println(stringBuilder.String())
 }
 
 func readGitHubTokens() (string, bool) {
