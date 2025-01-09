@@ -16,7 +16,7 @@
 package tokens
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -35,7 +35,7 @@ type TokenAccessor interface {
 }
 
 var logDuplicateTokenWarning = func(firstName string, clashingName string) {
-	fmt.Printf("Warning: PATs stored in env variables %s and %s differ. Scorecard will use the former.\n", firstName, clashingName)
+	log.Printf("Warning: PATs stored in env variables %s and %s differ. Scorecard will use the former.\n", firstName, clashingName)
 }
 
 func readGitHubTokens() (string, bool) {
