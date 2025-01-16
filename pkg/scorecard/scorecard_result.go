@@ -156,6 +156,13 @@ func FormatResults(
 			LogLevel:    log.ParseLevel(opts.LogLevel),
 		}
 		err = results.AsJSON2(output, doc, o)
+	case options.FormatInToto:
+		o := &AsJSON2ResultOption{
+			Details:     opts.ShowDetails,
+			Annotations: opts.ShowAnnotations,
+			LogLevel:    log.ParseLevel(opts.LogLevel),
+		}
+		err = results.AsInToto(output, doc, o)
 	case options.FormatProbe:
 		var opts *ProbeResultOption
 		err = results.AsProbe(output, opts)

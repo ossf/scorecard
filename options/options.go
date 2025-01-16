@@ -83,6 +83,8 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
+	// FormatInToyo specifies that results should be output in an in-toto statement.
+	FormatInToto = "intoto"
 
 	// File Modes
 	// FileModeGit specifies that files should be fetched using git.
@@ -255,7 +257,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
 		return true
 	default:
 		return false
