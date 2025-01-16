@@ -128,8 +128,7 @@ func (r *Result) AsJSON(showDetails bool, logLevel log.Level, writer io.Writer) 
 	return nil
 }
 
-// AsJSON2 exports results as JSON for new detail format.
-func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2ResultOption) error {
+func (r *Result) resultsToJSON2(checkDocs docs.Doc, opt *AsJSON2ResultOption) (JSONScorecardResultV2, error) {
 	if opt == nil {
 		opt = &AsJSON2ResultOption{
 			LogLevel:    log.DefaultLevel,
@@ -137,12 +136,12 @@ func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2Resul
 			Annotations: false,
 		}
 	}
+
 	score, err := r.GetAggregateScore(checkDocs)
 	if err != nil {
-		return err
+		return JSONScorecardResultV2{}, err
 	}
 
-	encoder := json.NewEncoder(writer)
 	out := JSONScorecardResultV2{
 		Repo: jsonRepoV2{
 			Name:   r.Repo.Name,
@@ -160,10 +159,10 @@ func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2Resul
 	for _, checkResult := range r.Checks {
 		doc, e := checkDocs.GetCheck(checkResult.Name)
 		if e != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, e))
+			return out, fmt.Errorf("GetCheck: %s: %w", checkResult.Name, e)
 		}
 		if doc == nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", checkResult.Name, errNoDoc))
+			return out, fmt.Errorf("GetCheck: %s: %w", checkResult.Name, errNoDoc)
 		}
 
 		tmpResult := jsonCheckResultV2{
@@ -189,6 +188,16 @@ func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2Resul
 			tmpResult.Annotations = append(tmpResult.Annotations, checkResult.Annotations(r.Config)...)
 		}
 		out.Checks = append(out.Checks, tmpResult)
+	}
+	return out, nil
+}
+
+// AsJSON2 exports results as JSON for new detail format.
+func (r *Result) AsJSON2(writer io.Writer, checkDocs docs.Doc, opt *AsJSON2ResultOption) error {
+	encoder := json.NewEncoder(writer)
+	out, err := r.resultsToJSON2(checkDocs, opt)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 	}
 
 	if err := encoder.Encode(out); err != nil {
