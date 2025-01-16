@@ -48,7 +48,7 @@ type AsInTotoResultOption struct {
 }
 
 // AsStatement converts the results as an in-toto statement.
-func (r *Result) AsStatement(writer io.Writer, checkDocs docs.Doc, opt *AsInTotoResultOption) error {
+func (r *Result) AsInToto(writer io.Writer, checkDocs docs.Doc, opt *AsInTotoResultOption) error {
 	// Build the attestation subject from the result Repo.
 	subject := intoto.ResourceDescriptor{
 		Name: r.Repo.Name,
