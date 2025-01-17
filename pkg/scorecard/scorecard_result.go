@@ -157,10 +157,12 @@ func FormatResults(
 		}
 		err = results.AsJSON2(output, doc, o)
 	case options.FormatStatement:
-		o := &AsJSON2ResultOption{
-			Details:     opts.ShowDetails,
-			Annotations: opts.ShowAnnotations,
-			LogLevel:    log.ParseLevel(opts.LogLevel),
+		o := &AsStatementResultOption{
+			AsJSON2ResultOption: AsJSON2ResultOption{
+				Details:     opts.ShowDetails,
+				Annotations: opts.ShowAnnotations,
+				LogLevel:    log.ParseLevel(opts.LogLevel),
+			},
 		}
 		err = results.AsStatement(output, doc, o)
 	case options.FormatProbe:
