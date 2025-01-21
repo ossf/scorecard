@@ -21,7 +21,6 @@ import (
 	"go/parser"
 	"go/token"
 	"reflect"
-	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -47,13 +46,15 @@ type languageMemoryCheckConfig struct {
 var languageMemorySafeSpecs = map[clients.LanguageName]languageMemoryCheckConfig{
 	clients.Go: {
 		funcPointers: []func(client *checker.CheckRequest) ([]finding.Finding, error){
-			checkGoUnsafePackage},
+			checkGoUnsafePackage,
+		},
 		Desc: "Check if Go code uses the unsafe package",
 	},
 
 	clients.CSharp: {
 		funcPointers: []func(client *checker.CheckRequest) ([]finding.Finding, error){
-			checkDotnetAllowUnsafeBlocks},
+			checkDotnetAllowUnsafeBlocks,
+		},
 		Desc: "Check if C# code uses unsafe blocks",
 	},
 }
@@ -63,19 +64,15 @@ func init() {
 }
 
 func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, err error) {
-	langs, err := raw.RepoClient.ListProgrammingLanguages()
-	if err != nil {
-		return nil, Probe, fmt.Errorf("cannot get langs of repo: %w", err)
-	}
-	prominentLangs := getProminentLanguages(langs)
-	if len(prominentLangs) == 0 {
-		return nil, Probe, fmt.Errorf("no supported languages for this probe are found in repo")
-	}
+	prominentLangs := getRepositoryLanguageChecks(raw.RepoClient)
 	findings := []finding.Finding{}
+
 	for _, lang := range prominentLangs {
 		for _, langFunc := range lang.funcPointers {
 			if langFunc == nil {
-				return nil, Probe, fmt.Errorf("no function pointer found for language %s", lang.Desc)
+				raw.Dlogger.Warn(&checker.LogMessage{
+					Text: fmt.Sprintf("no function pointer found for language %s", lang.Desc),
+				})
 			}
 			langFindings, err := langFunc(raw)
 			if err != nil {
@@ -87,31 +84,18 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 	return findings, Probe, nil
 }
 
-func getProminentLanguages(langs []clients.Language) []languageMemoryCheckConfig {
-	numLangs := len(langs)
-	if numLangs == 0 {
+func getRepositoryLanguageChecks(client clients.RepoClient) []languageMemoryCheckConfig {
+	langs, err := client.ListProgrammingLanguages()
+	if err != nil {
 		return nil
-	} else if len(langs) == 1 && langs[0].Name == clients.All {
+	}
+	if len(langs) == 1 && langs[0].Name == clients.All {
 		return getAllLanguages()
 	}
-	totalLoC := 0
-	// Use a map to record languages and their lines of code to drop potential duplicates.
-	langMap := map[clients.LanguageName]int{}
-	for _, l := range langs {
-		totalLoC += l.NumLines
-		langMap[l.Name] += l.NumLines
-	}
-	// Calculate the average lines of code in the current repo.
-	// This var can stay as an int, no need for a precise float value.
-	avgLoC := totalLoC / numLangs
-	// Languages that have lines of code above average will be considered prominent.
-	prominentThreshold := avgLoC / 4.0
 	ret := []languageMemoryCheckConfig{}
-	for lName, loC := range langMap {
-		if loC >= prominentThreshold {
-			if lang, ok := languageMemorySafeSpecs[clients.LanguageName(strings.ToLower(string(lName)))]; ok {
-				ret = append(ret, lang)
-			}
+	for _, language := range langs {
+		if lang, ok := languageMemorySafeSpecs[language.Name]; ok {
+			ret = append(ret, lang)
 		}
 	}
 	return ret
@@ -137,12 +121,12 @@ func checkGoUnsafePackage(client *checker.CheckRequest) ([]finding.Finding, erro
 		return nil, err
 	}
 	if len(findings) == 0 {
-		finding, err := finding.NewWith(fs, Probe,
+		found, err := finding.NewWith(fs, Probe,
 			"Golang code does not use the unsafe package ", nil, finding.OutcomeTrue)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("create finding: %w", err)
 		}
-		findings = append(findings, *finding)
+		findings = append(findings, *found)
 	}
 	return findings, nil
 }
@@ -169,14 +153,14 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 	}
 	for _, i := range f.Imports {
 		if i.Path.Value == `"unsafe"` {
-			finding, err := finding.NewWith(fs, Probe,
+			found, err := finding.NewWith(fs, Probe,
 				"Golang code uses the unsafe package ", &finding.Location{
 					Path: path,
 				}, finding.OutcomeFalse)
 			if err != nil {
 				return false, fmt.Errorf("create finding: %w", err)
 			}
-			*findings = append(*findings, *finding)
+			*findings = append(*findings, *found)
 		}
 	}
 
@@ -195,12 +179,12 @@ func checkDotnetAllowUnsafeBlocks(client *checker.CheckRequest) ([]finding.Findi
 		return nil, err
 	}
 	if len(findings) == 0 {
-		finding, err := finding.NewWith(fs, Probe,
+		found, err := finding.NewWith(fs, Probe,
 			"C# code does not allow unsafe blocks ", nil, finding.OutcomeTrue)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("create finding: %w", err)
 		}
-		findings = append(findings, *finding)
+		findings = append(findings, *found)
 	}
 	return findings, nil
 }
@@ -212,7 +196,6 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
 	}
 	unsafe, err := csproj.IsAllowUnsafeBlocksEnabled(content)
-
 	if err != nil {
 		dl, ok := args[1].(checker.DetailLogger)
 		if !ok {
@@ -226,14 +209,14 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 		return true, nil
 	}
 	if unsafe {
-		finding, err := finding.NewWith(fs, Probe,
+		found, err := finding.NewWith(fs, Probe,
 			"C# code allows the use of unsafe blocks ", &finding.Location{
 				Path: path,
 			}, finding.OutcomeFalse)
 		if err != nil {
 			return false, fmt.Errorf("create finding: %w", err)
 		}
-		*findings = append(*findings, *finding)
+		*findings = append(*findings, *found)
 	}
 
 	return true, nil
