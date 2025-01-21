@@ -1,4 +1,4 @@
-// Copyright 2024 OpenSSF Scorecard Authors
+// Copyright 2025 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package memorysafe
 
 import (
@@ -89,6 +88,9 @@ func getRepositoryLanguageChecks(client clients.RepoClient) []languageMemoryChec
 	if err != nil {
 		return nil
 	}
+	if len(langs) == 0 {
+		return []languageMemoryCheckConfig{}
+	}
 	if len(langs) == 1 && langs[0].Name == clients.All {
 		return getAllLanguages()
 	}
@@ -122,7 +124,7 @@ func checkGoUnsafePackage(client *checker.CheckRequest) ([]finding.Finding, erro
 	}
 	if len(findings) == 0 {
 		found, err := finding.NewWith(fs, Probe,
-			"Golang code does not use the unsafe package ", nil, finding.OutcomeTrue)
+			"Golang code does not use the unsafe package", nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}
@@ -154,7 +156,7 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 	for _, i := range f.Imports {
 		if i.Path.Value == `"unsafe"` {
 			found, err := finding.NewWith(fs, Probe,
-				"Golang code uses the unsafe package ", &finding.Location{
+				"Golang code uses the unsafe package", &finding.Location{
 					Path: path,
 				}, finding.OutcomeFalse)
 			if err != nil {
@@ -180,7 +182,7 @@ func checkDotnetAllowUnsafeBlocks(client *checker.CheckRequest) ([]finding.Findi
 	}
 	if len(findings) == 0 {
 		found, err := finding.NewWith(fs, Probe,
-			"C# code does not allow unsafe blocks ", nil, finding.OutcomeTrue)
+			"C# code does not allow unsafe blocks", nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, fmt.Errorf("create finding: %w", err)
 		}
@@ -210,7 +212,7 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 	}
 	if unsafe {
 		found, err := finding.NewWith(fs, Probe,
-			"C# code allows the use of unsafe blocks ", &finding.Location{
+			"C# code allows the use of unsafe blocks", &finding.Location{
 				Path: path,
 			}, finding.OutcomeFalse)
 		if err != nil {
