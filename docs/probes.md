@@ -382,7 +382,7 @@ If collaborators, members or owners have NOT participated in issues in the last 
 The probe returns 1 true outcome if the project has no workflows "write" permissions a the "job" level.
 
 
-## memorySafe
+## memorysafe
 
 **Lifecycle**: experimental
 
