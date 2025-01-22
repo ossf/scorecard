@@ -47,6 +47,16 @@ func Test_Run(t *testing.T) {
 			expected:      []finding.Finding{},
 			err:           nil,
 		},
+		// unimplemented languages
+		{
+			name: "unimplemented languages",
+			repoLanguages: []clients.Language{
+				{Name: clients.Erlang, NumLines: 0},
+			},
+			filenames: []string{},
+			expected:  []finding.Finding{},
+			err:       nil,
+		},
 		// golang
 		{
 			name: "golang - no files",
@@ -142,6 +152,29 @@ func Test_Run(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			name: "golang - malformed file with unsafe",
+			repoLanguages: []clients.Language{
+				{Name: clients.Go, NumLines: 0},
+			},
+			filenames: []string{
+				"testdata/malformed.go",
+				"testdata/unsafe.go",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Golang code uses the unsafe package",
+					Outcome: finding.OutcomeFalse,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "testdata/unsafe.go"},
+				},
+			},
+			err: nil,
+		},
 		// csharp
 		{
 			name: "C# - no files",
@@ -222,6 +255,29 @@ func Test_Run(t *testing.T) {
 			filenames: []string{
 				"testdata/unsafe.csproj",
 				"testdata/safe-explicit.csproj",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "C# code allows the use of unsafe blocks",
+					Outcome: finding.OutcomeFalse,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "C# - malformed file with unsafe",
+			repoLanguages: []clients.Language{
+				{Name: clients.CSharp, NumLines: 0},
+			},
+			filenames: []string{
+				"testdata/malformed.csproj",
+				"testdata/unsafe.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -394,7 +450,8 @@ func Test_Run(t *testing.T) {
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
 			}
-			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
+			sortFindings := func(a, b finding.Finding) bool { return a.Message < b.Message }
+			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{}), cmpopts.SortSlices(sortFindings)); diff != "" {
 				t.Error(diff)
 			}
 		})
