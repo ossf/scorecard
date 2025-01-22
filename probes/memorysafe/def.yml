@@ -21,6 +21,7 @@ motivation: >
 implementation: >
   The probe is ecosystem-specific and tries to flag non memory safe code blocks in the project by looking at the code and practices used in the project.
   It may look for specific memory safety practices, such as the use tools or non memory-safe patterns and code.
+  The probe supports multiple checks for each ecosystem, and the outcome is based on the results of these checks.
 outcome:
   - For supported ecosystem, the probe returns OutcomeTrue per safe method or tool.
   - For supported ecosystem, the probe returns OutcomeFalse per unsafe code or method.
