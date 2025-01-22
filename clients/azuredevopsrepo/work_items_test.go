@@ -17,11 +17,11 @@ package azuredevopsrepo
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
@@ -29,7 +29,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 )
 
-func TestWorkItemsHandler_listIssues(t *testing.T) {
+func Test_listIssues(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name       string
@@ -173,7 +173,7 @@ func TestWorkItemsHandler_listIssues(t *testing.T) {
 			if err != nil {
 				t.Errorf("listIssues() unexpected error: %v", err)
 			}
-			if !reflect.DeepEqual(got, tt.want) {
+			if !cmp.Equal(got, tt.want) {
 				t.Errorf("listIssues() = %v, want %v", got, tt.want)
 			}
 		})
