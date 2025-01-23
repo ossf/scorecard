@@ -63,7 +63,7 @@ func init() {
 }
 
 func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, err error) {
-	prominentLangs := getRepositoryLanguageChecks(raw.RepoClient)
+	prominentLangs := getRepositoryLanguageChecks(raw)
 	findings := []finding.Finding{}
 
 	for _, lang := range prominentLangs {
@@ -83,9 +83,12 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 	return findings, Probe, nil
 }
 
-func getRepositoryLanguageChecks(client clients.RepoClient) []languageMemoryCheckConfig {
-	langs, err := client.ListProgrammingLanguages()
+func getRepositoryLanguageChecks(raw *checker.CheckRequest) []languageMemoryCheckConfig {
+	langs, err := raw.RepoClient.ListProgrammingLanguages()
 	if err != nil {
+		raw.Dlogger.Warn(&checker.LogMessage{
+			Text: fmt.Sprintf("RepoClient retured error for ListProgrammingLanguages: %v", err),
+		})
 		return nil
 	}
 	if len(langs) == 0 {
