@@ -15,6 +15,7 @@
 package memorysafe
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -453,6 +454,66 @@ func Test_Run(t *testing.T) {
 			sortFindings := func(a, b finding.Finding) bool { return a.Message < b.Message }
 			if diff := cmp.Diff(findings, tt.expected, cmpopts.IgnoreUnexported(finding.Finding{}), cmpopts.SortSlices(sortFindings)); diff != "" {
 				t.Error(diff)
+			}
+		})
+	}
+}
+
+func Test_Run_Error_ListProgrammingLanguages(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	raw := &checker.CheckRequest{}
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepoClient.EXPECT().ListProgrammingLanguages().DoAndReturn(func() ([]clients.Language, error) {
+		return nil, fmt.Errorf("error")
+	}).AnyTimes()
+	raw.RepoClient = mockRepoClient
+	raw.Dlogger = checker.NewLogger()
+	findings, _, err := Run(raw)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if diff := cmp.Diff(findings, []finding.Finding{}, cmpopts.IgnoreUnexported(finding.Finding{})); diff != "" {
+		t.Error(diff)
+	}
+}
+
+func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name          string
+		repoLanguages []clients.Language
+		expected_err  error
+	}{
+		{
+			name:          "csharp error",
+			repoLanguages: []clients.Language{{Name: clients.CSharp, NumLines: 0}},
+			expected_err:  fmt.Errorf("error while running function for language Check if C# code uses unsafe blocks: error during ListFiles: error"),
+		},
+		{
+			name:          "golang error",
+			repoLanguages: []clients.Language{{Name: clients.Go, NumLines: 0}},
+			expected_err:  fmt.Errorf("error while running function for language Check if Go code uses the unsafe package: error during ListFiles: error"),
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			raw := &checker.CheckRequest{}
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListProgrammingLanguages().DoAndReturn(func() ([]clients.Language, error) {
+				return tt.repoLanguages, nil
+			}).AnyTimes()
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				return nil, fmt.Errorf("error")
+			}).AnyTimes()
+			raw.RepoClient = mockRepoClient
+			raw.Dlogger = checker.NewLogger()
+			_, _, err := Run(raw)
+			if err.Error() != tt.expected_err.Error() {
+				t.Error(cmp.Diff(err, tt.expected_err, cmpopts.EquateErrors()))
 			}
 		})
 	}
