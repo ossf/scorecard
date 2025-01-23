@@ -460,6 +460,7 @@ func Test_Run(t *testing.T) {
 }
 
 func Test_Run_Error_ListProgrammingLanguages(t *testing.T) {
+	t.Parallel()
 	ctrl := gomock.NewController(t)
 	raw := &checker.CheckRequest{}
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
@@ -483,17 +484,17 @@ func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
 	tests := []struct {
 		name          string
 		repoLanguages []clients.Language
-		expected_err  error
+		expectedErr   error
 	}{
 		{
 			name:          "csharp error",
 			repoLanguages: []clients.Language{{Name: clients.CSharp, NumLines: 0}},
-			expected_err:  fmt.Errorf("error while running function for language Check if C# code uses unsafe blocks: error during ListFiles: error"),
+			expectedErr:   fmt.Errorf("error while running function for language Check if C# code uses unsafe blocks: error during ListFiles: error"),
 		},
 		{
 			name:          "golang error",
 			repoLanguages: []clients.Language{{Name: clients.Go, NumLines: 0}},
-			expected_err:  fmt.Errorf("error while running function for language Check if Go code uses the unsafe package: error during ListFiles: error"),
+			expectedErr:   fmt.Errorf("error while running function for language Check if Go code uses the unsafe package: error during ListFiles: error"),
 		},
 	}
 	for _, tt := range tests {
@@ -512,8 +513,8 @@ func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
 			raw.RepoClient = mockRepoClient
 			raw.Dlogger = checker.NewLogger()
 			_, _, err := Run(raw)
-			if err.Error() != tt.expected_err.Error() {
-				t.Error(cmp.Diff(err, tt.expected_err, cmpopts.EquateErrors()))
+			if err.Error() != tt.expectedErr.Error() {
+				t.Error(cmp.Diff(err, tt.expectedErr, cmpopts.EquateErrors()))
 			}
 		})
 	}
