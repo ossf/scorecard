@@ -20,6 +20,7 @@ import (
 	"go/parser"
 	"go/token"
 	"reflect"
+	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -99,7 +100,7 @@ func getRepositoryLanguageChecks(raw *checker.CheckRequest) []languageMemoryChec
 	}
 	ret := []languageMemoryCheckConfig{}
 	for _, language := range langs {
-		if lang, ok := languageMemorySafeSpecs[language.Name]; ok {
+		if lang, ok := languageMemorySafeSpecs[clients.LanguageName(strings.ToLower(string(language.Name)))]; ok {
 			ret = append(ret, lang)
 		}
 	}
