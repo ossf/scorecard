@@ -13,7 +13,7 @@ import (
 	"os"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v63/github"
+	"github.com/google/go-github/v53/github"
 
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/docs/checks"
