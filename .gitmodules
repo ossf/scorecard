@@ -1,3 +1,0 @@
-[submodule "cmd/multi-scorecard"]
-	path = cmd/multi-scorecard
-	url = git@github.com:jeffmendoza/multi-scorecard.git
