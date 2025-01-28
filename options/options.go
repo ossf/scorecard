@@ -88,6 +88,8 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
+	// FormatStatement specifies that results should be output in an in-toto statement.
+	FormatStatement = "statement"
 
 	// Environment variables.
 	// EnvVarEnableSarif is the environment variable which controls enabling
@@ -246,7 +248,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatStatement:
 		return true
 	default:
 		return false
