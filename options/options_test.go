@@ -32,6 +32,7 @@ func TestOptions_Validate(t *testing.T) {
 		Nuget             string
 		PolicyFile        string
 		ResultsFile       string
+		FileMode          string
 		ChecksToRun       []string
 		Metadata          []string
 		ShowDetails       bool
@@ -84,9 +85,32 @@ func TestOptions_Validate(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "invalid filemode flagged",
+			fields: fields{
+				Repo:     "github.com/oss/scorecard",
+				Commit:   "HEAD",
+				Format:   "default",
+				FileMode: "unsupported mode",
+			},
+			wantErr: true,
+		},
+		{
+			name: "git filemode is valid",
+			fields: fields{
+				Repo:     "github.com/oss/scorecard",
+				Commit:   "HEAD",
+				Format:   "default",
+				FileMode: FileModeGit,
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		tt := tt
+		if tt.fields.FileMode == "" {
+			tt.fields.FileMode = FileModeArchive
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			o := &Options{
 				Repo:              tt.fields.Repo,
@@ -94,6 +118,7 @@ func TestOptions_Validate(t *testing.T) {
 				Commit:            tt.fields.Commit,
 				LogLevel:          tt.fields.LogLevel,
 				Format:            tt.fields.Format,
+				FileMode:          tt.fields.FileMode,
 				NPM:               tt.fields.NPM,
 				PyPI:              tt.fields.PyPI,
 				RubyGems:          tt.fields.RubyGems,
