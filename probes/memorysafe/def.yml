@@ -38,4 +38,6 @@ ecosystem:
     - go
     - c#
   clients:
-    - github
+    - github  
+    - gitlab  
+    - localdir  

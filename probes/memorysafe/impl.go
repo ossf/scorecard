@@ -64,16 +64,13 @@ func init() {
 }
 
 func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, err error) {
-	prominentLangs := getRepositoryLanguageChecks(raw)
+	prominentLangs, err := getLanguageChecks(raw)
+	if err != nil {
+		return nil, Probe, err
+	}
 	findings := []finding.Finding{}
-
 	for _, lang := range prominentLangs {
 		for _, langFunc := range lang.funcPointers {
-			if langFunc == nil {
-				raw.Dlogger.Warn(&checker.LogMessage{
-					Text: fmt.Sprintf("no function pointer found for language %s", lang.Desc),
-				})
-			}
 			langFindings, err := langFunc(raw)
 			if err != nil {
 				return nil, Probe, fmt.Errorf("error while running function for language %s: %w", lang.Desc, err)
@@ -81,22 +78,27 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 			findings = append(findings, langFindings...)
 		}
 	}
+	if len(findings) == 0 {
+		found, err := finding.NewWith(fs, Probe,
+			"All supported ecosystems follow memory safety best practices", nil, finding.OutcomeTrue)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *found)
+	}
 	return findings, Probe, nil
 }
 
-func getRepositoryLanguageChecks(raw *checker.CheckRequest) []languageMemoryCheckConfig {
+func getLanguageChecks(raw *checker.CheckRequest) ([]languageMemoryCheckConfig, error) {
 	langs, err := raw.RepoClient.ListProgrammingLanguages()
 	if err != nil {
-		raw.Dlogger.Warn(&checker.LogMessage{
-			Text: fmt.Sprintf("RepoClient retured error for ListProgrammingLanguages: %v", err),
-		})
-		return nil
+		return nil, fmt.Errorf("cannot get langs of repo: %w", err)
 	}
 	if len(langs) == 0 {
-		return []languageMemoryCheckConfig{}
+		return []languageMemoryCheckConfig{}, nil
 	}
 	if len(langs) == 1 && langs[0].Name == clients.All {
-		return getAllLanguages()
+		return getAllLanguages(), nil
 	}
 	ret := []languageMemoryCheckConfig{}
 	for _, language := range langs {
@@ -104,7 +106,7 @@ func getRepositoryLanguageChecks(raw *checker.CheckRequest) []languageMemoryChec
 			ret = append(ret, lang)
 		}
 	}
-	return ret
+	return ret, nil
 }
 
 func getAllLanguages() []languageMemoryCheckConfig {
@@ -126,14 +128,7 @@ func checkGoUnsafePackage(client *checker.CheckRequest) ([]finding.Finding, erro
 	}, goCodeUsesUnsafePackage, &findings, client.Dlogger); err != nil {
 		return nil, err
 	}
-	if len(findings) == 0 {
-		found, err := finding.NewWith(fs, Probe,
-			"Golang code does not use the unsafe package", nil, finding.OutcomeTrue)
-		if err != nil {
-			return nil, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *found)
-	}
+
 	return findings, nil
 }
 
@@ -143,15 +138,14 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 		// panic if it is not correct type
 		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
 	}
+	dl, ok := args[1].(checker.DetailLogger)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+	}
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, "", content, parser.ImportsOnly)
 	if err != nil {
-		dl, ok := args[1].(checker.DetailLogger)
-		if !ok {
-			// panic if it is not correct type
-			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
-		}
-
 		dl.Warn(&checker.LogMessage{
 			Text: fmt.Sprintf("malformed golang file: %v", err),
 		})
@@ -159,9 +153,10 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 	}
 	for _, i := range f.Imports {
 		if i.Path.Value == `"unsafe"` {
+			lineStart := uint(fset.Position(i.Pos()).Line)
 			found, err := finding.NewWith(fs, Probe,
 				"Golang code uses the unsafe package", &finding.Location{
-					Path: path,
+					Path: path, LineStart: &lineStart,
 				}, finding.OutcomeFalse)
 			if err != nil {
 				return false, fmt.Errorf("create finding: %w", err)
@@ -184,14 +179,6 @@ func checkDotnetAllowUnsafeBlocks(client *checker.CheckRequest) ([]finding.Findi
 	}, csProjAllosUnsafeBlocks, &findings, client.Dlogger); err != nil {
 		return nil, err
 	}
-	if len(findings) == 0 {
-		found, err := finding.NewWith(fs, Probe,
-			"C# code does not allow unsafe blocks", nil, finding.OutcomeTrue)
-		if err != nil {
-			return nil, fmt.Errorf("create finding: %w", err)
-		}
-		findings = append(findings, *found)
-	}
 	return findings, nil
 }
 
@@ -201,14 +188,14 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 		// panic if it is not correct type
 		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
 	}
+	dl, ok := args[1].(checker.DetailLogger)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
+	}
+
 	unsafe, err := csproj.IsAllowUnsafeBlocksEnabled(content)
 	if err != nil {
-		dl, ok := args[1].(checker.DetailLogger)
-		if !ok {
-			// panic if it is not correct type
-			panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
-		}
-
 		dl.Warn(&checker.LogMessage{
 			Text: fmt.Sprintf("malformed csproj file: %v", err),
 		})
