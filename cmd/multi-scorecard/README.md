@@ -33,6 +33,36 @@ Once the program has finished running, move the `results.json` file to the `src/
 
 Example repo for local visualizer: http://localhost:3000/scorecard-visualizer/#/projects/github.com/uwu-tools/peribolos
 
+### Jeff notes
+
+OK, here is how to run the branches I have:
+
+scorecard-monitor:
+
+```console
+$ git clone
+$ cd scorecard-monitor/
+$ npm install
+Put a results.json at the top level from a multi-scorecard run
+you may need a scopes.json there as well, but it is ignored so can be empty
+$ node src/action.js
+reportfile.md is created as the current report
+databasefile.json is created, if it already exists then it will be used to show diffs between runs in the report.
+```
+
+scorecard-visualizer
+
+```console
+$ git clone
+$ cd scorecard-visualizer/
+$ npm install
+Put a results.json in the src/ subdirectory "src/results.json"
+$ npm start
+There will be some errors, but can be dismissed
+Scores from the results.json can be viewed at
+http://localhost:3000/scorecard-visualizer/#/projects/github.com/orgname/reponame
+```
+
 ## TODO
 
 - Document required permissions for GitHub App
