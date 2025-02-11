@@ -11,8 +11,7 @@ gomod:
   proxy: true
 builds:
 - id: linux
-  binary: scorecard-linux-{{ .Arch }}
-  no_unique_dist_dir: true
+  binary: scorecard
   flags:
    # trimpath is for reproducible builds
    # remove all file system paths from the resulting executable.
@@ -36,8 +35,7 @@ builds:
     - -s {{.Env.VERSION_LDFLAGS}} 
 
 - id: darwin
-  binary: scorecard-darwin-{{ .Arch }}
-  no_unique_dist_dir: true
+  binary: scorecard
   flags:
    # trimpath is for reproducible builds
    # remove all file system paths from the resulting executable.
@@ -61,8 +59,7 @@ builds:
     - -s {{.Env.VERSION_LDFLAGS}} 
 
 - id: windows
-  binary: scorecard-windows-{{ .Arch }}
-  no_unique_dist_dir: true
+  binary: scorecard
   flags:
    # trimpath is for reproducible builds
    # remove all file system paths from the resulting executable.
