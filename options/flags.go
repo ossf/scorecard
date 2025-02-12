@@ -54,6 +54,9 @@ const (
 	// FlagShowDetails is the flag name for outputting additional check info.
 	FlagShowDetails = "show-details"
 
+	// Flag FlagFileMode is the flag name for specifying how files are fetched for a repository.
+	FlagFileMode = "file-mode"
+
 	// FlagShowAnnotations is the flag name for outputting annotations on checks.
 	FlagShowAnnotations = "show-annotations"
 
@@ -221,5 +224,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		ShorthandFlagResultsFile,
 		o.ResultsFile,
 		"output file",
+	)
+
+	allowedModes := []string{FileModeArchive, FileModeGit}
+	cmd.Flags().StringVar(
+		&o.FileMode,
+		FlagFileMode,
+		o.FileMode,
+		fmt.Sprintf("mode to fetch repository files: %s", strings.Join(allowedModes, ", ")),
 	)
 }

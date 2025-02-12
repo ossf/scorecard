@@ -31,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/gitfile"
 	"github.com/ossf/scorecard/v5/log"
 )
 
@@ -39,6 +40,8 @@ var (
 	errInputRepoType                         = errors.New("input repo should be of type repoURL")
 	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
 )
+
+type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
@@ -57,9 +60,32 @@ type Client struct {
 	webhook       *webhookHandler
 	languages     *languagesHandler
 	licenses      *licensesHandler
+	git           *gitfile.Handler
 	ctx           context.Context
 	tarball       tarballHandler
 	commitDepth   int
+	gitMode       bool
+}
+
+// WithFileModeGit configures the repo client to fetch files using git.
+func WithFileModeGit() Option {
+	return func(c *repoClientConfig) error {
+		c.gitMode = true
+		return nil
+	}
+}
+
+// WithRoundTripper configures the repo client to use the specified http.RoundTripper.
+func WithRoundTripper(rt http.RoundTripper) Option {
+	return func(c *repoClientConfig) error {
+		c.rt = rt
+		return nil
+	}
+}
+
+type repoClientConfig struct {
+	rt      http.RoundTripper
+	gitMode bool
 }
 
 const defaultGhHost = "github.com"
@@ -88,8 +114,12 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 		commitSHA:     commitSHA,
 	}
 
-	// Init tarballHandler.
-	client.tarball.init(client.ctx, client.repo, commitSHA)
+	if client.gitMode {
+		client.git.Init(client.ctx, client.repo.GetCloneURL(), commitSHA)
+	} else {
+		// Init tarballHandler.
+		client.tarball.init(client.ctx, client.repo, commitSHA)
+	}
 
 	// Setup GraphQL.
 	client.graphClient.init(client.ctx, client.repourl, client.commitDepth)
@@ -141,16 +171,37 @@ func (client *Client) URI() string {
 
 // LocalPath implements RepoClient.LocalPath.
 func (client *Client) LocalPath() (string, error) {
+	if client.gitMode {
+		path, err := client.git.GetLocalPath()
+		if err != nil {
+			return "", fmt.Errorf("git local path: %w", err)
+		}
+		return path, nil
+	}
 	return client.tarball.getLocalPath()
 }
 
 // ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
+	if client.gitMode {
+		files, err := client.git.ListFiles(predicate)
+		if err != nil {
+			return nil, fmt.Errorf("git listfiles: %w", err)
+		}
+		return files, nil
+	}
 	return client.tarball.listFiles(predicate)
 }
 
 // GetFileReader implements RepoClient.GetFileReader.
 func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
+	if client.gitMode {
+		f, err := client.git.GetFile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("git getfile: %w", err)
+		}
+		return f, nil
+	}
 	return client.tarball.getFile(filename)
 }
 
@@ -210,7 +261,14 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 		return nil, fmt.Errorf("error during MakeGithubRepo: %w", err)
 	}
 
-	c := CreateGithubRepoClientWithTransport(ctx, client.repoClient.Client().Transport)
+	options := []Option{WithRoundTripper(client.repoClient.Client().Transport)}
+	if client.gitMode {
+		options = append(options, WithFileModeGit())
+	}
+	c, err := NewRepoClient(ctx, options...)
+	if err != nil {
+		return nil, fmt.Errorf("create org repoclient: %w", err)
+	}
 	if err := c.InitRepo(dotGithubRepo, clients.HeadSHA, 0); err != nil {
 		return nil, fmt.Errorf("error during InitRepo: %w", err)
 	}
@@ -260,13 +318,40 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 
 // Close implements RepoClient.Close.
 func (client *Client) Close() error {
+	if client.gitMode {
+		if err := client.git.Cleanup(); err != nil {
+			return fmt.Errorf("git cleanup: %w", err)
+		}
+		return nil
+	}
 	return client.tarball.cleanup()
 }
 
 // CreateGithubRepoClientWithTransport returns a Client which implements RepoClient interface.
 func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripper) clients.RepoClient {
+	//nolint:errcheck // need to suppress because this method doesn't return an error
+	rc, _ := NewRepoClient(ctx, WithRoundTripper(rt))
+	return rc
+}
+
+// NewRepoClient returns a Client which implements RepoClient interface.
+// It can be configured with various [Option]s.
+func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, error) {
+	var config repoClientConfig
+
+	for _, option := range opts {
+		if err := option(&config); err != nil {
+			return nil, err
+		}
+	}
+
+	if config.rt == nil {
+		logger := log.NewLogger(log.DefaultLevel)
+		config.rt = roundtripper.NewTransport(ctx, logger)
+	}
+
 	httpClient := &http.Client{
-		Transport: rt,
+		Transport: config.rt,
 	}
 
 	var client *github.Client
@@ -333,7 +418,9 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 		tarball: tarballHandler{
 			httpClient: httpClient,
 		},
-	}
+		gitMode: config.gitMode,
+		git:     &gitfile.Handler{},
+	}, nil
 }
 
 // CreateGithubRepoClient returns a Client which implements RepoClient interface.
