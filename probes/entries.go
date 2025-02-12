@@ -44,6 +44,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
+	"github.com/ossf/scorecard/v5/probes/memorysafe"
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
@@ -173,7 +174,9 @@ var (
 	}
 
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
-	Independent = []IndependentProbeImpl{}
+	Independent = []IndependentProbeImpl{
+		memorysafe.Run,
+	}
 )
 
 //nolint:gochecknoinits
