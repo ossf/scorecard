@@ -43,6 +43,7 @@ type Handler struct {
 	gitRepo   *git.Repository
 	tempDir   string
 	commitSHA string
+	files     []string
 }
 
 func (h *Handler) Init(ctx context.Context, cloneURL, commitSHA string) {
@@ -51,6 +52,7 @@ func (h *Handler) Init(ctx context.Context, cloneURL, commitSHA string) {
 	h.ctx = ctx
 	h.cloneURL = cloneURL
 	h.commitSHA = commitSHA
+	h.files = nil
 }
 
 func (h *Handler) setup() error {
@@ -85,6 +87,15 @@ func (h *Handler) setup() error {
 				return
 			}
 		}
+
+		// go-git is not thread-safe so list the files inside this sync.Once and save them
+		// https://github.com/go-git/go-git/issues/773
+		files, err := enumerateFiles(h.gitRepo)
+		if err != nil {
+			h.errSetup = err
+			return
+		}
+		h.files = files
 	})
 	return h.errSetup
 }
@@ -100,12 +111,27 @@ func (h *Handler) ListFiles(predicate func(string) (bool, error)) ([]string, err
 	if err := h.setup(); err != nil {
 		return nil, fmt.Errorf("setup: %w", err)
 	}
-	ref, err := h.gitRepo.Head()
+	var files []string
+	for _, f := range h.files {
+		shouldInclude, err := predicate(f)
+		if err != nil {
+			return nil, fmt.Errorf("error applying predicate to file %s: %w", f, err)
+		}
+
+		if shouldInclude {
+			files = append(files, f)
+		}
+	}
+	return files, nil
+}
+
+func enumerateFiles(repo *git.Repository) ([]string, error) {
+	ref, err := repo.Head()
 	if err != nil {
 		return nil, fmt.Errorf("git.Head: %w", err)
 	}
 
-	commit, err := h.gitRepo.CommitObject(ref.Hash())
+	commit, err := repo.CommitObject(ref.Hash())
 	if err != nil {
 		return nil, fmt.Errorf("git.CommitObject: %w", err)
 	}
@@ -117,14 +143,7 @@ func (h *Handler) ListFiles(predicate func(string) (bool, error)) ([]string, err
 
 	var files []string
 	err = tree.Files().ForEach(func(f *object.File) error {
-		shouldInclude, err := predicate(f.Name)
-		if err != nil {
-			return fmt.Errorf("error applying predicate to file %s: %w", f.Name, err)
-		}
-
-		if shouldInclude {
-			files = append(files, f.Name)
-		}
+		files = append(files, f.Name)
 		return nil
 	})
 	if err != nil {
