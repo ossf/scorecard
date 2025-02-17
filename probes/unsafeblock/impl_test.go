@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package memorysafe
+package unsafeblock
 
 import (
 	"fmt"
@@ -48,7 +48,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -64,7 +64,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -80,7 +80,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -97,7 +97,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -114,7 +114,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -198,7 +198,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -215,7 +215,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -232,7 +232,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -249,7 +249,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "C# code allows the use of unsafe blocks",
+					Message: "C# project file allows the use of unsafe blocks",
 					Outcome: finding.OutcomeFalse,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -272,7 +272,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "C# code allows the use of unsafe blocks",
+					Message: "C# project file allows the use of unsafe blocks",
 					Outcome: finding.OutcomeFalse,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -295,7 +295,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "C# code allows the use of unsafe blocks",
+					Message: "C# project file allows the use of unsafe blocks",
 					Outcome: finding.OutcomeFalse,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -317,7 +317,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -335,7 +335,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "All supported ecosystems follow memory safety best practices",
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
 					Outcome: finding.OutcomeTrue,
 				},
 			},
@@ -353,7 +353,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "C# code allows the use of unsafe blocks",
+					Message: "C# project file allows the use of unsafe blocks",
 					Outcome: finding.OutcomeFalse,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -409,7 +409,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "C# code allows the use of unsafe blocks",
+					Message: "C# project file allows the use of unsafe blocks",
 					Outcome: finding.OutcomeFalse,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",

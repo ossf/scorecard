@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package memorysafe
+package unsafeblock
 
 import (
 	"embed"
@@ -34,28 +34,23 @@ import (
 var fs embed.FS
 
 const (
-	Probe = "memorysafe"
+	Probe = "unsafeblock"
 )
 
 type languageMemoryCheckConfig struct {
-	Desc string
-
-	funcPointers []func(client *checker.CheckRequest) ([]finding.Finding, error)
+	funcPointer func(client *checker.CheckRequest) ([]finding.Finding, error)
+	Desc        string
 }
 
 var languageMemorySafeSpecs = map[clients.LanguageName]languageMemoryCheckConfig{
 	clients.Go: {
-		funcPointers: []func(client *checker.CheckRequest) ([]finding.Finding, error){
-			checkGoUnsafePackage,
-		},
-		Desc: "Check if Go code uses the unsafe package",
+		funcPointer: checkGoUnsafePackage,
+		Desc:        "Check if Go code uses the unsafe package",
 	},
 
 	clients.CSharp: {
-		funcPointers: []func(client *checker.CheckRequest) ([]finding.Finding, error){
-			checkDotnetAllowUnsafeBlocks,
-		},
-		Desc: "Check if C# code uses unsafe blocks",
+		funcPointer: checkDotnetAllowUnsafeBlocks,
+		Desc:        "Check if C# code uses unsafe blocks",
 	},
 }
 
@@ -70,17 +65,15 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 	}
 	findings := []finding.Finding{}
 	for _, lang := range prominentLangs {
-		for _, langFunc := range lang.funcPointers {
-			langFindings, err := langFunc(raw)
-			if err != nil {
-				return nil, Probe, fmt.Errorf("error while running function for language %s: %w", lang.Desc, err)
-			}
-			findings = append(findings, langFindings...)
+		langFindings, err := lang.funcPointer(raw)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("error while running function for language %s: %w", lang.Desc, err)
 		}
+		findings = append(findings, langFindings...)
 	}
 	if len(findings) == 0 {
 		found, err := finding.NewWith(fs, Probe,
-			"All supported ecosystems follow memory safety best practices", nil, finding.OutcomeTrue)
+			"All supported ecosystems do not declare or use unsafe code blocks", nil, finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -203,7 +196,7 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 	}
 	if unsafe {
 		found, err := finding.NewWith(fs, Probe,
-			"C# code allows the use of unsafe blocks", &finding.Location{
+			"C# project file allows the use of unsafe blocks", &finding.Location{
 				Path: path,
 			}, finding.OutcomeFalse)
 		if err != nil {
