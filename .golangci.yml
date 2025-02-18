@@ -30,13 +30,13 @@ skip-files:
 linters:
   enable:
     - asciicheck
+    # - copyloopvar # TODO(spencer)
     - dogsled
     - err113
     - errcheck
     - errname
     - errorlint
     - exhaustive
-    - exportloopref
     - forbidigo
     - gci
     - gochecknoinits
@@ -69,12 +69,12 @@ linters:
     - predeclared
     - staticcheck
     - stylecheck
-    - tenv
     - thelper
     - typecheck
     - unconvert
     - unused
     - usestdlibvars
+    - usetesting
     - whitespace
     - wrapcheck
   disable:
