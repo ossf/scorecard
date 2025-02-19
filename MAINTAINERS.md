@@ -32,4 +32,4 @@ Thanks for your contributions to Scorecard!
 
 ### Docs maintainers
 
-- Kara Olive ([@olivekl](https://github.com/olivekl))
+- Kara Olive ([@klolive](https://github.com/klolive)) (historically [@olivekl](https://github.com/olivekl))
