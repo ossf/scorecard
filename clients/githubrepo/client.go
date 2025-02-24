@@ -39,6 +39,7 @@ var (
 	_                     clients.RepoClient = &Client{}
 	errInputRepoType                         = errors.New("input repo should be of type repoURL")
 	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
+	errNoCodeOwners                          = errors.New("repo has no CODEOWNERS file")
 )
 
 type Option func(*repoClientConfig) error
@@ -50,6 +51,7 @@ type Client struct {
 	repoClient    *github.Client
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
+	owners        *ownersHandler
 	branches      *branchesHandler
 	releases      *releasesHandler
 	workflows     *workflowsHandler
@@ -126,6 +128,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup contributorsHandler.
 	client.contributors.init(client.ctx, client.repourl)
+
+	// Setup ownersHandler.
+	client.owners.init(client.ctx, client.repourl)
 
 	// Setup branchesHandler.
 	client.branches.init(client.ctx, client.repourl)
@@ -224,6 +229,23 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 // ListContributors implements RepoClient.ListContributors.
 func (client *Client) ListContributors() ([]clients.User, error) {
 	return client.contributors.getContributors()
+}
+
+// ListCodeOwners implements RepoClient.ListCodeOwners.
+func (client *Client) ListCodeOwners() ([]clients.User, error) {
+	var fileReader io.ReadCloser
+	var err error
+	for _, path := range CodeOwnerPaths {
+		fileReader, err = client.GetFileReader(path)
+		if err == nil {
+			break
+		}
+	}
+	if err != nil {
+		return []clients.User{}, errNoCodeOwners
+	}
+
+	return client.owners.getOwners(fileReader)
 }
 
 // IsArchived implements RepoClient.IsArchived.
@@ -381,6 +403,9 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 			client: graphClient,
 		},
 		contributors: &contributorsHandler{
+			ghClient: client,
+		},
+		owners: &ownersHandler{
 			ghClient: client,
 		},
 		branches: &branchesHandler{

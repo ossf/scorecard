@@ -230,6 +230,21 @@ func (mr *MockRepoClientMockRecorder) ListContributors() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListContributors", reflect.TypeOf((*MockRepoClient)(nil).ListContributors))
 }
 
+// ListContributors mocks base method.
+func (m *MockRepoClient) ListCodeOwners() ([]clients.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCodeOwners")
+	ret0, _ := ret[0].([]clients.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListContributors indicates an expected call of ListContributors.
+func (mr *MockRepoClientMockRecorder) ListCodeOwners() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeOwners", reflect.TypeOf((*MockRepoClient)(nil).ListCodeOwners))
+}
+
 // ListFiles mocks base method.
 func (m *MockRepoClient) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	m.ctrl.T.Helper()

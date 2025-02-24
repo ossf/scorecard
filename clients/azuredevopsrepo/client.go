@@ -201,6 +201,10 @@ func (c *Client) ListContributors() ([]clients.User, error) {
 	return c.contributors.listContributors()
 }
 
+func (client *Client) ListCodeOwners() ([]clients.User, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return c.builds.listSuccessfulBuilds(filename)
 }

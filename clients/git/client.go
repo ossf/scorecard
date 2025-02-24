@@ -354,6 +354,10 @@ func (c *Client) ListContributors() ([]clients.User, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+func (client *Client) ListCodeOwners() ([]clients.User, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return nil, clients.ErrUnsupportedFeature
 }

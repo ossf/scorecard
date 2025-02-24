@@ -97,6 +97,7 @@ require (
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
+	github.com/hmarr/codeowners v1.2.1 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20240912202439-0a2b6291aafd // indirect
 	github.com/jedib0t/go-pretty/v6 v6.6.2 // indirect
 	github.com/josharian/intern v1.0.0 // indirect

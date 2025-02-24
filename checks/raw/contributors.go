@@ -27,6 +27,8 @@ func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 	c := cr.RepoClient
 	var users []clients.User
 
+	c.ListCodeOwners()
+
 	contribs, err := c.ListContributors()
 	if err != nil {
 		return checker.ContributorsData{}, fmt.Errorf("Client.Repositories.ListContributors: %w", err)

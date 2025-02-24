@@ -50,6 +50,7 @@ type RepoClient interface {
 	ListLicenses() ([]License, error)
 	ListReleases() ([]Release, error)
 	ListContributors() ([]User, error)
+	ListCodeOwners() ([]User, error)
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)

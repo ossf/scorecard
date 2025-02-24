@@ -216,6 +216,10 @@ func (client *Client) ListContributors() ([]clients.User, error) {
 	return client.contributors.getContributors()
 }
 
+func (client *Client) ListCodeOwners() ([]clients.User, error) {
+	return nil, fmt.Errorf("ListCodeOwners (GitLab): %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *Client) IsArchived() (bool, error) {
 	return client.project.isArchived()
 }
