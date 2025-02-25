@@ -52,7 +52,7 @@ jobs:
      - name: install ko
        uses: ko-build/setup-ko@d982fec422852203cfb2053a8ec6ad302280d04d # v0.8
      - name: publishimage
-       uses: nick-invision/retry@c97818ca39074beaea45180dba704f92496a0082
+       uses: nick-invision/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
        with:
           max_attempts: 3
           retry_on: error
@@ -62,7 +62,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e
+       uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
      - name: Sign image
        run: |
           cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v5:${{ github.sha }}

@@ -63,7 +63,7 @@ jobs:
           echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 #v4.2.0
+        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f #v4.2.1
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -77,7 +77,7 @@ jobs:
             go mod download
 
       - name: Run GITHUB_TOKEN E2E  #using retry because the GitHub token is being throttled.
-        uses: nick-invision/retry@c97818ca39074beaea45180dba704f92496a0082 # v3.0.1
+        uses: nick-invision/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
         env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
