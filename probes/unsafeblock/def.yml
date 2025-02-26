@@ -25,10 +25,10 @@ implementation: >
   - for go the probe will look for the use of the `unsafe` include directive.
   - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property.
 outcome:
-  - For supported ecosystem, the probe returns OutcomeFalse per unsafe block.
-  - If the project has no unsafe blocks, the probe returns OutcomeTrue.
+  - For supported ecosystem, the probe returns OutcomeTrue per unsafe block.
+  - If the project has no unsafe blocks, the probe returns OutcomeFalse.
 remediation:
-  onOutcome: False
+  onOutcome: True
   effort: Medium
   text:
     - Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.

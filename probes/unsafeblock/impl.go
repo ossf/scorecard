@@ -59,12 +59,12 @@ func init() {
 }
 
 func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, err error) {
-	prominentLangs, err := getLanguageChecks(raw)
+	repoLanguageChecks, err := getLanguageChecks(raw)
 	if err != nil {
 		return nil, Probe, err
 	}
 	findings := []finding.Finding{}
-	for _, lang := range prominentLangs {
+	for _, lang := range repoLanguageChecks {
 		langFindings, err := lang.funcPointer(raw)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("error while running function for language %s: %w", lang.Desc, err)
@@ -73,7 +73,7 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 	}
 	if len(findings) == 0 {
 		found, err := finding.NewWith(fs, Probe,
-			"All supported ecosystems do not declare or use unsafe code blocks", nil, finding.OutcomeTrue)
+			"All supported ecosystems do not declare or use unsafe code blocks", nil, finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
@@ -86,9 +86,6 @@ func getLanguageChecks(raw *checker.CheckRequest) ([]languageMemoryCheckConfig, 
 	langs, err := raw.RepoClient.ListProgrammingLanguages()
 	if err != nil {
 		return nil, fmt.Errorf("cannot get langs of repo: %w", err)
-	}
-	if len(langs) == 0 {
-		return []languageMemoryCheckConfig{}, nil
 	}
 	if len(langs) == 1 && langs[0].Name == clients.All {
 		return getAllLanguages(), nil
@@ -150,7 +147,7 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 			found, err := finding.NewWith(fs, Probe,
 				"Golang code uses the unsafe package", &finding.Location{
 					Path: path, LineStart: &lineStart,
-				}, finding.OutcomeFalse)
+				}, finding.OutcomeTrue)
 			if err != nil {
 				return false, fmt.Errorf("create finding: %w", err)
 			}
@@ -198,7 +195,7 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 		found, err := finding.NewWith(fs, Probe,
 			"C# project file allows the use of unsafe blocks", &finding.Location{
 				Path: path,
-			}, finding.OutcomeFalse)
+			}, finding.OutcomeTrue)
 		if err != nil {
 			return false, fmt.Errorf("create finding: %w", err)
 		}

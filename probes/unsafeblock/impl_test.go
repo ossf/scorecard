@@ -28,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func Test_Run(t *testing.T) {
@@ -49,7 +50,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -65,7 +66,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -81,7 +82,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -98,7 +99,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -115,7 +116,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -132,7 +133,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -155,7 +156,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -178,7 +179,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -199,7 +200,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -216,7 +217,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -233,7 +234,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -250,7 +251,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "C# project file allows the use of unsafe blocks",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -273,7 +274,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "C# project file allows the use of unsafe blocks",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -296,7 +297,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "C# project file allows the use of unsafe blocks",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -318,7 +319,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -336,7 +337,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "All supported ecosystems do not declare or use unsafe code blocks",
-					Outcome: finding.OutcomeTrue,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			err: nil,
@@ -354,7 +355,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "C# project file allows the use of unsafe blocks",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -377,7 +378,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -400,7 +401,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -410,7 +411,7 @@ func Test_Run(t *testing.T) {
 				{
 					Probe:   Probe,
 					Message: "C# project file allows the use of unsafe blocks",
-					Outcome: finding.OutcomeFalse,
+					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
@@ -438,7 +439,7 @@ func Test_Run(t *testing.T) {
 				return os.Open(file)
 			}).AnyTimes()
 			raw.RepoClient = mockRepoClient
-			raw.Dlogger = checker.NewLogger()
+			raw.Dlogger = &scut.TestDetailLogger{}
 			findings, _, err := Run(raw)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -460,7 +461,7 @@ func Test_Run_Error_ListProgrammingLanguages(t *testing.T) {
 		return nil, fmt.Errorf("error")
 	}).AnyTimes()
 	raw.RepoClient = mockRepoClient
-	raw.Dlogger = checker.NewLogger()
+	raw.Dlogger = &scut.TestDetailLogger{}
 	_, _, err := Run(raw)
 	if err == nil {
 		t.Fatalf("expected error: %v", err)
@@ -500,7 +501,7 @@ func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
 				return nil, fmt.Errorf("error")
 			}).AnyTimes()
 			raw.RepoClient = mockRepoClient
-			raw.Dlogger = checker.NewLogger()
+			raw.Dlogger = &scut.TestDetailLogger{}
 			_, _, err := Run(raw)
 			if err.Error() != tt.expectedErr.Error() {
 				t.Error(cmp.Diff(err, tt.expectedErr, cmpopts.EquateErrors()))
