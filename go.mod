@@ -9,16 +9,16 @@ require (
 	cloud.google.com/go/trace v1.11.3 // indirect
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
-	github.com/bradleyfalzon/ghinstallation/v2 v2.13.0
+	github.com/bradleyfalzon/ghinstallation/v2 v2.14.0
 	github.com/go-git/go-git/v5 v5.13.2
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
-	github.com/google/go-cmp v0.6.0
+	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.2
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
-	github.com/moby/buildkit v0.19.0
+	github.com/moby/buildkit v0.20.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.36.2
 	github.com/rhysd/actionlint v1.7.7
@@ -91,7 +91,7 @@ require (
 	github.com/golang/glog v1.2.4 // indirect
 	github.com/google/flatbuffers v23.5.26+incompatible // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/google/go-github/v68 v68.0.0 // indirect
+	github.com/google/go-github/v69 v69.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
@@ -162,7 +162,7 @@ require (
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.16.3 // indirect
-	github.com/docker/cli v27.5.0+incompatible // indirect
+	github.com/docker/cli v27.5.1+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
