@@ -71,7 +71,14 @@ func Run(raw *checker.CheckRequest) (found []finding.Finding, probeName string, 
 		}
 		findings = append(findings, langFindings...)
 	}
-	if len(findings) == 0 {
+	var nonErrorFindings bool
+	for _, f := range findings {
+		if f.Outcome != finding.OutcomeError {
+			nonErrorFindings = true
+		}
+	}
+	// if we don't have any findings (ignoring OutcomeError), we think it's safe
+	if !nonErrorFindings {
 		found, err := finding.NewWith(fs, Probe,
 			"All supported ecosystems do not declare or use unsafe code blocks", nil, finding.OutcomeFalse)
 		if err != nil {
@@ -111,11 +118,10 @@ func getAllLanguages() []languageMemoryCheckConfig {
 
 func checkGoUnsafePackage(client *checker.CheckRequest) ([]finding.Finding, error) {
 	findings := []finding.Finding{}
-
 	if err := fileparser.OnMatchingFileContentDo(client.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*.go",
 		CaseSensitive: false,
-	}, goCodeUsesUnsafePackage, &findings, client.Dlogger); err != nil {
+	}, goCodeUsesUnsafePackage, &findings); err != nil {
 		return nil, err
 	}
 
@@ -128,17 +134,16 @@ func goCodeUsesUnsafePackage(path string, content []byte, args ...interface{}) (
 		// panic if it is not correct type
 		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
 	}
-	dl, ok := args[1].(checker.DetailLogger)
-	if !ok {
-		// panic if it is not correct type
-		panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
-	}
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, "", content, parser.ImportsOnly)
 	if err != nil {
-		dl.Warn(&checker.LogMessage{
-			Text: fmt.Sprintf("malformed golang file: %v", err),
-		})
+		found, err := finding.NewWith(fs, Probe, "malformed golang file", &finding.Location{
+			Path: path,
+		}, finding.OutcomeError)
+		if err != nil {
+			return false, fmt.Errorf("create finding: %w", err)
+		}
+		*findings = append(*findings, *found)
 		return true, nil
 	}
 	for _, i := range f.Imports {
@@ -166,7 +171,7 @@ func checkDotnetAllowUnsafeBlocks(client *checker.CheckRequest) ([]finding.Findi
 	if err := fileparser.OnMatchingFileContentDo(client.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*.csproj",
 		CaseSensitive: false,
-	}, csProjAllosUnsafeBlocks, &findings, client.Dlogger); err != nil {
+	}, csProjAllosUnsafeBlocks, &findings); err != nil {
 		return nil, err
 	}
 	return findings, nil
@@ -178,17 +183,16 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 		// panic if it is not correct type
 		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
 	}
-	dl, ok := args[1].(checker.DetailLogger)
-	if !ok {
-		// panic if it is not correct type
-		panic(fmt.Sprintf("expected type checker.DetailLogger, got %v", reflect.TypeOf(args[1])))
-	}
 
 	unsafe, err := csproj.IsAllowUnsafeBlocksEnabled(content)
 	if err != nil {
-		dl.Warn(&checker.LogMessage{
-			Text: fmt.Sprintf("malformed csproj file: %v", err),
-		})
+		found, err := finding.NewWith(fs, Probe, "malformed csproj file", &finding.Location{
+			Path: path,
+		}, finding.OutcomeError)
+		if err != nil {
+			return false, fmt.Errorf("create finding: %w", err)
+		}
+		*findings = append(*findings, *found)
 		return true, nil
 	}
 	if unsafe {

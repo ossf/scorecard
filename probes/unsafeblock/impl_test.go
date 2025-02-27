@@ -28,7 +28,6 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
-	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func Test_Run(t *testing.T) {
@@ -93,7 +92,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Go, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-no-imports.go",
+				"safe-no-imports.go",
 			},
 			expected: []finding.Finding{
 				{
@@ -110,7 +109,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Go, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-with-imports.go",
+				"safe-with-imports.go",
 			},
 			expected: []finding.Finding{
 				{
@@ -127,7 +126,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Go, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.go",
+				"unsafe.go",
 			},
 			expected: []finding.Finding{
 				{
@@ -138,7 +137,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.go", LineStart: toUintPointer(4)},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
 				},
 			},
 			err: nil,
@@ -149,8 +148,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Go, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.go",
-				"testdata/safe-no-imports.go",
+				"unsafe.go",
+				"safe-no-imports.go",
 			},
 			expected: []finding.Finding{
 				{
@@ -161,7 +160,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.go", LineStart: toUintPointer(4)},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
 				},
 			},
 			err: nil,
@@ -172,10 +171,16 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Go, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/malformed.go",
-				"testdata/unsafe.go",
+				"malformed.go",
+				"unsafe.go",
 			},
 			expected: []finding.Finding{
+				{
+					Probe:    Probe,
+					Message:  "malformed golang file",
+					Outcome:  finding.OutcomeError,
+					Location: &finding.Location{Path: "malformed.go"},
+				},
 				{
 					Probe:   Probe,
 					Message: "Golang code uses the unsafe package",
@@ -184,7 +189,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.go", LineStart: toUintPointer(4)},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
 				},
 			},
 			err: nil,
@@ -211,7 +216,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.CSharp, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-explicit.csproj",
+				"safe-explicit.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -228,7 +233,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.CSharp, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-implicit.csproj",
+				"safe-implicit.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -245,7 +250,7 @@ func Test_Run(t *testing.T) {
 				{Name: clients.CSharp, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.csproj",
+				"unsafe.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -256,7 +261,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
 			},
 			err: nil,
@@ -267,8 +272,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.CSharp, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.csproj",
-				"testdata/safe-explicit.csproj",
+				"unsafe.csproj",
+				"safe-explicit.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -279,7 +284,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
 			},
 			err: nil,
@@ -290,8 +295,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.CSharp, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/malformed.csproj",
-				"testdata/unsafe.csproj",
+				"malformed.csproj",
+				"unsafe.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -302,7 +307,13 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+					Location: &finding.Location{Path: "unsafe.csproj"},
+				},
+				{
+					Probe:    Probe,
+					Message:  "malformed csproj file",
+					Outcome:  finding.OutcomeError,
+					Location: &finding.Location{Path: "malformed.csproj"},
 				},
 			},
 			err: nil,
@@ -330,8 +341,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-no-imports.go",
-				"testdata/safe-explicit.csproj",
+				"safe-no-imports.go",
+				"safe-explicit.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -348,8 +359,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/safe-no-imports.go",
-				"testdata/unsafe.csproj",
+				"safe-no-imports.go",
+				"unsafe.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -360,7 +371,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
 			},
 			err: nil,
@@ -371,8 +382,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.go",
-				"testdata/safe-explicit.csproj",
+				"unsafe.go",
+				"safe-explicit.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -383,7 +394,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.go", LineStart: toUintPointer(4)},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
 				},
 			},
 			err: nil,
@@ -394,8 +405,8 @@ func Test_Run(t *testing.T) {
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
-				"testdata/unsafe.go",
-				"testdata/unsafe.csproj",
+				"unsafe.go",
+				"unsafe.csproj",
 			},
 			expected: []finding.Finding{
 				{
@@ -406,7 +417,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.go", LineStart: toUintPointer(4)},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
 				},
 				{
 					Probe:   Probe,
@@ -416,7 +427,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "testdata/unsafe.csproj"},
+					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
 			},
 			err: nil,
@@ -433,13 +444,22 @@ func Test_Run(t *testing.T) {
 				return tt.repoLanguages, nil
 			}).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
-				return tt.filenames, nil
+				var matches []string
+				for _, f := range tt.filenames {
+					match, err := predicate(f)
+					if err != nil {
+						t.Fatalf("unexpected err: %v", err)
+					}
+					if match {
+						matches = append(matches, f)
+					}
+				}
+				return matches, nil
 			}).AnyTimes()
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
-				return os.Open(file)
+				return os.Open("testdata/" + file)
 			}).AnyTimes()
 			raw.RepoClient = mockRepoClient
-			raw.Dlogger = &scut.TestDetailLogger{}
 			findings, _, err := Run(raw)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -461,7 +481,6 @@ func Test_Run_Error_ListProgrammingLanguages(t *testing.T) {
 		return nil, fmt.Errorf("error")
 	}).AnyTimes()
 	raw.RepoClient = mockRepoClient
-	raw.Dlogger = &scut.TestDetailLogger{}
 	_, _, err := Run(raw)
 	if err == nil {
 		t.Fatalf("expected error: %v", err)
@@ -501,7 +520,6 @@ func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
 				return nil, fmt.Errorf("error")
 			}).AnyTimes()
 			raw.RepoClient = mockRepoClient
-			raw.Dlogger = &scut.TestDetailLogger{}
 			_, _, err := Run(raw)
 			if err.Error() != tt.expectedErr.Error() {
 				t.Error(cmp.Diff(err, tt.expectedErr, cmpopts.EquateErrors()))
