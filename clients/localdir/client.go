@@ -70,6 +70,11 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("file://%s", client.path)
 }
 
+// RepoOwner implements RepoClient.RepoOwner
+func (client *Client) RepoOwner() (string, error) {
+	return "", fmt.Errorf("RepoOwner: %w", clients.ErrUnsupportedFeature)
+}
+
 // IsArchived implements RepoClient.IsArchived.
 func (client *Client) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)

@@ -162,6 +162,11 @@ func (c *client) URI() string {
 	return c.statusURL
 }
 
+// RepoOwner implements RepoClient.RepoOwner
+func (c *client) RepoOwner() (string, error) {
+	return "", fmt.Errorf("RepoOwner: %w", clients.ErrUnsupportedFeature)
+}
+
 // InitRepo implements RepoClient.InitRepo.
 func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	return fmt.Errorf("InitRepo: %w", clients.ErrUnsupportedFeature)

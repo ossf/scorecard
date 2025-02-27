@@ -166,6 +166,10 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("%s/%s/%s", client.repourl.host, client.repourl.owner, client.repourl.project)
 }
 
+func (client *Client) RepoOwner() (string, error) {
+	return client.repourl.owner, nil
+}
+
 func (client *Client) LocalPath() (string, error) {
 	return "", nil
 }

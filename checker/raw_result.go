@@ -218,7 +218,9 @@ type Changeset struct {
 
 // ContributorsData represents contributor information.
 type ContributorsData struct {
-	Users []clients.User
+	Contributors []clients.User
+	CodeOwners   []clients.User
+	RepoOwner    string
 }
 
 // VulnerabilitiesData contains the raw results

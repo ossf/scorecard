@@ -45,7 +45,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 	var findings []finding.Finding
 
-	users := raw.ContributorsResults.Users
+	users := raw.ContributorsResults.Contributors
 
 	if len(users) == 0 {
 		f, err := finding.NewWith(fs, Probe,

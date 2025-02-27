@@ -161,7 +161,7 @@ func TestContributors(t *testing.T) {
 		},
 	}
 
-	if diff := cmp.Diff(expectedUsers, data.Users); diff != "" {
+	if diff := cmp.Diff(expectedUsers, data.Contributors); diff != "" {
 		t.Errorf("unexpected contributors data (-want +got):\n%s", diff)
 	}
 }

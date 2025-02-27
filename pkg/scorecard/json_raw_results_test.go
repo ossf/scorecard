@@ -344,7 +344,7 @@ func TestJsonScorecardRawResult_AddContributorsRawResults(t *testing.T) {
 		{
 			name: "test_with_valid_data",
 			input: &checker.ContributorsData{
-				Users: []clients.User{
+				Contributors: []clients.User{
 					{
 						Login:            "testLogin",
 						NumContributions: 5,

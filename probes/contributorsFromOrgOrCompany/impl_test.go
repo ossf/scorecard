@@ -49,7 +49,7 @@ func Test_Run(t *testing.T) {
 			name: "Test that both User.Companies and User.Organizations are included",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
-					Users: []clients.User{
+					Contributors: []clients.User{
 						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{
@@ -73,7 +73,7 @@ func Test_Run(t *testing.T) {
 			name: "Test multiple users",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
-					Users: []clients.User{
+					Contributors: []clients.User{
 						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{
@@ -109,7 +109,7 @@ func Test_Run(t *testing.T) {
 			name: "Test multiple users where one user has insufficient contributions.",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
-					Users: []clients.User{
+					Contributors: []clients.User{
 						{
 							Companies: []string{"comp1", "comp2"},
 							Organizations: []clients.User{

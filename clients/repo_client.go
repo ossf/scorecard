@@ -32,6 +32,7 @@ const HeadSHA = "HEAD"
 type RepoClient interface {
 	InitRepo(repo Repo, commitSHA string, commitDepth int) error
 	URI() string
+	RepoOwner() (string, error)
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
 	// Returns an absolute path to the local repository

@@ -129,6 +129,10 @@ func (c *Client) URI() string {
 	return c.repourl.URI()
 }
 
+func (c *Client) RepoOwner() (string, error) {
+	return c.repourl.organization, nil
+}
+
 func (c *Client) IsArchived() (bool, error) {
 	return *c.repo.IsDisabled, nil
 }

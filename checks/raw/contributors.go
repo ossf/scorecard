@@ -25,9 +25,8 @@ import (
 // Contributors retrieves the raw data for the Contributors check.
 func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 	c := cr.RepoClient
-	var users []clients.User
-
-	c.ListCodeOwners()
+	var contributors []clients.User
+	var owners []clients.User
 
 	contribs, err := c.ListContributors()
 	if err != nil {
@@ -35,36 +34,53 @@ func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 	}
 
 	for _, contrib := range contribs {
-		user := clients.User{
-			Login:            contrib.Login,
-			NumContributions: contrib.NumContributions,
-		}
-
-		for _, org := range contrib.Organizations {
-			if org.Login != "" && !orgContains(user.Organizations, org.Login) {
-				user.Organizations = append(user.Organizations, org)
-			}
-		}
-
-		for _, company := range contrib.Companies {
-			if company == "" {
-				continue
-			}
-			company = strings.ToLower(company)
-			company = strings.ReplaceAll(company, "inc.", "")
-			company = strings.ReplaceAll(company, "llc", "")
-			company = strings.ReplaceAll(company, ",", "")
-			company = strings.TrimLeft(company, "@")
-			company = strings.Trim(company, " ")
-			if company != "" && !companyContains(user.Companies, company) {
-				user.Companies = append(user.Companies, company)
-			}
-		}
-
-		users = append(users, user)
+		user := cleanCompaniesOrgs(&contrib)
+		contributors = append(contributors, user)
 	}
 
-	return checker.ContributorsData{Users: users}, nil
+	// ignore error so we dont break other probes
+	owns, _ := c.ListCodeOwners()
+	for _, own := range owns {
+		user := cleanCompaniesOrgs(&own)
+		owners = append(owners, user)
+	}
+
+	// ignore error so we dont break other probes
+	repoOwner, _ := c.RepoOwner()
+
+	return checker.ContributorsData{Contributors: contributors, CodeOwners: owners, RepoOwner: repoOwner}, nil
+}
+
+func cleanCompaniesOrgs(user *clients.User) clients.User {
+	cleanUser := clients.User{
+		Login:            user.Login,
+		NumContributions: user.NumContributions,
+	}
+
+	// removes duplicate orgs
+	for _, org := range user.Organizations {
+		if org.Login != "" && !orgContains(cleanUser.Organizations, org.Login) {
+			cleanUser.Organizations = append(cleanUser.Organizations, org)
+		}
+	}
+
+	// cleans up company names and removes duplicates
+	for _, company := range user.Companies {
+		if company == "" {
+			continue
+		}
+		company = strings.ToLower(company)
+		company = strings.ReplaceAll(company, "inc.", "")
+		company = strings.ReplaceAll(company, "llc", "")
+		company = strings.ReplaceAll(company, ",", "")
+		company = strings.TrimLeft(company, "@")
+		company = strings.Trim(company, " ")
+		if company != "" && !companyContains(cleanUser.Companies, company) {
+			cleanUser.Companies = append(cleanUser.Companies, company)
+		}
+	}
+
+	return cleanUser
 }
 
 func companyContains(cs []string, name string) bool {

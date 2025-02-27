@@ -85,7 +85,7 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 		owners := make([]github.User, 0)
 		for _, rule := range ruleset {
 			for _, owner := range rule.Owners {
-				// ignore external verified owners (using .Sting() to name with @)
+				// ignore external verified owners (using .String() to get name with @)
 				if ok := !slices.Contains(verifiedExternalOwners, owner.String()); ok {
 					emptyUser := clients.User{
 						Login: owner.Value,
