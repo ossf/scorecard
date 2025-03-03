@@ -52,7 +52,7 @@ jobs:
           echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@0c907a75c2c80ebcb7f088228285e798b750cf8f #v4.2.1
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf #v4.2.2
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -86,7 +86,7 @@ jobs:
           command: make e2e-gitlab-token
 
       - name: codecov
-        uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3 # 5.3.1
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574 # 5.4.0
         with:
          files: "*e2e-coverage.out"
          verbose: true
