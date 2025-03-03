@@ -130,11 +130,11 @@ linters-settings:
       - flagName
       - mapKey
       - nilValReturn
+      - octalLiteral
       - offBy1
       - sloppyLen
       - sloppyTypeAssert
       - weakCond
-      - octalLiteral
 
       # Performance
       - appendCombine
@@ -146,8 +146,8 @@ linters-settings:
       - assignOp
       - boolExprSimplify
       - captLocal
-      - commentFormatting
       - commentedOutImport
+      - commentFormatting
       - defaultCaseOrder
       - docStub
       - elseif
