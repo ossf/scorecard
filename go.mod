@@ -43,6 +43,7 @@ require (
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
 	github.com/google/osv-scanner v1.9.2
+	github.com/in-toto/attestation v1.1.1
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/otiai10/copy v1.14.1
