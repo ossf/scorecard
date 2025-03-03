@@ -110,20 +110,29 @@ linters-settings:
       - default
       - prefix(github.com/ossf/scorecard)
   gocritic:
+    disable-all: true
     enabled-checks:
       # Diagnostic
       - appendAssign
+      - argOrder
+      - badCall
       - badCond
       - caseOrder
       - codegenComment
       - commentedOutCode
       - deprecatedComment
+      - dupArg
       - dupBranchBody
       - dupCase
       - dupSubExpr
       - exitAfterDefer
+      - flagDeref
       - flagName
+      - mapKey
       - nilValReturn
+      - offBy1
+      - sloppyLen
+      - sloppyTypeAssert
       - weakCond
       - octalLiteral
 
@@ -134,6 +143,7 @@ linters-settings:
       - rangeValCopy
 
       # Style
+      - assignOp
       - boolExprSimplify
       - captLocal
       - commentFormatting
@@ -145,12 +155,18 @@ linters-settings:
       - hexLiteral
       - ifElseChain
       - methodExprCall
+      - newDeref
+      - regexpMust
       - singleCaseSwitch
+      - switchTrue
       - typeAssertChain
       - typeSwitchVar
       - underef
       - unlabelStmt
       - unlambda
+      - unslice
+      - valSwap
+      - wrapperFunc
 
       # Opinionated
       - builtinShadow
