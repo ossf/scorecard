@@ -250,7 +250,9 @@ func (client *Client) ListCodeOwners() ([]clients.User, error) {
 		return []clients.User{}, errNoCodeOwners
 	}
 
-	return client.owners.getOwners(fileReader)
+	repoOwner, _ := client.RepoOwner()
+
+	return client.owners.getOwners(fileReader, repoOwner)
 }
 
 // IsArchived implements RepoClient.IsArchived.

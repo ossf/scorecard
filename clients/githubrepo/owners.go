@@ -53,7 +53,7 @@ func (handler *ownersHandler) init(ctx context.Context, repourl *Repo) {
 	handler.owners = nil
 }
 
-func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
+func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) error {
 	handler.once.Do(func() {
 		defer fileReader.Close()
 
@@ -85,42 +85,39 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 		owners := make([]github.User, 0)
 		for _, rule := range ruleset {
 			for _, owner := range rule.Owners {
-				// ignore external verified owners (using .String() to get name with @)
-				if ok := !slices.Contains(verifiedExternalOwners, owner.String()); ok {
-					emptyUser := clients.User{
-						Login: owner.Value,
+				emptyUser := clients.User{
+					Login: owner.Value,
+				}
+				switch owner.Type {
+				// get github user from owner username
+				case codeowners.UsernameOwner:
+					user, response, err := handler.ghClient.Users.Get(handler.ctx, owner.Value)
+					if err == nil && response.StatusCode == 200 {
+						owners = append(owners, *user)
+					} else {
+						// append to owners if cant find the github user
+						handler.owners = append(handler.owners, emptyUser)
 					}
-					switch owner.Type {
-					// get github user from owner username
-					case codeowners.UsernameOwner:
-						user, response, err := handler.ghClient.Users.Get(handler.ctx, owner.Value)
-						if err == nil && response.StatusCode == 200 {
+				// expand team owners to multiple github users
+				case codeowners.TeamOwner:
+					users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(handler.ctx, handler.repourl.owner, owner.Value, &github.TeamListTeamMembersOptions{})
+					if err == nil && response.StatusCode == 200 {
+						for _, user := range users {
 							owners = append(owners, *user)
-						} else {
-							// append to owners if cant find the github user
-							handler.owners = append(handler.owners, emptyUser)
 						}
-					// expand team owners to multiple github users
-					case codeowners.TeamOwner:
-						users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(handler.ctx, handler.repourl.owner, owner.Value, &github.TeamListTeamMembersOptions{})
-						if err == nil && response.StatusCode == 200 {
-							for _, user := range users {
-								owners = append(owners, *user)
-							}
-						} else {
-							// append to owners if cant find the github team
-							handler.owners = append(handler.owners, emptyUser)
-						}
-					// get github user from email
-					case codeowners.EmailOwner:
-						query := fmt.Sprintf("\"%s\" in:email", owner.String())
-						userSearchResults, response, err := handler.ghClient.Search.Users(handler.ctx, query, &github.SearchOptions{})
-						if err == nil && response.StatusCode == 200 && *userSearchResults.Total > 0 {
-							owners = append(owners, *userSearchResults.Users[0])
-						} else {
-							// append to owners if cant find the github user
-							handler.owners = append(handler.owners, emptyUser)
-						}
+					} else {
+						// append to owners if cant find the github team
+						handler.owners = append(handler.owners, emptyUser)
+					}
+				// get github user from email
+				case codeowners.EmailOwner:
+					query := fmt.Sprintf("\"%s\" in:email", owner.String())
+					userSearchResults, response, err := handler.ghClient.Search.Users(handler.ctx, query, &github.SearchOptions{})
+					if err == nil && response.StatusCode == 200 && *userSearchResults.Total > 0 {
+						owners = append(owners, *userSearchResults.Users[0])
+					} else {
+						// append to owners if cant find the github user
+						handler.owners = append(handler.owners, emptyUser)
 					}
 				}
 			}
@@ -130,6 +127,14 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 			owner := clients.User{
 				Login: own.GetLogin(),
 			}
+
+			// if verified external contributor add repo org to organization list by default
+			if ok := slices.Contains(verifiedExternalOwners, owner.Login); ok {
+				owner.Organizations = append(owner.Organizations, clients.User{
+					Login: repoOwner,
+				})
+			}
+
 			orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, own.GetLogin(), nil)
 			// This call can fail due to token scopes. So ignore error.
 			if err == nil {
@@ -140,6 +145,7 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 				}
 			}
 			owner.Companies = append(owner.Companies, own.GetCompany())
+
 			handler.owners = append(handler.owners, owner)
 		}
 
@@ -148,8 +154,8 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 	return handler.errSetup
 }
 
-func (handler *ownersHandler) getOwners(fileReader io.ReadCloser) ([]clients.User, error) {
-	if err := handler.setup(fileReader); err != nil {
+func (handler *ownersHandler) getOwners(fileReader io.ReadCloser, repoOwner string) ([]clients.User, error) {
+	if err := handler.setup(fileReader, repoOwner); err != nil {
 		return nil, fmt.Errorf("error during ownersHandler.setup: %w", err)
 	}
 	return handler.owners, nil

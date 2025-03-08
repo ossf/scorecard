@@ -68,7 +68,7 @@ var _ = Describe("E2E TEST: githubrepo.ownersHandler", func() {
 		It("returns owners for valid HEAD query", func() {
 			fmt.Printf("%s", repoURL.commitSHA)
 			ownerHandler.init(context.Background(), &repoURL)
-			Expect(ownerHandler.getOwners(fileHandler)).ShouldNot(BeNil())
+			Expect(ownerHandler.getOwners(fileHandler, repoURL.owner)).ShouldNot(BeNil())
 			Expect(ownerHandler.errSetup).Should(BeNil())
 		})
 	})
