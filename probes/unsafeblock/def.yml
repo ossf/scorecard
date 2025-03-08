@@ -1,0 +1,44 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: unsafeblock
+lifecycle: experimental
+short: Flags unsafe blocks of code in this project.
+motivation: >
+  Memory safety in software should be considered a continuum, rather than being binary. 
+  While some languages and tools are memory safe by default, it may still be possible, and sometimes unavoidable, to write unsafe code in them.
+  Unsafe code allow developers to bypass normal safety checks and directly manipulate memory.
+implementation: >
+  The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks.
+  Unsafe code blocks are supported in rust, go, c#, and swift, but only go and c# are supported by this probe at this time:
+  - for go the probe will look for the use of the `unsafe` include directive.
+  - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property.
+outcome:
+  - For supported ecosystem, the probe returns OutcomeTrue per unsafe block.
+  - If the project has no unsafe blocks, the probe returns OutcomeFalse.
+remediation:
+  onOutcome: True
+  effort: Medium
+  text:
+    - Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.
+    - Guidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)
+    - Guidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)
+ecosystem:
+  languages:
+    - go
+    - c#
+  clients:
+    - github  
+    - gitlab  
+    - localdir  
