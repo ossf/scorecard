@@ -101,6 +101,20 @@ If there are no changes, the probe returns OutcomeNotApplicable
 If the changes had fewer than one reviewers, the prove returns OutcomeFalse (0)
 
 
+## contributorsFromCodeOwners
+
+**Lifecycle**: experimental
+
+**Description**: Checks whether a project has a contributions from users listed in the code owners file.
+
+**Motivation**: This probe tries to determine if the project has recent contributors from users listed in the code owners file. Having contributions from multiple code owners indicates they are actively involved in the project and can promote seperation of duties (SoD).
+
+**Implementation**: The probe compares the list of contributors to the list of code owners.  To receive the highest score, the project must have had contributions from at least 3 code owner in the top 30 contributors.
+
+**Outcomes**: If the project has no contributing code owners, the probe returns 1 OutcomeFalse.
+If the project has contributing code owners, the probe returns 1 OutcomeTrue per code owner.
+
+
 ## contributorsFromOrgOrCompany
 
 **Lifecycle**: experimental

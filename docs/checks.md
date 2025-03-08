@@ -251,14 +251,18 @@ puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).
 Risk: `Low` (lower number of trusted code reviewers)
 
 This check tries to determine if the project has recent contributors from
-multiple organizations (e.g., companies). It is currently limited to
+multiple organizations (e.g., companies) and has contibutors who are 
+also listed in the projects CODEOWNERS file. It is currently limited to
 repositories hosted on GitHub, and does not support other source hosting
 repositories (i.e., Forges).
 
 The check looks at the `Company` field on the GitHub user profile for authors of
-recent commits. To receive the highest score, the project must have had
+recent commits. It also compares the users specified in the codeowners file 
+to the list of active contributors. To receive the highest score, the project must have had
 contributors from at least 3 different companies in the last 30 commits; each of
-those contributors must have had at least 5 commits in the last 30 commits.
+those contributors must have had at least 5 commits in the last 30 commits. 
+Furthermore, the project should also have a CODEOWNERS file with at least 3 different users
+and have commits in the last 30 commits.
 
 Note: Some projects cannot meet this requirement, such as small projects with
 only one active participant, or projects with a narrow scope that cannot attract
@@ -270,6 +274,7 @@ participants.
 
 **Remediation steps**
 - Ask contributors to [join their respective organizations](https://docs.github.com/en/organizations/managing-membership-in-your-organization/inviting-users-to-join-your-organization), if they have not already. Otherwise, there is no remediation for this check; it simply provides insight into which organizations have contributed so that you can make a trust-based decision based on that information.
+- Add a [CODEOWNERS file](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)  to you project and ensure these code owners are actively contributing to the project.
 
 ## Dangerous-Workflow 
 
