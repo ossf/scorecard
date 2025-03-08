@@ -56,7 +56,7 @@ func (handler *ownersHandler) init(ctx context.Context, repourl *Repo) {
 	handler.owners = nil
 }
 
-func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) error {
+func (handler *ownersHandler) setup(fileReader io.ReadCloser) error {
 	handler.once.Do(func() {
 		defer fileReader.Close()
 
@@ -100,7 +100,7 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) 
 			// if verified external contributor add repo org to organization list by default
 			if ok := slices.Contains(verifiedExternalOwners, owner.Login); ok {
 				owner.Organizations = append(owner.Organizations, clients.User{
-					Login: repoOwner,
+					Login: handler.repourl.owner,
 				})
 			}
 
@@ -123,7 +123,7 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) 
 	return handler.errSetup
 }
 
-// get github user from owner username
+// get github user from owner username.
 func getUserFromUsername(handler *ownersHandler, owner codeowners.Owner) []*github.User {
 	emptyUser := clients.User{
 		Login: owner.Value,
@@ -137,7 +137,7 @@ func getUserFromUsername(handler *ownersHandler, owner codeowners.Owner) []*gith
 	return nil
 }
 
-// expand team owners to multiple github users
+// expand team owners to multiple github users.
 func getUsersFromTeam(handler *ownersHandler, owner codeowners.Owner) []*github.User {
 	emptyUser := clients.User{
 		Login: owner.Value,
@@ -156,7 +156,7 @@ func getUsersFromTeam(handler *ownersHandler, owner codeowners.Owner) []*github.
 	return nil
 }
 
-// get github user from email
+// get github user from email.
 func getUserFromEmail(handler *ownersHandler, owner codeowners.Owner) []*github.User {
 	emptyUser := clients.User{
 		Login: owner.Value,
@@ -171,7 +171,7 @@ func getUserFromEmail(handler *ownersHandler, owner codeowners.Owner) []*github.
 	return nil
 }
 
-// getting verified external owners by @verified comment
+// getting verified external owners by @verified comment.
 func getVerifiedExternalOwners(fileReader io.ReadCloser) []string {
 	verifiedExternalOwners := make([]string, 0)
 	r := regexp.MustCompile("^# @verified .*")
@@ -187,8 +187,8 @@ func getVerifiedExternalOwners(fileReader io.ReadCloser) []string {
 	return verifiedExternalOwners
 }
 
-func (handler *ownersHandler) getOwners(fileReader io.ReadCloser, repoOwner string) ([]clients.User, error) {
-	if err := handler.setup(fileReader, repoOwner); err != nil {
+func (handler *ownersHandler) getOwners(fileReader io.ReadCloser) ([]clients.User, error) {
+	if err := handler.setup(fileReader); err != nil {
 		return nil, fmt.Errorf("error during ownersHandler.setup: %w", err)
 	}
 	return handler.owners, nil

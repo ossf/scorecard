@@ -259,10 +259,6 @@ func (c *Client) URI() string {
 	return c.repo.URI()
 }
 
-func (c *Client) RepoOwner() (string, error) {
-	return "", clients.ErrUnsupportedFeature
-}
-
 func (c *Client) Close() error {
 	if err := os.RemoveAll(c.tempDir); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("os.RemoveAll: %w", err)

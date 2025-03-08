@@ -380,21 +380,6 @@ func (mr *MockRepoClientMockRecorder) LocalPath() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalPath", reflect.TypeOf((*MockRepoClient)(nil).LocalPath))
 }
 
-// RepoOwner mocks base method.
-func (m *MockRepoClient) RepoOwner() (string, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RepoOwner")
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// RepoOwner indicates an expected call of RepoOwner.
-func (mr *MockRepoClientMockRecorder) RepoOwner() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RepoOwner", reflect.TypeOf((*MockRepoClient)(nil).RepoOwner))
-}
-
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()

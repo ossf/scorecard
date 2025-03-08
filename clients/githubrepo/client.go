@@ -174,11 +174,6 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("%s/%s/%s", host, client.repourl.owner, client.repourl.repo)
 }
 
-// RepoOwner implements RepoClient.RepoOwner.
-func (client *Client) RepoOwner() (string, error) {
-	return client.repourl.owner, nil
-}
-
 // LocalPath implements RepoClient.LocalPath.
 func (client *Client) LocalPath() (string, error) {
 	if client.gitMode {
@@ -250,10 +245,7 @@ func (client *Client) ListCodeOwners() ([]clients.User, error) {
 		return []clients.User{}, errNoCodeOwners
 	}
 
-	//nolint:errcheck
-	repoOwner, _ := client.RepoOwner()
-
-	return client.owners.getOwners(fileReader, repoOwner)
+	return client.owners.getOwners(fileReader)
 }
 
 // IsArchived implements RepoClient.IsArchived.
