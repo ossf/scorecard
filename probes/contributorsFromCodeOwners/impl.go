@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package contributorsFromOrgOrCompany
+package contributorsFromCodeOwners
 
 import (
 	"embed"
@@ -26,10 +26,6 @@ import (
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
-const (
-	minContributionsPerUser = 5
-)
-
 func init() {
 	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.Contributors})
 }
@@ -37,7 +33,7 @@ func init() {
 //go:embed *.yml
 var fs embed.FS
 
-const Probe = "contributorsFromOrgOrCompany"
+const Probe = "contributorsFromCodeOwners"
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {
@@ -45,9 +41,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 	var findings []finding.Finding
 
-	users := raw.ContributorsResults.Contributors
+	contributors := raw.ContributorsResults.Contributors
+	owners := raw.ContributorsResults.CodeOwners
 
-	if len(users) == 0 {
+	if len(contributors) == 0 {
 		f, err := finding.NewWith(fs, Probe,
 			"Project does not have contributors.", nil,
 			finding.OutcomeFalse)
@@ -59,25 +56,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	entities := make(map[string]bool)
-
-	for _, user := range users {
-		if user.NumContributions < minContributionsPerUser {
-			continue
-		}
-
-		for _, org := range user.Organizations {
-			entities[org.Login] = true
-		}
-
-		for _, comp := range user.Companies {
-			entities[comp] = true
-		}
-	}
-
-	if len(entities) == 0 {
+	if len(owners) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"No companies/organizations have contributed to the project.", nil,
+			"Project does not have code owners.", nil,
 			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
@@ -87,10 +68,32 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	// Convert entities map to findings slice
-	for e := range entities {
+	ownerContributors := make(map[string]bool)
+
+	for _, owner := range owners {
+		for _, contributor := range contributors {
+			if owner.Login == contributor.Login {
+				ownerContributors[owner.Login] = true
+				break
+			}
+		}
+	}
+
+	if len(ownerContributors) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			fmt.Sprintf("%s contributor org/company found", e), nil,
+			"Project does not have any code owners who are contributors.", nil,
+			finding.OutcomeFalse)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
+	for e := range ownerContributors {
+		f, err := finding.NewWith(fs, Probe,
+			fmt.Sprintf("%s code owner contributor found", e), nil,
 			finding.OutcomeTrue)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)

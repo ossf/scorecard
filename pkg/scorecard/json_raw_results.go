@@ -438,7 +438,7 @@ func (r *jsonScorecardRawResult) addDangerousWorkflowRawResults(df *checker.Dang
 func (r *jsonScorecardRawResult) addContributorsRawResults(cr *checker.ContributorsData) error {
 	r.Results.Contributors = jsonContributors{}
 
-	for _, user := range cr.Users {
+	for _, user := range cr.Contributors {
 		u := jsonUser{
 			Login:            user.Login,
 			NumContributions: user.NumContributions,
