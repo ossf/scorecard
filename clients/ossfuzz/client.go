@@ -162,7 +162,7 @@ func (c *client) URI() string {
 	return c.statusURL
 }
 
-// RepoOwner implements RepoClient.RepoOwner
+// RepoOwner implements RepoClient.RepoOwner.
 func (c *client) RepoOwner() (string, error) {
 	return "", fmt.Errorf("RepoOwner: %w", clients.ErrUnsupportedFeature)
 }

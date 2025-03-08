@@ -26,7 +26,7 @@ import (
 
 func TestCleanCompaniesOrg(t *testing.T) {
 	t.Parallel()
-	testCases := []struct { //nolint:govet
+	testCases := []struct {
 		name     string
 		user     clients.User
 		expected clients.User
@@ -43,7 +43,6 @@ func TestCleanCompaniesOrg(t *testing.T) {
 				},
 			},
 			expected: clients.User{
-
 				Login:            "user1",
 				NumContributions: 5,
 				Companies:        []string{"company1"},
@@ -87,6 +86,7 @@ func TestCleanCompaniesOrg(t *testing.T) {
 		})
 	}
 }
+
 func TestCompanyContains(t *testing.T) {
 	t.Parallel()
 	testCases := []struct { //nolint:govet

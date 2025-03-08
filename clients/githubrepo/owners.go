@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"slices"
 	"strings"
@@ -32,6 +33,8 @@ import (
 
 // these are the paths where CODEOWNERS files can be found see
 // https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-file-location
+//
+//nolint:lll
 var (
 	CodeOwnerPaths []string = []string{"CODEOWNERS", ".github/CODEOWNERS", "docs/CODEOWNERS"}
 )
@@ -68,57 +71,23 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) 
 			return
 		}
 
-		// getting verified external owners by @verified comment
-		verifiedExternalOwners := make([]string, 0)
-		r, _ := regexp.Compile("^# @verified .*")
-		scanner := bufio.NewScanner(fileReader)
-		for scanner.Scan() {
-			line := scanner.Text()
-			match := r.MatchString(line)
-			if match {
-				usernames := strings.Fields(line)[2:]
-				verifiedExternalOwners = append(verifiedExternalOwners, usernames...)
-			}
-		}
+		verifiedExternalOwners := getVerifiedExternalOwners(fileReader)
 
 		// expanding owners
-		owners := make([]github.User, 0)
+		owners := make([]*github.User, 0)
 		for _, rule := range ruleset {
 			for _, owner := range rule.Owners {
-				emptyUser := clients.User{
-					Login: owner.Value,
-				}
+				var users []*github.User
 				switch owner.Type {
-				// get github user from owner username
 				case codeowners.UsernameOwner:
-					user, response, err := handler.ghClient.Users.Get(handler.ctx, owner.Value)
-					if err == nil && response.StatusCode == 200 {
-						owners = append(owners, *user)
-					} else {
-						// append to owners if cant find the github user
-						handler.owners = append(handler.owners, emptyUser)
-					}
-				// expand team owners to multiple github users
+					users = getUserFromUsername(handler, owner)
 				case codeowners.TeamOwner:
-					users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(handler.ctx, handler.repourl.owner, owner.Value, &github.TeamListTeamMembersOptions{})
-					if err == nil && response.StatusCode == 200 {
-						for _, user := range users {
-							owners = append(owners, *user)
-						}
-					} else {
-						// append to owners if cant find the github team
-						handler.owners = append(handler.owners, emptyUser)
-					}
-				// get github user from email
+					users = getUsersFromTeam(handler, owner)
 				case codeowners.EmailOwner:
-					query := fmt.Sprintf("\"%s\" in:email", owner.String())
-					userSearchResults, response, err := handler.ghClient.Search.Users(handler.ctx, query, &github.SearchOptions{})
-					if err == nil && response.StatusCode == 200 && *userSearchResults.Total > 0 {
-						owners = append(owners, *userSearchResults.Users[0])
-					} else {
-						// append to owners if cant find the github user
-						handler.owners = append(handler.owners, emptyUser)
-					}
+					users = getUserFromEmail(handler, owner)
+				}
+				if users != nil {
+					owners = append(owners, users...)
 				}
 			}
 		}
@@ -152,6 +121,70 @@ func (handler *ownersHandler) setup(fileReader io.ReadCloser, repoOwner string) 
 		handler.errSetup = nil
 	})
 	return handler.errSetup
+}
+
+// get github user from owner username
+func getUserFromUsername(handler *ownersHandler, owner codeowners.Owner) []*github.User {
+	emptyUser := clients.User{
+		Login: owner.Value,
+	}
+	user, response, err := handler.ghClient.Users.Get(handler.ctx, owner.Value)
+	if err == nil && response.StatusCode == http.StatusOK {
+		return []*github.User{user}
+	}
+	// append to owners if cant find the github user
+	handler.owners = append(handler.owners, emptyUser)
+	return nil
+}
+
+// expand team owners to multiple github users
+func getUsersFromTeam(handler *ownersHandler, owner codeowners.Owner) []*github.User {
+	emptyUser := clients.User{
+		Login: owner.Value,
+	}
+	users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
+		handler.ctx,
+		handler.repourl.owner,
+		owner.Value,
+		&github.TeamListTeamMembersOptions{},
+	)
+	if err == nil && response.StatusCode == http.StatusOK {
+		return users
+	}
+	// append to owners if cant find the github team
+	handler.owners = append(handler.owners, emptyUser)
+	return nil
+}
+
+// get github user from email
+func getUserFromEmail(handler *ownersHandler, owner codeowners.Owner) []*github.User {
+	emptyUser := clients.User{
+		Login: owner.Value,
+	}
+	query := fmt.Sprintf("\"%s\" in:email", owner.String())
+	userSearchResults, response, err := handler.ghClient.Search.Users(handler.ctx, query, &github.SearchOptions{})
+	if err == nil && response.StatusCode == http.StatusOK && *userSearchResults.Total > 0 {
+		return []*github.User{userSearchResults.Users[0]}
+	}
+	// append to owners if cant find the github user
+	handler.owners = append(handler.owners, emptyUser)
+	return nil
+}
+
+// getting verified external owners by @verified comment
+func getVerifiedExternalOwners(fileReader io.ReadCloser) []string {
+	verifiedExternalOwners := make([]string, 0)
+	r := regexp.MustCompile("^# @verified .*")
+	scanner := bufio.NewScanner(fileReader)
+	for scanner.Scan() {
+		line := scanner.Text()
+		match := r.MatchString(line)
+		if match {
+			usernames := strings.Fields(line)[2:]
+			verifiedExternalOwners = append(verifiedExternalOwners, usernames...)
+		}
+	}
+	return verifiedExternalOwners
 }
 
 func (handler *ownersHandler) getOwners(fileReader io.ReadCloser, repoOwner string) ([]clients.User, error) {

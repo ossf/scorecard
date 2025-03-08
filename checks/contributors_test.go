@@ -28,6 +28,8 @@ import (
 )
 
 // TestContributors tests the contributors check.
+//
+//nolint:gocognit
 func TestContributors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

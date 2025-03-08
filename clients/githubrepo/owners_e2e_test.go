@@ -16,7 +16,6 @@ package githubrepo
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http"
 
@@ -33,7 +32,7 @@ import (
 var _ = Describe("E2E TEST: githubrepo.ownersHandler", func() {
 	var ownerHandler *ownersHandler
 	var fileHandler io.ReadCloser
-	var repoURL Repo = Repo{
+	repoURL := Repo{
 		owner:     "ossf",
 		repo:      "scorecard",
 		commitSHA: clients.HeadSHA,
@@ -50,6 +49,7 @@ var _ = Describe("E2E TEST: githubrepo.ownersHandler", func() {
 			ghClient: client,
 			ctx:      ctx,
 		}
+		//nolint:errcheck
 		repo, _, _ := ownerHandler.ghClient.Repositories.Get(ownerHandler.ctx, repoURL.owner, repoURL.repo)
 		gitFileHandler := gitfile.Handler{}
 		gitFileHandler.Init(ownerHandler.ctx, repo.GetCloneURL(), repoURL.commitSHA)
@@ -61,12 +61,10 @@ var _ = Describe("E2E TEST: githubrepo.ownersHandler", func() {
 				break
 			}
 		}
-
 	})
 	Context("getOwners()", func() {
 		skipIfTokenIsNot(patTokenType, "PAT only")
 		It("returns owners for valid HEAD query", func() {
-			fmt.Printf("%s", repoURL.commitSHA)
 			ownerHandler.init(context.Background(), &repoURL)
 			Expect(ownerHandler.getOwners(fileHandler, repoURL.owner)).ShouldNot(BeNil())
 			Expect(ownerHandler.errSetup).Should(BeNil())

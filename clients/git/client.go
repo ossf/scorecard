@@ -358,7 +358,7 @@ func (c *Client) ListContributors() ([]clients.User, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
-func (client *Client) ListCodeOwners() ([]clients.User, error) {
+func (c *Client) ListCodeOwners() ([]clients.User, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 

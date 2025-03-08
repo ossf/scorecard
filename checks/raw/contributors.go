@@ -39,6 +39,7 @@ func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 	}
 
 	// ignore error so we dont break other probes
+	//nolint:errcheck
 	owns, _ := c.ListCodeOwners()
 	for _, own := range owns {
 		user := cleanCompaniesOrgs(&own)

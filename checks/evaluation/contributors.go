@@ -48,9 +48,23 @@ func Contributors(name string,
 	}
 
 	// only allow max 3 for each
-	numberOfTrueCompanies := int(math.Min(float64(getNumberOfTrue(findings, contributorsFromOrgOrCompany.Probe)), float64(numberCompaniesForTopScore)))
-	numberOfTrueOwners := int(math.Min(float64(getNumberOfTrue(findings, contributorsFromCodeOwners.Probe)), float64(numberCodeOwnersForTopScore)))
-	reason := fmt.Sprintf("project has %d contributing companies or organizations and %d contributing code owners", numberOfTrueCompanies, numberOfTrueOwners)
+	numberOfTrueCompanies := int(
+		math.Min(
+			float64(getNumberOfTrue(findings, contributorsFromOrgOrCompany.Probe)),
+			float64(numberCompaniesForTopScore),
+		),
+	)
+	numberOfTrueOwners := int(
+		math.Min(
+			float64(getNumberOfTrue(findings, contributorsFromCodeOwners.Probe)),
+			float64(numberCodeOwnersForTopScore),
+		),
+	)
+	reason := fmt.Sprintf(
+		"project has %d contributing companies or organizations and %d contributing code owners",
+		numberOfTrueCompanies,
+		numberOfTrueOwners,
+	)
 
 	if numberOfTrueCompanies+numberOfTrueOwners > 0 {
 		logFindings(findings, dl)
@@ -59,7 +73,12 @@ func Contributors(name string,
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	return checker.CreateProportionalScoreResult(name, reason, numberOfTrueCompanies+numberOfTrueOwners, numberCompaniesForTopScore+numberCodeOwnersForTopScore)
+	return checker.CreateProportionalScoreResult(
+		name,
+		reason,
+		numberOfTrueCompanies+numberOfTrueOwners,
+		numberCompaniesForTopScore+numberCodeOwnersForTopScore,
+	)
 }
 
 func getNumberOfTrue(findings []finding.Finding, probe string) int {

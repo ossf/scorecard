@@ -70,7 +70,7 @@ func (client *Client) URI() string {
 	return fmt.Sprintf("file://%s", client.path)
 }
 
-// RepoOwner implements RepoClient.RepoOwner
+// RepoOwner implements RepoClient.RepoOwner.
 func (client *Client) RepoOwner() (string, error) {
 	return "", fmt.Errorf("RepoOwner: %w", clients.ErrUnsupportedFeature)
 }
