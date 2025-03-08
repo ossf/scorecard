@@ -31,15 +31,18 @@ import (
 func TestContributors(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		err            error
+		contribErr     error
+		ownErr         error
 		name           string
 		contrib        []clients.User
+		own            []clients.User
 		expectedDetail string
 		expected       checker.CheckResult
 	}{
 		{
-			err:  nil,
-			name: "Two contributors without company",
+			ownErr:     nil,
+			contribErr: nil,
+			name:       "Two contributors without company",
 			contrib: []clients.User{
 				{
 					Organizations: []clients.User{
@@ -52,13 +55,28 @@ func TestContributors(t *testing.T) {
 					},
 				},
 			},
+			own: []clients.User{},
 			expected: checker.CheckResult{
 				Score: 0,
 			},
 		},
 		{
-			err:  nil,
-			name: "Valid contributors with enough contributors and companies",
+			ownErr:     nil,
+			contribErr: nil,
+			name:       "Two owners with no contributors",
+			contrib:    []clients.User{},
+			own: []clients.User{
+				{Login: "Login1"},
+				{Login: "Login2"},
+			},
+			expected: checker.CheckResult{
+				Score: 0,
+			},
+		},
+		{
+			contribErr: nil,
+			ownErr:     nil,
+			name:       "Valid contributors with enough contributions and companies",
 			contrib: []clients.User{
 				{
 					Companies:        []string{"company1"},
@@ -132,23 +150,137 @@ func TestContributors(t *testing.T) {
 					},
 				},
 			},
+			own: []clients.User{},
 			expected: checker.CheckResult{
-				Score: 10,
+				Score: 5,
 			},
 			expectedDetail: "found contributions from: company1, company2, company3, company4, company5, org1, org2",
 		},
 		{
-			err:     nil,
-			name:    "No contributors",
-			contrib: []clients.User{},
+			contribErr: nil,
+			ownErr:     nil,
+			name:       "Enough contibutor owners",
+			contrib: []clients.User{
+				{Login: "login1"},
+				{Login: "login2"},
+				{Login: "login3"},
+			},
+			own: []clients.User{
+				{Login: "login3"},
+				{Login: "login1"},
+				{Login: "login2"},
+			},
+			expected: checker.CheckResult{
+				Score: 5,
+			},
+			expectedDetail: "found contributions from: login1, login2, login3",
+		},
+		{
+			contribErr: nil,
+			ownErr:     nil,
+			name:       "Valid contributors with enough contributions, companies, and owners",
+			contrib: []clients.User{
+				{
+					Login:            "Login1",
+					Companies:        []string{"company1"},
+					NumContributions: 10,
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+				{
+					Login:            "Login2",
+					Companies:        []string{"company2"},
+					NumContributions: 10,
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+				{
+					Login:            "Login3",
+					Companies:        []string{"company3"},
+					NumContributions: 10,
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+				{
+					Companies:        []string{"company4"},
+					NumContributions: 10,
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+				{
+					Companies:        []string{"company5"},
+					NumContributions: 10,
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+				{
+					Companies: []string{"company6"},
+					Organizations: []clients.User{
+						{
+							Login: "org1",
+						},
+						{
+							Login: "org2",
+						},
+					},
+				},
+			},
+			own: []clients.User{
+				{Login: "Login3"},
+				{Login: "Login1"},
+				{Login: "Login2"},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+			expectedDetail: "found contributions from: Login1, Login2, Login3, company1, company2, company3, company4, company5, org1, org2",
+		},
+		{
+			contribErr: nil,
+			ownErr:     nil,
+			name:       "No contributors",
+			contrib:    []clients.User{},
+			own:        []clients.User{},
 			expected: checker.CheckResult{
 				Score: 0,
 			},
 		},
 		{
-			err:     errors.New("error"),
-			name:    "Error getting contributors",
-			contrib: []clients.User{},
+			contribErr: errors.New("error"),
+			ownErr:     nil,
+			name:       "Error getting contributors",
+			contrib:    []clients.User{},
+			own:        []clients.User{},
 			expected: checker.CheckResult{
 				Score: -1,
 			},
@@ -162,11 +294,17 @@ func TestContributors(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListContributors().DoAndReturn(func() ([]clients.User, error) {
-				if tt.err != nil {
-					return nil, tt.err
+				if tt.contribErr != nil {
+					return nil, tt.contribErr
 				}
 				return tt.contrib, nil
 			})
+			mockRepo.EXPECT().ListCodeOwners().DoAndReturn(func() ([]clients.User, error) {
+				if tt.ownErr != nil {
+					return nil, tt.ownErr
+				}
+				return tt.own, nil
+			}).AnyTimes()
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
@@ -174,9 +312,9 @@ func TestContributors(t *testing.T) {
 			req.Dlogger = &scut.TestDetailLogger{}
 			res := Contributors(&req)
 
-			if tt.err != nil {
+			if tt.contribErr != nil || tt.ownErr != nil {
 				if res.Error == nil {
-					t.Errorf("Expected error %v, got nil", tt.err)
+					t.Errorf("Expected error %v, got nil", tt.contribErr)
 				}
 				// return as we don't need to check the rest of the fields.
 				return

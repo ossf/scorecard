@@ -24,6 +24,69 @@ import (
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
 
+func TestCleanCompaniesOrg(t *testing.T) {
+	t.Parallel()
+	testCases := []struct { //nolint:govet
+		name     string
+		user     clients.User
+		expected clients.User
+	}{
+		{
+			name: "removes duplicate orgs and companies",
+			user: clients.User{
+				Login:            "user1",
+				NumContributions: 5,
+				Companies:        []string{"Company1", "Company1"},
+				Organizations: []clients.User{
+					{Login: "org1"},
+					{Login: "org1"},
+				},
+			},
+			expected: clients.User{
+
+				Login:            "user1",
+				NumContributions: 5,
+				Companies:        []string{"company1"},
+				Organizations: []clients.User{
+					{Login: "org1"},
+				},
+			},
+		},
+		{
+			name: "normalizes company names",
+			user: clients.User{
+				Login:            "user1",
+				NumContributions: 5,
+				Companies:        []string{"Company1", "@Company2", "Company3 inc.", "Company4 llc", "Company,5", "COMPANY6"},
+				Organizations: []clients.User{
+					{Login: "org1"},
+				},
+			},
+			expected: clients.User{
+				Login:            "user1",
+				NumContributions: 5,
+				Companies:        []string{"company1", "company2", "company3", "company4", "company5", "company6"},
+				Organizations: []clients.User{
+					{Login: "org1"},
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			result := cleanCompaniesOrgs(&tc.user)
+			if diff := cmp.Diff(result.Companies, tc.expected.Companies); diff != "" {
+				t.Errorf("unexpected companies data (-want +got):\n%s", diff)
+			}
+			if diff := cmp.Diff(result.Organizations, tc.expected.Organizations); diff != "" {
+				t.Errorf("unexpected organizations data (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 func TestCompanyContains(t *testing.T) {
 	t.Parallel()
 	testCases := []struct { //nolint:govet
@@ -130,8 +193,13 @@ func TestContributors(t *testing.T) {
 			},
 		},
 	}
+	codeOwners := []clients.User{
+		{Login: "user1"},
+		{Login: "user2"},
+	}
 
 	mockRepoClient.EXPECT().ListContributors().Return(contributors, nil)
+	mockRepoClient.EXPECT().ListCodeOwners().Return(codeOwners, nil)
 	req := &checker.CheckRequest{
 		RepoClient: mockRepoClient,
 	}
@@ -160,8 +228,15 @@ func TestContributors(t *testing.T) {
 			},
 		},
 	}
+	expectedCodeOwners := []clients.User{
+		{Login: "user1"},
+		{Login: "user2"},
+	}
 
 	if diff := cmp.Diff(expectedUsers, data.Contributors); diff != "" {
 		t.Errorf("unexpected contributors data (-want +got):\n%s", diff)
+	}
+	if diff := cmp.Diff(expectedCodeOwners, data.CodeOwners); diff != "" {
+		t.Errorf("unexpected code owners data (-want +got):\n%s", diff)
 	}
 }

@@ -29,8 +29,56 @@ func TestContributors(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "Only has two true outcomes",
+			name: "Only has two true contributorsFromOrgOrCompany outcomes ",
 			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        3,
+				NumberOfInfo: 1,
+			},
+		}, {
+			name: "Only has two true contributorsFromCodeOwners outcomes ",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        3,
+				NumberOfInfo: 1,
+			},
+		}, {
+			name: "Only has two true contributorsFromCodeOwners and contributorsFromOrgOrCompany outcomes ",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
 				{
 					Probe:   "contributorsFromOrgOrCompany",
 					Outcome: finding.OutcomeTrue,
@@ -45,10 +93,14 @@ func TestContributors(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		}, {
-			name: "No contributors",
+			name: "No contributors or owners",
 			findings: []finding.Finding{
 				{
 					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
 					Outcome: finding.OutcomeFalse,
 				},
 			},
@@ -56,8 +108,68 @@ func TestContributors(t *testing.T) {
 				Score: 0,
 			},
 		}, {
-			name: "Has three true outcomes",
+			name: "Has three true contributorsFromOrgOrCompany outcomes",
 			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        5,
+				NumberOfInfo: 1,
+			},
+		}, {
+			name: "Has three true contributorsFromCodeOwners outcomes",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromOrgOrCompany",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        5,
+				NumberOfInfo: 1,
+			},
+		}, {
+			name: "Has three true contributorsFromCodeOwners and contributorsFromOrgOrCompany outcomes",
+			findings: []finding.Finding{
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "contributorsFromCodeOwners",
+					Outcome: finding.OutcomeTrue,
+				},
 				{
 					Probe:   "contributorsFromOrgOrCompany",
 					Outcome: finding.OutcomeTrue,

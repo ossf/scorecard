@@ -45,10 +45,7 @@ func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 		owners = append(owners, user)
 	}
 
-	// ignore error so we dont break other probes
-	repoOwner, _ := c.RepoOwner()
-
-	return checker.ContributorsData{Contributors: contributors, CodeOwners: owners, RepoOwner: repoOwner}, nil
+	return checker.ContributorsData{Contributors: contributors, CodeOwners: owners}, nil
 }
 
 func cleanCompaniesOrgs(user *clients.User) clients.User {

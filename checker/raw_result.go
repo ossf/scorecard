@@ -220,7 +220,6 @@ type Changeset struct {
 type ContributorsData struct {
 	Contributors []clients.User
 	CodeOwners   []clients.User
-	RepoOwner    string
 }
 
 // VulnerabilitiesData contains the raw results

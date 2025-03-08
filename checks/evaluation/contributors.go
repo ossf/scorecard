@@ -16,17 +16,20 @@ package evaluation
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/contributorsFromCodeOwners"
 	"github.com/ossf/scorecard/v5/probes/contributorsFromOrgOrCompany"
 )
 
 const (
-	numberCompaniesForTopScore = 3
+	numberCompaniesForTopScore  = 3
+	numberCodeOwnersForTopScore = 3
 )
 
 // Contributors applies the score policy for the Contributors check.
@@ -36,6 +39,7 @@ func Contributors(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		contributorsFromOrgOrCompany.Probe,
+		contributorsFromCodeOwners.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -43,25 +47,27 @@ func Contributors(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	numberOfTrue := getNumberOfTrue(findings)
-	reason := fmt.Sprintf("project has %d contributing companies or organizations", numberOfTrue)
+	// only allow max 3 for each
+	numberOfTrueCompanies := int(math.Min(float64(getNumberOfTrue(findings, contributorsFromOrgOrCompany.Probe)), float64(numberCompaniesForTopScore)))
+	numberOfTrueOwners := int(math.Min(float64(getNumberOfTrue(findings, contributorsFromCodeOwners.Probe)), float64(numberCodeOwnersForTopScore)))
+	reason := fmt.Sprintf("project has %d contributing companies or organizations and %d contributing code owners", numberOfTrueCompanies, numberOfTrueOwners)
 
-	if numberOfTrue > 0 {
+	if numberOfTrueCompanies+numberOfTrueOwners > 0 {
 		logFindings(findings, dl)
 	}
-	if numberOfTrue > numberCompaniesForTopScore {
+	if numberOfTrueCompanies >= numberCompaniesForTopScore && numberOfTrueOwners >= numberCodeOwnersForTopScore {
 		return checker.CreateMaxScoreResult(name, reason)
 	}
 
-	return checker.CreateProportionalScoreResult(name, reason, numberOfTrue, numberCompaniesForTopScore)
+	return checker.CreateProportionalScoreResult(name, reason, numberOfTrueCompanies+numberOfTrueOwners, numberCompaniesForTopScore+numberCodeOwnersForTopScore)
 }
 
-func getNumberOfTrue(findings []finding.Finding) int {
+func getNumberOfTrue(findings []finding.Finding, probe string) int {
 	var numberOfTrue int
 	for i := range findings {
 		f := &findings[i]
-		if f.Outcome == finding.OutcomeTrue {
-			if f.Probe == contributorsFromOrgOrCompany.Probe {
+		if f.Outcome == finding.OutcomeTrue && f.Probe == probe {
+			if f.Probe == contributorsFromOrgOrCompany.Probe || f.Probe == contributorsFromCodeOwners.Probe {
 				numberOfTrue++
 			}
 		}
@@ -70,17 +76,19 @@ func getNumberOfTrue(findings []finding.Finding) int {
 }
 
 func logFindings(findings []finding.Finding, dl checker.DetailLogger) {
-	var orgs []string
-	const suffix = " contributor org/company found"
+	var entities []string
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeTrue {
-			org := strings.TrimSuffix(f.Message, suffix)
-			orgs = append(orgs, org)
+			entity := strings.TrimSuffix(f.Message, " code owner contributor found")
+			entity = strings.TrimSuffix(entity, " contributor org/company found")
+			if entity != "" {
+				entities = append(entities, entity)
+			}
 		}
 	}
-	slices.Sort(orgs)
+	slices.Sort(entities)
 	dl.Info(&checker.LogMessage{
-		Text: "found contributions from: " + strings.Join(orgs, ", "),
+		Text: "found contributions from: " + strings.Join(entities, ", "),
 	})
 }
