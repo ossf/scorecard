@@ -23,7 +23,7 @@ on:
   - main
 
 env:
-  GO_VERSION: 1.23
+  GO_VERSION: 1.24
 
 jobs:
   docs_only_check:
