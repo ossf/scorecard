@@ -214,6 +214,11 @@ func (client *Client) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)
 }
 
+// ListCodeOwners implements RepoClient.ListCodeOwners.
+func (client *Client) ListCodeOwners() ([]clients.User, error) {
+	return nil, fmt.Errorf("ListCodeOwners: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
 func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return nil, fmt.Errorf("ListSuccessfulWorkflowRuns: %w", clients.ErrUnsupportedFeature)
