@@ -27,7 +27,7 @@ on:
 
 env:
   PROTOC_VERSION: 21.6
-  GO_VERSION: 1.23
+  GO_VERSION: 1.24
 
 jobs:
   unit-test:
