@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v5/probes/codeApproved"
 	"github.com/ossf/scorecard/v5/probes/codeReviewOneReviewers"
+	"github.com/ossf/scorecard/v5/probes/contributorsFromCodeOwners"
 	"github.com/ossf/scorecard/v5/probes/contributorsFromOrgOrCompany"
 	"github.com/ossf/scorecard/v5/probes/createdRecently"
 	"github.com/ossf/scorecard/v5/probes/dependencyUpdateToolConfigured"
@@ -101,6 +102,7 @@ var (
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
+		contributorsFromCodeOwners.Run,
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
