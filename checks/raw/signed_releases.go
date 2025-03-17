@@ -15,15 +15,20 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 // SignedReleases checks for presence of signed release check.
 func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error) {
 	releases, err := c.RepoClient.ListReleases()
 	if err != nil {
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return checker.SignedReleasesData{}, nil
+		}
 		return checker.SignedReleasesData{}, fmt.Errorf("%w", err)
 	}
 
