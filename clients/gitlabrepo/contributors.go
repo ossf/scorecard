@@ -84,7 +84,34 @@ func (handler *contributorsHandler) retrieveUsers(queryName string) ([]*gitlab.U
 	return users, nil
 }
 
+// Orginisation is an experimental feature in GitLab. Takes a slice
+// pointer to maintain list of domains and email returns an anonymised
+// string with the slice index as a unique identifier.
+// Pointer is required as we are modifying the slice length.
+func getOrginisation(orgDomain *[]string, orgReal string) string {
+	// Some repositories date before email was widely used.
+	emailSplit := strings.Split(orgReal, "@")
+	var orgName string // Orginisation name
+	if len(emailSplit) > 1 {
+		orgName = emailSplit[1]
+	} else {
+		orgName = emailSplit[0] // Not an "email"
+	}
+
+	*orgDomain = append(*orgDomain, orgName)
+
+	// Search for domain and use index as unique marker
+	for i, domain := range *orgDomain {
+		if domain == orgName {
+			return fmt.Sprint("GitLab-", i)
+		}
+	}
+	return "GitLab"
+}
+
 func (handler *contributorsHandler) setup() error {
+	var orgDomain []string // Slice of email domains
+
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries",
@@ -126,9 +153,17 @@ func (handler *contributorsHandler) setup() error {
 				user = users[0]
 			}
 
+			// In case someone is using the experimental feature.
+			var orgName string
+			if user.Organization == "" {
+				orgName = getOrginisation(&orgDomain, contrib.Email)
+			} else {
+				orgName = user.Organization
+			}
+
 			contributor := clients.User{
 				Login:            contrib.Email,
-				Companies:        []string{user.Organization},
+				Companies:        []string{orgName},
 				NumContributions: contrib.Commits,
 				ID:               int64(user.ID),
 				IsBot:            user.Bot,
