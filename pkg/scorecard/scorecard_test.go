@@ -366,9 +366,21 @@ func Test_findConfigFile(t *testing.T) {
 			wantFound: true,
 		},
 		{
+			desc:      "scorecard.yaml exists",
+			locs:      []string{"scorecard.yaml"},
+			found:     "scorecard.yaml",
+			wantFound: true,
+		},
+		{
 			desc:      ".scorecard.yml exists",
 			locs:      []string{".scorecard.yml"},
 			found:     ".scorecard.yml",
+			wantFound: true,
+		},
+		{
+			desc:      ".scorecard.yaml exists",
+			locs:      []string{".scorecard.yaml"},
+			found:     ".scorecard.yaml",
 			wantFound: true,
 		},
 		{
@@ -378,8 +390,14 @@ func Test_findConfigFile(t *testing.T) {
 			wantFound: true,
 		},
 		{
+			desc:      ".github/scorecard.yaml exists",
+			locs:      []string{".github/scorecard.yaml"},
+			found:     ".github/scorecard.yaml",
+			wantFound: true,
+		},
+		{
 			desc:      "multiple configs exist",
-			locs:      []string{"scorecard.yml", ".github/scorecard.yml"},
+			locs:      []string{"scorecard.yml", ".github/scorecard.yaml"},
 			found:     "scorecard.yml",
 			wantFound: true,
 		},
