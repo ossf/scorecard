@@ -17,9 +17,8 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -402,10 +401,21 @@ func Test_findConfigFile(t *testing.T) {
 			wantFound: true,
 		},
 		{
-			desc:      "no config exists so shouldn't find one",
+			desc:      "no config exists",
 			locs:      []string{},
+			found:     "",
 			wantFound: false,
 		},
+	}
+
+	// Define the order of locations to check
+	checkOrder := []string{
+		"scorecard.yml",
+		"scorecard.yaml",
+		".scorecard.yml",
+		".scorecard.yaml",
+		".github/scorecard.yml",
+		".github/scorecard.yaml",
 	}
 
 	for _, tt := range tests {
@@ -414,25 +424,40 @@ func Test_findConfigFile(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
-			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(func(filename string) (io.ReadCloser, error) {
-				if !slices.Contains(tt.locs, filename) {
-					return nil, fmt.Errorf("os.Open: %s", filename)
-				}
-				fullPath := filepath.Join("./testdata", filename)
-				f, err := os.Open(fullPath)
-				if err != nil {
-					return nil, fmt.Errorf("os.Open: %w", err)
-				}
-				return f, nil
-			})
-			r, path := findConfigFile(mockRepoClient)
+			defer ctrl.Finish()
 
-			if tt.found != "" && tt.found != path {
-				t.Errorf("expected config file %+v got %+v", tt.found, path)
+			// Set up expectations for each location in the correct order
+			for _, loc := range checkOrder {
+				if slices.Contains(tt.locs, loc) {
+					mockRepoClient.EXPECT().
+						GetFileReader(loc).
+						Return(io.NopCloser(strings.NewReader("test config")), nil)
+					// If this is the first matching file, we should stop here
+					if loc == tt.found {
+						break
+					}
+				} else {
+					mockRepoClient.EXPECT().
+						GetFileReader(loc).
+						Return(nil, fmt.Errorf("file not found"))
+				}
 			}
 
-			if tt.wantFound != (r != nil) {
-				t.Errorf("wantFound: %+v got %+v", tt.wantFound, r)
+			gotReader, gotLoc := findConfigFile(mockRepoClient)
+			if tt.wantFound {
+				if gotReader == nil {
+					t.Error("findConfigFile() returned nil reader when file should exist")
+				}
+				if gotLoc != tt.found {
+					t.Errorf("findConfigFile() location = %v, want %v", gotLoc, tt.found)
+				}
+			} else {
+				if gotReader != nil {
+					t.Error("findConfigFile() returned non-nil reader when no file should exist")
+				}
+				if gotLoc != "" {
+					t.Errorf("findConfigFile() location = %v, want empty string", gotLoc)
+				}
 			}
 		})
 	}
