@@ -3,7 +3,7 @@ module github.com/ossf/scorecard/v5
 go 1.23.0
 
 require (
-	cloud.google.com/go/bigquery v1.66.2
+	cloud.google.com/go/bigquery v1.67.0
 	cloud.google.com/go/monitoring v1.24.0 // indirect
 	cloud.google.com/go/pubsub v1.48.0
 	cloud.google.com/go/trace v1.11.3 // indirect
@@ -20,7 +20,7 @@ require (
 	github.com/jszwec/csvutil v1.10.0
 	github.com/moby/buildkit v0.20.1
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/onsi/gomega v1.36.2
+	github.com/onsi/gomega v1.36.3
 	github.com/rhysd/actionlint v1.7.7
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
@@ -32,7 +32,7 @@ require (
 	golang.org/x/text v0.23.0
 	golang.org/x/tools v0.30.0 // indirect
 	google.golang.org/genproto v0.0.0-20250303144028-a0af3efb3deb // indirect
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.11.0
@@ -45,9 +45,9 @@ require (
 	github.com/google/osv-scanner v1.9.2
 	github.com/in-toto/attestation v1.1.1
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.23.0
+	github.com/onsi/ginkgo/v2 v2.23.3
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v0.125.0
+	gitlab.com/gitlab-org/api/client-go v0.126.0
 	sigs.k8s.io/release-utils v0.8.4
 )
 
@@ -58,7 +58,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/containeranalysis v0.13.3 // indirect
 	cloud.google.com/go/kms v1.21.0 // indirect
-	cloud.google.com/go/longrunning v0.6.4 // indirect
+	cloud.google.com/go/longrunning v0.6.5 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	deps.dev/api/v3 v3.0.0-20241010035105-b3ba03369df1 // indirect
 	deps.dev/util/maven v0.0.0-20241218001045-3890182485f3 // indirect
@@ -134,11 +134,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.34.0 // indirect
 	go.opentelemetry.io/otel/trace v1.34.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
-	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/vuln v1.0.4 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250227231956-55c901821b1e // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	k8s.io/api v0.29.3 // indirect
@@ -199,12 +199,12 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/net v0.36.0 // indirect
+	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/oauth2 v0.28.0
 	golang.org/x/sync v0.12.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.224.0 // indirect
 	google.golang.org/grpc v1.71.0 // indirect
