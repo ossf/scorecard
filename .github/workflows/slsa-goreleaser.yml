@@ -47,12 +47,12 @@ jobs:
         uses: slsa-framework/slsa-verifier/actions/installer@v2.7.0
 
       - name: Download the artifact
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: "${{ needs.build.outputs.go-binary-name }}.intoto.jsonl"
 
       - name: Download the artifact
-        uses: actions/download-artifact@cc203385981b70ca67e1cc392babf9cc229d5806 # v4.1.9
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e # v4.2.1
         with:
           name: ${{ needs.build.outputs.go-binary-name }}
 
