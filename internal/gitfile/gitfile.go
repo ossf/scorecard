@@ -68,6 +68,8 @@ func (h *Handler) setup() error {
 			// TODO: auth may be required for private repos
 			Depth:        1, // currently only use the git repo for files, dont need history
 			SingleBranch: true,
+			// https://github.com/go-git/go-git/issues/545#issuecomment-1353681676
+			Tags: git.NoTags,
 		})
 		if err != nil {
 			h.errSetup = err
