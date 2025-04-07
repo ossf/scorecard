@@ -52,7 +52,7 @@ jobs:
         run: echo "version_flags=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"
       - name: Run GoReleaser
         id: run-goreleaser
-        uses: goreleaser/goreleaser-action@90a3faa9d0182683851fbfa97ca1a2cb983bfca3 # v6.2.1
+        uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
           args: release --clean
         env:
