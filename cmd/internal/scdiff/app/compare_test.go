@@ -74,7 +74,6 @@ func Test_compare(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			x := strings.NewReader(tt.x)
@@ -123,7 +122,6 @@ func Test_compare_reader_err(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := compareReaders(tt.x, tt.y, os.Stderr); err == nil { // if NO error
