@@ -13,7 +13,7 @@
 // limitations under the License.
 
 //nolint:stylecheck
-package contributorsFromOrgOrCompany
+package contributorsFromCodeOwners
 
 import (
 	"testing"
@@ -46,89 +46,29 @@ func Test_Run(t *testing.T) {
 		err      error
 	}{
 		{
-			name: "Test that both User.Companies and User.Organizations are included",
+			name: "Test that contributors include all code owners",
 			raw: &checker.RawResults{
 				ContributorsResults: checker.ContributorsData{
 					Contributors: []clients.User{
 						{
-							Companies: []string{"comp1", "comp2"},
-							Organizations: []clients.User{
-								{
-									Login:            "Login",
-									Companies:        []string{"comp3", "comp4"}, // These should not be included
-									NumContributions: 10,
-								},
-							},
-							NumContributions: 10,
+							Login: "Login1",
+						},
+						{
+							Login: "Login2",
+						},
+						{
+							Login: "Login3",
 						},
 					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-			},
-		}, {
-			name: "Test multiple users",
-			raw: &checker.RawResults{
-				ContributorsResults: checker.ContributorsData{
-					Contributors: []clients.User{
+					CodeOwners: []clients.User{
 						{
-							Companies: []string{"comp1", "comp2"},
-							Organizations: []clients.User{
-								{
-									Login:            "Login1",
-									NumContributions: 10,
-								},
-							},
-							NumContributions: 10,
+							Login: "Login2",
 						},
 						{
-							Companies: []string{"comp3", "comp4"},
-							Organizations: []clients.User{
-								{
-									Login:            "Login2",
-									NumContributions: 10,
-								},
-							},
-							NumContributions: 10,
-						},
-					},
-				},
-			},
-			outcomes: []finding.Outcome{
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-				finding.OutcomeTrue,
-			},
-		}, {
-			name: "Test multiple users where one user has insufficient contributions.",
-			raw: &checker.RawResults{
-				ContributorsResults: checker.ContributorsData{
-					Contributors: []clients.User{
-						{
-							Companies: []string{"comp1", "comp2"},
-							Organizations: []clients.User{
-								{
-									Login:            "Login1",
-									NumContributions: 10,
-								},
-							},
-							NumContributions: 10,
+							Login: "Login3",
 						},
 						{
-							Companies: []string{"comp3", "comp4"},
-							Organizations: []clients.User{
-								{
-									Login:            "Login2",
-									NumContributions: 10,
-								},
-							},
-							NumContributions: 2,
+							Login: "Login1",
 						},
 					},
 				},
@@ -139,8 +79,116 @@ func Test_Run(t *testing.T) {
 				finding.OutcomeTrue,
 			},
 		},
+		{
+			name: "Test that contributors match no code owners",
+			raw: &checker.RawResults{
+				ContributorsResults: checker.ContributorsData{
+					Contributors: []clients.User{
+						{
+							Login: "Login1",
+						},
+						{
+							Login: "Login2",
+						},
+						{
+							Login: "Login3",
+						},
+					},
+					CodeOwners: []clients.User{
+						{
+							Login: "Login4",
+						},
+						{
+							Login: "Login5",
+						},
+						{
+							Login: "Login6",
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "Test that contributors match some code owners",
+			raw: &checker.RawResults{
+				ContributorsResults: checker.ContributorsData{
+					Contributors: []clients.User{
+						{
+							Login: "Login1",
+						},
+						{
+							Login: "Login2",
+						},
+						{
+							Login: "Login3",
+						},
+					},
+					CodeOwners: []clients.User{
+						{
+							Login: "Login3",
+						},
+						{
+							Login: "Login5",
+						},
+						{
+							Login: "Login6",
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Test no code owners",
+			raw: &checker.RawResults{
+				ContributorsResults: checker.ContributorsData{
+					Contributors: []clients.User{
+						{
+							Login: "Login1",
+						},
+						{
+							Login: "Login2",
+						},
+						{
+							Login: "Login3",
+						},
+					},
+					CodeOwners: []clients.User{},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "Test no code contributors",
+			raw: &checker.RawResults{
+				ContributorsResults: checker.ContributorsData{
+					CodeOwners: []clients.User{
+						{
+							Login: "Login3",
+						},
+						{
+							Login: "Login5",
+						},
+						{
+							Login: "Login6",
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
 	}
 	for _, tt := range tests {
+		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
