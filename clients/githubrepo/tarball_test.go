@@ -130,7 +130,6 @@ func TestExtractTarball(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -222,7 +221,6 @@ func Test_setup_empty_repo(t *testing.T) {
 	}))
 	t.Cleanup(ts.Close)
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			h := tarballHandler{
 				httpClient: http.DefaultClient,

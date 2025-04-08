@@ -332,7 +332,6 @@ func TestProbeCodeApproved(t *testing.T) {
 	}
 
 	for _, tt := range probeTests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			res, probeID, err := Run(tt.rawResults)

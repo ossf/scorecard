@@ -64,7 +64,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var errs []*actionlint.Error
 	localPath := raw.Metadata.Metadata["localPath"]
 	for _, w := range r.Workflows {
-		w := w
 		if w.Type != checker.DangerousWorkflowScriptInjection {
 			continue
 		}

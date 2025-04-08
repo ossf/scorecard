@@ -575,7 +575,6 @@ func Test_Run(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -617,7 +616,6 @@ func Test_generateOwnerToDisplay(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := generateOwnerToDisplay(tt.gitHubOwned); got != tt.want {
@@ -657,7 +655,6 @@ func TestGenerateText(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := generateTextUnpinned(tc.dependency)

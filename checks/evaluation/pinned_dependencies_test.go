@@ -217,7 +217,6 @@ func Test_createScoreForGitHubActionsWorkflow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
@@ -460,7 +459,6 @@ func Test_PinningDependencies(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
@@ -560,7 +558,6 @@ func Test_addWorkflowPinnedResult(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			addWorkflowPinnedResult(tt.args.outcome, tt.args.w, tt.args.isGitHub)
@@ -728,7 +725,6 @@ func TestUpdatePinningResults(t *testing.T) {
 		},
 	}
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			updatePinningResults(tc.args.dependencyType, tc.args.outcome, tc.args.snippet, tc.args.w, tc.args.pr)
@@ -775,7 +771,6 @@ func Test_generateOwnerToDisplay(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := generateOwnerToDisplay(tt.gitHubOwned); got != tt.want {

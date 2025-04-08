@@ -53,8 +53,6 @@ func runEnabledChecks(ctx context.Context,
 ) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
-		checkName := checkName
-		checkFn := checkFn
 		wg.Add(1)
 		go func() {
 			defer wg.Done()

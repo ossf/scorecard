@@ -255,7 +255,6 @@ func TestBranchProtection(t *testing.T) {
 		// TODO: Add tests for commitSHA regex matching.
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)

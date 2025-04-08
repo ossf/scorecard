@@ -57,7 +57,6 @@ func Test_registerCheck(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := registerCheck(tt.args.name, tt.args.fn, nil /*supportedRequestTypes*/); (err != nil) != tt.wanterr {

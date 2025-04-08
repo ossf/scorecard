@@ -978,7 +978,6 @@ func Test_createSARIFRuns(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := createSARIFRuns(tt.args.runs); !reflect.DeepEqual(got, tt.want) {

@@ -54,7 +54,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if !licenseFile.LicenseInformation.Approved {
 			continue
 		}
-		licenseFile := licenseFile
 		loc := licenseFile.File.Location()
 		f, err := finding.NewTrue(fs, Probe, "FSF or OSI recognized license: "+licenseFile.LicenseInformation.Name, loc)
 		if err != nil {
