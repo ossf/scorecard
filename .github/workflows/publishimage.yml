@@ -50,7 +50,7 @@ jobs:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
      - name: install ko
-       uses: ko-build/setup-ko@d982fec422852203cfb2053a8ec6ad302280d04d # v0.8
+       uses: ko-build/setup-ko@d006021bd0c28d1ce33a07e7943d48b079944c8d # v0.9
      - name: publishimage
        uses: nick-invision/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08
        with:
