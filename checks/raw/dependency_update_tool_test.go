@@ -155,7 +155,6 @@ func Test_checkDependencyFileExists(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			results := []checker.Tool{}
@@ -235,7 +234,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

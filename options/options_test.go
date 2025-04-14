@@ -107,7 +107,6 @@ func TestOptions_Validate(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		if tt.fields.FileMode == "" {
 			tt.fields.FileMode = FileModeArchive
 		}

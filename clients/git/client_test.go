@@ -94,7 +94,6 @@ func TestInitRepo(t *testing.T) {
 	repoPath := createTestRepo(t)
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			uri := repoPath
@@ -209,7 +208,6 @@ func TestSearch(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			client := &Client{}

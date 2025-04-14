@@ -118,13 +118,10 @@ func Test_rulesMatchingBranch(t *testing.T) {
 
 	active := "ACTIVE"
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			inputRules := []*repoRuleSet{{Enforcement: &active, Conditions: testcase.condition}}
 			for branchName, expected := range testcase.defaultBranchNames {
-				branchName := branchName
-				expected := expected
 				t.Run(fmt.Sprintf("default branch %s", branchName), func(t *testing.T) {
 					t.Parallel()
 					matching, err := rulesMatchingBranch(inputRules, branchName, true)
@@ -137,8 +134,6 @@ func Test_rulesMatchingBranch(t *testing.T) {
 				})
 			}
 			for branchName, expected := range testcase.nonDefaultBranchNames {
-				branchName := branchName
-				expected := expected
 				t.Run(fmt.Sprintf("non-default branch %s", branchName), func(t *testing.T) {
 					t.Parallel()
 					matching, err := rulesMatchingBranch(inputRules, branchName, false)
@@ -527,7 +522,6 @@ func Test_applyRepoRules(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			applyRepoRules(testcase.base, testcase.ruleSets)
@@ -627,7 +621,6 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 

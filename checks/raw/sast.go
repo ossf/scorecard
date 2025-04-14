@@ -42,6 +42,7 @@ var sastTools = map[string]bool{
 	"github-code-scanning":     true,
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
+	"sonarqubecloud":           true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}

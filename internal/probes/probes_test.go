@@ -99,7 +99,6 @@ func Test_register(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			err := register(tt.probe)
 			if err != nil != tt.wantErr {
@@ -143,7 +142,6 @@ func TestGet(t *testing.T) {
 	}
 	setupControlledProbes(t)
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			p, err := Get(tt.probeName)
 			if err != nil != tt.wantErr {

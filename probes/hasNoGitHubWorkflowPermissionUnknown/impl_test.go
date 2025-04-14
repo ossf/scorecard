@@ -78,7 +78,6 @@ func Test_Run(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.Name, func(t *testing.T) {
 			t.Parallel()
 

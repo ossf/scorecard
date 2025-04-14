@@ -296,7 +296,6 @@ func Test_SAST(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		searchRequest := clients.SearchRequest{
 			Query: "github/codeql-action/analyze",
 			Path:  "/.github/workflows",

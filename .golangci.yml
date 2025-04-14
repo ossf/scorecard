@@ -28,7 +28,7 @@ issues:
 linters:
   enable:
     - asciicheck
-    # - copyloopvar # TODO(spencer)
+    - copyloopvar
     - dogsled
     - err113
     - errcheck

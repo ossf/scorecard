@@ -72,7 +72,6 @@ func TestGetPrefix(t *testing.T) {
 	}
 
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Setenv("INPUT_BUCKET_URL", testcase.url)
 			t.Setenv("INPUT_BUCKET_PREFIX", testcase.prefix)

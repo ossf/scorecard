@@ -53,8 +53,6 @@ func runEnabledChecks(ctx context.Context,
 ) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
-		checkName := checkName
-		checkFn := checkFn
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -201,7 +199,14 @@ func runScorecard(ctx context.Context,
 
 func findConfigFile(rc clients.RepoClient) (io.ReadCloser, string) {
 	// Look for a config file. Return first one regardless of validity
-	locs := []string{"scorecard.yml", ".scorecard.yml", ".github/scorecard.yml"}
+	locs := []string{
+		"scorecard.yml",
+		"scorecard.yaml",
+		".scorecard.yml",
+		".scorecard.yaml",
+		".github/scorecard.yml",
+		".github/scorecard.yaml",
+	}
 
 	for i := range locs {
 		cfr, err := rc.GetFileReader(locs[i])
