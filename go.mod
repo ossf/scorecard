@@ -10,7 +10,7 @@ require (
 	contrib.go.opencensus.io/exporter/stackdriver v0.13.14
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.15.0
-	github.com/go-git/go-git/v5 v5.15.0
+	github.com/go-git/go-git/v5 v5.16.0
 	github.com/go-logr/logr v1.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.7.0
@@ -47,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v0.127.0
+	gitlab.com/gitlab-org/api/client-go v0.128.0
 	sigs.k8s.io/release-utils v0.8.4
 )
 
