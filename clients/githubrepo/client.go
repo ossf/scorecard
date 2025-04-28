@@ -223,7 +223,15 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 
 // ListContributors implements RepoClient.ListContributors.
 func (client *Client) ListContributors() ([]clients.User, error) {
-	return client.contributors.getContributors()
+	var fileReader io.ReadCloser
+	for _, path := range CodeOwnerPaths {
+		var err error
+		fileReader, err = client.GetFileReader(path)
+		if err == nil {
+			break
+		}
+	}
+	return client.contributors.getContributors(fileReader)
 }
 
 // IsArchived implements RepoClient.IsArchived.
