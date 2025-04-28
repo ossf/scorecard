@@ -36,7 +36,7 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
+       uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -62,7 +62,7 @@ jobs:
             make install
             make scorecard-ko
      - name: Install Cosign
-       uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a
+       uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb
      - name: Sign image
        run: |
           cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v5:${{ github.sha }}
