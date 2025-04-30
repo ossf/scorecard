@@ -200,6 +200,21 @@ func (mr *MockRepoClientMockRecorder) ListCheckRunsForRef(ref interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCheckRunsForRef", reflect.TypeOf((*MockRepoClient)(nil).ListCheckRunsForRef), ref)
 }
 
+// ListCodeOwners mocks base method.
+func (m *MockRepoClient) ListCodeOwners() ([]clients.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListCodeOwners")
+	ret0, _ := ret[0].([]clients.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListCodeOwners indicates an expected call of ListCodeOwners.
+func (mr *MockRepoClientMockRecorder) ListCodeOwners() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListCodeOwners", reflect.TypeOf((*MockRepoClient)(nil).ListCodeOwners))
+}
+
 // ListCommits mocks base method.
 func (m *MockRepoClient) ListCommits() ([]clients.Commit, error) {
 	m.ctrl.T.Helper()
