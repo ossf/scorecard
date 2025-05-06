@@ -171,8 +171,7 @@ func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string,
 
 func getFile(clientpath, filename string) (*os.File, error) {
 	// Note: the filenames do not contain the original path - see ListFiles().
-	fn := path.Join(clientpath, filename)
-	f, err := os.Open(fn)
+	f, err := os.OpenInRoot(clientpath, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
