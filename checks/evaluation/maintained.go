@@ -90,7 +90,7 @@ func Maintained(name string,
 	}
 
 	if recentlyCreated {
-		return checker.CreateMinScoreResult(name, "project was created in last 90 days. please review its contents carefully")
+		return checker.CreateMinScoreResult(name, "project was created within the last 90 days. Please review its contents carefully")
 	}
 
 	return checker.CreateProportionalScoreResult(name, fmt.Sprintf(
