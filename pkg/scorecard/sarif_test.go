@@ -389,7 +389,8 @@ func TestSARIFOutput(t *testing.T) {
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
 									Text:    "warn message",
-									Path:    "src/doc.txt",
+									// Intenionally add a % to ensure that we URL-encode paths
+									Path:    "src/%doc.txt",
 									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
