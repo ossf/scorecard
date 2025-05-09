@@ -355,7 +355,7 @@ func detailsToLocations(details []checker.CheckDetail,
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       getPath(&d),
+					URI:       strings.ReplaceAll(getPath(&d), "%", "%%"),
 					URIBaseID: "%SRCROOT%",
 				},
 			},
