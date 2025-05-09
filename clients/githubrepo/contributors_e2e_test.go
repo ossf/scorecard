@@ -16,6 +16,7 @@ package githubrepo
 
 import (
 	"context"
+	"io"
 	"net/http"
 
 	"github.com/google/go-github/v53/github"
@@ -24,11 +25,18 @@ import (
 
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/internal/gitfile"
 	"github.com/ossf/scorecard/v5/log"
 )
 
 var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 	var contribHandler *contributorsHandler
+	var fileHandler io.ReadCloser
+	repoURL := Repo{
+		owner:     "ossf",
+		repo:      "scorecard",
+		commitSHA: clients.HeadSHA,
+	}
 
 	BeforeEach(func() {
 		ctx := context.Background()
@@ -41,6 +49,18 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 			ghClient: client,
 			ctx:      ctx,
 		}
+		//nolint:errcheck
+		repo, _, _ := contribHandler.ghClient.Repositories.Get(contribHandler.ctx, repoURL.owner, repoURL.repo)
+		gitFileHandler := gitfile.Handler{}
+		gitFileHandler.Init(contribHandler.ctx, repo.GetCloneURL(), repoURL.commitSHA)
+		// searching for CODEOWNERS file
+		for _, path := range CodeOwnerPaths {
+			var err error
+			fileHandler, err = gitFileHandler.GetFile(path)
+			if err == nil {
+				break
+			}
+		}
 	})
 	Context("getContributors()", func() {
 		skipIfTokenIsNot(patTokenType, "PAT only")
@@ -52,7 +72,7 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 			}
 
 			contribHandler.init(context.Background(), &repoURL)
-			Expect(contribHandler.getContributors()).ShouldNot(BeNil())
+			Expect(contribHandler.getContributors(fileHandler)).ShouldNot(BeNil())
 			Expect(contribHandler.errSetup).Should(BeNil())
 		})
 	})
