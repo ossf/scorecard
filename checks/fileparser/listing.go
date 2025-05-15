@@ -16,6 +16,7 @@ package fileparser
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"path"
@@ -182,7 +183,7 @@ func CheckFileContainsCommands(content []byte, comment string) bool {
 		return false
 	}
 
-	r := strings.NewReader(string(content))
+	r := bytes.NewReader(content)
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())

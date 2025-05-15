@@ -318,15 +318,15 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 	r := regexp.MustCompile(pdata.pattern)
 	lines := bytes.Split(content, []byte("\n"))
 	for i, line := range lines {
-		found := r.FindString(string(line))
-		if found != "" {
+		found := r.Find(line)
+		if found != nil {
 			// If fuzz func is found in the file, add it to the file array,
 			// with its file path as Path, func name as Snippet,
 			// FileTypeFuzz as Type, and # of lines as Offset.
 			pdata.files = append(pdata.files, checker.File{
 				Path:    path,
 				Type:    finding.FileTypeSource,
-				Snippet: found,
+				Snippet: string(found),
 				Offset:  uint(i + 1), // Since the # of lines starts from zero.
 			})
 		}
