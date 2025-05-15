@@ -53,8 +53,6 @@ func runEnabledChecks(ctx context.Context,
 ) {
 	wg := sync.WaitGroup{}
 	for checkName, checkFn := range checksToRun {
-		checkName := checkName
-		checkFn := checkFn
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -201,7 +199,14 @@ func runScorecard(ctx context.Context,
 
 func findConfigFile(rc clients.RepoClient) (io.ReadCloser, string) {
 	// Look for a config file. Return first one regardless of validity
-	locs := []string{"scorecard.yml", ".scorecard.yml", ".github/scorecard.yml"}
+	locs := []string{
+		"scorecard.yml",
+		"scorecard.yaml",
+		".scorecard.yml",
+		".scorecard.yaml",
+		".github/scorecard.yml",
+		".github/scorecard.yaml",
+	}
 
 	for i := range locs {
 		cfr, err := rc.GetFileReader(locs[i])
@@ -257,6 +262,7 @@ type runConfig struct {
 	checks        []string
 	probes        []string
 	commitDepth   int
+	gitMode       bool
 }
 
 type Option func(*runConfig) error
@@ -340,6 +346,18 @@ func WithOpenSSFBestPraticesClient(client clients.CIIBestPracticesClient) Option
 	}
 }
 
+// WithFileModeGit will configure supporting repository clients to download files
+// using git. This is useful for repositories which "export-ignore" files in its
+// .gitattributes file.
+//
+// Repository analysis may be slower.
+func WithFileModeGit() Option {
+	return func(c *runConfig) error {
+		c.gitMode = true
+		return nil
+	}
+}
+
 // Run analyzes a given repository and returns the result. You can modify the
 // run behavior by passing in [Option] arguments. In the absence of a particular
 // option a default is used. Refer to the various Options for details.
@@ -377,7 +395,15 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 		}
 	case *githubrepo.Repo:
 		if c.client == nil {
-			c.client = githubrepo.CreateGithubRepoClient(ctx, logger)
+			var opts []githubrepo.Option
+			if c.gitMode {
+				opts = append(opts, githubrepo.WithFileModeGit())
+			}
+			client, err := githubrepo.NewRepoClient(ctx, opts...)
+			if err != nil {
+				return Result{}, fmt.Errorf("creating github client: %w", err)
+			}
+			c.client = client
 		}
 	case *gitlabrepo.Repo:
 		if c.client == nil {

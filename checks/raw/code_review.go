@@ -93,7 +93,7 @@ func getPhabricatorRevisionID(c *clients.Commit) string {
 	m := c.Message
 
 	match := rePhabricatorRevID.FindStringSubmatch(m)
-	if match == nil || len(match) < 2 {
+	if len(match) < 2 {
 		return ""
 	}
 
@@ -105,7 +105,7 @@ func getPiperRevisionID(c *clients.Commit) string {
 	m := c.Message
 
 	match := rePiperRevID.FindStringSubmatch(m)
-	if match == nil || len(match) < 2 {
+	if len(match) < 2 {
 		return ""
 	}
 

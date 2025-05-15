@@ -116,7 +116,6 @@ func Test_Run(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -247,7 +246,6 @@ func Test_isTest(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := isTest(tt.args.s); got != tt.want {
@@ -319,8 +317,6 @@ func Test_prHasSuccessfulCheck(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
-
 		//nolint:errcheck
 		got, _, _ := prHasSuccessfulCheck(tt.args)
 		if got != tt.want {
@@ -385,7 +381,6 @@ func Test_prHasSuccessStatus(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, _, err := prHasSuccessStatus(tt.args.r)
@@ -477,7 +472,6 @@ func Test_prHasSuccessfulCheckAdditional(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, _, err := prHasSuccessfulCheck(tt.args.r)

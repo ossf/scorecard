@@ -79,7 +79,6 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -182,7 +181,6 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
 			p := isActionDependencyPinned(tt.uses)
@@ -233,7 +231,6 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -292,7 +289,6 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -384,7 +380,6 @@ func TestDockerfilePinning(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -526,7 +521,6 @@ func TestFileIsInVendorDir(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got := fileIsInVendorDir(tt.filename)
@@ -600,7 +594,6 @@ func TestDockerfilePinningFromLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -690,7 +683,6 @@ func TestDockerfileInvalidFiles(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var c []byte
@@ -717,7 +709,6 @@ func TestDockerfileInsecureDownloadsBrokenCommands(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -911,7 +902,6 @@ func TestDockerfileInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1053,7 +1043,6 @@ func TestDockerfileWithHeredocsInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1260,7 +1249,6 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1316,7 +1304,6 @@ func TestDockerfilePinningWithoutHash(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1425,7 +1412,6 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1483,7 +1469,6 @@ func TestDockerfileScriptDownloadInfo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1561,7 +1546,6 @@ func TestShellScriptDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1618,7 +1602,6 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1682,7 +1665,6 @@ func TestGitHubWorkflowRunDownload(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -1769,7 +1751,6 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1840,7 +1821,6 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			content, err := os.ReadFile(tt.filename)
@@ -1957,7 +1937,6 @@ func TestCollectDockerfilePinning(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -2051,7 +2030,6 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -2123,7 +2101,6 @@ func TestCsProjAnalysis(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte
@@ -2279,7 +2256,6 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -2435,7 +2411,6 @@ func TestCollectPostProcessNugetCPMDependencies(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			collectPostProcessNugetCPMDependencies(tt.inputNugetDependencies, tt.data)
@@ -2546,7 +2521,6 @@ func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := getDependenciesByType(&tt.data, tt.useType)
@@ -2630,7 +2604,6 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			var content []byte

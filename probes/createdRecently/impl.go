@@ -54,10 +54,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	var text string
 	var outcome finding.Outcome
 	if r.CreatedAt.After(recencyThreshold) {
-		text = fmt.Sprintf("Repository was created in last %d days.", lookBackDays)
+		text = fmt.Sprintf("Repository was created within the last %d days.", lookBackDays)
 		outcome = finding.OutcomeTrue
 	} else {
-		text = fmt.Sprintf("Repository was not created in last %d days.", lookBackDays)
+		text = fmt.Sprintf("Repository was not created within the last %d days.", lookBackDays)
 		outcome = finding.OutcomeFalse
 	}
 	f, err := finding.NewWith(fs, Probe, text, nil, outcome)

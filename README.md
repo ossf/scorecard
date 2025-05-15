@@ -2,8 +2,8 @@
 
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ossf/scorecard/badge)](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/5621/badge)](https://www.bestpractices.dev/projects/5621)
-![build](https://github.com/ossf/scorecard/workflows/build/badge.svg?branch=main)
-![CodeQL](https://github.com/ossf/scorecard/workflows/CodeQL/badge.svg?branch=main)
+[![build](https://github.com/ossf/scorecard/actions/workflows/main.yml/badge.svg)](https://github.com/ossf/scorecard/actions/workflows/main.yml)
+[![CodeQL](https://github.com/ossf/scorecard/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ossf/scorecard/actions/workflows/codeql-analysis.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ossf/scorecard/v4.svg)](https://pkg.go.dev/github.com/ossf/scorecard/v4)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ossf/scorecard/v4)](https://goreportcard.com/report/github.com/ossf/scorecard/v4)
 [![codecov](https://codecov.io/gh/ossf/scorecard/branch/main/graph/badge.svg?token=PMJ6NAN9J3)](https://codecov.io/gh/ossf/scorecard)

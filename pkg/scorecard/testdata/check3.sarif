@@ -140,7 +140,7 @@
                            }
                         },
                         "artifactLocation": {
-                           "uri": "src/doc.txt",
+                           "uri": "src/%25doc.txt",
                            "uriBaseId": "%SRCROOT%"
                         }
                      },

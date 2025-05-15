@@ -48,7 +48,6 @@ func TestWithMessage(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if err := WithMessage(tt.args.e, tt.args.msg); (err != nil) != tt.wantErr {
@@ -98,7 +97,6 @@ func TestGetName(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := GetName(tt.args.err); !strings.EqualFold(got, tt.want) {

@@ -67,7 +67,6 @@ func TestAsProbe(t *testing.T) {
 	// pretty print results so the test files are easier to read
 	opt := &ProbeResultOption{Indent: "    "}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			expected, err := os.ReadFile(tt.expected)

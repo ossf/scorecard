@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -352,10 +353,11 @@ func detailsToLocations(details []checker.CheckDetail,
 			continue
 		}
 
+		artifactURI := url.URL{Path: getPath(&d)}
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       getPath(&d),
+					URI:       artifactURI.EscapedPath(),
 					URIBaseID: "%SRCROOT%",
 				},
 			},
@@ -625,8 +627,6 @@ func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 	runs := make(map[string]*run)
 
 	for _, check := range r.Checks {
-		check := check
-
 		doc, err := checkDocs.GetCheck(check.Name)
 		if err != nil {
 			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %v: %s", err, check.Name))
@@ -701,7 +701,6 @@ func (r *Result) AsSARIF(showDetails bool, logLevel log.Level,
 			run.Results = append(run.Results, cr)
 		} else {
 			for _, loc := range locs {
-				loc := loc
 				// Use the location's message (check's detail's message) as message.
 				msg := messageWithScore(loc.Message.Text, check.Score)
 				cr := createSARIFCheckResult(RuleIndex, sarifCheckID, msg, &loc)

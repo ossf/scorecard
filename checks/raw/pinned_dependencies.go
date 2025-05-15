@@ -617,15 +617,12 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
 
 		for _, step := range job.Steps {
-			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
 			}
@@ -739,8 +736,6 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}

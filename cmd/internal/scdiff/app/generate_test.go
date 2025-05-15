@@ -86,7 +86,6 @@ badCheck`,
 	}
 	var stubRunner stubRunner
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			input := strings.NewReader(tt.input)

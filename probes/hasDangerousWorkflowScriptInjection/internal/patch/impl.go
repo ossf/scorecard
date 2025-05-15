@@ -116,11 +116,10 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 	}
 
 	for _, p := range unsafePatterns {
-		p := p
 		if p.idRegex.MatchString(unsafeVar) {
 			arrayVarRegex := regexp.MustCompile(`\[(.+?)\]`)
 			arrayIdx := arrayVarRegex.FindStringSubmatch(unsafeVar)
-			if arrayIdx == nil || len(arrayIdx) < 2 {
+			if len(arrayIdx) < 2 {
 				// not an array variable, the default envvar name is sufficient.
 				return p, nil
 			}
