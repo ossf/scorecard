@@ -46,6 +46,7 @@ e2e-coverage.out
 
 # tools
 bin
+obj
 
 cache
 output

@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -352,10 +353,11 @@ func detailsToLocations(details []checker.CheckDetail,
 			continue
 		}
 
+		artifactURI := url.URL{Path: getPath(&d)}
 		loc := location{
 			PhysicalLocation: physicalLocation{
 				ArtifactLocation: artifactLocation{
-					URI:       getPath(&d),
+					URI:       artifactURI.EscapedPath(),
 					URIBaseID: "%SRCROOT%",
 				},
 			},
