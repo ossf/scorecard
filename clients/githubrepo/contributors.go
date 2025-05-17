@@ -127,22 +127,24 @@ func mapCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser, contr
 				owners = append(owners, &clients.User{Login: owner.Value, NumContributions: 0, IsCodeOwner: true})
 			case codeowners.TeamOwner:
 				splitTeam := strings.Split(owner.Value, "/")
-				org := splitTeam[0]
-				team := splitTeam[1]
-				// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
-				users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
-					handler.ctx,
-					org,
-					team,
-					&github.TeamListTeamMembersOptions{},
-				)
-				if err != nil {
-					handler.errSetup = fmt.Errorf("error during ListTeamMembersBySlug: %w", err)
-					return
-				}
-				if err == nil && response.StatusCode == http.StatusOK {
-					for _, user := range users {
-						owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
+				if len(splitTeam) == 2 {
+					org := splitTeam[0]
+					team := splitTeam[1]
+					// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
+					users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
+						handler.ctx,
+						org,
+						team,
+						&github.TeamListTeamMembersOptions{},
+					)
+					if err != nil {
+						handler.errSetup = fmt.Errorf("error during ListTeamMembersBySlug: %w", err)
+						return
+					}
+					if err == nil && response.StatusCode == http.StatusOK {
+						for _, user := range users {
+							owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
+						}
 					}
 				}
 			}
