@@ -64,7 +64,13 @@ func (handler *contributorsHandler) setup(fileReader io.ReadCloser) error {
 
 		contributors := make(map[string]clients.User)
 		mapContributors(handler, contributors)
+		if handler.errSetup != nil {
+			return
+		}
 		mapCodeOwners(handler, fileReader, contributors)
+		if handler.errSetup != nil {
+			return
+		}
 
 		for contributor := range maps.Values(contributors) {
 			orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, contributor.Login, nil)
@@ -126,21 +132,15 @@ func mapCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser, contr
 				// if usernameOwner just add to owners list
 				owners = append(owners, &clients.User{Login: owner.Value, NumContributions: 0, IsCodeOwner: true})
 			case codeowners.TeamOwner:
+				// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
 				splitTeam := strings.Split(owner.Value, "/")
 				if len(splitTeam) == 2 {
-					org := splitTeam[0]
-					team := splitTeam[1]
-					// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
 					users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
 						handler.ctx,
-						org,
-						team,
+						splitTeam[0],
+						splitTeam[1],
 						&github.TeamListTeamMembersOptions{},
 					)
-					if err != nil {
-						handler.errSetup = fmt.Errorf("error during ListTeamMembersBySlug: %w", err)
-						return
-					}
 					if err == nil && response.StatusCode == http.StatusOK {
 						for _, user := range users {
 							owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
