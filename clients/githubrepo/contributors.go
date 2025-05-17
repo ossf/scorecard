@@ -15,13 +15,11 @@
 package githubrepo
 
 import (
-	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
-	"regexp"
-	"slices"
 	"strings"
 	"sync"
 
@@ -57,165 +55,115 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 }
 
 func (handler *contributorsHandler) setup(fileReader io.ReadCloser) error {
+	defer fileReader.Close()
 	handler.once.Do(func() {
-		defer fileReader.Close()
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
 			return
 		}
 
-		handler.contributors = append(handler.contributors, getContributors(handler)...)
-		handler.contributors = append(handler.contributors, getCodeOwners(handler, fileReader)...)
+		contributors := make(map[string]clients.User)
+		mapContributors(handler, contributors)
+		mapCodeOwners(handler, fileReader, contributors)
+
+		for contributor := range maps.Values(contributors) {
+			orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, contributor.Login, nil)
+			// This call can fail due to token scopes. So ignore error.
+			if err == nil {
+				for _, org := range orgs {
+					contributor.Organizations = append(contributor.Organizations, clients.User{
+						Login: org.GetLogin(),
+					})
+				}
+			}
+			user, _, err := handler.ghClient.Users.Get(handler.ctx, contributor.Login)
+			if err != nil {
+				handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
+			}
+			contributor.Companies = append(contributor.Companies, user.GetCompany())
+			handler.contributors = append(handler.contributors, contributor)
+		}
 
 		handler.errSetup = nil
 	})
 	return handler.errSetup
 }
 
-func getContributors(handler *contributorsHandler) []clients.User {
+func mapContributors(handler *contributorsHandler, contributors map[string]clients.User) {
+	// getting contributors from the github API
 	contribs, _, err := handler.ghClient.Repositories.ListContributors(
 		handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListContributorsOptions{})
 	if err != nil {
 		handler.errSetup = fmt.Errorf("error during ListContributors: %w", err)
-		return nil
+		return
 	}
 
-	contributorUsers := make([]clients.User, 0)
+	// adding contributors to contributor map
 	for _, contrib := range contribs {
 		if contrib.GetLogin() == "" {
 			continue
 		}
-		contributor := clients.User{
-			NumContributions: contrib.GetContributions(),
-			Login:            contrib.GetLogin(),
+		contributors[contrib.GetLogin()] = clients.User{
+			Login: contrib.GetLogin(), NumContributions: contrib.GetContributions(),
+			IsCodeOwner: false,
 		}
-		orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, contrib.GetLogin(), nil)
-		// This call can fail due to token scopes. So ignore error.
-		if err == nil {
-			for _, org := range orgs {
-				contributor.Organizations = append(contributor.Organizations, clients.User{
-					Login: org.GetLogin(),
-				})
-			}
-		}
-		user, _, err := handler.ghClient.Users.Get(handler.ctx, contrib.GetLogin())
-		if err != nil {
-			handler.errSetup = fmt.Errorf("error during Users.Get: %w", err)
-		}
-		contributor.Companies = append(contributor.Companies, user.GetCompany())
-		contributorUsers = append(contributorUsers, contributor)
 	}
-
-	return contributorUsers
 }
 
-func getCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser) []clients.User {
+func mapCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser, contributors map[string]clients.User) {
 	ruleset, err := codeowners.ParseFile(fileReader)
 	if err != nil {
-		return nil
+		handler.errSetup = fmt.Errorf("error during ParseFile: %w", err)
+		return
 	}
-
-	verifiedExternalOwners := getVerifiedExternalOwners(fileReader)
 
 	// expanding owners
-	owners := make([]*github.User, 0)
+	owners := make([]*clients.User, 0)
 	for _, rule := range ruleset {
 		for _, owner := range rule.Owners {
-			var users []*github.User
 			switch owner.Type {
 			case codeowners.UsernameOwner:
-				users = getUserFromUsername(handler, owner)
+				// if usernameOwner just add to owners list
+				owners = append(owners, &clients.User{Login: owner.Value, NumContributions: 0, IsCodeOwner: true})
 			case codeowners.TeamOwner:
-				users = getUsersFromTeam(handler, owner)
-			case codeowners.EmailOwner:
-				users = getUserFromEmail(handler, owner)
-			}
-			if users != nil {
-				owners = append(owners, users...)
+				splitTeam := strings.Split(owner.Value, "/")
+				org := splitTeam[0]
+				team := splitTeam[1]
+				// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
+				users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
+					handler.ctx,
+					org,
+					team,
+					&github.TeamListTeamMembersOptions{},
+				)
+				if err != nil {
+					handler.errSetup = fmt.Errorf("error during ListTeamMembersBySlug: %w", err)
+					return
+				}
+				if err == nil && response.StatusCode == http.StatusOK {
+					for _, user := range users {
+						owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
+					}
+				}
 			}
 		}
 	}
 
-	var ownerUsers []clients.User
-	for _, own := range owners {
-		if own.GetLogin() == "" {
+	// adding owners to contributor map and deduping
+	for _, owner := range owners {
+		if owner.Login == "" {
 			continue
 		}
-		owner := clients.User{
-			Login:       own.GetLogin(),
-			IsCodeOwner: true,
-		}
-
-		// if verified external contributor add repo org to organization list by default
-		if ok := slices.Contains(verifiedExternalOwners, owner.Login); ok {
-			owner.Organizations = append(owner.Organizations, clients.User{
-				Login: handler.repourl.owner,
-			})
-		}
-
-		orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, own.GetLogin(), nil)
-		// This call can fail due to token scopes. So ignore error.
-		if err == nil {
-			for _, org := range orgs {
-				owner.Organizations = append(owner.Organizations, clients.User{
-					Login: org.GetLogin(),
-				})
-			}
-		}
-		owner.Companies = append(owner.Companies, own.GetCompany())
-
-		ownerUsers = append(ownerUsers, owner)
-	}
-	return ownerUsers
-}
-
-// expand team owners to multiple github users.
-func getUsersFromTeam(handler *contributorsHandler, owner codeowners.Owner) []*github.User {
-	users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
-		handler.ctx,
-		handler.repourl.owner,
-		owner.Value,
-		&github.TeamListTeamMembersOptions{},
-	)
-	if err == nil && response.StatusCode == http.StatusOK {
-		return users
-	}
-	return nil
-}
-
-// get github user from owner username.
-func getUserFromUsername(handler *contributorsHandler, owner codeowners.Owner) []*github.User {
-	user, response, err := handler.ghClient.Users.Get(handler.ctx, owner.Value)
-	if err == nil && response.StatusCode == http.StatusOK {
-		return []*github.User{user}
-	}
-	return nil
-}
-
-// get github user from email.
-func getUserFromEmail(handler *contributorsHandler, owner codeowners.Owner) []*github.User {
-	query := fmt.Sprintf("\"%s\" in:email", owner.String())
-	userSearchResults, response, err := handler.ghClient.Search.Users(handler.ctx, query, &github.SearchOptions{})
-	if err == nil && response.StatusCode == http.StatusOK && *userSearchResults.Total > 0 {
-		return []*github.User{userSearchResults.Users[0]}
-	}
-	return nil
-}
-
-// getting verified external owners by @verified comment.
-func getVerifiedExternalOwners(fileReader io.ReadCloser) []string {
-	verifiedExternalOwners := make([]string, 0)
-	r := regexp.MustCompile("^# @verified .*")
-	scanner := bufio.NewScanner(fileReader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		match := r.MatchString(line)
-		if match {
-			usernames := strings.Fields(line)[2:]
-			verifiedExternalOwners = append(verifiedExternalOwners, usernames...)
+		value, ok := contributors[owner.Login]
+		if ok {
+			// if contributor exists already set IsCodeOwner to true
+			value.IsCodeOwner = true
+			contributors[owner.Login] = value
+		} else {
+			// otherwise add new contributor
+			contributors[owner.Login] = *owner
 		}
 	}
-	return verifiedExternalOwners
 }
 
 func (handler *contributorsHandler) getContributors(fileReader io.ReadCloser) ([]clients.User, error) {
