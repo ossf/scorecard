@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
+      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -65,7 +65,7 @@ jobs:
     # don't use the default version of Go from GitHub runners
     # https://github.com/github/codeql-action/issues/1842#issuecomment-1704398087
     - name: Setup Go
-      uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
+      uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       with:
         go-version: ${{ env.GO_VERSION }}
         check-latest: true
@@ -73,7 +73,7 @@ jobs:
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@45775bd8235c68ba998cffa5171334d58593da47 # v3.28.15
+      uses: github/codeql-action/init@60168efe1c415ce0f5521ea06d5c2062adbeed1b # v3.28.17
       with:
         languages: ${{ matrix.language }}
         queries: +security-extended
@@ -85,7 +85,7 @@ jobs:
     # Autobuild attempts to build any compiled languages  (C/C++, C#, or Java).
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Autobuild
-      uses: github/codeql-action/autobuild@45775bd8235c68ba998cffa5171334d58593da47 # v3.28.15
+      uses: github/codeql-action/autobuild@60168efe1c415ce0f5521ea06d5c2062adbeed1b # v3.28.17
 
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 https://git.io/JvXDl
@@ -99,4 +99,4 @@ jobs:
     #   make release
 
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@45775bd8235c68ba998cffa5171334d58593da47 # v3.28.15
+      uses: github/codeql-action/analyze@60168efe1c415ce0f5521ea06d5c2062adbeed1b # v3.28.17
