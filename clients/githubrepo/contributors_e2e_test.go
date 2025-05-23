@@ -33,8 +33,8 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 	var contribHandler *contributorsHandler
 	var fileHandler io.ReadCloser
 	repoURL := Repo{
-		owner:     "ossf",
-		repo:      "scorecard",
+		owner:     "ossf-tests",
+		repo:      "scorecard-check-contributors-e2e",
 		commitSHA: clients.HeadSHA,
 	}
 
@@ -65,12 +65,6 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 	Context("getContributors()", func() {
 		skipIfTokenIsNot(patTokenType, "PAT only")
 		It("returns contributors for valid HEAD query", func() {
-			repoURL := Repo{
-				owner:     "ossf-tests",
-				repo:      "scorecard-check-contributors-e2e",
-				commitSHA: clients.HeadSHA,
-			}
-
 			contribHandler.init(context.Background(), &repoURL)
 			Expect(contribHandler.getContributors(fileHandler)).ShouldNot(BeNil())
 			Expect(contribHandler.errSetup).Should(BeNil())
