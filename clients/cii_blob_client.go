@@ -16,8 +16,10 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"cloud.google.com/go/storage"
 	"gocloud.dev/blob"
 	// Needed to link GCP drivers.
 	_ "gocloud.dev/blob/gcsblob"
@@ -40,7 +42,8 @@ func (client *blobClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri
 	objectName := fmt.Sprintf("%s/result.json", uri)
 
 	exists, err := bucket.Exists(ctx, objectName)
-	if err != nil {
+	// TODO(https://github.com/ossf/scorecard/issues/4636)
+	if err != nil && !errors.Is(err, storage.ErrObjectNotExist) {
 		return Unknown, fmt.Errorf("error during bucket.Exists: %w", err)
 	}
 	if !exists {
