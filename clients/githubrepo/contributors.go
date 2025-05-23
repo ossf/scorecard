@@ -34,7 +34,7 @@ import (
 //
 //nolint:lll
 var (
-	CodeOwnerPaths []string = []string{"CODEOWNERS", ".github/CODEOWNERS", "docs/CODEOWNERS"}
+	codeOwnerPaths []string = []string{"CODEOWNERS", ".github/CODEOWNERS", "docs/CODEOWNERS"}
 )
 
 type contributorsHandler struct {

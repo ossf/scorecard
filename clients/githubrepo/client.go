@@ -224,7 +224,7 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 // ListContributors implements RepoClient.ListContributors.
 func (client *Client) ListContributors() ([]clients.User, error) {
 	var fileReader io.ReadCloser
-	for _, path := range CodeOwnerPaths {
+	for _, path := range codeOwnerPaths {
 		var err error
 		fileReader, err = client.GetFileReader(path)
 		if err == nil {

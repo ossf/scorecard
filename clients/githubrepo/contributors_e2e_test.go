@@ -54,7 +54,7 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 		gitFileHandler := gitfile.Handler{}
 		gitFileHandler.Init(contribHandler.ctx, repo.GetCloneURL(), repoURL.commitSHA)
 		// searching for CODEOWNERS file
-		for _, path := range CodeOwnerPaths {
+		for _, path := range codeOwnerPaths {
 			var err error
 			fileHandler, err = gitFileHandler.GetFile(path)
 			if err == nil {
