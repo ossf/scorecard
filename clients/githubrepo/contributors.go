@@ -54,8 +54,8 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 	handler.contributors = nil
 }
 
-func (handler *contributorsHandler) setup(fileReader io.ReadCloser) error {
-	defer fileReader.Close()
+func (handler *contributorsHandler) setup(codeOwnerFile io.ReadCloser) error {
+	defer codeOwnerFile.Close()
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
@@ -67,7 +67,7 @@ func (handler *contributorsHandler) setup(fileReader io.ReadCloser) error {
 		if handler.errSetup != nil {
 			return
 		}
-		mapCodeOwners(handler, fileReader, contributors)
+		mapCodeOwners(handler, codeOwnerFile, contributors)
 		if handler.errSetup != nil {
 			return
 		}
@@ -116,8 +116,8 @@ func mapContributors(handler *contributorsHandler, contributors map[string]clien
 	}
 }
 
-func mapCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser, contributors map[string]clients.User) {
-	ruleset, err := codeowners.ParseFile(fileReader)
+func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, contributors map[string]clients.User) {
+	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
 		handler.errSetup = fmt.Errorf("error during ParseFile: %w", err)
 		return
@@ -168,8 +168,8 @@ func mapCodeOwners(handler *contributorsHandler, fileReader io.ReadCloser, contr
 	}
 }
 
-func (handler *contributorsHandler) getContributors(fileReader io.ReadCloser) ([]clients.User, error) {
-	if err := handler.setup(fileReader); err != nil {
+func (handler *contributorsHandler) getContributors(codeOwnerFile io.ReadCloser) ([]clients.User, error) {
+	if err := handler.setup(codeOwnerFile); err != nil {
 		return nil, fmt.Errorf("error during contributorsHandler.setup: %w", err)
 	}
 	return handler.contributors, nil

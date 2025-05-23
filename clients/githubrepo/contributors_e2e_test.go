@@ -66,8 +66,8 @@ var _ = Describe("E2E TEST: githubrepo.contributorsHandler", func() {
 		skipIfTokenIsNot(patTokenType, "PAT only")
 		It("returns contributors for valid HEAD query", func() {
 			repoURL := Repo{
-				owner:     "ossf",
-				repo:      "scorecard",
+				owner:     "ossf-tests",
+				repo:      "scorecard-check-contributors-e2e",
 				commitSHA: clients.HeadSHA,
 			}
 
