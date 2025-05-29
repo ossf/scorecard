@@ -29,7 +29,7 @@ GOBIN := $(shell go env GOBIN)
 
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
 $(GOLANGCI_LINT): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 KO := $(TOOLS_BIN_DIR)/ko
 $(KO): $(TOOLS_DIR)/go.mod
