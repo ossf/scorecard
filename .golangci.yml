@@ -178,7 +178,6 @@ linters:
       checks:
         - "all"
         - "-QF1003" # switch vs if/elif is style decision
-        - "-ST1003" # disabled by default
     wrapcheck:
       ignore-package-globs:
         - github.com/ossf/scorecard/v5/checks/fileparser
@@ -202,6 +201,11 @@ linters:
       - linters:
           - gochecknoinits
         path: probes/.+/impl.go
+      # probes also break package naming conventions
+      - linters:
+          - staticcheck
+        path: probes/.+/.+.go
+        text: "ST1003:"
     paths:
       - third_party$
       - builtin$
