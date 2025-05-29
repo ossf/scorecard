@@ -104,10 +104,7 @@ func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, erro
 		return nil, fmt.Errorf("request for policy configurations failed with error %w", err)
 	}
 
-	isBranchProtected := false
-	if len(*response.PolicyConfigurations) > 0 {
-		isBranchProtected = true
-	}
+	isBranchProtected := len(*response.PolicyConfigurations) > 0
 
 	// TODO: map Azure DevOps branch protection to Scorecard branch protection
 	return &clients.BranchRef{
