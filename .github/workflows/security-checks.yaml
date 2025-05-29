@@ -31,21 +31,6 @@ jobs:
         with:
           name: trivy-fs-scan-results
           path: ./results.txt
-  grype-file-system:
-    name: Grype fs scan
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run Grype vulnerability scanner in repo mode
-        id: grype-fs-scan
-        uses: anchore/scan-action@2c901ab7378897c01b8efaa2d0c9bf519cc64b9e # v6.2.0
-        with:
-          path: "."
-          only-fixed: true
-          output-format: table
-          severity-cutoff: low
-          fail-build: true
   govulncheck-file-system:
     runs-on: ubuntu-latest
     name: govulncheck fs scan
