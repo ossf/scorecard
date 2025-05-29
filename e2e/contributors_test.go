@@ -74,7 +74,7 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 			if err != nil {
 				errMsg := fmt.Sprintf("%v", err)
 
-				if !(strings.Contains(errMsg, "error during Users.Get") && strings.Contains(errMsg, "401")) {
+				if !strings.Contains(errMsg, "error during Users.Get") || !strings.Contains(errMsg, "401") {
 					Fail(fmt.Sprintf("couldn't list gitlab repo contributors: %v", err))
 				}
 			}
