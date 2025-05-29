@@ -1,0 +1,56 @@
+name: security-checks
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+jobs:
+  trivy-file-system:
+    name: Trivy fs scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 #v 0.30.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'table'
+          output: './results.txt'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          skip-dirs: '.github'
+          exit-code: '1'
+        # trivy-config: trivy.yaml
+      - name: Inspect action report
+        if: always()
+        run: cat ./results.txt
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: trivy-fs-scan-results
+          path: ./results.txt
+  govulncheck-file-system:
+    runs-on: ubuntu-latest
+    name: govulncheck fs scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Run govulncheck scanner in fs mode
+        run: |
+          govulncheck -show verbose -C . ./... > ./results.txt
+      - name: Inspect action report
+        if: always()
+        run: cat ./results.txt
+      - name: Upload artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: govulncheck-fs-scan-results
+          path: ./results.txt
