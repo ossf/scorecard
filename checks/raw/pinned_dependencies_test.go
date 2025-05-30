@@ -359,6 +359,10 @@ func TestDockerfilePinning(t *testing.T) {
 			filename: "Dockerfile-pinned-as",
 		},
 		{
+			name:     "From scratch is considered pinned",
+			filename: "Dockerfile-from-scratch",
+		},
+		{
 			name:     "Non-pinned dockerfile as",
 			filename: "Dockerfile-not-pinned-as",
 			warns:    2,
