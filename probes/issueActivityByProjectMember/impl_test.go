@@ -225,6 +225,22 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "issue with nil AuthorAssociation",
+			args: args{
+				issue: &clients.Issue{
+					CreatedAt:         &twentyDaysAgo,
+					AuthorAssociation: nil,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &twentyDaysAgo,
+							AuthorAssociation: nil,
+						},
+					},
+				},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
