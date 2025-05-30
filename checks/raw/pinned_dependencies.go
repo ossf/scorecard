@@ -511,6 +511,9 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		switch {
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
+			if len(valueList) == 3 && strings.EqualFold(valueList[1], "as") {
+				pinnedAsNames[valueList[2]] = true
+			}
 			continue
 
 		// FROM name AS newname.
@@ -521,9 +524,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
+			// Record the asName.
 			if pinned || regex.MatchString(name) {
-				// Record the asName.
 				pinnedAsNames[asName] = true
+			} else {
+				pinnedAsNames[asName] = false
 			}
 
 			pdata.Dependencies = append(pdata.Dependencies,
