@@ -44,7 +44,7 @@ func TestGetClients(t *testing.T) {
 		{
 			name: "localURI is not empty",
 			args: args{
-				ctx:      context.Background(),
+				ctx:      t.Context(),
 				repoURI:  "",
 				localURI: "foo",
 			},
@@ -57,7 +57,7 @@ func TestGetClients(t *testing.T) {
 		{
 			name: "repoURI is not empty",
 			args: args{
-				ctx:      context.Background(),
+				ctx:      t.Context(),
 				repoURI:  "foo",
 				localURI: "",
 			},
@@ -70,7 +70,7 @@ func TestGetClients(t *testing.T) {
 		{
 			name: "repoURI is gitlab which is supported",
 			args: args{
-				ctx:      context.Background(),
+				ctx:      t.Context(),
 				repoURI:  "https://gitlab.com/ossf-test/scorecard",
 				localURI: "",
 			},
@@ -83,7 +83,7 @@ func TestGetClients(t *testing.T) {
 		{
 			name: "repoURI is corp github host",
 			args: args{
-				ctx:      context.Background(),
+				ctx:      t.Context(),
 				repoURI:  "https://github.corp.com/ossf/scorecard",
 				localURI: "",
 			},

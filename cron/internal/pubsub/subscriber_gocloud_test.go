@@ -83,7 +83,7 @@ func TestSubscriber(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			msgBody, err := protojson.Marshal(testcase.msg)
 			if err != nil {
 				t.Errorf("testcase parsing failed during protojson.Marshal: %v", err)

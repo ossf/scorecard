@@ -15,7 +15,6 @@
 package patch
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -213,7 +212,7 @@ func detectDangerousWorkflows(t *testing.T, filePath string) []checker.Dangerous
 	}).AnyTimes()
 
 	req := &checker.CheckRequest{
-		Ctx:        context.Background(),
+		Ctx:        t.Context(),
 		RepoClient: mockRepoClient,
 	}
 

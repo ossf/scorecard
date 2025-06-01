@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -162,7 +161,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			})
 
 			req := &checker.CheckRequest{
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				RepoClient: mockRepoClient,
 			}
 

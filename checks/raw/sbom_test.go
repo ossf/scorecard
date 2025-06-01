@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -110,7 +109,7 @@ func TestSbom(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			res, err := SBOM(&req)

@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"io"
 	"os"
 	"testing"
@@ -85,7 +84,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			}).AnyTimes()
 
 			req := &checker.CheckRequest{
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				RepoClient: mockRepoClient,
 				Dlogger:    &dl,
 			}

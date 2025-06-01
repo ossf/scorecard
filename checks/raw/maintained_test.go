@@ -14,7 +14,6 @@
 package raw
 
 import (
-	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -33,7 +32,7 @@ func TestMaintained(t *testing.T) {
 
 	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 
-	ctx := context.Background()
+	ctx := t.Context()
 	req := &checker.CheckRequest{
 		Ctx:        ctx,
 		RepoClient: mockRepoClient,

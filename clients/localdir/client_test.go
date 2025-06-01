@@ -15,7 +15,6 @@
 package localdir
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -62,7 +61,7 @@ func TestClient_CreationAndCaching(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
+			ctx := t.Context()
 			logger := log.NewLogger(log.DebugLevel)
 
 			// Create repo.

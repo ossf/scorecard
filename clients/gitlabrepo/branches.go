@@ -200,7 +200,7 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 	}
 
 	if projectApprovalRule != nil {
-		requiredApprovalNum := int32(projectApprovalRule.ApprovalsBeforeMerge)
+		requiredApprovalNum := int32(projectApprovalRule.ApprovalsBeforeMerge) //nolint:staticcheck
 		pullRequestReviewRule.RequiredApprovingReviewCount = &requiredApprovalNum
 	}
 

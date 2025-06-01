@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"io"
 	"os"
 	"testing"
@@ -80,7 +79,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				return os.Open("./" + tt.inputFolder + "/" + file)
 			}).AnyTimes()
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			dl := scut.TestDetailLogger{}
 
