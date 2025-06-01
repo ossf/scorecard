@@ -37,7 +37,7 @@ $(KO): $(TOOLS_DIR)/go.mod
 
 MOCKGEN := $(TOOLS_BIN_DIR)/mockgen
 $(MOCKGEN): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golang/mock/mockgen
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install go.uber.org/mock/mockgen
 
 GINKGO := $(TOOLS_BIN_DIR)/ginkgo
 $(GINKGO): $(TOOLS_DIR)/go.mod
