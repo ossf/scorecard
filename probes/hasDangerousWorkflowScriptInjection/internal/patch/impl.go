@@ -116,19 +116,20 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 	}
 
 	for _, p := range unsafePatterns {
-		if p.idRegex.MatchString(unsafeVar) {
-			arrayVarRegex := regexp.MustCompile(`\[(.+?)\]`)
-			arrayIdx := arrayVarRegex.FindStringSubmatch(unsafeVar)
-			if len(arrayIdx) < 2 {
-				// not an array variable, the default envvar name is sufficient.
-				return p, nil
-			}
-			// Array variable (i.e. `github.event.commits[0].message`), must avoid potential conflicts.
-			// Add the array index to the name as a suffix, and use the exact unsafe variable name instead of the
-			// default, which includes a regex that will catch all instances of the array.
-			envvarName := fmt.Sprintf("%s_%s", p.envvarName, arrayIdx[1])
-			return newUnsafePattern(envvarName, regexp.QuoteMeta(unsafeVar)), nil
+		if !p.idRegex.MatchString(unsafeVar) {
+			continue
 		}
+		arrayVarRegex := regexp.MustCompile(`\[(.+?)\]`)
+		arrayIdx := arrayVarRegex.FindStringSubmatch(unsafeVar)
+		if len(arrayIdx) < 2 {
+			// not an array variable, the default envvar name is sufficient.
+			return p, nil
+		}
+		// Array variable (i.e. `github.event.commits[0].message`), must avoid potential conflicts.
+		// Add the array index to the name as a suffix, and use the exact unsafe variable name instead of the
+		// default, which includes a regex that will catch all instances of the array.
+		envvarName := fmt.Sprintf("%s_%s", p.envvarName, arrayIdx[1])
+		return newUnsafePattern(envvarName, regexp.QuoteMeta(unsafeVar)), nil
 	}
 
 	return unsafePattern{}, sce.WithMessage(sce.ErrScorecardInternal,

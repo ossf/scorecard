@@ -1,4 +1,4 @@
----
+version: "2"
 run:
   concurrency: 6
   timeout: 5m
@@ -12,175 +12,219 @@ issues:
   # Default: 3
   max-same-issues: 0
   new-from-rev: ""
-  exclude-rules:
-    - path: '(.+)_test\.go'
-      linters:
-        - err113
-        - funlen
-        - goconst
-        - gocyclo
-        - lll
-        - wrapcheck
-  # probes must register via init
-    - path: 'probes/.+/impl.go'
-      linters:
-        - gochecknoinits
 linters:
   enable:
+    - asasalint
     - asciicheck
+    - bidichk
+    - bodyclose
+    - contextcheck
     - copyloopvar
     - dogsled
+    - durationcheck
     - err113
-    - errcheck
+    - errchkjson
     - errname
     - errorlint
     - exhaustive
     - forbidigo
-    - gci
+    - gocheckcompilerdirectives
     - gochecknoinits
+    - gochecksumtype
     - gocognit
     - goconst
     - gocritic
     - gocyclo
     - godot
     - godox
-    - gofmt
-    - gofumpt
     - goheader
-    - goimports
     # manage use of replace, retract and exclude directives (see https://github.com/ossf/scorecard/pull/3440#issuecomment-1708904830)
     # https://golangci-lint.run/usage/linters/#gomoddirectives
     - gomoddirectives
     - gomodguard
     - goprintffuncname
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
+    - gosmopolitan
     - lll
+    - loggercheck
     - makezero
     - mirror
     - misspell
+    - musttag
     - nakedret
     - nestif
+    - nilerr
+    - nilnesserr
+    - noctx
     - nolintlint
+    - paralleltest
     - predeclared
+    - protogetter
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
     - staticcheck
-    - stylecheck
+    - testableexamples
+    - testifylint
     - thelper
-    - typecheck
+    - tparallel
     - unconvert
-    - unused
     - usestdlibvars
     - usetesting
     - whitespace
     - wrapcheck
+    - zerologlint
   disable:
     - exhaustruct # initializing every struct makes tests longer without much benefit (spencerschrock)
     - testpackage # tests don't need their own package (spencerschrock)
-  presets:
-    - bugs
-    - test
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  exhaustive:
-    # https://golangci-lint.run/usage/linters/#exhaustive
-    default-signifies-exhaustive: true
-  forbidigo:
-    forbid:
-      - p: "^fmt\\.Print.*$"
-        msg: "Do not commit print statements. Output to stdout interferes with users who redirect JSON results to files."
-  govet:
-    enable:
-      - fieldalignment
-  godox:
-    keywords:
-      - BUG
-      - FIXME
-      - HACK
-  gosec:
-    excludes:
-      # TODO investigate and fix separately
-      - G115 # integer overflow conversion
-  gci:
-    sections:
-      - standard
-      - default
-      - prefix(github.com/ossf/scorecard)
-  gocritic:
-    disable-all: true
-    enabled-checks:
-      # Diagnostic
-      - appendAssign
-      - argOrder
-      - badCall
-      - badCond
-      - caseOrder
-      - codegenComment
-      - commentedOutCode
-      - deprecatedComment
-      - dupArg
-      - dupBranchBody
-      - dupCase
-      - dupSubExpr
-      - exitAfterDefer
-      - flagDeref
-      - flagName
-      - mapKey
-      - nilValReturn
-      - octalLiteral
-      - offBy1
-      - sloppyLen
-      - sloppyTypeAssert
-      - weakCond
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    exhaustive:
+      # https://golangci-lint.run/usage/linters/#exhaustive
+      default-signifies-exhaustive: true
+    forbidigo:
+      forbid:
+        - pattern: "^fmt\\.Print.*$"
+          msg: "Do not commit print statements. Output to stdout interferes with users who redirect JSON results to files."
+    gocritic:
+      disable-all: true
+      enabled-checks:
+        # Diagnostic
+        - appendAssign
+        - argOrder
+        - badCall
+        - badCond
+        - caseOrder
+        - codegenComment
+        - commentedOutCode
+        - deprecatedComment
+        - dupArg
+        - dupBranchBody
+        - dupCase
+        - dupSubExpr
+        - exitAfterDefer
+        - flagDeref
+        - flagName
+        - mapKey
+        - nilValReturn
+        - octalLiteral
+        - offBy1
+        - sloppyLen
+        - sloppyTypeAssert
+        - weakCond
 
-      # Performance
-      - appendCombine
-      - hugeParam
-      - rangeExprCopy
-      - rangeValCopy
+        # Performance
+        - appendCombine
+        - hugeParam
+        - rangeExprCopy
+        - rangeValCopy
 
-      # Style
-      - assignOp
-      - boolExprSimplify
-      - captLocal
-      - commentedOutImport
-      - commentFormatting
-      - defaultCaseOrder
-      - docStub
-      - elseif
-      - emptyFallthrough
-      - hexLiteral
-      - ifElseChain
-      - methodExprCall
-      - newDeref
-      - regexpMust
-      - singleCaseSwitch
-      - switchTrue
-      - typeAssertChain
-      - typeSwitchVar
-      - underef
-      - unlabelStmt
-      - unlambda
-      - unslice
-      - valSwap
-      - wrapperFunc
+        # Style
+        - assignOp
+        - boolExprSimplify
+        - captLocal
+        - commentedOutImport
+        - commentFormatting
+        - defaultCaseOrder
+        - docStub
+        - elseif
+        - emptyFallthrough
+        - hexLiteral
+        - ifElseChain
+        - methodExprCall
+        - newDeref
+        - regexpMust
+        - singleCaseSwitch
+        - switchTrue
+        - typeAssertChain
+        - typeSwitchVar
+        - underef
+        - unlabelStmt
+        - unlambda
+        - unslice
+        - valSwap
+        - wrapperFunc
 
-      # Opinionated
-      - builtinShadow
-      - importShadow
-      - initClause
-      - nestingReduce
-      - paramTypeCombine
-      - ptrToRefParam
-      - typeUnparen
-      - unnecessaryBlock
-  nolintlint:
-    # `//nolint` should mention specific linter such as `//nolint:my-linter`
-    # Overly broad directives can hide unrelated issues
-    require-specific: true
-  wrapcheck:
-    ignorePackageGlobs:
-      - github.com/ossf/scorecard/v5/checks/fileparser
+        # Opinionated
+        - builtinShadow
+        - importShadow
+        - initClause
+        - nestingReduce
+        - paramTypeCombine
+        - ptrToRefParam
+        - typeUnparen
+        - unnecessaryBlock
+    godox:
+      keywords:
+        - BUG
+        - FIXME
+        - HACK
+    gosec:
+      excludes:
+        # TODO investigate and fix separately
+        - G115 # integer overflow conversion
+    govet:
+      enable:
+        - fieldalignment
+    nolintlint:
+      # `//nolint` should mention specific linter such as `//nolint:my-linter`
+      # Overly broad directives can hide unrelated issues
+      require-specific: true
+    staticcheck:
+      checks:
+        - "all"
+        - "-QF1003" # switch vs if/elif is style decision
+    wrapcheck:
+      ignore-package-globs:
+        - github.com/ossf/scorecard/v5/checks/fileparser
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - err113
+          - funlen
+          - goconst
+          - gocyclo
+          - lll
+          - wrapcheck
+        path: (.+)_test\.go
+      # probes must register via init
+      - linters:
+          - gochecknoinits
+        path: probes/.+/impl.go
+      # probes also break package naming conventions
+      - linters:
+          - staticcheck
+        path: probes/.+/.+.go
+        text: "ST1003:"
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/ossf/scorecard)
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
