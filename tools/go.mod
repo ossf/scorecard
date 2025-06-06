@@ -8,7 +8,7 @@ require (
 	github.com/google/ko v0.18.0
 	github.com/goreleaser/goreleaser/v2 v2.9.0
 	github.com/onsi/ginkgo/v2 v2.23.4
-	go.uber.org/mock v0.5.0
+	go.uber.org/mock v0.5.2
 	google.golang.org/protobuf v1.36.6
 )
 
