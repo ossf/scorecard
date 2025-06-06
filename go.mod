@@ -12,7 +12,6 @@ require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.15.0
 	github.com/go-git/go-git/v5 v5.16.0
 	github.com/go-logr/logr v1.4.2
-	github.com/golang/mock v1.6.0
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.20.2
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
@@ -204,6 +203,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
+	go.uber.org/mock v0.5.2
 	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
 	golang.org/x/net v0.39.0 // indirect

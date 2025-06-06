@@ -22,7 +22,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	packageclient "github.com/ossf/scorecard/v5/internal/packageclient"
 )
 

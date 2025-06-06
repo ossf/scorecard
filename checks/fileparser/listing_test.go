@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
