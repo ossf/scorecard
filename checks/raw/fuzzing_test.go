@@ -512,6 +512,67 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "const fc = require('fast-other');",
 		},
 		{
+			name:     "JavaScript JSX fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "JavaScript JSX fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "JavaScript JSX fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "JavaScript JSX fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/jest\";",
+		},
+		{
+			name:     "JavaScript JSX with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.jsx"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
+		{
 			name:     "TypeScript fast-check via require",
 			want:     true,
 			fileName: []string{"main.spec.ts"},
@@ -563,6 +624,67 @@ func Test_checkFuzzFunc(t *testing.T) {
 			name:     "TypeScript with no property-based testing",
 			want:     false,
 			fileName: []string{"main.spec.ts"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
+		{
+			name:     "TypeScript TSX fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "TypeScript TSX fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "TypeScript TSX fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "TypeScript TSX fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/vitest\";",
+		},
+		{
+			name:     "TypeScript TSX with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.tsx"},
 			wantErr:  true,
 			langs: []clients.Language{
 				{
