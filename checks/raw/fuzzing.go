@@ -113,7 +113,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.JavaScript: {
-		filePatterns: []string{"*.js"},
+		filePatterns: []string{"*.js", "*.jsx"},
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
@@ -121,7 +121,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Desc: propertyBasedDescription("JavaScript"),
 	},
 	clients.TypeScript: {
-		filePatterns: []string{"*.ts"},
+		filePatterns: []string{"*.ts", "*.tsx"},
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
