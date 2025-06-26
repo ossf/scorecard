@@ -383,8 +383,6 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 // matches returns true if the job matches the job matcher.
 func (m *JobMatcher) matches(job *actionlint.Job) bool {
 	for _, stepToMatch := range m.Steps {
-		hasMatch := false
-
 		// First look for re-usable workflow calls.
 		if job.WorkflowCall != nil &&
 			job.WorkflowCall.Uses != nil &&
@@ -395,15 +393,11 @@ func (m *JobMatcher) matches(job *actionlint.Job) bool {
 		// Second looks for steps in the job.
 		for _, step := range job.Steps {
 			if stepsMatch(stepToMatch, step) {
-				hasMatch = true
-				break
+				return true
 			}
 		}
-		if !hasMatch {
-			return false
-		}
 	}
-	return true
+	return false
 }
 
 // stepsMatch returns true if the fields on 'stepToMatch' match what's in 'step'.

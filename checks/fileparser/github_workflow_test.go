@@ -917,7 +917,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		{
 			name:     "npm github publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-github.yaml",
-			expected: false, // Should this be false?
+			expected: true,
 		},
 		{
 			name:     "maven publish",
@@ -992,6 +992,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		{
 			name:     "semantic-release publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
+			expected: true,
+		},
+		{
+			name:     "regression",
+			filename: "../testdata/.github/workflows/spicedb-release.yaml",
 			expected: true,
 		},
 	}
