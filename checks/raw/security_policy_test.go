@@ -204,13 +204,41 @@ func Test_collectPolicyHits(t *testing.T) {
 		},
 		// Email regex
 		{
-			name:  "Email positive",
+			name:  "Email positive with @",
 			input: "Contact us at security@example.org.",
 			expected: []checker.SecurityPolicyInformation{
 				{
 					InformationType: checker.SecurityPolicyInformationTypeEmail,
 					InformationValue: checker.SecurityPolicyValueType{
 						Match:      "security@example.org",
+						LineNumber: 1,
+						Offset:     14,
+					},
+				},
+			},
+		},
+		{
+			name:  "Email positive with [at] unescaped",
+			input: "Contact us at security[at]example.org.",
+			expected: []checker.SecurityPolicyInformation{
+				{
+					InformationType: checker.SecurityPolicyInformationTypeEmail,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      "security[at]example.org",
+						LineNumber: 1,
+						Offset:     14,
+					},
+				},
+			},
+		},
+		{
+			name:  "Email positive with [at] escaped",
+			input: "Contact us at security\\[at\\]example.org.",
+			expected: []checker.SecurityPolicyInformation{
+				{
+					InformationType: checker.SecurityPolicyInformationTypeEmail,
+					InformationValue: checker.SecurityPolicyValueType{
+						Match:      "security\\[at\\]example.org",
 						LineNumber: 1,
 						Offset:     14,
 					},
