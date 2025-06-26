@@ -126,11 +126,13 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 				continue
 			}
 			if sastTools[cr.App.Slug] {
-				c.Dlogger.Debug(&checker.LogMessage{
-					Path: cr.URL,
-					Type: finding.FileTypeURL,
-					Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
-				})
+				if c.Dlogger != nil {
+					c.Dlogger.Debug(&checker.LogMessage{
+						Path: cr.URL,
+						Type: finding.FileTypeURL,
+						Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
+					})
+				}
 				checked = true
 				break
 			}
