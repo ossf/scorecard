@@ -751,7 +751,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
 			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
 				// This can be deduplicated:
-				dep := createUnpinnedDep(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
@@ -779,7 +779,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if strings.HasPrefix(execAction.Uses.Value, "./") {
 				continue
 			}
-			dep := createUnpinnedDep(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
+			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -787,7 +787,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-func createUnpinnedDep(uses, pathfn string, line int) checker.Dependency {
+func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
 			Path:      pathfn,
