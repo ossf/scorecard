@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -37,7 +38,7 @@ func SBOM(c *checker.CheckRequest) (checker.SBOMData, error) {
 	var results checker.SBOMData
 
 	releases, lerr := c.RepoClient.ListReleases()
-	if lerr != nil {
+	if lerr != nil && !errors.Is(lerr, clients.ErrUnsupportedFeature) {
 		return results, fmt.Errorf("RepoClient.ListReleases: %w", lerr)
 	}
 
