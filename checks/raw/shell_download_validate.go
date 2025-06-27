@@ -472,10 +472,10 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 			// is invalid.
 			s := strings.SplitN(cmd[i], "#", 5)
 			if len(s) != 2 {
-				return false
+				return true
 			}
-			// git commit hashes have 40 chars
-			if len(s[1]) == 40 {
+			// validate that this is a hash
+			if gitCommitHashRegex.MatchString(s[1]) {
 				return false
 			}
 		}
