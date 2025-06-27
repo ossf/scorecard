@@ -29,7 +29,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 )
 
-var mergedOneHourAgo = time.Now().Add(time.Hour - 1)
+var mergedOneHourAgo = time.Now().Add(time.Hour * time.Duration(-1))
 
 func TestSAST(t *testing.T) {
 	t.Parallel()
