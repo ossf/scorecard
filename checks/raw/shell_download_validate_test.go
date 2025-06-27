@@ -466,21 +466,21 @@ func Test_isNpmUnpinnedDownload(t *testing.T) {
 		{
 			name: "npm install with git: prefix and valid hash",
 			args: args{
-				cmd: []string{"npm", "install", "github:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+				cmd: []string{"npm", "install", "git:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
 			},
 			want: false,
 		},
 		{
 			name: "npm install with http: prefix and valid hash",
 			args: args{
-				cmd: []string{"npm", "install", "github:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+				cmd: []string{"npm", "install", "http://nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
 			},
 			want: false,
 		},
 		{
 			name: "npm install with https: prefix and valid hash",
 			args: args{
-				cmd: []string{"npm", "install", "github:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+				cmd: []string{"npm", "install", "http://nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
 			},
 			want: false,
 		},
