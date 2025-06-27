@@ -750,7 +750,6 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			// Check whether this is an action defined in the same repo,
 			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
 			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
-				// This can be deduplicated:
 				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
