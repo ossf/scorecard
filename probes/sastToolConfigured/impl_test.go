@@ -67,10 +67,14 @@ func Test_Run(t *testing.T) {
 						{
 							Type: checker.PysaWorkflow,
 						},
+						{
+							Type: checker.TrivyWorkflow,
+						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
@@ -147,6 +151,19 @@ func Test_Run_tools(t *testing.T) {
 				},
 			},
 			tools: []string{"Sonar", "Pysa"},
+		},
+		{
+			name: "Trivy",
+			raw: &checker.RawResults{
+				SASTResults: checker.SASTData{
+					Workflows: []checker.SASTWorkflow{
+						{
+							Type: checker.TrivyWorkflow,
+						},
+					},
+				},
+			},
+			tools: []string{"Trivy"},
 		},
 	}
 	for _, tt := range tests {
