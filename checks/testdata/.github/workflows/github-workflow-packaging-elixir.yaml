@@ -1,0 +1,49 @@
+name: StellarSDK CD
+
+on:
+  release:
+    types:
+      [published]
+
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
+jobs:
+  publish:
+    name: Publish Release to HEX PM
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        otp: ['23.3']
+        elixir: ['1.12']
+    env:
+      HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@63c24ba6bd7ba022e95695ff85de572c04a18142 # v2.7.0
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            hex.pm:443
+            repo.hex.pm:443
+            builds.hex.pm:443
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: erlef/setup-elixir@904c511e63061a8f501ae4b081ce2c0e9cfc70ab # v1.17.4
+        with:
+          otp-version: ${{ matrix.otp }}
+          elixir-version: ${{ matrix.elixir }}
+      - uses: actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319 # v4.0.1
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+      - name: Install Dependencies
+        run: |
+          rm -rf deps _build
+          mix deps.get
+      - name: Publish
+        run: HEX_API_KEY=$HEX_API_KEY mix hex.publish --yes
