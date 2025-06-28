@@ -67,10 +67,14 @@ func Test_Run(t *testing.T) {
 						{
 							Type: checker.PysaWorkflow,
 						},
+						{
+							Type: checker.CheckovWorkflow,
+						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
