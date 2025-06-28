@@ -43,6 +43,7 @@ var sastTools = map[string]bool{
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
 	"sonarqubecloud":           true,
+	"checkov-github-action":    true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
@@ -86,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 		return data, err
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
+
+	CheckovWorkflows, err := getSastUsesWorkflows(c, "^bridgecrewio/checkov-action$", checker.CheckovWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, CheckovWorkflows...)
 
 	return data, nil
 }

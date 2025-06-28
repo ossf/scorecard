@@ -286,6 +286,8 @@ const (
 	PysaWorkflow SASTWorkflowType = "Pysa"
 	// QodanaWorkflow represents a workflow that runs Qodana.
 	QodanaWorkflow SASTWorkflowType = "Qodana"
+	// CheckovWorkflow represents a workflow that runs Checkov.
+	CheckovWorkflow SASTWorkflowType = "Checkov"
 )
 
 // SASTWorkflow represents a SAST workflow.
