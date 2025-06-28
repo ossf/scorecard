@@ -49,7 +49,11 @@ func Test_SAST(t *testing.T) {
 			name:         "SAST checker should return min score when no PRs are found",
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
-			checkRuns:    []clients.CheckRun{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
+			checkRuns: []clients.CheckRun{},
 			expected: scut.TestReturn{
 				Score:        checker.MinResultScore,
 				NumberOfWarn: 1,
@@ -60,7 +64,11 @@ func Test_SAST(t *testing.T) {
 			err:          errors.New("error"),
 			commits:      []clients.Commit{},
 			searchresult: clients.SearchResponse{},
-			checkRuns:    []clients.CheckRun{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
+			checkRuns: []clients.CheckRun{},
 			expected: scut.TestReturn{
 				Score: checker.InconclusiveResultScore,
 				Error: sce.ErrScorecardInternal,
@@ -76,6 +84,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -101,6 +113,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -126,6 +142,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -152,6 +172,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -178,7 +202,11 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
-			path:         ".github/workflows/airflow-codeql-workflow.yaml",
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
+			path: ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
 				Score:        7,
 				NumberOfWarn: 1,
@@ -196,6 +224,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -231,6 +263,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -271,6 +307,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "notCompletedForTestingOnly",
@@ -294,12 +334,51 @@ func Test_SAST(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
+		{
+			name: `KICS workflow with commits`,
+			err:  nil,
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 2),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/Checkmarx/kics-github-action",
+				Path:  "/.github/workflows",
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "kics-github-action",
+					},
+				},
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "kics-github-action",
+					},
+				},
+			},
+			path: ".github/workflows/github-kics-workflow.yaml",
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfDebug: 2,
+				NumberOfInfo:  2,
+			},
+		},
 	}
 	for _, tt := range tests {
-		searchRequest := clients.SearchRequest{
-			Query: "github/codeql-action/analyze",
-			Path:  "/.github/workflows",
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -311,7 +390,7 @@ func Test_SAST(t *testing.T) {
 				return tt.commits, tt.err
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
-			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
+			mockRepoClient.EXPECT().Search(tt.searchRequest).Return(tt.searchresult, nil).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
 				func(predicate func(string) (bool, error)) ([]string, error) {
 					if strings.Contains(tt.path, "pom") {
