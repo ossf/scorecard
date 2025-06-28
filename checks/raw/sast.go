@@ -87,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
 
+	kicsWorkflows, err := getSastUsesWorkflows(c, "^Checkmarx/kics-github-action", checker.KicsWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, kicsWorkflows...)
+
 	return data, nil
 }
 
