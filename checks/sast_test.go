@@ -76,6 +76,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -101,6 +105,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -126,6 +134,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -152,6 +164,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -178,7 +194,11 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
-			path:         ".github/workflows/airflow-codeql-workflow.yaml",
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
+			path: ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
 				Score:        7,
 				NumberOfWarn: 1,
@@ -196,6 +216,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -231,6 +255,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "completed",
@@ -271,6 +299,10 @@ func Test_SAST(t *testing.T) {
 				},
 			},
 			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/codeql-action/analyze",
+				Path:  "/.github/workflows",
+			},
 			checkRuns: []clients.CheckRun{
 				{
 					Status:     "notCompletedForTestingOnly",
@@ -294,12 +326,51 @@ func Test_SAST(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
+		{
+			name: `Trivy workflow with commits`,
+			err:  nil,
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 2),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			searchRequest: clients.SearchRequest{
+				Query: "github/aquasecurity/trivy-action",
+				Path:  "/.github/workflows",
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "aqua-security-trivy",
+					},
+				},
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "aqua-security-trivy",
+					},
+				},
+			},
+			path: ".github/workflows/github-trivy-workflow.yaml",
+			expected: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfDebug: 2,
+				NumberOfInfo:  2,
+			},
+		},
 	}
 	for _, tt := range tests {
-		searchRequest := clients.SearchRequest{
-			Query: "github/codeql-action/analyze",
-			Path:  "/.github/workflows",
-		}
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)
@@ -311,7 +382,7 @@ func Test_SAST(t *testing.T) {
 				return tt.commits, tt.err
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
-			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
+			mockRepoClient.EXPECT().Search(tt.searchRequest).Return(tt.searchresult, nil).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
 				func(predicate func(string) (bool, error)) ([]string, error) {
 					if strings.Contains(tt.path, "pom") {
