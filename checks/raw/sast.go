@@ -43,6 +43,7 @@ var sastTools = map[string]bool{
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
 	"sonarqubecloud":           true,
+	"hadolint-action":          true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
@@ -86,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 		return data, err
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
+
+	hadolintWorkflows, err := getSastUsesWorkflows(c, "^hadolint/hadolint-action$", checker.HadolintWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, hadolintWorkflows...)
 
 	return data, nil
 }
