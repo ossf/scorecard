@@ -1,0 +1,27 @@
+name: "Security Scans"
+on:
+  schedule:
+    - cron: '0 3 * * 1' # run tests at 1 AM (UTC), every monday (1)
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Take CI build artifacts from branch (e.g., master, release-x.y.z)'
+        required: true
+        default: 'main'
+
+# Declare default permissions as read only.
+permissions: read-all
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  GO_VERSION: "~1.23"
+
+jobs:
+  security-scans:
+    steps:
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
