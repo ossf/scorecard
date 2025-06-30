@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -65,7 +66,7 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 
 	// Get release branches.
 	releases, err := c.ListReleases()
-	if err != nil {
+	if err != nil && !errors.Is(err, clients.ErrUnsupportedFeature) {
 		return checker.BranchProtectionsData{}, fmt.Errorf("%w", err)
 	}
 	for _, release := range releases {
