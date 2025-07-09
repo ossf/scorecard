@@ -43,7 +43,6 @@ var sastTools = map[string]bool{
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
 	"sonarqubecloud":           true,
-	"hadolint-action":          true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
