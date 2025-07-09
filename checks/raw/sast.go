@@ -43,7 +43,6 @@ var sastTools = map[string]bool{
 	"lgtm-com":                 true,
 	"sonarcloud":               true,
 	"sonarqubecloud":           true,
-	"aqua-security-trivy":      true,
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
