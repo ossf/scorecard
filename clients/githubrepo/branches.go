@@ -196,6 +196,7 @@ type ruleSetBypass struct {
 type repoRuleSet struct {
 	Name         *string
 	Enforcement  *string
+	Target       *string
 	Conditions   ruleSetCondition
 	BypassActors struct {
 		Nodes []*ruleSetBypass
@@ -473,6 +474,11 @@ func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
+		// Skip rulesets that don't target branches
+		if rule.Target != nil && *rule.Target != "branch" {
+			continue
+		}
+
 		for _, cond := range rule.Conditions.RefName.Exclude {
 			if match, err := fnmatch.Match(cond, refName); err != nil {
 				return nil, fmt.Errorf("exclude match error: %w", err)
