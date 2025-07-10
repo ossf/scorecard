@@ -461,7 +461,7 @@ func isPermissionsError(err error) bool {
 
 const (
 	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
-	ruleConditionAllBranches   = "~ALL"
+	ruleConditionAll           = "~ALL" // check Target to see if this applies to branches or tags
 	ruleDeletion               = "DELETION"
 	ruleForcePush              = "NON_FAST_FORWARD"
 	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
@@ -474,11 +474,6 @@ func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
-		// Skip rulesets that don't target branches
-		if rule.Target != nil && *rule.Target != "branch" {
-			continue
-		}
-
 		for _, cond := range rule.Conditions.RefName.Exclude {
 			if match, err := fnmatch.Match(cond, refName); err != nil {
 				return nil, fmt.Errorf("exclude match error: %w", err)
@@ -487,8 +482,9 @@ nextRule:
 			}
 		}
 
+		targetsBranches := rule.Target != nil && *rule.Target == "branch"
 		for _, cond := range rule.Conditions.RefName.Include {
-			if cond == ruleConditionAllBranches {
+			if cond == ruleConditionAll && targetsBranches {
 				ret = append(ret, rule)
 				break
 			}

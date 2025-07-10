@@ -35,7 +35,7 @@ func Test_rulesMatchingBranch(t *testing.T) {
 			name: "including all branches",
 			condition: ruleSetCondition{
 				RefName: ruleSetConditionRefs{
-					Include: []string{ruleConditionAllBranches},
+					Include: []string{ruleConditionAll},
 				},
 			},
 			defaultBranchNames: map[string]bool{
