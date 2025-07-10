@@ -1,0 +1,7 @@
+beautifulsoup4==4.10.0
+cxxfilt==0.3.0
+lxml==5.3.0
+matplotlib==3.10.0
+numpy==2.1.0
+PyYAML==6.0.2
+flake8
