@@ -475,7 +475,7 @@ func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]
 nextRule:
 	for _, rule := range rules {
 		// Skip rulesets that don't target branches
-		if rule.Target != nil && *rule.Target != "branch" {
+		if rule.Target != nil && *rule.Target != "BRANCH" {
 			continue
 		}
 
