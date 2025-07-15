@@ -465,6 +465,12 @@ func TestSignedRelease(t *testing.T) {
 					return &v, nil
 				},
 			).AnyTimes()
+			mockPkgC.EXPECT().GetPackage(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+				func(ctx context.Context, host, project string) (*packageclient.Package, error) {
+					v := packageclient.Package{}
+					return &v, nil
+				},
+			).AnyTimes()
 
 			req := checker.CheckRequest{
 				RepoClient:    mockRepoC,
