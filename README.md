@@ -188,6 +188,9 @@ Action
 ### Scorecard REST API
 
 To query pre-calculated scores of OSS projects, use the [REST API](https://api.scorecard.dev).
+Scores calculated from our [weekly scan](#public-data) may be missing checks,
+such as `CI-Tests`, `Contributors`, and `Dependency-Update-Tool`. This is a
+known limitation due to the API costs associated with running them at scale.
 
 To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
