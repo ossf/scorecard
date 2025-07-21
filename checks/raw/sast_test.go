@@ -248,6 +248,29 @@ func TestSAST(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Has KICS",
+			files: []string{".github/workflows/github-kics-workflow.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.KicsWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-kics-workflow.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
