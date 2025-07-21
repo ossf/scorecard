@@ -345,7 +345,7 @@ func TestScanLockFile(t *testing.T) {
 		},
 	}
 	for _, tt := range testCases {
-		fileContents, err := stdOs.ReadFile(filepath.Join("testdata", tt.lockFile))
+		fileContents, err := stdOs.ReadFile(filepath.Join("./testdata/", tt.lockFile))
 		if err != nil {
 			t.Fatalf("could not read file %s, err: %v", tt.lockFile, err)
 		}
