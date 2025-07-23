@@ -464,9 +464,9 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		// Check if the package is of any of the
 		// following formats: https://docs.npmjs.com/about-packages-and-modules#npm-package-git-url-formats
 		if strings.HasPrefix(cmd[i], "github:") ||
-			strings.HasPrefix(cmd[i], "git:") ||
-			strings.HasPrefix(cmd[i], "http://") ||
-			strings.HasPrefix(cmd[i], "https://") {
+			strings.HasPrefix(cmd[i], "git://") ||
+			strings.HasPrefix(cmd[i], "git+http://") ||
+			strings.HasPrefix(cmd[i], "git+https://") {
 			// We expect the URL to only have 1 #, but
 			// we can check whether it has more and
 			// is invalid.
