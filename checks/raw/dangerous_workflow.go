@@ -35,6 +35,7 @@ func containsUntrustedContextPattern(variable string) bool {
 			`issue\.body|` +
 			`pull_request\.title|` +
 			`pull_request\.body|` +
+			`labels\.[^.]+\.name|` +
 			`comment\.body|` +
 			`review\.body|` +
 			`review_comment\.body|` +

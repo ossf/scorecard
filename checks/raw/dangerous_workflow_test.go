@@ -86,6 +86,16 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "github.event.commits[2].author.email",
 			expected: true,
 		},
+		{
+			name:     "PR label name",
+			variable: "github.event.pull_request.labels.foo.name",
+			expected: true,
+		},
+		{
+			name:     "PR label wildcard name",
+			variable: "github.event.pull_request.labels.*.name",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
