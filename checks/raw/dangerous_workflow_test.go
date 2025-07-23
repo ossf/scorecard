@@ -17,6 +17,7 @@ package raw
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -81,6 +82,12 @@ func TestUntrustedContextVariables(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if r := containsUntrustedContextPattern(tt.variable); !r == tt.expected {
+				t.Fail()
+			}
+			if r := containsUntrustedContextPattern(fmt.Sprintf("toJSON(%s)", tt.variable)); !r == tt.expected {
+				t.Fail()
+			}
+			if r := containsUntrustedContextPattern(fmt.Sprintf("toJSON(  %s  )", tt.variable)); !r == tt.expected {
 				t.Fail()
 			}
 		})
