@@ -86,6 +86,46 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "github.event.commits[2].author.email",
 			expected: true,
 		},
+		{
+			name:     "alert resolved by name",
+			variable: "github.event.secret_scanning_alert.alert.resolved_by.name",
+			expected: true,
+		},
+		{
+			name:     "alert resolved by email",
+			variable: "github.event.secret_scanning_alert.alert.resolved_by.name",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypassed_by name",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypassed_by.name",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypassed_by email",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypassed_by.email",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypass_request_reviewer name",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypass_request_reviewer.name",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypass_request_reviewer email",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypass_request_reviewer.email",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypass_request_reviewer_comment",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypass_request_reviewer_comment",
+			expected: true,
+		},
+		{
+			name:     "alert push_protection_bypass_request_comment",
+			variable: "github.event.secret_scanning_alert.alert.push_protection_bypass_request_comment",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
