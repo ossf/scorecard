@@ -160,6 +160,25 @@ func TestSAST(t *testing.T) {
 				NumberOfInfo: 2,
 			},
 		},
+		{
+			name: "Hadolint is installed, no other SAST tools are installed",
+			findings: []finding.Finding{
+				tool(checker.HadolintWorkflow),
+				{
+					Probe:   sastToolRunsOnAllCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfWarn: 0,
+				NumberOfInfo: 2,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
