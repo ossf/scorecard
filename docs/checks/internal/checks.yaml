@@ -874,3 +874,26 @@ checks:
         If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
       - >-
         If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
+
+  ## Minder added checks
+  Contributing-File:
+    risk: Low
+    tags: source-code, git
+    repos: GitHub
+    short: The project should have contributor documentation.
+    description: |
+      Risk: `Low` (this is a baseline best-practice check, rather than a direct vulnerability)
+    remediation:
+      - >-
+        Ensure that the project has a `CONTRIBUTING.md` file in the root directory.
+
+  No-Binary-Files:
+    risk: Low
+    tags: source-code, git
+    repos: GitHub
+    short: Determines if the project has binary files in source control.
+    description: |
+      Risk: `High` (binary files are difficult to review, and have been an attack vector)
+    remediation:
+      - >-
+        Remove binary files from the repository.
