@@ -206,7 +206,6 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CORS middleware for net/http.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -220,7 +219,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Recover middleware for net/http.
 func recoverMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -233,12 +231,11 @@ func recoverMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Logger middleware for net/http.
 func loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-		stdlog.Printf("%s %s %s", r.Method, r.URL, time.Since(start))
+		stdlog.Printf("request completed method=%s path=%s duration=%v", r.Method, r.URL.Path, time.Since(start))
 	})
 }
 
@@ -263,7 +260,6 @@ func serveCmd(o *options.Options) *cobra.Command {
 				w.WriteHeader(http.StatusOK)
 			})
 
-			// Compose middlewares: logger -> recover -> cors -> mux
 			handler := loggerMiddleware(recoverMiddleware(corsMiddleware(mux)))
 
 			port := os.Getenv("PORT")
@@ -276,7 +272,6 @@ func serveCmd(o *options.Options) *cobra.Command {
 				Handler: handler,
 			}
 
-			// Graceful shutdown
 			done := make(chan os.Signal, 1)
 			signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
