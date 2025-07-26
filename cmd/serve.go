@@ -1,4 +1,4 @@
-// Copyright 2020 OpenSSF Scorecard Authors
+// Copyright 2025 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	stdlog "log"
 	"net/http"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
-	"github.com/ossf/scorecard/v5/clients/localdir"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	"github.com/ossf/scorecard/v5/log"
@@ -42,31 +42,26 @@ import (
 
 type server struct {
 	logger *log.Logger
-	opts   *options.Options
 }
 
 type scorecardRequest struct {
-	Repo        string   `json:"repo"`
-	Local       string   `json:"local,omitempty"`
-	NPM         string   `json:"npm,omitempty"`
-	PyPI        string   `json:"pypi,omitempty"`
-	RubyGems    string   `json:"rubygems,omitempty"`
-	Nuget       string   `json:"nuget,omitempty"`
-	Checks      []string `json:"checks,omitempty"`
-	Commit      string   `json:"commit,omitempty"`
-	CommitDepth int      `json:"commit_depth,omitempty"`
-	ShowDetails bool     `json:"show_details,omitempty"`
-	Format      string   `json:"format,omitempty"`
-	LogLevel    string   `json:"log_level,omitempty"`
-	Probes      []string `json:"probes,omitempty"`
-	FileMode    string   `json:"file_mode,omitempty"`
-	PolicyFile  string   `json:"policy_file,omitempty"`
+	CommitDepth     int      `json:"commit_depth,omitempty"`
+	ShowDetails     bool     `json:"show_details,omitempty"`
+	ShowAnnotations bool     `json:"show_annotations,omitempty"`
+	Repo            string   `json:"repo"`
+	NPM             string   `json:"npm,omitempty"`
+	PyPI            string   `json:"pypi,omitempty"`
+	RubyGems        string   `json:"rubygems,omitempty"`
+	Nuget           string   `json:"nuget,omitempty"`
+	Commit          string   `json:"commit,omitempty"`
+	FileMode        string   `json:"file_mode,omitempty"`
+	Checks          []string `json:"checks,omitempty"`
+	Probes          []string `json:"probes,omitempty"`
 }
 
-func newServer(logger *log.Logger, opts *options.Options) *server {
+func newServer(logger *log.Logger) *server {
 	return &server{
 		logger: logger,
-		opts:   opts,
 	}
 }
 
@@ -79,7 +74,6 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		req.Repo = r.URL.Query().Get("repo")
-		req.Local = r.URL.Query().Get("local")
 		req.NPM = r.URL.Query().Get("npm")
 		req.PyPI = r.URL.Query().Get("pypi")
 		req.RubyGems = r.URL.Query().Get("rubygems")
@@ -87,82 +81,63 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 		req.Checks = strings.Split(r.URL.Query().Get("checks"), ",")
 		req.Commit = r.URL.Query().Get("commit")
 		req.ShowDetails = r.URL.Query().Get("show_details") == "true"
-		req.Format = r.URL.Query().Get("format")
-		req.LogLevel = r.URL.Query().Get("log_level")
+		req.ShowAnnotations = r.URL.Query().Get("show_annotations") == "true"
 		req.Probes = strings.Split(r.URL.Query().Get("probes"), ",")
 		req.FileMode = r.URL.Query().Get("file_mode")
-		req.PolicyFile = r.URL.Query().Get("policy_file")
 	}
 
-	// Set options
-	s.opts.Repo = req.Repo
-	s.opts.Local = req.Local
-	s.opts.NPM = req.NPM
-	s.opts.PyPI = req.PyPI
-	s.opts.RubyGems = req.RubyGems
-	s.opts.Nuget = req.Nuget
-	s.opts.Commit = req.Commit
-	if s.opts.Commit == "" {
-		s.opts.Commit = clients.HeadSHA
+	// Create a new options instance for each request to avoid race conditions
+	opts := options.New()
+
+	// Set options from request
+	opts.Repo = req.Repo
+	opts.NPM = req.NPM
+	opts.PyPI = req.PyPI
+	opts.RubyGems = req.RubyGems
+	opts.Nuget = req.Nuget
+	opts.Commit = req.Commit
+	if opts.Commit == "" {
+		opts.Commit = clients.HeadSHA
 	}
-	s.opts.CommitDepth = req.CommitDepth
-	s.opts.ShowDetails = req.ShowDetails
-	s.opts.Format = req.Format
-	if s.opts.Format == "" {
-		s.opts.Format = options.FormatDefault
+	opts.CommitDepth = req.CommitDepth
+	opts.ShowDetails = req.ShowDetails
+	opts.ShowAnnotations = req.ShowAnnotations
+	opts.LogLevel = "info"
+	opts.FileMode = req.FileMode
+	if opts.FileMode == "" {
+		opts.FileMode = options.FileModeArchive
 	}
-	s.opts.LogLevel = req.LogLevel
-	if s.opts.LogLevel == "" {
-		s.opts.LogLevel = "info"
+	opts.ChecksToRun = req.Checks
+
+	if len(req.Checks) == 1 && req.Checks[0] == "" {
+		opts.ChecksToRun = nil
 	}
-	s.opts.FileMode = req.FileMode
-	if s.opts.FileMode == "" {
-		s.opts.FileMode = options.FileModeArchive
-	} else if s.opts.FileMode != options.FileModeArchive && s.opts.FileMode != options.FileModeGit {
-		http.Error(w, fmt.Sprintf("unsupported file mode: %s", s.opts.FileMode), http.StatusBadRequest)
-		return
-	}
-	s.opts.PolicyFile = req.PolicyFile
-	s.opts.ChecksToRun = req.Checks
 
 	// Validate options
-	if err := s.opts.Validate(); err != nil {
+	if err := opts.Validate(); err != nil {
 		http.Error(w, fmt.Sprintf("invalid options: %v", err), http.StatusBadRequest)
 		return
 	}
 
 	p := &pmc.PackageManagerClient{}
 	// Set repo from package managers
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(s.opts.NPM, s.opts.PyPI, s.opts.RubyGems, s.opts.Nuget, p)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(opts.NPM, opts.PyPI, opts.RubyGems, opts.Nuget, p)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("fetchGitRepositoryFromPackageManagers: %v", err), http.StatusInternalServerError)
 		return
 	}
 	if pkgResp.exists {
-		s.opts.Repo = pkgResp.associatedRepo
-	}
-
-	pol, err := policy.ParseFromFile(s.opts.PolicyFile)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("readPolicy: %v", err), http.StatusInternalServerError)
-		return
+		opts.Repo = pkgResp.associatedRepo
 	}
 
 	ctx := r.Context()
 
 	var repo clients.Repo
-	if s.opts.Local != "" {
-		repo, err = localdir.MakeLocalDirRepo(s.opts.Local)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("making local dir: %v", err), http.StatusInternalServerError)
-			return
-		}
-	} else {
-		repo, err = makeRepo(s.opts.Repo)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("making remote repo: %v", err), http.StatusInternalServerError)
-			return
-		}
+
+	repo, err = makeRepo(opts.Repo)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("making remote repo: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	// Read docs
@@ -173,15 +148,13 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var requiredRequestTypes []checker.RequestType
-	if s.opts.Local != "" {
+	if opts.Local != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
-	if !strings.EqualFold(s.opts.Commit, clients.HeadSHA) {
+	if !strings.EqualFold(opts.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-
-	enabledChecks, err := policy.GetEnabled(pol, s.opts.Checks(), requiredRequestTypes)
-	stdlog.Printf("DEBUG: enabledChecks = %#v", enabledChecks)
+	enabledChecks, err := policy.GetEnabled(nil, opts.Checks(), requiredRequestTypes)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("GetEnabled: %v", err), http.StatusInternalServerError)
 		return
@@ -192,28 +165,28 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 		checks = append(checks, c)
 	}
 
-	enabledProbes := s.opts.Probes()
+	enabledProbes := opts.Probes()
 
-	opts := []scorecard.Option{
-		scorecard.WithLogLevel(log.ParseLevel(s.opts.LogLevel)),
-		scorecard.WithCommitSHA(s.opts.Commit),
-		scorecard.WithCommitDepth(s.opts.CommitDepth),
+	scorecardOpts := []scorecard.Option{
+		scorecard.WithLogLevel(log.ParseLevel(opts.LogLevel)),
+		scorecard.WithCommitSHA(opts.Commit),
+		scorecard.WithCommitDepth(opts.CommitDepth),
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
 	}
 
-	if strings.EqualFold(s.opts.FileMode, options.FileModeGit) {
-		opts = append(opts, scorecard.WithFileModeGit())
+	if strings.EqualFold(opts.FileMode, options.FileModeGit) {
+		scorecardOpts = append(scorecardOpts, scorecard.WithFileModeGit())
 	}
 
-	repoResult, err := scorecard.Run(ctx, repo, opts...)
+	repoResult, err := scorecard.Run(ctx, repo, scorecardOpts...)
 	if err != nil {
 		s.logger.Error(err, "scorecard.Run")
 		http.Error(w, fmt.Sprintf("scorecard.Run: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	repoResult.Metadata = append(repoResult.Metadata, s.opts.Metadata...)
+	repoResult.Metadata = append(repoResult.Metadata, opts.Metadata...)
 
 	// Sort by name
 	sort.Slice(repoResult.Checks, func(i, j int) bool {
@@ -223,9 +196,9 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	// Return results
 	w.Header().Set("Content-Type", "application/json")
 	if err := repoResult.AsJSON2(w, checkDocs, &scorecard.AsJSON2ResultOption{
-		LogLevel:    log.ParseLevel(s.opts.LogLevel),
-		Details:     s.opts.ShowDetails,
-		Annotations: false,
+		LogLevel:    log.ParseLevel(opts.LogLevel),
+		Details:     opts.ShowDetails,
+		Annotations: opts.ShowAnnotations,
 	}); err != nil {
 		s.logger.Error(err, "writing JSON response")
 		http.Error(w, fmt.Sprintf("failed to format results: %v", err), http.StatusInternalServerError)
@@ -233,7 +206,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// CORS middleware for net/http
+// CORS middleware for net/http.
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -247,7 +220,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Recover middleware for net/http
+// Recover middleware for net/http.
 func recoverMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -260,7 +233,7 @@ func recoverMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Logger middleware for net/http
+// Logger middleware for net/http.
 func loggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -276,7 +249,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 		Long:  `Start an HTTP server to run scorecard checks on repositories with REST API support.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := log.NewLogger(log.ParseLevel(o.LogLevel))
-			srv := newServer(logger, o)
+			srv := newServer(logger)
 
 			mux := http.NewServeMux()
 			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -309,7 +282,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 
 			go func() {
 				logger.Info("Server starting on port " + port)
-				if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					logger.Error(err, "server error")
 				}
 			}()
