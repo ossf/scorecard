@@ -294,10 +294,34 @@ func Test_SAST(t *testing.T) {
 				NumberOfInfo: 1,
 			},
 		},
+		{
+			name: `Hadolint Workflow has CodeQL and two commits none of which 
+			ran the workflow.`,
+			err: nil,
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 1),
+					},
+				},
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						MergedAt: time.Now().Add(time.Hour - 2),
+					},
+				},
+			},
+			searchresult: clients.SearchResponse{},
+			path:         ".github/workflows/github-hadolint-workflow.yaml",
+			expected: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfWarn: 1,
+				NumberOfInfo: 1,
+			},
+		},
 	}
 	for _, tt := range tests {
 		searchRequest := clients.SearchRequest{
-			Query: "github/codeql-action/analyze",
+			Query: "github/hadolint/hadolint-action",
 			Path:  "/.github/workflows",
 		}
 		t.Run(tt.name, func(t *testing.T) {

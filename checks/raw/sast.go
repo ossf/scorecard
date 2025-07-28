@@ -87,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
 
+	hadolintWorkflows, err := getSastUsesWorkflows(c, "^hadolint/hadolint-action$", checker.HadolintWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, hadolintWorkflows...)
+
 	return data, nil
 }
 
