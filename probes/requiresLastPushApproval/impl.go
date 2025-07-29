@@ -59,7 +59,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		p := branch.BranchProtectionRule.RequireLastPushApproval
+		p := branch.ProtectionRule.RequireLastPushApproval
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p, "last push approval", *branch.Name)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)

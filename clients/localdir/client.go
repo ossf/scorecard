@@ -180,13 +180,23 @@ func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 }
 
 // GetBranch implements RepoClient.GetBranch.
-func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (client *Client) GetBranch(branch string) (*clients.RepoRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
-func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+func (client *Client) GetDefaultBranch() (*clients.RepoRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
+}
+
+// GetBranch implements RepoClient.GetTag.
+func (client *Client) GetTag(tag string) (*clients.RepoRef, error) {
+	return &clients.RepoRef{}, fmt.Errorf("GetTag: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *Client) ListTags() ([]*clients.RepoRef, error) {
+	tags := make([]*clients.RepoRef, 0)
+	return tags, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranchName implements RepoClient.GetDefaultBranchName.

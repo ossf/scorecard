@@ -30,7 +30,7 @@ type branchesHandler struct {
 	once                     *sync.Once
 	errSetup                 error
 	repourl                  *Repo
-	defaultBranchRef         *clients.BranchRef
+	defaultBranchRef         *clients.RepoRef
 	queryProject             fnProject
 	queryBranch              fnQueryBranch
 	getProtectedBranch       fnProtectedBranch
@@ -108,7 +108,7 @@ func (handler *branchesHandler) setup() error {
 			handler.defaultBranchRef = makeBranchRefFrom(branch, protectedBranch,
 				projectStatusChecks, projectApprovalRule)
 		} else {
-			handler.defaultBranchRef = &clients.BranchRef{
+			handler.defaultBranchRef = &clients.RepoRef{
 				Name:      &branch.Name,
 				Protected: &branch.Protected,
 			}
@@ -118,7 +118,7 @@ func (handler *branchesHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
+func (handler *branchesHandler) getDefaultBranch() (*clients.RepoRef, error) {
 	err := handler.setup()
 	if err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
@@ -127,11 +127,11 @@ func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return handler.defaultBranchRef, nil
 }
 
-func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
+func (handler *branchesHandler) getBranch(branch string) (*clients.RepoRef, error) {
 	if strings.Contains(branch, "/-/commit/") {
 		// Gitlab's release commitish contains commit and is not easily tied to specific branch
 		p, b := true, ""
-		ret := &clients.BranchRef{
+		ret := &clients.RepoRef{
 			Name:      &b,
 			Protected: &p,
 		}
@@ -162,7 +162,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 		return makeBranchRefFrom(bran, protectedBranch, projectStatusChecks, projectApprovalRule), nil
 	} else {
-		ret := &clients.BranchRef{
+		ret := &clients.RepoRef{
 			Name:      &bran.Name,
 			Protected: &bran.Protected,
 		}
@@ -181,7 +181,7 @@ func makeContextsFromResp(checks []*gitlab.ProjectStatusCheck) []string {
 func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedBranch,
 	projectStatusChecks []*gitlab.ProjectStatusCheck,
 	projectApprovalRule *gitlab.ProjectApprovals,
-) *clients.BranchRef {
+) *clients.RepoRef {
 	requiresStatusChecks := newFalse()
 	if len(projectStatusChecks) > 0 {
 		requiresStatusChecks = newTrue()
@@ -204,10 +204,10 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 		pullRequestReviewRule.RequiredApprovingReviewCount = &requiredApprovalNum
 	}
 
-	ret := &clients.BranchRef{
+	ret := &clients.RepoRef{
 		Name:      &branch.Name,
 		Protected: &branch.Protected,
-		BranchProtectionRule: clients.BranchProtectionRule{
+		ProtectionRule: clients.ProtectionRule{
 			PullRequestRule:  pullRequestReviewRule,
 			AllowDeletions:   newFalse(),
 			AllowForcePushes: &protectedBranch.AllowForcePush,

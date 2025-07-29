@@ -434,7 +434,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 
 			main := "main"
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepo.EXPECT().GetDefaultBranch().Return(&clients.BranchRef{Name: &main}, nil).AnyTimes()
+			mockRepo.EXPECT().GetDefaultBranch().Return(&clients.RepoRef{Name: &main}, nil).AnyTimes()
 			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
 				files := []string{}
 				for _, fn := range tt.filenames {

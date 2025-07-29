@@ -14,15 +14,15 @@
 
 package clients
 
-// BranchRef represents a single branch reference and its protection rules.
-type BranchRef struct {
-	Name                 *string
-	Protected            *bool
-	BranchProtectionRule BranchProtectionRule
+// RepoRef represents either a single branch or tag reference and its protection rules.
+type RepoRef struct {
+	Name           *string
+	Protected      *bool
+	ProtectionRule ProtectionRule
 }
 
-// BranchProtectionRule captures the settings enabled on a branch for security.
-type BranchProtectionRule struct {
+// ProtectionRule captures the settings enabled on a branch for security.
+type ProtectionRule struct {
 	PullRequestRule         PullRequestRule
 	AllowDeletions          *bool
 	AllowForcePushes        *bool

@@ -45,10 +45,10 @@ func Test_Run(t *testing.T) {
 			name: "Blocks Force Push on 1/1 branches = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &falseVal,
 							},
 						},
@@ -63,16 +63,16 @@ func Test_Run(t *testing.T) {
 			name: "Blocks Force Push on 2/2 branches = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &falseVal,
 							},
 						},
@@ -87,16 +87,16 @@ func Test_Run(t *testing.T) {
 			name: "Blocks Force Push on 1/2 branches = 1 true and 1 false outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &trueVal,
 							},
 						},
@@ -111,16 +111,16 @@ func Test_Run(t *testing.T) {
 			name: "Blocks Force Push on 1/2 branches = 1 false and 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &falseVal,
 							},
 						},
@@ -135,16 +135,16 @@ func Test_Run(t *testing.T) {
 			name: "Blocks Force Push on 0/2 branches, 1 branch lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowForcePushes: nil,
 							},
 						},

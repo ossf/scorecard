@@ -43,10 +43,10 @@ func Test_Run(t *testing.T) {
 			name: "Runs status checks on 1/1 branches with contexts = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{"foo"},
 								},
@@ -63,10 +63,10 @@ func Test_Run(t *testing.T) {
 			name: "Runs status checks on 2/2 branches with contexts = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{"foo"},
 								},
@@ -74,7 +74,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{"foo"},
 								},
@@ -91,10 +91,10 @@ func Test_Run(t *testing.T) {
 			name: "Runs status checks on 1/2 branches = 1 true and 1 false outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{"foo"},
 								},
@@ -102,7 +102,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{},
 								},
@@ -119,10 +119,10 @@ func Test_Run(t *testing.T) {
 			name: "Runs status checks on 1/2 branches = 1 false and 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{},
 								},
@@ -130,7 +130,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{"foo"},
 								},
@@ -147,10 +147,10 @@ func Test_Run(t *testing.T) {
 			name: "Runs status checks on 0/2 branches = 2 false outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{},
 								},
@@ -158,7 +158,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									Contexts: []string{},
 								},

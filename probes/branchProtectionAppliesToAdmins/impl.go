@@ -59,7 +59,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		p := branch.BranchProtectionRule.EnforceAdmins
+		p := branch.ProtectionRule.EnforceAdmins
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
 			"branch protection settings apply to administrators",
 			*branch.Name)

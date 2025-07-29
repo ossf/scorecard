@@ -45,10 +45,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch enforces protection rules on admins = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &trueVal,
 							},
 						},
@@ -63,16 +63,16 @@ func Test_Run(t *testing.T) {
 			name: "1 branch enforces protection rules on admins = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &trueVal,
 							},
 						},
@@ -87,16 +87,16 @@ func Test_Run(t *testing.T) {
 			name: "1 branch enforces protection rules on admins and 1 doesn't = 1 true & 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &falseVal,
 							},
 						},
@@ -111,16 +111,16 @@ func Test_Run(t *testing.T) {
 			name: "1 branch does not enforce protection rules on admins and 1 does = 1 false & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &trueVal,
 							},
 						},
@@ -135,16 +135,16 @@ func Test_Run(t *testing.T) {
 			name: "1 branch does not enforce protection rules on admins and 1 doesn't have data = 1 false & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								EnforceAdmins: nil,
 							},
 						},

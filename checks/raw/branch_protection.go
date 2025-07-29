@@ -31,10 +31,10 @@ var commit = regexp.MustCompile("^[a-f0-9]{40}$")
 
 type branchSet struct {
 	exists map[string]bool
-	set    []clients.BranchRef
+	set    []clients.RepoRef
 }
 
-func (set *branchSet) add(branch *clients.BranchRef) bool {
+func (set *branchSet) add(branch *clients.RepoRef) bool {
 	if branch != nil &&
 		branch.Name != nil &&
 		*branch.Name != "" &&

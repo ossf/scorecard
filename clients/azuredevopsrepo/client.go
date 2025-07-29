@@ -145,7 +145,7 @@ func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 	return c.zip.getFile(filename)
 }
 
-func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (c *Client) GetBranch(branch string) (*clients.RepoRef, error) {
 	return c.branches.getBranch(branch)
 }
 
@@ -170,7 +170,7 @@ func (c *Client) GetDefaultBranchName() (string, error) {
 	return "", errDefaultBranchNotFound
 }
 
-func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+func (c *Client) GetDefaultBranch() (*clients.RepoRef, error) {
 	return c.branches.getDefaultBranch()
 }
 
@@ -231,6 +231,16 @@ func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.
 
 func (c *Client) Close() error {
 	return c.zip.cleanup()
+}
+
+// GetBranch implements RepoClient.GetTag.
+func (client *Client) GetTag(tag string) (*clients.RepoRef, error) {
+	return &clients.RepoRef{}, fmt.Errorf("GetTag: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *Client) ListTags() ([]*clients.RepoRef, error) {
+	tags := make([]*clients.RepoRef, 0)
+	return tags, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
 }
 
 func CreateAzureDevOpsClient(ctx context.Context, repo clients.Repo) (*Client, error) {

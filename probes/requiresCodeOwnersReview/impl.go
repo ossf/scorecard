@@ -58,7 +58,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		reqOwnerReviews := branch.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews
+		reqOwnerReviews := branch.ProtectionRule.PullRequestRule.RequireCodeOwnerReviews
 		var text string
 		var outcome finding.Outcome
 

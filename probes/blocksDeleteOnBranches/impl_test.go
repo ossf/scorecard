@@ -45,10 +45,10 @@ func Test_Run(t *testing.T) {
 			name: "One branch blocks branch deletion should result in one true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &falseVal,
 							},
 						},
@@ -63,16 +63,16 @@ func Test_Run(t *testing.T) {
 			name: "Two branches that block branch deletions should result in two true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &falseVal,
 							},
 						},
@@ -87,16 +87,16 @@ func Test_Run(t *testing.T) {
 			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 true & 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &trueVal,
 							},
 						},
@@ -111,16 +111,16 @@ func Test_Run(t *testing.T) {
 			name: "Two branches in total: One blocks branch deletion and one doesn't = 1 false & 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &falseVal,
 							},
 						},
@@ -135,16 +135,16 @@ func Test_Run(t *testing.T) {
 			name: "Two branches in total: One blocks branch deletion and one lacks data = 1 false & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: nil,
 							},
 						},

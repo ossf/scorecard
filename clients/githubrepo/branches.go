@@ -37,7 +37,7 @@ const (
 /* Example of query:
 query {
   repository(owner: "laurentsimon", name: "test3") {
-    branchProtectionRules(first: 100) {
+    ProtectionRules(first: 100) {
       edges {
         node {
           allowsDeletions
@@ -128,7 +128,7 @@ type refUpdateRule struct {
 
 // Used for all settings, both admin and non-admin ones.
 // This only works with an admin token.
-type branchProtectionRule struct {
+type ProtectionRule struct {
 	DismissesStaleReviews        *bool
 	IsAdminEnforced              *bool
 	RequiresStrictStatusChecks   *bool
@@ -141,17 +141,17 @@ type branchProtectionRule struct {
 	RequireLastPushApproval      *bool
 	RequiredStatusCheckContexts  []string
 	// TODO: verify there is no conflicts.
-	// BranchProtectionRuleConflicts interface{}
+	// ProtectionRuleConflicts interface{}
 }
 
-type branch struct {
+type ref struct {
 	Name                 *string
 	RefUpdateRule        *refUpdateRule
-	BranchProtectionRule *branchProtectionRule
+	BranchProtectionRule *ProtectionRule
 }
 type defaultBranchData struct {
 	Repository struct {
-		DefaultBranchRef *branch
+		DefaultBranchRef *ref
 	} `graphql:"repository(owner: $owner, name: $name)"`
 	RateLimit struct {
 		Cost *int
@@ -218,7 +218,7 @@ type ruleSetData struct {
 
 type branchData struct {
 	Repository struct {
-		Ref *branch `graphql:"ref(qualifiedName: $branchRefName)"`
+		Ref *ref `graphql:"ref(qualifiedName: $branchRefName)"`
 	} `graphql:"repository(owner: $owner, name: $name)"`
 }
 
@@ -230,7 +230,7 @@ type branchesHandler struct {
 	ctx               context.Context
 	errSetup          error
 	repourl           *Repo
-	defaultBranchRef  *clients.BranchRef
+	defaultBranchRef  *clients.RepoRef
 	defaultBranchName string
 	ruleSets          []*repoRuleSet
 }
@@ -275,7 +275,7 @@ func (handler *branchesHandler) setup() error {
 			return
 		}
 
-		rules, err := rulesMatchingBranch(handler.ruleSets, handler.defaultBranchName, true)
+		rules, err := rulesMatchingBranch(handler.ruleSets, handler.defaultBranchName, true, "BRANCH")
 		if err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
 			return
@@ -285,7 +285,7 @@ func (handler *branchesHandler) setup() error {
 	return handler.errSetup
 }
 
-func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, error) {
+func (handler *branchesHandler) query(branchName string) (*clients.RepoRef, error) {
 	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 		return nil, fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
 	}
@@ -302,21 +302,21 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 	}
-	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
+	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName, "BRANCH")
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
 	}
 	return getBranchRefFrom(queryData.Repository.Ref, rules), nil
 }
 
-func (handler *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
+func (handler *branchesHandler) getDefaultBranch() (*clients.RepoRef, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
 	}
 	return handler.defaultBranchRef, nil
 }
 
-func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, error) {
+func (handler *branchesHandler) getBranch(branch string) (*clients.RepoRef, error) {
 	branchRef, err := handler.query(branch)
 	if err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.query: %w", err)
@@ -325,7 +325,7 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 }
 
 // TODO: Move these two functions to below the GetBranchRefFrom functions, the single place they're used.
-func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionRule) {
+func copyAdminSettings(src *ProtectionRule, dst *clients.ProtectionRule) {
 	copyBoolPtr(src.IsAdminEnforced, &dst.EnforceAdmins)
 	copyBoolPtr(src.RequireLastPushApproval, &dst.RequireLastPushApproval)
 	copyBoolPtr(src.DismissesStaleReviews, &dst.PullRequestRule.DismissStaleReviews)
@@ -352,10 +352,10 @@ func copyAdminSettings(src *branchProtectionRule, dst *clients.BranchProtectionR
 	}
 }
 
-func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
+func copyNonAdminSettings(src interface{}, dst *clients.ProtectionRule) {
 	// TODO: requiresConversationResolution, requiresSignatures, viewerAllowedToDismissReviews, viewerCanPush
 	switch v := src.(type) {
-	case *branchProtectionRule:
+	case *ProtectionRule:
 		copyBoolPtr(v.AllowsDeletions, &dst.AllowDeletions)
 		copyBoolPtr(v.AllowsForcePushes, &dst.AllowForcePushes)
 		copyBoolPtr(v.RequiresLinearHistory, &dst.RequireLinearHistory)
@@ -407,11 +407,11 @@ func getActiveRuleSetsFrom(data *ruleSetData) []*repoRuleSet {
 	return ret
 }
 
-func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
+func getBranchRefFrom(data *ref, rules []*repoRuleSet) *clients.RepoRef {
 	if data == nil {
 		return nil
 	}
-	branchRef := new(clients.BranchRef)
+	branchRef := new(clients.RepoRef)
 	if data.Name != nil {
 		branchRef.Name = data.Name
 	}
@@ -428,7 +428,7 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 	}
 
 	*branchRef.Protected = true
-	branchRule := &branchRef.BranchProtectionRule
+	branchRule := &branchRef.ProtectionRule
 
 	switch {
 	// All settings are available. This typically means
@@ -460,22 +460,27 @@ func isPermissionsError(err error) bool {
 }
 
 const (
-	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
-	ruleConditionAllBranches   = "~ALL"
-	ruleDeletion               = "DELETION"
-	ruleForcePush              = "NON_FAST_FORWARD"
-	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
-	rulePullRequest            = "PULL_REQUEST"
-	ruleStatusCheck            = "REQUIRED_STATUS_CHECKS"
+	ruleConditionDefaultBranch      = "~DEFAULT_BRANCH"
+	ruleConditionAllBranchesAndTags = "~ALL"
+	ruleDeletion                    = "DELETION"
+	ruleForcePush                   = "NON_FAST_FORWARD"
+	ruleLinear                      = "REQUIRED_LINEAR_HISTORY"
+	rulePullRequest                 = "PULL_REQUEST"
+	ruleStatusCheck                 = "REQUIRED_STATUS_CHECKS"
 )
 
-func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
-	refName := refPrefix + name
+func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool, target string) ([]*repoRuleSet, error) {
+	var refName string
+	if target == "BRANCH" {
+		refName = refPrefix + name
+	} else {
+		refName = name
+	}
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
 		// Skip rulesets that don't target branches
-		if rule.Target != nil && *rule.Target != "BRANCH" {
+		if rule.Target != nil && *rule.Target != target {
 			continue
 		}
 
@@ -486,17 +491,17 @@ nextRule:
 				continue nextRule
 			}
 		}
-
 		for _, cond := range rule.Conditions.RefName.Include {
-			if cond == ruleConditionAllBranches {
+			if cond == ruleConditionAllBranchesAndTags {
 				ret = append(ret, rule)
 				break
 			}
-			if cond == ruleConditionDefaultBranch && defaultRef {
-				ret = append(ret, rule)
-				break
+			if target == "BRANCH" {
+				if cond == ruleConditionDefaultBranch && defaultRef {
+					ret = append(ret, rule)
+					break
+				}
 			}
-
 			if match, err := fnmatch.Match(cond, refName); err != nil {
 				return nil, fmt.Errorf("include match error: %w", err)
 			} else if match {
@@ -507,10 +512,10 @@ nextRule:
 	return ret, nil
 }
 
-func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
+func applyRepoRules(branchRef *clients.RepoRef, rules []*repoRuleSet) {
 	for _, r := range rules {
 		// Init values of base checkbox as if they're unchecked
-		translated := clients.BranchProtectionRule{
+		translated := clients.ProtectionRule{
 			AllowDeletions:       asPtr(true),
 			AllowForcePushes:     asPtr(true),
 			RequireLinearHistory: asPtr(false),
@@ -535,11 +540,11 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 				translateRequiredStatusRepoRule(&translated, rule)
 			}
 		}
-		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
+		mergeProtectionRules(&branchRef.ProtectionRule, &translated)
 	}
 }
 
-func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
+func translatePullRequestRepoRule(base *clients.ProtectionRule, rule *repoRule) {
 	base.PullRequestRule.Required = asPtr(true)
 	base.PullRequestRule.DismissStaleReviews = rule.Parameters.PullRequestParameters.DismissStaleReviewsOnPush
 	base.PullRequestRule.RequireCodeOwnerReviews = rule.Parameters.PullRequestParameters.RequireCodeOwnerReview
@@ -548,7 +553,7 @@ func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repo
 		RequiredApprovingReviewCount
 }
 
-func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
+func translateRequiredStatusRepoRule(base *clients.ProtectionRule, rule *repoRule) {
 	statusParams := rule.Parameters.StatusCheckParameters
 	if len(statusParams.RequiredStatusChecks) == 0 {
 		return
@@ -566,7 +571,7 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 // Merge strategy:
 //   - if both are nil, keep it nil
 //   - if any of them is not nil, keep the most restrictive one
-func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
+func mergeProtectionRules(base, translated *clients.ProtectionRule) {
 	if base.AllowDeletions == nil || (translated.AllowDeletions != nil && !*translated.AllowDeletions) {
 		base.AllowDeletions = translated.AllowDeletions
 	}

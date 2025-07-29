@@ -220,7 +220,7 @@ func (client *Client) IsArchived() (bool, error) {
 	return client.project.isArchived()
 }
 
-func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+func (client *Client) GetDefaultBranch() (*clients.RepoRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
@@ -228,7 +228,7 @@ func (client *Client) GetDefaultBranchName() (string, error) {
 	return client.repourl.defaultBranch, nil
 }
 
-func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (client *Client) GetBranch(branch string) (*clients.RepoRef, error) {
 	return client.branches.getBranch(branch)
 }
 
@@ -275,6 +275,16 @@ func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]cli
 
 func (client *Client) Close() error {
 	return nil
+}
+
+// GetBranch implements RepoClient.GetTag.
+func (client *Client) GetTag(tag string) (*clients.RepoRef, error) {
+	return &clients.RepoRef{}, fmt.Errorf("GetTag: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *Client) ListTags() ([]*clients.RepoRef, error) {
+	tags := make([]*clients.RepoRef, 0)
+	return tags, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
 }
 
 func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, error) {

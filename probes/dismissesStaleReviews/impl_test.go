@@ -45,10 +45,10 @@ func Test_Run(t *testing.T) {
 			name: "Dismisses stale reviews on 1/1 branches",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &trueVal,
 								},
@@ -65,10 +65,10 @@ func Test_Run(t *testing.T) {
 			name: "Dismisses stale reviews on 2/2 branches",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &trueVal,
 								},
@@ -76,7 +76,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &trueVal,
 								},
@@ -93,10 +93,10 @@ func Test_Run(t *testing.T) {
 			name: "Dismisses stale reviews on 1/2 branches - 1",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &trueVal,
 								},
@@ -104,7 +104,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &falseVal,
 								},
@@ -121,10 +121,10 @@ func Test_Run(t *testing.T) {
 			name: "Dismisses stale reviews on 1/2 branches - 2",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &falseVal,
 								},
@@ -132,7 +132,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &trueVal,
 								},
@@ -149,10 +149,10 @@ func Test_Run(t *testing.T) {
 			name: "Dismisses stale reviews on 0/2 branches",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: &falseVal,
 								},
@@ -160,7 +160,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									DismissStaleReviews: nil,
 								},

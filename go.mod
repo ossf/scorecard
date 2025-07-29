@@ -47,6 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/otiai10/copy v1.14.1
+	github.com/stretchr/testify v1.10.0
 	gitlab.com/gitlab-org/api/client-go v0.134.0
 	sigs.k8s.io/release-utils v0.8.4
 )
@@ -116,6 +117,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/prometheus v0.54.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect

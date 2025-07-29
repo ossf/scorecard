@@ -73,10 +73,10 @@ func (mr *MockRepoClientMockRecorder) Close() *gomock.Call {
 }
 
 // GetBranch mocks base method.
-func (m *MockRepoClient) GetBranch(branch string) (*clients.BranchRef, error) {
+func (m *MockRepoClient) GetBranch(branch string) (*clients.RepoRef, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBranch", branch)
-	ret0, _ := ret[0].(*clients.BranchRef)
+	ret0, _ := ret[0].(*clients.RepoRef)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -103,10 +103,10 @@ func (mr *MockRepoClientMockRecorder) GetCreatedAt() *gomock.Call {
 }
 
 // GetDefaultBranch mocks base method.
-func (m *MockRepoClient) GetDefaultBranch() (*clients.BranchRef, error) {
+func (m *MockRepoClient) GetDefaultBranch() (*clients.RepoRef, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetDefaultBranch")
-	ret0, _ := ret[0].(*clients.BranchRef)
+	ret0, _ := ret[0].(*clients.RepoRef)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -160,6 +160,21 @@ func (m *MockRepoClient) GetOrgRepoClient(arg0 context.Context) (clients.RepoCli
 func (mr *MockRepoClientMockRecorder) GetOrgRepoClient(arg0 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrgRepoClient", reflect.TypeOf((*MockRepoClient)(nil).GetOrgRepoClient), arg0)
+}
+
+// GetTag mocks base method.
+func (m *MockRepoClient) GetTag(tag string) (*clients.RepoRef, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTag", tag)
+	ret0, _ := ret[0].(*clients.RepoRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTag indicates an expected call of GetTag.
+func (mr *MockRepoClientMockRecorder) GetTag(tag any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTag", reflect.TypeOf((*MockRepoClient)(nil).GetTag), tag)
 }
 
 // InitRepo mocks base method.
@@ -339,6 +354,21 @@ func (m *MockRepoClient) ListSuccessfulWorkflowRuns(filename string) ([]clients.
 func (mr *MockRepoClientMockRecorder) ListSuccessfulWorkflowRuns(filename any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListSuccessfulWorkflowRuns", reflect.TypeOf((*MockRepoClient)(nil).ListSuccessfulWorkflowRuns), filename)
+}
+
+// ListTags mocks base method.
+func (m *MockRepoClient) ListTags() ([]*clients.RepoRef, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListTags")
+	ret0, _ := ret[0].([]*clients.RepoRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListTags indicates an expected call of ListTags.
+func (mr *MockRepoClientMockRecorder) ListTags() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTags", reflect.TypeOf((*MockRepoClient)(nil).ListTags))
 }
 
 // ListWebhooks mocks base method.

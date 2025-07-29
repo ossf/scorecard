@@ -266,7 +266,7 @@ func (c *Client) Close() error {
 	return nil
 }
 
-func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (c *Client) GetBranch(branch string) (*clients.RepoRef, error) {
 	// Get the branch reference
 	ref, err := c.gitRepo.Branch(branch)
 	if err != nil {
@@ -279,7 +279,7 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	}
 	f := false
 	// Create the BranchRef object
-	branchRef := &clients.BranchRef{
+	branchRef := &clients.RepoRef{
 		Name:      &ref.Name,
 		Protected: &f,
 	}
@@ -328,7 +328,17 @@ func (c *Client) GetDefaultBranchName() (string, error) {
 	return string(defaultBranch), nil
 }
 
-func (c *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+// GetBranch implements RepoClient.GetTag.
+func (client *Client) GetTag(tag string) (*clients.RepoRef, error) {
+	return &clients.RepoRef{}, clients.ErrUnsupportedFeature
+}
+
+func (client *Client) ListTags() ([]*clients.RepoRef, error) {
+	tags := make([]*clients.RepoRef, 0)
+	return tags, clients.ErrUnsupportedFeature
+}
+
+func (c *Client) GetDefaultBranch() (*clients.RepoRef, error) {
 	// TODO: Implement this
 	return nil, clients.ErrUnsupportedFeature
 }

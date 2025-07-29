@@ -44,10 +44,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch requires last push approval = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &trueVal,
 							},
 						},
@@ -62,16 +62,16 @@ func Test_Run(t *testing.T) {
 			name: "2 branches requires last push approval = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &trueVal,
 							},
 						},
@@ -86,16 +86,16 @@ func Test_Run(t *testing.T) {
 			name: "Last push approval enabled on 1/2 branches = 1 true and 1 false outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &trueVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &falseVal,
 							},
 						},
@@ -110,16 +110,16 @@ func Test_Run(t *testing.T) {
 			name: "Last push approval enabled on 1/2 branches = 1 false and 1 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &trueVal,
 							},
 						},
@@ -134,16 +134,16 @@ func Test_Run(t *testing.T) {
 			name: "1 branch does not require last push approval and 1 lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: &falseVal,
 							},
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								RequireLastPushApproval: nil,
 							},
 						},
