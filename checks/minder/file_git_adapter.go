@@ -15,6 +15,8 @@
 package minder
 
 import (
+	"fmt"
+
 	"github.com/go-git/go-billy/v5/memfs"
 	billyutil "github.com/go-git/go-billy/v5/util"
 	git "github.com/go-git/go-git/v5"
@@ -32,35 +34,35 @@ func repositoryFromClient(repo clients.RepoClient) (*git.Repository, error) {
 	fs := memfs.New()
 	gitRepo, err := git.Init(storer, fs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error initializing git repository: %w", err)
 	}
 	worktree, err := gitRepo.Worktree()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting git worktree: %w", err)
 	}
 	workfs := worktree.Filesystem
 	// Right now, because we're exposing git.Repository, not billy.Filesystem, we need to
 	// copy all the files into the git repository.
-	err = fileparser.OnMatchingFileContentDo(repo, fileparser.PathMatcher{
-		Pattern: "*",
-	}, func(path string, content []byte, args ...interface{}) (bool, error) {
-		err := billyutil.WriteFile(workfs, path, content, 0644)
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	})
-
+	err = fileparser.OnMatchingFileContentDo(
+		repo,
+		fileparser.PathMatcher{Pattern: "*"},
+		func(path string, content []byte, args ...any) (bool, error) {
+			err := billyutil.WriteFile(workfs, path, content, 0o644)
+			if err != nil {
+				return false, fmt.Errorf("error writing file to git worktree: %w", err)
+			}
+			return true, nil
+		})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error processing file content: %w", err)
 	}
 
 	// Minder wants a head reference to exist, so create one
 	if _, err := worktree.Add("."); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error adding files to git worktree: %w", err)
 	}
 	if _, err := worktree.Commit("Initial commit", &git.CommitOptions{}); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error committing changes to git worktree: %w", err)
 	}
 
 	return gitRepo, nil

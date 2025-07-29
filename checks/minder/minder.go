@@ -17,39 +17,47 @@ package minder
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
+	minderv1 "github.com/mindersec/minder/pkg/api/protobuf/go/minder/v1"
 	minder "github.com/mindersec/minder/pkg/engine/v1/interfaces"
 	"github.com/mindersec/minder/pkg/engine/v1/rtengine"
+
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
-
-	minderv1 "github.com/mindersec/minder/pkg/api/protobuf/go/minder/v1"
 )
 
 type Evaluator = minder.Evaluator
 
-// MakeEvaluator creates a new minder evaluator
-func MakeEvaluator(ctx context.Context, rule *minderv1.RuleType, req *checker.CheckRequest) (*rtengine.RuleTypeEngine, error) {
+// MakeEvaluator creates a new minder evaluator.
+func MakeEvaluator(
+	ctx context.Context,
+	rule *minderv1.RuleType,
+	req *checker.CheckRequest,
+) (*rtengine.RuleTypeEngine, error) {
 	provider := GitHubProvider{
 		repo: req.RepoClient,
 	}
 	rtengine, err := rtengine.NewRuleTypeEngine(ctx, rule, &provider)
+	if err != nil {
+		err = fmt.Errorf("error creating Minder engine: %w", err)
+	}
 	return rtengine, err
 }
 
-type NoopResultSink struct {
-}
+// noopResultSink is a no-op implementation of the ResultSink interface.
+type noopResultSink struct{}
 
 // SetIngestResult implements interfaces.ResultSink.
-func (e *NoopResultSink) SetIngestResult(result *minder.Ingested) {
+func (e *noopResultSink) SetIngestResult(result *minder.Ingested) {
 }
 
-var _ minder.ResultSink = (*NoopResultSink)(nil)
+var _ minder.ResultSink = (*noopResultSink)(nil)
 
-// This error type is not currently exported, but contains the evaluation
-// result details used by the Minder engine.
+// ErrWithDetails is not currently exported by the interface, but contains the
+// evaluation result details used by the Minder engine.
 type ErrWithDetails interface {
 	Error() string
 	Details() string
@@ -57,11 +65,10 @@ type ErrWithDetails interface {
 
 func CheckRule(rule *minderv1.RuleType) checker.CheckFn {
 	return func(req *checker.CheckRequest) checker.CheckResult {
-
 		eval, err := MakeEvaluator(req.Ctx, rule, req)
 		if err != nil {
 			e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			return checker.CreateRuntimeErrorResult(rule.Name, e)
+			return checker.CreateRuntimeErrorResult(rule.GetName(), e)
 		}
 		// TODO: fill in more, adapt for non-GitHub providers
 		parts := strings.SplitN(req.Repo.Path(), "/", 2)
@@ -77,7 +84,7 @@ func CheckRule(rule *minderv1.RuleType) checker.CheckFn {
 		// a common library of ruletypes.
 		ruleVals := map[string]any{}
 		ingestVals := map[string]any{}
-		dataIngest := &NoopResultSink{}
+		dataIngest := &noopResultSink{}
 		// Rule evaluation signals "denied" using an error interface, but may still
 		// return evaluation results. Failure to evaluate a rule returns an error
 		// without results.
@@ -85,44 +92,55 @@ func CheckRule(rule *minderv1.RuleType) checker.CheckFn {
 
 		if res == nil { // Failure to evaluate (e.g. parsing error, etc.)
 			e := sce.WithMessage(sce.ErrScorecardInternal, resErr.Error())
-			return checker.CreateRuntimeErrorResult(rule.Name, e)
+			return checker.CreateRuntimeErrorResult(rule.GetName(), e)
 		}
 
-		reason := rule.Description
+		reason := rule.GetDescription()
 		if resErr != nil {
 			reason = resErr.Error()
-			if detailErr, ok := resErr.(ErrWithDetails); ok {
+			var detailErr ErrWithDetails
+			if errors.As(resErr, &detailErr) {
 				reason = detailErr.Details()
 			}
 		}
 		score, err := getScore(res.Output, resErr)
 		if err != nil {
-			return checker.CreateRuntimeErrorResult(rule.Name, err)
+			return checker.CreateRuntimeErrorResult(rule.GetName(), err)
 		}
 
-		ret := checker.CreateResultWithScore(rule.Name, reason, score)
+		ret := checker.CreateResultWithScore(rule.GetName(), reason, score)
 		// TODO: copy findings (JSON object) into ret.Findings [structured map]
 		return ret
 	}
 }
 
 func getScore(output any, err error) (int, error) {
-	outputDict, ok := output.(map[string]any)
-	if ok {
-		if scoreNum, ok := outputDict["score"].(json.Number); ok {
-			score64, err := scoreNum.Int64()
-			if err != nil {
-				return 0, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score in output: %v", err))
-			}
-			score := int(score64)
-			if score < checker.MinResultScore || score > checker.MaxResultScore {
-				return 0, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score in output: %d", score))
-			}
-			return score, nil
+	// extract an int number field from a JSON object, false if not found
+	numberFromMap := func(data any, key string) (int, bool) {
+		asMap, ok := data.(map[string]any)
+		if !ok {
+			return 0, false
 		}
+		num, ok := asMap[key].(json.Number)
+		if !ok {
+			return 0, false
+		}
+		score64, err := num.Int64()
+		if err != nil {
+			return 0, false
+		}
+		return int(score64), true
 	}
-	if err != nil {
-		return checker.MinResultScore, nil
+
+	score, ok := numberFromMap(output, "score")
+	if ok {
+		if score < checker.MinResultScore || score > checker.MaxResultScore {
+			return 0, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid score in output: %d", score))
+		}
+		return score, nil
 	}
-	return checker.MaxResultScore, nil
+	if err == nil {
+		return checker.MaxResultScore, nil
+	}
+	return checker.MinResultScore, nil
 }

@@ -28,6 +28,7 @@ var AllRules = []*minderv1.RuleType{}
 //go:embed *.rego
 var ruleFiles embed.FS
 
+//nolint:gochecknoinits
 func init() {
 	files, err := ruleFiles.ReadDir(".")
 	if err != nil {
