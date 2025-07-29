@@ -246,6 +246,14 @@ puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).
 - Make "code reviews" mandatory in your repository configuration. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging))
 - Enforce the rule for administrators / code owners as well. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators))
 
+## Contributing-File 
+
+Risk: `Low` (this is a baseline best-practice check, rather than a direct vulnerability)
+ 
+
+**Remediation steps**
+- Ensure that the project has a `CONTRIBUTING.md` file in the root directory.
+
 ## Contributors 
 
 Risk: `Low` (lower number of trusted code reviewers)
@@ -423,6 +431,14 @@ are as expected.
 
 **Remediation steps**
 - There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.
+
+## No-Binary-Files 
+
+Risk: `High` (binary files are difficult to review, and have been an attack vector)
+ 
+
+**Remediation steps**
+- Remove binary files from the repository.
 
 ## Packaging 
 
