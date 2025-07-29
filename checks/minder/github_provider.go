@@ -19,24 +19,26 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/ossf/scorecard/v5/clients"
-
 	git "github.com/go-git/go-git/v5"
 	minder "github.com/mindersec/minder/pkg/engine/v1/interfaces"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 var errUnimplemented = errors.New("unimplemented")
 
-// GitHubProvider implements the GitHub interface
+// GitHubProvider implements the GitHub interface.
 type GitHubProvider struct {
 	repo clients.RepoClient
 }
 
-var _ minder.Provider = (*GitHubProvider)(nil)
-var _ minder.GitProvider = (*GitHubProvider)(nil)
+var (
+	_ minder.Provider    = (*GitHubProvider)(nil)
+	_ minder.GitProvider = (*GitHubProvider)(nil)
+)
 
 // Clone implements v1.Git.
-func (g *GitHubProvider) Clone(ctx context.Context, url string, branch string) (*git.Repository, error) {
+func (g *GitHubProvider) Clone(ctx context.Context, url, branch string) (*git.Repository, error) {
 	return repositoryFromClient(g.repo)
 }
 
@@ -53,6 +55,6 @@ func (g *GitHubProvider) GetBaseURL() string {
 }
 
 // NewRequest implements v1.REST.
-func (g *GitHubProvider) NewRequest(method string, url string, body any) (*http.Request, error) {
+func (g *GitHubProvider) NewRequest(method, url string, body any) (*http.Request, error) {
 	return nil, errUnimplemented
 }

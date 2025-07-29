@@ -27,9 +27,9 @@ func init() {
 
 	for _, rule := range minder.AllRules {
 		rulefunc := minder.CheckRule(rule)
-		err := registerCheck(rule.Name, rulefunc, IngestToType[rule.Def.Ingest.Type])
+		err := registerCheck(rule.GetName(), rulefunc, IngestToType[rule.GetDef().GetIngest().GetType()])
 		if err != nil {
-			panic("Failed to register minder rule: " + rule.Name + ": " + err.Error())
+			panic("Failed to register minder rule: " + rule.GetName() + ": " + err.Error())
 		}
 	}
 }
