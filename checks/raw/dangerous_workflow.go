@@ -52,7 +52,9 @@ func containsUntrustedContextPattern(variable string) bool {
 	if strings.Contains(variable, "github.head_ref") {
 		return true
 	}
-	return strings.Contains(variable, "github.event.") && untrustedContextPattern.MatchString(variable)
+	return strings.Contains(variable, "github.event.") &&
+		(untrustedContextPattern.MatchString(variable) ||
+			untrustedContextPattern.MatchString(fmt.Sprintf("toJSON(%s)", variable)))
 }
 
 type triggerName string
