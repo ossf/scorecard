@@ -45,7 +45,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 			expected := scut.TestReturn{
 				Error:         nil,
 				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  1,
+				NumberOfWarn:  2,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
