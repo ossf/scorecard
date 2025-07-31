@@ -16,128 +16,264 @@
 package packagedWithNpm
 
 import (
-	"io"
-	"strings"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
-	"go.uber.org/mock/gomock"
-
 	"github.com/ossf/scorecard/v5/checker"
-	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
 )
 
-type nopCloser struct {
-	io.Reader
-}
-
-func (nopCloser) Close() error { return nil }
-
 func Test_Run(t *testing.T) {
 	t.Parallel()
-
-	t.Run("nil check request", func(t *testing.T) {
+	t.Run("nil raw results", func(t *testing.T) {
 		t.Parallel()
-		findings, s, err := Run(nil)
-		if err == nil {
-			t.Errorf("expected error, got nil")
-		}
-		if s != "" {
-			t.Errorf("expected empty probe name, got %q", s)
-		}
-		if len(findings) != 0 {
-			t.Errorf("expected no findings, got %d", len(findings))
-		}
+		testNilRawResults(t)
 	})
-
-	t.Run("no package.json found", func(t *testing.T) {
+	t.Run("no npm packages in raw data", func(t *testing.T) {
 		t.Parallel()
-		request := setupMockClient(t, []string{"src/main.js", "README.md"}, "", false)
-		findings, s, err := Run(request)
-		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+		testNoNpmPackages(t)
 	})
-
-	t.Run("package.json in subdirectory", func(t *testing.T) {
+	t.Run("npm package published on registry", func(t *testing.T) {
 		t.Parallel()
-		request := setupMockClient(t, []string{"frontend/package.json", "README.md"}, "", false)
-		findings, s, err := Run(request)
-		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+		testNpmPackagePublished(t)
 	})
-
-	t.Run("package.json with invalid JSON", func(t *testing.T) {
+	t.Run("npm package not found on registry", func(t *testing.T) {
 		t.Parallel()
-		request := setupMockClient(t, []string{"package.json"}, `{"name": "test-package",`, true)
-		findings, s, err := Run(request)
-		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+		testNpmPackageNotFound(t)
 	})
-
-	t.Run("package.json without name", func(t *testing.T) {
+	t.Run("npm registry check failed with error", func(t *testing.T) {
 		t.Parallel()
-		request := setupMockClient(t, []string{"package.json"}, `{"version": "1.0.0"}`, true)
-		findings, s, err := Run(request)
-		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+		testNpmRegistryError(t)
 	})
-
-	t.Run("package.json with empty name", func(t *testing.T) {
+	t.Run("mixed registry types - only processes npm", func(t *testing.T) {
 		t.Parallel()
-		request := setupMockClient(t, []string{"package.json"}, `{"name": "", "version": "1.0.0"}`, true)
-		findings, s, err := Run(request)
-		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+		testMixedRegistryTypes(t)
+	})
+	t.Run("debug messages are skipped", func(t *testing.T) {
+		t.Parallel()
+		testDebugMessagesSkipped(t)
 	})
 }
 
-func setupMockClient(t *testing.T, files []string, packageContent string, expectFileRead bool) *checker.CheckRequest {
+func testNilRawResults(t *testing.T) {
 	t.Helper()
-	ctrl := gomock.NewController(t)
-	t.Cleanup(ctrl.Finish)
-	mockClient := mockrepo.NewMockRepoClient(ctrl)
-
-	// Set up expectations for ListFiles call
-	mockClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
-		var matchedFiles []string
-		for _, file := range files {
-			match, err := predicate(file)
-			if err != nil {
-				return nil, err
-			}
-			if match {
-				matchedFiles = append(matchedFiles, file)
-			}
-		}
-		return matchedFiles, nil
-	})
-
-	// Set up expectations for file reading if needed
-	if expectFileRead {
-		reader := nopCloser{strings.NewReader(packageContent)}
-		mockClient.EXPECT().GetFileReader("package.json").Return(reader, nil)
+	findings, s, err := Run(nil)
+	if err == nil {
+		t.Errorf("expected error, got nil")
 	}
-
-	return &checker.CheckRequest{
-		RepoClient: mockClient,
+	if s != "" {
+		t.Errorf("expected empty probe name, got %q", s)
+	}
+	if len(findings) != 0 {
+		t.Errorf("expected no findings, got %d", len(findings))
 	}
 }
 
-func validateResults(t *testing.T, findings []finding.Finding, s string, err error, expectedOutcomes []finding.Outcome) {
+func testNoNpmPackages(t *testing.T) {
 	t.Helper()
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{},
+		},
+	}
+	findings, s, err := Run(raw)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 	if s != Probe {
 		t.Errorf("expected probe name %q, got %q", Probe, s)
 	}
-	if len(findings) != len(expectedOutcomes) {
-		t.Errorf("expected %d findings, got %d", len(expectedOutcomes), len(findings))
-		return
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
 	}
-	for i, f := range findings {
-		if i >= len(expectedOutcomes) {
-			break
-		}
-		if diff := cmp.Diff(expectedOutcomes[i], f.Outcome, cmpopts.EquateEmpty()); diff != "" {
-			t.Errorf("mismatch (-want +got):\n%s", diff)
-		}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeFalse {
+		t.Errorf("expected OutcomeFalse, got %v", findings[0].Outcome)
+	}
+}
+
+func testNpmPackagePublished(t *testing.T) {
+	t.Helper()
+	packageName := "test-package"
+	repositoryURL := "https://github.com/example/test-package"
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{
+				{
+					Name: &packageName,
+					File: &checker.File{
+						Path:   "package.json",
+						Type:   finding.FileTypeSource,
+						Offset: checker.OffsetDefault,
+					},
+					Registry: &checker.PackageRegistry{
+						Type:          "npm",
+						Published:     true,
+						RepositoryURL: &repositoryURL,
+					},
+				},
+			},
+		},
+	}
+	findings, s, err := Run(raw)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
+	}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeTrue {
+		t.Errorf("expected OutcomeTrue, got %v", findings[0].Outcome)
+	}
+}
+
+func testNpmPackageNotFound(t *testing.T) {
+	t.Helper()
+	packageName := "nonexistent-package"
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{
+				{
+					Name: &packageName,
+					File: &checker.File{
+						Path:   "package.json",
+						Type:   finding.FileTypeSource,
+						Offset: checker.OffsetDefault,
+					},
+					Registry: &checker.PackageRegistry{
+						Type:      "npm",
+						Published: false,
+					},
+				},
+			},
+		},
+	}
+	findings, s, err := Run(raw)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
+	}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeFalse {
+		t.Errorf("expected OutcomeFalse, got %v", findings[0].Outcome)
+	}
+}
+
+func testNpmRegistryError(t *testing.T) {
+	t.Helper()
+	packageName := "test-package"
+	errorMsg := "network timeout"
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{
+				{
+					Name: &packageName,
+					File: &checker.File{
+						Path:   "package.json",
+						Type:   finding.FileTypeSource,
+						Offset: checker.OffsetDefault,
+					},
+					Registry: &checker.PackageRegistry{
+						Type:      "npm",
+						Published: false,
+						Error:     &errorMsg,
+					},
+				},
+			},
+		},
+	}
+	findings, s, err := Run(raw)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
+	}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeFalse {
+		t.Errorf("expected OutcomeFalse, got %v", findings[0].Outcome)
+	}
+}
+
+func testMixedRegistryTypes(t *testing.T) {
+	t.Helper()
+	npmPackage := "npm-package"
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{
+				{
+					Name: &npmPackage,
+					File: &checker.File{
+						Path:   "package.json",
+						Type:   finding.FileTypeSource,
+						Offset: checker.OffsetDefault,
+					},
+					Registry: &checker.PackageRegistry{
+						Type:      "npm",
+						Published: true,
+					},
+				},
+				{
+					// This should be ignored by the npm probe
+					Registry: &checker.PackageRegistry{
+						Type:      "pypi",
+						Published: true,
+					},
+				},
+			},
+		},
+	}
+	findings, s, err := Run(raw)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	// Should only find the npm package, not the pypi one
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
+	}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeTrue {
+		t.Errorf("expected OutcomeTrue, got %v", findings[0].Outcome)
+	}
+}
+
+func testDebugMessagesSkipped(t *testing.T) {
+	t.Helper()
+	debugMsg := "No package.json file found"
+	raw := &checker.RawResults{
+		PackagingResults: checker.PackagingData{
+			Packages: []checker.Package{
+				{
+					Msg: &debugMsg,
+					Registry: &checker.PackageRegistry{
+						Type:      "npm",
+						Published: false,
+					},
+				},
+			},
+		},
+	}
+	findings, s, err := Run(raw)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	// Should return the default "no npm packages detected" finding
+	if len(findings) != 1 {
+		t.Errorf("expected 1 finding, got %d", len(findings))
+	}
+	if len(findings) > 0 && findings[0].Outcome != finding.OutcomeFalse {
+		t.Errorf("expected OutcomeFalse, got %v", findings[0].Outcome)
 	}
 }

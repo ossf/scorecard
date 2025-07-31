@@ -85,8 +85,17 @@ type Package struct {
 	Job  *WorkflowJob
 	File *File
 	// Note: Msg is populated only for debug messages.
-	Msg  *string
-	Runs []Run
+	Msg      *string
+	Registry *PackageRegistry
+	Runs     []Run
+}
+
+// PackageRegistry contains information about a package's registry status.
+type PackageRegistry struct {
+	RepositoryURL *string
+	Error         *string
+	Type          string
+	Published     bool
 }
 
 type PackageProvenance struct {

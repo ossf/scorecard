@@ -95,6 +95,7 @@ var (
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
+		packagedWithNpm.Run,
 	}
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
@@ -177,7 +178,6 @@ var (
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
-		packagedWithNpm.Run,
 	}
 )
 

@@ -16,23 +16,18 @@
 package packagedWithNpm
 
 import (
-	"context"
 	"embed"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 
 	"github.com/ossf/scorecard/v5/checker"
-	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func init() {
-	probes.MustRegisterIndependent(Probe, Run)
+	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.Packaging})
 }
 
 //go:embed *.yml
@@ -40,183 +35,124 @@ var fs embed.FS
 
 const Probe = "packagedWithNpm"
 
-var (
-	errNilCheckRequest   = sce.WithMessage(sce.ErrScorecardInternal, "nil check request")
-	errNpmRegistryStatus = sce.WithMessage(sce.ErrScorecardInternal, "npm registry returned non-200 status")
-)
-
-type packageJSON struct {
-	Repository map[string]string `json:"repository"`
-	Name       string            `json:"name"`
-}
-
-type npmRegistryResponse struct {
-	Repository map[string]string `json:"repository"`
-	Name       string            `json:"name"`
-}
-
-func Run(c *checker.CheckRequest) ([]finding.Finding, string, error) {
-	if c == nil {
-		return nil, "", errNilCheckRequest
+func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
+	r := raw.PackagingResults
 	var findings []finding.Finding
 
-	// Check if package.json exists in the repository root
-	matchedFiles, err := c.RepoClient.ListFiles(func(path string) (bool, error) {
-		return path == "package.json", nil
-	})
-	if err != nil {
-		return nil, Probe, fmt.Errorf("failed to list files: %w", err)
-	}
+	// Look for npm registry packages in the raw data
+	for _, p := range r.Packages {
+		if !isNpmPackage(p) {
+			continue
+		}
 
-	if len(matchedFiles) == 0 {
-		// No package.json found
-		f, err := finding.NewWith(fs, Probe,
-			"No package.json file found. Project does not appear to be an npm package.", nil,
-			finding.OutcomeFalse)
+		f, err := createFindingForPackage(p)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
 
-		return []finding.Finding{*f}, Probe, nil
+		findings = append(findings, *f)
 	}
 
-	// Read package.json file
-	reader, err := c.RepoClient.GetFileReader(matchedFiles[0])
-	if err != nil {
-		return nil, Probe, fmt.Errorf("failed to read package.json: %w", err)
-	}
-	defer reader.Close()
-
-	content, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("failed to read package.json content: %w", err)
-	}
-
-	var pkg packageJSON
-	if err := json.Unmarshal(content, &pkg); err != nil {
+	// If no npm packages were found in the raw data, return a false finding
+	if len(findings) == 0 {
 		f, err := finding.NewWith(fs, Probe,
-			"Found package.json but failed to parse it. Invalid JSON format.", nil,
+			"No npm packages detected", nil,
 			finding.OutcomeFalse)
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		loc := &finding.Location{
-			Path: matchedFiles[0],
-			Type: finding.FileTypeSource,
-		}
-		f = f.WithLocation(loc)
-		return []finding.Finding{*f}, Probe, nil
+		findings = append(findings, *f)
 	}
-
-	if pkg.Name == "" {
-		f, err := finding.NewWith(fs, Probe,
-			"Found package.json but no package name specified.", nil,
-			finding.OutcomeFalse)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		loc := &finding.Location{
-			Path: matchedFiles[0],
-			Type: finding.FileTypeSource,
-		}
-		f = f.WithLocation(loc)
-		return []finding.Finding{*f}, Probe, nil
-	}
-
-	// Check if package exists on npm registry
-	exists, repoURL, err := checkNpmPackageExists(c.Ctx, pkg.Name)
-	if err != nil {
-		f, err := finding.NewWith(fs, Probe,
-			fmt.Sprintf("Found package.json with name '%s' but failed to check npm registry: %v", pkg.Name, err), nil,
-			finding.OutcomeFalse)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		loc := &finding.Location{
-			Path: matchedFiles[0],
-			Type: finding.FileTypeSource,
-		}
-		f = f.WithLocation(loc)
-		return []finding.Finding{*f}, Probe, nil
-	}
-
-	if !exists {
-		f, err := finding.NewWith(fs, Probe,
-			fmt.Sprintf("Package '%s' not found on npm registry. Project is not published to npm.", pkg.Name), nil,
-			finding.OutcomeFalse)
-		if err != nil {
-			return nil, Probe, fmt.Errorf("create finding: %w", err)
-		}
-		loc := &finding.Location{
-			Path: matchedFiles[0],
-			Type: finding.FileTypeSource,
-		}
-		f = f.WithLocation(loc)
-		return []finding.Finding{*f}, Probe, nil
-	}
-
-	// Package exists on npm
-	message := fmt.Sprintf("Package '%s' is published on npm registry.", pkg.Name)
-	if repoURL != "" {
-		message += fmt.Sprintf(" Repository URL: %s", repoURL)
-	}
-
-	f, err := finding.NewWith(fs, Probe, message, nil, finding.OutcomeTrue)
-	if err != nil {
-		return nil, Probe, fmt.Errorf("create finding: %w", err)
-	}
-
-	loc := &finding.Location{
-		Path: matchedFiles[0],
-		Type: finding.FileTypeSource,
-	}
-	f = f.WithLocation(loc)
-	findings = append(findings, *f)
 
 	return findings, Probe, nil
 }
 
-func checkNpmPackageExists(ctx context.Context, packageName string) (bool, string, error) {
-	url := fmt.Sprintf("https://registry.npmjs.org/%s", packageName)
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
+func isNpmPackage(p checker.Package) bool {
+	// Skip packages that don't have registry information or aren't npm packages
+	if p.Registry == nil || p.Registry.Type != "npm" {
+		return false
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	// Skip debug messages (packages with Msg but no registry outcome)
+	if p.Msg != nil && !p.Registry.Published && p.Registry.Error == nil {
+		return false
+	}
+
+	return true
+}
+
+func createFindingForPackage(p checker.Package) (*finding.Finding, error) {
+	var f *finding.Finding
+	var err error
+
+	switch {
+	case p.Registry.Published:
+		f, err = createPublishedFinding(p)
+	case p.Registry.Error != nil:
+		f, err = createErrorFinding(p)
+	default:
+		f, err = createNotFoundFinding(p)
+	}
+
 	if err != nil {
-		return false, "", fmt.Errorf("failed to create request: %w", err)
+		return nil, err
 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return false, "", fmt.Errorf("failed to query npm registry: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return false, "", nil
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return false, "", fmt.Errorf("%w: status %d", errNpmRegistryStatus, resp.StatusCode)
-	}
-
-	var npmResp npmRegistryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&npmResp); err != nil {
-		return false, "", fmt.Errorf("failed to parse npm registry response: %w", err)
-	}
-
-	repoURL := ""
-	if npmResp.Repository != nil {
-		if url, ok := npmResp.Repository["url"]; ok {
-			// Clean up git+ prefix and .git suffix
-			repoURL = strings.TrimPrefix(url, "git+")
-			repoURL = strings.TrimSuffix(repoURL, ".git")
+	// Add location information if available
+	if p.File != nil {
+		loc := &finding.Location{
+			Path: p.File.Path,
+			Type: p.File.Type,
 		}
+		if p.File.Offset != checker.OffsetDefault {
+			loc.LineStart = &p.File.Offset
+		}
+		f = f.WithLocation(loc)
 	}
 
-	return true, repoURL, nil
+	return f, nil
+}
+
+func createPublishedFinding(p checker.Package) (*finding.Finding, error) {
+	message := "Package is published on npm registry"
+	if p.Name != nil {
+		message = fmt.Sprintf("Package '%s' is published on npm registry", *p.Name)
+	}
+	if p.Registry.RepositoryURL != nil {
+		message += fmt.Sprintf(" (repository: %s)", *p.Registry.RepositoryURL)
+	}
+
+	f, err := finding.NewWith(fs, Probe, message, nil, finding.OutcomeTrue)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
+	}
+	return f, nil
+}
+
+func createErrorFinding(p checker.Package) (*finding.Finding, error) {
+	message := fmt.Sprintf("npm registry check failed: %s", *p.Registry.Error)
+	if p.Name != nil {
+		message = fmt.Sprintf("Package '%s' registry check failed: %s", *p.Name, *p.Registry.Error)
+	}
+	f, err := finding.NewWith(fs, Probe, message, nil, finding.OutcomeFalse)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
+	}
+	return f, nil
+}
+
+func createNotFoundFinding(p checker.Package) (*finding.Finding, error) {
+	message := "Package not found on npm registry"
+	if p.Name != nil {
+		message = fmt.Sprintf("Package '%s' not found on npm registry", *p.Name)
+	}
+	f, err := finding.NewWith(fs, Probe, message, nil, finding.OutcomeFalse)
+	if err != nil {
+		return nil, fmt.Errorf("create finding: %w", err)
+	}
+	return f, nil
 }

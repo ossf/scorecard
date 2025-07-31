@@ -15,18 +15,15 @@
 package checks
 
 import (
-	"fmt"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
+	"github.com/ossf/scorecard/v5/checks/raw"
 	"github.com/ossf/scorecard/v5/checks/raw/github"
 	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/finding"
-	iprobes "github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
 )
@@ -50,6 +47,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	var rawData, rawDataGithub, rawDataGitlab checker.PackagingData
 	var err, errGithub, errGitlab error
 
+	// Collect workflow data (platform-specific)
 	switch v := c.RepoClient.(type) {
 	case *localdir.Client:
 		// Performing both packaging checks since we dont know when local
@@ -77,6 +75,16 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
+	// Collect registry data (platform-independent)
+	registryData, err := raw.PackageRegistries(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+	}
+
+	// Combine workflow and registry data
+	rawData.Packages = append(rawData.Packages, registryData.Packages...)
+
 	pRawResults := getRawResults(c)
 	pRawResults.PackagingResults = rawData
 
@@ -86,48 +94,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
-	// Run independent packaging probes
-	independentFindings, err := runIndependentPackagingProbes(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
-	}
-
-	// Combine findings from regular and independent probes
-	findings = append(findings, independentFindings...)
-
 	ret := evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
 	ret.Findings = findings
 	return ret
-}
-
-// runIndependentPackagingProbes runs independent probes related to packaging.
-func runIndependentPackagingProbes(c *checker.CheckRequest) ([]finding.Finding, error) {
-	var allFindings []finding.Finding
-
-	// List of independent packaging probes to run
-	independentProbes := []string{
-		"packagedWithNpm",
-	}
-
-	for _, probeName := range independentProbes {
-		probe, err := iprobes.Get(probeName)
-		if err != nil {
-			// If probe not found, skip it silently
-			continue
-		}
-
-		if probe.IndependentImplementation == nil {
-			continue
-		}
-
-		findings, _, err := probe.IndependentImplementation(c)
-		if err != nil {
-			return nil, fmt.Errorf("probe %s failed: %w", probeName, err)
-		}
-
-		allFindings = append(allFindings, findings...)
-	}
-
-	return allFindings, nil
 }
