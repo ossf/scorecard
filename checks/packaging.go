@@ -15,6 +15,8 @@
 package checks
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw/github"
@@ -99,7 +101,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
-// runIndependentPackagingProbes runs independent probes related to packaging
+// runIndependentPackagingProbes runs independent probes related to packaging.
 func runIndependentPackagingProbes(c *checker.CheckRequest) ([]finding.Finding, error) {
 	var allFindings []finding.Finding
 
@@ -121,7 +123,7 @@ func runIndependentPackagingProbes(c *checker.CheckRequest) ([]finding.Finding, 
 
 		findings, _, err := probe.IndependentImplementation(c)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("probe %s failed: %w", probeName, err)
 		}
 
 		allFindings = append(allFindings, findings...)

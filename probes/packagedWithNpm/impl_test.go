@@ -38,117 +38,106 @@ func (nopCloser) Close() error { return nil }
 func Test_Run(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name           string
-		files          []string
-		packageContent string
-		outcomes       []finding.Outcome
-		err            string
-		expectError    bool
-		expectFileRead bool
-	}{
-		{
-			name:        "nil check request",
-			expectError: true,
-			err:         "nil check request",
-		},
-		{
-			name:     "no package.json found",
-			files:    []string{"src/main.js", "README.md"},
-			outcomes: []finding.Outcome{finding.OutcomeFalse},
-		},
-		{
-			name:     "package.json in subdirectory (should not match)",
-			files:    []string{"frontend/package.json", "README.md"},
-			outcomes: []finding.Outcome{finding.OutcomeFalse},
-		},
-		{
-			name:           "package.json with invalid JSON",
-			files:          []string{"package.json"},
-			packageContent: `{"name": "test-package",`,
-			outcomes:       []finding.Outcome{finding.OutcomeFalse},
-			expectFileRead: true,
-		},
-		{
-			name:           "package.json without name",
-			files:          []string{"package.json"},
-			packageContent: `{"version": "1.0.0"}`,
-			outcomes:       []finding.Outcome{finding.OutcomeFalse},
-			expectFileRead: true,
-		},
-		{
-			name:           "package.json with empty name",
-			files:          []string{"package.json"},
-			packageContent: `{"name": "", "version": "1.0.0"}`,
-			outcomes:       []finding.Outcome{finding.OutcomeFalse},
-			expectFileRead: true,
-		},
+	t.Run("nil check request", func(t *testing.T) {
+		t.Parallel()
+		findings, s, err := Run(nil)
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+		if s != "" {
+			t.Errorf("expected empty probe name, got %q", s)
+		}
+		if len(findings) != 0 {
+			t.Errorf("expected no findings, got %d", len(findings))
+		}
+	})
+
+	t.Run("no package.json found", func(t *testing.T) {
+		t.Parallel()
+		request := setupMockClient(t, []string{"src/main.js", "README.md"}, "", false)
+		findings, s, err := Run(request)
+		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+	})
+
+	t.Run("package.json in subdirectory", func(t *testing.T) {
+		t.Parallel()
+		request := setupMockClient(t, []string{"frontend/package.json", "README.md"}, "", false)
+		findings, s, err := Run(request)
+		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+	})
+
+	t.Run("package.json with invalid JSON", func(t *testing.T) {
+		t.Parallel()
+		request := setupMockClient(t, []string{"package.json"}, `{"name": "test-package",`, true)
+		findings, s, err := Run(request)
+		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+	})
+
+	t.Run("package.json without name", func(t *testing.T) {
+		t.Parallel()
+		request := setupMockClient(t, []string{"package.json"}, `{"version": "1.0.0"}`, true)
+		findings, s, err := Run(request)
+		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+	})
+
+	t.Run("package.json with empty name", func(t *testing.T) {
+		t.Parallel()
+		request := setupMockClient(t, []string{"package.json"}, `{"name": "", "version": "1.0.0"}`, true)
+		findings, s, err := Run(request)
+		validateResults(t, findings, s, err, []finding.Outcome{finding.OutcomeFalse})
+	})
+}
+
+func setupMockClient(t *testing.T, files []string, packageContent string, expectFileRead bool) *checker.CheckRequest {
+	t.Helper()
+	ctrl := gomock.NewController(t)
+	t.Cleanup(ctrl.Finish)
+	mockClient := mockrepo.NewMockRepoClient(ctrl)
+
+	// Set up expectations for ListFiles call
+	mockClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+		var matchedFiles []string
+		for _, file := range files {
+			match, err := predicate(file)
+			if err != nil {
+				return nil, err
+			}
+			if match {
+				matchedFiles = append(matchedFiles, file)
+			}
+		}
+		return matchedFiles, nil
+	})
+
+	// Set up expectations for file reading if needed
+	if expectFileRead {
+		reader := nopCloser{strings.NewReader(packageContent)}
+		mockClient.EXPECT().GetFileReader("package.json").Return(reader, nil)
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	return &checker.CheckRequest{
+		RepoClient: mockClient,
+	}
+}
 
-			var request *checker.CheckRequest
-			if !tt.expectError {
-				ctrl := gomock.NewController(t)
-				defer ctrl.Finish()
-				mockClient := mockrepo.NewMockRepoClient(ctrl)
-
-				// Set up expectations for ListFiles call
-				mockClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
-					var matchedFiles []string
-					for _, file := range tt.files {
-						match, err := predicate(file)
-						if err != nil {
-							return nil, err
-						}
-						if match {
-							matchedFiles = append(matchedFiles, file)
-						}
-					}
-					return matchedFiles, nil
-				})
-
-				// Set up expectations for file reading if needed
-				if tt.expectFileRead {
-					reader := nopCloser{strings.NewReader(tt.packageContent)}
-					mockClient.EXPECT().GetFileReader("package.json").Return(reader, nil)
-				}
-
-				request = &checker.CheckRequest{
-					RepoClient: mockClient,
-				}
-			}
-
-			findings, s, err := Run(request)
-			if tt.expectError {
-				if err == nil {
-					t.Errorf("expected error %q, got nil", tt.err)
-				} else if err.Error() != tt.err {
-					t.Errorf("expected error %q, got %q", tt.err, err.Error())
-				}
-				return
-			}
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-			if s != Probe {
-				t.Errorf("expected probe name %q, got %q", Probe, s)
-			}
-			if len(findings) != len(tt.outcomes) {
-				t.Errorf("expected %d findings, got %d", len(tt.outcomes), len(findings))
-				return
-			}
-			for i, f := range findings {
-				if i >= len(tt.outcomes) {
-					break
-				}
-				if diff := cmp.Diff(tt.outcomes[i], f.Outcome, cmpopts.EquateEmpty()); diff != "" {
-					t.Errorf("mismatch (-want +got):\n%s", diff)
-				}
-			}
-		})
+func validateResults(t *testing.T, findings []finding.Finding, s string, err error, expectedOutcomes []finding.Outcome) {
+	t.Helper()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if s != Probe {
+		t.Errorf("expected probe name %q, got %q", Probe, s)
+	}
+	if len(findings) != len(expectedOutcomes) {
+		t.Errorf("expected %d findings, got %d", len(expectedOutcomes), len(findings))
+		return
+	}
+	for i, f := range findings {
+		if i >= len(expectedOutcomes) {
+			break
+		}
+		if diff := cmp.Diff(expectedOutcomes[i], f.Outcome, cmpopts.EquateEmpty()); diff != "" {
+			t.Errorf("mismatch (-want +got):\n%s", diff)
+		}
 	}
 }

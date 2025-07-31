@@ -16,6 +16,7 @@
 package packagedWithNpm
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"fmt"
@@ -25,6 +26,7 @@ import (
 	"time"
 
 	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/probes"
 )
@@ -38,19 +40,24 @@ var fs embed.FS
 
 const Probe = "packagedWithNpm"
 
+var (
+	errNilCheckRequest   = sce.WithMessage(sce.ErrScorecardInternal, "nil check request")
+	errNpmRegistryStatus = sce.WithMessage(sce.ErrScorecardInternal, "npm registry returned non-200 status")
+)
+
 type packageJSON struct {
-	Name       string            `json:"name"`
 	Repository map[string]string `json:"repository"`
+	Name       string            `json:"name"`
 }
 
 type npmRegistryResponse struct {
-	Name       string            `json:"name"`
 	Repository map[string]string `json:"repository"`
+	Name       string            `json:"name"`
 }
 
 func Run(c *checker.CheckRequest) ([]finding.Finding, string, error) {
 	if c == nil {
-		return nil, "", fmt.Errorf("nil check request")
+		return nil, "", errNilCheckRequest
 	}
 
 	var findings []finding.Finding
@@ -119,7 +126,7 @@ func Run(c *checker.CheckRequest) ([]finding.Finding, string, error) {
 	}
 
 	// Check if package exists on npm registry
-	exists, repoURL, err := checkNpmPackageExists(pkg.Name)
+	exists, repoURL, err := checkNpmPackageExists(c.Ctx, pkg.Name)
 	if err != nil {
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("Found package.json with name '%s' but failed to check npm registry: %v", pkg.Name, err), nil,
@@ -171,14 +178,19 @@ func Run(c *checker.CheckRequest) ([]finding.Finding, string, error) {
 	return findings, Probe, nil
 }
 
-func checkNpmPackageExists(packageName string) (bool, string, error) {
+func checkNpmPackageExists(ctx context.Context, packageName string) (bool, string, error) {
 	url := fmt.Sprintf("https://registry.npmjs.org/%s", packageName)
 
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
 
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return false, "", fmt.Errorf("failed to query npm registry: %w", err)
 	}
@@ -189,7 +201,7 @@ func checkNpmPackageExists(packageName string) (bool, string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return false, "", fmt.Errorf("npm registry returned status: %d", resp.StatusCode)
+		return false, "", fmt.Errorf("%w: status %d", errNpmRegistryStatus, resp.StatusCode)
 	}
 
 	var npmResp npmRegistryResponse
