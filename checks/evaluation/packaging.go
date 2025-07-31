@@ -19,6 +19,7 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v5/probes/packagedWithNpm"
 )
 
 // Packaging applies the score policy for the Packaging check.
@@ -28,6 +29,7 @@ func Packaging(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		packagedWithAutomatedWorkflow.Probe,
+		packagedWithNpm.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -55,7 +57,7 @@ func Packaging(name string,
 		checker.LogFinding(dl, f, logLevel)
 	}
 	if maxScore {
-		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
+		return checker.CreateMaxScoreResult(name, "packaging (workflow) detected")
 	}
-	return checker.CreateInconclusiveResult(name, "packaging workflow not detected")
+	return checker.CreateInconclusiveResult(name, "packaging (workflow) not detected")
 }

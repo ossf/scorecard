@@ -23,6 +23,8 @@ import (
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/finding"
+	iprobes "github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
 )
@@ -82,7 +84,48 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
 
+	// Run independent packaging probes
+	independentFindings, err := runIndependentPackagingProbes(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+	}
+
+	// Combine findings from regular and independent probes
+	findings = append(findings, independentFindings...)
+
 	ret := evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
 	ret.Findings = findings
 	return ret
+}
+
+// runIndependentPackagingProbes runs independent probes related to packaging
+func runIndependentPackagingProbes(c *checker.CheckRequest) ([]finding.Finding, error) {
+	var allFindings []finding.Finding
+
+	// List of independent packaging probes to run
+	independentProbes := []string{
+		"packagedWithNpm",
+	}
+
+	for _, probeName := range independentProbes {
+		probe, err := iprobes.Get(probeName)
+		if err != nil {
+			// If probe not found, skip it silently
+			continue
+		}
+
+		if probe.IndependentImplementation == nil {
+			continue
+		}
+
+		findings, _, err := probe.IndependentImplementation(c)
+		if err != nil {
+			return nil, err
+		}
+
+		allFindings = append(allFindings, findings...)
+	}
+
+	return allFindings, nil
 }
