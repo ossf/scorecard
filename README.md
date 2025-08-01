@@ -315,6 +315,8 @@ Scorecard can run using just one argument, the URL of the target repo:
 
 ```shell
 $ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+```
+```shell
 Starting [CII-Best-Practices]
 Starting [Fuzzing]
 Starting [Pinned-Dependencies]
