@@ -17,6 +17,7 @@ package checks
 import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
+	"github.com/ossf/scorecard/v5/checks/raw"
 	"github.com/ossf/scorecard/v5/checks/raw/github"
 	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
@@ -46,6 +47,7 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	var rawData, rawDataGithub, rawDataGitlab checker.PackagingData
 	var err, errGithub, errGitlab error
 
+	// Collect workflow data (platform-specific)
 	switch v := c.RepoClient.(type) {
 	case *localdir.Client:
 		// Performing both packaging checks since we dont know when local
@@ -72,6 +74,16 @@ func Packaging(c *checker.CheckRequest) checker.CheckResult {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
 	}
+
+	// Collect registry data (platform-independent)
+	registryData, err := raw.PackageRegistries(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+	}
+
+	// Combine workflow and registry data
+	rawData.Packages = append(rawData.Packages, registryData.Packages...)
 
 	pRawResults := getRawResults(c)
 	pRawResults.PackagingResults = rawData

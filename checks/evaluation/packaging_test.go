@@ -36,10 +36,15 @@ func TestPackaging(t *testing.T) {
 					Probe:   "packagedWithAutomatedWorkflow",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "packagedWithNpm",
+					Outcome: finding.OutcomeFalse,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
 				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -56,16 +61,55 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
+			name: "test both probes true outcome",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithAutomatedWorkflow",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "packagedWithNpm",
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2,
+			},
+		},
+		{
+			name: "test npm true workflow false",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithAutomatedWorkflow",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "packagedWithNpm",
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
+			},
+		},
+		{
 			name: "test inconclusive outcome",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "packagedWithNpm",
+					Outcome: finding.OutcomeFalse,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.InconclusiveResultScore,
-				NumberOfWarn: 1,
+				NumberOfWarn: 2,
 			},
 		},
 		{
