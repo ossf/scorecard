@@ -32,7 +32,6 @@ import (
 const stableTag = "stable"
 
 var images = []string{
-	"gcr.io/openssf/scorecard",
 	"gcr.io/openssf/scorecard-batch-controller",
 	"gcr.io/openssf/scorecard-batch-worker",
 	"gcr.io/openssf/scorecard-cii-worker",
@@ -43,6 +42,8 @@ var images = []string{
 func scriptHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		const maxBodySize = 1024 // must be larger than protojson serialized [data.ShardMetadata]
+		r.Body = http.MaxBytesReader(w, r.Body, maxBodySize)
 		jsonBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("unable to read request body: %v", err),

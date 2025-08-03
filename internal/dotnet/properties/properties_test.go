@@ -47,7 +47,6 @@ func TestIsValidFixedVersion(t *testing.T) {
 		{"invalid", "(1.0)", false},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

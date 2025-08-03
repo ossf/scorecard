@@ -388,8 +388,9 @@ func TestSARIFOutput(t *testing.T) {
 							{
 								Type: checker.DetailWarn,
 								Msg: checker.LogMessage{
-									Text:    "warn message",
-									Path:    "src/doc.txt",
+									Text: "warn message",
+									// Intenionally add a % to ensure that we URL-encode paths
+									Path:    "src/%doc.txt",
 									Type:    finding.FileTypeText,
 									Offset:  3,
 									Snippet: "some text",
@@ -978,7 +979,6 @@ func Test_createSARIFRuns(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := createSARIFRuns(tt.args.runs); !reflect.DeepEqual(got, tt.want) {

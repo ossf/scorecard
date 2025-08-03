@@ -512,6 +512,9 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		switch {
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
+			if len(valueList) == 3 && strings.EqualFold(valueList[1], "as") {
+				pinnedAsNames[valueList[2]] = true
+			}
 			continue
 
 		// FROM name AS newname.
@@ -522,9 +525,11 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
+			// Record the asName.
 			if pinned || regex.MatchString(name) {
-				// Record the asName.
 				pinnedAsNames[asName] = true
+			} else {
+				pinnedAsNames[asName] = false
 			}
 
 			pdata.Dependencies = append(pdata.Dependencies,
@@ -618,15 +623,12 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
 		taintedFiles := make(map[string]bool)
 
 		for _, step := range job.Steps {
-			step := step
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
 				continue
 			}
@@ -740,11 +742,20 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	for jobName, job := range workflow.Jobs {
-		jobName := jobName
-		job := job
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
+
+		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
+			//nolint:lll
+			// Check whether this is an action defined in the same repo,
+			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
+			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
+				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+				pdata.Dependencies = append(pdata.Dependencies, dep)
+			}
+		}
+
 		for _, step := range job.Steps {
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
 				continue
@@ -768,30 +779,34 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if strings.HasPrefix(execAction.Uses.Value, "./") {
 				continue
 			}
-
-			dep := checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    uint(execAction.Uses.Pos.Line),
-					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-					Snippet:   execAction.Uses.Value,
-				},
-				Pinned: asBoolPointer(isActionDependencyPinned(execAction.Uses.Value)),
-				Type:   checker.DependencyUseTypeGHAction,
-			}
-			parts := strings.SplitN(execAction.Uses.Value, "@", 2)
-			if len(parts) > 0 {
-				dep.Name = asPointer(parts[0])
-				if len(parts) > 1 {
-					dep.PinnedAt = asPointer(parts[1])
-				}
-			}
+			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
 
 	return true, nil
+}
+
+func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
+	dep := checker.Dependency{
+		Location: &checker.File{
+			Path:      pathfn,
+			Type:      finding.FileTypeSource,
+			Offset:    uint(line),
+			EndOffset: uint(line), // `Uses` always span a single line.
+			Snippet:   uses,
+		},
+		Pinned: asBoolPointer(isActionDependencyPinned(uses)),
+		Type:   checker.DependencyUseTypeGHAction,
+	}
+	parts := strings.SplitN(uses, "@", 2)
+	if len(parts) > 0 {
+		dep.Name = asPointer(parts[0])
+		if len(parts) > 1 {
+			dep.PinnedAt = asPointer(parts[1])
+		}
+	}
+	return dep
 }
 
 func isActionDependencyPinned(actionUses string) bool {

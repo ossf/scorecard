@@ -136,7 +136,6 @@ func Test_Run(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -226,9 +225,24 @@ func Test_hasActivityByCollaboratorOrHigher(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "issue with nil AuthorAssociation",
+			args: args{
+				issue: &clients.Issue{
+					CreatedAt:         &twentyDaysAgo,
+					AuthorAssociation: nil,
+					Comments: []clients.IssueComment{
+						{
+							CreatedAt:         &twentyDaysAgo,
+							AuthorAssociation: nil,
+						},
+					},
+				},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := hasActivityByCollaboratorOrHigher(tt.args.issue, tt.args.threshold); got != tt.want {

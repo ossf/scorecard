@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -182,6 +182,25 @@ func TestSignedRelease(t *testing.T) {
 						{
 							Name: "foo.sigstore",
 							URL:  "http://foo.com/v1.0.0/foo.sigstore",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
+			name: "Releases with assets with signed artifacts-sigstore-json",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.sigstore.json",
+							URL:  "http://foo.com/v1.0.0/foo.sigstore.json",
 						},
 					},
 				},
@@ -431,7 +450,6 @@ func TestSignedRelease(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

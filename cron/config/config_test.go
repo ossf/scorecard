@@ -145,7 +145,6 @@ func TestYAMLParsing(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			byteValue, err := getByteValueFromFile(testcase.filename)
@@ -197,7 +196,6 @@ func TestGetStringConfigValue(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testEnvVar)
 			if testcase.setEnv {
@@ -251,7 +249,6 @@ func TestGetIntConfigValue(t *testing.T) {
 		},
 	}
 	for _, testcase := range testcases {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testEnvVar)
 			if testcase.setEnv {
@@ -445,7 +442,6 @@ func TestInputBucket(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			os.Unsetenv(testcase.envVar)
 			got, err := testcase.f()
@@ -481,7 +477,6 @@ func TestEnvVarName(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			got := envVarName(testcase.mapName, testcase.subKey)
@@ -515,7 +510,6 @@ func TestGetAdditionalParams(t *testing.T) {
 		},
 	}
 	for _, testcase := range tests {
-		testcase := testcase
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := GetAdditionalParams(testcase.mapName)

@@ -18,9 +18,10 @@ import (
 	"io"
 	"os"
 	"testing"
+	"time"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -28,14 +29,17 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 )
 
+var mergedOneHourAgo = time.Now().Add(time.Hour * time.Duration(-1))
+
 func TestSAST(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name     string
-		files    []string
-		commits  []clients.Commit
-		expected checker.SASTData
+		name      string
+		files     []string
+		commits   []clients.Commit
+		checkRuns []clients.CheckRun
+		expected  checker.SASTData
 	}{
 		{
 			name: "has codeql 1",
@@ -127,6 +131,55 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
+			name:  "Airflows CodeQL workflow - Has CodeQL with MergedAt",
+			files: []string{".github/workflows/airflows-codeql.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.CodeQLWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/airflows-codeql.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "lgtm-com",
+					},
+				},
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "lgtm-com",
+					},
+				},
+			},
+		},
+		{
 			name:  "Has Snyk",
 			files: []string{".github/workflows/github-workflow-snyk.yaml"},
 			commits: []clients.Commit{
@@ -197,7 +250,6 @@ func TestSAST(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -207,11 +259,13 @@ func TestSAST(t *testing.T) {
 			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
 				return tt.commits, nil
 			})
+			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
 				return os.Open("./testdata/" + file)
 			}).AnyTimes()
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
+				Dlogger:    nil,
 			}
 			sastWorkflowsGot, err := SAST(&req)
 			if err != nil {

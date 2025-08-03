@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 )
@@ -124,7 +124,6 @@ func TestIsTemplateFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.filename, func(t *testing.T) {
 			t.Parallel()
 			if got := IsTemplateFile(tt.filename); got != tt.isTemplate {
@@ -171,7 +170,6 @@ func TestCheckFileContainsCommands(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := CheckFileContainsCommands(tt.args.content, tt.args.comment); got != tt.want {
@@ -314,7 +312,6 @@ func Test_isMatchingPath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := isMatchingPath(tt.args.fullpath, PathMatcher{
@@ -386,7 +383,6 @@ func Test_isTestdataFile(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := isTestdataFile(tt.args.fullpath); got != tt.want {
@@ -512,7 +508,6 @@ func TestOnMatchingFileContent(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			x := func(path string, content []byte, args ...interface{}) (bool, error) {
@@ -628,7 +623,6 @@ func TestOnAllFilesDo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 

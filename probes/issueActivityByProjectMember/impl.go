@@ -90,12 +90,18 @@ func hasActivityByCollaboratorOrHigher(issue *clients.Issue, threshold time.Time
 		return false
 	}
 
-	if issue.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
+	hasAuthorAssociation := issue.AuthorAssociation != nil
+
+	if hasAuthorAssociation &&
+		issue.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
 		issue.CreatedAt != nil && issue.CreatedAt.After(threshold) {
 		// The creator of the issue is a collaborator or higher.
 		return true
 	}
 	for _, comment := range issue.Comments {
+		if comment.AuthorAssociation == nil {
+			continue
+		}
 		if comment.AuthorAssociation.Gte(clients.RepoAssociationCollaborator) &&
 			comment.CreatedAt != nil &&
 			comment.CreatedAt.After(threshold) {

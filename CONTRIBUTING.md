@@ -46,14 +46,14 @@ project. This document describes the contribution guidelines for the project.
     [personal access token](https://docs.github.com/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 1.  Set up your [development environment](#environment-setup)
 
-### Environment Setup
+### Environment setup
 
 You must install these tools:
 
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
 1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.22.0](https://golang.org/dl/) or higher.
+    [v1.23.0](https://golang.org/dl/) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
@@ -89,7 +89,7 @@ the changes made locally.
 1.  Install the build tools for the project by running the command `make install`
 1.  Run the command `make build` to build the source code
 
-## How to run scorecard locally
+## How to run Scorecard locally
 
 In the project folder, run the following command:
 
@@ -132,7 +132,7 @@ go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2
 go run main.go --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks=Pinned-Dependencies,Binary-Artifacts
 ```
 
-## PR Process
+## PR process
 
 Every PR should be annotated with an icon indicating whether it's a:
 
@@ -175,7 +175,7 @@ While they are included in `make all`, running them individually is faster.
 | `make unit-test` | Runs unit tests only | yes |
 | `make check-linter` | Checks linter issues only | yes |
 
-## Changing Score Results
+## Changing score results
 
 As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged. 
 It is a good idea to discuss such changes in a GitHub issue before implementing them.
@@ -194,12 +194,12 @@ For public repos, classic personal access tokens need the following scopes:
 
 - `public_repo` - Read/write access to public repositories. Needed for branch protection
 
-## Where the CI Tests are configured
+## Where the CI tests are configured
 
-1.  See the [action files](.github/workflows) to check its tests, and the
+1.  See the [action files](.github/workflows) to check its tests and the
     scripts used on it.
 
-## How do I add additional GitHub repositories to be scanned by scorecard weekly?
+## How do I add additional GitHub repositories to be scanned by Scorecard weekly?
 
 Scorecard maintains the list of GitHub repositories in a file
 https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv
@@ -208,18 +208,18 @@ GitLab repositories are listed in:
 https://github.com/ossf/scorecard/blob/main/cron/internal/data/gitlab-projects.csv
 
 Append your desired repositories to the end of these files, then run `make add-projects`.
-Commit the changes, and submit a PR and scorecard would start scanning in subsequent runs.
+Commit the changes and submit a PR and scorecard would start scanning in subsequent runs.
 
-## Adding New Checks
+## Adding new checks
 
 See [checks/write.md](checks/write.md).
 When you add new checks, you need to also update the docs.
 
-## Adding New Probes
+## Adding new probes
 
 See [probes/README.md](probes/README.md) for information about the probes.
 
-## Updating Docs
+## Updating docs
 
 A summary for each check needs to be included in the `README.md`.
 In most cases, to update the documentation simply edit the corresponding

@@ -98,7 +98,6 @@ func TestRepoURL_IsValid(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure blow
 		if tt.flagRequired && os.Getenv("TEST_GITLAB_EXTERNAL") == "" {
 			continue
 		}

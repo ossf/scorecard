@@ -17,7 +17,7 @@ package checks
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	clients "github.com/ossf/scorecard/v5/clients"
@@ -159,7 +159,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			ctrl := gomock.NewController(t)

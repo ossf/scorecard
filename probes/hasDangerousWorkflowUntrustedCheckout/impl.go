@@ -54,7 +54,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	var findings []finding.Finding
 	for _, e := range r.Workflows {
-		e := e
 		if e.Type == checker.DangerousWorkflowUntrustedCheckout {
 			f, err := finding.NewWith(fs, Probe,
 				fmt.Sprintf("untrusted code checkout '%v'", e.File.Snippet),

@@ -116,7 +116,6 @@ func getUnsafePattern(unsafeVar string) (unsafePattern, error) {
 	}
 
 	for _, p := range unsafePatterns {
-		p := p
 		if p.idRegex.MatchString(unsafeVar) {
 			arrayVarRegex := regexp.MustCompile(`\[(.+?)\]`)
 			arrayIdx := arrayVarRegex.FindStringSubmatch(unsafeVar)

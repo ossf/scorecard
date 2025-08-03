@@ -22,6 +22,7 @@ import (
 	"io"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"gocloud.dev/blob"
 	// Needed to read file:/// buckets. Intended primarily for testing, though needed here for tests outside the package.
 	_ "gocloud.dev/blob/fileblob"
@@ -100,7 +101,8 @@ func BlobExists(ctx context.Context, bucketURL, key string) (bool, error) {
 	defer bucket.Close()
 
 	ret, err := bucket.Exists(ctx, key)
-	if err != nil {
+	// TODO(https://github.com/ossf/scorecard/issues/4636)
+	if err != nil && !errors.Is(err, storage.ErrObjectNotExist) {
 		return ret, fmt.Errorf("error during bucket.Exists: %w", err)
 	}
 	return ret, nil

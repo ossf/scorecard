@@ -21,9 +21,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
@@ -76,9 +76,18 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "github.event.commits[0].id",
 			expected: false,
 		},
+		{
+			name:     "commits author name",
+			variable: "github.event.commits[2].author.name",
+			expected: true,
+		},
+		{
+			name:     "commits author email",
+			variable: "github.event.commits[2].author.email",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if r := containsUntrustedContextPattern(tt.variable); !r == tt.expected {
@@ -152,7 +161,6 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt // Re-initializing variable so it is not changed while executing the closure below
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
