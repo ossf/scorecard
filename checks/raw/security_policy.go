@@ -199,7 +199,7 @@ func collectPolicyHits(policyContent []byte) []checker.SecurityPolicyInformation
 	// pattern for URLs
 	reURL := regexp.MustCompile(`(http|https)://[a-zA-Z0-9./?=_%:-]*`)
 	// pattern for emails
-	reEML := regexp.MustCompile(`\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b`)
+	reEML := regexp.MustCompile(`\b[A-Za-z0-9._%+-]+(@|\\?\[at\\?\])[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b`)
 	// pattern for 1 to 4 digit numbers
 	// or
 	// strings 'disclos' as in "disclosure" or 'vuln' as in "vulnerability"
