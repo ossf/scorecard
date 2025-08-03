@@ -87,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
 
+	CheckovWorkflows, err := getSastUsesWorkflows(c, "^bridgecrewio/checkov-action$", checker.CheckovWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, CheckovWorkflows...)
+
 	return data, nil
 }
 
