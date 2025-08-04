@@ -188,6 +188,9 @@ Action
 ### Scorecard REST API
 
 To query pre-calculated scores of OSS projects, use the [REST API](https://api.scorecard.dev).
+Scores calculated from our [weekly scan](#public-data) omit the `CI-Tests`,
+`Contributors`, and `Dependency-Update-Tool` checks due to the API costs 
+associated with running them at scale.
 
 To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
@@ -509,6 +512,11 @@ option to run Scorecard using a package manager. Provide the package name to
 run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
+
+Note: The package ecosystem flags are to find a GitHub repo only. 
+These flags do not change the final evaluation for the checks. 
+
+Additionally, the flags cannot be used with `--repo`.
 
 ##### Running specific checks
 
