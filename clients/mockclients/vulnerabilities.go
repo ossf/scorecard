@@ -57,16 +57,16 @@ func (m *MockVulnerabilitiesClient) EXPECT() *MockVulnerabilitiesClientMockRecor
 }
 
 // ListUnfixedVulnerabilities mocks base method.
-func (m *MockVulnerabilitiesClient) ListUnfixedVulnerabilities(context context.Context, commit, localDir string) (clients.VulnerabilitiesResponse, error) {
+func (m *MockVulnerabilitiesClient) ListUnfixedVulnerabilities(arg0 context.Context, commit, localDir string) (clients.VulnerabilitiesResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUnfixedVulnerabilities", context, commit, localDir)
+	ret := m.ctrl.Call(m, "ListUnfixedVulnerabilities", arg0, commit, localDir)
 	ret0, _ := ret[0].(clients.VulnerabilitiesResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListUnfixedVulnerabilities indicates an expected call of ListUnfixedVulnerabilities.
-func (mr *MockVulnerabilitiesClientMockRecorder) ListUnfixedVulnerabilities(context, commit, localDir any) *gomock.Call {
+func (mr *MockVulnerabilitiesClientMockRecorder) ListUnfixedVulnerabilities(arg0, commit, localDir any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).ListUnfixedVulnerabilities), context, commit, localDir)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnfixedVulnerabilities", reflect.TypeOf((*MockVulnerabilitiesClient)(nil).ListUnfixedVulnerabilities), arg0, commit, localDir)
 }
