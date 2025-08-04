@@ -423,9 +423,10 @@ For more details about why a check fails, use the `--show-details` option:
 ```
 ./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks Branch-Protection --show-details
 ```
+```shell
 Starting [Pinned-Dependencies]
 Finished [Pinned-Dependencies]
-```shell
+
 RESULTS
 -------
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
