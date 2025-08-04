@@ -76,6 +76,26 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "github.event.commits[0].id",
 			expected: false,
 		},
+		{
+			name:     "commits author name",
+			variable: "github.event.commits[2].author.name",
+			expected: true,
+		},
+		{
+			name:     "commits author email",
+			variable: "github.event.commits[2].author.email",
+			expected: true,
+		},
+		{
+			name:     "discussion body",
+			variable: "github.event.discussion.body",
+			expected: true,
+		},
+		{
+			name:     "discussion title",
+			variable: "github.event.discussion.title",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
