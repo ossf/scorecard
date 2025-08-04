@@ -191,6 +191,25 @@ func TestSignedRelease(t *testing.T) {
 			},
 		},
 		{
+			name: "Releases with assets with signed artifacts-sigstore-json",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.sigstore.json",
+							URL:  "http://foo.com/v1.0.0/foo.sigstore.json",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
 			name: "Releases with assets with signed and unsigned artifacts",
 			releases: []clients.Release{
 				{

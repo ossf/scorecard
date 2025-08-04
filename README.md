@@ -506,6 +506,11 @@ run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
 
+Note: The package ecosystem flags are to find a GitHub repo only. 
+These flags do not change the final evaluation for the checks. 
+
+Additionally, the flags cannot be used with `--repo`.
+
 ##### Running specific checks
 
 To run only specific check(s), add the `--checks` argument with a list of check
