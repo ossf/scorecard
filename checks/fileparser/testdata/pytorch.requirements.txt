@@ -1,0 +1,25 @@
+# Python dependencies required for development
+
+# Build System requirements
+setuptools
+cmake>=3.27
+ninja
+numpy
+packaging
+pyyaml
+requests
+six  # dependency chain: NNPACK -> PeachPy -> six
+typing-extensions>=4.10.0
+
+# Install / Development extra requirements
+build[uv]  # for building sdist and wheel
+expecttest>=0.3.0
+filelock
+fsspec
+hypothesis
+jinja2
+lintrunner ; platform_machine != "s390x"
+networkx
+optree>=0.13.0
+psutil
+sympy>=1.13.3
