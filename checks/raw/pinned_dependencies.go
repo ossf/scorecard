@@ -531,22 +531,29 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			} else {
 				pinnedAsNames[asName] = false
 			}
-
-			pdata.Dependencies = append(pdata.Dependencies,
-				checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(child.StartLine),
-						EndOffset: uint(child.EndLine),
-						Snippet:   child.Original,
-					},
-					Name:     asPointer(name),
-					PinnedAt: asPointer(asName),
-					Pinned:   asBoolPointer(pinnedAsNames[asName]),
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Snippet:   child.Original,
 				},
-			)
+				Name:     asPointer(name),
+				PinnedAt: asPointer(asName),
+				Pinned:   asBoolPointer(pinnedAsNames[asName]),
+				Type:     checker.DependencyUseTypeDockerfileContainerImage,
+			}
+
+			parts := strings.SplitN(name, ":", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 
 		// FROM name.
 		case len(valueList) == 1:
