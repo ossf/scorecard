@@ -16,6 +16,7 @@ package clients
 
 import (
 	"context"
+	"os"
 )
 
 const (
@@ -64,7 +65,13 @@ type CIIBestPracticesClient interface {
 
 // DefaultCIIBestPracticesClient returns http-based implementation of the interface.
 func DefaultCIIBestPracticesClient() CIIBestPracticesClient {
-	return &httpClientCIIBestPractices{}
+	baseURL := os.Getenv("CII_BEST_PRACTICES_URL")
+	if baseURL == "" {
+		baseURL = "https://www.bestpractices.dev"
+	}
+	return &httpClientCIIBestPractices{
+		baseURL: baseURL,
+	}
 }
 
 // BlobCIIBestPracticesClient returns a blob-based implementation of the interface.
