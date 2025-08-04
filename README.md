@@ -314,7 +314,7 @@ These variables can be obtained from the GitHub
 Scorecard can run using just one argument, the URL of the target repo:
 
 ```shell
-$ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
 ```
 ```shell
 Starting [CII-Best-Practices]
@@ -422,9 +422,10 @@ For more details about why a check fails, use the `--show-details` option:
 
 ```
 ./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks Branch-Protection --show-details
+```
 Starting [Pinned-Dependencies]
 Finished [Pinned-Dependencies]
-
+```shell
 RESULTS
 -------
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
