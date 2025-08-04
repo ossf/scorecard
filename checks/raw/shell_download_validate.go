@@ -1191,7 +1191,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content []byte, files map[string]bool,
 	r *checker.PinningDependenciesData,
 ) error {
-	in := strings.NewReader(string(content))
+	in := bytes.NewReader(content)
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// If we cannot parse the file, register that we are skipping it
@@ -1306,7 +1306,7 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 	}
 
 	// Look at file content.
-	r := strings.NewReader(string(content))
+	r := bytes.NewReader(content)
 	scanner := bufio.NewScanner(r)
 	// TODO: support perl scripts with embedded shell scripts:
 	// https://github.com/openssl/openssl/blob/master/test/recipes/15-test_dsaparam.t.
