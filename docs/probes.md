@@ -396,6 +396,22 @@ The probe returns 1 true outcome if the project has no workflows "write" permiss
 If the project doesn't use automated packaing we can detect, the outcome is negative.
 
 
+## packagedWithNpm
+
+**Lifecycle**: stable
+
+**Description**: Check if the project is published to npm registry
+
+**Motivation**: Packaging a project and publishing it to npm demonstrates that the project maintainers care about distributing the project to users. It shows the project is mature and ready for consumption. Projects published to npm are easily discoverable and installable by users via the npm registry.
+
+**Implementation**: The probe first checks for the presence of a package.json file in the repository root. If found, it parses the file to extract the package name. It then queries the npm registry to verify if the package is actually published and available for installation. The probe also extracts repository information from the npm registry to provide additional context.
+
+**Outcomes**: If the project has a package.json file with a valid name and the package exists on npm registry, the probe returns OutcomeTrue.
+If no package.json file is found, the probe returns OutcomeFalse.
+If package.json exists but the package is not published to npm, the probe returns OutcomeFalse.
+If package.json exists but has invalid JSON or missing name, the probe returns OutcomeFalse.
+
+
 ## pinsDependencies
 
 **Lifecycle**: stable
