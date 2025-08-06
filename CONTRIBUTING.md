@@ -194,6 +194,10 @@ For public repos, classic personal access tokens need the following scopes:
 
 - `public_repo` - Read/write access to public repositories. Needed for branch protection
 
+Note: The `branch-protection` internal error will appear if a Personal Access Token (PAT) is not provided, because the default GitHub token lacks the necessary admin permissions to access certain branch protection settings.
+
+You can find instructions for setting the token in the README under Using Scorecard – Authentication.
+
 ## Where the CI Tests are configured
 
 1.  See the [action files](.github/workflows) to check its tests, and the
