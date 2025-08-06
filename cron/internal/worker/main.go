@@ -24,6 +24,7 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 	"os"
+	"strings"
 
 	"go.opencensus.io/stats/view"
 
@@ -227,6 +228,13 @@ func processRequest(ctx context.Context,
 		)
 		if errors.Is(err, sce.ErrRepoUnreachable) {
 			// Not accessible repo - continue.
+			continue
+		}
+		if err != nil && strings.Contains(err.Error(), "organization has an IP allow list") {
+			// apps installed on GitHub organizations must respect IP allow lists
+			// even if accessing public data. We've asked GitHub and this is
+			// working as intended, so skip like an inaccessible repo
+			logger.Info(fmt.Sprintf("skipping repo blocked by organization IP allow list: %s", repoReq.GetUrl()))
 			continue
 		}
 		if err != nil {
