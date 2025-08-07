@@ -1,4 +1,6 @@
 # Supported Tools
+* [Claude Code Security Reviewer](https://github.com/anthropics/claude-code-security-review)
+  * Detection is based on GitHub workflows using `anthropics/claude-code-security-review`.
 * [CodeQL](https://docs.github.com/code-security/code-scanning/enabling-code-scanning/configuring-default-setup-for-code-scanning)
   * Detection is based on GitHub workflows using `github/codeql-action/analyze`, or GitHub Action checks run against PRs.
 * [Qodona](https://github.com/JetBrains/qodana-action)

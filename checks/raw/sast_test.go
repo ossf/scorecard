@@ -271,6 +271,29 @@ func TestSAST(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Has Claude Code Security Reviewer",
+			files: []string{".github/workflows/github-claude-code-security.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.ClaudeCodeSecurityWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-claude-code-security.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
