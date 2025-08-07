@@ -287,7 +287,7 @@ If the project does not have a badge, the probe returns one OutcomeFalse.
 
 **Lifecycle**: stable
 
-**Description**: Check that the project has an permissive license.
+**Description**: Check that the project has a permissive license.
 
 **Motivation**: A permissive license allows users to use the analyzed component to be used in derivative works. Non-permissive licenses (as copyleft licenses) might be a legal risk for potential users.
 
@@ -318,7 +318,7 @@ If the project does not have commits in the last 90 days, the probe returns a si
 
 **Description**: Check that the project publishes an SBOM as part of its release artifacts.
 
-**Motivation**: An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.
+**Motivation**: An SBOM can give users information about how the source code components and dependencies. They help facilitate software supplychain security and aid in identifying upstream vulnerabilities in a codebase.
 
 **Implementation**: The implementation checks whether a SBOM artifact is included in release artifacts.
 
@@ -332,7 +332,7 @@ If an SBOM artifact is not found, the probe returns a single OutcomeFalse.
 
 **Description**: Check that the project has an SBOM file
 
-**Motivation**: An SBOM can give users information about how the source code components and dependencies. They help facilitate sotware supplychain security and aid in identifying upstream vulnerabilities in a codebase.
+**Motivation**: An SBOM can give users information about how the source code components and dependencies. They help facilitate software supplychain security and aid in identifying upstream vulnerabilities in a codebase.
 
 **Implementation**: The implementation checks whether an SBOM file is present in the source code.
 
@@ -393,7 +393,7 @@ The probe returns 1 true outcome if the project has no workflows "write" permiss
 **Implementation**: The implementation checks whether a project uses common patterns for packaging across multiple ecosystems. Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`.
 
 **Outcomes**: If the project uses a packaging mechanism we detect, the outcome is positive.
-If the project doesn't use automated packaing we can detect, the outcome is negative.
+If the project doesn't use automated packaging we can detect, the outcome is negative.
 
 
 ## pinsDependencies
