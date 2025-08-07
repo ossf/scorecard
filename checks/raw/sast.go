@@ -93,6 +93,13 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, hadolintWorkflows...)
 
+	claudeCodeSecurityWorkflows, err := getSastUsesWorkflows(
+		c, "^anthropics/claude-code-security-review$", checker.ClaudeCodeSecurityWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, claudeCodeSecurityWorkflows...)
+
 	return data, nil
 }
 

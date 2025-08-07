@@ -65,7 +65,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Pysa is installed. CodeQL, Snyk, Qodana and Sonar are not installed.",
+			name: "Pysa is installed. No other SAST tools are installed.",
 			findings: []finding.Finding{
 				tool(checker.PysaWorkflow),
 				{
@@ -84,7 +84,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: `Sonar is installed. CodeQL, Snyk, Pysa, Qodana are not installed.
+			name: `Sonar is installed. No other SAST tools are installed.
 					Does not have info about whether SAST runs
 					on every commit.`,
 			findings: []finding.Finding{
@@ -101,7 +101,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Sonar, CodeQL, Snyk, Qodana and Pysa are not installed",
+			name: "No SAST tools are installed",
 			findings: []finding.Finding{
 				{
 					Probe:   sastToolConfigured.Probe,
@@ -123,7 +123,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Snyk is installed, Sonar, Qodana and CodeQL are not installed",
+			name: "Snyk is installed, no other SAST tools are installed",
 			findings: []finding.Finding{
 				tool(checker.SnykWorkflow),
 				{
@@ -142,7 +142,7 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Qodana is installed, Snyk, Sonar, and CodeQL are not installed",
+			name: "Qodana is installed, no other SAST tools are installed",
 			findings: []finding.Finding{
 				tool(checker.QodanaWorkflow),
 				{
@@ -164,6 +164,25 @@ func TestSAST(t *testing.T) {
 			name: "Hadolint is installed, no other SAST tools are installed",
 			findings: []finding.Finding{
 				tool(checker.HadolintWorkflow),
+				{
+					Probe:   sastToolRunsOnAllCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						sastToolRunsOnAllCommits.AnalyzedPRsKey: "1",
+						sastToolRunsOnAllCommits.TotalPRsKey:    "3",
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        10,
+				NumberOfWarn: 0,
+				NumberOfInfo: 2,
+			},
+		},
+		{
+			name: "Claude Code Security is installed, no other SAST tools are installed",
+			findings: []finding.Finding{
+				tool(checker.ClaudeCodeSecurityWorkflow),
 				{
 					Probe:   sastToolRunsOnAllCommits.Probe,
 					Outcome: finding.OutcomeTrue,
