@@ -379,6 +379,10 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 		// Code scanning with HLint uploads a SARIF file to GitHub.
 		// https://github.com/haskell-actions/hlint-scan
 		"haskell-actions/hlint-scan": true,
+
+		// Code scanning with zizmor uploads a SARIF file to GitHub.
+		// https://github.com/zizmorcore/zizmor-action
+		"zizmorcore/zizmor-action": true,
 	}
 
 	tokenPermissions := checker.TokenPermission{
