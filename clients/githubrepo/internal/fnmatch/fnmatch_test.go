@@ -54,6 +54,7 @@ func TestMatch(t *testing.T) {
 		{"releases/**/**/*", "releases/v2", true},
 		{"releases/**/bar/**/qux", "releases/foo/bar/baz/qux", true},
 		{"users/**/*", "users/foo/bar", true},
+		{"v1*", "v1.2.3", true},
 	}
 	for _, tt := range tests {
 		got, err := Match(tt.pattern, tt.path)

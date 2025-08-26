@@ -1097,11 +1097,11 @@ func TestJsonScorecardRawResult(t *testing.T) {
 		},
 	}
 	bp := &checker.BranchProtectionsData{
-		Branches: []clients.BranchRef{
+		Branches: []clients.RepoRef{
 			{
 				Name:      stringPtr("main"),
 				Protected: boolPtr(true),
-				BranchProtectionRule: clients.BranchProtectionRule{
+				ProtectionRule: clients.ProtectionRule{
 					AllowDeletions:   boolPtr(true),
 					AllowForcePushes: boolPtr(false),
 					PullRequestRule: clients.PullRequestRule{
@@ -1298,11 +1298,11 @@ func TestAddBranchProtectionRawResults(t *testing.T) {
 		{
 			name: "one protected branch",
 			input: &checker.BranchProtectionsData{
-				Branches: []clients.BranchRef{
+				Branches: []clients.RepoRef{
 					{
 						Name:      stringPtr("main"),
 						Protected: boolPtr(true),
-						BranchProtectionRule: clients.BranchProtectionRule{
+						ProtectionRule: clients.ProtectionRule{
 							AllowDeletions: boolPtr(false),
 						},
 					},
@@ -1370,7 +1370,7 @@ func TestFillJSONRawResults(t *testing.T) {
 			},
 		},
 		BranchProtectionResults: checker.BranchProtectionsData{
-			Branches: []clients.BranchRef{
+			Branches: []clients.RepoRef{
 				{Name: stringPtr("main"), Protected: boolPtr(true)},
 			},
 		},

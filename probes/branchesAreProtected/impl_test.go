@@ -44,7 +44,7 @@ func Test_Run(t *testing.T) {
 			name: "One branch. Protection unknown",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name:      &branchVal1,
 							Protected: nil,
@@ -60,7 +60,7 @@ func Test_Run(t *testing.T) {
 			name: "Two protected branches",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name:      &branchVal1,
 							Protected: &trueVal,
@@ -80,7 +80,7 @@ func Test_Run(t *testing.T) {
 			name: "Two branches. First is protected",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name:      &branchVal1,
 							Protected: &trueVal,
@@ -100,7 +100,7 @@ func Test_Run(t *testing.T) {
 			name: "Two branches. Second is protected",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name:      &branchVal1,
 							Protected: &falseVal,
@@ -120,14 +120,14 @@ func Test_Run(t *testing.T) {
 			name: "Two branches. First one is not protected, second unknown",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name:      &branchVal1,
 							Protected: &falseVal,
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								AllowDeletions: nil,
 							},
 						},

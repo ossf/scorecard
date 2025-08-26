@@ -81,7 +81,7 @@ func Test_getBranch(t *testing.T) {
 	tests := []struct {
 		getBranch               fnQueryBranch
 		getPolicyConfigurations fnGetPolicyConfigurations
-		expected                *clients.BranchRef
+		expected                *clients.RepoRef
 		name                    string
 		branchName              string
 		expectedError           bool
@@ -97,7 +97,7 @@ func Test_getBranch(t *testing.T) {
 					PolicyConfigurations: &[]policy.PolicyConfiguration{},
 				}, nil
 			},
-			expected: &clients.BranchRef{
+			expected: &clients.RepoRef{
 				Name:      toPtr("main"),
 				Protected: toPtr(false),
 			},

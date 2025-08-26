@@ -162,6 +162,16 @@ func (c *client) URI() string {
 	return c.statusURL
 }
 
+// GetBranch implements RepoClient.GetTag.
+func (client *client) GetTag(tag string) (*clients.RepoRef, error) {
+	return &clients.RepoRef{}, fmt.Errorf("GetTag: %w", clients.ErrUnsupportedFeature)
+}
+
+func (client *client) ListTags() ([]*clients.RepoRef, error) {
+	tags := make([]*clients.RepoRef, 0)
+	return tags, fmt.Errorf("ListTags: %w", clients.ErrUnsupportedFeature)
+}
+
 // InitRepo implements RepoClient.InitRepo.
 func (c *client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	return fmt.Errorf("InitRepo: %w", clients.ErrUnsupportedFeature)
@@ -188,12 +198,12 @@ func (c *client) GetFileReader(filename string) (io.ReadCloser, error) {
 }
 
 // GetBranch implements RepoClient.GetBranch.
-func (c *client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (c *client) GetBranch(branch string) (*clients.RepoRef, error) {
 	return nil, fmt.Errorf("GetBranch: %w", clients.ErrUnsupportedFeature)
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
-func (c *client) GetDefaultBranch() (*clients.BranchRef, error) {
+func (c *client) GetDefaultBranch() (*clients.RepoRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)
 }
 

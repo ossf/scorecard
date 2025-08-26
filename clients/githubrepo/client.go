@@ -51,6 +51,7 @@ type Client struct {
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
 	branches      *branchesHandler
+	tags          *tagsHandler
 	releases      *releasesHandler
 	workflows     *workflowsHandler
 	checkruns     *checkrunsHandler
@@ -129,6 +130,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup branchesHandler.
 	client.branches.init(client.ctx, client.repourl)
+
+	// Setup tagsHandler.
+	client.tags.init(client.ctx, client.repourl)
 
 	// Setup releasesHandler.
 	client.releases.init(client.ctx, client.repourl)
@@ -240,7 +244,7 @@ func (client *Client) IsArchived() (bool, error) {
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
-func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
+func (client *Client) GetDefaultBranch() (*clients.RepoRef, error) {
 	return client.branches.getDefaultBranch()
 }
 
@@ -254,8 +258,17 @@ func (client *Client) GetDefaultBranchName() (string, error) {
 }
 
 // GetBranch implements RepoClient.GetBranch.
-func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
+func (client *Client) GetBranch(branch string) (*clients.RepoRef, error) {
 	return client.branches.getBranch(branch)
+}
+
+// GetBranch implements RepoClient.GetTag.
+func (client *Client) GetTag(tag string) (*clients.RepoRef, error) {
+	return client.tags.getTag(tag)
+}
+
+func (client *Client) ListTags() ([]*clients.RepoRef, error) {
+	return client.tags.getTags()
 }
 
 // GetCreatedAt is a getter for repo.CreatedAt.
@@ -392,6 +405,10 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 			ghClient: client,
 		},
 		branches: &branchesHandler{
+			ghClient:    client,
+			graphClient: graphClient,
+		},
+		tags: &tagsHandler{
 			ghClient:    client,
 			graphClient: graphClient,
 		},

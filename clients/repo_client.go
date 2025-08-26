@@ -34,16 +34,18 @@ type RepoClient interface {
 	URI() string
 	IsArchived() (bool, error)
 	ListFiles(predicate func(string) (bool, error)) ([]string, error)
+	ListTags() ([]*RepoRef, error)
 	// Returns an absolute path to the local repository
 	// in the format that matches the local OS
 	LocalPath() (string, error)
 	// GetFileReader returns an io.ReadCloser corresponding to the desired file.
 	// Callers should ensure to Close the Reader when finished.
 	GetFileReader(filename string) (io.ReadCloser, error)
-	GetBranch(branch string) (*BranchRef, error)
+	GetBranch(branch string) (*RepoRef, error)
+	GetTag(tag string) (*RepoRef, error)
 	GetCreatedAt() (time.Time, error)
 	GetDefaultBranchName() (string, error)
-	GetDefaultBranch() (*BranchRef, error)
+	GetDefaultBranch() (*RepoRef, error)
 	GetOrgRepoClient(context.Context) (RepoClient, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)

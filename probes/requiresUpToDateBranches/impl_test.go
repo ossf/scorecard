@@ -44,10 +44,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch requires up-to-date before merge = 1 true outcome",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &trueVal,
 								},
@@ -64,10 +64,10 @@ func Test_Run(t *testing.T) {
 			name: "2 branches require up-to-date before merge = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &trueVal,
 								},
@@ -75,7 +75,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &trueVal,
 								},
@@ -92,10 +92,10 @@ func Test_Run(t *testing.T) {
 			name: "Requires up to date branches on 1/2 branches = 1 true and 1 false outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &trueVal,
 								},
@@ -103,7 +103,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &falseVal,
 								},
@@ -120,10 +120,10 @@ func Test_Run(t *testing.T) {
 			name: "Requires up to date branches on 1/2 branches = 1 false and 1 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &falseVal,
 								},
@@ -131,7 +131,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &trueVal,
 								},
@@ -148,10 +148,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch does no require up-to-date before merge and 1 branch lacks data= 1 true & 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: &falseVal,
 								},
@@ -159,7 +159,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								CheckRules: clients.StatusChecksRule{
 									UpToDateBeforeMerge: nil,
 								},

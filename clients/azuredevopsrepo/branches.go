@@ -31,7 +31,7 @@ type branchesHandler struct {
 	once                    *sync.Once
 	errSetup                error
 	repourl                 *Repo
-	defaultBranchRef        *clients.BranchRef
+	defaultBranchRef        *clients.RepoRef
 	queryBranch             fnQueryBranch
 	getPolicyConfigurations fnGetPolicyConfigurations
 }
@@ -64,7 +64,7 @@ func (b *branchesHandler) setup() error {
 			b.errSetup = fmt.Errorf("request for default branch failed with error %w", err)
 			return
 		}
-		b.defaultBranchRef = &clients.BranchRef{
+		b.defaultBranchRef = &clients.RepoRef{
 			Name: branch.Name,
 		}
 
@@ -73,7 +73,7 @@ func (b *branchesHandler) setup() error {
 	return b.errSetup
 }
 
-func (b *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
+func (b *branchesHandler) getDefaultBranch() (*clients.RepoRef, error) {
 	if err := b.setup(); err != nil {
 		return nil, fmt.Errorf("error during branchesHandler.setup: %w", err)
 	}
@@ -81,7 +81,7 @@ func (b *branchesHandler) getDefaultBranch() (*clients.BranchRef, error) {
 	return b.defaultBranchRef, nil
 }
 
-func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, error) {
+func (b *branchesHandler) getBranch(branchName string) (*clients.RepoRef, error) {
 	branch, err := b.queryBranch(b.ctx, git.GetBranchArgs{
 		RepositoryId: &b.repourl.id,
 		Name:         &branchName,
@@ -110,7 +110,7 @@ func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, erro
 	}
 
 	// TODO: map Azure DevOps branch protection to Scorecard branch protection
-	return &clients.BranchRef{
+	return &clients.RepoRef{
 		Name:      branch.Name,
 		Protected: &isBranchProtected,
 	}, nil

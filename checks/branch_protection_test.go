@@ -26,14 +26,14 @@ import (
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
-func getBranchName(branch *clients.BranchRef) string {
+func getBranchName(branch *clients.RepoRef) string {
 	if branch == nil || branch.Name == nil {
 		return ""
 	}
 	return *branch.Name
 }
 
-func getBranch(branches []*clients.BranchRef, name string, isNonAdmin bool) *clients.BranchRef {
+func getBranch(branches []*clients.RepoRef, name string, isNonAdmin bool) *clients.RepoRef {
 	for _, branch := range branches {
 		branchName := getBranchName(branch)
 		if branchName == name {
@@ -46,9 +46,9 @@ func getBranch(branches []*clients.BranchRef, name string, isNonAdmin bool) *cli
 	return nil
 }
 
-func scrubBranch(branch *clients.BranchRef) *clients.BranchRef {
+func scrubBranch(branch *clients.RepoRef) *clients.RepoRef {
 	ret := branch
-	ret.BranchProtectionRule = clients.BranchProtectionRule{}
+	ret.ProtectionRule = clients.ProtectionRule{}
 	return ret
 }
 
@@ -67,7 +67,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 	tests := []struct {
 		name          string
 		defaultBranch string
-		branches      []*clients.BranchRef
+		branches      []*clients.RepoRef
 		releases      []string
 		repoFiles     []string
 		expected      scut.TestReturn
@@ -83,10 +83,10 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -106,7 +106,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				},
 				{
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &falseVal,
@@ -138,7 +138,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &rel1,
 					Protected: &falseVal,
@@ -146,7 +146,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &falseVal,
@@ -178,11 +178,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -204,7 +204,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &falseVal,
@@ -236,11 +236,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				NumberOfDebug: 0,
 			},
 			defaultBranch: main,
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -262,7 +262,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -295,11 +295,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			},
 			defaultBranch: main,
 			releases:      []string{sha},
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &falseVal,
@@ -334,11 +334,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			},
 			defaultBranch: main,
 			releases:      []string{""},
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &falseVal,
@@ -371,11 +371,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			defaultBranch: main,
 			// branches:      []*string{&rel1, &main},
 			releases: []string{rel1},
-			branches: []*clients.BranchRef{
+			branches: []*clients.RepoRef{
 				{
 					Name:      &main,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -386,7 +386,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
-					BranchProtectionRule: clients.BranchProtectionRule{
+					ProtectionRule: clients.ProtectionRule{
 						CheckRules: clients.StatusChecksRule{
 							RequiresStatusChecks: &trueVal,
 							UpToDateBeforeMerge:  &trueVal,
@@ -405,7 +405,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().GetDefaultBranch().
-				DoAndReturn(func() (*clients.BranchRef, error) {
+				DoAndReturn(func() (*clients.RepoRef, error) {
 					defaultBranch := getBranch(tt.branches, tt.defaultBranch, tt.nonadmin)
 					return defaultBranch, nil
 				}).AnyTimes()
@@ -420,7 +420,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					return ret, nil
 				}).AnyTimes()
 			mockRepoClient.EXPECT().GetBranch(gomock.Any()).
-				DoAndReturn(func(b string) (*clients.BranchRef, error) {
+				DoAndReturn(func(b string) (*clients.RepoRef, error) {
 					return getBranch(tt.branches, b, tt.nonadmin), nil
 				}).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)

@@ -61,13 +61,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		var text string
 		var outcome finding.Outcome
 		switch {
-		case branch.BranchProtectionRule.AllowDeletions == nil:
+		case branch.ProtectionRule.AllowDeletions == nil:
 			text = "could not determine whether branch is protected against deletion"
 			outcome = finding.OutcomeNotAvailable
-		case *branch.BranchProtectionRule.AllowDeletions:
+		case *branch.ProtectionRule.AllowDeletions:
 			text = fmt.Sprintf("'allow deletion' enabled on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeFalse
-		case !*branch.BranchProtectionRule.AllowDeletions:
+		case !*branch.ProtectionRule.AllowDeletions:
 			text = fmt.Sprintf("'allow deletion' disabled on branch '%s'", *branch.Name)
 			outcome = finding.OutcomeTrue
 		default:

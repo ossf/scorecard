@@ -37,13 +37,13 @@ var (
 type branchArg struct {
 	err           error
 	name          string
-	branchRef     *clients.BranchRef
+	branchRef     *clients.RepoRef
 	defaultBranch bool
 }
 
 type branchesArg []branchArg
 
-func (ba branchesArg) getDefaultBranch() (*clients.BranchRef, error) {
+func (ba branchesArg) getDefaultBranch() (*clients.RepoRef, error) {
 	for _, branch := range ba {
 		if branch.defaultBranch {
 			return branch.branchRef, branch.err
@@ -52,7 +52,7 @@ func (ba branchesArg) getDefaultBranch() (*clients.BranchRef, error) {
 	return nil, nil
 }
 
-func (ba branchesArg) getBranch(b string) (*clients.BranchRef, error) {
+func (ba branchesArg) getBranch(b string) (*clients.RepoRef, error) {
 	for _, branch := range ba {
 		if branch.name == b {
 			return branch.branchRef, branch.err
@@ -104,13 +104,13 @@ func TestBranchProtection(t *testing.T) {
 				{
 					name:          defaultBranchName,
 					defaultBranch: true,
-					branchRef: &clients.BranchRef{
+					branchRef: &clients.RepoRef{
 						Name: &defaultBranchName,
 					},
 				},
 			},
 			want: checker.BranchProtectionsData{
-				Branches: []clients.BranchRef{
+				Branches: []clients.RepoRef{
 					{
 						Name: &defaultBranchName,
 					},
@@ -180,13 +180,13 @@ func TestBranchProtection(t *testing.T) {
 			branches: branchesArg{
 				{
 					name: releaseBranchName,
-					branchRef: &clients.BranchRef{
+					branchRef: &clients.RepoRef{
 						Name: &releaseBranchName,
 					},
 				},
 			},
 			want: checker.BranchProtectionsData{
-				Branches: []clients.BranchRef{
+				Branches: []clients.RepoRef{
 					{
 						Name: &releaseBranchName,
 					},
@@ -204,13 +204,13 @@ func TestBranchProtection(t *testing.T) {
 			branches: branchesArg{
 				{
 					name: mainBranchName,
-					branchRef: &clients.BranchRef{
+					branchRef: &clients.RepoRef{
 						Name: &mainBranchName,
 					},
 				},
 			},
 			want: checker.BranchProtectionsData{
-				Branches: []clients.BranchRef{
+				Branches: []clients.RepoRef{
 					{
 						Name: &mainBranchName,
 					},
@@ -229,19 +229,19 @@ func TestBranchProtection(t *testing.T) {
 				{
 					name:          defaultBranchName,
 					defaultBranch: true,
-					branchRef: &clients.BranchRef{
+					branchRef: &clients.RepoRef{
 						Name: &defaultBranchName,
 					},
 				},
 				{
 					name: releaseBranchName,
-					branchRef: &clients.BranchRef{
+					branchRef: &clients.RepoRef{
 						Name: &releaseBranchName,
 					},
 				},
 			},
 			want: checker.BranchProtectionsData{
-				Branches: []clients.BranchRef{
+				Branches: []clients.RepoRef{
 					{
 						Name: &defaultBranchName,
 					},
@@ -260,11 +260,11 @@ func TestBranchProtection(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
 			mockRepoClient.EXPECT().GetDefaultBranch().
-				AnyTimes().DoAndReturn(func() (*clients.BranchRef, error) {
+				AnyTimes().DoAndReturn(func() (*clients.RepoRef, error) {
 				return tt.branches.getDefaultBranch()
 			})
 			mockRepoClient.EXPECT().GetBranch(gomock.Any()).AnyTimes().
-				DoAndReturn(func(branch string) (*clients.BranchRef, error) {
+				DoAndReturn(func(branch string) (*clients.RepoRef, error) {
 					return tt.branches.getBranch(branch)
 				})
 			mockRepoClient.EXPECT().ListReleases().AnyTimes().

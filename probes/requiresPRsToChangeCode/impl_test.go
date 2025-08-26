@@ -43,10 +43,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch requires PRs to change code",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &trueVal,
 								},
@@ -63,10 +63,10 @@ func Test_Run(t *testing.T) {
 			name: "2 branches require PRs to change code = 2 true outcomes",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &trueVal,
 								},
@@ -74,7 +74,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &trueVal,
 								},
@@ -91,10 +91,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branches require PRs to change code and 1 branch doesn't = 1 true 1 false",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &trueVal,
 								},
@@ -102,7 +102,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &falseVal,
 								},
@@ -119,10 +119,10 @@ func Test_Run(t *testing.T) {
 			name: "Requires PRs to change code on 1/2 branches = 1 false and 1 true",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &falseVal,
 								},
@@ -130,7 +130,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &trueVal,
 								},
@@ -147,10 +147,10 @@ func Test_Run(t *testing.T) {
 			name: "1 branch does not require PRs to change code and 1 lacks data = 1 false and 1 unavailable",
 			raw: &checker.RawResults{
 				BranchProtectionResults: checker.BranchProtectionsData{
-					Branches: []clients.BranchRef{
+					Branches: []clients.RepoRef{
 						{
 							Name: &branchVal1,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: &falseVal,
 								},
@@ -158,7 +158,7 @@ func Test_Run(t *testing.T) {
 						},
 						{
 							Name: &branchVal2,
-							BranchProtectionRule: clients.BranchProtectionRule{
+							ProtectionRule: clients.ProtectionRule{
 								PullRequestRule: clients.PullRequestRule{
 									Required: nil,
 								},

@@ -208,16 +208,16 @@ func addBranchProtectionRawResults(r *jsonScorecardRawResult, bp *checker.Branch
 		var bp *jsonBranchProtectionSettings
 		if v.Protected != nil && *v.Protected {
 			bp = &jsonBranchProtectionSettings{
-				AllowsDeletions:                     v.BranchProtectionRule.AllowDeletions,
-				AllowsForcePushes:                   v.BranchProtectionRule.AllowForcePushes,
-				RequiresCodeOwnerReviews:            v.BranchProtectionRule.PullRequestRule.RequireCodeOwnerReviews,
-				RequiresLinearHistory:               v.BranchProtectionRule.RequireLinearHistory,
-				DismissesStaleReviews:               v.BranchProtectionRule.PullRequestRule.DismissStaleReviews,
-				EnforcesAdmins:                      v.BranchProtectionRule.EnforceAdmins,
-				RequiresStatusChecks:                v.BranchProtectionRule.CheckRules.RequiresStatusChecks,
-				RequiresUpToDateBranchBeforeMerging: v.BranchProtectionRule.CheckRules.UpToDateBeforeMerge,
-				RequiredApprovingReviewCount:        v.BranchProtectionRule.PullRequestRule.RequiredApprovingReviewCount,
-				StatusCheckContexts:                 v.BranchProtectionRule.CheckRules.Contexts,
+				AllowsDeletions:                     v.ProtectionRule.AllowDeletions,
+				AllowsForcePushes:                   v.ProtectionRule.AllowForcePushes,
+				RequiresCodeOwnerReviews:            v.ProtectionRule.PullRequestRule.RequireCodeOwnerReviews,
+				RequiresLinearHistory:               v.ProtectionRule.RequireLinearHistory,
+				DismissesStaleReviews:               v.ProtectionRule.PullRequestRule.DismissStaleReviews,
+				EnforcesAdmins:                      v.ProtectionRule.EnforceAdmins,
+				RequiresStatusChecks:                v.ProtectionRule.CheckRules.RequiresStatusChecks,
+				RequiresUpToDateBranchBeforeMerging: v.ProtectionRule.CheckRules.UpToDateBeforeMerge,
+				RequiredApprovingReviewCount:        v.ProtectionRule.PullRequestRule.RequiredApprovingReviewCount,
+				StatusCheckContexts:                 v.ProtectionRule.CheckRules.Contexts,
 			}
 		}
 		r.Results.BranchProtections = append(r.Results.BranchProtections, jsonBranchProtection{

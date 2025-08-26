@@ -29,6 +29,7 @@ import (
 type RawResults struct {
 	BinaryArtifactResults       BinaryArtifactData
 	BranchProtectionResults     BranchProtectionsData
+	TagProtectionResults        TagProtectionsData
 	CIIBestPracticesResults     CIIBestPracticesData
 	CITestResults               CITestData
 	CodeReviewResults           CodeReviewData
@@ -332,7 +333,14 @@ type WebhooksData struct {
 // BranchProtectionsData contains the raw results
 // for the Branch-Protection check.
 type BranchProtectionsData struct {
-	Branches        []clients.BranchRef
+	Branches        []clients.RepoRef
+	CodeownersFiles []string
+}
+
+// TagProtectionsData contains the raw results
+// for the Tag-Protection check.
+type TagProtectionsData struct {
+	Tags            []clients.RepoRef
 	CodeownersFiles []string
 }
 

@@ -59,7 +59,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		p := branch.BranchProtectionRule.CheckRules.UpToDateBeforeMerge
+		p := branch.ProtectionRule.CheckRules.UpToDateBeforeMerge
 		text, outcome, err := branchprotection.GetTextOutcomeFromBool(p,
 			"up-to-date branches",
 			*branch.Name)
