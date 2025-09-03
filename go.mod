@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard/v5
 
-go 1.24
+go 1.24.0
 
 require (
 	cloud.google.com/go/bigquery v1.70.0
@@ -18,7 +18,7 @@ require (
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
 	github.com/moby/buildkit v0.23.2
-	github.com/olekukonko/tablewriter v1.0.9
+	github.com/olekukonko/tablewriter v0.0.5
 	github.com/onsi/gomega v1.38.2
 	github.com/rhysd/actionlint v1.7.7
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
@@ -48,7 +48,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.25.1
 	github.com/otiai10/copy v1.14.1
 	gitlab.com/gitlab-org/api/client-go v0.142.5
-	sigs.k8s.io/release-utils v0.12.1
+	sigs.k8s.io/release-utils v0.11.1
 )
 
 require (
@@ -111,8 +111,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/olekukonko/errors v1.1.0 // indirect
-	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/owenrumney/go-sarif/v2 v2.3.3 // indirect
 	github.com/package-url/packageurl-go v0.1.3 // indirect
