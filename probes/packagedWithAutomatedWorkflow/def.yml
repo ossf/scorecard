@@ -23,7 +23,7 @@ implementation: >
   Scorecard gets this by checking the projects workflows for specific uses of actions and build commands such as `docker push` or `mvn deploy`. 
 outcome:
   - If the project uses a packaging mechanism we detect, the outcome is positive.
-  - If the project doesn't use automated packaing we can detect, the outcome is negative.
+  - If the project doesn't use automated packaging we can detect, the outcome is negative.
 remediation:
   onOutcome: False
   effort: Low
