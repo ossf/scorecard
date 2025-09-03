@@ -45,6 +45,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v5/probes/packagedWithNpm"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
@@ -94,6 +95,7 @@ var (
 	}
 	Packaging = []ProbeImpl{
 		packagedWithAutomatedWorkflow.Run,
+		packagedWithNpm.Run,
 	}
 	License = []ProbeImpl{
 		hasLicenseFile.Run,
