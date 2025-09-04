@@ -188,6 +188,9 @@ Action
 ### Scorecard REST API
 
 To query pre-calculated scores of OSS projects, use the [REST API](https://api.scorecard.dev).
+Scores calculated from our [weekly scan](#public-data) omit the `CI-Tests`,
+`Contributors`, and `Dependency-Update-Tool` checks due to the API costs 
+associated with running them at scale.
 
 To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
@@ -314,7 +317,9 @@ These variables can be obtained from the GitHub
 Scorecard can run using just one argument, the URL of the target repo:
 
 ```shell
-$ scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e
+```
+```shell
 Starting [CII-Best-Practices]
 Starting [Fuzzing]
 Starting [Pinned-Dependencies]
@@ -420,6 +425,8 @@ For more details about why a check fails, use the `--show-details` option:
 
 ```
 ./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --checks Branch-Protection --show-details
+```
+```shell
 Starting [Pinned-Dependencies]
 Finished [Pinned-Dependencies]
 
@@ -505,6 +512,11 @@ option to run Scorecard using a package manager. Provide the package name to
 run the checks on the corresponding GitHub source code.
 
 For example, `--npm=angular`.
+
+Note: The package ecosystem flags are to find a GitHub repo only. 
+These flags do not change the final evaluation for the checks. 
+
+Additionally, the flags cannot be used with `--repo`.
 
 ##### Running specific checks
 

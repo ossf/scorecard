@@ -46,3 +46,10 @@ jobs:
       security-events: write
     steps:
       - uses: haskell-actions/hlint-scan@v1
+
+  zizmorcore-zizmor:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: zizmorcore/zizmor-action@v0.1.2

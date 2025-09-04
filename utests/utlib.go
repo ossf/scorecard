@@ -90,7 +90,7 @@ func getTestReturn(tb testing.TB, cr *checker.CheckResult, logger *TestDetailLog
 	for _, v := range logger.messages {
 		switch v.Type {
 		default:
-			//nolint:goerr113
+			//nolint:err113
 			return nil, fmt.Errorf("invalid type %v", v.Type)
 		case checker.DetailInfo:
 			ret.NumberOfInfo++

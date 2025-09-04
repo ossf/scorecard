@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package sastToolConfigured
 
 import (
@@ -67,10 +66,14 @@ func Test_Run(t *testing.T) {
 						{
 							Type: checker.PysaWorkflow,
 						},
+						{
+							Type: checker.HadolintWorkflow,
+						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,

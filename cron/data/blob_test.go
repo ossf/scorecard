@@ -15,7 +15,6 @@
 package data
 
 import (
-	"context"
 	"errors"
 	"reflect"
 	"testing"
@@ -156,7 +155,7 @@ func TestBlobKeysPrefix(t *testing.T) {
 		t.Errorf("Failed to create a file blob for %s", dir)
 	}
 	defer bucket.Close()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
