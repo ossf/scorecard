@@ -119,6 +119,7 @@ func mapContributors(handler *contributorsHandler, contributors map[string]clien
 	}
 }
 
+//nolint:gocognit // will fix in #4439
 func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, contributors map[string]clients.User) {
 	if codeOwnerFile == nil || codeOwnerFile == (*os.File)(nil) {
 		return

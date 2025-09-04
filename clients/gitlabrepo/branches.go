@@ -45,6 +45,7 @@ func (handler *branchesHandler) init(repourl *Repo) {
 	handler.queryProject = handler.glClient.Projects.GetProject
 	handler.queryBranch = handler.glClient.Branches.GetBranch
 	handler.getProtectedBranch = handler.glClient.ProtectedBranches.GetProtectedBranch
+	//nolint:staticcheck // will fix in #4439
 	handler.getProjectChecks = handler.glClient.ExternalStatusChecks.ListProjectStatusChecks
 	handler.getApprovalConfiguration = handler.glClient.Projects.GetApprovalConfiguration
 }
