@@ -15,7 +15,6 @@
 package githubrepo
 
 import (
-	"context"
 	"net/http"
 	"testing"
 
@@ -43,7 +42,7 @@ func Test_getCommits_retry(t *testing.T) {
 			Transport: rt,
 		}),
 	}
-	handler.init(context.Background(), &Repo{}, 1)
+	handler.init(t.Context(), &Repo{}, 1)
 	_, err := handler.getCommits()
 	if err == nil {
 		t.Error("expected error")

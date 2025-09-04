@@ -14,7 +14,6 @@
 package clients
 
 import (
-	"context"
 	"reflect"
 	"testing"
 )
@@ -52,7 +51,7 @@ func TestEmptyProject(t *testing.T) {
 	var client osvClient
 	var commit string
 	emptyDir := t.TempDir()
-	_, err := client.ListUnfixedVulnerabilities(context.Background(), commit, emptyDir)
+	_, err := client.ListUnfixedVulnerabilities(t.Context(), commit, emptyDir)
 	if err != nil {
 		t.Fatalf("empty directory shouldn't throw an error: %v", err)
 	}
