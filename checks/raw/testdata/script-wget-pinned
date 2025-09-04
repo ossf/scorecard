@@ -1,0 +1,4 @@
+#!/bin/bash
+
+wget https://raw.githubusercontent.com/radiantearth/stac-spec/568a04821935cc92de7b4b05ea6fa9f6bf8a0592/item-spec/json-schema/itemcollection.json
+perl -pi -e 's#"const": "0.9.0"#"const": "1.1.0"#g' itemcollection.json

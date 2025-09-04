@@ -1057,6 +1057,11 @@ func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err erro
 		return "", false, nil
 	}
 
+	// don't record pinned downloads as callers treat these files as unpinned
+	if !hasUnpinnedURLs(cmd) {
+		return "", false, nil
+	}
+
 	fn, ok := getRedirectFile(ss.Redirs)
 	if !ok {
 		return getOutputFile(cmd)

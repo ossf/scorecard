@@ -1548,6 +1548,11 @@ func TestShellScriptDownload(t *testing.T) {
 			filename:         "./testdata/script-invalid.sh",
 			processingErrors: 1, // `curl bla | bash` not detected due to invalid script
 		},
+		{
+			name:     "pinned download regression issue #4771",
+			filename: "./testdata/script-wget-pinned",
+			unpinned: 0,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
