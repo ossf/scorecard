@@ -201,6 +201,10 @@ linters:
       - linters:
           - gochecknoinits
         path: probes/.+/impl.go
+      # checks also register via init
+      - linters:
+          - gochecknoinits
+        path: 'checks/[^/]+.go'
       # probes also break package naming conventions
       - linters:
           - staticcheck
