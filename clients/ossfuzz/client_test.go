@@ -15,7 +15,6 @@
 package ossfuzz
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -257,7 +256,7 @@ func TestAllClientMethods(t *testing.T) {
 
 	// Test GetOrgRepoClient
 	{
-		_, err := c.GetOrgRepoClient(context.Background())
+		_, err := c.GetOrgRepoClient(t.Context())
 		if !errors.Is(err, clients.ErrUnsupportedFeature) {
 			t.Errorf("GetOrgRepoClient: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
 		}
