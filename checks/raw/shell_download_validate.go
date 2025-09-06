@@ -303,7 +303,14 @@ func hasUnpinnedURLs(cmd []string) bool {
 
 	// Extract any URLs passed to the download utility
 	for _, s := range cmd {
-		u, err := url.ParseRequestURI(s)
+		// Strip surrounding quotes that may have been added by extractCommand
+		cleanArg := s
+		if (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'")) ||
+			(strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"")) {
+			cleanArg = s[1 : len(s)-1]
+		}
+
+		u, err := url.ParseRequestURI(cleanArg)
 		if err == nil {
 			urls = append(urls, u)
 		}
