@@ -288,6 +288,8 @@ const (
 	QodanaWorkflow SASTWorkflowType = "Qodana"
 	// HadolintWorkflow represents a workflow that runs Hadolint.
 	HadolintWorkflow SASTWorkflowType = "Hadolint"
+	// ClaudeCodeSecurityWorkflow represents a workflow that runs Claude Code Security Reviewer.
+	ClaudeCodeSecurityWorkflow SASTWorkflowType = "Claude Code Security"
 )
 
 // SASTWorkflow represents a SAST workflow.
