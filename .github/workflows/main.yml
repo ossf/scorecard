@@ -68,7 +68,7 @@ jobs:
      - name: Run unit-tests
        run: make unit-test
      - name: Upload codecoverage
-       uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # 5.5.0
+       uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
        with:
          files: ./unit-coverage.out
          verbose: true
@@ -83,7 +83,7 @@ jobs:
           timeout_minutes: 30
           command: make e2e-pat
      - name: codecov
-       uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # 2.1.0
+       uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 2.1.0
        if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
