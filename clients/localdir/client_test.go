@@ -18,6 +18,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -173,7 +174,7 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 
 			// Test ListFiles API.
 			for _, listfiletest := range testcase.listfileTests {
-				files, e := listFiles(testcase.inputFolder)
+				files, e := listFiles(testcase.inputFolder, log.NewLogger(log.DebugLevel))
 				matchedFiles, err := applyPredicate(files, e, listfiletest.predicate)
 				if !errors.Is(err, listfiletest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", listfiletest.err, err)
@@ -201,6 +202,55 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 						t.Errorf("test failed: expected - %s, got - %s", string(getcontenttest.output), string(content))
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestListFile_symlink(t *testing.T) {
+	t.Parallel()
+	const (
+		realFilename = "foo.txt"
+		nonExistent = "bar.txt"
+		symlinkName = "symlink.txt"
+	)
+	testcases := []struct {
+		name            string
+		symTarget     string
+		want   []string
+	}{
+		{
+			name: "dangling symlink ignored",
+			symTarget: nonExistent,
+			want: []string{realFilename},
+		},
+		{
+			name: "symlink with real target included",
+			symTarget: realFilename,
+			want: []string{realFilename, symlinkName},
+		},
+	}
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			realFileFullPath := filepath.Join(dir, realFilename)
+			f, err := os.Create(realFileFullPath)
+			if err != nil {
+				t.Fatal("creating real file", err)
+			}
+			f.Close()
+			target := filepath.Join(dir, tt.symTarget)
+			linkname := filepath.Join(dir, symlinkName)
+			if err = os.Symlink(target, linkname); err != nil {
+				t.Fatal("making symlink", err)
+			}
+			files, err := listFiles(dir, log.NewLogger(log.DebugLevel))
+			if err != nil {
+				t.Fatal("expected listFiles to ignore the symlink error")
+			}
+			if !cmp.Equal(files, tt.want, cmpopts.SortSlices(isSortedString)) {
+				t.Errorf("test failed: expected - %q, got - %q", tt.want, files)
 			}
 		})
 	}
