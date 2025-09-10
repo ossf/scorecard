@@ -1758,6 +1758,21 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "job uses with no steps",
+			filename: "./testdata/.github/workflows/github-workflow-job-uses.yaml",
+			expected: []struct {
+				dependency string
+				startLine  uint
+				endLine    uint
+			}{
+				{
+					dependency: "slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0",
+					startLine:  30,
+					endLine:    30,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

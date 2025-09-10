@@ -21,8 +21,7 @@ import (
 
 	"cloud.google.com/go/storage"
 	"gocloud.dev/blob"
-	// Needed to link GCP drivers.
-	_ "gocloud.dev/blob/gcsblob"
+	_ "gocloud.dev/blob/gcsblob" // Needed to link GCP drivers.
 )
 
 // blobClientCIIBestPractices implements the CIIBestPracticesClient interface.

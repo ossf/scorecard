@@ -303,7 +303,14 @@ func hasUnpinnedURLs(cmd []string) bool {
 
 	// Extract any URLs passed to the download utility
 	for _, s := range cmd {
-		u, err := url.ParseRequestURI(s)
+		// Strip surrounding quotes that may have been added by extractCommand
+		cleanArg := s
+		if (strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'")) ||
+			(strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"")) {
+			cleanArg = s[1 : len(s)-1]
+		}
+
+		u, err := url.ParseRequestURI(cleanArg)
 		if err == nil {
 			urls = append(urls, u)
 		}
@@ -459,6 +466,25 @@ func isNpmUnpinnedDownload(cmd []string) bool {
 		// `npm ci` will verify all hashes are present.
 		if strings.EqualFold(cmd[i], "ci") {
 			return false
+		}
+
+		// Check if the package is of any of the
+		// following formats: https://docs.npmjs.com/about-packages-and-modules#npm-package-git-url-formats
+		if strings.HasPrefix(cmd[i], "github:") ||
+			strings.HasPrefix(cmd[i], "git://") ||
+			strings.HasPrefix(cmd[i], "git+http://") ||
+			strings.HasPrefix(cmd[i], "git+https://") {
+			// We expect the URL to only have 1 #, but
+			// we can check whether it has more and
+			// is invalid.
+			s := strings.SplitN(cmd[i], "#", 5)
+			if len(s) != 2 {
+				return true
+			}
+			// validate that this is a hash
+			if gitCommitHashRegex.MatchString(s[1]) {
+				return false
+			}
 		}
 	}
 	return true
@@ -1191,7 +1217,7 @@ func nodeToString(p *syntax.Printer, node syntax.Node) (string, error) {
 func validateShellFileAndRecord(pathfn string, startLine, endLine uint, content []byte, files map[string]bool,
 	r *checker.PinningDependenciesData,
 ) error {
-	in := strings.NewReader(string(content))
+	in := bytes.NewReader(content)
 	f, err := syntax.NewParser().Parse(in, pathfn)
 	if err != nil {
 		// If we cannot parse the file, register that we are skipping it
@@ -1306,7 +1332,7 @@ func isMatchingShellScriptFile(pathfn string, content []byte, shellsToMatch []st
 	}
 
 	// Look at file content.
-	r := strings.NewReader(string(content))
+	r := bytes.NewReader(content)
 	scanner := bufio.NewScanner(r)
 	// TODO: support perl scripts with embedded shell scripts:
 	// https://github.com/openssl/openssl/blob/master/test/recipes/15-test_dsaparam.t.

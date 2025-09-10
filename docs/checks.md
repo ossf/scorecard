@@ -141,7 +141,8 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges).
+support other source hosting repositories (i.e., Forges). This check only 
+considers tests which run successfully.
 
 Running tests helps developers catch mistakes early on, which can reduce the
 number of vulnerabilities that find their way into a project.
@@ -628,7 +629,7 @@ Signed releases attest to the provenance of the artifact.
 This check looks for the following filenames in the project's last five
 [release assets](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
 [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
-*.sig, *.sign, *.sigstore, [*.intoto.jsonl](https://slsa.dev).
+*.sig, *.sign, *.sigstore, *.sigstore.json, [*.intoto.jsonl](https://slsa.dev).
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.

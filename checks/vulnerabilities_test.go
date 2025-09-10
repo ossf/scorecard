@@ -59,14 +59,14 @@ func TestVulnerabilities(t *testing.T) {
 			}).AnyTimes()
 
 			mockVulnClient := mockrepo.NewMockVulnerabilitiesClient(ctrl)
-			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
+			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(t.Context(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					return tt.expected, tt.err
 				}).MinTimes(1)
 
 			req := checker.CheckRequest{
 				RepoClient:            mockRepo,
-				Ctx:                   context.TODO(),
+				Ctx:                   t.Context(),
 				VulnerabilitiesClient: mockVulnClient,
 			}
 			res := Vulnerabilities(&req)
