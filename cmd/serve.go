@@ -45,9 +45,6 @@ type server struct {
 }
 
 type scorecardRequest struct {
-	CommitDepth     int      `json:"commit_depth,omitempty"`
-	ShowDetails     bool     `json:"show_details,omitempty"`
-	ShowAnnotations bool     `json:"show_annotations,omitempty"`
 	Repo            string   `json:"repo"`
 	NPM             string   `json:"npm,omitempty"`
 	PyPI            string   `json:"pypi,omitempty"`
@@ -57,6 +54,9 @@ type scorecardRequest struct {
 	FileMode        string   `json:"file_mode,omitempty"`
 	Checks          []string `json:"checks,omitempty"`
 	Probes          []string `json:"probes,omitempty"`
+	CommitDepth     int      `json:"commit_depth,omitempty"`
+	ShowDetails     bool     `json:"show_details,omitempty"`
+	ShowAnnotations bool     `json:"show_annotations,omitempty"`
 }
 
 func newServer(logger *log.Logger) *server {
@@ -268,8 +268,9 @@ func serveCmd(o *options.Options) *cobra.Command {
 			}
 
 			httpServer := &http.Server{
-				Addr:    fmt.Sprintf("0.0.0.0:%s", port),
-				Handler: handler,
+				Addr:              fmt.Sprintf("0.0.0.0:%s", port),
+				Handler:           handler,
+				ReadHeaderTimeout: 10 * time.Second,
 			}
 
 			done := make(chan os.Signal, 1)
