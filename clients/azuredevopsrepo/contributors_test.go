@@ -110,7 +110,7 @@ func Test_listContributors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := contributorsHandler{
-				ctx:  context.Background(),
+				ctx:  t.Context(),
 				once: new(sync.Once),
 				repourl: &Repo{
 					organization: "testOrg",

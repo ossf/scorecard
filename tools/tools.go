@@ -18,7 +18,7 @@
 package main
 
 import (
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
+	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "go.uber.org/mock/mockgen"
 

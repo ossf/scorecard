@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -99,7 +98,7 @@ func TestSbom(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			res := SBOM(&req)

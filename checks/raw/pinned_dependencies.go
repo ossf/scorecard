@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -362,7 +363,7 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return true, nil
 	}
 
-	contentReader := strings.NewReader(string(content))
+	contentReader := bytes.NewReader(content)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
@@ -485,7 +486,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
-	contentReader := strings.NewReader(string(content))
+	contentReader := bytes.NewReader(content)
 	// The dependency must be pinned by sha256 hash, e.g.,
 	// FROM something@sha256:${ARG},
 	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2

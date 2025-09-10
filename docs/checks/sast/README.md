@@ -1,7 +1,7 @@
 # Supported Tools
 * [CodeQL](https://docs.github.com/code-security/code-scanning/enabling-code-scanning/configuring-default-setup-for-code-scanning)
   * Detection is based on GitHub workflows using `github/codeql-action/analyze`, or GitHub Action checks run against PRs.
-* [Qodona](https://github.com/JetBrains/qodana-action)
+* [Qodana](https://github.com/JetBrains/qodana-action)
   * Detection based on GitHub workflows using `JetBrains/qodana-action`.
 * [Snyk](https://github.com/snyk/actions)
   * Detection based on GitHub workflows using one of the actions from the set at https://github.com/snyk/actions

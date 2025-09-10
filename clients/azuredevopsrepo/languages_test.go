@@ -108,7 +108,7 @@ func Test_listProgrammingLanguages(t *testing.T) {
 			t.Parallel()
 			l := &languagesHandler{
 				once: new(sync.Once),
-				ctx:  context.Background(),
+				ctx:  t.Context(),
 				repourl: &Repo{
 					id:      uuid.Nil.String(),
 					project: "project",
