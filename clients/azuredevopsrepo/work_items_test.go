@@ -157,7 +157,7 @@ func Test_listIssues(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			w := &workItemsHandler{
-				ctx:     context.Background(),
+				ctx:     t.Context(),
 				once:    new(sync.Once),
 				repourl: &Repo{project: "test-project"},
 			}

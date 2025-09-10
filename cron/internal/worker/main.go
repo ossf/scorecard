@@ -24,6 +24,7 @@ import (
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
 	"os"
+	"strings"
 
 	"go.opencensus.io/stats/view"
 
@@ -229,6 +230,13 @@ func processRequest(ctx context.Context,
 			// Not accessible repo - continue.
 			continue
 		}
+		if err != nil && strings.Contains(err.Error(), "organization has an IP allow list") {
+			// apps installed on GitHub organizations must respect IP allow lists
+			// even if accessing public data. We've asked GitHub and this is
+			// working as intended, so skip like an inaccessible repo
+			logger.Info(fmt.Sprintf("skipping repo blocked by organization IP allow list: %s", repoReq.GetUrl()))
+			continue
+		}
 		if err != nil {
 			return fmt.Errorf("error during scorecard.Run: %w", err)
 		}
@@ -239,7 +247,7 @@ func processRequest(ctx context.Context,
 			}
 			errorMsg := fmt.Sprintf("check %s has a runtime error: %v", check.Name, check.Error)
 			if !(*ignoreRuntimeErrors) {
-				//nolint:goerr113
+				//nolint:err113
 				return errors.New(errorMsg)
 			}
 			// TODO(log): Previously Warn. Consider logging an error here.

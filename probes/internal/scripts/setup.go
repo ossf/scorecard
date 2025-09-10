@@ -48,7 +48,6 @@ func main() {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package %s
 
 import (
@@ -99,7 +98,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package %s
 `, y, pn)
 	err = os.WriteFile(path.Join(pd, "impl_test.go"), []byte(implTestBoilerplate), 0o600)

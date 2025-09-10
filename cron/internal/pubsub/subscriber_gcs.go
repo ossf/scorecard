@@ -22,6 +22,7 @@ import (
 	"time"
 
 	pubsub "cloud.google.com/go/pubsub/apiv1"
+	//nolint:staticcheck // will fix in #4439
 	"cloud.google.com/go/pubsub/apiv1/pubsubpb"
 
 	"github.com/ossf/scorecard/v5/cron/data"
@@ -66,6 +67,7 @@ func (subscriber *gcsSubscriber) extendAckDeadline() {
 			return
 		case <-time.After(delay):
 			ackDeadline := ackDeadlineExtensionInSec * time.Second
+			//nolint:staticcheck // will fix in #4439
 			err := subscriber.client.ModifyAckDeadline(subscriber.ctx, &pubsubpb.ModifyAckDeadlineRequest{
 				Subscription:       subscriber.subscriptionURL,
 				AckIds:             []string{subscriber.recvdAckID},
@@ -81,10 +83,11 @@ func (subscriber *gcsSubscriber) extendAckDeadline() {
 
 func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest, error) {
 	numReceivedMessages := 0
-	var msgToProcess *pubsubpb.ReceivedMessage
+	var msgToProcess *pubsubpb.ReceivedMessage //nolint:staticcheck // will fix in #4439
 	subscriber.done = make(chan bool)
 	// Block indefinitely until a message is received.
 	for msgToProcess == nil {
+		//nolint:staticcheck // will fix in #4439
 		result, err := subscriber.client.Pull(subscriber.ctx, &pubsubpb.PullRequest{
 			Subscription: subscriber.subscriptionURL,
 			MaxMessages:  maxMessagesToPull,
@@ -97,7 +100,6 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 		if numReceivedMessages > 0 {
 			msgToProcess = result.GetReceivedMessages()[0]
 		} else {
-			//nolint:gomnd
 			time.Sleep(30 * time.Second)
 		}
 	}
@@ -115,6 +117,7 @@ func (subscriber *gcsSubscriber) SynchronousPull() (*data.ScorecardBatchRequest,
 }
 
 func (subscriber *gcsSubscriber) Ack() {
+	//nolint:staticcheck // will fix in #4439
 	err := subscriber.client.Acknowledge(subscriber.ctx, &pubsubpb.AcknowledgeRequest{
 		Subscription: subscriber.subscriptionURL,
 		AckIds:       []string{subscriber.recvdAckID},

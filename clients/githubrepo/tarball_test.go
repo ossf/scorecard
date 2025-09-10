@@ -16,7 +16,6 @@ package githubrepo
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -232,7 +231,7 @@ func Test_setup_empty_repo(t *testing.T) {
 			}
 			var buf bytes.Buffer
 			setLogOutput(t, &buf)
-			h.init(context.Background(), &r, clients.HeadSHA)
+			h.init(t.Context(), &r, clients.HeadSHA)
 			err := h.setup()
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)

@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -90,7 +89,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			//     if that functionality is ever changed, this mock needs to be updated accordingly
 			mockRepoClient.EXPECT().ListLicenses().Return(nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)).AnyTimes()
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			dl := scut.TestDetailLogger{}
 

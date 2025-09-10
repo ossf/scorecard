@@ -34,8 +34,9 @@ import (
 )
 
 var (
-	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type repoLocal")
+	_                  clients.RepoClient = &Client{}
+	errInputRepoType                      = errors.New("input repo should be of type repoLocal")
+	errDanglingSymlink                    = errors.New("symlink target doesnt exist")
 )
 
 //nolint:govet
@@ -89,7 +90,7 @@ func trimPrefix(pathfn, clientPath string) string {
 	return strings.TrimPrefix(cleanPath, prefix)
 }
 
-func listFiles(clientPath string) ([]string, error) {
+func listFiles(clientPath string, logger *log.Logger) ([]string, error) {
 	files := []string{}
 	err := filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
@@ -99,6 +100,10 @@ func listFiles(clientPath string) ([]string, error) {
 		// Skip directories.
 		d, err := isDir(pathfn)
 		if err != nil {
+			if info.Mode()&os.ModeSymlink != 0 {
+				logger.Error(errDanglingSymlink, "skipping dangling symlink", "path", pathfn)
+				return nil
+			}
 			return err
 		}
 		if d {
@@ -159,15 +164,14 @@ func (client *Client) LocalPath() (string, error) {
 // ListFiles implements RepoClient.ListFiles.
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	client.once.Do(func() {
-		client.files, client.errFiles = listFiles(client.path)
+		client.files, client.errFiles = listFiles(client.path, client.logger)
 	})
 	return applyPredicate(client.files, client.errFiles, predicate)
 }
 
 func getFile(clientpath, filename string) (*os.File, error) {
 	// Note: the filenames do not contain the original path - see ListFiles().
-	fn := path.Join(clientpath, filename)
-	f, err := os.Open(fn)
+	f, err := os.OpenInRoot(clientpath, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
