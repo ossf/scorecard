@@ -995,6 +995,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "regression",
+			filename: "../testdata/.github/workflows/spicedb-release.yaml",
+			expected: true,
+		},
+		{
 			name:     "elixir",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-elixir.yaml",
 			expected: true,

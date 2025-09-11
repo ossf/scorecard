@@ -15,7 +15,6 @@
 package gitfile
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -38,7 +37,7 @@ func TestHandler(t *testing.T) {
 	dir := setupGitRepo(t)
 
 	var h Handler
-	h.Init(context.Background(), dir, "HEAD")
+	h.Init(t.Context(), dir, "HEAD")
 
 	files, err := h.ListFiles(allFiles)
 	if err != nil {
@@ -75,7 +74,7 @@ func TestHandlerPathTraversal(t *testing.T) {
 	dir := setupGitRepo(t)
 
 	var h Handler
-	h.Init(context.Background(), dir, "HEAD")
+	h.Init(t.Context(), dir, "HEAD")
 
 	_, err := h.GetFile("../example.txt")
 	if !errors.Is(err, errPathTraversal) {

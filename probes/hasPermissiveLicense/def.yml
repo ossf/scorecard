@@ -14,7 +14,7 @@
 
 id: hasPermissiveLicense
 lifecycle: stable
-short: Check that the project has an permissive license.
+short: Check that the project has a permissive license.
 motivation: >
   A permissive license allows users to use the analyzed component to be used in derivative works. Non-permissive licenses (as copyleft licenses) might be a legal risk for potential users.
 implementation: >

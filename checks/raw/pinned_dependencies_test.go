@@ -378,6 +378,11 @@ func TestDockerfilePinning(t *testing.T) {
 			warns:    1,
 		},
 		{
+			name:     "Non-pinned dockerfile with as - simple",
+			filename: "Dockerfile-not-pinned-as-simple",
+			warns:    1,
+		},
+		{
 			name:     "Parser error doesn't affect docker image pinning",
 			filename: "Dockerfile-not-pinned-with-parser-error",
 			warns:    1,
@@ -1753,6 +1758,21 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:     "job uses with no steps",
+			filename: "./testdata/.github/workflows/github-workflow-job-uses.yaml",
+			expected: []struct {
+				dependency string
+				startLine  uint
+				endLine    uint
+			}{
+				{
+					dependency: "slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.2.0",
+					startLine:  30,
+					endLine:    30,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1924,6 +1944,33 @@ func TestCollectDockerfilePinning(t *testing.T) {
 						Snippet:   "FROM python:3.7",
 						Offset:    17,
 						EndOffset: 17,
+						FileSize:  0,
+						Type:      1,
+					},
+					Pinned: boolAsPointer(false),
+					Type:   "containerImage",
+					Remediation: &finding.Remediation{
+						Text: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+						Markdown: "pin your Docker image by updating python:3.7 to python:3.7" +
+							"@sha256:eedf63967cdb57d8214db38ce21f105003ed4e4d0358f02bedc057341bcf92a0",
+					},
+				},
+			},
+		},
+		{
+			name:        "Non-pinned dockerfile as simple",
+			filename:    "./testdata/Dockerfile-not-pinned-as-simple",
+			expectError: false,
+			outcomeDependencies: []checker.Dependency{
+				{
+					Name:     stringAsPointer("python"),
+					PinnedAt: stringAsPointer("3.7"),
+					Location: &checker.File{
+						Path:      "./testdata/Dockerfile-not-pinned-as-simple",
+						Snippet:   "FROM python:3.7 as build",
+						Offset:    16,
+						EndOffset: 16,
 						FileSize:  0,
 						Type:      1,
 					},

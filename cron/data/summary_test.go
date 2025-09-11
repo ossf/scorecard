@@ -15,7 +15,6 @@
 package data
 
 import (
-	"context"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -122,7 +121,7 @@ func TestGetBucketSummary(t *testing.T) {
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			summary, err := GetBucketSummary(context.Background(), "file:///"+testdataPath)
+			summary, err := GetBucketSummary(t.Context(), "file:///"+testdataPath)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("getBucketSummary() error = %v, wantErr %v", err, tt.wantErr)
 				return

@@ -557,9 +557,6 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			// Go packages.
 			Steps: []*JobMatcherStep{
 				{
-					Uses: "actions/setup-go",
-				},
-				{
 					Uses: "goreleaser/goreleaser-action",
 				},
 			},
