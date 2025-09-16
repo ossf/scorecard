@@ -145,6 +145,9 @@ func FormatResults(
 			Annotations: opts.ShowAnnotations,
 			LogLevel:    log.ParseLevel(opts.LogLevel),
 		}
+		// Always render the per-repo default string output here. Combined output
+		// (single table across multiple repos) is handled by the caller when
+		// scanning multiple repositories so we keep the original behavior.
 		err = results.AsString(output, doc, o)
 	case options.FormatSarif:
 		// TODO: support config files and update checker.MaxResultScore.
@@ -248,6 +251,157 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	}
 	header = append(header, "Documentation/Remediation")
 	if opt.Annotations {
+		header = append(header, "Annotation")
+	}
+	table.SetHeader(header)
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetRowSeparator("-")
+	table.SetRowLine(true)
+	table.SetCenterSeparator("|")
+	table.AppendBulk(data)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetRowLine(true)
+	table.Render()
+
+	return nil
+}
+
+// FormatCombinedResults prints a combined table with an extra leading REPO column.
+// This expects `results` to contain checks for a single repo; callers scanning
+// multiple repos should aggregate calls or invoke this helper appropriately.
+func FormatCombinedResults(
+	writer io.Writer,
+	results *Result,
+	checkDocs docChecks.Doc,
+	opt *AsStringResultOption,
+	opts *options.Options,
+) error {
+	// Build data rows where each check row is prefixed with the repo name.
+	if opt == nil {
+		opt = &AsStringResultOption{LogLevel: log.DefaultLevel}
+	}
+
+	// Compute aggregated score for this repo (to show the same value on every row).
+	aggScore, aggErr := results.GetAggregateScore(checkDocs)
+	var aggStr string
+	if aggErr != nil {
+		aggStr = "?"
+	} else {
+		aggStr = fmt.Sprintf("%s / %d", scoreToString(aggScore), checker.MaxResultScore)
+	}
+
+	data := make([][]string, len(results.Checks))
+	for i, row := range results.Checks {
+		var x []string
+		x = append(x, results.Repo.Name, aggStr)
+		if row.Score == checker.InconclusiveResultScore {
+			x = append(x, "?")
+		} else {
+			x = append(x, fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore))
+		}
+		cdoc, e := checkDocs.GetCheck(row.Name)
+		if e != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", row.Name, e))
+		}
+		doc := cdoc.GetDocumentationURL(results.Scorecard.CommitSHA)
+		x = append(x, row.Name, row.Reason)
+		if opt.Details {
+			details, show := detailsToString(row.Details, opt.LogLevel)
+			if show {
+				x = append(x, details)
+			}
+		}
+		x = append(x, doc)
+		if opt.Annotations {
+			reasons := row.Annotations(results.Config)
+			x = append(x, strings.Join(reasons, "\n"))
+		}
+		data[i] = x
+	}
+
+	table := tablewriter.NewWriter(writer)
+	header := []string{"REPO", "AGGREGATED SCORE", "Score", "Name", "Reason"}
+	if opt.Details {
+		header = append(header, "Details")
+	}
+	header = append(header, "Documentation/Remediation")
+	if opt.Annotations {
+		header = append(header, "Annotation")
+	}
+	table.SetHeader(header)
+	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
+	table.SetRowSeparator("-")
+	table.SetRowLine(true)
+	table.SetCenterSeparator("|")
+	table.AppendBulk(data)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetRowLine(true)
+	table.Render()
+	return nil
+}
+
+// FormatCombinedResultsAll renders a single table containing rows from multiple
+// repo results. Each check from each repo becomes a row prefixed with the repo.
+func FormatCombinedResultsAll(
+	writer io.Writer,
+	opts *options.Options,
+	allResults []*Result,
+	checkDocs docChecks.Doc,
+	policy *spol.ScorecardPolicy,
+) error {
+	o := &AsStringResultOption{
+		Details:     opts.ShowDetails,
+		Annotations: opts.ShowAnnotations,
+		LogLevel:    log.ParseLevel(opts.LogLevel),
+	}
+
+	// Aggregate rows across all results.
+	var data [][]string
+	for _, res := range allResults {
+		// Compute aggregated score for this repo once.
+		aggScore, aggErr := res.GetAggregateScore(checkDocs)
+		var aggStr string
+		if aggErr != nil {
+			aggStr = "?"
+		} else {
+			aggStr = fmt.Sprintf("%s / %d", scoreToString(aggScore), checker.MaxResultScore)
+		}
+		for _, row := range res.Checks {
+			var x []string
+			x = append(x, res.Repo.Name, aggStr)
+			if row.Score == checker.InconclusiveResultScore {
+				x = append(x, "?")
+			} else {
+				x = append(x, fmt.Sprintf("%d / %d", row.Score, checker.MaxResultScore))
+			}
+			cdoc, e := checkDocs.GetCheck(row.Name)
+			if e != nil {
+				return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetCheck: %s: %v", row.Name, e))
+			}
+			doc := cdoc.GetDocumentationURL(res.Scorecard.CommitSHA)
+			x = append(x, row.Name, row.Reason)
+			if o.Details {
+				details, show := detailsToString(row.Details, o.LogLevel)
+				if show {
+					x = append(x, details)
+				}
+			}
+			x = append(x, doc)
+			if o.Annotations {
+				reasons := row.Annotations(res.Config)
+				x = append(x, strings.Join(reasons, "\n"))
+			}
+			data = append(data, x)
+		}
+	}
+
+	table := tablewriter.NewWriter(writer)
+	header := []string{"REPO", "AGGREGATED SCORE", "Score", "Name", "Reason"}
+	if o.Details {
+		header = append(header, "Details")
+	}
+	header = append(header, "Documentation/Remediation")
+	if o.Annotations {
 		header = append(header, "Annotation")
 	}
 	table.SetHeader(header)
