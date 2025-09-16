@@ -80,6 +80,8 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	FlagCombinedOutput = "combined"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -101,14 +103,14 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Repos,
 		FlagRepos,
 		o.Repos,
-		"Repositories to check. Possible values are: <repo1>, <repo2>, ...",
+		"repositories to check (<repo1>, <repo2>, ..., where each repo is of the form \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\")",
 	)
 
 	cmd.Flags().StringVar(
 		&o.Org,
 		FlagOrg,
 		o.Org,
-		"GitHub organization to check (all non-archived repos will be checked)",
+		"GitHub organization to check (all non-archived repos will be checked), e.g., 'github.com/ossf' or 'ossf'",
 	)
 
 	cmd.Flags().StringVar(
@@ -183,9 +185,9 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 
 	cmd.Flags().BoolVar(
 		&o.CombinedOutput,
-		"combined",
+		FlagCombinedOutput,
 		o.CombinedOutput,
-		"when scanning multiple repos, output a single combined table with a leading REPO column",
+		"when scanning multiple repos, output a single combined table",
 	)
 
 	cmd.Flags().IntVar(

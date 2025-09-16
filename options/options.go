@@ -32,6 +32,7 @@ import (
 type Options struct {
 	Repo            string
 	Repos           []string
+	Org             string
 	Local           string
 	Commit          string
 	LogLevel        string
@@ -40,7 +41,6 @@ type Options struct {
 	PyPI            string
 	RubyGems        string
 	Nuget           string
-	Org             string
 	PolicyFile      string
 	ResultsFile     string
 	FileMode        string
@@ -50,9 +50,7 @@ type Options struct {
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
-	// CombinedOutput, when true, prints all checks for multiple repos in one table
-	// with an extra leading "REPO" column.
-	CombinedOutput bool
+	CombinedOutput  bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
@@ -119,7 +117,7 @@ var (
 	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet    = errors.New(
-		"exactly one of `repo`, `repos`, `org`, `npm`, `pypi`, `rubygems`, `nuget`, `local` must be set",
+		"exactly one of `repo`, `repos`, `org`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")

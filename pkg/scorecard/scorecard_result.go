@@ -266,7 +266,7 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	return nil
 }
 
-// FormatCombinedResults prints a combined table with an extra leading REPO column.
+// FormatCombinedResults prints a combined table with extra REPO and AGGREGATED SCORE columns.
 // This expects `results` to contain checks for a single repo; callers scanning
 // multiple repos should aggregate calls or invoke this helper appropriately.
 func FormatCombinedResults(
