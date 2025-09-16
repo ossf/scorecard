@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/google/go-github/v60/github"
-	"golang.org/x/oauth2"
+
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 // ListOrgRepos lists all non-archived repositories for a GitHub organization.
@@ -19,14 +20,13 @@ func ListOrgRepos(ctx context.Context, org string) ([]string, error) {
 		}
 	}
 
-	token := os.Getenv("GITHUB_AUTH_TOKEN")
-	var tc *http.Client
-	if token != "" {
-		ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-		tc = oauth2.NewClient(ctx, ts)
-	}
-
-	client := github.NewClient(tc)
+	// Use the centralized transport so we respect token rotation, GitHub App
+	// auth, rate limiting and instrumentation already implemented in
+	// clients/githubrepo/roundtripper.
+	logger := log.NewLogger(log.DefaultLevel)
+	rt := roundtripper.NewTransport(ctx, logger)
+	httpClient := &http.Client{Transport: rt}
+	client := github.NewClient(httpClient)
 
 	opt := &github.RepositoryListByOrgOptions{
 		Type: "all",
