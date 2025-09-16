@@ -24,7 +24,7 @@ func ListOrgRepos(ctx context.Context, org string) ([]string, error) {
 	// auth, rate limiting and instrumentation already implemented in
 	// clients/githubrepo/roundtripper.
 	logger := log.NewLogger(log.DefaultLevel)
-	rt := roundtripper.NewTransport(ctx, logger)
+	rt := roundtripper.TransportFactory(ctx, logger)
 	httpClient := &http.Client{Transport: rt}
 	client := github.NewClient(httpClient)
 
