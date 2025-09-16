@@ -59,6 +59,7 @@ func New(o *options.Options) *cobra.Command {
 			}
 			// options are good at this point. silence usage so it doesn't print for runtime errors
 			cmd.SilenceUsage = true
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -166,67 +167,26 @@ func rootCmd(o *options.Options) error {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
-	// Iterate and scan each repo (unchanged)
+	var allResults []*scorecard.Result
+	// Iterate and scan each repo using a helper to keep rootCmd small.
 	for _, uri := range repoURLs {
-		var repo clients.Repo
-
-		if o.Local != "" && uri == o.Local {
-			repo, err = localdir.MakeLocalDirRepo(uri)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Skipping local %s: %v\n", uri, err)
-				continue
-			}
-		} else {
-			repo, err = makeRepo(uri)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
-				continue
-			}
-		}
-
-		label := repoLabelFromURI(uri)
-
-		// Start banners with repo label
-		if o.Format == options.FormatDefault {
-			if len(enabledProbes) > 0 {
-				printProbeStart(label, enabledProbes)
-			} else {
-				printCheckStart(label, enabledChecks)
-			}
-		}
-
-		result, err := scorecard.Run(ctx, repo, opts...)
+		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, checks, opts, checkDocs, pol)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error scanning %s: %v\n", uri, err)
+			// processRepo already logged details; skip this URI.
+			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
 			continue
 		}
-
-		result.Metadata = append(result.Metadata, o.Metadata...)
-
-		// Stable order
-		sort.Slice(result.Checks, func(i, j int) bool {
-			return result.Checks[i].Name < result.Checks[j].Name
-		})
-
-		// End banners BEFORE RESULTS
-		if o.Format == options.FormatDefault {
-			if len(enabledProbes) > 0 {
-				printProbeResults(label, enabledProbes)
-			} else {
-				printCheckResults(label, enabledChecks)
-			}
+		if o.CombinedOutput && res != nil {
+			allResults = append(allResults, res)
 		}
+	}
 
-		// RESULTS block
-		if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
-		}
-
-		// Surface per-check runtime errors (non-fatal)
-		for _, r := range result.Checks {
-			if r.Error != nil {
-				fmt.Fprintf(os.Stderr, "Check %s failed for %s: %v\n", r.Name, uri, r.Error)
-			}
+	// If combined output requested, render one combined table appended after
+	// all per-repo outputs.
+	if o.CombinedOutput && len(allResults) > 0 {
+		fmt.Fprintln(os.Stdout, "\nCOMBINED RESULTS\n----------------")
+		if err := scorecard.FormatCombinedResultsAll(os.Stdout, o, allResults, checkDocs, pol); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to format combined results: %v\n", err)
 		}
 	}
 
@@ -292,7 +252,6 @@ func printCheckResults(repo string, enabledChecks checker.CheckNameToFnMap) {
 	for checkName := range enabledChecks {
 		fmt.Fprintf(os.Stderr, "Finished (%s) [%s]\n", repo, checkName)
 	}
-	fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 }
 
 // makeRepo helps turn a URI into the appropriate clients.Repo.
@@ -325,4 +284,86 @@ func makeRepo(uri string) (clients.Repo, error) {
 	}
 
 	return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
+}
+
+// processRepo performs the scanning and formatting for a single repo URI.
+// It returns the Result when successful (or when combined output is requested),
+// or an error describing why the URI should be skipped.
+func processRepo(
+	ctx context.Context,
+	uri string,
+	o *options.Options,
+	enabledProbes []string,
+	enabledChecks checker.CheckNameToFnMap,
+	checksList []string,
+	opts []scorecard.Option,
+	checkDocs docs.Doc,
+	pol *policy.ScorecardPolicy,
+) (*scorecard.Result, error) {
+	var repo clients.Repo
+	var err error
+
+	if o.Local != "" && uri == o.Local {
+		repo, err = localdir.MakeLocalDirRepo(uri)
+		if err != nil {
+			return nil, fmt.Errorf("localdir: %w", err)
+		}
+	} else {
+		repo, err = makeRepo(uri)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	label := repoLabelFromURI(uri)
+
+	// Start banners with repo label (always show banners even in combined-only mode)
+	if o.Format == options.FormatDefault {
+		if len(enabledProbes) > 0 {
+			printProbeStart(label, enabledProbes)
+		} else {
+			printCheckStart(label, enabledChecks)
+		}
+	}
+
+	result, err := scorecard.Run(ctx, repo, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("run: %w", err)
+	}
+
+	result.Metadata = append(result.Metadata, o.Metadata...)
+
+	// Stable order
+	sort.Slice(result.Checks, func(i, j int) bool {
+		return result.Checks[i].Name < result.Checks[j].Name
+	})
+
+	// End banners BEFORE RESULTS (always show banners even in combined-only mode)
+	if o.Format == options.FormatDefault {
+		if len(enabledProbes) > 0 {
+			printProbeResults(label, enabledProbes)
+		} else {
+			printCheckResults(label, enabledChecks)
+			// Only print the RESULTS header when not in combined-only mode.
+			if !o.CombinedOutput {
+				fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
+			}
+		}
+	}
+
+	// RESULTS block: render per-repo result only when not in combined-only mode.
+	if !o.CombinedOutput {
+		if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
+		}
+	}
+
+	// Surface per-check runtime errors (non-fatal)
+	for _, r := range result.Checks {
+		if r.Error != nil {
+			fmt.Fprintf(os.Stderr, "Check %s failed for %s: %v\n", r.Name, uri, r.Error)
+		}
+	}
+
+	return &result, nil
 }

@@ -50,6 +50,9 @@ type Options struct {
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
+	// CombinedOutput, when true, prints all checks for multiple repos in one table
+	// with an extra leading "REPO" column.
+	CombinedOutput bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`

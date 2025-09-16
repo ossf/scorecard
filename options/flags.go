@@ -181,6 +181,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"show maintainers annotations for checks",
 	)
 
+	cmd.Flags().BoolVar(
+		&o.CombinedOutput,
+		"combined",
+		o.CombinedOutput,
+		"when scanning multiple repos, output a single combined table with a leading REPO column",
+	)
+
 	cmd.Flags().IntVar(
 		&o.CommitDepth,
 		FlagCommitDepth,
