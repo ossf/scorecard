@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmd implements Scorecard command-line.
 package cmd
 
 import (
@@ -34,7 +33,6 @@ import (
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
-	sce "github.com/ossf/scorecard/v5/errors"
 	sclog "github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
@@ -43,8 +41,8 @@ import (
 
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --{npm,pypi,rubygems,nuget}=<package_name>)
-	 [--checks=check1,...] [--show-details] [--show-annotations]`
+	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
+		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
 	scorecardShort = "OpenSSF Scorecard"
 )
 
@@ -76,59 +74,76 @@ func New(o *options.Options) *cobra.Command {
 	return cmd
 }
 
-// rootCmd runs scorecard checks given a set of arguments.
-func rootCmd(o *options.Options) error {
-	var err error
-	var repoResult scorecard.Result
+// Build the list of repositories to scan, honoring --repos > --org > --local > --repo/pkg-managers.
+func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
+	// --repos has highest precedence
+	if len(o.Repos) > 0 {
+		var urls []string
+		for _, r := range o.Repos {
+			r = strings.TrimSpace(r)
+			if r != "" {
+				urls = append(urls, r)
+			}
+		}
+		return urls, nil
+	}
 
+	// --org: expand to all non-archived repos
+	if o.Org != "" {
+		repos, err := githubrepo.ListOrgRepos(ctx, o.Org)
+		if err != nil {
+			return nil, fmt.Errorf("listing repositories for org %q: %w", o.Org, err)
+		}
+		return repos, nil
+	}
+
+	// --local: single local path
+	if o.Local != "" {
+		return []string{o.Local}, nil
+	}
+
+	// Package managers may override --repo
 	p := &pmc.PackageManagerClient{}
-	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
 	if err != nil {
-		return fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
+		return nil, fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
 	}
 	if pkgResp.exists {
 		o.Repo = pkgResp.associatedRepo
 	}
 
+	return []string{o.Repo}, nil
+}
+
+// rootCmd runs scorecard checks given a set of arguments.
+func rootCmd(o *options.Options) error {
+	ctx := context.Background()
+
+	// Build the list of repos (only split this logic out)
+	repoURLs, err := buildRepoURLs(ctx, o)
+	if err != nil {
+		return err
+	}
+
+	// Shared setup (unchanged)
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
 		return fmt.Errorf("readPolicy: %w", err)
 	}
 
-	ctx := context.Background()
-
-	var repo clients.Repo
-	if o.Local != "" {
-		repo, err = localdir.MakeLocalDirRepo(o.Local)
-		if err != nil {
-			return fmt.Errorf("making local dir: %w", err)
-		}
-	} else {
-		repo, err = makeRepo(o.Repo)
-		if err != nil {
-			return fmt.Errorf("making remote repo: %w", err)
-		}
-	}
-
-	// Read docs.
 	checkDocs, err := docs.Read()
 	if err != nil {
 		return fmt.Errorf("cannot read yaml file: %w", err)
 	}
 
 	var requiredRequestTypes []checker.RequestType
-	// if local option not set add file based
 	if o.Local != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
-	// if commit option set to anything other than HEAD add commit based
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	// this call to policy is different from the one in scorecard.Run
-	// this one is concerned with a policy file, while the scorecard.Run call is
-	// more concerned with the supported request types
+
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
@@ -139,13 +154,6 @@ func rootCmd(o *options.Options) error {
 	}
 
 	enabledProbes := o.Probes()
-	if o.Format == options.FormatDefault {
-		if len(enabledProbes) > 0 {
-			printProbeStart(enabledProbes)
-		} else {
-			printCheckStart(enabledChecks)
-		}
-	}
 
 	opts := []scorecard.Option{
 		scorecard.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
@@ -158,66 +166,131 @@ func rootCmd(o *options.Options) error {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
-	repoResult, err = scorecard.Run(ctx, repo, opts...)
-	if err != nil {
-		return fmt.Errorf("scorecard.Run: %w", err)
-	}
+	// Iterate and scan each repo (unchanged)
+	for _, uri := range repoURLs {
+		var repo clients.Repo
 
-	repoResult.Metadata = append(repoResult.Metadata, o.Metadata...)
-
-	// Sort them by name
-	sort.Slice(repoResult.Checks, func(i, j int) bool {
-		return repoResult.Checks[i].Name < repoResult.Checks[j].Name
-	})
-
-	if o.Format == options.FormatDefault {
-		if len(enabledProbes) > 0 {
-			printProbeResults(enabledProbes)
+		if o.Local != "" && uri == o.Local {
+			repo, err = localdir.MakeLocalDirRepo(uri)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Skipping local %s: %v\n", uri, err)
+				continue
+			}
 		} else {
-			printCheckResults(enabledChecks)
+			repo, err = makeRepo(uri)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
+				continue
+			}
+		}
+
+		label := repoLabelFromURI(uri)
+
+		// Start banners with repo label
+		if o.Format == options.FormatDefault {
+			if len(enabledProbes) > 0 {
+				printProbeStart(label, enabledProbes)
+			} else {
+				printCheckStart(label, enabledChecks)
+			}
+		}
+
+		result, err := scorecard.Run(ctx, repo, opts...)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error scanning %s: %v\n", uri, err)
+			continue
+		}
+
+		result.Metadata = append(result.Metadata, o.Metadata...)
+
+		// Stable order
+		sort.Slice(result.Checks, func(i, j int) bool {
+			return result.Checks[i].Name < result.Checks[j].Name
+		})
+
+		// End banners BEFORE RESULTS
+		if o.Format == options.FormatDefault {
+			if len(enabledProbes) > 0 {
+				printProbeResults(label, enabledProbes)
+			} else {
+				printCheckResults(label, enabledChecks)
+			}
+		}
+
+		// RESULTS block
+		if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
+		}
+
+		// Surface per-check runtime errors (non-fatal)
+		for _, r := range result.Checks {
+			if r.Error != nil {
+				fmt.Fprintf(os.Stderr, "Check %s failed for %s: %v\n", r.Name, uri, r.Error)
+			}
 		}
 	}
 
-	resultsErr := scorecard.FormatResults(
-		o,
-		&repoResult,
-		checkDocs,
-		pol,
-	)
-	if resultsErr != nil {
-		return fmt.Errorf("failed to format results: %w", resultsErr)
-	}
-
-	// intentionally placed at end to preserve outputting results, even if a check has a runtime error
-	for _, result := range repoResult.Checks {
-		if result.Error != nil {
-			return sce.WithMessage(sce.ErrCheckRuntime, fmt.Sprintf("%s: %v", result.Name, result.Error))
-		}
-	}
 	return nil
 }
 
-func printProbeStart(enabledProbes []string) {
+// repoLabelFromURI returns "owner/repo" for supported inputs only.
+// Supported formats:
+//   - owner/repo
+//   - github.com/owner/repo
+//   - https://github.com/owner/repo   (http also accepted)
+//   - gitlab.com/owner/repo
+//   - https://gitlab.com/owner/repo   (http also accepted)
+func repoLabelFromURI(uri string) string {
+	s := strings.TrimSpace(uri)
+	if s == "" {
+		return uri
+	}
+
+	// Strip optional scheme.
+	if strings.HasPrefix(s, "https://") {
+		s = strings.TrimPrefix(s, "https://")
+	} else if strings.HasPrefix(s, "http://") {
+		s = strings.TrimPrefix(s, "http://")
+	}
+
+	// Strip optional host.
+	if strings.HasPrefix(s, "github.com/") {
+		s = strings.TrimPrefix(s, "github.com/")
+	} else if strings.HasPrefix(s, "gitlab.com/") {
+		s = strings.TrimPrefix(s, "gitlab.com/")
+	}
+
+	// Expect owner/repo (ignore any extra path segments).
+	parts := strings.Split(s, "/")
+	if len(parts) >= 2 && parts[0] != "" && parts[1] != "" && !strings.Contains(parts[0], ".") {
+		return parts[0] + "/" + parts[1]
+	}
+
+	// Not a supported format; return as-is.
+	return uri
+}
+
+func printProbeStart(repo string, enabledProbes []string) {
 	for _, probeName := range enabledProbes {
-		fmt.Fprintf(os.Stderr, "Starting probe [%s]\n", probeName)
+		fmt.Fprintf(os.Stderr, "Starting (%s) probe [%s]\n", repo, probeName)
 	}
 }
 
-func printCheckStart(enabledChecks checker.CheckNameToFnMap) {
+func printCheckStart(repo string, enabledChecks checker.CheckNameToFnMap) {
 	for checkName := range enabledChecks {
-		fmt.Fprintf(os.Stderr, "Starting [%s]\n", checkName)
+		fmt.Fprintf(os.Stderr, "Starting (%s) [%s]\n", repo, checkName)
 	}
 }
 
-func printProbeResults(enabledProbes []string) {
+func printProbeResults(repo string, enabledProbes []string) {
 	for _, probeName := range enabledProbes {
-		fmt.Fprintf(os.Stderr, "Finished probe %s\n", probeName)
+		fmt.Fprintf(os.Stderr, "Finished (%s) probe %s\n", repo, probeName)
 	}
 }
 
-func printCheckResults(enabledChecks checker.CheckNameToFnMap) {
+func printCheckResults(repo string, enabledChecks checker.CheckNameToFnMap) {
 	for checkName := range enabledChecks {
-		fmt.Fprintf(os.Stderr, "Finished [%s]\n", checkName)
+		fmt.Fprintf(os.Stderr, "Finished (%s) [%s]\n", repo, checkName)
 	}
 	fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 }

@@ -31,6 +31,7 @@ import (
 // Options define common options for configuring scorecard.
 type Options struct {
 	Repo            string
+	Repos           []string
 	Local           string
 	Commit          string
 	LogLevel        string
@@ -39,6 +40,7 @@ type Options struct {
 	PyPI            string
 	RubyGems        string
 	Nuget           string
+	Org             string
 	PolicyFile      string
 	ResultsFile     string
 	FileMode        string
@@ -114,7 +116,7 @@ var (
 	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet    = errors.New(
-		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
+		"exactly one of `repo`, `repos`, `org`, `npm`, `pypi`, `rubygems`, `nuget`, `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
@@ -125,8 +127,11 @@ var (
 func (o *Options) Validate() error {
 	var errs []error
 
-	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--nuget`, `--local` is enabled.
+	// Validate exactly one of `--repo`, `--repos`, `--org`, `--npm`, `--pypi`, `--rubygems`,
+	// `--nuget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
+		len(o.Repos) > 0,
+		o.Org != "",
 		o.NPM != "",
 		o.PyPI != "",
 		o.RubyGems != "",
