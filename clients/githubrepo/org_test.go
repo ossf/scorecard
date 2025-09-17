@@ -12,6 +12,7 @@ import (
 )
 
 func TestParseOrgName(t *testing.T) {
+	t.Parallel()
 	cases := []struct {
 		in   string
 		want string
@@ -29,6 +30,7 @@ func TestParseOrgName(t *testing.T) {
 
 // Test ListOrgRepos handles pagination and filters archived repos.
 func TestListOrgRepos_PaginationAndArchived(t *testing.T) {
+	t.Parallel()
 	// Single page: one archived repo and two active repos; expect active ones returned.
 	body := `[
         {"html_url": "https://github.com/owner/repo1", "archived": true},
@@ -37,7 +39,9 @@ func TestListOrgRepos_PaginationAndArchived(t *testing.T) {
     ]`
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(body))
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Fatalf("failed to write response: %v", err)
+		}
 	}))
 	defer srv.Close()
 
