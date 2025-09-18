@@ -47,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.25.3
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v0.143.2
+	gitlab.com/gitlab-org/api/client-go v0.144.1
 	sigs.k8s.io/release-utils v0.11.1
 )
 
