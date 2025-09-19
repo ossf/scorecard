@@ -68,8 +68,3 @@ func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 
 	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))
 }
-
-// TransportFactory is used to create an http.RoundTripper. It defaults to
-// calling NewTransport but can be overridden in tests to provide a custom
-// RoundTripper that redirects requests to a test server.
-var TransportFactory = NewTransport
