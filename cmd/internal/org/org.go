@@ -12,25 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package githubrepo
+package org
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/google/go-github/v60/github"
+	"github.com/google/go-github/v53/github"
 
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v5/log"
 )
 
+// ErrNilResponse indicates the GitHub API returned a nil response object.
+var ErrNilResponse = errors.New("nil response from GitHub API")
+
 // ListOrgRepos lists all non-archived repositories for a GitHub organization.
-func ListOrgRepos(ctx context.Context, org string) ([]string, error) {
+func ListOrgRepos(ctx context.Context, orgName string) ([]string, error) {
 	// If org is a URL like "github.com/gabrielsoltz", extract just the org name.
-	if len(org) > 0 {
-		if parsed := parseOrgName(org); parsed != "" {
-			org = parsed
+	if len(orgName) > 0 {
+		if parsed := parseOrgName(orgName); parsed != "" {
+			orgName = parsed
 		}
 	}
 
@@ -48,7 +52,7 @@ func ListOrgRepos(ctx context.Context, org string) ([]string, error) {
 
 	var urls []string
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(ctx, org, opt)
+		repos, resp, err := client.Repositories.ListByOrg(ctx, orgName, opt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list repos: %w", err)
 		}
@@ -60,6 +64,9 @@ func ListOrgRepos(ctx context.Context, org string) ([]string, error) {
 			urls = append(urls, r.GetHTMLURL())
 		}
 
+		if resp == nil {
+			return nil, ErrNilResponse
+		}
 		if resp.NextPage == 0 {
 			break
 		}
