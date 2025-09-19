@@ -105,6 +105,7 @@ func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 
 	// Package managers may override --repo
 	p := &pmc.PackageManagerClient{}
+	// Set `repo` from package managers.
 	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
 	if err != nil {
 		return nil, fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
@@ -132,19 +133,25 @@ func rootCmd(o *options.Options) error {
 		return fmt.Errorf("readPolicy: %w", err)
 	}
 
+	// Read docs.
 	checkDocs, err := docs.Read()
 	if err != nil {
 		return fmt.Errorf("cannot read yaml file: %w", err)
 	}
 
 	var requiredRequestTypes []checker.RequestType
+	// if local option not set add file based
 	if o.Local != "" {
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 	}
+	// if commit option set to anything other than HEAD add commit based
 	if !strings.EqualFold(o.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
 
+	// this call to policy is different from the one in scorecard.Run
+	// this one is concerned with a policy file, while the scorecard.Run call is
+	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
