@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmd implements Scorecard command-line.
+
 package cmd
 
 import (
@@ -127,7 +129,7 @@ func rootCmd(o *options.Options) error {
 		return err
 	}
 
-	// Shared setup (unchanged)
+	// Shared setup
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
 		return fmt.Errorf("readPolicy: %w", err)
