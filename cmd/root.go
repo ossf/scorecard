@@ -33,6 +33,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
+	orgpkg "github.com/ossf/scorecard/v5/cmd/internal/org"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
 	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sclog "github.com/ossf/scorecard/v5/log"
@@ -93,7 +94,7 @@ func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 
 	// --org: expand to all non-archived repos
 	if o.Org != "" {
-		repos, err := githubrepo.ListOrgRepos(ctx, o.Org)
+		repos, err := orgpkg.ListOrgRepos(ctx, o.Org)
 		if err != nil {
 			return nil, fmt.Errorf("listing repositories for org %q: %w", o.Org, err)
 		}
