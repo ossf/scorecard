@@ -31,8 +31,10 @@ import (
 var ErrNilResponse = errors.New("nil response from GitHub API")
 
 // ListOrgRepos lists all non-archived repositories for a GitHub organization.
-func ListOrgRepos(ctx context.Context, orgName string) ([]string, error) {
-	// If org is a URL like "github.com/gabrielsoltz", extract just the org name.
+// The caller should provide an http.RoundTripper (rt). If rt is nil, the
+// default transport will be created via roundtripper.NewTransport.
+func ListOrgRepos(ctx context.Context, orgName string, rt http.RoundTripper) ([]string, error) {
+	// Parse org name if needed.
 	if len(orgName) > 0 {
 		if parsed := parseOrgName(orgName); parsed != "" {
 			orgName = parsed
@@ -43,7 +45,9 @@ func ListOrgRepos(ctx context.Context, orgName string) ([]string, error) {
 	// auth, rate limiting and instrumentation already implemented in
 	// clients/githubrepo/roundtripper.
 	logger := log.NewLogger(log.DefaultLevel)
-	rt := roundtripper.TransportFactory(ctx, logger)
+	if rt == nil {
+		rt = roundtripper.NewTransport(ctx, logger)
+	}
 	httpClient := &http.Client{Transport: rt}
 	client := github.NewClient(httpClient)
 

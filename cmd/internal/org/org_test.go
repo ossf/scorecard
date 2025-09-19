@@ -6,9 +6,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
-	"github.com/ossf/scorecard/v5/log"
 )
 
 func TestParseOrgName(t *testing.T) {
@@ -48,13 +45,9 @@ func TestListOrgRepos_PaginationAndArchived(t *testing.T) {
 	defer srv.Close()
 
 	// Override TransportFactory to redirect requests to our test server.
-	orig := roundtripper.TransportFactory
-	roundtripper.TransportFactory = func(ctx context.Context, logger *log.Logger) http.RoundTripper {
-		return roundTripperToServer(srv.URL)
-	}
-	defer func() { roundtripper.TransportFactory = orig }()
+	rt := roundTripperToServer(srv.URL)
 
-	repos, err := ListOrgRepos(context.Background(), "owner")
+	repos, err := ListOrgRepos(context.Background(), "owner", rt)
 	if err != nil {
 		t.Fatalf("ListOrgRepos returned error: %v", err)
 	}
