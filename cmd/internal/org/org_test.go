@@ -17,6 +17,8 @@ func TestParseOrgName(t *testing.T) {
 		in   string
 		want string
 	}{
+		{"http://github.com/owner", "owner"},
+		{"https://github.com/owner", "owner"},
 		{"github.com/owner", "owner"},
 		{"owner", "owner"},
 		{"", ""},

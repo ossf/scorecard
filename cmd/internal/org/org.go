@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/google/go-github/v53/github"
 
@@ -76,12 +77,49 @@ func ListOrgRepos(ctx context.Context, orgName string) ([]string, error) {
 	return urls, nil
 }
 
-// parseOrgName extracts the organization name from a GitHub URL or returns the input if already an org name.
+// parseOrgName extracts the GitHub organization from a supported input.
+// Supported:
+//   - owner > owner
+//   - github.com/owner > owner
+//   - http://github.com/owner > owner
+//   - https://github.com/owner > owner
+//
+// Returns "" if no org can be parsed.
 func parseOrgName(input string) string {
-	// Remove "github.com/" prefix if present
-	const prefix = "github.com/"
-	if len(input) > len(prefix) && input[:len(prefix)] == prefix {
-		return input[len(prefix):]
+	s := strings.TrimSpace(input)
+	if s == "" {
+		return ""
 	}
-	return input
+
+	// Strip optional scheme or leading "//".
+	switch {
+	case strings.HasPrefix(s, "https://"):
+		s = strings.TrimPrefix(s, "https://")
+	case strings.HasPrefix(s, "http://"):
+		s = strings.TrimPrefix(s, "http://")
+	case strings.HasPrefix(s, "//"):
+		s = strings.TrimPrefix(s, "//")
+	}
+
+	// If it's exactly the host, there's no org.
+	if s == "github.com" {
+		return ""
+	}
+
+	// Strip host prefix if present.
+	if after, ok := strings.CutPrefix(s, "github.com/"); ok {
+		s = after
+	}
+
+	// Keep only the first path segment (the org).
+	if i := strings.IndexByte(s, '/'); i >= 0 {
+		s = s[:i]
+	}
+
+	// Basic sanity: org shouldn't contain dots (to avoid host-like values).
+	if s == "" || strings.Contains(s, ".") {
+		return ""
+	}
+
+	return s
 }
