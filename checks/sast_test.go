@@ -15,7 +15,6 @@
 package checks
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -353,7 +352,7 @@ func Test_SAST(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
-				Ctx:        context.TODO(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			res := SAST(&req)

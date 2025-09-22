@@ -83,7 +83,7 @@ func Test_listWebhooks(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			s := servicehooksHandler{
-				ctx:               context.Background(),
+				ctx:               t.Context(),
 				once:              new(sync.Once),
 				repourl:           &Repo{},
 				listSubscriptions: tt.listSubscriptions,

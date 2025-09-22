@@ -62,7 +62,7 @@ func TestPublish(t *testing.T) {
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
 			t.Parallel()
-			ctx := context.Background()
+			ctx := t.Context()
 			publisher := publisherImpl{
 				ctx:   ctx,
 				topic: testcase.topic,
