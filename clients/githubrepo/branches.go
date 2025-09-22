@@ -32,7 +32,7 @@ import (
 const (
 	refPrefix = "refs/heads/"
 	//nolint:lll
-	classicBranchErrMsg = "some github tokens cant read classic branch protection rules: https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
+	classicBranchErrMsg = "some github tokens can't read classic branch protection rules: https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
 )
 
 // See https://github.community/t/graphql-api-protected-branch/14380
