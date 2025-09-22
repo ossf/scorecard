@@ -59,7 +59,7 @@ func getGithubReviews(c *clients.Commit) (reviews []clients.Review) {
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
 		reviews = append(reviews, clients.Review{Author: &c.AssociatedMergeRequest.MergedBy, State: "APPROVED"})
 	}
-	return
+	return reviews
 }
 
 func getGithubAuthor(c *clients.Commit) (author clients.User) {
