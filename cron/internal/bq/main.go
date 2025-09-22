@@ -78,7 +78,7 @@ func getBQConfig() (projectID, datasetName, tableName string, err error) {
 	if err != nil {
 		return projectID, datasetName, tableName, fmt.Errorf("error getting BigQuery table: %w", err)
 	}
-	return
+	return projectID, datasetName, tableName, nil
 }
 
 func main() {
