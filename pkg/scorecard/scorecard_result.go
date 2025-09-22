@@ -248,6 +248,7 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 		},
 	}
 	rendition := tw.Rendition{
+		Settings: tw.Settings{Separators: tw.Separators{BetweenRows: tw.On}},
 		Symbols: tw.NewSymbolCustom("scorecard table legacy").WithCenter("|").
 			WithBottomLeft("|").WithBottomRight("|").
 			WithMidLeft("|").WithMidRight("|").
