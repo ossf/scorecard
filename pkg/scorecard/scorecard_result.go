@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/tw"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
@@ -244,7 +245,19 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	fmt.Fprint(writer, s)
 	fmt.Fprintln(writer, "Check scores:")
 
-	table := tablewriter.NewWriter(writer)
+	cfg := tablewriter.Config{
+		Row: tw.CellConfig{
+			Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+		},
+	}
+	rendition := tw.Rendition{
+		Settings: tw.Settings{Separators: tw.Separators{BetweenRows: tw.On}},
+		Symbols: tw.NewSymbolCustom("scorecard table legacy").WithCenter("|").
+			WithBottomLeft("|").WithBottomRight("|").
+			WithMidLeft("|").WithMidRight("|").
+			WithTopLeft("|").WithTopRight("|"),
+	}
+	table := tablewriter.NewTable(writer, tablewriter.WithConfig(cfg), tablewriter.WithRendition(rendition))
 	header := []string{"Score", "Name", "Reason"}
 	if opt.Details {
 		header = append(header, "Details")
@@ -253,15 +266,13 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	if opt.Annotations {
 		header = append(header, "Annotation")
 	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.Render()
+	table.Header(header)
+	if err := table.Bulk(data); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Bulk: %v", err))
+	}
+	if err := table.Render(); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Render: %v", err))
+	}
 
 	return nil
 }
