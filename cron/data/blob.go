@@ -24,10 +24,8 @@ import (
 
 	"cloud.google.com/go/storage"
 	"gocloud.dev/blob"
-	// Needed to read file:/// buckets. Intended primarily for testing, though needed here for tests outside the package.
-	_ "gocloud.dev/blob/fileblob"
-	// Needed to link in GCP drivers.
-	_ "gocloud.dev/blob/gcsblob"
+	_ "gocloud.dev/blob/fileblob" // Needed to read file:/// buckets. Intended primarily for testing, though needed here for tests outside the package.
+	_ "gocloud.dev/blob/gcsblob"  // Needed to link in GCP drivers.
 
 	"github.com/ossf/scorecard/v5/cron/config"
 )

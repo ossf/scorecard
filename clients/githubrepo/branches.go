@@ -31,6 +31,8 @@ import (
 
 const (
 	refPrefix = "refs/heads/"
+	//nolint:lll
+	classicBranchErrMsg = "some github tokens can't read classic branch protection rules: https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
 )
 
 // See https://github.community/t/graphql-api-protected-branch/14380
@@ -269,10 +271,17 @@ func (handler *branchesHandler) setup() error {
 		// Attempt to fetch branch protection rules, which require admin permission.
 		// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 		handler.data = new(defaultBranchData)
-		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil &&
-			(!isPermissionsError(err) || len(handler.ruleSets) == 0) {
-			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
-			return
+		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
+			// always report errors which aren't token permission related
+			if !isPermissionsError(err) {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+				return
+			}
+			// only report permission errors if no ruleset data
+			if len(handler.ruleSets) == 0 {
+				handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, classicBranchErrMsg)
+				return
+			}
 		}
 
 		rules, err := rulesMatchingBranch(handler.ruleSets, handler.defaultBranchName, true)

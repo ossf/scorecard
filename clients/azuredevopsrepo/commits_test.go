@@ -118,7 +118,7 @@ func Test_listStatuses(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			c := &commitsHandler{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				repourl: &Repo{
 					id: "id",
 				},

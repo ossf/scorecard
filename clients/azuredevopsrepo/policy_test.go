@@ -72,7 +72,7 @@ func Test_listCheckRunsForRef(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			p := policyHandler{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				repourl: &Repo{
 					id: "1",
 				},

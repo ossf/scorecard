@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package releasesAreSigned
 
 import (
@@ -41,7 +40,7 @@ const (
 	releaseLookBack = 5
 )
 
-var signatureExtensions = []string{".asc", ".minisig", ".sig", ".sign", ".sigstore"}
+var signatureExtensions = []string{".asc", ".minisig", ".sig", ".sign", ".sigstore", ".sigstore.json"}
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	if raw == nil {

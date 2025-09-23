@@ -20,6 +20,7 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -55,7 +56,9 @@ func (handler *contributorsHandler) init(ctx context.Context, repourl *Repo) {
 }
 
 func (handler *contributorsHandler) setup(codeOwnerFile io.ReadCloser) error {
-	defer codeOwnerFile.Close()
+	if codeOwnerFile != nil && codeOwnerFile != (*os.File)(nil) {
+		defer codeOwnerFile.Close()
+	}
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
 			handler.errSetup = fmt.Errorf("%w: ListContributors only supported for HEAD queries", clients.ErrUnsupportedFeature)
@@ -116,7 +119,11 @@ func mapContributors(handler *contributorsHandler, contributors map[string]clien
 	}
 }
 
+//nolint:gocognit // will fix in #4439
 func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, contributors map[string]clients.User) {
+	if codeOwnerFile == nil || codeOwnerFile == (*os.File)(nil) {
+		return
+	}
 	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
 		handler.errSetup = fmt.Errorf("error during ParseFile: %w", err)

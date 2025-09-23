@@ -15,7 +15,6 @@
 package gitlabrepo
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"testing"
@@ -123,7 +122,7 @@ func TestListCommits(t *testing.T) {
 			gqlhandler := graphqlHandler{
 				client: httpClient,
 			}
-			gqlhandler.init(context.Background(), &repoURL)
+			gqlhandler.init(t.Context(), &repoURL)
 
 			client := &Client{glClient: glclient, commits: commitshandler, graphql: &gqlhandler}
 

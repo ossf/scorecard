@@ -15,7 +15,6 @@
 package runner
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -48,7 +47,7 @@ func TestRunner_Run(t *testing.T) {
 	mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("reading files unsupported for this test")).AnyTimes()
 	mockRepo.EXPECT().LocalPath().Return(".", nil)
 	r := Runner{
-		ctx: context.Background(),
+		ctx: t.Context(),
 		// use a check which works locally, but we declare no files above so no-op
 		enabledChecks: []string{checknames.BinaryArtifacts},
 		githubClient:  mockRepo,
