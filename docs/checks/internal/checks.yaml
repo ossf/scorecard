@@ -48,6 +48,40 @@ checks:
         check simply provides insight into the project activity and maintenance
         commitment. External users should determine whether the software is the type
         that would not normally need active maintenance.
+  MTTUDependencies:
+    risk: Medium
+    tags: supply-chain, security, dependencies
+    repos: GitHub, GitLab, local
+    short: Determines the mean time to update dependencies (MTTU).
+    description: |
+      Risk: `Medium` (dependencies with known vulnerabilities or lacking recent updates)
+
+      This check calculates the Mean Time To Update (MTTU) for the project's direct
+      dependencies. For each dependency, it measures the time elapsed since the oldest
+      newer version was released (not the latest version). This provides a fair assessment
+      of how quickly the project updates dependencies after new versions become available.
+
+      The check uses osv-scalibr to discover direct dependencies (excluding transitive
+      dependencies) and queries the deps.dev API to determine version history. Dependencies
+      already on the latest stable version contribute zero to the mean. Pseudo-versions
+      (unreleased development versions like v1.2.3-0.20240101120000-abc123def) are
+      filtered out to ensure fair comparison against released versions only.
+
+      Scoring:
+        - Mean MTTU < 3 months: Score 10 (dependencies are updated promptly)
+        - Mean MTTU 3-6 months: Score 5 (moderate update lag)
+        - Mean MTTU >= 6 months: Score 0 (significant update delays)
+    remediation:
+      - >-
+        Update dependencies regularly to reduce the mean time to update.
+      - >-
+        Use a dependency update tool like Dependabot or Renovate to automatically
+        receive notifications when new versions are available.
+      - >-
+        Review the changelog of newer versions to understand what improvements and
+        security fixes are available.
+      - >-
+        Establish a regular dependency update cadence (e.g., weekly or monthly reviews).
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies

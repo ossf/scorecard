@@ -1,0 +1,36 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: MTTUDependenciesIsVeryLow
+lifecycle: experimental
+short: Mean time since the oldest newer dependency release is very low (< 3 months).
+motivation: >
+  Keeping dependencies fresh reduces exposure to known vulnerabilities and supply-chain risk, and
+  makes it easier to adopt security fixes quickly. A very low mean time indicates that the project
+  updates promptly when newer releases are available.
+implementation: >
+  The probe computes, for each declared dependency, the time elapsed since the oldest release newer than
+  the version used by the project. Dependencies already on the latest version contribute zero. Pseudo-versions
+  (unreleased development versions) are filtered out to ensure fair comparison. It then takes the mean
+  across all dependencies. If the mean is less than 90 days (3 months), the probe returns OutcomeTrue;
+  otherwise OutcomeFalse.
+outcome:
+  - OutcomeTrue when the mean time is < 90 days (3 months).
+  - OutcomeFalse when the mean time is >= 90 days.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Enable automated dependency update tools (e.g., Dependabot, Renovate) and triage PRs promptly.
+    - Establish a regular dependency review cadence (e.g., weekly or bi-weekly).

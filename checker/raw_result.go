@@ -40,6 +40,7 @@ type RawResults struct {
 	SBOMResults                 SBOMData
 	MaintainedResults           MaintainedData
 	Metadata                    MetadataData
+	MTTUDependenciesResults     MTTUDependenciesData
 	PackagingResults            PackagingData
 	PinningDependenciesResults  PinningDependenciesData
 	SASTResults                 SASTData
@@ -300,6 +301,36 @@ type SASTWorkflow struct {
 // for the Security-Policy check.
 type SecurityPolicyData struct {
 	PolicyFiles []SecurityPolicyFile
+}
+
+type MTTUDependenciesData struct {
+	Dependencies []LockDependency
+}
+
+// Ecosystem represents the ecosystem of a dependency.
+type Ecosystem string
+
+const (
+	EcosystemCargo    Ecosystem = "CARGO"
+	EcosystemGo       Ecosystem = "GO"
+	EcosystemMaven    Ecosystem = "MAVEN"
+	EcosystemNPM      Ecosystem = "NPM"
+	EcosystemNuget    Ecosystem = "NUGET"
+	EcosystemPypi     Ecosystem = "PYPI"
+	EcosystemRubyGems Ecosystem = "RUBYGEMS"
+)
+
+func (e Ecosystem) String() string {
+	return string(e)
+}
+
+type LockDependency struct {
+	TimeSinceOldestReleast time.Time
+	IsLatest               *bool
+	Name                   string
+	Version                string
+	Comparator             string
+	Ecosystem              Ecosystem
 }
 
 // BinaryArtifactData contains the raw results
