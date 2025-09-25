@@ -217,7 +217,7 @@ func boolSum(bools ...bool) int {
 
 // GitHub integration support.
 // See https://github.com/ossf/scorecard-action/issues/1107.
-// NOTE: We don't add a field to to the Option structure to simplify
+// NOTE: We don't add a field to the Option structure to simplify
 // integration. If we did, the Action would also need to be aware
 // of the integration and pass the relevant values. This
 // would add redundancy and complicate maintenance.
