@@ -25,7 +25,9 @@ import (
 
 const (
 	// FlagRepo is the flag name for specifying a repository.
-	FlagRepo = "repo"
+	FlagRepo  = "repo"
+	FlagRepos = "repos"
+	FlagOrg   = "org"
 
 	// FlagLocal is the flag name for specifying a local run.
 	FlagLocal = "local"
@@ -78,6 +80,8 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	FlagCombinedOutput = "combined"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -93,6 +97,21 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRepo,
 		o.Repo,
 		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\")",
+	)
+
+	cmd.Flags().StringSliceVar(
+		&o.Repos,
+		FlagRepos,
+		o.Repos,
+		"repositories to check (<repo1>, <repo2>, ...). Each repo must be one of:"+
+			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\"",
+	)
+
+	cmd.Flags().StringVar(
+		&o.Org,
+		FlagOrg,
+		o.Org,
+		"GitHub organization to check (all non-archived repos will be checked), e.g., 'github.com/ossf' or 'ossf'",
 	)
 
 	cmd.Flags().StringVar(
@@ -163,6 +182,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagShowAnnotations,
 		o.ShowAnnotations,
 		"show maintainers annotations for checks",
+	)
+
+	cmd.Flags().BoolVar(
+		&o.CombinedOutput,
+		FlagCombinedOutput,
+		o.CombinedOutput,
+		"when scanning multiple repos, output a single combined table",
 	)
 
 	cmd.Flags().IntVar(
