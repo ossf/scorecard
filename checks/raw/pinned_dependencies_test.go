@@ -387,6 +387,10 @@ func TestDockerfilePinning(t *testing.T) {
 			filename: "Dockerfile-not-pinned-with-parser-error",
 			warns:    1,
 		},
+		{
+			name:     "parser understands docker args",
+			filename: "Dockerfile-pinned-arg",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1552,6 +1556,11 @@ func TestShellScriptDownload(t *testing.T) {
 			name:             "invalid shell script",
 			filename:         "./testdata/script-invalid.sh",
 			processingErrors: 1, // `curl bla | bash` not detected due to invalid script
+		},
+		{
+			name:     "pinned download regression issue #4771",
+			filename: "./testdata/script-wget-pinned",
+			unpinned: 0,
 		},
 	}
 	for _, tt := range tests {
