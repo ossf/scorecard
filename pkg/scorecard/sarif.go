@@ -410,13 +410,13 @@ func createSARIFHeader() sarif210 {
 	}
 }
 
-func createSARIFTool(url, name, version string) tool {
+func createSARIFTool(uri, name, version string) tool {
 	titleCaser := cases.Title(language.English)
 
 	return tool{
 		Driver: driver{
 			Name:           titleCaser.String(name),
-			InformationURI: url,
+			InformationURI: uri,
 			SemVersion:     version,
 			Rules:          nil,
 		},

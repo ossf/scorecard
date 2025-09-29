@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
@@ -84,6 +83,16 @@ func TestUntrustedContextVariables(t *testing.T) {
 		{
 			name:     "commits author email",
 			variable: "github.event.commits[2].author.email",
+			expected: true,
+		},
+		{
+			name:     "blocked_user name",
+			variable: "github.event.pull_request.organization.blocked_user.name",
+			expected: true,
+		},
+		{
+			name:     "blocked_user email",
+			variable: "github.event.pull_request.organization.blocked_user.email",
 			expected: true,
 		},
 		{
@@ -182,7 +191,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			})
 
 			req := &checker.CheckRequest{
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				RepoClient: mockRepoClient,
 			}
 

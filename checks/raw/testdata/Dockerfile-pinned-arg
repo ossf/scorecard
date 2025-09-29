@@ -1,0 +1,19 @@
+# regression for https://github.com/ossf/scorecard/issues/3684
+ARG REGISTRY=docker.io
+ARG GO_VER=1.21-alpine@sha256:110b07af87238fbdc5f1df52b00927cf58ce3de358eeeb1854f10a8b5e5e1411
+ARG SDK_VERSION=9.0
+
+FROM ${REGISTRY}/library/golang:${GO_VER} as golang
+#...
+
+FROM golang as tool1
+#...
+
+FROM golang as tool2
+#...
+
+# regression for https://github.com/ossf/scorecard/issues/4779
+FROM mcr.microsoft.com/dotnet/sdk:8.0.413@sha256:45e41fe52eb60f42bd75c83b7e8bfff0523e031e042b4c1fc7ddb9c348898c64 AS dotnet-sdk-8.0
+FROM mcr.microsoft.com/dotnet/sdk:9.0.304@sha256:840f3b62b9742dde4461a3c31e38ffd34d41d7d33afd39c378cfcfd5dcb82bd5 AS dotnet-sdk-9.0
+FROM dotnet-sdk-${SDK_VERSION} AS build
+

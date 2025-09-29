@@ -15,7 +15,6 @@
 package raw
 
 import (
-	"context"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -109,7 +108,7 @@ func TestWebhooks(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.TODO(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			got, err := WebHook(&req)

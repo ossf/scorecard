@@ -498,15 +498,29 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
+	dockerArgs := map[string]string{}
 	for _, child := range res.AST.Children {
 		cmdType := child.Value
-		if cmdType != "FROM" {
+		switch cmdType {
+		case "FROM":
+		case "ARG":
+			for n := child.Next; n != nil; n = n.Next {
+				if k, v, ok := strings.Cut(n.Value, "="); ok {
+					dockerArgs[k] = v
+				}
+			}
+			continue
+		default:
 			continue
 		}
 
 		var valueList []string
 		for n := child.Next; n != nil; n = n.Next {
-			valueList = append(valueList, n.Value)
+			value := n.Value
+			for k, v := range dockerArgs {
+				value = strings.ReplaceAll(value, "${"+k+"}", v)
+			}
+			valueList = append(valueList, value)
 		}
 
 		switch {
@@ -531,22 +545,29 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			} else {
 				pinnedAsNames[asName] = false
 			}
-
-			pdata.Dependencies = append(pdata.Dependencies,
-				checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(child.StartLine),
-						EndOffset: uint(child.EndLine),
-						Snippet:   child.Original,
-					},
-					Name:     asPointer(name),
-					PinnedAt: asPointer(asName),
-					Pinned:   asBoolPointer(pinnedAsNames[asName]),
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Snippet:   child.Original,
 				},
-			)
+				Name:     asPointer(name),
+				PinnedAt: asPointer(asName),
+				Pinned:   asBoolPointer(pinnedAsNames[asName]),
+				Type:     checker.DependencyUseTypeDockerfileContainerImage,
+			}
+
+			parts := strings.SplitN(name, ":", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 
 		// FROM name.
 		case len(valueList) == 1:

@@ -15,7 +15,6 @@
 package main
 
 import (
-	"context"
 	"path/filepath"
 	"testing"
 )
@@ -80,7 +79,7 @@ func TestGetPrefix(t *testing.T) {
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			got, err := getPrefix(context.Background(), "file:///"+testdataPath)
+			got, err := getPrefix(t.Context(), "file:///"+testdataPath)
 			if (err != nil) != testcase.wantErr {
 				t.Errorf("unexpected error produced: %v", err)
 			}
