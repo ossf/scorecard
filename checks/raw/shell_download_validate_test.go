@@ -639,6 +639,62 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 			},
 			expected: true,
 		},
+		{
+			name: "Single-quoted unpinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"'=https'",
+					"--tlsv1.2",
+					"-sSf",
+					"'https://raw.githubusercontent.com/rust-lang/rustup/main/rustup-init.sh'",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Single-quoted pinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"'=https'",
+					"--tlsv1.2",
+					"-sSf",
+					"'https://raw.githubusercontent.com/rust-lang/rustup/f7935a8ad24a445629ceedb2cb706a4469e1e5b3/rustup-init.sh'",
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Double-quoted unpinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"\"=https\"",
+					"--tlsv1.2",
+					"-sSf",
+					"\"https://raw.githubusercontent.com/rust-lang/rustup/main/rustup-init.sh\"",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Double-quoted pinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"\"=https\"",
+					"--tlsv1.2",
+					"-sSf",
+					"\"https://raw.githubusercontent.com/rust-lang/rustup/f7935a8ad24a445629ceedb2cb706a4469e1e5b3/rustup-init.sh\"",
+				},
+			},
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

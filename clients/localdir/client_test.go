@@ -18,6 +18,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -173,7 +174,7 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 
 			// Test ListFiles API.
 			for _, listfiletest := range testcase.listfileTests {
-				files, e := listFiles(testcase.inputFolder)
+				files, e := listFiles(testcase.inputFolder, log.NewLogger(log.DebugLevel))
 				matchedFiles, err := applyPredicate(files, e, listfiletest.predicate)
 				if !errors.Is(err, listfiletest.err) {
 					t.Errorf("test failed: expected - %v, got - %v", listfiletest.err, err)
@@ -201,6 +202,118 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 						t.Errorf("test failed: expected - %s, got - %s", string(getcontenttest.output), string(content))
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestListFile_symlink(t *testing.T) {
+	t.Parallel()
+	const (
+		realFilename = "foo.txt"
+		nonExistent  = "bar.txt"
+		symlinkName  = "symlink.txt"
+	)
+	testcases := []struct {
+		name      string
+		symTarget string
+		want      []string
+	}{
+		{
+			name:      "dangling symlink ignored",
+			symTarget: nonExistent,
+			want:      []string{realFilename},
+		},
+		{
+			name:      "symlink with real target included",
+			symTarget: realFilename,
+			want:      []string{realFilename, symlinkName},
+		},
+	}
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			realFileFullPath := filepath.Join(dir, realFilename)
+			f, err := os.Create(realFileFullPath)
+			if err != nil {
+				t.Fatal("creating real file", err)
+			}
+			f.Close()
+			target := filepath.Join(dir, tt.symTarget)
+			linkname := filepath.Join(dir, symlinkName)
+			if err = os.Symlink(target, linkname); err != nil {
+				t.Fatal("making symlink", err)
+			}
+			files, err := listFiles(dir, log.NewLogger(log.DebugLevel))
+			if err != nil {
+				t.Fatal("expected listFiles to ignore the symlink error")
+			}
+			if !cmp.Equal(files, tt.want, cmpopts.SortSlices(isSortedString)) {
+				t.Errorf("test failed: expected - %q, got - %q", tt.want, files)
+			}
+		})
+	}
+}
+
+func TestGetFileReader_symlink(t *testing.T) {
+	t.Parallel()
+	const (
+		realFilename = "foo.txt"
+		linkEscapes  = "../bar.txt"
+		symlinkName  = "symlink.txt"
+	)
+	testcases := []struct {
+		name      string
+		symTarget string
+		wantErr   bool
+	}{
+		{
+			name:      "symlink with real target",
+			symTarget: realFilename,
+			wantErr:   false,
+		},
+		{
+			name:      "symlink which escapes should fail",
+			symTarget: linkEscapes,
+			wantErr:   true,
+		},
+	}
+	contents := []byte("hello!")
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			realFileFullPath := filepath.Join(dir, realFilename)
+			f, err := os.Create(realFileFullPath)
+			if err != nil {
+				t.Fatal("creating real file", err)
+			}
+			t.Log("created file", realFileFullPath)
+			if _, err = f.Write(contents); err != nil {
+				t.Fatal("writing file contents", err)
+			}
+			f.Close()
+			target := tt.symTarget // must be a local symlink, do not join with temp dir
+			linkname := filepath.Join(dir, symlinkName)
+			if err = os.Symlink(target, linkname); err != nil {
+				t.Fatal("making symlink", err)
+			}
+			t.Logf("created symlink %q -> %q", linkname, target)
+			f, err = getFile(dir, symlinkName) // getFile handles path joining with temp dir
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("wanted err? (%t) but err was %v", tt.wantErr, err)
+			}
+			defer f.Close()
+			if tt.wantErr {
+				return // dont compare contents if the read should have error'd
+			}
+			got, err := io.ReadAll(f)
+			if err != nil {
+				t.Fatal("reading symlink contents", err)
+			}
+			if !cmp.Equal(got, contents) {
+				t.Errorf("expected file content: %q, got: %q", contents, got)
 			}
 		})
 	}

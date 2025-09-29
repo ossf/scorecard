@@ -86,6 +86,16 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "blocked_user name",
+			variable: "github.event.pull_request.organization.blocked_user.name",
+			expected: true,
+		},
+		{
+			name:     "blocked_user email",
+			variable: "github.event.pull_request.organization.blocked_user.email",
+			expected: true,
+		},
+		{
 			name:     "discussion body",
 			variable: "github.event.discussion.body",
 			expected: true,

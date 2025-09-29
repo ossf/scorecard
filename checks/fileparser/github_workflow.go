@@ -592,6 +592,18 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate publishing workflow using semantic-release",
 		},
+		{
+			// Elixir packaging
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "erlef/setup-elixir",
+				},
+				{
+					Run: ".*hex.publish.*",
+				},
+			},
+			LogText: "candidate publishing workflow using elixir",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
