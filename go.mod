@@ -47,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.25.3
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v0.147.0
+	gitlab.com/gitlab-org/api/client-go v0.148.1
 	sigs.k8s.io/release-utils v0.11.1
 )
 
@@ -165,7 +165,7 @@ require (
 require (
 	cloud.google.com/go v0.121.6 // indirect
 	cloud.google.com/go/iam v1.5.2 // indirect
-	cloud.google.com/go/storage v1.56.2
+	cloud.google.com/go/storage v1.57.0
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/aws/aws-sdk-go v1.55.7 // indirect
@@ -218,6 +218,6 @@ require (
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.247.0 // indirect
-	google.golang.org/grpc v1.74.2 // indirect
+	google.golang.org/grpc v1.74.3 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
