@@ -387,6 +387,10 @@ func TestDockerfilePinning(t *testing.T) {
 			filename: "Dockerfile-not-pinned-with-parser-error",
 			warns:    1,
 		},
+		{
+			name:     "parser understands docker args",
+			filename: "Dockerfile-pinned-arg",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
