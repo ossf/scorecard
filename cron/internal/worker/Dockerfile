@@ -22,6 +22,7 @@ COPY . ./
 FROM base AS worker
 ARG TARGETOS
 ARG TARGETARCH
+ENV GOEXPERIMENT=jsonv2
 RUN CGO_ENABLED=0 make build-worker
 
 FROM gcr.io/distroless/base:nonroot@sha256:06c713c675e983c5aea030592b1d635954218d29c4db2f8ec66912da1b87e228
