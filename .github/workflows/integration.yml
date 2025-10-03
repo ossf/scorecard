@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Run secret-dependent integration tests only after approval
 name: Integration tests
 
 on:
@@ -27,21 +26,9 @@ env:
   GO_VERSION: stable
 
 jobs:
-  approve:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
-        with:
-          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-      - name: approve
-        run: echo For security reasons, all pull requests need to be approved before running integration tests.
-
   integration-trusted:
     runs-on: ubuntu-latest
     environment: integration-test
-    needs: [approve]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
