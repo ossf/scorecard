@@ -2240,7 +2240,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
 					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+						Text: "pin your dependencies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
 					},
 				},
 			},
@@ -2249,7 +2249,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
 					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+						Text: "pin your dependencies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
 					},
 				},
 			},
@@ -2263,7 +2263,7 @@ func TestCollectInsecureNugetCsproj(t *testing.T) {
 					Type:   checker.DependencyUseTypeNugetCommand,
 					Pinned: boolAsPointer(false),
 					Remediation: &finding.Remediation{
-						Text: "pin your dependecies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
+						Text: "pin your dependencies by either using a lockfile (https://learn.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#locking-dependencies) or by enabling central package management (https://learn.microsoft.com/en-us/nuget/consume-packages/Central-Package-Management)",
 					},
 				},
 			},
