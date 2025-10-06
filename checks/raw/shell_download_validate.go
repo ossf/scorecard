@@ -1024,7 +1024,7 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 		var remediation *finding.Remediation
 		if !pinned {
 			remediation = &finding.Remediation{
-				Text: "pin your dependecies by either enabling central package management " +
+				Text: "pin your dependencies by either enabling central package management " +
 					"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
 					"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
 					"package-references-in-project-files#locking-dependencies)",
