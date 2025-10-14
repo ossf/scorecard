@@ -313,6 +313,12 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		ret.RawResults.ContributorsResults = rawData
+	case checks.CheckInactiveMaintainers:
+		rawData, err := raw.InactiveMaintainers(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.InactiveMaintainersResults = rawData
 	case checks.CheckDangerousWorkflow:
 		rawData, err := raw.DangerousWorkflow(request)
 		if err != nil {

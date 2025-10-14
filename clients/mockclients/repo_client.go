@@ -147,6 +147,21 @@ func (mr *MockRepoClientMockRecorder) GetFileReader(filename any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileReader", reflect.TypeOf((*MockRepoClient)(nil).GetFileReader), filename)
 }
 
+// GetMaintainerActivity mocks base method.
+func (m *MockRepoClient) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMaintainerActivity", cutoff)
+	ret0, _ := ret[0].(map[string]bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMaintainerActivity indicates an expected call of GetMaintainerActivity.
+func (mr *MockRepoClientMockRecorder) GetMaintainerActivity(cutoff any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMaintainerActivity", reflect.TypeOf((*MockRepoClient)(nil).GetMaintainerActivity), cutoff)
+}
+
 // GetOrgRepoClient mocks base method.
 func (m *MockRepoClient) GetOrgRepoClient(arg0 context.Context) (clients.RepoClient, error) {
 	m.ctrl.T.Helper()

@@ -266,6 +266,11 @@ func (c *Client) Close() error {
 	return nil
 }
 
+// GetMaintainerActivity implements clients.RepoClient.
+func (c *Client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	return nil, fmt.Errorf("GetMaintainerActivity: %w", clients.ErrUnsupportedFeature)
+}
+
 func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	// Get the branch reference
 	ref, err := c.gitRepo.Branch(branch)
