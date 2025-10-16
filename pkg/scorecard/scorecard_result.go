@@ -330,7 +330,20 @@ func FormatCombinedResults(
 		data[i] = x
 	}
 
-	table := tablewriter.NewWriter(writer)
+	// Use the new tablewriter NewTable API (config + rendition) for consistent styling
+	cfg := tablewriter.Config{
+		Row: tw.CellConfig{
+			Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+		},
+	}
+	rendition := tw.Rendition{
+		Settings: tw.Settings{Separators: tw.Separators{BetweenRows: tw.On}},
+		Symbols: tw.NewSymbolCustom("scorecard table legacy").WithCenter("|").
+			WithBottomLeft("|").WithBottomRight("|").
+			WithMidLeft("|").WithMidRight("|").
+			WithTopLeft("|").WithTopRight("|"),
+	}
+	table := tablewriter.NewTable(writer, tablewriter.WithConfig(cfg), tablewriter.WithRendition(rendition))
 	header := []string{"REPO", "AGGREGATED SCORE", "Score", "Name", "Reason"}
 	if opt.Details {
 		header = append(header, "Details")
@@ -339,15 +352,13 @@ func FormatCombinedResults(
 	if opt.Annotations {
 		header = append(header, "Annotation")
 	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.Render()
+	table.Header(header)
+	if err := table.Bulk(data); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Bulk: %v", err))
+	}
+	if err := table.Render(); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Render: %v", err))
+	}
 	return nil
 }
 
@@ -406,24 +417,35 @@ func FormatCombinedResultsAll(
 		}
 	}
 
-	table := tablewriter.NewWriter(writer)
-	header := []string{"REPO", "AGGREGATED SCORE", "Score", "Name", "Reason"}
+	// Use new tablewriter API with config and rendition similar to AsString
+	cfg2 := tablewriter.Config{
+		Row: tw.CellConfig{
+			Alignment: tw.CellAlignment{Global: tw.AlignLeft},
+		},
+	}
+	rendition2 := tw.Rendition{
+		Settings: tw.Settings{Separators: tw.Separators{BetweenRows: tw.On}},
+		Symbols: tw.NewSymbolCustom("scorecard table legacy").WithCenter("|").
+			WithBottomLeft("|").WithBottomRight("|").
+			WithMidLeft("|").WithMidRight("|").
+			WithTopLeft("|").WithTopRight("|"),
+	}
+	table2 := tablewriter.NewTable(writer, tablewriter.WithConfig(cfg2), tablewriter.WithRendition(rendition2))
+	header2 := []string{"REPO", "AGGREGATED SCORE", "Score", "Name", "Reason"}
 	if o.Details {
-		header = append(header, "Details")
+		header2 = append(header2, "Details")
 	}
-	header = append(header, "Documentation/Remediation")
+	header2 = append(header2, "Documentation/Remediation")
 	if o.Annotations {
-		header = append(header, "Annotation")
+		header2 = append(header2, "Annotation")
 	}
-	table.SetHeader(header)
-	table.SetBorders(tablewriter.Border{Left: true, Top: true, Right: true, Bottom: true})
-	table.SetRowSeparator("-")
-	table.SetRowLine(true)
-	table.SetCenterSeparator("|")
-	table.AppendBulk(data)
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.SetRowLine(true)
-	table.Render()
+	table2.Header(header2)
+	if err := table2.Bulk(data); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Bulk: %v", err))
+	}
+	if err := table2.Render(); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tablewriter Render: %v", err))
+	}
 
 	return nil
 }
