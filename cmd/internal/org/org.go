@@ -95,14 +95,12 @@ func parseOrgName(input string) string {
 		return ""
 	}
 
-	// Strip optional scheme or leading "//".
+	// Strip optional scheme.
 	switch {
 	case strings.HasPrefix(s, "https://"):
 		s = strings.TrimPrefix(s, "https://")
 	case strings.HasPrefix(s, "http://"):
 		s = strings.TrimPrefix(s, "http://")
-	case strings.HasPrefix(s, "//"):
-		s = strings.TrimPrefix(s, "//")
 	}
 
 	// If it's exactly the host, there's no org.
