@@ -42,6 +42,10 @@ import (
 	"github.com/ossf/scorecard/v5/policy"
 )
 
+// errChecksFailed is returned when one or more checks produced a runtime
+// error during execution.
+var errChecksFailed = errors.New("one or more checks failed during execution")
+
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
@@ -213,7 +217,7 @@ func rootCmd(o *options.Options) error {
 	}
 
 	if sawRuntimeErr {
-		return fmt.Errorf("one or more checks failed during execution")
+		return errChecksFailed
 	}
 
 	return nil
