@@ -184,7 +184,7 @@ func rootCmd(o *options.Options) error {
 	var sawRuntimeErr bool
 	// Iterate and scan each repo using a helper to keep rootCmd small.
 	for _, uri := range repoURLs {
-		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, checks, opts, checkDocs, pol)
+		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, opts, checkDocs, pol)
 		if err != nil {
 			// processRepo already logged details; skip this URI.
 			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
@@ -284,7 +284,6 @@ func processRepo(
 	o *options.Options,
 	enabledProbes []string,
 	enabledChecks checker.CheckNameToFnMap,
-	checksList []string,
 	opts []scorecard.Option,
 	checkDocs docs.Doc,
 	pol *policy.ScorecardPolicy,
