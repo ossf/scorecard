@@ -86,7 +86,9 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatInToyo specifies that results should be output in an in-toto statement.
+	// FormatCombined specifies that results should be output as a single combined table for multiple repos.
+	FormatCombined = "combined"
+	// FormatInToto specifies that results should be output in an in-toto statement.
 	FormatInToto = "intoto"
 
 	// File Modes
@@ -263,7 +265,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatCombined, FormatInToto:
 		return true
 	default:
 		return false

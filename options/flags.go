@@ -80,8 +80,6 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
-
-	FlagCombinedOutput = "combined"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -184,13 +182,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"show maintainers annotations for checks",
 	)
 
-	cmd.Flags().BoolVar(
-		&o.CombinedOutput,
-		FlagCombinedOutput,
-		o.CombinedOutput,
-		"when scanning multiple repos, output a single combined table",
-	)
-
 	cmd.Flags().IntVar(
 		&o.CommitDepth,
 		FlagCommitDepth,
@@ -221,6 +212,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FormatDefault,
 		FormatJSON,
 		FormatProbe,
+		FormatCombined,
 		FormatInToto,
 	}
 

@@ -190,7 +190,7 @@ func rootCmd(o *options.Options) error {
 			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
 			continue
 		}
-		if o.CombinedOutput && res != nil {
+		if o.Format == options.FormatCombined && res != nil {
 			allResults = append(allResults, res)
 		}
 		// If any checks had runtime errors, remember that fact so we can return
@@ -205,7 +205,7 @@ func rootCmd(o *options.Options) error {
 
 	// If combined output requested, render one combined table appended after
 	// all per-repo outputs.
-	if o.CombinedOutput && len(allResults) > 0 {
+	if o.Format == options.FormatCombined && len(allResults) > 0 {
 		fmt.Fprintln(os.Stdout, "\nCOMBINED RESULTS\n----------------")
 		if err := scorecard.FormatCombinedResultsAll(os.Stdout, o, allResults, checkDocs, pol); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to format combined results: %v\n", err)
@@ -303,8 +303,8 @@ func processRepo(
 		}
 	}
 
-	// Start banners with repo uri (always show banners even in combined-only mode)
-	if o.Format == options.FormatDefault {
+	// Start banners with repo uri (show banners in default format only or combined mode)
+	if o.Format == options.FormatDefault || o.Format == options.FormatCombined {
 		if len(enabledProbes) > 0 {
 			printProbeStart(uri, enabledProbes)
 		} else {
@@ -330,15 +330,15 @@ func processRepo(
 			printProbeResults(uri, enabledProbes)
 		} else {
 			printCheckResults(uri, enabledChecks)
-			// Only print the RESULTS header when not in combined-only mode.
-			if !o.CombinedOutput {
+			// Only print the RESULTS header when not in combined mode.
+			if o.Format != options.FormatCombined {
 				fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 			}
 		}
 	}
 
 	// RESULTS block: render per-repo result only when not in combined-only mode.
-	if !o.CombinedOutput {
+	if o.Format != options.FormatCombined {
 		if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
 		}
