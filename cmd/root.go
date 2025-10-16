@@ -31,7 +31,6 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
-	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	orgpkg "github.com/ossf/scorecard/v5/cmd/internal/org"
@@ -95,10 +94,7 @@ func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 
 	// --org: expand to all non-archived repos
 	if o.Org != "" {
-		// create a transport to respect auth, rate limiting, etc.
-		logger := sclog.NewLogger(sclog.DefaultLevel)
-		rt := roundtripper.NewTransport(ctx, logger)
-		repos, err := orgpkg.ListOrgRepos(ctx, o.Org, rt)
+		repos, err := orgpkg.ListOrgRepos(ctx, o.Org, nil)
 		if err != nil {
 			return nil, fmt.Errorf("listing repositories for org %q: %w", o.Org, err)
 		}
