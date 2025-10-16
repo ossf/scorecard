@@ -79,7 +79,7 @@ func New(o *options.Options) *cobra.Command {
 	return cmd
 }
 
-// Build the list of repositories to scan, honoring --repos > --org > --local > --repo/pkg-managers.
+// Build the list of repositories to scan.
 func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 	// --repos has highest precedence
 	if len(o.Repos) > 0 {
