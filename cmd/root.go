@@ -178,6 +178,10 @@ func rootCmd(o *options.Options) error {
 	}
 
 	var allResults []*scorecard.Result
+	// Track whether any check produced a runtime error during scans. We want to
+	// continue scanning all repos but return a non-nil error at the end so the
+	// process exit code reflects that something went wrong.
+	var sawRuntimeErr bool
 	// Iterate and scan each repo using a helper to keep rootCmd small.
 	for _, uri := range repoURLs {
 		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, checks, opts, checkDocs, pol)
@@ -189,6 +193,14 @@ func rootCmd(o *options.Options) error {
 		if o.CombinedOutput && res != nil {
 			allResults = append(allResults, res)
 		}
+		// If any checks had runtime errors, remember that fact so we can return
+		// a non-zero exit code after processing all repos.
+		for _, c := range res.Checks {
+			if c.Error != nil {
+				sawRuntimeErr = true
+				break
+			}
+		}
 	}
 
 	// If combined output requested, render one combined table appended after
@@ -198,6 +210,10 @@ func rootCmd(o *options.Options) error {
 		if err := scorecard.FormatCombinedResultsAll(os.Stdout, o, allResults, checkDocs, pol); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to format combined results: %v\n", err)
 		}
+	}
+
+	if sawRuntimeErr {
+		return fmt.Errorf("one or more checks failed during execution")
 	}
 
 	return nil
