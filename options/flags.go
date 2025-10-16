@@ -111,7 +111,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Org,
 		FlagOrg,
 		o.Org,
-		"GitHub organization to check (all non-archived repos will be checked), e.g., 'github.com/ossf' or 'ossf'",
+		"scans all non-archived repositories in an organization. Currently only supports GitHub, e.g., 'github.com/ossf' or 'ossf'",
 	)
 
 	cmd.Flags().StringVar(
