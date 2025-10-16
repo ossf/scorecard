@@ -219,43 +219,6 @@ func rootCmd(o *options.Options) error {
 	return nil
 }
 
-// repoLabelFromURI returns "owner/repo" for supported inputs only.
-// Supported formats:
-//   - owner/repo
-//   - github.com/owner/repo
-//   - https://github.com/owner/repo   (http also accepted)
-//   - gitlab.com/owner/repo
-//   - https://gitlab.com/owner/repo   (http also accepted)
-func repoLabelFromURI(uri string) string {
-	s := strings.TrimSpace(uri)
-	if s == "" {
-		return uri
-	}
-
-	// Strip optional scheme.
-	if strings.HasPrefix(s, "https://") {
-		s = strings.TrimPrefix(s, "https://")
-	} else if strings.HasPrefix(s, "http://") {
-		s = strings.TrimPrefix(s, "http://")
-	}
-
-	// Strip optional host.
-	if strings.HasPrefix(s, "github.com/") {
-		s = strings.TrimPrefix(s, "github.com/")
-	} else if strings.HasPrefix(s, "gitlab.com/") {
-		s = strings.TrimPrefix(s, "gitlab.com/")
-	}
-
-	// Expect owner/repo (ignore any extra path segments).
-	parts := strings.Split(s, "/")
-	if len(parts) >= 2 && parts[0] != "" && parts[1] != "" && !strings.Contains(parts[0], ".") {
-		return parts[0] + "/" + parts[1]
-	}
-
-	// Not a supported format; return as-is.
-	return uri
-}
-
 func printProbeStart(repo string, enabledProbes []string) {
 	for _, probeName := range enabledProbes {
 		fmt.Fprintf(os.Stderr, "Starting (%s) probe [%s]\n", repo, probeName)
@@ -341,14 +304,12 @@ func processRepo(
 		}
 	}
 
-	label := repoLabelFromURI(uri)
-
-	// Start banners with repo label (always show banners even in combined-only mode)
+	// Start banners with repo uri (always show banners even in combined-only mode)
 	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
-			printProbeStart(label, enabledProbes)
+			printProbeStart(uri, enabledProbes)
 		} else {
-			printCheckStart(label, enabledChecks)
+			printCheckStart(uri, enabledChecks)
 		}
 	}
 
@@ -367,9 +328,9 @@ func processRepo(
 	// End banners BEFORE RESULTS (always show banners even in combined-only mode)
 	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
-			printProbeResults(label, enabledProbes)
+			printProbeResults(uri, enabledProbes)
 		} else {
-			printCheckResults(label, enabledChecks)
+			printCheckResults(uri, enabledChecks)
 			// Only print the RESULTS header when not in combined-only mode.
 			if !o.CombinedOutput {
 				fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
