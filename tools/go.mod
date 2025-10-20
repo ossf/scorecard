@@ -455,7 +455,7 @@ require (
 	github.com/zeebo/errs v1.4.0 // indirect
 	gitlab.com/bosi/decorder v0.4.2 // indirect
 	gitlab.com/digitalxero/go-conventional-commit v1.0.7 // indirect
-	gitlab.com/gitlab-org/api/client-go v0.156.0 // indirect
+	gitlab.com/gitlab-org/api/client-go v0.157.0 // indirect
 	go-simpler.org/musttag v0.14.0 // indirect
 	go-simpler.org/sloglint v0.11.1 // indirect
 	go.augendre.info/arangolint v0.2.0 // indirect
