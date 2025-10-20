@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"maps"
 	"net/http"
 	"os"
 	"strings"
@@ -29,6 +28,8 @@ import (
 
 	"github.com/ossf/scorecard/v5/clients"
 )
+
+const codeownersLimit = 100
 
 // these are the paths where CODEOWNERS files can be found see
 // https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-file-location
@@ -75,7 +76,7 @@ func (handler *contributorsHandler) setup(codeOwnerFile io.ReadCloser) error {
 			return
 		}
 
-		for contributor := range maps.Values(contributors) {
+		for _, contributor := range contributors {
 			orgs, _, err := handler.ghClient.Organizations.List(handler.ctx, contributor.Login, nil)
 			// This call can fail due to token scopes. So ignore error.
 			if err == nil {
@@ -132,12 +133,16 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 
 	// expanding owners
 	owners := make([]*clients.User, 0)
+outer:
 	for _, rule := range ruleset {
 		for _, owner := range rule.Owners {
 			switch owner.Type {
 			case codeowners.UsernameOwner:
 				// if usernameOwner just add to owners list
 				owners = append(owners, &clients.User{Login: owner.Value, NumContributions: 0, IsCodeOwner: true})
+				if len(owners) >= codeownersLimit {
+					break outer
+				}
 			case codeowners.TeamOwner:
 				// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
 				splitTeam := strings.Split(owner.Value, "/")
@@ -151,6 +156,9 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 					if err == nil && response.StatusCode == http.StatusOK {
 						for _, user := range users {
 							owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
+							if len(owners) >= codeownersLimit {
+								break outer
+							}
 						}
 					}
 				}
