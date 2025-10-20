@@ -31,6 +31,8 @@ import (
 // Options define common options for configuring scorecard.
 type Options struct {
 	Repo            string
+	Repos           []string
+	Org             string
 	Local           string
 	Commit          string
 	LogLevel        string
@@ -48,6 +50,7 @@ type Options struct {
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
+	CombinedOutput  bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
@@ -83,7 +86,9 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatInToyo specifies that results should be output in an in-toto statement.
+	// FormatCombined specifies that results should be output as a single combined table for multiple repos.
+	FormatCombined = "combined"
+	// FormatInToto specifies that results should be output in an in-toto statement.
 	FormatInToto = "intoto"
 
 	// File Modes
@@ -114,7 +119,7 @@ var (
 	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet    = errors.New(
-		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
+		"exactly one of `repo`, `repos`, `org`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
@@ -125,8 +130,11 @@ var (
 func (o *Options) Validate() error {
 	var errs []error
 
-	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--nuget`, `--local` is enabled.
+	// Validate exactly one of `--repo`, `--repos`, `--org`, `--npm`, `--pypi`, `--rubygems`,
+	// `--nuget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
+		len(o.Repos) > 0,
+		o.Org != "",
 		o.NPM != "",
 		o.PyPI != "",
 		o.RubyGems != "",
@@ -257,7 +265,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatCombined, FormatInToto:
 		return true
 	default:
 		return false
