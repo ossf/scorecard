@@ -45,9 +45,9 @@ require (
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.1.2
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
-	github.com/onsi/ginkgo/v2 v2.26.0
+	github.com/onsi/ginkgo/v2 v2.27.1
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v0.156.0
+	gitlab.com/gitlab-org/api/client-go v0.157.0
 	sigs.k8s.io/release-utils v0.11.1
 )
 
