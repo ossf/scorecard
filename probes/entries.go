@@ -47,6 +47,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	rddvf "github.com/ossf/scorecard/v5/probes/releasesDirectDepsAreVulnFree"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
@@ -176,6 +177,12 @@ var (
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
+	}
+
+	// ReleasesDirectDepsAreVulnFree groups the probe(s) for this check.
+	// If you later add more probes for this check, append them here.
+	ReleasesDirectDepsAreVulnFree = []ProbeImpl{
+		rddvf.Run,
 	}
 )
 

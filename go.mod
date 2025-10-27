@@ -41,12 +41,14 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v53 v53.2.0
+	github.com/google/osv-scalibr v0.3.7-0.20251023161426-90e9ac9cc1b3
 	github.com/google/osv-scanner/v2 v2.2.4
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.1.2
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/otiai10/copy v1.14.1
+	github.com/package-url/packageurl-go v0.1.3
 	gitlab.com/gitlab-org/api/client-go v0.159.0
 	sigs.k8s.io/release-utils v0.11.1
 )
@@ -135,7 +137,6 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-github/v75 v75.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/osv-scalibr v0.3.7-0.20251023161426-90e9ac9cc1b3 // indirect
 	github.com/google/pprof v0.0.0-20250403155104-27863c87afa6 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -168,7 +169,6 @@ require (
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20251012234424-434020c6442f // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/owenrumney/go-sarif/v3 v3.2.3 // indirect
-	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pjbgf/sha1cd v0.4.0 // indirect

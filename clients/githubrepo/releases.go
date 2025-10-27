@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/go-github/v53/github"
 
@@ -69,10 +70,17 @@ func (handler *releasesHandler) getReleases() ([]clients.Release, error) {
 func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 	var releases []clients.Release
 	for _, r := range data {
+		var publishedAt time.Time
+		if r.PublishedAt != nil {
+			publishedAt = r.PublishedAt.Time
+		} else if r.CreatedAt != nil {
+			publishedAt = r.CreatedAt.Time
+		}
 		release := clients.Release{
 			TagName:         r.GetTagName(),
 			URL:             r.GetURL(),
 			TargetCommitish: r.GetTargetCommitish(),
+			PublishedAt:     publishedAt,
 		}
 		for _, a := range r.Assets {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{

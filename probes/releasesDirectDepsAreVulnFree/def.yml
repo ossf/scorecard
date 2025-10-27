@@ -1,0 +1,45 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: releasesDirectDepsAreVulnFree
+lifecycle: stable
+short: Check that project releases do not have known vulnerabilities in their direct dependencies.
+motivation: >
+  Releases with vulnerable direct dependencies expose users to known security issues. 
+  Users who install a specific release version should not be exposed to dependencies
+  with known vulnerabilities at the time of release. Ensuring that releases are free
+  from vulnerable dependencies protects the security of downstream users and maintains
+  the project's reputation for security best practices.
+implementation: >
+  This probe examines up to the 10 most recent releases of a project. For each release,
+  the probe checks whether any of its direct dependencies had known vulnerabilities at
+  the time the release was published. Only vulnerabilities that were publicly disclosed
+  before or at the release date are considered—vulnerabilities discovered later are not
+  counted against the release. The probe emits one finding per release.
+outcome:
+  - The probe returns OutcomeTrue for each release that had zero known vulnerabilities in its direct dependencies at the time of release.
+  - The probe returns OutcomeFalse for each release that had at least one known vulnerability in its direct dependencies at the time of release. The finding message includes details about vulnerable dependencies.
+remediation:
+  onOutcome: False
+  effort: High
+  text:
+    - Before creating a release, update all direct dependencies to non-vulnerable versions.
+    - Run dependency scanning tools as part of your release process to catch vulnerabilities before publishing.
+    - If a release has vulnerable dependencies, publish a new patch release with updated dependencies and communicate the security fix to users.
+    - Add automated dependency scanning to your CI/CD pipeline to prevent publishing releases with known vulnerabilities.
+  markdown:
+    - Before creating a release, update all direct dependencies to non-vulnerable versions.
+    - Run dependency scanning tools (such as `osv-scanner` or language-specific tools) as part of your release process.
+    - If a release has vulnerable dependencies, publish a new patch release with updated dependencies and clearly communicate the security fix.
+    - Consider adding automated dependency scanning to your CI/CD pipeline to prevent releases with known vulnerabilities.

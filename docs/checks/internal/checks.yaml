@@ -875,3 +875,40 @@ checks:
         If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
       - >-
         If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
+
+  ReleasesDirectDepsVulnFree:
+    risk: High
+    tags: supply-chain, security, vulnerabilities, dependencies
+    repos: GitHub, GitLab
+    short: Checks whether project releases have known vulnerabilities in their direct dependencies.
+    description: |
+      Risk: `High` (known vulnerabilities in releases)
+
+      This check determines whether the project's releases contain known vulnerabilities in their
+      direct dependencies at the time of release. The check examines up to the 10 most recent releases,
+      downloads each release's source tarball, scans for direct dependencies using OSV-Scalibr,
+      and queries the OSV (Open Source Vulnerabilities) database to identify any known vulnerabilities.
+
+      Unlike the Vulnerabilities check which examines the current state of the repository,
+      this check focuses on the dependencies that were bundled with each release, ensuring that
+      released versions of the project do not expose users to known security issues in dependencies.
+
+      A release with vulnerable dependencies is problematic because users who install that specific
+      release version will be exposed to the known vulnerabilities. This is particularly important
+      for projects that recommend or require users to install specific release versions rather than
+      building from the main branch.
+    remediation:
+      - >-
+        Before creating a release, ensure all direct dependencies are updated to non-vulnerable versions.
+      - >-
+        Run dependency scanning tools (such as `osv-scanner` or `govulncheck` for Go projects) as part
+        of your release process to catch vulnerabilities before publishing.
+      - >-
+        If a release is found to have vulnerable dependencies, publish a new patch release with updated
+        dependencies and clearly communicate the security fix to users.
+      - >-
+        Consider adding automated dependency scanning to your CI/CD pipeline to prevent releases with
+        known vulnerabilities from being published.
+      - >-
+        Document which dependency versions are bundled with each release, making it easier to identify
+        and respond to newly disclosed vulnerabilities.

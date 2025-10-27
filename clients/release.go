@@ -14,11 +14,14 @@
 
 package clients
 
+import "time"
+
 // Release represents a release version of a package/repo.
 type Release struct {
 	TagName         string
 	URL             string
 	TargetCommitish string
+	PublishedAt     time.Time
 	Assets          []ReleaseAsset
 }
 

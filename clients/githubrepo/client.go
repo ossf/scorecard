@@ -39,6 +39,9 @@ var (
 	_                     clients.RepoClient = &Client{}
 	errInputRepoType                         = errors.New("input repo should be of type repoURL")
 	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
+	errClientNotInit                         = errors.New("client or repourl not initialized")
+	errEmptyTagName                          = errors.New("empty tag name")
+	errMissingOwnerRepo                      = errors.New("missing owner or repo name")
 )
 
 type Option func(*repoClientConfig) error
@@ -292,6 +295,28 @@ func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.
 func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return client.workflows.listSuccessfulWorkflowRuns(filename)
+}
+
+// ReleaseTarballURL returns the tarball download URL for a given release tag.
+// Example: https://api.github.com/repos/OWNER/REPO/tarball/v1.0.0
+func (client *Client) ReleaseTarballURL(tag string) (string, error) {
+	if client == nil || client.repourl == nil {
+		return "", errClientNotInit
+	}
+	if strings.TrimSpace(tag) == "" {
+		return "", errEmptyTagName
+	}
+
+	owner := strings.TrimSpace(client.repourl.owner)
+	repo := strings.TrimSpace(client.repourl.repo)
+	if owner == "" || repo == "" {
+		return "", errMissingOwnerRepo
+	}
+
+	// GitHub’s REST endpoint for tarball archives:
+	// https://api.github.com/repos/{owner}/{repo}/tarball/{tag}
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/tarball/%s", owner, repo, tag)
+	return url, nil
 }
 
 // ListCheckRunsForRef implements RepoClient.ListCheckRunsForRef.

@@ -408,6 +408,12 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		ret.RawResults.WebhookResults = rawData
+	case checks.CheckReleasesDirectDepsVulnFree:
+		rawData, err := raw.ReleasesDirectDepsVulnFree(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.ReleaseDirectDepsVulnsResults = *rawData
 	default:
 		return sce.WithMessage(sce.ErrScorecardInternal, "unknown check")
 	}

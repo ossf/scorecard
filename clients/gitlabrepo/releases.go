@@ -72,6 +72,14 @@ func releasesFrom(data []*gitlab.Release) []clients.Release {
 			TagName:         r.TagName,
 			TargetCommitish: r.CommitPath,
 		}
+
+		// Use ReleasedAt if available, otherwise fall back to CreatedAt
+		if r.ReleasedAt != nil {
+			release.PublishedAt = *r.ReleasedAt
+		} else if r.CreatedAt != nil {
+			release.PublishedAt = *r.CreatedAt
+		}
+
 		if len(r.Assets.Links) > 0 {
 			release.URL = r.Assets.Links[0].DirectAssetURL
 		}

@@ -27,27 +27,28 @@ import (
 //
 //nolint:govet
 type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
-	BranchProtectionResults     BranchProtectionsData
-	CIIBestPracticesResults     CIIBestPracticesData
-	CITestResults               CITestData
-	CodeReviewResults           CodeReviewData
-	ContributorsResults         ContributorsData
-	DangerousWorkflowResults    DangerousWorkflowData
-	DependencyUpdateToolResults DependencyUpdateToolData
-	FuzzingResults              FuzzingData
-	LicenseResults              LicenseData
-	SBOMResults                 SBOMData
-	MaintainedResults           MaintainedData
-	Metadata                    MetadataData
-	PackagingResults            PackagingData
-	PinningDependenciesResults  PinningDependenciesData
-	SASTResults                 SASTData
-	SecurityPolicyResults       SecurityPolicyData
-	SignedReleasesResults       SignedReleasesData
-	TokenPermissionsResults     TokenPermissionsData
-	VulnerabilitiesResults      VulnerabilitiesData
-	WebhookResults              WebhooksData
+	BinaryArtifactResults         BinaryArtifactData
+	BranchProtectionResults       BranchProtectionsData
+	CIIBestPracticesResults       CIIBestPracticesData
+	CITestResults                 CITestData
+	CodeReviewResults             CodeReviewData
+	ContributorsResults           ContributorsData
+	DangerousWorkflowResults      DangerousWorkflowData
+	DependencyUpdateToolResults   DependencyUpdateToolData
+	FuzzingResults                FuzzingData
+	LicenseResults                LicenseData
+	SBOMResults                   SBOMData
+	MaintainedResults             MaintainedData
+	Metadata                      MetadataData
+	PackagingResults              PackagingData
+	PinningDependenciesResults    PinningDependenciesData
+	SASTResults                   SASTData
+	SecurityPolicyResults         SecurityPolicyData
+	SignedReleasesResults         SignedReleasesData
+	TokenPermissionsResults       TokenPermissionsData
+	VulnerabilitiesResults        VulnerabilitiesData
+	WebhookResults                WebhooksData
+	ReleaseDirectDepsVulnsResults ReleaseDirectDepsVulnsData
 }
 
 type MetadataData struct {
@@ -190,6 +191,41 @@ type SBOM struct {
 // Some repos may have more than one SBOM.
 type SBOMData struct {
 	SBOMFiles []SBOM
+}
+
+// ReleaseDirectDepsVulnsData is consumed by the probe to reason about
+// each of the last N releases and whether its *direct* dependencies
+// were affected by known vulnerabilities.
+type ReleaseDirectDepsVulnsData struct {
+	Releases []ReleaseDepsVulns // one row per release considered
+}
+
+// ReleaseDepsVulns captures the per-release summary produced by the raw collector.
+type ReleaseDepsVulns struct {
+	Tag         string
+	CommitSHA   string
+	PublishedAt time.Time
+	DirectDeps  []DirectDep // direct dependencies discovered via osv-scalibr (manifest-only)
+	Findings    []DepVuln   // non-empty => at least one vulnerable direct dependency
+}
+
+// DirectDep is a light representation of a direct dependency extracted from manifests.
+type DirectDep struct {
+	Ecosystem string // canonical or normalized ecosystem label (e.g., "Go", "PyPI", "npm", "Maven", ...)
+	Name      string // package/module/artifact name
+	Version   string // exact version string
+	PURL      string // optional package-url (preferred for OSV queries when present)
+	Location  string // relative path to manifest that declared this dependency
+}
+
+// DepVuln indicates that a specific direct dependency matched one or more OSV IDs.
+type DepVuln struct {
+	Ecosystem    string
+	Name         string
+	Version      string
+	PURL         string
+	ManifestPath string
+	OSVIDs       []string
 }
 
 // CodeReviewData contains the raw results
