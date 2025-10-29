@@ -577,6 +577,55 @@ An SBOM is published as a release artifact (5/10 points):
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security).
 - Alternatively, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/tools/) SBOMs.
 
+## SecretScanning 
+
+Risk: `High` (exposed credentials may lead to data breaches)
+
+This check determines whether the project has secret scanning enabled to detect
+accidentally committed credentials, API keys, tokens, and other sensitive data.
+
+For **GitHub repositories**, the check verifies:
+- Native GitHub secret scanning is enabled (gives full score of 10)
+- GitHub push protection is enabled (prevents secrets from being pushed)
+- Third-party secret scanning tools are configured and actively running in CI
+
+For **GitLab repositories**, the check verifies:
+- Secret Push Protection is enabled (4 points)
+- Pipeline Secret Detection is configured (4 points)
+- Push Rules prevent secrets is enabled (1 point)
+- Third-party secret scanning tools are configured and actively running (1-10 points based on CI coverage)
+
+For **third-party secret scanning tools**, the check categorizes them by execution pattern
+and scores them accordingly:
+
+**Commit-based scanners** (run on every push/PR):
+- Gitleaks, TruffleHog, detect-secrets, git-secrets, GitGuardian ggshield
+- Scored based on coverage of last 100 commits:
+  - 100% coverage → 10 points
+  - 70-99% coverage → 7 points
+  - 50-69% coverage → 5 points
+  - <50% coverage → 3 points
+  - Tool present but not running → 1 point
+
+**Periodic scanners** (run on a schedule):
+- shhgit, Repo Supervisor
+- Scored based on recency:
+  - Ran in last 30 days → 10 points
+  - Tool present but not running → 1 point
+
+Accidentally committing secrets is a common mistake that can lead to serious
+security incidents. Secret scanning helps catch these mistakes before they
+can be exploited by attackers.
+ 
+
+**Remediation steps**
+- For GitHub repositories, enable secret scanning in your repository settings under "Code security and analysis". This is available for free on public repositories and requires GitHub Advanced Security for private repositories.
+- Enable push protection to prevent secrets from being pushed to the repository in the first place. This can be configured in repository settings.
+- For GitLab repositories, configure Secret Push Protection, Pipeline Secret Detection, and Push Rules in your project settings.
+- For additional protection, integrate third-party secret scanning tools into your CI/CD pipeline: - Gitleaks: https://github.com/gitleaks/gitleaks - TruffleHog: https://github.com/trufflesecurity/trufflehog - detect-secrets: https://github.com/Yelp/detect-secrets - git-secrets: https://github.com/awslabs/git-secrets - GitGuardian ggshield: https://github.com/GitGuardian/ggshield
+- Ensure third-party tools run on every commit or at least weekly. Configure them to run as pre-commit hooks or as part of your CI/CD pipeline on pull requests and main branch commits.
+- If you accidentally commit a secret, immediately rotate the exposed credential and use tools like BFG Repo-Cleaner or git-filter-repo to remove it from Git history.
+
 ## Security-Policy 
 
 Risk: `Medium` (possible insecure reporting of vulnerabilities)

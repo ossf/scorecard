@@ -45,26 +45,27 @@ type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *Repo
-	repo          *github.Repository
-	repoClient    *github.Client
-	graphClient   *graphqlHandler
-	contributors  *contributorsHandler
-	branches      *branchesHandler
-	releases      *releasesHandler
-	workflows     *workflowsHandler
-	checkruns     *checkrunsHandler
-	statuses      *statusesHandler
-	search        *searchHandler
-	searchCommits *searchCommitsHandler
-	webhook       *webhookHandler
-	languages     *languagesHandler
-	licenses      *licensesHandler
-	git           *gitfile.Handler
-	ctx           context.Context
-	tarball       tarballHandler
-	commitDepth   int
-	gitMode       bool
+	repourl        *Repo
+	repo           *github.Repository
+	repoClient     *github.Client
+	graphClient    *graphqlHandler
+	contributors   *contributorsHandler
+	branches       *branchesHandler
+	releases       *releasesHandler
+	workflows      *workflowsHandler
+	checkruns      *checkrunsHandler
+	statuses       *statusesHandler
+	search         *searchHandler
+	searchCommits  *searchCommitsHandler
+	webhook        *webhookHandler
+	languages      *languagesHandler
+	licenses       *licensesHandler
+	git            *gitfile.Handler
+	secretScanning *secretScanningHandler
+	ctx            context.Context
+	tarball        tarballHandler
+	commitDepth    int
+	gitMode        bool
 }
 
 // WithFileModeGit configures the repo client to fetch files using git.
@@ -156,6 +157,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
+
+	client.secretScanning.init(client.ctx, client.repourl, client.repoClient)
 
 	return nil
 }
@@ -342,6 +345,36 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	return rc
 }
 
+// GetSecretScanningSignals implements RepoClient.
+func (client *Client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	s, err := client.secretScanning.get()
+	if err != nil {
+		return clients.SecretScanningSignals{}, err
+	}
+	return clients.SecretScanningSignals{
+		Platform:                clients.PlatformGitHub,
+		GHNativeEnabled:         s.NativeEnabled,
+		GHPushProtectionEnabled: s.PushProtectionEnabled,
+
+		ThirdPartyGitleaks:            s.TpGitleaks,
+		ThirdPartyTruffleHog:          s.TpTruffleHog,
+		ThirdPartyDetectSecrets:       s.TpDetectSecrets,
+		ThirdPartyGitSecrets:          s.TpGitSecrets,
+		ThirdPartyGGShield:            s.TpGGShield,
+		ThirdPartyShhGit:              s.TpShhGit,
+		ThirdPartyRepoSupervisor:      s.TpRepoSupervisor,
+		ThirdPartyGitleaksPaths:       s.TpGitleaksPaths,
+		ThirdPartyTruffleHogPaths:     s.TpTruffleHogPaths,
+		ThirdPartyDetectSecretsPaths:  s.TpDetectSecretsPaths,
+		ThirdPartyGitSecretsPaths:     s.TpGitSecretsPaths,
+		ThirdPartyGGShieldPaths:       s.TpGGShieldPaths,
+		ThirdPartyShhGitPaths:         s.TpShhGitPaths,
+		ThirdPartyRepoSupervisorPaths: s.TpRepoSupervisorPaths,
+
+		Evidence: s.Evidence,
+	}, nil
+}
+
 // NewRepoClient returns a Client which implements RepoClient interface.
 // It can be configured with various [Option]s.
 func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, error) {
@@ -426,8 +459,9 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		tarball: tarballHandler{
 			httpClient: httpClient,
 		},
-		gitMode: config.gitMode,
-		git:     &gitfile.Handler{},
+		gitMode:        config.gitMode,
+		git:            &gitfile.Handler{},
+		secretScanning: &secretScanningHandler{},
 	}, nil
 }
 

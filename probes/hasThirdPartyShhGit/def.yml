@@ -1,0 +1,31 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasThirdPartyShhGit
+lifecycle: beta
+short: shhgit runs in CI
+motivation: >
+  Detect whether the project runs shhgit to catch leaked credentials.
+  shhgit is a **periodic scanner** typically configured to run on a schedule (e.g., daily/weekly).
+  The SecretScanning check scores this probe as: 10 points if ran in last 30 days, 1 point otherwise.
+implementation: >
+  Reads RawResults.SecretScanningResults.ThirdPartyShhGit from parsed CI configs.
+  Checks CI run history via ListCommits() and ListCheckRunsForRef() to determine if
+  shhgit ran within the last 30 days.
+outcome:
+  - The probe emits OutcomeTrue if shhgit is configured, and OutcomeFalse otherwise.
+  - Score is 10 if ran recently (last 30 days), otherwise 1.
+ecosystem:
+  languages: [all]
+  clients: [github, gitlab]

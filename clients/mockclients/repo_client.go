@@ -414,3 +414,18 @@ func (mr *MockRepoClientMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URI", reflect.TypeOf((*MockRepoClient)(nil).URI))
 }
+
+// GetSecretScanningSignals mocks base method.
+func (m *MockRepoClient) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSecretScanningSignals")
+	ret0, _ := ret[0].(clients.SecretScanningSignals)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSecretScanningSignals indicates an expected call of GetSecretScanningSignals.
+func (mr *MockRepoClientMockRecorder) GetSecretScanningSignals() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSecretScanningSignals", reflect.TypeOf((*MockRepoClient)(nil).GetSecretScanningSignals))
+}
