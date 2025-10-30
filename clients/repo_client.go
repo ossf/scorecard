@@ -47,6 +47,7 @@ type RepoClient interface {
 	GetOrgRepoClient(context.Context) (RepoClient, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)
+	ListIssuesWithHistory() ([]Issue, error)
 	ListLicenses() ([]License, error)
 	ListReleases() ([]Release, error)
 	ListContributors() ([]User, error)

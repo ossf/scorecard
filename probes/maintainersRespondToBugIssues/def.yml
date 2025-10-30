@@ -1,0 +1,17 @@
+id: maintainersRespondToBugIssues
+lifecycle: beta
+short: Checks if maintainers respond to issues labeled 'bug' or 'security' within 180 days
+motivation: >
+  Timely maintainer response to security and bug reports indicates active maintenance 
+  and commitment to addressing potential vulnerabilities and defects.
+implementation: >
+  Reads RawResults.MaintainerResponseResults containing issue label intervals and maintainer responses.
+  For each issue that was ever labeled 'bug' or 'security', checks if a maintainer comment
+  occurred within 180 days of the label being applied.
+outcome:
+  - OutcomeTrue: Issue received maintainer response within 180 days
+  - OutcomeFalse: Issue exceeded 180 days with 'bug' or 'security' label without maintainer response
+  - OutcomeNotApplicable: Issue never had 'bug' or 'security' labels
+ecosystem:
+  languages: [all]
+  clients: [github, gitlab]

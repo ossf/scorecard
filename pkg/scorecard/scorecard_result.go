@@ -408,6 +408,12 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		ret.RawResults.WebhookResults = rawData
+	case checks.CheckMaintainerResponse:
+		rawData, err := raw.MaintainerResponse(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.MaintainerResponseResults = rawData
 	default:
 		return sce.WithMessage(sce.ErrScorecardInternal, "unknown check")
 	}

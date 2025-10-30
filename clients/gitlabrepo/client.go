@@ -205,7 +205,7 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 }
 
 func (client *Client) ListIssues() ([]clients.Issue, error) {
-	return client.issues.listIssues()
+	return client.issues.getIssues()
 }
 
 func (client *Client) ListReleases() ([]clients.Release, error) {
@@ -254,6 +254,10 @@ func (client *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error
 
 func (client *Client) ListStatuses(ref string) ([]clients.Status, error) {
 	return client.statuses.listStatuses(ref)
+}
+
+func (client *Client) ListIssuesWithHistory() ([]clients.Issue, error) {
+	return client.issues.getIssuesWithHistory()
 }
 
 func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
