@@ -213,7 +213,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FormatDefault,
 		FormatJSON,
 		FormatProbe,
-		FormatCombined,
 		FormatInToto,
 	}
 

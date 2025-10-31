@@ -181,7 +181,6 @@ func rootCmd(o *options.Options) error {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
-	var allResults []*scorecard.Result
 	// Track whether any check produced a runtime error during scans. We want to
 	// continue scanning all repos but return a non-nil error at the end so the
 	// process exit code reflects that something went wrong.
@@ -194,9 +193,7 @@ func rootCmd(o *options.Options) error {
 			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
 			continue
 		}
-		if o.Format == options.FormatCombined && res != nil {
-			allResults = append(allResults, res)
-		}
+
 		// If any checks had runtime errors, remember that fact so we can return
 		// a non-zero exit code after processing all repos.
 		for _, c := range res.Checks {
@@ -204,15 +201,6 @@ func rootCmd(o *options.Options) error {
 				sawRuntimeErr = true
 				break
 			}
-		}
-	}
-
-	// If combined output requested, render one combined table appended after
-	// all per-repo outputs.
-	if o.Format == options.FormatCombined && len(allResults) > 0 {
-		fmt.Fprintln(os.Stdout, "\nCOMBINED RESULTS\n----------------")
-		if err := scorecard.FormatCombinedResultsAll(os.Stdout, o, allResults, checkDocs, pol); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to format combined results: %v\n", err)
 		}
 	}
 
@@ -280,8 +268,8 @@ func makeRepo(uri string) (clients.Repo, error) {
 }
 
 // processRepo performs the scanning and formatting for a single repo URI.
-// It returns the Result when successful (or when combined output is requested),
-// or an error describing why the URI should be skipped.
+// It returns the Result when successful or an error describing why the URI
+// should be skipped.
 func processRepo(
 	ctx context.Context,
 	uri string,
@@ -307,8 +295,8 @@ func processRepo(
 		}
 	}
 
-	// Start banners with repo uri (show banners in default format only or combined mode)
-	if o.Format == options.FormatDefault || o.Format == options.FormatCombined {
+	// Start banners with repo uri (show banners in default format only)
+	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
 			printProbeStart(uri, enabledProbes)
 		} else {
@@ -328,24 +316,18 @@ func processRepo(
 		return result.Checks[i].Name < result.Checks[j].Name
 	})
 
-	// End banners BEFORE RESULTS (always show banners even in combined-only mode)
+	// End banners BEFORE RESULTS
 	if o.Format == options.FormatDefault {
 		if len(enabledProbes) > 0 {
 			printProbeResults(uri, enabledProbes)
 		} else {
 			printCheckResults(uri, enabledChecks)
-			// Only print the RESULTS header when not in combined mode.
-			if o.Format != options.FormatCombined {
-				fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
-			}
+			fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 		}
 	}
 
-	// RESULTS block: render per-repo result only when not in combined-only mode.
-	if o.Format != options.FormatCombined {
-		if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
-		}
+	if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
 	}
 
 	// Surface per-check runtime errors (non-fatal)

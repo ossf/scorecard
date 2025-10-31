@@ -50,7 +50,6 @@ type Options struct {
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
-	CombinedOutput  bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
@@ -86,8 +85,6 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatCombined specifies that results should be output as a single combined table for multiple repos.
-	FormatCombined = "combined"
 	// FormatInToto specifies that results should be output in an in-toto statement.
 	FormatInToto = "intoto"
 
@@ -265,7 +262,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatCombined, FormatInToto:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
 		return true
 	default:
 		return false
