@@ -1,4 +1,4 @@
-# Copyright 2022 OpenSSF Scorecard Authors
+# Copyright 2025 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,17 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+name: CI
 
-FROM golang:1.25.3@sha256:6bac879c5b77e0fc9c556a5ed8920e89dab1709bd510a854903509c828f67f96 AS base
-WORKDIR /src/scorecard
-COPY . ./
+on:
+  push:
 
-FROM base AS build
-ARG TARGETOS
-ARG TARGETARCH
-RUN make build-attestor
+jobs:
+  yaml-anchor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload coverage artifact
+        uses: &actions-upload-artifact actions/upload-artifact@v4.6.2
 
-FROM gcr.io/google-appengine/debian11@sha256:97dc4fbf18419ef928bcddb865ccf0536d4cc39ae3ace5a2b4273c11aedbea82
-COPY --from=build /src/scorecard/attestor /
-ENTRYPOINT [ "/scorecard-attestor" ]
-
+  yaml-alias:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload coverage artifact
+        uses: *actions-upload-artifact

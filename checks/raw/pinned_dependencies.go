@@ -789,7 +789,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 			}
 
-			if execAction == nil || execAction.Uses == nil {
+			if execAction == nil || execAction.Uses == nil || execAction.Uses.Value == "" {
 				// Cannot check further, continue.
 				continue
 			}
