@@ -496,7 +496,14 @@ nextRule:
 			}
 		}
 
-		for _, cond := range rule.Conditions.RefName.Include {
+		includePatterns := rule.Conditions.RefName.Include
+		if len(includePatterns) == 0 {
+			// GitHub treats an empty include list as applying to all refs unless excluded.
+			ret = append(ret, rule)
+			continue
+		}
+
+		for _, cond := range includePatterns {
 			if cond == ruleConditionAllBranches {
 				ret = append(ret, rule)
 				break
