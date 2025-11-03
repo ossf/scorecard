@@ -497,9 +497,13 @@ nextRule:
 		}
 
 		includePatterns := rule.Conditions.RefName.Include
+		excludePatterns := rule.Conditions.RefName.Exclude
 		if len(includePatterns) == 0 {
-			// GitHub treats an empty include list as applying to all refs unless excluded.
-			ret = append(ret, rule)
+			// GitHub treats an empty include list with at least one exclude as applying to all refs unless excluded.
+			// If both include and exclude are empty, the ruleset doesn't apply to any branches.
+			if len(excludePatterns) > 0 {
+				ret = append(ret, rule)
+			}
 			continue
 		}
 

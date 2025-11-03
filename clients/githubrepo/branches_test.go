@@ -48,17 +48,17 @@ func Test_rulesMatchingBranch(t *testing.T) {
 			},
 		},
 		{
-			name: "empty include applies to all branches",
+			name: "empty include and empty exclude applies to no branches",
 			condition: ruleSetCondition{
 				RefName: ruleSetConditionRefs{},
 			},
 			defaultBranchNames: map[string]bool{
-				"main": true,
-				"foo":  true,
+				"main": false,
+				"foo":  false,
 			},
 			nonDefaultBranchNames: map[string]bool{
-				"main": true,
-				"foo":  true,
+				"main": false,
+				"foo":  false,
 			},
 		},
 		{
