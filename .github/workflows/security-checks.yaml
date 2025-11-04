@@ -37,29 +37,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Setup Go from go.mod (latest patch)
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-          check-latest: true
-
-      - name: Install latest govulncheck
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Run govulncheck scanner in fs mode
         run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          go version
-          govulncheck -version
-
-      - name: Run govulncheck
-        run: govulncheck -show verbose ./... > results.txt
-
+          govulncheck -show verbose -C . ./... > ./results.txt
       - name: Inspect action report
         if: always()
-        run: cat results.txt
-
+        run: cat ./results.txt
       - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: govulncheck-fs-scan-results
-          path: results.txt
+          path: ./results.txt
