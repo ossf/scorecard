@@ -1,0 +1,12 @@
+name: Manual Release
+
+on:
+  push:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger first time
+        run: |  
+          echo "first trigger"
