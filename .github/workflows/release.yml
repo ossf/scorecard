@@ -1,12 +1,112 @@
 name: Manual Release
 
 on:
-  push:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "New release version (e.g. 1.1.6 or v1.1.6)"
+        required: true
+        type: string
+      latest:
+        description: "Mark this release as Latest?"
+        required: true
+        type: boolean
+        default: false
+      prerelease:
+        description: "Mark as pre-release?"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: "0"
+      GH_TOKEN: ${{ secrets.GH_AUTOFIX_TOKEN }}
     steps:
-      - name: trigger first time
-        run: |  
-          echo "first trigger"
+      - name: Checkout (branch that triggered the run)
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Prep vars
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          VERSION="${VERSION#v}"   # accept input with or without leading 'v'
+          TAG="v${VERSION}"
+          ASSET_OUT="cxscorecard_${VERSION}_linux_amd64.tar.gz"
+
+          # Flags for gh release create
+          if [ "${{ inputs.latest }}" = "true" ]; then
+            LATEST_FLAG="--latest"
+          else
+            LATEST_FLAG="--latest=false"
+          fi
+          if [ "${{ inputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+
+          echo "VERSION=$VERSION"         >> "$GITHUB_ENV"
+          echo "TAG=$TAG"                 >> "$GITHUB_ENV"
+          echo "ASSET_OUT=$ASSET_OUT"     >> "$GITHUB_ENV"
+          echo "LATEST_FLAG=$LATEST_FLAG" >> "$GITHUB_ENV"
+          echo "PRERELEASE_FLAG=$PRERELEASE_FLAG" >> "$GITHUB_ENV"
+          mkdir -p _prev staging dist
+
+      - name: Download README & LICENSE from latest release
+        run: |
+          set -euo pipefail
+          SRC_TAG="$(gh release view --json tagName -q .tagName)"  # always the latest release
+          echo "Using source tag (latest): ${SRC_TAG}"
+          gh release download "${SRC_TAG}" \
+            --pattern "cxscorecard_*_linux_amd64.tar.gz" \
+            --dir _prev
+          PREV_TAR="$(ls _prev/cxscorecard_*_linux_amd64.tar.gz | head -n1)"
+          tar -xzf "${PREV_TAR}" -C staging README.md LICENSE
+
+      - name: Build binary (linux/amd64)
+        run: |
+          set -euo pipefail
+          go build -o staging/scorecard-linux-amd64 main.go
+          ls -l staging
+
+      - name: Sanity check files
+        run: |
+          test -f staging/README.md
+          test -f staging/LICENSE
+          test -f staging/scorecard-linux-amd64
+
+      - name: Package tar.gz
+        run: |
+          tar -C staging -cvf "dist/cxscorecard_${VERSION}_linux_amd64.tar" \
+            scorecard-linux-amd64 README.md LICENSE
+          gzip -9 "dist/cxscorecard_${VERSION}_linux_amd64.tar"
+          ls -lh dist
+
+      - name: Create/Update GitHub Release (tag the exact commit of this run)
+        run: |
+          set -euo pipefail
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} exists — uploading asset (clobber)."
+            gh release upload "${TAG}" "dist/${ASSET_OUT}" --clobber
+          else
+            echo "Creating ${TAG} at ${GITHUB_SHA}"
+            gh release create "${TAG}" "dist/${ASSET_OUT}" \
+              --title "cxscorecard ${VERSION}" \
+              --notes "Automated release for ${VERSION}" \
+              ${LATEST_FLAG} \
+              ${PRERELEASE_FLAG} \
+              --target "${GITHUB_SHA}"
+          fi
