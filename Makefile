@@ -128,7 +128,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-webhook build-add-script build-validate-script
 
 build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
-.PHONY: build $(build-targets)
+.PHONY: build generate-java-parser $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
@@ -164,6 +164,10 @@ cmd/internal/packagemanager/packagemanager_mockclient.go: cmd/internal/packagema
 cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN)
 	# Generating MockNugetClient
 	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
+
+generate-java-parser:
+	# Generating golang source code for java parser
+	cd internal/java && antlr4 -Dlanguage=Go -package java20 -o java20 Java20Lexer.g4 Java20Parser.g4
 
 PROBE_DEFINITION_FILES = $(shell find ./probes/ -name "def.yml")
 generate-docs: ## Generates docs
