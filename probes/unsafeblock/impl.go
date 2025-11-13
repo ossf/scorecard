@@ -27,6 +27,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
+	"github.com/ossf/scorecard/v5/internal/java"
 	"github.com/ossf/scorecard/v5/internal/probes"
 )
 
@@ -51,6 +52,11 @@ var languageMemorySafeSpecs = map[clients.LanguageName]languageMemoryCheckConfig
 	clients.CSharp: {
 		funcPointer: checkDotnetAllowUnsafeBlocks,
 		Desc:        "Check if C# code uses unsafe blocks",
+	},
+
+	clients.Java: {
+		funcPointer: checkJavaUnsafeClass,
+		Desc:        "Check if Java code uses the Unsafe class",
 	},
 }
 
@@ -204,6 +210,55 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 			return false, fmt.Errorf("create finding: %w", err)
 		}
 		*findings = append(*findings, *found)
+	}
+
+	return true, nil
+}
+
+// Java
+
+func checkJavaUnsafeClass(client *checker.CheckRequest) ([]finding.Finding, error) {
+	findings := []finding.Finding{}
+	if err := fileparser.OnMatchingFileContentDo(client.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.java",
+		CaseSensitive: false,
+	}, javaCodeUsesUnsafeClass, &findings); err != nil {
+		return nil, err
+	}
+
+	return findings, nil
+}
+
+func javaCodeUsesUnsafeClass(path string, content []byte, args ...interface{}) (bool, error) {
+	findings, ok := args[0].(*[]finding.Finding)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
+	}
+	f, err := java.ParseFile(content)
+	if err != nil {
+		found, err := finding.NewWith(fs, Probe, "malformed Java file", &finding.Location{
+			Path: path,
+		}, finding.OutcomeError)
+		if err != nil {
+			return false, fmt.Errorf("create finding: %w", err)
+		}
+		*findings = append(*findings, *found)
+		return true, nil
+	}
+	// Check all type name occurrences (in imports, casts, variable declarations, etc.)
+	for _, typeName := range f.TypeNames {
+		if typeName.Name == "sun.misc.Unsafe" || typeName.Name == "jdk.internal.misc.Unsafe" {
+			lineStart := uint(typeName.Pos().GetLine())
+			found, err := finding.NewWith(fs, Probe,
+				"Java code uses the Unsafe class", &finding.Location{
+					Path: path, LineStart: &lineStart,
+				}, finding.OutcomeTrue)
+			if err != nil {
+				return false, fmt.Errorf("create finding: %w", err)
+			}
+			*findings = append(*findings, *found)
+		}
 	}
 
 	return true, nil
