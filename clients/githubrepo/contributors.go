@@ -127,8 +127,7 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 	}
 	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
-		handler.errSetup = fmt.Errorf("error during ParseFile: %w", err)
-		return
+		ruleset = nil // skipping CODEOWNERS due to parse error
 	}
 
 	// expanding owners
