@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -127,7 +128,7 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 	}
 	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
-		handler.errSetup = fmt.Errorf("error during ParseFile: %w", err)
+		log.Printf("unable to parse CODEOWNERS file: %v. Skipping...", err)
 		return
 	}
 
