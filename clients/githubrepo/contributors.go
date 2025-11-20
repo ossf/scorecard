@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -127,7 +128,8 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 	}
 	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
-		ruleset = nil // skipping CODEOWNERS due to parse error
+		log.Printf("unable to parse CODEOWNERS file: %v. Skipping...", err)
+        return
 	}
 
 	// expanding owners
