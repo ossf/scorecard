@@ -307,9 +307,18 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 		"name":          githubv4.String(handler.repourl.repo),
 		"branchRefName": githubv4.String(refPrefix + branchName),
 	}
+	// Attempt to fetch branch protection rules, which require admin permission.
+	// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 	queryData := new(branchData)
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
-		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		// always report errors which aren't token permission related
+		if !isPermissionsError(err) {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		}
+		// only report permission errors if no ruleset data
+		if len(handler.ruleSets) == 0 {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, classicBranchErrMsg)
+		}
 	}
 	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
 	if err != nil {

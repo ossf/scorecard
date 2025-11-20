@@ -129,7 +129,7 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 	ruleset, err := codeowners.ParseFile(codeOwnerFile)
 	if err != nil {
 		log.Printf("unable to parse CODEOWNERS file: %v. Skipping...", err)
-        return
+		return
 	}
 
 	// expanding owners
