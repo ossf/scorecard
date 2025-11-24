@@ -181,14 +181,14 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	// This is not an exhaustive list.
 	clients.CSharp: {
 		filePatterns: []string{"*.cs"},
-		// Look for direct imports of Fscheck and its test runner integrations.
+		// Look for direct imports of FsCheck and its test runner integrations.
 		funcPattern: `(using\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck));`,
 		Name:        fuzzers.PropertyBasedCSharp,
 		Desc:        propertyBasedDescription("C#"),
 	},
 	clients.FSharp: {
 		filePatterns: []string{"*.fs"},
-		// Look for direct imports of Fscheck and its test runner integrations.
+		// Look for direct imports of FsCheck and its test runner integrations.
 		funcPattern: `(open\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck))`,
 		Name:        fuzzers.PropertyBasedFSharp,
 		Desc:        propertyBasedDescription("F#"),
