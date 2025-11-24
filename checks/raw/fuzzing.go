@@ -170,6 +170,29 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Desc: asPointer(
 			"Fuzzed with Swift LibFuzzer"),
 	},
+	// Fuzz patterns for C# and F# based on property-based testing.
+	//
+	// Based on the import of one of these packages:
+	// * https://www.nuget.org/packages/Expecto.FsCheck
+	// * https://www.nuget.org/packages/FsCheck
+	// * https://www.nuget.org/packages/FsCheck.Nunit
+	// * https://www.nuget.org/packages/FsCheck.Xunit
+	//
+	// This is not an exhaustive list.
+	clients.CSharp: {
+		filePatterns: []string{"*.cs"},
+		// Look for direct imports of Fscheck and its test runner integrations.
+		funcPattern: `(using\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck));`,
+		Name:        fuzzers.PropertyBasedCSharp,
+		Desc:        propertyBasedDescription("C#"),
+	},
+	clients.FSharp: {
+		filePatterns: []string{"*.fs"},
+		// Look for direct imports of Fscheck and its test runner integrations.
+		funcPattern: `(open\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck))`,
+		Name:        fuzzers.PropertyBasedFSharp,
+		Desc:        propertyBasedDescription("F#"),
+	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
 

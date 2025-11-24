@@ -1,4 +1,5 @@
 # Supported Fuzzers
+
 * [LibFuzzer](https://llvm.org/docs/LibFuzzer.html)
   * Detection is based on usages of a function named `LLVMFuzzerTestOneInput` in C, C++, or Swift files.
 * [ClusterFuzzLite](https://github.com/google/clusterfuzzlite)
@@ -23,8 +24,10 @@
   * Detection based on the presence of `import atheris` in Python files.
 * [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz.html)
   * Detection based on presence of `libfuzzer_sys` in Rust files.
+* [FsCheck](https://github.com/fscheck/FsCheck)
+  * Detection based on import statements in C# and F# files.
 
-# Add Support
+## Add Support
 
-Don't see your fuzzing tool listed? 
+Don't see your fuzzing tool listed?
 Search for an existing issue, or create one, to discuss adding support.
