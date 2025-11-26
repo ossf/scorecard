@@ -31,5 +31,7 @@ const (
 	SwiftLibFuzzer          = "SwiftLibFuzzer"
 	RustCargoFuzz           = "RustCargoFuzzer"
 	JavaJazzerFuzzer        = "JavaJazzerFuzzer"
+	PropertyBasedCSharp     = "CSharpPropertyBasedTesting"
+	PropertyBasedFSharp     = "FSharpPropertyBasedTesting"
 	// TODO: add more fuzzing check supports.
 )
