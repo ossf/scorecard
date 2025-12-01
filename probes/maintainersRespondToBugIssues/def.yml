@@ -16,16 +16,31 @@ id: maintainersRespondToBugIssues
 lifecycle: beta
 short: Checks if maintainers respond to issues labeled 'bug' or 'security' within 180 days
 motivation: >
-  Timely maintainer response to security and bug reports indicates active maintenance 
+  Timely maintainer response to security and bug reports indicates active maintenance
   and commitment to addressing potential vulnerabilities and defects.
 implementation: >
   Reads RawResults.MaintainerResponseResults containing issue label intervals and maintainer responses.
   For each issue that was ever labeled 'bug' or 'security', checks if a maintainer comment
   occurred within 180 days of the label being applied.
 outcome:
-  - OutcomeTrue: Issue received maintainer response within 180 days
-  - OutcomeFalse: Issue exceeded 180 days with 'bug' or 'security' label without maintainer response
-  - OutcomeNotApplicable: Issue never had 'bug' or 'security' labels
+  - If an issue received maintainer response within 180 days, one finding with OutcomeTrue is returned.
+  - If an issue exceeded 180 days with 'bug' or 'security' label without maintainer response, one finding with OutcomeFalse is returned.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Monitor your issue tracker regularly for new bug and security reports.
+    - Set up notifications for issues labeled 'bug' or 'security'.
+    - Aim to acknowledge bug reports within 180 days, even if a full fix requires more time.
+    - Consider creating issue templates that guide users to provide necessary information.
+  markdown:
+    - Monitor your issue tracker regularly for new bug and security reports.
+    - Set up notifications for issues labeled `bug` or `security`.
+    - Aim to acknowledge bug reports within 180 days, even if a full fix requires more time.
+    - Consider creating [issue templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository) that guide users to provide necessary information.
 ecosystem:
-  languages: [all]
-  clients: [github, gitlab]
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
