@@ -27,6 +27,17 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
+// isTrackedLabel checks if a label name is in the TrackedIssueLabels list.
+func isTrackedLabel(name string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(name))
+	for _, label := range clients.TrackedIssueLabels {
+		if normalized == label {
+			return true
+		}
+	}
+	return false
+}
+
 // issuesHandler fetches and caches basic issue metadata for a project.
 type issuesHandler struct {
 	errSetup        error
@@ -225,7 +236,7 @@ func (h *issuesHandler) getIssuesWithHistory() ([]clients.Issue, error) {
 					continue
 				}
 				name := strings.ToLower(ev.Label.Name)
-				if name != "bug" && name != "security" {
+				if !isTrackedLabel(name) {
 					continue
 				}
 				switch ev.Action {
