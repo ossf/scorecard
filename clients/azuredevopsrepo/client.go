@@ -187,6 +187,10 @@ func (c *Client) ListIssues() ([]clients.Issue, error) {
 	return c.workItems.listIssues()
 }
 
+func (c *Client) ListIssuesWithHistory() ([]clients.Issue, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
 // Azure DevOps doesn't have a license detection feature.
 // Thankfully, the License check falls back to file-based detection.
 func (c *Client) ListLicenses() ([]clients.License, error) {

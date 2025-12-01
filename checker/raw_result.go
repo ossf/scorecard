@@ -48,6 +48,7 @@ type RawResults struct {
 	TokenPermissionsResults     TokenPermissionsData
 	VulnerabilitiesResults      VulnerabilitiesData
 	WebhookResults              WebhooksData
+	MaintainerResponseResults   IssueResponseData
 }
 
 type MetadataData struct {
@@ -300,6 +301,36 @@ type SASTWorkflow struct {
 // for the Security-Policy check.
 type SecurityPolicyData struct {
 	PolicyFiles []SecurityPolicyFile
+}
+
+// IssueResponseLag captures the per-issue state used by the
+// "MaintainersRespondToBugSecurityIssues" check. It is derived
+// from platform-agnostic client data (GitHub/GitLab) during the
+// raw collection stage.
+type IssueResponseLag struct {
+	FirstMaintainerCommentAt      *time.Time
+	IssueURL                      string
+	HadLabelIntervals             []LabelInterval
+	IssueNumber                   int
+	OpenDays                      int
+	Open                          bool
+	CurrentlyLabeledBugOrSecurity bool
+}
+
+// LabelInterval represents one continuous span during which a specific
+// label ("bug" or "security") was present on an issue.
+type LabelInterval struct {
+	Start               time.Time
+	End                 time.Time
+	ResponseAt          *time.Time
+	Label               string
+	DurationDays        int
+	MaintainerResponded bool
+}
+
+// IssueResponseData aggregates all per-issue results for a repository.
+type IssueResponseData struct {
+	Items []IssueResponseLag
 }
 
 // BinaryArtifactData contains the raw results

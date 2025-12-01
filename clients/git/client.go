@@ -341,6 +341,10 @@ func (c *Client) ListIssues() ([]clients.Issue, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+func (c *Client) ListIssuesWithHistory() ([]clients.Issue, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListLicenses() ([]clients.License, error) {
 	return nil, clients.ErrUnsupportedFeature
 }

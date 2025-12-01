@@ -45,8 +45,8 @@ type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *Repo
-	repo          *github.Repository
+	ctx           context.Context
+	search        *searchHandler
 	repoClient    *github.Client
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
@@ -54,14 +54,15 @@ type Client struct {
 	releases      *releasesHandler
 	workflows     *workflowsHandler
 	checkruns     *checkrunsHandler
+	repourl       *Repo
 	statuses      *statusesHandler
-	search        *searchHandler
-	searchCommits *searchCommitsHandler
-	webhook       *webhookHandler
 	languages     *languagesHandler
+	webhook       *webhookHandler
+	searchCommits *searchCommitsHandler
 	licenses      *licensesHandler
 	git           *gitfile.Handler
-	ctx           context.Context
+	repo          *github.Repository
+	issues        *issuesHandler
 	tarball       tarballHandler
 	commitDepth   int
 	gitMode       bool
@@ -157,7 +158,14 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
 
+	// Setup issuesHandler.
+	client.issues.init(client.ctx, client.repourl)
+
 	return nil
+}
+
+func (client *Client) ListIssuesWithHistory() ([]clients.Issue, error) {
+	return client.issues.listIssuesWithHistory()
 }
 
 // URI implements RepoClient.URI.
@@ -413,6 +421,10 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		},
 		searchCommits: &searchCommitsHandler{
 			ghClient: client,
+		},
+		issues: &issuesHandler{
+			ghClient:    client,
+			graphClient: graphClient,
 		},
 		webhook: &webhookHandler{
 			ghClient: client,

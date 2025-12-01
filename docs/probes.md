@@ -382,6 +382,20 @@ If collaborators, members or owners have NOT participated in issues in the last 
 The probe returns 1 true outcome if the project has no workflows "write" permissions a the "job" level.
 
 
+## maintainersRespondToBugIssues
+
+**Lifecycle**: experimental
+
+**Description**: Checks if maintainers respond to issues labeled 'bug' or 'security' within 180 days
+
+**Motivation**: Timely maintainer response to security and bug reports indicates active maintenance and commitment to addressing potential vulnerabilities and defects.
+
+**Implementation**: Reads RawResults.MaintainerResponseResults containing issue label intervals and maintainer responses. For each issue that was ever labeled 'bug' or 'security', checks if a maintainer comment occurred within 180 days of the label being applied.
+
+**Outcomes**: If an issue received maintainer response within 180 days, one finding with OutcomeTrue is returned.
+If an issue exceeded 180 days with 'bug' or 'security' label without maintainer response, one finding with OutcomeFalse is returned.
+
+
 ## packagedWithAutomatedWorkflow
 
 **Lifecycle**: stable
