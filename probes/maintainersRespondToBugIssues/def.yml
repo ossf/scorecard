@@ -13,7 +13,7 @@
 # limitations under the License.
 
 id: maintainersRespondToBugIssues
-lifecycle: beta
+lifecycle: experimental
 short: Checks if maintainers respond to issues labeled 'bug' or 'security' within 180 days
 motivation: >
   Timely maintainer response to security and bug reports indicates active maintenance
