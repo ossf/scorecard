@@ -17,6 +17,9 @@ package probes
 import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/MTTUDependenciesIsHigh"
+	"github.com/ossf/scorecard/v5/probes/MTTUDependenciesIsLow"
+	"github.com/ossf/scorecard/v5/probes/MTTUDependenciesIsVeryLow"
 	"github.com/ossf/scorecard/v5/probes/archived"
 	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v5/probes/blocksForcePushOnBranches"
@@ -88,6 +91,11 @@ var (
 	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		dependencyUpdateToolConfigured.Run,
+	}
+	MTTUDependencies = []ProbeImpl{
+		MTTUDependenciesIsHigh.Run,
+		MTTUDependenciesIsLow.Run,
+		MTTUDependenciesIsVeryLow.Run,
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzed.Run,

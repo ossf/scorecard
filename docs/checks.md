@@ -397,6 +397,33 @@ License Requirements:
 - For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
 - Alternately, create a `LICENSES` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
 
+## MTTUDependencies 
+
+Risk: `Medium` (dependencies with known vulnerabilities or lacking recent updates)
+
+This check calculates the Mean Time To Update (MTTU) for the project's direct
+dependencies. For each dependency, it measures the time elapsed since the oldest
+newer version was released (not the latest version). This provides a fair assessment
+of how quickly the project updates dependencies after new versions become available.
+
+The check uses osv-scalibr to discover direct dependencies (excluding transitive
+dependencies) and queries the deps.dev API to determine version history. Dependencies
+already on the latest stable version contribute zero to the mean. Pseudo-versions
+(unreleased development versions like v1.2.3-0.20240101120000-abc123def) are
+filtered out to ensure fair comparison against released versions only.
+
+Scoring:
+  - Mean MTTU < 3 months: Score 10 (dependencies are updated promptly)
+  - Mean MTTU 3-6 months: Score 5 (moderate update lag)
+  - Mean MTTU >= 6 months: Score 0 (significant update delays)
+ 
+
+**Remediation steps**
+- Update dependencies regularly to reduce the mean time to update.
+- Use a dependency update tool like Dependabot or Renovate to automatically receive notifications when new versions are available.
+- Review the changelog of newer versions to understand what improvements and security fixes are available.
+- Establish a regular dependency update cadence (e.g., weekly or monthly reviews).
+
 ## Maintained 
 
 Risk: `High` (possibly unpatched vulnerabilities)

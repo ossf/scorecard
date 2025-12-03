@@ -5,6 +5,48 @@ This page describes each Scorecard probe in detail, including description, motiv
 and outcomes. If you have ideas for additions or new detection techniques,
 please [contribute](../CONTRIBUTING.md)!
 
+## MTTUDependenciesIsHigh
+
+**Lifecycle**: experimental
+
+**Description**: Mean time since the oldest newer dependency release is high (≥ 6 months).
+
+**Motivation**: Highly stale dependencies significantly increase security and operational risks. Long delays in updating dependencies make it more likely to miss critical security fixes and complicate incident response.
+
+**Implementation**: The probe computes, for each declared dependency, the time elapsed since the oldest release newer than the version used by the project. Dependencies already on the latest version contribute zero. Pseudo-versions (unreleased development versions) are filtered out to ensure fair comparison. It then takes the mean across all dependencies. If the mean is ≥ 180 days (6 months), the probe returns OutcomeTrue; otherwise OutcomeFalse.
+
+**Outcomes**: OutcomeTrue when the mean time is ≥ 180 days (6 months).
+OutcomeFalse when the mean time is < 180 days.
+
+
+## MTTUDependenciesIsLow
+
+**Lifecycle**: experimental
+
+**Description**: Mean time since the oldest newer dependency release is moderate (3-6 months).
+
+**Motivation**: Moderately stale dependencies increase operational and security risk over time. Keeping the mean time within a few months is better than large backlogs, but further improvement reduces exposure to vulnerabilities and incompatibilities.
+
+**Implementation**: The probe computes, for each declared dependency, the time elapsed since the oldest release newer than the version used by the project. Dependencies already on the latest version contribute zero. Pseudo-versions (unreleased development versions) are filtered out to ensure fair comparison. It then takes the mean across all dependencies. If the mean is ≥ 90 days (3 months) and < 180 days (6 months), the probe returns OutcomeTrue; otherwise OutcomeFalse.
+
+**Outcomes**: OutcomeTrue when 90 days ≤ mean time < 180 days (3-6 months).
+OutcomeFalse when mean time < 90 days or ≥ 180 days.
+
+
+## MTTUDependenciesIsVeryLow
+
+**Lifecycle**: experimental
+
+**Description**: Mean time since the oldest newer dependency release is very low (< 3 months).
+
+**Motivation**: Keeping dependencies fresh reduces exposure to known vulnerabilities and supply-chain risk, and makes it easier to adopt security fixes quickly. A very low mean time indicates that the project updates promptly when newer releases are available.
+
+**Implementation**: The probe computes, for each declared dependency, the time elapsed since the oldest release newer than the version used by the project. Dependencies already on the latest version contribute zero. Pseudo-versions (unreleased development versions) are filtered out to ensure fair comparison. It then takes the mean across all dependencies. If the mean is less than 90 days (3 months), the probe returns OutcomeTrue; otherwise OutcomeFalse.
+
+**Outcomes**: OutcomeTrue when the mean time is < 90 days (3 months).
+OutcomeFalse when the mean time is >= 90 days.
+
+
 ## archived
 
 **Lifecycle**: stable

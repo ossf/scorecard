@@ -27,6 +27,7 @@ import (
 // This interface lets Scorecard look up package manager metadata for a project.
 type ProjectPackageClient interface {
 	GetProjectPackageVersions(ctx context.Context, host, project string) (*ProjectPackageVersions, error)
+	GetPackage(ctx context.Context, systemName, packageName string) (*Package, error)
 }
 
 type depsDevClient struct {
@@ -34,27 +35,53 @@ type depsDevClient struct {
 }
 
 type ProjectPackageVersions struct {
-	// field alignment
-	//nolint:govet
-	Versions []struct {
-		VersionKey struct {
-			System  string `json:"system"`
-			Name    string `json:"name"`
-			Version string `json:"version"`
-		} `json:"versionKey"`
-		SLSAProvenances []struct {
-			SourceRepository string `json:"sourceRepository"`
-			Commit           string `json:"commit"`
-			Verified         bool   `json:"verified"`
-		} `json:"slsaProvenances"`
-		RelationType       string `json:"relationType"`
-		RelationProvenance string `json:"relationProvenance"`
-	} `json:"versions"`
+	Versions []Version `json:"versions"`
+}
+
+type Package struct {
+	PackageKey PackageKey `json:"packageKey"`
+	Purl       string     `json:"purl"`
+	Versions   []Version  `json:"versions"`
+}
+
+type PackageKey struct {
+	PackageSystem string `json:"system"`
+	PackageName   string `json:"name"`
+}
+
+type VersionKey struct {
+	System          string           `json:"system"`
+	Name            string           `json:"name"`
+	Version         string           `json:"version"`
+	SLSAProvenances []SLSAProvenance `json:"slsaProvenances"`
+}
+
+type SLSAProvenance struct {
+	SourceRepository string `json:"sourceRepository"`
+	Commit           string `json:"commit"`
+	Verified         bool   `json:"verified"`
+}
+
+type Version struct {
+	RelationType       string           `json:"relationType"`
+	RelationProvenance string           `json:"relationProvenance"`
+	Purl               string           `json:"purl"`
+	PublishedAt        string           `json:"publishedAt"`
+	VersionKey         VersionKey       `json:"versionKey"`
+	SLSAProvenances    []SLSAProvenance `json:"slsaProvenances"`
+	IsDefault          bool             `json:"isDefault"`
+	IsDeprecated       bool             `json:"isDeprecated"`
 }
 
 func CreateDepsDevClient() ProjectPackageClient {
 	return depsDevClient{
 		client: &http.Client{},
+	}
+}
+
+func NewClient(c *http.Client) ProjectPackageClient {
+	return depsDevClient{
+		client: c,
 	}
 }
 
@@ -81,6 +108,42 @@ func (d depsDevClient) GetProjectPackageVersions(
 	defer resp.Body.Close()
 
 	var res ProjectPackageVersions
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, ErrProjNotFoundInDepsDev
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: %s", ErrDepsDevAPI, resp.Status)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("resp.Body.Read: %w", err)
+	}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev json.Unmarshal: %w", err)
+	}
+
+	return &res, nil
+}
+
+func (d depsDevClient) GetPackage(ctx context.Context, systemName, packageName string) (*Package, error) {
+	query := fmt.Sprintf("https://api.deps.dev/v3alpha/systems/%s/packages/%s", systemName, url.PathEscape(packageName))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, query, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+
+	resp, err := d.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("deps.dev GetPackage: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var res Package
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, ErrProjNotFoundInDepsDev
 	}

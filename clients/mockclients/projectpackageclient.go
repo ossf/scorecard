@@ -61,5 +61,21 @@ func (m *MockProjectPackageClient) GetProjectPackageVersions(ctx context.Context
 // GetProjectPackageVersions indicates an expected call of GetProjectPackageVersions.
 func (mr *MockProjectPackageClientMockRecorder) GetProjectPackageVersions(ctx, host, project interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectPackageVersions", reflect.TypeOf((*MockProjectPackageClient)(nil).GetProjectPackageVersions), ctx, host, project)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProjectPackageVersions", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackage), ctx, host, project)
+}
+
+
+// GetPackage mocks base method.
+func (m *MockProjectPackageClient) GetPackage(ctx context.Context, host, project string) (*packageclient.Package, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPackage", ctx, host, project)
+	ret0, _ := ret[0].(*packageclient.Package)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPackage indicates an expected call of GetPackage.
+func (mr *MockProjectPackageClientMockRecorder) GetPackage(ctx, host, project interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPackage", reflect.TypeOf((*MockProjectPackageClient)(nil).GetPackage), ctx, host, project)
 }

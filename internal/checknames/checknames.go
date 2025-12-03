@@ -29,6 +29,7 @@ const (
 	Fuzzing              CheckName = "Fuzzing"
 	License              CheckName = "License"
 	Maintained           CheckName = "Maintained"
+	MTTUDependencies     CheckName = "MTTUDependencies"
 	Packaging            CheckName = "Packaging"
 	PinnedDependencies   CheckName = "Pinned-Dependencies"
 	SAST                 CheckName = "SAST"
@@ -52,6 +53,7 @@ var AllValidChecks []string = []string{
 	Fuzzing,
 	License,
 	Maintained,
+	MTTUDependencies,
 	Packaging,
 	PinnedDependencies,
 	SAST,

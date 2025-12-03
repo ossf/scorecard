@@ -1,0 +1,36 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: MTTUDependenciesIsLow
+lifecycle: experimental
+short: Mean time since the oldest newer dependency release is moderate (3-6 months).
+motivation: >
+  Moderately stale dependencies increase operational and security risk over time. Keeping the mean time
+  within a few months is better than large backlogs, but further improvement reduces exposure
+  to vulnerabilities and incompatibilities.
+implementation: >
+  The probe computes, for each declared dependency, the time elapsed since the oldest release newer than
+  the version used by the project. Dependencies already on the latest version contribute zero. Pseudo-versions
+  (unreleased development versions) are filtered out to ensure fair comparison. It then takes the mean
+  across all dependencies. If the mean is ≥ 90 days (3 months) and < 180 days (6 months), the probe returns
+  OutcomeTrue; otherwise OutcomeFalse.
+outcome:
+  - OutcomeTrue when 90 days ≤ mean time < 180 days (3-6 months).
+  - OutcomeFalse when mean time < 90 days or ≥ 180 days.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Schedule regular dependency updates (e.g., weekly or monthly) and use tools like Dependabot or Renovate to reduce backlog.
+    - Prioritize security-related updates and plan upgrade sprints for major version updates.

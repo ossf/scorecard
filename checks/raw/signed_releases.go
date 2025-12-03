@@ -39,6 +39,7 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 		}, nil
 	}
 
+	//nolint:gocritic // rangeValCopy: Existing code pattern, outside MTTUDependencies scope
 	for _, v := range versions.Versions {
 		prov := checker.PackageProvenance{}
 
