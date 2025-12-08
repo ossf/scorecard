@@ -43,7 +43,7 @@ jobs:
      - name: Clone the code
        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -121,7 +121,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v2.2.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -149,7 +149,7 @@ jobs:
      - name: Clone the code
        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -186,7 +186,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v2.2.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -239,7 +239,7 @@ jobs:
      - name: Clone the code
        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -281,7 +281,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v2.2.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -308,7 +308,7 @@ jobs:
      - name: Clone the code
        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -344,7 +344,7 @@ jobs:
        with:
           fetch-depth: 0
      - name: Setup Go
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v2.2.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v2.2.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
@@ -370,7 +370,7 @@ jobs:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v2.2.0
+      - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v2.2.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
