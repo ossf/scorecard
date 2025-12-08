@@ -23,4 +23,3 @@ jobs:
     steps:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
-        run: echo "write-and-read workflow"
