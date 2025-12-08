@@ -231,13 +231,13 @@ Language: You must have GoLang installed to run Scorecard
 `scorecard` is available as a Docker container:
 
 ```shell
-docker pull gcr.io/openssf/scorecard:stable
+docker pull ghcr.io/ossf/scorecard:latest
 ```
 
 To use a specific scorecard version (e.g., v3.2.1), run:
 
 ```shell
-docker pull gcr.io/openssf/scorecard:v3.2.1
+docker pull ghcr.io/ossf/scorecard:v3.2.1
 ```
 
 ##### Standalone
@@ -410,13 +410,13 @@ Check scores:
 The `GITHUB_AUTH_TOKEN` has to be set to a valid [token](#Authentication)
 
 ```shell
-docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:stable --show-details --repo=https://github.com/ossf/scorecard
+docker run -e GITHUB_AUTH_TOKEN=token ghcr.io/ossf/scorecard:latest --show-details --repo=https://github.com/ossf/scorecard
 ```
 
 To use a specific scorecard version (e.g., v3.2.1), run:
 
 ```shell
-docker run -e GITHUB_AUTH_TOKEN=token gcr.io/openssf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
+docker run -e GITHUB_AUTH_TOKEN=token ghcr.io/ossf/scorecard:v3.2.1 --show-details --repo=https://github.com/ossf/scorecard
 ```
 
 ##### Showing Detailed Results

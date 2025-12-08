@@ -383,10 +383,10 @@ $(KOCACHE_PATH):
 
 scorecard-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
-			   KO_DOCKER_REPO=${KO_PREFIX}/${IMAGE_NAME}
+			   KO_DOCKER_REPO=ghcr.io/ossf/scorecard \
 			   LDFLAGS="$(LDFLAGS)" \
 			   KO_CACHE=$(KOCACHE_PATH) \
-			   $(KO) build -B \
+			   $(KO) build --bare \
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \
