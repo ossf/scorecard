@@ -22,6 +22,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	gitlab "gitlab.com/gitlab-org/api/client-go"
@@ -31,8 +32,12 @@ import (
 )
 
 var (
-	_                clients.RepoClient = &Client{}
-	errInputRepoType                    = errors.New("input repo should be of type repoURL")
+	_                    clients.RepoClient = &Client{}
+	errInputRepoType                        = errors.New("input repo should be of type repoURL")
+	errRepoAccess                           = errors.New("repo inaccessible")
+	errClientNotInit                        = errors.New("client, glClient, or repourl not initialized")
+	errEmptyTagName                         = errors.New("empty tag name")
+	errMissingWebURLPath                    = errors.New("missing WebURL or project Path")
 )
 
 type Client struct {
@@ -59,9 +64,6 @@ type Client struct {
 	commitDepth   int
 }
 
-var errRepoAccess = errors.New("repo inaccessible")
-
-// Raise an error if repository access level is private or disabled.
 func checkRepoInaccessible(repo *gitlab.Project) error {
 	if repo.RepositoryAccessLevel == gitlab.DisabledAccessControl {
 		return fmt.Errorf("%w: %s access level %s",
@@ -340,4 +342,33 @@ func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clien
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
+}
+
+// ReleaseTarballURL returns the tarball URL for a given release tag.
+// Example: https://gitlab.com/OWNER/REPO/-/archive/v1.0.0/REPO-v1.0.0.tar.gz
+func (client *Client) ReleaseTarballURL(tag string) (string, error) {
+	if client == nil || client.glClient == nil || client.repourl == nil {
+		return "", errClientNotInit
+	}
+	if strings.TrimSpace(tag) == "" {
+		return "", errEmptyTagName
+	}
+
+	// Fetch project metadata using the project ID we already have on repourl.
+	// This avoids depending on private struct fields like fullPath/repo.
+	project, _, err := client.glClient.Projects.GetProject(client.repourl.projectID, &gitlab.GetProjectOptions{})
+	if err != nil || project == nil {
+		return "", fmt.Errorf("gitlabrepo: Projects.GetProject(%v): %w", client.repourl.projectID, err)
+	}
+
+	webURL := strings.TrimSuffix(strings.TrimSpace(project.WebURL), "/")
+	name := strings.TrimSpace(project.Path) // short repo name
+	if webURL == "" || name == "" {
+		return "", errMissingWebURLPath
+	}
+
+	// GitLab archive URL format:
+	// {webURL}/-/archive/{tag}/{repoName}-{tag}.tar.gz
+	url := fmt.Sprintf("%s/-/archive/%s/%s-%s.tar.gz", webURL, tag, name, tag)
+	return url, nil
 }

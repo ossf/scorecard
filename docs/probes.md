@@ -426,6 +426,20 @@ For each of the last 5 releases, the probe returns OutcomeFalse, if the release 
 If the project has no releases, the probe returns OutcomeNotApplicable.
 
 
+## releasesDirectDepsAreVulnFree
+
+**Lifecycle**: stable
+
+**Description**: Check that project releases do not have known vulnerabilities in their direct dependencies.
+
+**Motivation**: Releases with vulnerable direct dependencies expose users to known security issues.  Users who install a specific release version should not be exposed to dependencies with known vulnerabilities at the time of release. Ensuring that releases are free from vulnerable dependencies protects the security of downstream users and maintains the project's reputation for security best practices.
+
+**Implementation**: This probe examines up to the 10 most recent releases of a project. For each release, the probe checks whether any of its direct dependencies had known vulnerabilities at the time the release was published. Only vulnerabilities that were publicly disclosed before or at the release date are considered—vulnerabilities discovered later are not counted against the release. The probe emits one finding per release.
+
+**Outcomes**: The probe returns OutcomeTrue for each release that had zero known vulnerabilities in its direct dependencies at the time of release.
+The probe returns OutcomeFalse for each release that had at least one known vulnerability in its direct dependencies at the time of release. The finding message includes details about vulnerable dependencies.
+
+
 ## releasesHaveProvenance
 
 **Lifecycle**: stable

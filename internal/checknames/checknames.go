@@ -18,26 +18,27 @@ type CheckName = string
 
 // Redefining check names here to avoid circular imports.
 const (
-	BinaryArtifacts      CheckName = "Binary-Artifacts"
-	BranchProtection     CheckName = "Branch-Protection"
-	CIIBestPractices     CheckName = "CII-Best-Practices"
-	CITests              CheckName = "CI-Tests"
-	CodeReview           CheckName = "Code-Review"
-	Contributors         CheckName = "Contributors"
-	DangerousWorkflow    CheckName = "Dangerous-Workflow"
-	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
-	Fuzzing              CheckName = "Fuzzing"
-	License              CheckName = "License"
-	Maintained           CheckName = "Maintained"
-	Packaging            CheckName = "Packaging"
-	PinnedDependencies   CheckName = "Pinned-Dependencies"
-	SAST                 CheckName = "SAST"
-	SBOM                 CheckName = "SBOM"
-	SecurityPolicy       CheckName = "Security-Policy"
-	SignedReleases       CheckName = "Signed-Releases"
-	TokenPermissions     CheckName = "Token-Permissions"
-	Vulnerabilities      CheckName = "Vulnerabilities"
-	Webhooks             CheckName = "Webhooks"
+	BinaryArtifacts            CheckName = "Binary-Artifacts"
+	BranchProtection           CheckName = "Branch-Protection"
+	CIIBestPractices           CheckName = "CII-Best-Practices"
+	CITests                    CheckName = "CI-Tests"
+	CodeReview                 CheckName = "Code-Review"
+	Contributors               CheckName = "Contributors"
+	DangerousWorkflow          CheckName = "Dangerous-Workflow"
+	DependencyUpdateTool       CheckName = "Dependency-Update-Tool"
+	Fuzzing                    CheckName = "Fuzzing"
+	License                    CheckName = "License"
+	Maintained                 CheckName = "Maintained"
+	Packaging                  CheckName = "Packaging"
+	PinnedDependencies         CheckName = "Pinned-Dependencies"
+	SAST                       CheckName = "SAST"
+	SBOM                       CheckName = "SBOM"
+	SecurityPolicy             CheckName = "Security-Policy"
+	SignedReleases             CheckName = "Signed-Releases"
+	TokenPermissions           CheckName = "Token-Permissions"
+	Vulnerabilities            CheckName = "Vulnerabilities"
+	Webhooks                   CheckName = "Webhooks"
+	ReleasesDirectDepsVulnFree CheckName = "ReleasesDirectDepsVulnFree"
 )
 
 var AllValidChecks []string = []string{
@@ -61,4 +62,5 @@ var AllValidChecks []string = []string{
 	TokenPermissions,
 	Vulnerabilities,
 	Webhooks,
+	ReleasesDirectDepsVulnFree,
 }
