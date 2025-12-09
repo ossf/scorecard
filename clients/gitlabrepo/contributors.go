@@ -56,7 +56,7 @@ func (handler *contributorsHandler) retrieveContributors(project string) ([]*git
 			project,
 			&gitlab.ListContributorsOptions{
 				ListOptions: gitlab.ListOptions{
-					Page:    i,
+					Page:    int64(i),
 					PerPage: 100,
 				},
 			},
@@ -129,8 +129,8 @@ func (handler *contributorsHandler) setup() error {
 			contributor := clients.User{
 				Login:            contrib.Email,
 				Companies:        []string{user.Organization},
-				NumContributions: contrib.Commits,
-				ID:               int64(user.ID),
+				NumContributions: int(contrib.Commits),
+				ID:               user.ID,
 				IsBot:            user.Bot,
 			}
 			handler.contributors = append(handler.contributors, contributor)

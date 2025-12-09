@@ -47,7 +47,7 @@ func (handler *commitsHandler) setup() error {
 		var commits []*gitlab.Commit
 		opt := gitlab.ListOptions{
 			Page:    1,
-			PerPage: handler.commitDepth,
+			PerPage: int64(handler.commitDepth),
 		}
 
 		for {
