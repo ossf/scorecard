@@ -217,6 +217,10 @@ func (c *client) ListIssues() ([]clients.Issue, error) {
 	return nil, fmt.Errorf("ListIssues: %w", clients.ErrUnsupportedFeature)
 }
 
+func (c *client) ListIssuesWithHistory() ([]clients.Issue, error) {
+	return nil, clients.ErrUnsupportedFeature
+}
+
 // ListReleases implements RepoClient.ListReleases.
 func (c *client) ListReleases() ([]clients.Release, error) {
 	return nil, fmt.Errorf("ListReleases: %w", clients.ErrUnsupportedFeature)

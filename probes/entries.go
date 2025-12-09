@@ -44,6 +44,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
+	"github.com/ossf/scorecard/v5/probes/maintainersRespondToBugIssues"
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
@@ -177,6 +178,10 @@ var (
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
 	}
+
+	MaintainersRespondToBugIssues = []ProbeImpl{
+		maintainersRespondToBugIssues.Run,
+	}
 )
 
 //nolint:gochecknoinits
@@ -199,6 +204,7 @@ func init() {
 		Uncategorized,
 		Vulnerabilities,
 		Webhook,
+		MaintainersRespondToBugIssues,
 	})
 }
 

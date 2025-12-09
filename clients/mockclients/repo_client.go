@@ -266,6 +266,21 @@ func (mr *MockRepoClientMockRecorder) ListIssues() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssues", reflect.TypeOf((*MockRepoClient)(nil).ListIssues))
 }
 
+// ListIssues mocks base method.
+func (m *MockRepoClient) ListIssuesWithHistory() ([]clients.Issue, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIssuesWithHistory")
+	ret0, _ := ret[0].([]clients.Issue)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIssues indicates an expected call of ListIssues.
+func (mr *MockRepoClientMockRecorder) ListIssuesWithHistory() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIssuesWithHistory", reflect.TypeOf((*MockRepoClient)(nil).ListIssuesWithHistory))
+}
+
 // ListLicenses mocks base method.
 func (m *MockRepoClient) ListLicenses() ([]clients.License, error) {
 	m.ctrl.T.Helper()

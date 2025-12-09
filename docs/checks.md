@@ -425,6 +425,39 @@ are as expected.
 **Remediation steps**
 - There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.
 
+## Maintainer-Response-BugSecurity 
+
+Risk: `Medium` (delayed responses to security issues can leave vulnerabilities unaddressed)
+
+This check evaluates whether project maintainers respond to issues labeled as "bug" or 
+"security" within 180 days. A response is defined as any of the following actions:
+- A comment on the issue
+- Removal of the bug/security label (indicating triage)
+- Closing the issue
+
+The check examines all issues that have been labeled "bug" or "security" at any point.
+For each label interval (the time between when a label is added and removed, or until now 
+if still present), it checks whether any reaction occurred.
+
+Projects score based on the percentage of evaluated issues that exceeded 180 days without 
+any maintainer response:
+- >40% violations: Score 0
+- 20-40% violations: Score 5
+- <20% violations: Score 10
+
+Issues that never had bug or security labels are excluded from evaluation. A timely 
+response to security and bug reports indicates active maintenance and commitment to 
+addressing vulnerabilities and defects.
+ 
+
+**Remediation steps**
+- Establish a clear process for triaging and responding to issues labeled as "bug" or "security".
+- Set up notifications to alert maintainers when security or bug issues are reported.
+- Respond to security issues within a reasonable timeframe, even if only to acknowledge  receipt and provide a timeline for investigation.
+- Consider using GitHub/GitLab issue templates to ensure security reports contain  necessary information.
+- If an issue is not actually a bug or security concern, remove the label and explain why.
+- For valid reports, provide updates even if a fix is not immediately available.
+
 ## Packaging 
 
 Risk: `Medium` (users possibly missing security updates)
