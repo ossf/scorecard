@@ -381,3 +381,7 @@ func (c *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.
 func (c *Client) LocalPath() (string, error) {
 	return c.tempDir, nil
 }
+
+func (client *Client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	return clients.SecretScanningSignals{}, fmt.Errorf("GetSecretScanningSignals: %w", clients.ErrUnsupportedFeature)
+}

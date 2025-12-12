@@ -33,6 +33,11 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
+	ghpp "github.com/ossf/scorecard/v5/probes/hasGitHubPushProtectionEnabled"
+	ghe "github.com/ossf/scorecard/v5/probes/hasGitHubSecretScanningEnabled"
+	glpd "github.com/ossf/scorecard/v5/probes/hasGitLabPipelineSecretDetection"
+	glpr "github.com/ossf/scorecard/v5/probes/hasGitLabPushRulesPreventSecrets"
+	glspp "github.com/ossf/scorecard/v5/probes/hasGitLabSecretPushProtection"
 	"github.com/ossf/scorecard/v5/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v5/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
@@ -41,6 +46,13 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v5/probes/hasReleaseSBOM"
 	"github.com/ossf/scorecard/v5/probes/hasSBOM"
+	tpds "github.com/ossf/scorecard/v5/probes/hasThirdPartyDetectSecrets"
+	tpggh "github.com/ossf/scorecard/v5/probes/hasThirdPartyGGShield"
+	tpgs "github.com/ossf/scorecard/v5/probes/hasThirdPartyGitSecrets"
+	tpgl "github.com/ossf/scorecard/v5/probes/hasThirdPartyGitleaks"
+	tprs "github.com/ossf/scorecard/v5/probes/hasThirdPartyRepoSupervisor"
+	tpsh "github.com/ossf/scorecard/v5/probes/hasThirdPartyShhGit"
+	tpth "github.com/ossf/scorecard/v5/probes/hasThirdPartyTruffleHog"
 	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
@@ -176,6 +188,21 @@ var (
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
+	}
+
+	SecretScanning = []ProbeImpl{
+		ghe.Run,
+		ghpp.Run,
+		glpd.Run,
+		glspp.Run,
+		glpr.Run,
+		tpgl.Run,
+		tpth.Run,
+		tpds.Run,
+		tpgs.Run,
+		tpggh.Run,
+		tpsh.Run,
+		tprs.Run,
 	}
 )
 
