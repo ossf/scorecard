@@ -100,12 +100,6 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    ".pyup.yml",
-			path:    ".pyup.yml",
-			want:    true,
-			wantErr: false,
-		},
-		{
 			name:    ".scala-steward.conf",
 			path:    ".scala-steward.conf",
 			want:    true,

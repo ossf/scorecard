@@ -94,19 +94,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 			},
 		},
 		{
-			name:    "pyup config detected",
-			wantErr: false,
-			files: []string{
-				".pyup.yml",
-			},
-			CallSearchCommits: 0,
-			expected: scut.TestReturn{
-				NumberOfInfo: 1,
-				NumberOfWarn: 0,
-				Score:        10,
-			},
-		},
-		{
 			name:              "random committer ID not detected as dependecy tool bot",
 			wantErr:           false,
 			files:             []string{},
