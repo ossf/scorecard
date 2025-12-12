@@ -312,7 +312,6 @@ This check tries to determine if the project uses a dependency update tool,
 specifically one of:
 - [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
 - [Renovate bot](https://docs.renovatebot.com/configuration-options/)
-- [PyUp](https://docs.pyup.io/docs) (Python)
 Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
