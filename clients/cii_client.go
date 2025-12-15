@@ -16,6 +16,7 @@ package clients
 
 import (
 	"context"
+	"os"
 )
 
 const (
@@ -31,6 +32,10 @@ const (
 	Silver
 	// Gold level for CII Best Practices badge.
 	Gold
+	// CII Best Practices default URL.
+	defaultCIIBestPracticesURL = "https://www.bestpractices.dev"
+	// CII Best Practices URL environment variable.
+	envVarCIIBestPracticesURL = "CII_BEST_PRACTICES_URL"
 )
 
 // BadgeLevel corresponds to CII-Best-Practices badge levels.
@@ -64,7 +69,13 @@ type CIIBestPracticesClient interface {
 
 // DefaultCIIBestPracticesClient returns http-based implementation of the interface.
 func DefaultCIIBestPracticesClient() CIIBestPracticesClient {
-	return &httpClientCIIBestPractices{}
+	baseURL := os.Getenv(envVarCIIBestPracticesURL)
+	if baseURL == "" {
+		baseURL = defaultCIIBestPracticesURL
+	}
+	return &httpClientCIIBestPractices{
+		baseURL: baseURL,
+	}
 }
 
 // BlobCIIBestPracticesClient returns a blob-based implementation of the interface.
