@@ -31,7 +31,7 @@ require (
 	golang.org/x/text v0.32.0
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/genproto v0.0.0-20250922171735-9219d122eba9 // indirect
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.12.0
@@ -47,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v1.7.0
+	gitlab.com/gitlab-org/api/client-go v1.8.1
 	sigs.k8s.io/release-utils v0.11.1
 )
 
