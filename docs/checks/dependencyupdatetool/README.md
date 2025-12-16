@@ -3,8 +3,6 @@
   * Detection is based on a `.github/dependabot.yml` or `.github/dependabot.yaml` file.
 * [Renovate](https://docs.renovatebot.com/)
   * Detection is based on the configuration files listed [here](https://docs.renovatebot.com/configuration-options/)
-* [PyUp](https://github.com/pyupio/pyup)
-  * Detection based on a `.pyup.yml` file
 * [scala-steward](https://github.com/scala-steward-org/scala-steward)
   * Detection is based on the configuration files listed [here](https://github.com/scala-steward-org/scala-steward/blob/main/docs/repo-specific-configuration.md)
 

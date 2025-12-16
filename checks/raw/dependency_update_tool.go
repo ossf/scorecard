@@ -114,19 +114,6 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 				},
 			},
 		})
-	case ".pyup.yml":
-		*ptools = append(*ptools, checker.Tool{
-			Name: "PyUp",
-			URL:  asPointer("https://pyup.io/"),
-			Desc: asPointer("Automated dependency updates for Python."),
-			Files: []checker.File{
-				{
-					Path:   name,
-					Type:   finding.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
-			},
-		})
 	// https://github.com/scala-steward-org/scala-steward/blob/main/docs/repo-specific-configuration.md
 	case ".scala-steward.conf",
 		"scala-steward.conf",
