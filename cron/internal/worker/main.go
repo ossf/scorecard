@@ -25,7 +25,9 @@ import (
 	_ "net/http/pprof" //nolint:gosec
 	"strings"
 
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 	"go.opencensus.io/stats/view"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -325,6 +327,9 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 }
 
 func main() {
+	info := version.GetVersionInfo()
+	actions := osvscanner.ExperimentalScannerActions{}
+	actions.RequestUserAgent = fmt.Sprintf("scorecard-cron/%s", info.GitVersion)
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {
 		panic(err)
