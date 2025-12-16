@@ -26,7 +26,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 	"go.opencensus.io/stats/view"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -368,6 +370,9 @@ func getPurger(logger *log.Logger, apiBaseURL string) cdn.Purger {
 }
 
 func main() {
+	info := version.GetVersionInfo()
+	actions := osvscanner.ExperimentalScannerActions{}
+	actions.RequestUserAgent = fmt.Sprintf("scorecard-cron/%s", info.GitVersion)
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {
 		panic(err)
