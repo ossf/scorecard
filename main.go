@@ -16,13 +16,19 @@
 package main
 
 import (
+	"fmt"
 	"log"
+
+	"github.com/google/osv-scanner/pkg/osv"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/cmd"
 	"github.com/ossf/scorecard/v5/options"
 )
 
 func main() {
+	info := version.GetVersionInfo()
+	osv.RequestUserAgent = fmt.Sprintf("scorecard-cli/%s", info.GitVersion)
 	opts := options.New()
 	if err := cmd.New(opts).Execute(); err != nil {
 		log.Fatalf("error during command execution: %v", err)
