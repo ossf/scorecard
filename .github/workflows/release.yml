@@ -25,8 +25,6 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      GOOS: linux
-      GOARCH: amd64
       CGO_ENABLED: "0"
       GH_TOKEN: ${{ secrets.GH_AUTOFIX_TOKEN }}
     steps:
@@ -44,7 +42,8 @@ jobs:
           VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"   # accept input with or without leading 'v'
           TAG="v${VERSION}"
-          ASSET_OUT="cxscorecard_${VERSION}_linux_amd64.tar.gz"
+          ASSET_OUT_AMD64="cxscorecard_${VERSION}_linux_amd64.tar.gz"
+          ASSET_OUT_ARM64="cxscorecard_${VERSION}_linux_arm64.tar.gz"
 
           # Flags for gh release create
           if [ "${{ inputs.latest }}" = "true" ]; then
@@ -60,10 +59,11 @@ jobs:
 
           echo "VERSION=$VERSION"         >> "$GITHUB_ENV"
           echo "TAG=$TAG"                 >> "$GITHUB_ENV"
-          echo "ASSET_OUT=$ASSET_OUT"     >> "$GITHUB_ENV"
+          echo "ASSET_OUT_AMD64=$ASSET_OUT_AMD64"     >> "$GITHUB_ENV"
+          echo "ASSET_OUT_ARM64=$ASSET_OUT_ARM64"     >> "$GITHUB_ENV"
           echo "LATEST_FLAG=$LATEST_FLAG" >> "$GITHUB_ENV"
           echo "PRERELEASE_FLAG=$PRERELEASE_FLAG" >> "$GITHUB_ENV"
-          mkdir -p _prev staging dist
+          mkdir -p _prev staging/amd64 staging/arm64 dist
 
       - name: Download README & LICENSE from latest release
         run: |
@@ -74,36 +74,54 @@ jobs:
             --pattern "cxscorecard_*_linux_amd64.tar.gz" \
             --dir _prev
           PREV_TAR="$(ls _prev/cxscorecard_*_linux_amd64.tar.gz | head -n1)"
-          tar -xzf "${PREV_TAR}" -C staging README.md LICENSE
+          tar -xzf "${PREV_TAR}" -C staging/amd64 README.md LICENSE
+          cp staging/amd64/README.md staging/arm64/README.md
+          cp staging/amd64/LICENSE staging/arm64/LICENSE
 
       - name: Build binary (linux/amd64)
         run: |
           set -euo pipefail
-          go build -o staging/scorecard-linux-amd64 main.go
-          ls -l staging
+          GOOS=linux GOARCH=amd64 go build -o staging/amd64/scorecard-linux-amd64 main.go
+          ls -l staging/amd64
+
+      - name: Build binary (linux/arm64)
+        run: |
+          set -euo pipefail
+          GOOS=linux GOARCH=arm64 go build -o staging/arm64/scorecard-linux-arm64 main.go
+          ls -l staging/arm64
 
       - name: Sanity check files
         run: |
-          test -f staging/README.md
-          test -f staging/LICENSE
-          test -f staging/scorecard-linux-amd64
+          test -f staging/amd64/README.md
+          test -f staging/amd64/LICENSE
+          test -f staging/amd64/scorecard-linux-amd64
+          test -f staging/arm64/README.md
+          test -f staging/arm64/LICENSE
+          test -f staging/arm64/scorecard-linux-arm64
 
       - name: Package tar.gz
         run: |
-          tar -C staging -cvf "dist/cxscorecard_${VERSION}_linux_amd64.tar" \
+          # Package amd64
+          tar -C staging/amd64 -cvf "dist/cxscorecard_${VERSION}_linux_amd64.tar" \
             scorecard-linux-amd64 README.md LICENSE
           gzip -9 "dist/cxscorecard_${VERSION}_linux_amd64.tar"
+
+          # Package arm64
+          tar -C staging/arm64 -cvf "dist/cxscorecard_${VERSION}_linux_arm64.tar" \
+            scorecard-linux-arm64 README.md LICENSE
+          gzip -9 "dist/cxscorecard_${VERSION}_linux_arm64.tar"
+
           ls -lh dist
 
       - name: Create/Update GitHub Release (tag the exact commit of this run)
         run: |
           set -euo pipefail
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            echo "Release ${TAG} exists — uploading asset (clobber)."
-            gh release upload "${TAG}" "dist/${ASSET_OUT}" --clobber
+            echo "Release ${TAG} exists — uploading assets (clobber)."
+            gh release upload "${TAG}" "dist/${ASSET_OUT_AMD64}" "dist/${ASSET_OUT_ARM64}" --clobber
           else
             echo "Creating ${TAG} at ${GITHUB_SHA}"
-            gh release create "${TAG}" "dist/${ASSET_OUT}" \
+            gh release create "${TAG}" "dist/${ASSET_OUT_AMD64}" "dist/${ASSET_OUT_ARM64}" \
               --title "cxscorecard ${VERSION}" \
               --notes "Automated release for ${VERSION}" \
               ${LATEST_FLAG} \
