@@ -125,7 +125,7 @@ metrics. Prominent projects that use Scorecard include:
 
 ### View a Project's Score
 
-To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template link to generate a custom Scorecard link for a repo:
+To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](The web UI available at https://scorecard.dev/viewer/ and allows viewing Scorecard results for public repositories)(https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template URL Template to generate a custom Scorecard link for a repo:
 `https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>`
 
 For example:
@@ -143,6 +143,12 @@ projects judged by their direct dependencies and publish the results in a
 This data is available in the public BigQuery dataset
 `openssf:scorecardcron.scorecard-v2`. The latest results are available in the
 BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
+
+#### Licensing
+
+The Scorecard public dataset published via BigQuery is made available under
+the same terms as the Scorecard REST API data, which is licensed under the
+CDLA Permissive 2.0 license, unless otherwise noted.
 
 You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Star a project by name > 'openssf'.
 For example, you may be interested in how a project's score has changed over time:
