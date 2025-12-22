@@ -125,7 +125,7 @@ metrics. Prominent projects that use Scorecard include:
 
 ### View a Project's Score
 
-To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template link to generate a custom Scorecard link for a repo:
+To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](The Web UI available at https://scorecard.dev/viewer/ and allows viewing Scorecard results for public repositories)(https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template URL Template to generate a custom Scorecard link for a repo:
 `https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>`
 
 For example:
