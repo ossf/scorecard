@@ -238,6 +238,10 @@ func CreateAzureDevOpsClient(ctx context.Context, repo clients.Repo) (*Client, e
 	return CreateAzureDevOpsClientWithToken(ctx, token, repo)
 }
 
+func (client *Client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	return clients.SecretScanningSignals{}, fmt.Errorf("GetSecretScanningSignals: %w", clients.ErrUnsupportedFeature)
+}
+
 func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo clients.Repo) (*Client, error) {
 	// https://dev.azure.com/<org>
 	url := "https://" + repo.Host() + "/" + strings.Split(repo.Path(), "/")[0]
