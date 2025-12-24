@@ -311,6 +311,9 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 	// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 	queryData := new(branchData)
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
+		if strings.Contains(err.Error(), "resource not accessible by integration") {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, "Branch protection failed.Default token insufficient.Use PAT.")
+		}
 		// always report errors which aren't token permission related
 		if !isPermissionsError(err) {
 			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
