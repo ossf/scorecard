@@ -48,7 +48,9 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &falseVal,
+								},
 							},
 						},
 					},
@@ -66,13 +68,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &falseVal,
+								},
 							},
 						},
 					},
@@ -90,13 +96,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &trueVal,
+								},
 							},
 						},
 					},
@@ -114,13 +124,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &falseVal,
+								},
 							},
 						},
 					},
@@ -138,13 +152,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowForcePushes: nil,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowForcePushes: nil,
+								},
 							},
 						},
 					},

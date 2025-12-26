@@ -127,7 +127,9 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: nil,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: nil,
+								},
 							},
 						},
 					},

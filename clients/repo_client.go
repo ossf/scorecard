@@ -41,6 +41,7 @@ type RepoClient interface {
 	// Callers should ensure to Close the Reader when finished.
 	GetFileReader(filename string) (io.ReadCloser, error)
 	GetBranch(branch string) (*BranchRef, error)
+	GetTag(tagName string) (*TagRef, error)
 	GetCreatedAt() (time.Time, error)
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)

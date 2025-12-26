@@ -149,6 +149,12 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return c.branches.getBranch(branch)
 }
 
+// GetTag returns information about a tag and its protection rules.
+func (c *Client) GetTag(tagName string) (*clients.TagRef, error) {
+	// Azure DevOps does not support tag protection via this client
+	return nil, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) GetCreatedAt() (time.Time, error) {
 	createdAt, err := c.audit.getRepsitoryCreatedAt()
 	if err != nil {

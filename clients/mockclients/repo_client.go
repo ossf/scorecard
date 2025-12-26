@@ -162,6 +162,21 @@ func (mr *MockRepoClientMockRecorder) GetOrgRepoClient(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrgRepoClient", reflect.TypeOf((*MockRepoClient)(nil).GetOrgRepoClient), arg0)
 }
 
+// GetTag mocks base method.
+func (m *MockRepoClient) GetTag(tagName string) (*clients.TagRef, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTag", tagName)
+	ret0, _ := ret[0].(*clients.TagRef)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTag indicates an expected call of GetTag.
+func (mr *MockRepoClientMockRecorder) GetTag(tagName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTag", reflect.TypeOf((*MockRepoClient)(nil).GetTag), tagName)
+}
+
 // InitRepo mocks base method.
 func (m *MockRepoClient) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	m.ctrl.T.Helper()

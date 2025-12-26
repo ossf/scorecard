@@ -51,6 +51,7 @@ type Client struct {
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
 	branches      *branchesHandler
+	tags          *tagsHandler
 	releases      *releasesHandler
 	workflows     *workflowsHandler
 	checkruns     *checkrunsHandler
@@ -129,6 +130,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup branchesHandler.
 	client.branches.init(client.ctx, client.repourl)
+
+	// Setup tagsHandler.
+	client.tags.init(client.ctx, client.repourl)
 
 	// Setup releasesHandler.
 	client.releases.init(client.ctx, client.repourl)
@@ -256,6 +260,11 @@ func (client *Client) GetDefaultBranchName() (string, error) {
 // GetBranch implements RepoClient.GetBranch.
 func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
+}
+
+// GetTag implements RepoClient.GetTag.
+func (client *Client) GetTag(tagName string) (*clients.TagRef, error) {
+	return client.tags.getTag(tagName)
 }
 
 // GetCreatedAt is a getter for repo.CreatedAt.
@@ -392,6 +401,10 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 			ghClient: client,
 		},
 		branches: &branchesHandler{
+			ghClient:    client,
+			graphClient: graphClient,
+		},
+		tags: &tagsHandler{
 			ghClient:    client,
 			graphClient: graphClient,
 		},

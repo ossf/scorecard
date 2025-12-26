@@ -690,6 +690,94 @@ checks:
       - >-
         If the source is hosted on GitHub, check out the steps
         [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
+  Tag-Protection:
+    risk: Medium
+    tags: supply-chain, security, source-code
+    repos: GitHub, GitLab
+    short: Determines if release tags are protected from unauthorized modification or deletion.
+    description: |
+      Risk: `Medium` (vulnerable to tag tampering)
+
+      This check determines whether a project's release tags are protected with
+      tag protection rules. Tag protection helps prevent unauthorized users
+      from creating, updating, or deleting tags, which is particularly important for
+      release tags that users and CI/CD systems rely on.
+
+      Without tag protection, an attacker with write access could:
+        - Delete existing release tags, breaking dependency resolution
+        - Move tags to point to malicious commits
+        - Create fake release tags to distribute compromised versions
+        - On GitLab: create tags with the same names as branches (branch shadowing attack)
+
+      The check examines all release tags in the repository and verifies whether they
+      have protection rules applied.
+
+      **Platform-Specific Scoring:**
+
+      *GitHub* (Tiered Scoring: 0/3/6/8/10):
+      
+      This platform uses tiered scoring where each tier must be fully satisfied to achieve 
+      points at the next tier. For example, if you fulfill Tier 3 requirements but do 
+      not fulfill all Tier 2 requirements, you will not receive any points for Tier 3.
+
+      Tier 1 Requirements (3/10 points):
+        - All release tags must be protected
+
+      Tier 2 Requirements (6/10 points):
+        - Prevent tag deletion on all release tags
+        - Prevent force push on all release tags
+
+      Tier 3 Requirements (8/10 points):
+        - Prevent tag updates on all release tags
+
+      Tier 4 Requirements (10/10 points):
+        - Tag protection applies to administrators on all release tags
+        - Tag creation is restricted on all release tags
+
+      Note: GitHub's `non_fast_forward` rule prevents both force pushes and tag updates, 
+      so Tier 2 (6/10) is not achievable - enabling force push protection automatically 
+      achieves Tier 3 (8/10).
+
+      *GitLab* (Component-Based Scoring: 0-2-4-8-10):
+
+      GitLab uses a different security model focusing on preventing unauthorized tag creation
+      rather than modification (since GitLab's protected tags automatically prevent 
+      modification and deletion). The scoring has two independent components:
+
+      Component 1: Branch Shadowing Prevention (0/1/2 points):
+        - 2 points: All branches protected from tag shadowing with "No one" can create
+        - 1 point: All branches protected with "Maintainer+" (minimum) can create
+        - 0 points: Some branches lack adequate protection from duplicate tag names
+
+      Component 2: Release Tag Creation Restriction (0/4/8 points):
+        - 8 points: All release tags protected with "No one" can create
+        - 4 points: All release tags protected with "Maintainer+" (minimum) can create
+        - 0 points: Some release tags lack adequate creation restrictions
+
+      Total Score: Component 1 + Component 2 (maximum 10 points)
+
+      GitLab's protected tags automatically prevent deletion, updates, and force pushes,
+      and always apply to all users including administrators. The security focus is on
+      controlling who can create tags in the first place.
+
+      If no release tags are found, the check returns an inconclusive result (-1).
+
+    remediation:
+      - >-
+        Enable tag protection rules in your repository settings to protect release tags
+        from unauthorized modification or deletion.
+      - >-
+        For GitHub, navigate to Settings → Tags → Add rule, then configure a pattern
+        that matches your release tags (e.g., 'v*' or 'release-*'). Enable all
+        available protection options for maximum security.
+      - >-
+        For GitLab, use Protected Tags under Settings → Repository → Protected tags.
+        Configure patterns for both your release tags and branch names. Set "Allowed to 
+        create" to "No one" (most secure) or "Maintainers" (minimum) to prevent 
+        unauthorized tag creation and branch shadowing attacks.
+      - >-
+        Consider requiring signed tags (GitHub only) for an additional layer of 
+        verification, though this is optional and does not affect the score.
   Token-Permissions:
     risk: High
     tags: supply-chain, security, infrastructure

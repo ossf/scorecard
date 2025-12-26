@@ -1,0 +1,41 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: requiresSignedTags
+lifecycle: stable
+short: Check that signed tags are required
+motivation: >
+  Requiring signed tags ensures release tags are cryptographically verified and authenticated.
+implementation: >
+  Checks if RequireSignedCommits is enabled for protected release tags.
+outcome:
+  - If signed tags are required, the probe returns OutcomeTrue.
+  - If unsigned tags are allowed, the probe returns OutcomeFalse.
+  - If the tag is not protected, the probe returns OutcomeFalse.
+  - If there are no release tags, the probe returns OutcomeNotApplicable.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Configure tag protection to require signed tags.
+  markdown:
+    - For GitHub enable require signed commits in repository rulesets.
+    - For GitLab enforce through CI/CD policies.
+    - Set up GPG or SSH signing keys for authorized creators.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
