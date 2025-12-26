@@ -25,6 +25,7 @@ import (
 	"github.com/google/go-github/v53/github"
 
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 // maintainerHandler tracks maintainer activity.
@@ -32,6 +33,7 @@ type maintainerHandler struct {
 	ctx       context.Context
 	repo      *Repo
 	ghClient  *github.Client
+	logger    *log.Logger
 	setupOnce *sync.Once
 	errSetup  error
 
@@ -50,6 +52,7 @@ func (h *maintainerHandler) init(
 	h.ctx = ctx
 	h.ghClient = ghClient
 	h.repo = repo
+	h.logger = log.NewLogger(log.DefaultLevel)
 	h.setupOnce = new(sync.Once)
 	h.elevated = make(map[string]struct{})
 	h.active = make(map[string]bool)
@@ -102,12 +105,8 @@ func (h *maintainerHandler) query() (map[string]bool, error) {
 		}
 	}
 
-	// Debug logging: print maintainer activity status (only if debug flag is set)
+	// Debug logging: log maintainer activity details when enabled
 	if os.Getenv("SCORECARD_DEBUG_MAINTAINERS") == "1" {
-		fmt.Printf("\n=== Maintainer Activity Report ===\n")
-		fmt.Printf("Total maintainers: %d\n", len(h.active))
-		fmt.Printf("Cutoff date: %s\n\n", h.cutoff.Format("2006-01-02"))
-		
 		var activeList, inactiveList []string
 		for user, isActive := range h.active {
 			if isActive {
@@ -116,17 +115,16 @@ func (h *maintainerHandler) query() (map[string]bool, error) {
 				inactiveList = append(inactiveList, user)
 			}
 		}
-		
-		fmt.Printf("Active maintainers (%d):\n", len(activeList))
+
+		h.logger.Info(fmt.Sprintf("Maintainer activity: %d total, %d active, %d inactive (cutoff: %s)",
+			len(h.active), len(activeList), len(inactiveList), h.cutoff.Format("2006-01-02")))
+
 		for _, user := range activeList {
-			fmt.Printf("  ✓ %s\n", user)
+			h.logger.Info(fmt.Sprintf("  ✓ Active: %s", user))
 		}
-		
-		fmt.Printf("\nInactive maintainers (%d):\n", len(inactiveList))
 		for _, user := range inactiveList {
-			fmt.Printf("  ✗ %s\n", user)
+			h.logger.Info(fmt.Sprintf("  ✗ Inactive: %s", user))
 		}
-		fmt.Printf("=================================\n\n")
 	}
 
 	return h.active, nil
@@ -1250,7 +1248,7 @@ func (h *maintainerHandler) checkProjectActivity(owner, repo string) error {
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
-	projects, _, err := h.ghClient.Repositories.ListProjects(
+	_, _, err := h.ghClient.Repositories.ListProjects(
 		h.ctx,
 		owner,
 		repo,
@@ -1259,25 +1257,12 @@ func (h *maintainerHandler) checkProjectActivity(owner, repo string) error {
 	if err != nil {
 		// Projects might not be enabled, accessible, or the legacy API is deprecated (404)
 		// Continue gracefully rather than failing the entire check
-		return nil
+		// Return nil error since this is an optional check
+		return nil //nolint:nilerr // intentionally ignoring error for deprecated API
 	}
 
-	for _, project := range projects {
-		// Check project creation
-		if project.CreatedAt != nil && !project.CreatedAt.Before(h.cutoff) {
-			if project.Creator != nil && project.Creator.Login != nil {
-				h.markActive(*project.Creator.Login)
-			}
-		}
-
-		// Check project updates
-		if project.UpdatedAt != nil && !project.UpdatedAt.Before(h.cutoff) {
-			if project.Creator != nil && project.Creator.Login != nil {
-				h.markActive(*project.Creator.Login)
-			}
-		}
-	}
-
+	// Projects API is deprecated, so we don't process any projects
+	// even if the call succeeds. Just return without error.
 	return nil
 }
 
