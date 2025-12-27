@@ -546,11 +546,18 @@ checks:
       tools can prevent known classes of bugs from being inadvertently introduced in the
       codebase.
 
-      The checks currently looks for known GitHub apps such as
-      [CodeQL](https://codeql.github.com/) (github-code-scanning) or
-      [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-      of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-      [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+      The check uses multiple detection methods:
+
+      1. **GitHub Apps and Actions**: Looks for known GitHub apps such as
+         [CodeQL](https://codeql.github.com/) (github-code-scanning) or
+         [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
+         of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
+         [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+
+      2. **Prow CI Integration**: For projects using [Prow](https://docs.prow.k8s.io/),
+         the check analyzes commit statuses using a two-layered approach:
+         - Pattern matching against known SAST tool names in job names
+         - Parsing Prow configuration files to identify SAST tools in job commands
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement SAST, and it is

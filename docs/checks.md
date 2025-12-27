@@ -529,11 +529,25 @@ SAST is testing run on source code before the application is run. Using SAST
 tools can prevent known classes of bugs from being inadvertently introduced in the
 codebase.
 
-The checks currently looks for known GitHub apps such as
-[CodeQL](https://codeql.github.com/) (github-code-scanning) or
-[SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+The check uses multiple detection methods:
+
+1. **GitHub Workflows**: Scans `.github/workflows/` directory for workflow files
+   that use known SAST tools such as [CodeQL](https://codeql.github.com/) 
+   (`github/codeql-action/analyze`), [SonarCloud](https://sonarcloud.io/),
+   [Snyk](https://snyk.io/), and others.
+
+2. **GitHub Apps**: Checks for GitHub apps like github-code-scanning running on
+   recent (~30) merged PRs. Also checks for the deprecated [LGTM](https://lgtm.com/)
+   service.
+
+3. **Prow Configuration Files**: For projects using [Prow](https://docs.prow.k8s.io/),
+   scans `.prow.yaml` and `.prow/*.yaml` files for job definitions that contain
+   SAST tools (e.g., `golangci-lint`, `staticcheck`, `semgrep`, `trivy`, etc.)
+   in their commands.
+
+4. **CI Status Checks**: Analyzes commit status checks from any CI system (including
+   Prow, Jenkins, etc.) by pattern matching against known SAST tool names in status
+   contexts and URLs.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is

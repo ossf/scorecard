@@ -17,12 +17,15 @@ package raw
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/rhysd/actionlint"
 
@@ -45,11 +48,57 @@ var sastTools = map[string]bool{
 	"sonarqubecloud":           true,
 }
 
+// Common SAST tool name patterns to detect in CheckRun/Status names
+// This enables detection of SAST tools running in any CI system (Prow, Jenkins, etc.)
+var sastToolPatterns = []string{
+	"codeql",
+	"sonar",
+	"snyk",
+	"semgrep",
+	"gosec",
+	"staticcheck",
+	"golangci",
+	"pylint",
+	"eslint",
+	"tslint",
+	"bandit",
+	"brakeman",
+	"flawfinder",
+	"shellcheck",
+	"trivy",
+	"grype",
+	"checkov",
+	"tfsec",
+	"kubesec",
+	"hadolint",
+	"safety",
+	"osv-scanner",
+	"govulncheck",
+	"bearer",
+	"horusec",
+	"fortify",
+	"checkmarx",
+	"veracode",
+	"coverity",
+	"insider",
+	"security-scan",
+	"static-analysis",
+	"sast",
+	"code-scanning",
+	"code-analysis",
+}
+
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
 
 // SAST checks for presence of static analysis tools.
 func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	var data checker.SASTData
+
+	if c.Dlogger != nil {
+		c.Dlogger.Debug(&checker.LogMessage{
+			Text: "Starting SAST check - looking for static analysis tools...",
+		})
+	}
 
 	commits, err := sastToolInCheckRuns(c)
 	if err != nil {
@@ -93,9 +142,260 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, hadolintWorkflows...)
 
+	// Check Prow config files for SAST tools
+	prowJobs, err := getProwSASTJobs(c)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, prowJobs...)
+
+	if c.Dlogger != nil {
+		c.Dlogger.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("SAST check complete: found %d workflow(s), analyzed %d commit(s)",
+				len(data.Workflows), len(data.Commits)),
+		})
+	}
+
 	return data, nil
 }
 
+// isSASTToolName checks if the given string contains a known SAST tool name pattern.
+// This enables detection of SAST tools in CI systems like Prow, Jenkins, etc.
+func isSASTToolName(s string) bool {
+	lower := strings.ToLower(s)
+	for _, pattern := range sastToolPatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// findMatchingSASTPattern returns the matched pattern if found.
+func findMatchingSASTPattern(s string) string {
+	lower := strings.ToLower(s)
+	for _, pattern := range sastToolPatterns {
+		if strings.Contains(lower, pattern) {
+			return pattern
+		}
+	}
+	return ""
+}
+
+const (
+	// Maximum size to fetch from Prow logs (1MB should be enough to detect tool signatures).
+	maxProwLogBytes = 1 * 1024 * 1024
+	// HTTP timeout for fetching Prow logs.
+	prowLogTimeout = 10 * time.Second
+)
+
+var errProwLogHTTP = errors.New("HTTP error fetching Prow log")
+
+// isProwJobURL checks if a URL points to an actual Prow job (with logs).
+// This filters out Prow status contexts like /tide, /pr-history that don't have logs.
+func isProwJobURL(url string) bool {
+	lower := strings.ToLower(url)
+
+	// Must contain prow-related patterns
+	hasProw := strings.Contains(lower, "prow.") ||
+		strings.Contains(lower, "/gs/") ||
+		strings.Contains(lower, "storage.googleapis.com")
+
+	if !hasProw {
+		return false
+	}
+
+	// Exclude known non-job Prow URLs that don't have logs
+	excludePatterns := []string{
+		"/tide",         // Prow's merge automation (status only)
+		"/pr-history",   // PR status history page
+		"/command-help", // Help pages
+		"/plugin-help",  // Plugin documentation
+	}
+
+	for _, pattern := range excludePatterns {
+		if strings.Contains(lower, pattern) {
+			return false
+		}
+	}
+
+	// Include URLs that look like actual job runs
+	// These typically have: /view/gs/, /pr-logs/, /logs/, or job names
+	includePatterns := []string{
+		"/view/gs/",
+		"/pr-logs/",
+		"/logs/",
+		"storage.googleapis.com",
+	}
+
+	for _, pattern := range includePatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+
+	// If it has "prow." but doesn't match include patterns, it's likely not a job
+	return false
+}
+
+// convertToLogURL attempts to convert a Prow view URL to direct log file URLs.
+// Returns a list of potential log file URLs to try.
+func convertToLogURL(prowURL string) []string {
+	var urls []string
+
+	// If it's already a storage URL, try appending log files
+	if strings.Contains(prowURL, "storage.googleapis.com") {
+		urls = append(urls, prowURL+"/build-log.txt", prowURL+"/finished.json")
+		return urls
+	}
+
+	// Convert prow.k8s.io/view/gs/... to storage.googleapis.com/...
+	if strings.Contains(prowURL, "/view/gs/") {
+		parts := strings.Split(prowURL, "/view/gs/")
+		if len(parts) == 2 {
+			storageURL := "https://storage.googleapis.com/" + parts[1]
+			urls = append(urls, storageURL+"/build-log.txt", storageURL+"/finished.json")
+		}
+	}
+
+	// If no conversion worked, try the original URL with log file paths
+	if len(urls) == 0 {
+		urls = append(urls, prowURL+"/build-log.txt")
+	}
+
+	return urls
+}
+
+// fetchProwLog attempts to fetch and read a Prow log file with size limits and timeout.
+func fetchProwLog(ctx context.Context, url string) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, prowLogTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+
+	client := &http.Client{
+		Timeout: prowLogTimeout,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetching log: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Only accept 200 OK
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%w: status %d", errProwLogHTTP, resp.StatusCode)
+	}
+
+	// Read with size limit
+	limitedReader := io.LimitReader(resp.Body, maxProwLogBytes)
+	content, err := io.ReadAll(limitedReader)
+	if err != nil {
+		return nil, fmt.Errorf("reading log: %w", err)
+	}
+
+	return content, nil
+}
+
+// hasSASTInLogs fetches and scans Prow log content for SAST tool signatures.
+func hasSASTInLogs(c *checker.CheckRequest, prowURL string) bool {
+	// Try multiple potential log URLs
+	logURLs := convertToLogURL(prowURL)
+
+	for _, logURL := range logURLs {
+		content, err := fetchProwLog(c.Ctx, logURL)
+		if err != nil {
+			// Log errors at debug level, don't fail the check
+			if c.Dlogger != nil {
+				c.Dlogger.Debug(&checker.LogMessage{
+					Text: fmt.Sprintf("[Prow Logs] Could not fetch %s: %v", logURL, err),
+				})
+			}
+			continue
+		}
+
+		// Scan log content for SAST tool patterns
+		logText := strings.ToLower(string(content))
+		for _, pattern := range sastToolPatterns {
+			if strings.Contains(logText, pattern) {
+				if c.Dlogger != nil {
+					c.Dlogger.Debug(&checker.LogMessage{
+						Path: prowURL,
+						Type: finding.FileTypeURL,
+						Text: fmt.Sprintf("[Prow Logs] SAST tool '%s' detected in job output", pattern),
+					})
+				}
+				return true
+			}
+		}
+
+		// Also check for "lint" which might indicate security linting
+		if strings.Contains(logText, "security") && strings.Contains(logText, "lint") {
+			if c.Dlogger != nil {
+				c.Dlogger.Debug(&checker.LogMessage{
+					Path: prowURL,
+					Type: finding.FileTypeURL,
+					Text: "[Prow Logs] Security linting detected in job output",
+				})
+			}
+			return true
+		}
+	}
+
+	return false
+}
+
+// checkStatusesForSAST checks commit statuses for SAST tool execution via pattern matching.
+// Only logs when a SAST tool is found to reduce noise.
+func checkStatusesForSAST(c *checker.CheckRequest, statuses []clients.Status) bool {
+	// Skip logging if no statuses to check (reduces noise for repos without statuses)
+	if len(statuses) == 0 {
+		return false
+	}
+
+	for _, status := range statuses {
+		if status.State != "success" {
+			continue
+		}
+		// Check if status context or URL contains a SAST tool name
+		matchedInContext := findMatchingSASTPattern(status.Context)
+		matchedInURL := findMatchingSASTPattern(status.TargetURL)
+
+		if matchedInContext != "" || matchedInURL != "" {
+			if c.Dlogger != nil {
+				matchInfo := ""
+				if matchedInContext != "" {
+					matchInfo = fmt.Sprintf("pattern '%s' in context '%s'", matchedInContext, status.Context)
+				} else {
+					matchInfo = fmt.Sprintf("pattern '%s' in URL", matchedInURL)
+				}
+				c.Dlogger.Debug(&checker.LogMessage{
+					Path: status.TargetURL,
+					Type: finding.FileTypeURL,
+					Text: fmt.Sprintf("[CI Status Check] SAST tool detected: %s", matchInfo),
+				})
+			}
+			return true
+		}
+
+		// If pattern matching didn't find anything, try scanning Prow logs
+		if isProwJobURL(status.TargetURL) {
+			if hasSASTInLogs(c, status.TargetURL) {
+				return true
+			}
+		}
+	}
+
+	// Only log once if we checked statuses but found nothing
+	// (This still happens per commit, but only when statuses exist)
+	return false
+}
+
+//nolint:gocognit // TODO: refactor to reduce complexity
 func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) {
 	var sastCommits []checker.SASTCommit
 	commits, err := c.RepoClient.ListCommits()
@@ -106,6 +406,12 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 		}
 		return sastCommits,
 			sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("RepoClient.ListCommits: %v", err))
+	}
+
+	if c.Dlogger != nil {
+		c.Dlogger.Debug(&checker.LogMessage{
+			Text: fmt.Sprintf("[CheckRuns] Analyzing %d commit(s) for SAST tools", len(commits)),
+		})
 	}
 
 	for i := range commits {
@@ -131,6 +437,7 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 			if !allowedConclusions[cr.Conclusion] {
 				continue
 			}
+			// Check for known SAST tool app slugs (GitHub-specific)
 			if sastTools[cr.App.Slug] {
 				if c.Dlogger != nil {
 					c.Dlogger.Debug(&checker.LogMessage{
@@ -142,6 +449,31 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 				checked = true
 				break
 			}
+			// Check for SAST tool patterns in app slug or URL (works for Prow, Jenkins, etc.)
+			if isSASTToolName(cr.App.Slug) || isSASTToolName(cr.URL) {
+				if c.Dlogger != nil {
+					c.Dlogger.Debug(&checker.LogMessage{
+						Path: cr.URL,
+						Type: finding.FileTypeURL,
+						Text: fmt.Sprintf("SAST tool pattern detected in: %v", cr.App.Slug),
+					})
+				}
+				checked = true
+				break
+			}
+		}
+
+		// If not found in CheckRuns, also check commit Statuses (used by Prow, Jenkins, etc.)
+		if !checked {
+			statuses, err := c.RepoClient.ListStatuses(pr.HeadSHA)
+			if err != nil {
+				// Ignore error if statuses are not supported
+				if !errors.Is(err, clients.ErrUnsupportedFeature) {
+					return sastCommits,
+						sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Client.ListStatuses: %v", err))
+				}
+			}
+			checked = checkStatusesForSAST(c, statuses)
 		}
 		sastCommit := checker.SASTCommit{
 			CommittedDate:          commits[i].CommittedDate,
