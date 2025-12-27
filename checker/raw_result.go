@@ -36,6 +36,7 @@ type RawResults struct {
 	DangerousWorkflowResults    DangerousWorkflowData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
+	InactiveMaintainersResults  InactiveMaintainersData
 	LicenseResults              LicenseData
 	SBOMResults                 SBOMData
 	MaintainedResults           MaintainedData
@@ -219,6 +220,13 @@ type Changeset struct {
 // ContributorsData represents contributor information.
 type ContributorsData struct {
 	Users []clients.User
+}
+
+// InactiveMaintainersData contains maintainer activity information.
+type InactiveMaintainersData struct {
+	// MaintainerActivity maps maintainer usernames (lowercase) to their activity status.
+	// True indicates the maintainer has been active within the evaluation window.
+	MaintainerActivity map[string]bool
 }
 
 // VulnerabilitiesData contains the raw results

@@ -1,0 +1,58 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasInactiveMaintainers
+lifecycle: experimental
+short: Check whether the project has inactive maintainers.
+motivation: >
+  Projects that have inactive maintainers may be more difficult to get timely
+  security fixes and updates. Maintainers with elevated access who have not
+  participated in the project within a reasonable time frame (6 months) may
+  present a security risk if their accounts become compromised.
+implementation: >
+  The probe identifies users with elevated repository permissions (TRIAGE, WRITE,
+  MAINTAIN, or ADMIN access) and checks if they have shown activity in the last 6
+  months. Activity includes various maintenance-related contributions:
+  - **Primary signals**: commits, merged pull requests, releases
+  - **Code review**: PR reviews, issue/PR comments, commit comments
+  - **Issue/PR management**: creating, closing, or assigning issues/PRs; adding reactions
+  - **Triage**: label management, milestone creation/assignment
+  - **Project management**: GitHub Discussions, Project boards, repository settings
+  - **Security**: security advisories, Dependabot alert dismissals
+  - **Workflows**: GitHub Actions workflow runs
+  
+  The probe returns one finding per maintainer indicating whether they have been
+  active or inactive.
+outcome:
+  - If a maintainer has shown activity in the last 6 months, one OutcomeFalse finding is returned
+  - If a maintainer has shown no activity in the last 6 months, one OutcomeTrue finding is returned
+remediation:
+  onOutcome: True
+  effort: Medium
+  text:
+    - Review the list of maintainers with elevated access to your repository.
+    - Remove or downgrade access for maintainers who are no longer actively participating.
+    - Consider implementing a policy for regular review of maintainer access rights.
+    - Encourage inactive maintainers to remain engaged or formally step down from their role.
+  markdown:
+    - Review the list of maintainers with elevated access to your repository.
+    - Remove or downgrade access for maintainers who are no longer actively participating.
+    - Consider implementing a policy for regular review of maintainer access rights.
+    - Encourage inactive maintainers to remain engaged or formally step down from their role.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab

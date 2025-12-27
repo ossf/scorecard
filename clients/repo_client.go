@@ -57,5 +57,8 @@ type RepoClient interface {
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)
+	// GetMaintainerActivity returns a map of maintainer usernames (lowercase) to their activity status.
+	// Returns true if the maintainer has been active within the specified time window (typically 6 months).
+	GetMaintainerActivity(cutoff time.Time) (map[string]bool, error)
 	Close() error
 }
