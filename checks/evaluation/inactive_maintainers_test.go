@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
+	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -149,6 +150,47 @@ func TestInactiveMaintainers(t *testing.T) {
 				Score:        7, // 75% active = 7.5, truncated to 7
 				NumberOfInfo: 3,
 				NumberOfWarn: 1,
+			},
+		},
+		{
+			name: "Findings with mixed outcomes including not available",
+			findings: []finding.Finding{
+				{
+					Probe:   "hasInactiveMaintainers",
+					Outcome: finding.OutcomeFalse,
+					Values: map[string]string{
+						"username": "active-1",
+					},
+				},
+				{
+					Probe:   "hasInactiveMaintainers",
+					Outcome: finding.OutcomeNotAvailable,
+				},
+				{
+					Probe:   "hasInactiveMaintainers",
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						"username": "inactive-1",
+					},
+				},
+			},
+			result: scut.TestReturn{
+				Score:        5, // 50% active
+				NumberOfInfo: 1,
+				NumberOfWarn: 1,
+			},
+		},
+		{
+			name: "Invalid probe results",
+			findings: []finding.Finding{
+				{
+					Probe:   "someOtherProbe",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score: checker.InconclusiveResultScore,
+				Error: sce.ErrScorecardInternal,
 			},
 		},
 	}
