@@ -65,4 +65,4 @@ jobs:
        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad
      - name: Sign image
        run: |
-          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard/v5:${{ github.sha }}
+          cosign sign --yes ghcr.io/${{github.repository_owner}}/scorecard:${{ github.sha }}
