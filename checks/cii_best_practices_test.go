@@ -17,6 +17,9 @@ package checks
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -123,6 +126,64 @@ func TestCIIBestPractices(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			scut.ValidateTestReturn(t, tt.name, &tt.expected, &res, &dl)
 			ctrl.Finish()
+		})
+	}
+}
+
+func TestCIIBestPractices_CustomURL_AllBadges(t *testing.T) {
+	tests := []struct {
+		name      string
+		badgeJSON string
+		expected  clients.BadgeLevel
+	}{
+		{
+			"NotFoundBadge",
+			`[]`,
+			clients.NotFound,
+		},
+		{
+			"InProgressBadge", `[{"badge_level":"in_progress"}]`,
+			clients.InProgress,
+		},
+		{
+			"PassingBadge", `[{"badge_level":"passing"}]`,
+			clients.Passing,
+		},
+		{
+			"SilverBadge", `[{"badge_level":"silver"}]`,
+			clients.Silver,
+		},
+		{
+			"GoldBadge", `[{"badge_level":"gold"}]`,
+			clients.Gold,
+		},
+		{
+			"UnknownBadge", `[{"badge_level":"foo"}]`,
+			clients.Unknown,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/projects.json" {
+					t.Errorf("Expected request path '/projects.json', got: %s", r.URL.Path)
+				}
+				fmt.Fprint(w, tt.badgeJSON)
+			}))
+			defer server.Close()
+
+			t.Setenv("CII_BEST_PRACTICES_URL", server.URL)
+
+			client := clients.DefaultCIIBestPracticesClient()
+			badge, err := client.GetBadgeLevel(t.Context(), "github.com/owner/repo")
+			if err != nil && tt.expected != clients.Unknown {
+				t.Fatalf("GetBadgeLevel() returned unexpected error: %v", err)
+			}
+
+			if badge != tt.expected {
+				t.Errorf("GetBadgeLevel() = %v, want %v", badge, tt.expected)
+			}
 		})
 	}
 }
