@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/test"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func Test_Run(t *testing.T) {
@@ -114,6 +115,11 @@ func Test_Run(t *testing.T) {
 			outcomes: []finding.Outcome{
 				finding.OutcomeTrue,
 			},
+		},
+		{
+			name: "Nil raw results",
+			raw:  nil,
+			err:  uerror.ErrNil,
 		},
 	}
 	for _, tt := range tests {
