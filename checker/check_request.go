@@ -31,6 +31,7 @@ type CheckRequest struct {
 	Repo                  clients.Repo
 	VulnerabilitiesClient clients.VulnerabilitiesClient
 	ProjectClient         packageclient.ProjectPackageClient
+	Config                interface{}
 	// UPGRADEv6: return raw results instead of scores.
 	RawResults    *RawResults
 	RequiredTypes []RequestType

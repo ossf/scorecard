@@ -464,6 +464,8 @@ func TestSignedRelease(t *testing.T) {
 					return tt.releases, tt.err
 				},
 			).MinTimes(1)
+			// Mock GetFileReader for config/KEYS file loading (returns not found)
+			mockRepoC.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("file not found")).AnyTimes()
 
 			mockRepo := mockrepo.NewMockRepo(ctrl)
 			mockRepo.EXPECT().Host().DoAndReturn(
