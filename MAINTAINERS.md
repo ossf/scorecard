@@ -9,7 +9,7 @@ The current standing Steering Committee members are as follows:
 - Stephen Augustus ([@justaugustus](https://github.com/justaugustus)), Bloomberg
 - Raghav Kaul ([@raghavkaul](https://github.com/raghavkaul)), Google
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
-- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Kusari
+- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Microsoft
 
 ## `scorecard-maintainers`
 
@@ -20,7 +20,7 @@ The current standing Steering Committee members are as follows:
 
 ## `scorecard-doc-maintainers`
 
-- 
+-
 
 ## Emeritus
 

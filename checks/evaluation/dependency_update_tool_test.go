@@ -45,7 +45,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			name: "multiple update tools both logged",
 			findings: []finding.Finding{
 				depUpdateTool("RenovateBot"),
-				depUpdateTool("PyUp"),
+				depUpdateTool("Dependabot"),
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,

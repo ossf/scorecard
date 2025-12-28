@@ -694,6 +694,126 @@ func Test_checkFuzzFunc(t *testing.T) {
 			},
 			fileContent: "const fc = require('fast-other');",
 		},
+		{
+			name:     "C# with no property-based testing",
+			want:     false,
+			fileName: []string{"test.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using Xunit;",
+		},
+		{
+			name:     "C# with FsCheck",
+			want:     true,
+			fileName: []string{"csharp-fscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck;",
+		},
+		{
+			name:     "C# with FsCheck.Nunit",
+			want:     true,
+			fileName: []string{"csharp-fscheck-nunit.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck.NUnit;",
+		},
+		{
+			name:     "C# with FsCheck.Xunit",
+			want:     true,
+			fileName: []string{"csharp-fscheck-xunit.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck.Xunit;",
+		},
+		{
+			name:     "C# with Expecto.FsCheck",
+			want:     true,
+			fileName: []string{"csharp-expecto-fscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using Expecto.ExpectoFsCheck;",
+		},
+		{
+			name:     "F# with no property-based testing",
+			want:     false,
+			fileName: []string{"test.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open Xunit",
+		},
+		{
+			name:     "F# with FsCheck",
+			want:     true,
+			fileName: []string{"fsharp-fscheck.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck",
+		},
+		{
+			name:     "F# with FsCheck.Nunit",
+			want:     true,
+			fileName: []string{"fsharp-fscheck-nunit.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck.NUnit",
+		},
+		{
+			name:     "F# with FsCheck.Xunit",
+			want:     true,
+			fileName: []string{"fsharp-fscheck-xunit.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck.Xunit",
+		},
+		{
+			name:     "F# with Expecto.FsCheck",
+			want:     true,
+			fileName: []string{"fsharp-expecto-fscheck.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open Expecto.ExpectoFsCheck",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

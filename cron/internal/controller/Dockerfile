@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.25.4@sha256:6ca9eb0b32a4bd4e8c98a4a2edf2d7c96f3ea6db6eb4fc254eef6c067cf73bb4 AS base
+FROM golang:1.25.5@sha256:20b91eda7a9627c127c0225b0d4e8ec927b476fa4130c6760928b849d769c149 AS base
 WORKDIR /src
 ENV CGO_ENABLED=0
 COPY go.* ./
@@ -30,7 +30,7 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-controller
 
-FROM gcr.io/distroless/base:nonroot@sha256:10136f394cbc891efa9f20974a48843f21a6b3cbde55b1778582195d6726fa85
+FROM gcr.io/distroless/base:nonroot@sha256:cd961bbef4ecc70d2b2ff41074dd1c932af3f141f2fc00e4d91a03a832e3a658
 COPY ./cron/internal/data/projects*csv cron/internal/data/
 COPY ./cron/internal/data/gitlab-projects-releasetest.csv cron/internal/data/
 COPY ./cron/internal/data/gitlab-projects.csv cron/internal/data/

@@ -73,7 +73,7 @@ func (handler *issuesHandler) setup() error {
 					URI:       &issueIDString,
 					CreatedAt: issue.CreatedAt,
 					Author: &clients.User{
-						ID: int64(issue.Author.ID),
+						ID: issue.Author.ID,
 					},
 					AuthorAssociation: &authorAssociation,
 					Comments:          nil,

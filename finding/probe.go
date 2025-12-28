@@ -170,7 +170,7 @@ func validateSupportedLanguages(r pyaml.Ecosystem) error {
 			clients.PHP, clients.StarLark, clients.Scala,
 			clients.Kotlin, clients.Swift, clients.Rust,
 			clients.Haskell, clients.All, clients.Dockerfile,
-			clients.ObjectiveC:
+			clients.ObjectiveC, clients.FSharp:
 			continue
 		default:
 			return fmt.Errorf("%w: %v", errInvalid, fmt.Sprintf("language '%v'", r))

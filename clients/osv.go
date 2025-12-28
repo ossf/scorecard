@@ -61,10 +61,10 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		GitCommits:        gitCommits,
 		CompareOffline:    v.local,
 		DownloadDatabases: v.local,
+		// swap out the transitive requirements scanning for offline extractor
 		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
-			TransitiveScanningActions: osvscanner.TransitiveScanningActions{
-				Disabled: true,
-			},
+			PluginsEnabled:  []string{"python/requirements"},
+			PluginsDisabled: []string{"python/requirementsenhanceable"},
 		},
 	}) // TODO: Do logging?
 
