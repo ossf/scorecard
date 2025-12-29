@@ -18,7 +18,7 @@ short: Checks that a SAST tool runs on all commits in the projects CI.
 motivation: >
   SAST is testing run on source code before the application is run. Using SAST tools can prevent known classes of bugs from being inadvertently introduced in the codebase.
 implementation: >
-  The implementation iterates through the projects commits and checks whether any of the check runs for the commits associated merge request was any of the SAST tools that Scorecard supports.
+  The implementation iterates through the projects commits and checks whether any of the check runs or statuses for the commits associated merge request indicate SAST tool execution. For GitHub-hosted projects, it checks GitHub Apps and Actions. For Prow-based CI systems, it analyzes commit statuses, configuration files, and optionally fetches job logs to verify tool execution using signature-based pattern matching. The probe supports detection of 30+ SAST tools including CodeQL, gosec, golangci-lint, semgrep, snyk, and others.
 outcome:
   - If the project had no commits merged, the probe returns a finding with OutcomeNotApplicable.
   - If the project runs SAST tools successfully on every pull request before merging, the probe returns one finding with OutcomeTrue (1). In addition, the finding will include two values. 1) How many commits were tested by a SAST tool, and 2) How many commits in total were merged.

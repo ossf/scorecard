@@ -531,23 +531,21 @@ codebase.
 
 The check uses multiple detection methods:
 
-1. **GitHub Workflows**: Scans `.github/workflows/` directory for workflow files
-   that use known SAST tools such as [CodeQL](https://codeql.github.com/) 
-   (`github/codeql-action/analyze`), [SonarCloud](https://sonarcloud.io/),
-   [Snyk](https://snyk.io/), and others.
+1. **GitHub Apps and Actions**: Looks for known GitHub apps such as
+   [CodeQL](https://codeql.github.com/) (github-code-scanning) or
+   [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
+   of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
+   [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
 
-2. **GitHub Apps**: Checks for GitHub apps like github-code-scanning running on
-   recent (~30) merged PRs. Also checks for the deprecated [LGTM](https://lgtm.com/)
-   service.
+2. **Prow CI Integration**: For projects using [Prow](https://docs.prow.k8s.io/),
+   the check provides comprehensive SAST detection through:
+   - **Pattern matching**: Detects 30+ SAST tools (gosec, golangci-lint, semgrep, etc.) in commit status names
+   - **Config file scanning**: Analyzes `.prow.yaml` and `prow/*.yaml` files for SAST tool commands
+   - **Log analysis**: Fetches and scans Prow job logs using execution signatures to verify actual tool runs
+   - **Parallel processing**: Uses concurrent log fetching for improved performance on large projects
 
-3. **Prow Configuration Files**: For projects using [Prow](https://docs.prow.k8s.io/),
-   scans `.prow.yaml` and `.prow/*.yaml` files for job definitions that contain
-   SAST tools (e.g., `golangci-lint`, `staticcheck`, `semgrep`, `trivy`, etc.)
-   in their commands.
-
-4. **CI Status Checks**: Analyzes commit status checks from any CI system (including
-   Prow, Jenkins, etc.) by pattern matching against known SAST tool names in status
-   contexts and URLs.
+3. **Check Runs and Statuses**: Analyzes GitHub check runs and commit statuses to detect
+   SAST tool execution across various CI systems including Prow, Jenkins, and others.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is
@@ -557,6 +555,7 @@ is therefore not a definitive indication that the project is at risk.
 
 **Remediation steps**
 - Run CodeQL checks in your CI/CD by following the instructions [here](https://github.com/github/codeql-action#usage).
+- For Prow-based projects, configure SAST tools in your `.prow.yaml` or Prow job configurations. Popular tools include gosec, golangci-lint, staticcheck, and semgrep.
 
 ## SBOM 
 
