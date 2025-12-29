@@ -531,20 +531,20 @@ codebase.
 
 The check uses multiple detection methods:
 
-1. **GitHub Apps and Actions**: Looks for known GitHub apps such as
+1.GitHub Apps and Actions: Looks for known GitHub apps such as
    [CodeQL](https://codeql.github.com/) (github-code-scanning) or
    [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
    of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
    [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
 
-2. **Prow CI Integration**: For projects using [Prow](https://docs.prow.k8s.io/),
+2. Prow CI Integration: For projects using [Prow](https://docs.prow.k8s.io/),
    the check provides comprehensive SAST detection through:
-   - **Pattern matching**: Detects 30+ SAST tools (gosec, golangci-lint, semgrep, etc.) in commit status names
-   - **Config file scanning**: Analyzes `.prow.yaml` and `prow/*.yaml` files for SAST tool commands
-   - **Log analysis**: Fetches and scans Prow job logs using execution signatures to verify actual tool runs
-   - **Parallel processing**: Uses concurrent log fetching for improved performance on large projects
+   - Pattern matching: Detects 30+ SAST tools (gosec, golangci-lint, semgrep, etc.) in commit status names
+   - Config file scanning: Analyzes `.prow.yaml` and `prow/*.yaml` files for SAST tool commands
+   - Log analysis: Fetches and scans Prow job logs using execution signatures to verify actual tool runs
+   - Parallel processing: Uses concurrent log fetching for improved performance on large projects
 
-3. **Check Runs and Statuses**: Analyzes GitHub check runs and commit statuses to detect
+3. Check Runs and Statuses: Analyzes GitHub check runs and commit statuses to detect
    SAST tool execution across various CI systems including Prow, Jenkins, and others.
 
 Note: A project that fulfills this criterion with other tools may still receive
