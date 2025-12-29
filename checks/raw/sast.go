@@ -25,6 +25,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rhysd/actionlint"
@@ -86,6 +87,142 @@ var sastToolPatterns = []string{
 	"sast",
 	"code-scanning",
 	"code-analysis",
+}
+
+// sastToolExecutionSignatures maps tool names to their specific execution signatures.
+// These are exact patterns that indicate the tool is actually running (not just mentioned).
+// This significantly reduces false positives from test data, documentation, or logs.
+var sastToolExecutionSignatures = map[string][]string{
+	"codeql": {
+		"codeql database create",
+		"codeql database analyze",
+		"running codeql",
+		"+ codeql",
+		"codeql/analyze",
+	},
+	"sonar": {
+		"sonar-scanner",
+		"mvn sonar:sonar",
+		"gradle sonar",
+		"sonarqube scanner",
+		"running sonar",
+	},
+	"snyk": {
+		"snyk test",
+		"snyk monitor",
+		"snyk container test",
+		"snyk iac test",
+		"snyk code test",
+		"running snyk",
+		"+ snyk",
+	},
+	"semgrep": {
+		"semgrep scan",
+		"semgrep ci",
+		"semgrep --config",
+		"running semgrep",
+		"+ semgrep",
+	},
+	"gosec": {
+		"gosec ./...",
+		"gosec -fmt",
+		"running gosec",
+		"+ gosec",
+		"go run github.com/securego/gosec",
+	},
+	"staticcheck": {
+		"staticcheck ./...",
+		"running staticcheck",
+		"+ staticcheck",
+	},
+	"golangci": {
+		"golangci-lint run",
+		"running golangci-lint",
+		"+ golangci-lint",
+		"golangci/golangci-lint",
+	},
+	"pylint": {
+		"pylint ",
+		"running pylint",
+		"+ pylint",
+		"python -m pylint",
+	},
+	"eslint": {
+		"eslint .",
+		"eslint src",
+		"npm run eslint",
+		"running eslint",
+		"+ eslint",
+	},
+	"bandit": {
+		"bandit -r",
+		"running bandit",
+		"+ bandit",
+		"python -m bandit",
+	},
+	"brakeman": {
+		"brakeman -",
+		"bundle exec brakeman",
+		"running brakeman",
+		"+ brakeman",
+	},
+	"shellcheck": {
+		"shellcheck ",
+		"running shellcheck",
+		"+ shellcheck",
+	},
+	"trivy": {
+		"trivy scan",
+		"trivy fs",
+		"trivy image",
+		"trivy config",
+		"running trivy",
+		"+ trivy",
+	},
+	"hadolint": {
+		"hadolint ",
+		"running hadolint",
+		"+ hadolint",
+	},
+	"checkov": {
+		"checkov -d",
+		"checkov --directory",
+		"running checkov",
+		"+ checkov",
+	},
+	"tfsec": {
+		"tfsec .",
+		"running tfsec",
+		"+ tfsec",
+	},
+	"grype": {
+		"grype scan",
+		"grype dir:",
+		"running grype",
+		"+ grype",
+	},
+	"osv-scanner": {
+		"osv-scanner ",
+		"running osv-scanner",
+		"+ osv-scanner",
+	},
+	"govulncheck": {
+		"govulncheck ./...",
+		"running govulncheck",
+		"+ govulncheck",
+		"go run golang.org/x/vuln/cmd/govulncheck",
+	},
+	"bearer": {
+		"bearer scan",
+		"running bearer",
+		"+ bearer",
+		// Explicitly NOT: "authorization: bearer" or "bearer token"
+	},
+	"horusec": {
+		"horusec start",
+		"running horusec",
+		"+ horusec",
+	},
 }
 
 var allowedConclusions = map[string]bool{"success": true, "neutral": true}
@@ -301,40 +438,88 @@ func fetchProwLog(ctx context.Context, url string) ([]byte, error) {
 	return content, nil
 }
 
-// hasSASTInLogs fetches and scans Prow log content for SAST tool signatures.
-func hasSASTInLogs(c *checker.CheckRequest, prowURL string) bool {
-	// Try multiple potential log URLs
-	logURLs := convertToLogURL(prowURL)
+// isSASTToolExecution checks if a line indicates actual SAST tool execution.
+// Uses tool-specific execution signatures for high accuracy.
+func isSASTToolExecution(line, tool string) bool {
+	lower := strings.ToLower(line)
+	lowerTool := strings.ToLower(tool)
 
-	for _, logURL := range logURLs {
-		content, err := fetchProwLog(c.Ctx, logURL)
-		if err != nil {
-			// Log errors at debug level, don't fail the check
-			if c.Dlogger != nil {
-				c.Dlogger.Debug(&checker.LogMessage{
-					Text: fmt.Sprintf("[Prow Logs] Could not fetch %s: %v", logURL, err),
-				})
-			}
-			continue
-		}
+	// Skip lines that are clearly not executions
+	// 1. Test data (Authorization: Bearer, token examples, etc.)
+	if strings.Contains(lower, "authorization:") ||
+		strings.Contains(lower, "bearer token") ||
+		strings.Contains(lower, "example") ||
+		strings.Contains(lower, "test-token") {
+		return false
+	}
 
-		// Scan log content for SAST tool patterns
-		logText := strings.ToLower(string(content))
-		for _, pattern := range sastToolPatterns {
-			if strings.Contains(logText, pattern) {
-				if c.Dlogger != nil {
-					c.Dlogger.Debug(&checker.LogMessage{
-						Path: prowURL,
-						Type: finding.FileTypeURL,
-						Text: fmt.Sprintf("[Prow Logs] SAST tool '%s' detected in job output", pattern),
-					})
-				}
+	// 2. Error messages
+	if strings.Contains(lower, "failed to") ||
+		strings.Contains(lower, "not found") ||
+		strings.Contains(lower, "error:") ||
+		strings.Contains(lower, "could not find") ||
+		strings.Contains(lower, "unable to") {
+		return false
+	}
+
+	// 3. Use tool-specific signatures if available
+	if signatures, ok := sastToolExecutionSignatures[lowerTool]; ok {
+		for _, sig := range signatures {
+			if strings.Contains(lower, strings.ToLower(sig)) {
 				return true
 			}
 		}
+		return false
+	}
 
-		// Also check for "lint" which might indicate security linting
-		if strings.Contains(logText, "security") && strings.Contains(logText, "lint") {
+	// 4. Fallback: generic execution patterns for tools without specific signatures
+	executionPatterns := []string{
+		"+" + lowerTool,        // + gosec (shell trace)
+		"running " + lowerTool, // Running gosec
+		lowerTool + " run",     // gosec run
+		lowerTool + " scan",    // trivy scan
+		lowerTool + " --",      // Tool with flags
+	}
+
+	for _, pattern := range executionPatterns {
+		if strings.Contains(lower, pattern) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// scanLogForSASTTools scans log content for SAST tool execution patterns.
+func scanLogForSASTTools(content []byte, prowURL string, c *checker.CheckRequest) bool {
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	for scanner.Scan() {
+		line := scanner.Text()
+		for _, tool := range sastToolPatterns {
+			if strings.Contains(strings.ToLower(line), tool) {
+				if isSASTToolExecution(line, tool) {
+					if c.Dlogger != nil {
+						c.Dlogger.Debug(&checker.LogMessage{
+							Path: prowURL,
+							Type: finding.FileTypeURL,
+							Text: fmt.Sprintf("[Prow Logs] SAST tool '%s' detected in job output", tool),
+						})
+					}
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// scanLogForSecurityLinting scans log content for security linting patterns.
+func scanLogForSecurityLinting(content []byte, prowURL string, c *checker.CheckRequest) bool {
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	for scanner.Scan() {
+		line := strings.ToLower(scanner.Text())
+		if (strings.Contains(line, "running") || strings.Contains(line, "+") || strings.Contains(line, "executing")) &&
+			strings.Contains(line, "security") && strings.Contains(line, "lint") {
 			if c.Dlogger != nil {
 				c.Dlogger.Debug(&checker.LogMessage{
 					Path: prowURL,
@@ -345,18 +530,47 @@ func hasSASTInLogs(c *checker.CheckRequest, prowURL string) bool {
 			return true
 		}
 	}
+	return false
+}
+
+// hasSASTInLogs fetches and scans Prow log content for SAST tool signatures.
+// Uses execution pattern matching to reduce false positives.
+func hasSASTInLogs(c *checker.CheckRequest, prowURL string) bool {
+	logURLs := convertToLogURL(prowURL)
+
+	for _, logURL := range logURLs {
+		content, err := fetchProwLog(c.Ctx, logURL)
+		if err != nil {
+			if c.Dlogger != nil {
+				c.Dlogger.Debug(&checker.LogMessage{
+					Text: fmt.Sprintf("[Prow Logs] Could not fetch %s: %v", logURL, err),
+				})
+			}
+			continue
+		}
+
+		if scanLogForSASTTools(content, prowURL, c) {
+			return true
+		}
+
+		if scanLogForSecurityLinting(content, prowURL, c) {
+			return true
+		}
+	}
 
 	return false
 }
 
 // checkStatusesForSAST checks commit statuses for SAST tool execution via pattern matching.
 // Only logs when a SAST tool is found to reduce noise.
+// Fetches Prow logs in parallel for improved performance.
 func checkStatusesForSAST(c *checker.CheckRequest, statuses []clients.Status) bool {
 	// Skip logging if no statuses to check (reduces noise for repos without statuses)
 	if len(statuses) == 0 {
 		return false
 	}
 
+	// First pass: check pattern matching (fast, synchronous)
 	for _, status := range statuses {
 		if status.State != "success" {
 			continue
@@ -381,12 +595,47 @@ func checkStatusesForSAST(c *checker.CheckRequest, statuses []clients.Status) bo
 			}
 			return true
 		}
+	}
 
-		// If pattern matching didn't find anything, try scanning Prow logs
-		if isProwJobURL(status.TargetURL) {
-			if hasSASTInLogs(c, status.TargetURL) {
-				return true
-			}
+	// Second pass: collect Prow URLs for parallel log scanning
+	var prowURLs []string
+	for _, status := range statuses {
+		if status.State == "success" && isProwJobURL(status.TargetURL) {
+			prowURLs = append(prowURLs, status.TargetURL)
+		}
+	}
+
+	if len(prowURLs) == 0 {
+		return false
+	}
+
+	// Parallel log scanning using goroutines
+	type result struct {
+		url   string
+		found bool
+	}
+	resultChan := make(chan result, len(prowURLs))
+	var wg sync.WaitGroup
+
+	for _, url := range prowURLs {
+		wg.Add(1)
+		go func(prowURL string) {
+			defer wg.Done()
+			found := hasSASTInLogs(c, prowURL)
+			resultChan <- result{url: prowURL, found: found}
+		}(url)
+	}
+
+	// Wait for all goroutines to complete
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// Collect results
+	for res := range resultChan {
+		if res.found {
+			return true
 		}
 	}
 
