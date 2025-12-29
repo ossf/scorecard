@@ -17,7 +17,7 @@ require (
 	github.com/grafeas/kritis v0.2.3-0.20210120183821-faeba81c520c
 	github.com/h2non/filetype v1.1.3
 	github.com/jszwec/csvutil v1.10.0
-	github.com/moby/buildkit v0.26.2
+	github.com/moby/buildkit v0.26.3
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/onsi/gomega v1.38.3
 	github.com/rhysd/actionlint v1.7.9
@@ -31,7 +31,7 @@ require (
 	golang.org/x/text v0.32.0
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/genproto v0.0.0-20250922171735-9219d122eba9 // indirect
-	google.golang.org/protobuf v1.36.10
+	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.12.0
@@ -47,7 +47,7 @@ require (
 	github.com/mcuadros/go-jsonschema-generator v0.0.0-20200330054847-ba7a369d4303
 	github.com/onsi/ginkgo/v2 v2.27.3
 	github.com/otiai10/copy v1.14.1
-	gitlab.com/gitlab-org/api/client-go v1.7.0
+	gitlab.com/gitlab-org/api/client-go v1.10.0
 	sigs.k8s.io/release-utils v0.11.1
 )
 
