@@ -22,7 +22,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v2"
+	"go.yaml.in/yaml/v2"
 
 	"github.com/ossf/scorecard/v5/attestor/command"
 	"github.com/ossf/scorecard/v5/attestor/policy"
