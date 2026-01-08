@@ -20,7 +20,7 @@ import (
 	_ "embed"
 	"fmt"
 
-	"gopkg.in/yaml.v2"
+	"go.yaml.in/yaml/v2"
 )
 
 //go:embed checks.yaml

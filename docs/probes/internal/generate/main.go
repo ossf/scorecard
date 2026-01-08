@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 
 	pyaml "github.com/ossf/scorecard/v5/internal/probes/yaml"
 )
