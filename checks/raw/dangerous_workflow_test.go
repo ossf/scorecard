@@ -116,9 +116,9 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
-			name:     "toJSON github.event nested",
+			name:     "toJSON github.event subfield ignored",
 			variable: "toJSON(github.event.pull_request)",
-			expected: true,
+			expected: false,
 		},
 		{
 			name:     "toJSON case insensitive",

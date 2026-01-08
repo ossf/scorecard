@@ -59,7 +59,7 @@ func containsUntrustedContextPattern(variable string) bool {
 	// Check for toJSON() serializing github context or event objects.
 	// These contain untrusted data and are dangerous in shell contexts.
 	// See https://github.com/ossf/scorecard/issues/3554
-	dangerousToJSONPattern := regexp.MustCompile(`(?i)tojson\s*\(\s*github(\s*\)|\.event)`)
+	dangerousToJSONPattern := regexp.MustCompile(`(?i)tojson\s*\(\s*github(\.event)?\s*\)`)
 	if dangerousToJSONPattern.MatchString(variable) {
 		return true
 	}
