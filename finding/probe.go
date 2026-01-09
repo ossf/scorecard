@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/ossf/scorecard/v5/clients"
 	pyaml "github.com/ossf/scorecard/v5/internal/probes/yaml"

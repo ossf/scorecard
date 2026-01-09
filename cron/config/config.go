@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"go.yaml.in/yaml/v2"
 )
 
 const (

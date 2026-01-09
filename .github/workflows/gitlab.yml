@@ -33,7 +33,7 @@ jobs:
     environment: gitlab
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@df199fb7be9f65074067a9eb93f12bb4c5547cf2 # v2.13.3
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
       - name: Clone the code
@@ -52,7 +52,7 @@ jobs:
           echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 #v4.3.0
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb #v5.0.1
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -86,7 +86,7 @@ jobs:
           command: make e2e-gitlab-token
 
       - name: codecov
-        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # 5.5.1
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
          files: "*e2e-coverage.out"
          verbose: true
