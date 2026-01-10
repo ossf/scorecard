@@ -14,6 +14,19 @@
 
 package clients
 
+// RefType represents the
+// type of reference (branch or tag).
+type RefType string
+
+const (
+	// RefTypeBranch represents a
+	// branch reference.
+	RefTypeBranch RefType = "branch"
+	// RefTypeTag represents a
+	// tag reference.
+	RefTypeTag RefType = "tag"
+)
+
 // BranchRef represents a single branch reference and its protection rules.
 type BranchRef struct {
 	Name                 *string
@@ -21,15 +34,48 @@ type BranchRef struct {
 	BranchProtectionRule BranchProtectionRule
 }
 
+// TagRef represents a single tag
+// reference and its protection rules.
+type TagRef struct {
+	Name              *string
+	Protected         *bool
+	TagProtectionRule TagProtectionRule
+}
+
+// RefProtectionRule captures
+// the core protection settings
+// that can apply to both branches
+// and tags.
+// This is the shared foundation
+// for BranchProtectionRule and
+// TagProtectionRule.
+type RefProtectionRule struct {
+	AllowDeletions       *bool
+	AllowForcePushes     *bool
+	RequireLinearHistory *bool
+	EnforceAdmins        *bool
+	CheckRules           StatusChecksRule
+}
+
 // BranchProtectionRule captures the settings enabled on a branch for security.
+// It extends RefProtectionRule with
+// branch-specific settings.
 type BranchProtectionRule struct {
 	PullRequestRule         PullRequestRule
-	AllowDeletions          *bool
-	AllowForcePushes        *bool
-	RequireLinearHistory    *bool
-	EnforceAdmins           *bool
 	RequireLastPushApproval *bool
-	CheckRules              StatusChecksRule
+	RefProtectionRule
+}
+
+// TagProtectionRule captures
+// the settings enabled on a
+// tag for security.
+// It extends RefProtectionRule with
+// tag-specific settings.
+type TagProtectionRule struct {
+	AllowUpdates      *bool
+	RequireSignatures *bool
+	RestrictCreation  *bool
+	RefProtectionRule
 }
 
 // StatusChecksRule captures settings on status checks.

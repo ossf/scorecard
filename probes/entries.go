@@ -19,7 +19,10 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/archived"
 	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
+	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnTags"
 	"github.com/ossf/scorecard/v5/probes/blocksForcePushOnBranches"
+	"github.com/ossf/scorecard/v5/probes/blocksForcePushOnTags"
+	"github.com/ossf/scorecard/v5/probes/blocksUpdateOnTags"
 	"github.com/ossf/scorecard/v5/probes/branchProtectionAppliesToAdmins"
 	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v5/probes/codeApproved"
@@ -29,6 +32,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/dependencyUpdateToolConfigured"
 	"github.com/ossf/scorecard/v5/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v5/probes/fuzzed"
+	"github.com/ossf/scorecard/v5/probes/gitlabReleaseTagsAreProtected"
 	"github.com/ossf/scorecard/v5/probes/hasBinaryArtifacts"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
@@ -53,7 +57,9 @@ import (
 	"github.com/ossf/scorecard/v5/probes/requiresCodeOwnersReview"
 	"github.com/ossf/scorecard/v5/probes/requiresLastPushApproval"
 	"github.com/ossf/scorecard/v5/probes/requiresPRsToChangeCode"
+	"github.com/ossf/scorecard/v5/probes/requiresSignedTags"
 	"github.com/ossf/scorecard/v5/probes/requiresUpToDateBranches"
+	"github.com/ossf/scorecard/v5/probes/restrictsTagCreation"
 	"github.com/ossf/scorecard/v5/probes/runsStatusChecksBeforeMerging"
 	"github.com/ossf/scorecard/v5/probes/sastToolConfigured"
 	"github.com/ossf/scorecard/v5/probes/sastToolRunsOnAllCommits"
@@ -61,6 +67,9 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/probes/tagProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v5/probes/tagsAreProtected"
+	"github.com/ossf/scorecard/v5/probes/tagsCannotDuplicateBranchNames"
 	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
 	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v5/probes/unsafeblock"
@@ -154,6 +163,17 @@ var (
 		requiresUpToDateBranches.Run,
 		runsStatusChecksBeforeMerging.Run,
 		requiresPRsToChangeCode.Run,
+	}
+	TagProtection = []ProbeImpl{
+		tagsAreProtected.Run,
+		tagsCannotDuplicateBranchNames.Run,
+		gitlabReleaseTagsAreProtected.Run,
+		blocksDeleteOnTags.Run,
+		blocksForcePushOnTags.Run,
+		blocksUpdateOnTags.Run,
+		tagProtectionAppliesToAdmins.Run,
+		restrictsTagCreation.Run,
+		requiresSignedTags.Run,
 	}
 	PinnedDependencies = []ProbeImpl{
 		pinsDependencies.Run,
