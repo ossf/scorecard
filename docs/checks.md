@@ -312,7 +312,6 @@ This check tries to determine if the project uses a dependency update tool,
 specifically one of:
 - [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/configuration-options-for-dependency-updates)
 - [Renovate bot](https://docs.renovatebot.com/configuration-options/)
-- [PyUp](https://docs.pyup.io/docs) (Python)
 Out-of-date dependencies make a project vulnerable to known flaws and prone to attacks.
 These tools automate the process of updating dependencies by scanning for
 outdated or insecure requirements, and opening a pull request to update them if
@@ -345,6 +344,7 @@ This check tries to determine if the project uses
    - a limited set of property-based testing libraries for Haskell including [QuickCheck](https://hackage.haskell.org/package/QuickCheck), [Hedgehog](https://hedgehog.qa/), [validity](https://hackage.haskell.org/package/validity) or [SmallCheck](https://hackage.haskell.org/package/smallcheck),
    - a limited set of property-based testing libraries for JavaScript and TypeScript including [fast-check](https://fast-check.dev/).
    - a limited set of property-based testing libraries for Erlang, including proper and quickcheck.
+   - a limited set of property-based testing libraries for C# and F# including [FsCheck](https://github.com/fscheck/FsCheck).
 
 Fuzzing, or fuzz testing, is the practice of feeding unexpected or random data
 into a program to expose bugs. Regular fuzzing is important to detect

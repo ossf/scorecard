@@ -307,9 +307,18 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 		"name":          githubv4.String(handler.repourl.repo),
 		"branchRefName": githubv4.String(refPrefix + branchName),
 	}
+	// Attempt to fetch branch protection rules, which require admin permission.
+	// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
 	queryData := new(branchData)
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
-		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		// always report errors which aren't token permission related
+		if !isPermissionsError(err) {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+		}
+		// only report permission errors if no ruleset data
+		if len(handler.ruleSets) == 0 {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, classicBranchErrMsg)
+		}
 	}
 	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
 	if err != nil {
@@ -496,7 +505,18 @@ nextRule:
 			}
 		}
 
-		for _, cond := range rule.Conditions.RefName.Include {
+		includePatterns := rule.Conditions.RefName.Include
+		excludePatterns := rule.Conditions.RefName.Exclude
+		if len(includePatterns) == 0 {
+			// GitHub treats an empty include list with at least one exclude as applying to all refs unless excluded.
+			// If both include and exclude are empty, the ruleset doesn't apply to any branches.
+			if len(excludePatterns) > 0 {
+				ret = append(ret, rule)
+			}
+			continue
+		}
+
+		for _, cond := range includePatterns {
 			if cond == ruleConditionAllBranches {
 				ret = append(ret, rule)
 				break

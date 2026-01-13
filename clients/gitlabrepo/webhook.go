@@ -51,7 +51,7 @@ func (handler *webhookHandler) setup() error {
 			handler.webhooks = append(handler.webhooks,
 				clients.Webhook{
 					Path:           hook.URL,
-					ID:             int64(hook.ID),
+					ID:             hook.ID,
 					UsesAuthSecret: hook.EnableSSLVerification,
 				})
 		}

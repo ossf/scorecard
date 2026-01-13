@@ -77,6 +77,11 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			filename: "./testdata/.github/workflows/github-workflow-unknown-os.yaml",
 			warns:    2, // 1 in job with unknown OS, 1 in job with known OS
 		},
+		{
+			name:     "YAML anchor usage doesn't panic",
+			filename: "./testdata/.github/workflows/workflow-anchor.yaml",
+			warns:    1, // anchor definition is unpinned, but alias isn't supported by actionlint
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

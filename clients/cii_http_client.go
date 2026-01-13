@@ -28,7 +28,9 @@ var errTooManyRequests = errors.New("failed after exponential backoff")
 
 // httpClientCIIBestPractices implements the CIIBestPracticesClient interface.
 // A HTTP client with exponential backoff is used to communicate with the CII Best Practices servers.
-type httpClientCIIBestPractices struct{}
+type httpClientCIIBestPractices struct {
+	baseURL string
+}
 
 type expBackoffTransport struct {
 	numRetries uint8
@@ -49,7 +51,7 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 // GetBadgeLevel implements CIIBestPracticesClient.GetBadgeLevel.
 func (client *httpClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error) {
 	repoURI := fmt.Sprintf("https://%s", uri)
-	url := fmt.Sprintf("https://www.bestpractices.dev/projects.json?url=%s", repoURI)
+	url := fmt.Sprintf("%s/projects.json?url=%s", client.baseURL, repoURI)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return Unknown, fmt.Errorf("error during http.NewRequestWithContext: %w", err)

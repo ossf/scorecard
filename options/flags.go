@@ -25,7 +25,9 @@ import (
 
 const (
 	// FlagRepo is the flag name for specifying a repository.
-	FlagRepo = "repo"
+	FlagRepo  = "repo"
+	FlagRepos = "repos"
+	FlagOrg   = "org"
 
 	// FlagLocal is the flag name for specifying a local run.
 	FlagLocal = "local"
@@ -93,6 +95,22 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRepo,
 		o.Repo,
 		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\")",
+	)
+
+	cmd.Flags().StringSliceVar(
+		&o.Repos,
+		FlagRepos,
+		o.Repos,
+		"repositories to check (<repo1>,<repo2>, ...). Each repo must be one of:"+
+			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\"",
+	)
+
+	cmd.Flags().StringVar(
+		&o.Org,
+		FlagOrg,
+		o.Org,
+		"scans all non-archived repositories in an organization. "+
+			"Currently only supports GitHub, e.g., 'github.com/ossf' or 'ossf'",
 	)
 
 	cmd.Flags().StringVar(

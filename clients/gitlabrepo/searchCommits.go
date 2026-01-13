@@ -61,7 +61,7 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		}
 
 		ret = append(ret, clients.Commit{
-			Committer: clients.User{ID: int64(userMap[commit.CommitterEmail].ID)},
+			Committer: clients.User{ID: userMap[commit.CommitterEmail].ID},
 		})
 	}
 

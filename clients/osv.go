@@ -18,10 +18,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime/debug"
 
-	"github.com/google/osv-scanner/pkg/osvscanner"
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 
 	sce "github.com/ossf/scorecard/v5/errors"
 )
@@ -38,6 +39,7 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	commit,
 	localPath string,
 ) (_ VulnerabilitiesResponse, err error) {
+	osvscanner.SetLogger(slog.DiscardHandler)
 	defer func() {
 		if r := recover(); r != nil {
 			err = sce.CreateInternal(sce.ErrScorecardInternal, fmt.Sprintf("osv-scanner panic: %v", r))
@@ -53,26 +55,29 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		gitCommits = append(gitCommits, commit)
 	}
 	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
-		DirectoryPaths: directoryPaths,
-		SkipGit:        true,
-		Recursive:      true,
-		GitCommits:     gitCommits,
+		DirectoryPaths:    directoryPaths,
+		IncludeGitRoot:    false,
+		Recursive:         true,
+		GitCommits:        gitCommits,
+		CompareOffline:    v.local,
+		DownloadDatabases: v.local,
+		// swap out the transitive requirements scanning for offline extractor
 		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
-			CompareOffline:    v.local,
-			DownloadDatabases: v.local,
+			PluginsEnabled:  []string{"python/requirements"},
+			PluginsDisabled: []string{"python/requirementsenhanceable"},
 		},
-	}, nil) // TODO: Do logging?
+	}) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
 
 	// either no vulns found, or no packages detected by osvscanner, which likely means no vulns
 	// while there could still be vulns, not detecting any packages shouldn't be a runtime error.
-	if err == nil || errors.Is(err, osvscanner.NoPackagesFoundErr) {
+	if err == nil || errors.Is(err, osvscanner.ErrNoPackagesFound) {
 		return response, nil
 	}
 
 	// If vulnerabilities are found, err will be set to osvscanner.VulnerabilitiesFoundErr
-	if errors.Is(err, osvscanner.VulnerabilitiesFoundErr) {
+	if errors.Is(err, osvscanner.ErrVulnerabilitiesFound) {
 		vulns := res.Flatten()
 		for i := range vulns {
 			// ignore Go stdlib vulns. The go directive from the go.mod isn't a perfect metric

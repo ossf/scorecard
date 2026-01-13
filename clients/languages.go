@@ -41,7 +41,7 @@ const (
 	// Java: https://www.java.com/en/
 	Java LanguageName = "java"
 
-	// C#: https://docs.microsoft.com/en-us/dotnet/csharp/
+	// C#: https://docs.microsoft.com/dotnet/csharp/
 	CSharp LanguageName = "c#"
 
 	// ObjectiveC: the objective c language.
@@ -91,6 +91,9 @@ const (
 
 	// All indicates all programming languages.
 	All LanguageName = "all"
+
+	// F#: https://learn.microsoft.com/dotnet/fsharp/
+	FSharp LanguageName = "f#"
 
 	// Add more languages here if needed,
 	// please use lowercases for the LanguageName value.

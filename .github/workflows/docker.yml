@@ -35,7 +35,7 @@ jobs:
       docs_only: ${{ steps.docs_only_check.outputs.docs_only }}
     steps:
     - name: Check out code
-      uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
       with:
         fetch-depth: 2 # needed to diff changed files
     - id: docs_only_check
@@ -72,15 +72,15 @@ jobs:
     steps:
      - name: Harden Runner
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a # v2.13.1
+       uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
      - name: Setup Go # needed for some of the Makefile evaluations, even if building happens in Docker 
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+       uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
