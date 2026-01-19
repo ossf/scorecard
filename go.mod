@@ -20,7 +20,7 @@ require (
 	github.com/moby/buildkit v0.26.3
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/onsi/gomega v1.39.0
-	github.com/rhysd/actionlint v1.7.9
+	github.com/rhysd/actionlint v1.7.10
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
 	github.com/shurcooL/graphql v0.0.0-20200928012149-18c5c3165e3a
 	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
