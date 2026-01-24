@@ -105,6 +105,36 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "github.event.discussion.title",
 			expected: true,
 		},
+		{
+			name:     "toJSON github.event",
+			variable: "toJSON(github.event)",
+			expected: true,
+		},
+		{
+			name:     "toJSON github context",
+			variable: "toJSON(github)",
+			expected: true,
+		},
+		{
+			name:     "toJSON github.event subfield ignored",
+			variable: "toJSON(github.event.pull_request)",
+			expected: false,
+		},
+		{
+			name:     "toJSON case insensitive",
+			variable: "TOJSON(github.event)",
+			expected: true,
+		},
+		{
+			name:     "toJSON with spaces",
+			variable: "toJSON( github.event )",
+			expected: true,
+		},
+		{
+			name:     "toJSON safe property",
+			variable: "toJSON(github.repository)",
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -176,6 +206,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run wildcard script injection",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run toJSON script injection",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-tojson.yml",
 			expected: ret{nb: 1},
 		},
 	}

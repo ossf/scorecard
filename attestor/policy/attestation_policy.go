@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"github.com/gobwas/glob"
-	"gopkg.in/yaml.v2"
+	"go.yaml.in/yaml/v2"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
