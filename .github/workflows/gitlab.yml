@@ -25,7 +25,7 @@ on:
       - main
 
 env:
-  GO_VERSION: 1.24
+  GO_VERSION: stable
 
 jobs:
   gitlab-integration-trusted:
@@ -33,15 +33,15 @@ jobs:
     environment: gitlab
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+        uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
       - name: Clone the code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }} # head SHA if PR, else fallback to push SHA
       - name: Setup Go
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
@@ -52,7 +52,7 @@ jobs:
           echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
       - name: Cache builds
         # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 #v4.2.3
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb #v5.0.1
         with:
           path: |
             ${{ steps.go-cache-paths.outputs.go-build }}
@@ -86,7 +86,7 @@ jobs:
           command: make e2e-gitlab-token
 
       - name: codecov
-        uses: codecov/codecov-action@ad3126e916f78f00edff4ed0317cf185271ccc2d # 5.4.2
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # 5.5.2
         with:
          files: "*e2e-coverage.out"
          verbose: true

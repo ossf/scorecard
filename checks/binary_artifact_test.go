@@ -15,12 +15,11 @@
 package checks
 
 import (
-	"context"
 	"io"
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
@@ -80,7 +79,7 @@ func TestBinaryArtifacts(t *testing.T) {
 				return os.Open("./" + tt.inputFolder + "/" + file)
 			}).AnyTimes()
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			dl := scut.TestDetailLogger{}
 

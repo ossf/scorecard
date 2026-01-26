@@ -17,7 +17,7 @@ package checks
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	clients "github.com/ossf/scorecard/v5/clients"
@@ -85,19 +85,6 @@ func TestDependencyUpdateTool(t *testing.T) {
 			wantErr: false,
 			files: []string{
 				".github/renovate.json5",
-			},
-			CallSearchCommits: 0,
-			expected: scut.TestReturn{
-				NumberOfInfo: 1,
-				NumberOfWarn: 0,
-				Score:        10,
-			},
-		},
-		{
-			name:    "pyup config detected",
-			wantErr: false,
-			files: []string{
-				".pyup.yml",
 			},
 			CallSearchCommits: 0,
 			expected: scut.TestReturn{

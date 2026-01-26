@@ -88,7 +88,7 @@ func Test_searchCommits(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			s := searchCommitsHandler{
-				ctx:                 context.Background(),
+				ctx:                 t.Context(),
 				repourl:             &Repo{},
 				getCommits:          tt.getCommits,
 				getPullRequestQuery: tt.getPullRequestQuery,

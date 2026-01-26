@@ -27,11 +27,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@0634a2670c59f64b4a01f0f96f84700a4088b9f0 # v2.12.0
+      uses: step-security/harden-runner@20cf305ff2072d973412fa9b1e3a4f227bda3c76 # v2.14.0
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-    - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v3.0.18
+    - uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v3.0.18
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-issue-message: 'This issue has been marked stale because it has been open for 60 days with no activity.'

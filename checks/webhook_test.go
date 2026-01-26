@@ -15,10 +15,9 @@
 package checks
 
 import (
-	"context"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -109,7 +108,7 @@ func TestWebhooks(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.TODO(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			res := WebHooks(&req)

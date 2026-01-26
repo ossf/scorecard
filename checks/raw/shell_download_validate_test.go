@@ -456,6 +456,62 @@ func Test_isNpmUnpinnedDownload(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "npm install with github: prefix and valid hash",
+			args: args{
+				cmd: []string{"npm", "install", "github:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: false,
+		},
+		{
+			name: "npm install with git: prefix and valid hash",
+			args: args{
+				cmd: []string{"npm", "install", "git:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: true,
+		},
+		{
+			name: "npm install with git:// prefix and valid hash",
+			args: args{
+				cmd: []string{"npm", "install", "git://nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: false,
+		},
+		{
+			name: "npm install with http: prefix and valid hash",
+			args: args{
+				cmd: []string{"npm", "install", "http://nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: true,
+		},
+		{
+			name: "npm install with https: prefix and valid hash",
+			args: args{
+				cmd: []string{"npm", "install", "https://nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: true,
+		},
+		{
+			name: "npm install invalid github url (has too many hash characters)",
+			args: args{
+				cmd: []string{"npm", "install", "githu#b:n#odeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: true,
+		},
+		{
+			name: "npm install with wrong prefix (githu instead of github)",
+			args: args{
+				cmd: []string{"npm", "install", "githu:nodeca/js-yaml#2cef47bebf60da141b78b085f3dea3b5733dcc12"},
+			},
+			want: true,
+		},
+		{
+			name: "npm install with wrong hash length",
+			args: args{
+				cmd: []string{"npm", "install", "githu:nodeca/js-yaml#2cef47bebf60d"},
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -582,6 +638,62 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 				},
 			},
 			expected: true,
+		},
+		{
+			name: "Single-quoted unpinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"'=https'",
+					"--tlsv1.2",
+					"-sSf",
+					"'https://raw.githubusercontent.com/rust-lang/rustup/main/rustup-init.sh'",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Single-quoted pinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"'=https'",
+					"--tlsv1.2",
+					"-sSf",
+					"'https://raw.githubusercontent.com/rust-lang/rustup/f7935a8ad24a445629ceedb2cb706a4469e1e5b3/rustup-init.sh'",
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "Double-quoted unpinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"\"=https\"",
+					"--tlsv1.2",
+					"-sSf",
+					"\"https://raw.githubusercontent.com/rust-lang/rustup/main/rustup-init.sh\"",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "Double-quoted pinned URL",
+			args: args{
+				cmd: []string{
+					"curl",
+					"--proto",
+					"\"=https\"",
+					"--tlsv1.2",
+					"-sSf",
+					"\"https://raw.githubusercontent.com/rust-lang/rustup/f7935a8ad24a445629ceedb2cb706a4469e1e5b3/rustup-init.sh\"",
+				},
+			},
+			expected: false,
 		},
 	}
 	for _, tt := range tests {

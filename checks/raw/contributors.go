@@ -36,6 +36,7 @@ func Contributors(cr *checker.CheckRequest) (checker.ContributorsData, error) {
 		user := clients.User{
 			Login:            contrib.Login,
 			NumContributions: contrib.NumContributions,
+			IsCodeOwner:      contrib.IsCodeOwner,
 		}
 
 		for _, org := range contrib.Organizations {

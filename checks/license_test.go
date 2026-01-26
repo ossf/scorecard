@@ -15,13 +15,12 @@
 package checks
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	clients "github.com/ossf/scorecard/v5/clients"
@@ -90,7 +89,7 @@ func TestLicenseFileSubdirectory(t *testing.T) {
 			//     if that functionality is ever changed, this mock needs to be updated accordingly
 			mockRepoClient.EXPECT().ListLicenses().Return(nil, fmt.Errorf("ListLicenses: %w", clients.ErrUnsupportedFeature)).AnyTimes()
 
-			ctx := context.Background()
+			ctx := t.Context()
 
 			dl := scut.TestDetailLogger{}
 

@@ -35,6 +35,8 @@ func containsUntrustedContextPattern(variable string) bool {
 			`issue\.body|` +
 			`pull_request\.title|` +
 			`pull_request\.body|` +
+			`discussion\.title|` +
+			`discussion\.body|` +
 			`comment\.body|` +
 			`review\.body|` +
 			`review_comment\.body|` +
@@ -45,11 +47,20 @@ func containsUntrustedContextPattern(variable string) bool {
 			`head_commit\.author\.name|` +
 			`commits.*\.author\.email|` +
 			`commits.*\.author\.name|` +
+			`blocked_user\.name|` +
+			`blocked_user\.email|` +
 			`pull_request\.head\.ref|` +
 			`pull_request\.head\.label|` +
 			`pull_request\.head\.repo\.default_branch).*`)
 
 	if strings.Contains(variable, "github.head_ref") {
+		return true
+	}
+	// Check for toJSON() serializing github context or event objects.
+	// These contain untrusted data and are dangerous in shell contexts.
+	// See https://github.com/ossf/scorecard/issues/3554
+	dangerousToJSONPattern := regexp.MustCompile(`(?i)tojson\s*\(\s*github(\.event)?\s*\)`)
+	if dangerousToJSONPattern.MatchString(variable) {
 		return true
 	}
 	return strings.Contains(variable, "github.event.") && untrustedContextPattern.MatchString(variable)

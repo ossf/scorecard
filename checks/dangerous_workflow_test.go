@@ -15,12 +15,11 @@
 package checks
 
 import (
-	"context"
 	"io"
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
@@ -85,7 +84,7 @@ func TestDangerousWorkflow(t *testing.T) {
 			}).AnyTimes()
 
 			req := &checker.CheckRequest{
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				RepoClient: mockRepoClient,
 				Dlogger:    &dl,
 			}

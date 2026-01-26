@@ -557,9 +557,6 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			// Go packages.
 			Steps: []*JobMatcherStep{
 				{
-					Uses: "actions/setup-go",
-				},
-				{
 					Uses: "goreleaser/goreleaser-action",
 				},
 			},
@@ -594,6 +591,18 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 				},
 			},
 			LogText: "candidate publishing workflow using semantic-release",
+		},
+		{
+			// Elixir packaging
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "erlef/setup-elixir",
+				},
+				{
+					Run: ".*hex.publish.*",
+				},
+			},
+			LogText: "candidate publishing workflow using elixir",
 		},
 	}
 

@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -362,7 +363,7 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return true, nil
 	}
 
-	contentReader := strings.NewReader(string(content))
+	contentReader := bytes.NewReader(content)
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
@@ -485,7 +486,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
-	contentReader := strings.NewReader(string(content))
+	contentReader := bytes.NewReader(content)
 	// The dependency must be pinned by sha256 hash, e.g.,
 	// FROM something@sha256:${ARG},
 	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
@@ -497,20 +498,37 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
 	}
 
+	dockerArgs := map[string]string{}
 	for _, child := range res.AST.Children {
 		cmdType := child.Value
-		if cmdType != "FROM" {
+		switch cmdType {
+		case "FROM":
+		case "ARG":
+			for n := child.Next; n != nil; n = n.Next {
+				if k, v, ok := strings.Cut(n.Value, "="); ok {
+					dockerArgs[k] = v
+				}
+			}
+			continue
+		default:
 			continue
 		}
 
 		var valueList []string
 		for n := child.Next; n != nil; n = n.Next {
-			valueList = append(valueList, n.Value)
+			value := n.Value
+			for k, v := range dockerArgs {
+				value = strings.ReplaceAll(value, "${"+k+"}", v)
+			}
+			valueList = append(valueList, value)
 		}
 
 		switch {
 		// scratch is no-op.
 		case len(valueList) > 0 && strings.EqualFold(valueList[0], "scratch"):
+			if len(valueList) == 3 && strings.EqualFold(valueList[1], "as") {
+				pinnedAsNames[valueList[2]] = true
+			}
 			continue
 
 		// FROM name AS newname.
@@ -521,26 +539,35 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 			// (1): name = <>@sha245:hash
 			// (2): name = XXX where XXX was pinned
 			pinned := pinnedAsNames[name]
+			// Record the asName.
 			if pinned || regex.MatchString(name) {
-				// Record the asName.
 				pinnedAsNames[asName] = true
+			} else {
+				pinnedAsNames[asName] = false
+			}
+			dep := checker.Dependency{
+				Location: &checker.File{
+					Path:      pathfn,
+					Type:      finding.FileTypeSource,
+					Offset:    uint(child.StartLine),
+					EndOffset: uint(child.EndLine),
+					Snippet:   child.Original,
+				},
+				Name:     asPointer(name),
+				PinnedAt: asPointer(asName),
+				Pinned:   asBoolPointer(pinnedAsNames[asName]),
+				Type:     checker.DependencyUseTypeDockerfileContainerImage,
 			}
 
-			pdata.Dependencies = append(pdata.Dependencies,
-				checker.Dependency{
-					Location: &checker.File{
-						Path:      pathfn,
-						Type:      finding.FileTypeSource,
-						Offset:    uint(child.StartLine),
-						EndOffset: uint(child.EndLine),
-						Snippet:   child.Original,
-					},
-					Name:     asPointer(name),
-					PinnedAt: asPointer(asName),
-					Pinned:   asBoolPointer(pinnedAsNames[asName]),
-					Type:     checker.DependencyUseTypeDockerfileContainerImage,
-				},
-			)
+			parts := strings.SplitN(name, ":", 2)
+			if len(parts) > 0 {
+				dep.Name = asPointer(parts[0])
+				if len(parts) > 1 {
+					dep.PinnedAt = asPointer(parts[1])
+				}
+			}
+
+			pdata.Dependencies = append(pdata.Dependencies, dep)
 
 		// FROM name.
 		case len(valueList) == 1:
@@ -739,6 +766,17 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
 		}
+
+		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
+			//nolint:lll
+			// Check whether this is an action defined in the same repo,
+			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
+			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
+				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+				pdata.Dependencies = append(pdata.Dependencies, dep)
+			}
+		}
+
 		for _, step := range job.Steps {
 			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
 				continue
@@ -751,7 +789,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 					fmt.Sprintf("unable to parse step '%v' for job '%v'", jobName, stepName))
 			}
 
-			if execAction == nil || execAction.Uses == nil {
+			if execAction == nil || execAction.Uses == nil || execAction.Uses.Value == "" {
 				// Cannot check further, continue.
 				continue
 			}
@@ -762,30 +800,34 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if strings.HasPrefix(execAction.Uses.Value, "./") {
 				continue
 			}
-
-			dep := checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    uint(execAction.Uses.Pos.Line),
-					EndOffset: uint(execAction.Uses.Pos.Line), // `Uses` always span a single line.
-					Snippet:   execAction.Uses.Value,
-				},
-				Pinned: asBoolPointer(isActionDependencyPinned(execAction.Uses.Value)),
-				Type:   checker.DependencyUseTypeGHAction,
-			}
-			parts := strings.SplitN(execAction.Uses.Value, "@", 2)
-			if len(parts) > 0 {
-				dep.Name = asPointer(parts[0])
-				if len(parts) > 1 {
-					dep.PinnedAt = asPointer(parts[1])
-				}
-			}
+			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
 
 	return true, nil
+}
+
+func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
+	dep := checker.Dependency{
+		Location: &checker.File{
+			Path:      pathfn,
+			Type:      finding.FileTypeSource,
+			Offset:    uint(line),
+			EndOffset: uint(line), // `Uses` always span a single line.
+			Snippet:   uses,
+		},
+		Pinned: asBoolPointer(isActionDependencyPinned(uses)),
+		Type:   checker.DependencyUseTypeGHAction,
+	}
+	parts := strings.SplitN(uses, "@", 2)
+	if len(parts) > 0 {
+		dep.Name = asPointer(parts[0])
+		if len(parts) > 1 {
+			dep.PinnedAt = asPointer(parts[1])
+		}
+	}
+	return dep
 }
 
 func isActionDependencyPinned(actionUses string) bool {

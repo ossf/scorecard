@@ -1,0 +1,74 @@
+header:
+  schema-version: 2.0.0
+  last-updated: '2025-11-25'
+  last-reviewed: '2025-11-25'
+  url: https://github.com/ossf/scorecard
+  comment: This file contains the security information for the Scorecard project.
+
+project:
+  name: Scorecard
+  administrators:
+    - name: Stephen Augustus
+      affiliation: Bloomberg
+      primary: true
+    - name: Raghav Kaul
+      affiliation: Google
+    - name: Spencer Schrock
+      affiliation: Google
+  # TODO(security-insights): Extend this to include all Scorecard repos in our next review pass.
+  repositories:
+    - name: Scorecard
+      url: https://github.com/ossf/scorecard
+      comment: |
+        ossf/scorecard is the core repo for the Scorecard project.
+  steward:
+      uri: https://openssf.org
+      comment: |
+        Scorecard is maintained by volunteers under the oversight of the Open Source Security Foundation (OpenSSF).
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+
+repository:
+  status: active
+  url: https://github.com/ossf/scorecard
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  no-third-party-packages: false
+  core-team:
+    - name: Stephen Augustus
+      affiliation: Bloomberg
+      primary: true
+    - name: Raghav Kaul
+      affiliation: Google
+    - name: Adam Korczynski
+      affiliation: ADA Logics
+    - name: Jeff Mendoza
+      affiliation: Microsoft
+    - name: Spencer Schrock
+      affiliation: Google
+  license:
+    url: https://github.com/ossf/scorecard/blob/main/LICENSE
+    expression: Apache-2.0
+  security:
+    assessments:
+      audit-2025:
+        evidence: https://openssf.org/blog/2025/10/10/openssf-scorecard-audit-is-complete/
+        comment: |
+          This audit was coordinated by Open Source Technology Improvement Fund (OSTIF) and undertaken by the ADA
+          Logics team during early summer of 2025.
+          Within the scope of review was five repositories: scorecard-webapp, scorecard-action, scorecard-monitor,
+          scorecard, and allstar. These five projects underwent formal threat modeling, which then guided the manual
+          code review that followed. Each repository interacts with different interfaces, handles different
+          (potentially sensitive) data, and therefore has differing attack impacts that affect its security needs.
+          Fuzzing work was also performed during this audit, and resulted in the uncovering of some of the reported
+          findings.
+  documentation:
+    contributing-guide: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md
+    governance: https://github.com/ossf/scorecard/blob/main/MAINTAINERS.md
+    security-policy: https://github.com/ossf/scorecard/blob/main/SECURITY.md
+  release:
+    automated-pipeline: true
+    distribution-points:
+      - uri:  https://github.com/ossf/scorecard/releases
+        comment: GitHub Releases page

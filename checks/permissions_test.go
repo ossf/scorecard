@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -352,7 +352,7 @@ func TestGithubTokenPermissions(t *testing.T) {
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
 				NumberOfInfo:  2, // This is constant.
-				NumberOfDebug: 8, // This is 4 + (number of actions)
+				NumberOfDebug: 9, // This is 4 + (number of actions)
 			},
 		},
 		{

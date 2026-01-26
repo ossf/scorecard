@@ -87,6 +87,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, qodanaWorkflows...)
 
+	hadolintWorkflows, err := getSastUsesWorkflows(c, "^hadolint/hadolint-action$", checker.HadolintWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, hadolintWorkflows...)
+
 	return data, nil
 }
 
@@ -126,11 +132,13 @@ func sastToolInCheckRuns(c *checker.CheckRequest) ([]checker.SASTCommit, error) 
 				continue
 			}
 			if sastTools[cr.App.Slug] {
-				c.Dlogger.Debug(&checker.LogMessage{
-					Path: cr.URL,
-					Type: finding.FileTypeURL,
-					Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
-				})
+				if c.Dlogger != nil {
+					c.Dlogger.Debug(&checker.LogMessage{
+						Path: cr.URL,
+						Type: finding.FileTypeURL,
+						Text: fmt.Sprintf("tool detected: %v", cr.App.Slug),
+					})
+				}
 				checked = true
 				break
 			}

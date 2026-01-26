@@ -22,6 +22,7 @@ type User struct {
 	NumContributions int
 	ID               int64
 	IsBot            bool
+	IsCodeOwner      bool
 }
 
 // RepoAssociation is how a user is associated with a repository.

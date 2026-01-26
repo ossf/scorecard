@@ -15,11 +15,10 @@
 package raw
 
 import (
-	"context"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -110,7 +109,7 @@ func TestSbom(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient: mockRepo,
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				Dlogger:    &dl,
 			}
 			res, err := SBOM(&req)

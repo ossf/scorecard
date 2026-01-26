@@ -29,7 +29,7 @@ GOBIN := $(shell go env GOBIN)
 
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
 $(GOLANGCI_LINT): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 KO := $(TOOLS_BIN_DIR)/ko
 $(KO): $(TOOLS_DIR)/go.mod
@@ -37,7 +37,7 @@ $(KO): $(TOOLS_DIR)/go.mod
 
 MOCKGEN := $(TOOLS_BIN_DIR)/mockgen
 $(MOCKGEN): $(TOOLS_DIR)/go.mod
-	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/golang/mock/mockgen
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install go.uber.org/mock/mockgen
 
 GINKGO := $(TOOLS_BIN_DIR)/ginkgo
 $(GINKGO): $(TOOLS_DIR)/go.mod
@@ -383,10 +383,10 @@ $(KOCACHE_PATH):
 
 scorecard-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
-			   KO_DOCKER_REPO=${KO_PREFIX}/${IMAGE_NAME}
+			   KO_DOCKER_REPO=ghcr.io/ossf/scorecard \
 			   LDFLAGS="$(LDFLAGS)" \
 			   KO_CACHE=$(KOCACHE_PATH) \
-			   $(KO) build -B \
+			   $(KO) build --bare \
 			   --sbom=none \
 			   --platform=$(PLATFORM) \
 			   --tags latest,$(GIT_VERSION),$(GIT_HASH) \

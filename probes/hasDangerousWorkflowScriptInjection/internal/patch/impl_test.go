@@ -15,7 +15,6 @@
 package patch
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -24,9 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/rhysd/actionlint"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -213,7 +212,7 @@ func detectDangerousWorkflows(t *testing.T, filePath string) []checker.Dangerous
 	}).AnyTimes()
 
 	req := &checker.CheckRequest{
-		Ctx:        context.Background(),
+		Ctx:        t.Context(),
 		RepoClient: mockRepoClient,
 	}
 

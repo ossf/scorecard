@@ -994,6 +994,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
 			expected: true,
 		},
+		{
+			name:     "regression",
+			filename: "../testdata/.github/workflows/spicedb-release.yaml",
+			expected: true,
+		},
+		{
+			name:     "elixir",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-elixir.yaml",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

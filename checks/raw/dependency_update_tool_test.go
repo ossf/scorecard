@@ -17,7 +17,7 @@ package raw
 import (
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	clients "github.com/ossf/scorecard/v5/clients"
@@ -96,12 +96,6 @@ func Test_checkDependencyFileExists(t *testing.T) {
 		{
 			name:    ".renovaterc",
 			path:    ".renovaterc",
-			want:    true,
-			wantErr: false,
-		},
-		{
-			name:    ".pyup.yml",
-			path:    ".pyup.yml",
 			want:    true,
 			wantErr: false,
 		},

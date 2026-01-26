@@ -22,7 +22,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -512,6 +512,67 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "const fc = require('fast-other');",
 		},
 		{
+			name:     "JavaScript JSX fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "JavaScript JSX fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "JavaScript JSX fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "JavaScript JSX fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.jsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/jest\";",
+		},
+		{
+			name:     "JavaScript JSX with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.jsx"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.JavaScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
+		{
 			name:     "TypeScript fast-check via require",
 			want:     true,
 			fileName: []string{"main.spec.ts"},
@@ -571,6 +632,187 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "const fc = require('fast-other');",
+		},
+		{
+			name:     "TypeScript TSX fast-check via require",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-check');",
+		},
+		{
+			name:     "TypeScript TSX fast-check via import",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import fc from \"fast-check\";",
+		},
+		{
+			name:     "TypeScript TSX fast-check scoped via require",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const { fc, testProp } = require('@fast-check/ava');",
+		},
+		{
+			name:     "TypeScript TSX fast-check scoped via import",
+			want:     true,
+			fileName: []string{"main.spec.tsx"},
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import { fc, test } from \"@fast-check/vitest\";",
+		},
+		{
+			name:     "TypeScript TSX with no property-based testing",
+			want:     false,
+			fileName: []string{"main.spec.tsx"},
+			wantErr:  true,
+			langs: []clients.Language{
+				{
+					Name:     clients.TypeScript,
+					NumLines: 50,
+				},
+			},
+			fileContent: "const fc = require('fast-other');",
+		},
+		{
+			name:     "C# with no property-based testing",
+			want:     false,
+			fileName: []string{"test.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using Xunit;",
+		},
+		{
+			name:     "C# with FsCheck",
+			want:     true,
+			fileName: []string{"csharp-fscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck;",
+		},
+		{
+			name:     "C# with FsCheck.Nunit",
+			want:     true,
+			fileName: []string{"csharp-fscheck-nunit.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck.NUnit;",
+		},
+		{
+			name:     "C# with FsCheck.Xunit",
+			want:     true,
+			fileName: []string{"csharp-fscheck-xunit.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using FsCheck.Xunit;",
+		},
+		{
+			name:     "C# with Expecto.FsCheck",
+			want:     true,
+			fileName: []string{"csharp-expecto-fscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using Expecto.ExpectoFsCheck;",
+		},
+		{
+			name:     "F# with no property-based testing",
+			want:     false,
+			fileName: []string{"test.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open Xunit",
+		},
+		{
+			name:     "F# with FsCheck",
+			want:     true,
+			fileName: []string{"fsharp-fscheck.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck",
+		},
+		{
+			name:     "F# with FsCheck.Nunit",
+			want:     true,
+			fileName: []string{"fsharp-fscheck-nunit.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck.NUnit",
+		},
+		{
+			name:     "F# with FsCheck.Xunit",
+			want:     true,
+			fileName: []string{"fsharp-fscheck-xunit.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open FsCheck.Xunit",
+		},
+		{
+			name:     "F# with Expecto.FsCheck",
+			want:     true,
+			fileName: []string{"fsharp-expecto-fscheck.fs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.FSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "open Expecto.ExpectoFsCheck",
 		},
 	}
 	for _, tt := range tests {

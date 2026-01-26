@@ -14,16 +14,15 @@
 package scorecard
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"slices"
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"go.uber.org/mock/gomock"
 	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -102,7 +101,7 @@ func Test_getRepoCommitHashLocal(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			logger := log.NewLogger(log.DebugLevel)
-			localDirClient := localdir.CreateLocalDirClient(context.Background(), logger)
+			localDirClient := localdir.CreateLocalDirClient(t.Context(), logger)
 			localRepo, err := localdir.MakeLocalDirRepo("testdata")
 			if err != nil {
 				t.Errorf("MakeLocalDirRepo: %v", err)
@@ -184,7 +183,7 @@ func TestRun(t *testing.T) {
 					},
 				}, nil
 			})
-			got, err := Run(context.Background(), repo,
+			got, err := Run(t.Context(), repo,
 				WithCommitSHA(tt.args.commitSHA),
 				WithRepoClient(mockRepoClient),
 			)
@@ -323,7 +322,7 @@ func TestRun_WithProbes(t *testing.T) {
 			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			mockOSSFuzzClient := mockrepo.NewMockRepoClient(ctrl)
 			mockOSSFuzzClient.EXPECT().Search(gomock.Any()).Return(clients.SearchResponse{}, nil).AnyTimes()
-			got, err := Run(context.Background(), repo,
+			got, err := Run(t.Context(), repo,
 				WithRepoClient(mockRepoClient),
 				WithOSSFuzzClient(mockOSSFuzzClient),
 				WithCommitSHA(tt.args.commitSHA),

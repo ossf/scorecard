@@ -31,6 +31,8 @@ import (
 // Options define common options for configuring scorecard.
 type Options struct {
 	Repo            string
+	Repos           []string
+	Org             string
 	Local           string
 	Commit          string
 	LogLevel        string
@@ -83,7 +85,7 @@ const (
 	FormatDefault = "default"
 	// FormatRaw specifies that results should be output in raw format.
 	FormatRaw = "raw"
-	// FormatInToyo specifies that results should be output in an in-toto statement.
+	// FormatInToto specifies that results should be output in an in-toto statement.
 	FormatInToto = "intoto"
 
 	// File Modes
@@ -114,7 +116,7 @@ var (
 	errPolicyFileNotSupported = errors.New("policy file is not supported yet")
 	errRawOptionNotSupported  = errors.New("raw option is not supported yet")
 	errRepoOptionMustBeSet    = errors.New(
-		"exactly one of `repo`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
+		"exactly one of `repo`, `repos`, `org`, `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set",
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
@@ -125,8 +127,11 @@ var (
 func (o *Options) Validate() error {
 	var errs []error
 
-	// Validate exactly one of `--repo`, `--npm`, `--pypi`, `--rubygems`, `--nuget`, `--local` is enabled.
+	// Validate exactly one of `--repo`, `--repos`, `--org`, `--npm`, `--pypi`, `--rubygems`,
+	// `--nuget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
+		len(o.Repos) > 0,
+		o.Org != "",
 		o.NPM != "",
 		o.PyPI != "",
 		o.RubyGems != "",
@@ -211,7 +216,7 @@ func boolSum(bools ...bool) int {
 
 // GitHub integration support.
 // See https://github.com/ossf/scorecard-action/issues/1107.
-// NOTE: We don't add a field to to the Option structure to simplify
+// NOTE: We don't add a field to the Option structure to simplify
 // integration. If we did, the Action would also need to be aware
 // of the integration and pass the relevant values. This
 // would add redundancy and complicate maintenance.

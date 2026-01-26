@@ -113,7 +113,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.JavaScript: {
-		filePatterns: []string{"*.js"},
+		filePatterns: []string{"*.js", "*.jsx"},
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
@@ -121,7 +121,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Desc: propertyBasedDescription("JavaScript"),
 	},
 	clients.TypeScript: {
-		filePatterns: []string{"*.ts"},
+		filePatterns: []string{"*.ts", "*.tsx"},
 		// Look for direct imports of fast-check and its test runners integrations.
 		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
 			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
@@ -169,6 +169,29 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 		Name:         fuzzers.SwiftLibFuzzer,
 		Desc: asPointer(
 			"Fuzzed with Swift LibFuzzer"),
+	},
+	// Fuzz patterns for C# and F# based on property-based testing.
+	//
+	// Based on the import of one of these packages:
+	// * https://www.nuget.org/packages/Expecto.FsCheck
+	// * https://www.nuget.org/packages/FsCheck
+	// * https://www.nuget.org/packages/FsCheck.Nunit
+	// * https://www.nuget.org/packages/FsCheck.Xunit
+	//
+	// This is not an exhaustive list.
+	clients.CSharp: {
+		filePatterns: []string{"*.cs"},
+		// Look for direct imports of FsCheck and its test runner integrations.
+		funcPattern: `(using\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck));`,
+		Name:        fuzzers.PropertyBasedCSharp,
+		Desc:        propertyBasedDescription("C#"),
+	},
+	clients.FSharp: {
+		filePatterns: []string{"*.fs"},
+		// Look for direct imports of FsCheck and its test runner integrations.
+		funcPattern: `(open\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck))`,
+		Name:        fuzzers.PropertyBasedFSharp,
+		Desc:        propertyBasedDescription("F#"),
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -318,15 +341,15 @@ var getFuzzFunc fileparser.DoWhileTrueOnFileContent = func(
 	r := regexp.MustCompile(pdata.pattern)
 	lines := bytes.Split(content, []byte("\n"))
 	for i, line := range lines {
-		found := r.FindString(string(line))
-		if found != "" {
+		found := r.Find(line)
+		if found != nil {
 			// If fuzz func is found in the file, add it to the file array,
 			// with its file path as Path, func name as Snippet,
 			// FileTypeFuzz as Type, and # of lines as Offset.
 			pdata.files = append(pdata.files, checker.File{
 				Path:    path,
 				Type:    finding.FileTypeSource,
-				Snippet: found,
+				Snippet: string(found),
 				Offset:  uint(i + 1), // Since the # of lines starts from zero.
 			})
 		}

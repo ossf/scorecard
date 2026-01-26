@@ -9,17 +9,18 @@ The current standing Steering Committee members are as follows:
 - Stephen Augustus ([@justaugustus](https://github.com/justaugustus)), Bloomberg
 - Raghav Kaul ([@raghavkaul](https://github.com/raghavkaul)), Google
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
-- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Kusari
+- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Microsoft
 
 ## `scorecard-maintainers`
 
 - Stephen Augustus ([@justaugustus](https://github.com/justaugustus)), Bloomberg
 - Raghav Kaul ([@raghavkaul](https://github.com/raghavkaul)), Google
+- Adam Korczynski ([@AdamKorcz](https://github.com/AdamKorcz)), ADA Logics
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
 
 ## `scorecard-doc-maintainers`
 
-- 
+-
 
 ## Emeritus
 

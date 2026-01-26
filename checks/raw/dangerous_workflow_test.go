@@ -15,15 +15,14 @@
 package raw
 
 import (
-	"context"
 	"errors"
 	"io"
 	"os"
 	"testing"
 
-	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
@@ -74,6 +73,66 @@ func TestUntrustedContextVariables(t *testing.T) {
 		{
 			name:     "trusted wildcard",
 			variable: "github.event.commits[0].id",
+			expected: false,
+		},
+		{
+			name:     "commits author name",
+			variable: "github.event.commits[2].author.name",
+			expected: true,
+		},
+		{
+			name:     "commits author email",
+			variable: "github.event.commits[2].author.email",
+			expected: true,
+		},
+		{
+			name:     "blocked_user name",
+			variable: "github.event.pull_request.organization.blocked_user.name",
+			expected: true,
+		},
+		{
+			name:     "blocked_user email",
+			variable: "github.event.pull_request.organization.blocked_user.email",
+			expected: true,
+		},
+		{
+			name:     "discussion body",
+			variable: "github.event.discussion.body",
+			expected: true,
+		},
+		{
+			name:     "discussion title",
+			variable: "github.event.discussion.title",
+			expected: true,
+		},
+		{
+			name:     "toJSON github.event",
+			variable: "toJSON(github.event)",
+			expected: true,
+		},
+		{
+			name:     "toJSON github context",
+			variable: "toJSON(github)",
+			expected: true,
+		},
+		{
+			name:     "toJSON github.event subfield ignored",
+			variable: "toJSON(github.event.pull_request)",
+			expected: false,
+		},
+		{
+			name:     "toJSON case insensitive",
+			variable: "TOJSON(github.event)",
+			expected: true,
+		},
+		{
+			name:     "toJSON with spaces",
+			variable: "toJSON( github.event )",
+			expected: true,
+		},
+		{
+			name:     "toJSON safe property",
+			variable: "toJSON(github.repository)",
 			expected: false,
 		},
 	}
@@ -149,6 +208,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
 			expected: ret{nb: 1},
 		},
+		{
+			name:     "run toJSON script injection",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-tojson.yml",
+			expected: ret{nb: 1},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -162,7 +226,7 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			})
 
 			req := &checker.CheckRequest{
-				Ctx:        context.Background(),
+				Ctx:        t.Context(),
 				RepoClient: mockRepoClient,
 			}
 

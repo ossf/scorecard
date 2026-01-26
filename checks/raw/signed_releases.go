@@ -30,7 +30,9 @@ func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error)
 	pkgs := []checker.ProjectPackage{}
 	versions, err := c.ProjectClient.GetProjectPackageVersions(c.Ctx, c.Repo.Host(), c.Repo.Path())
 	if err != nil {
-		c.Dlogger.Debug(&checker.LogMessage{Text: fmt.Sprintf("GetProjectPackageVersions: %v", err)})
+		if c.Dlogger != nil {
+			c.Dlogger.Debug(&checker.LogMessage{Text: fmt.Sprintf("GetProjectPackageVersions: %v", err)})
+		}
 		return checker.SignedReleasesData{
 			Releases: releases,
 			Packages: pkgs,

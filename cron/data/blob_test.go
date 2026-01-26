@@ -15,8 +15,8 @@
 package data
 
 import (
-	"context"
 	"errors"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -156,7 +156,7 @@ func TestBlobKeysPrefix(t *testing.T) {
 		t.Errorf("Failed to create a file blob for %s", dir)
 	}
 	defer bucket.Close()
-	ctx := context.Background()
+	ctx := t.Context()
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
@@ -166,6 +166,66 @@ func TestBlobKeysPrefix(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, testcase.want) {
 				t.Errorf("got = %v, want %v", got, testcase.want)
+			}
+		})
+	}
+}
+
+func TestBlobExists(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name      string
+		bucketURL string
+		key       string
+		want      bool
+		wantErr   bool
+	}{
+		{
+			name: "exists",
+			bucketURL: func() string {
+				// convert local to absolute path, which is needed for the fileblob bucket
+				testdataPath, err := filepath.Abs("testdata/blob_test")
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				return "file:///" + testdataPath
+			}(),
+			key:     "key1.txt",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name: "not exists",
+			bucketURL: func() string {
+				// convert local to absolute path, which is needed for the fileblob bucket
+				testdataPath, err := filepath.Abs("testdata/blob_test")
+				if err != nil {
+					t.Fatalf("unexpected error: %v", err)
+				}
+				return "file:///" + testdataPath
+			}(),
+			key:     "notfound.txt",
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name:      "open bucket error",
+			bucketURL: "invalid",
+			want:      false,
+			wantErr:   true,
+		},
+	}
+
+	for i := range testcases {
+		tt := &testcases[i]
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			exists, err := BlobExists(t.Context(), tt.bucketURL, tt.key)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("BlobExists() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if exists != tt.want {
+				t.Errorf("expected blob to exist: got %v, want %v", exists, tt.want)
 			}
 		})
 	}

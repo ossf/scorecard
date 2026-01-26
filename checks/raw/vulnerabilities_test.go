@@ -19,7 +19,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/golang/mock/gomock"
+	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -88,7 +88,7 @@ func TestVulnerabilities(t *testing.T) {
 			}).AnyTimes()
 
 			mockVulnClient := mockrepo.NewMockVulnerabilitiesClient(ctrl)
-			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(context.TODO(), gomock.Any(), gomock.Any()).DoAndReturn(
+			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(t.Context(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					if tt.vulnsError {
 						return clients.VulnerabilitiesResponse{}, errors.New("error")
@@ -99,7 +99,7 @@ func TestVulnerabilities(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			req := checker.CheckRequest{
 				RepoClient:            mockRepo,
-				Ctx:                   context.TODO(),
+				Ctx:                   t.Context(),
 				VulnerabilitiesClient: mockVulnClient,
 				Dlogger:               &dl,
 			}

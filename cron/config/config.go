@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/yaml.v2"
+	"go.yaml.in/yaml/v2"
 )
 
 const (
@@ -154,7 +154,7 @@ func getFloat64ConfigValue(envVar string, byteValue []byte, fieldName, configNam
 
 	switch value.Kind() {
 	case reflect.String:
-		//nolint:wrapcheck,gomnd
+		//nolint:wrapcheck
 		return strconv.ParseFloat(value.String(), 64)
 	case reflect.Float32, reflect.Float64:
 		return value.Float(), nil

@@ -12,17 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//nolint:stylecheck
 package hasOSVVulnerabilities
 
 import (
 	"embed"
 	"errors"
 	"fmt"
-	"strings"
-
-	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
-	"github.com/google/osv-scanner/pkg/grouper"
+	"net/url"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
@@ -61,18 +57,10 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return findings, Probe, nil
 	}
 
-	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
-	aliasVulnerabilities := []grouper.IDAliases{}
-	for _, vuln := range raw.VulnerabilitiesResults.Vulnerabilities {
-		//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
-		aliasVulnerabilities = append(aliasVulnerabilities, grouper.IDAliases(vuln))
-	}
+	dedupVulns := group(raw.VulnerabilitiesResults.Vulnerabilities)
 
-	//nolint:staticcheck // Waiting on V2 https://github.com/ossf/scorecard/issues/4431
-	IDs := grouper.Group(aliasVulnerabilities)
-
-	for _, vuln := range IDs {
-		if len(vuln.IDs) == 0 {
+	for _, vuln := range dedupVulns {
+		if vuln.ID == "" {
 			return nil, Probe, errNoVulnID
 		}
 		f, err := finding.NewWith(fs, Probe,
@@ -81,9 +69,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if err != nil {
 			return nil, Probe, fmt.Errorf("create finding: %w", err)
 		}
-		f = f.WithMessage("Project is vulnerable to: " + strings.Join(vuln.IDs, " / "))
+		vulnLink, err := url.JoinPath("https://osv.dev", vuln.ID)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create osv link: %w", err)
+		}
+		f = f.WithMessage("Project is vulnerable to: " + vulnLink)
 		f = f.WithRemediationMetadata(map[string]string{
-			"osvid": vuln.IDs[0],
+			"osvid": vuln.ID,
 		})
 		findings = append(findings, *f)
 	}
