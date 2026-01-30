@@ -28,7 +28,7 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 
 	Context("E2E TEST: Confirm query result - GitLab", func() {
 		It("Should have sufficient number of merge requests", func() {
-			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/api/client-go")
 			Expect(err).Should(BeNil())
 
 			glRepo, ok := repo.(*Repo)
@@ -50,7 +50,7 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 
 	Context("E2E TEST: Validate query cost - GitLab", func() {
 		It("Should not have increased for HEAD query", func() {
-			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+			repo, err := MakeGitlabRepo("gitlab.com/gitlab-org/api/client-go")
 			Expect(err).Should(BeNil())
 
 			glRepo, ok := repo.(*Repo)
