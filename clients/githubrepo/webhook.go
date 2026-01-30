@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -58,23 +58,13 @@ func (handler *webhookHandler) setup() error {
 		for _, hook := range hooks {
 			repoHook := clients.Webhook{
 				ID:             hook.GetID(),
-				UsesAuthSecret: getAuthSecret(hook.Config),
+				UsesAuthSecret: hook.Config != nil && hook.Config.Secret != nil && *hook.Config.Secret != "",
 			}
 			handler.webhook = append(handler.webhook, repoHook)
 		}
 		handler.errSetup = nil
 	})
 	return handler.errSetup
-}
-
-func getAuthSecret(config map[string]interface{}) bool {
-	if val, ok := config["secret"]; ok {
-		if val != nil {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (handler *webhookHandler) listWebhooks() ([]clients.Webhook, error) {
