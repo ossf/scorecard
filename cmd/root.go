@@ -42,9 +42,12 @@ import (
 	"github.com/ossf/scorecard/v5/policy"
 )
 
-// errChecksFailed is returned when one or more checks produced a runtime
-// error during execution.
-var errChecksFailed = errors.New("one or more checks failed during execution")
+var (
+	// errChecksFailed is returned when one or more checks produced a runtime
+	// error during execution.
+	errChecksFailed      = errors.New("one or more checks failed during execution")
+	errNoChecksSupported = errors.New("no checks support repository type")
+)
 
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
@@ -235,6 +238,51 @@ func printCheckResults(repo string, enabledChecks checker.CheckNameToFnMap) {
 	}
 }
 
+func printSkippedChecks(repo string, skippedChecks []string) {
+	for _, checkName := range skippedChecks {
+		fmt.Fprintf(os.Stderr, "Skipping (%s) [%s]\n", repo, checkName)
+	}
+}
+
+func filterUnsupportedChecks(enabledChecks checker.CheckNameToFnMap, repo clients.Repo) []string {
+	var skippedChecks []string
+
+	repoType := scorecard.GetRepoType(repo)
+	if repoType == scorecard.RepoUnknown {
+		return skippedChecks
+	}
+
+	checksDocs, err := docs.Read()
+	if err != nil {
+		return skippedChecks
+	}
+
+	for checkName := range enabledChecks {
+		checkDoc, err := checksDocs.GetCheck(checkName)
+		if err != nil {
+			continue
+		}
+
+		checkRepos := checkDoc.GetSupportedRepoTypes()
+		var supported bool
+		for _, cr := range checkRepos {
+			checkRepo := scorecard.RepoTypeFromString(cr)
+
+			if checkRepo == repoType {
+				supported = true
+				break
+			}
+		}
+
+		if !supported {
+			skippedChecks = append(skippedChecks, checkName)
+			delete(enabledChecks, checkName)
+		}
+	}
+
+	return skippedChecks
+}
+
 // makeRepo helps turn a URI into the appropriate clients.Repo.
 // currently this is a decision between GitHub, GitLab, and Azure DevOps,
 // but may expand in the future.
@@ -293,6 +341,23 @@ func processRepo(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if o.SkipUnsupportedChecks {
+		skippedChecks := filterUnsupportedChecks(enabledChecks, repo)
+		if len(enabledChecks) == 0 {
+			return nil, errNoChecksSupported
+		}
+		if o.Format == options.FormatDefault {
+			printSkippedChecks(uri, skippedChecks)
+		}
+
+		filteredChecks := make([]string, 0, len(enabledChecks))
+		for c := range enabledChecks {
+			filteredChecks = append(filteredChecks, c)
+		}
+		// overwrites enabled checks
+		opts = append(opts, scorecard.WithChecks(filteredChecks))
 	}
 
 	// Start banners with repo uri (show banners in default format only)
