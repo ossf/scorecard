@@ -631,12 +631,18 @@ This check looks for the following filenames in the project's last five
 [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
 *.sig, *.sign, *.sigstore, *.sigstore.json, [*.intoto.jsonl](https://slsa.dev).
 
-If a signature is found in the assets for each release, a score of 8 is given.
-If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+For package registries (Maven Central, PyPI), the check also performs cryptographic
+verification of signatures:
+- Maven packages: Verifies GPG and Sigstore signatures using public keyservers and Rekor
+- PyPI packages: Verifies [PEP 740](https://peps.python.org/pep-0740/) attestations using Sigstore
+
+Scoring:
+- If all packages have verified signatures (Maven/PyPI), the maximum score of 10 is given.
+- If a signature is found in GitHub release assets for each release, a score of 8 is given.
+- If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+- If signatures are detected but verification fails, a lower score is given.
 
 This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
-
-Note: The check does not verify the signatures.
  
 
 **Remediation steps**
@@ -645,6 +651,8 @@ Note: The check does not verify the signatures.
 - Download the release as an archive locally.
 - Sign the release archive with this key (should output a signature file).
 - Attach the signature file next to the release archive.
+- For Maven, use the maven-gpg-plugin and upload to Maven Central.
+- For PyPI, use [sigstore-python](https://github.com/sigstore/sigstore-python) to sign wheels and sdists with [PEP 740](https://peps.python.org/pep-0740/) attestations.
 - If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
 
 ## Token-Permissions 

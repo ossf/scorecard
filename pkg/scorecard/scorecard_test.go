@@ -14,6 +14,7 @@
 package scorecard
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -277,6 +278,7 @@ func TestRun_WithProbes(t *testing.T) {
 			mockRepoClient.EXPECT().LocalPath().DoAndReturn(func() (string, error) {
 				return "test_path", nil
 			}).AnyTimes()
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).Return(nil, errors.New("file not found")).AnyTimes()
 			repo := mockrepo.NewMockRepo(ctrl)
 
 			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()

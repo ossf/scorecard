@@ -18,6 +18,7 @@ package clients
 type Release struct {
 	TagName         string
 	URL             string
+	Body            string // Release notes/description
 	TargetCommitish string
 	Assets          []ReleaseAsset
 }

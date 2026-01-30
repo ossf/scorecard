@@ -455,6 +455,21 @@ If the project has no releases, the probe returns OutcomeNotApplicable.
 If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 
+## releasesHaveVerifiedSignatures
+
+**Lifecycle**: stable
+
+**Description**: Check that releases have cryptographically verified signatures
+
+**Motivation**: Cryptographically verified signatures prove that artifacts have not been tampered with and were published by a trusted party. This check goes beyond detecting signature files to actually verifying them with public keys or transparency logs.
+
+**Implementation**: The probe checks package registry artifacts (Maven Central, PyPI) and attempts to verify signatures using the appropriate method: GPG verification with keyservers for Maven artifacts, or Sigstore verification with Rekor transparency log for PyPI packages using PEP 740 attestations. For Maven, Sigstore signatures are preferred over GPG when both are available. PyPI packages are verified using the PEP 740 attestation format, which includes DSSE envelopes with in-toto statements and Sigstore bundle data.
+
+**Outcomes**: If a release/package has at least one successfully verified signature, the probe returns OutcomeTrue.
+If a release/package has signatures but verification failed, the probe returns OutcomeFalse.
+If there are no signatures to verify, the probe returns OutcomeNotApplicable.
+
+
 ## requiresApproversForPullRequests
 
 **Lifecycle**: stable

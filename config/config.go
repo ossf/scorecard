@@ -34,6 +34,53 @@ var (
 // Config contains configurations defined by maintainers.
 type Config struct {
 	Annotations []Annotation `yaml:"annotations"`
+	GPGKeys     GPGKeyConfig `yaml:"gpg-keys"`
+}
+
+// GPGKeyConfig contains GPG key URLs for signature verification.
+type GPGKeyConfig struct {
+	// URLs are global fallback keys used for all releases
+	URLs []string `yaml:"urls"`
+	// Releases maps release tag patterns to specific key URLs
+	Releases []ReleaseKeyConfig `yaml:"releases"`
+}
+
+// ReleaseKeyConfig specifies keys for specific release tags.
+type ReleaseKeyConfig struct {
+	// Tag is a glob pattern matching release tags (e.g., "v1.*", "v2.0.0")
+	Tag string `yaml:"tag"`
+	// URLs are the GPG key URLs for releases matching this tag pattern
+	URLs []string `yaml:"urls"`
+}
+
+// GetGPGKeys returns the GPG key configuration.
+func (c Config) GetGPGKeys() interface{} {
+	return c.GPGKeys
+}
+
+// GetURLs returns the list of global GPG key URLs.
+func (g GPGKeyConfig) GetURLs() []string {
+	return g.URLs
+}
+
+// GetReleases returns the per-release key configurations.
+func (g GPGKeyConfig) GetReleases() interface{} {
+	// Convert to []interface{} for type assertion compatibility
+	result := make([]interface{}, len(g.Releases))
+	for i := range g.Releases {
+		result[i] = g.Releases[i]
+	}
+	return result
+}
+
+// GetTag returns the tag pattern for this release key config.
+func (r ReleaseKeyConfig) GetTag() string {
+	return r.Tag
+}
+
+// GetURLs returns the GPG key URLs for this release.
+func (r ReleaseKeyConfig) GetURLs() []string {
+	return r.URLs
 }
 
 // parseFile takes the scorecard.yml file content and returns a `Config`.

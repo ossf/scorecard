@@ -93,11 +93,38 @@ type PackageProvenance struct {
 	Commit     string
 	IsVerified bool
 }
+
+// SignatureType represents the type of cryptographic signature.
+type SignatureType string
+
+const (
+	// SignatureTypeGPG represents a GPG/PGP signature.
+	SignatureTypeGPG SignatureType = "gpg"
+	// SignatureTypeMinisign represents a Minisign signature.
+	SignatureTypeMinisign SignatureType = "minisign"
+	// SignatureTypeSigstore represents a Sigstore signature.
+	SignatureTypeSigstore SignatureType = "sigstore"
+	// SignatureTypeUnknown represents an unknown signature type.
+	SignatureTypeUnknown SignatureType = "unknown"
+)
+
+// PackageSignature represents the result of verifying a cryptographic signature
+// on a package artifact.
+type PackageSignature struct {
+	ArtifactURL  string
+	SignatureURL string
+	KeyID        string // For GPG signatures
+	ErrorMsg     string // If verification failed
+	Type         SignatureType
+	IsVerified   bool
+}
+
 type ProjectPackage struct {
 	System     string
 	Name       string
 	Version    string
 	Provenance PackageProvenance
+	Signatures []PackageSignature // Verified signature results
 }
 
 // DependencyUseType represents a type of dependency use.

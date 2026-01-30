@@ -73,11 +73,12 @@ func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 			TagName:         r.GetTagName(),
 			URL:             r.GetURL(),
 			TargetCommitish: r.GetTargetCommitish(),
+			Body:            r.GetBody(),
 		}
 		for _, a := range r.Assets {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{
 				Name: a.GetName(),
-				URL:  r.GetHTMLURL(),
+				URL:  a.GetBrowserDownloadURL(),
 			})
 		}
 		releases = append(releases, release)
