@@ -33,6 +33,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
+	"github.com/ossf/scorecard/v5/probes/hasInactiveMaintainers"
 	"github.com/ossf/scorecard/v5/probes/hasLicenseFile"
 	"github.com/ossf/scorecard/v5/probes/hasNoGitHubWorkflowPermissionUnknown"
 	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
@@ -101,6 +102,9 @@ var (
 	}
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
+	}
+	InactiveMaintainers = []ProbeImpl{
+		hasInactiveMaintainers.Run,
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
