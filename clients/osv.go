@@ -86,8 +86,8 @@ func (v osvClient) ListUnfixedVulnerabilities(
 				continue
 			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-				ID:      vulns[i].Vulnerability.ID,
-				Aliases: vulns[i].Vulnerability.Aliases,
+				ID:      vulns[i].Vulnerability.GetId(),
+				Aliases: vulns[i].Vulnerability.GetAliases(),
 			})
 			// Remove duplicate vulnerability IDs for now as we don't report information
 			// on the source of each vulnerability yet, therefore having multiple identical
