@@ -25,7 +25,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -371,7 +371,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		githubGraphqlURL := fmt.Sprintf("https://%s/api/graphql", strings.TrimSpace(githubHost))
 
 		var err error
-		client, err = github.NewEnterpriseClient(githubRestURL, githubRestURL, httpClient)
+		client, err = github.NewClient(httpClient).WithEnterpriseURLs(githubRestURL, githubRestURL)
 		if err != nil {
 			panic(fmt.Errorf("error during CreateGithubRepoClientWithTransport:EnterpriseClient: %w", err))
 		}
