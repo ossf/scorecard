@@ -249,6 +249,132 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
+			name: "Prow job with CodeQL in name - detected via pattern",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "pull-ci-org-repo-master-codeql",
+					},
+					URL: "https://prow.k8s.io/view/gs/kubernetes-jenkins/pr-logs/pull/12345",
+				},
+			},
+			expected: checker.SASTData{
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+		},
+		{
+			name: "Prow job with Sonar in URL - detected via pattern",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "prow-job",
+					},
+					URL: "https://prow.example.com/sonarqube-scan/results",
+				},
+			},
+			expected: checker.SASTData{
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+		},
+		{
+			name: "Jenkins job with Snyk in name - detected via pattern",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "jenkins-snyk-security-scan",
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+		},
+		{
+			name: "Multiple SAST tools - Semgrep in CheckRun name",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "semgrep-ci-check",
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+		},
+		{
 			name:  "Has Hadolint",
 			files: []string{".github/workflows/github-hadolint-workflow.yaml"},
 			commits: []clients.Commit{
