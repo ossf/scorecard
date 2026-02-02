@@ -29,6 +29,22 @@ checks:
       is activity on issues from users who are collaborators, members, or owners of the
       project, the project receives a partial score.
 
+      **Bug and Security Response**: The check also evaluates whether project maintainers 
+      respond to issues labeled as "bug" or "security" (including variants like "kind/bug", 
+      "area/security", "area/product security") within 180 days. A response includes:
+      - A comment on the issue
+      - Any label addition/removal (indicating triage)
+      - Closing the issue
+
+      The base score from commit and issue activity is reduced by a penalty multiplier based
+      on the percentage of bug/security issues that exceeded 180 days without maintainer response:
+      - >40% violations: Score multiplied by 0.5 (50% reduction)
+      - 20-40% violations: Score multiplied by 0.75 (25% reduction)
+      - <20% violations: No penalty
+
+      This ensures that projects with good activity but poor bug/security response cannot 
+      achieve a perfect score.
+
       A project which is not active might not be patched, have its
       dependencies patched, or be actively tested and used. However, a lack
       of active maintenance is not necessarily always a problem. Some software,
@@ -48,6 +64,18 @@ checks:
         check simply provides insight into the project activity and maintenance
         commitment. External users should determine whether the software is the type
         that would not normally need active maintenance.
+      - >-
+        For bug/security response: Establish a clear process for triaging and responding to issues labeled as "bug" or "security".
+      - >-
+        Set up notifications to alert maintainers when security or bug issues are reported.
+      - >-
+        Respond to security issues within a reasonable timeframe, even if only to acknowledge receipt and provide a timeline for investigation.
+      - >-
+        Consider using GitHub/GitLab issue templates to ensure security reports contain necessary information.
+      - >-
+        If an issue is not actually a bug or security concern, remove the label and explain why.
+      - >-
+        For valid reports, provide updates even if a fix is not immediately available.
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies
@@ -875,48 +903,3 @@ checks:
         If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
       - >-
         If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
-
-
-  Maintainer-Response-BugSecurity:
-    risk: Medium
-    tags: security, maintenance
-    repos: GitHub, GitLab
-    short: Determines if maintainers respond to security and bug issues within a reasonable timeframe.
-    description: |
-      Risk: `Medium` (delayed responses to security issues can leave vulnerabilities unaddressed)
-
-      This check evaluates whether project maintainers respond to issues labeled as "bug" or 
-      "security" within 180 days. A response is defined as any of the following actions:
-      - A comment on the issue
-      - Removal of the bug/security label (indicating triage)
-      - Closing the issue
-
-      The check examines all issues that have been labeled "bug" or "security" at any point.
-      For each label interval (the time between when a label is added and removed, or until now 
-      if still present), it checks whether any reaction occurred.
-
-      Projects score based on the percentage of evaluated issues that exceeded 180 days without 
-      any maintainer response:
-      - >40% violations: Score 0
-      - 20-40% violations: Score 5
-      - <20% violations: Score 10
-
-      Issues that never had bug or security labels are excluded from evaluation. A timely 
-      response to security and bug reports indicates active maintenance and commitment to 
-      addressing vulnerabilities and defects.
-    remediation:
-      - >-
-        Establish a clear process for triaging and responding to issues labeled as "bug" or "security".
-      - >-
-        Set up notifications to alert maintainers when security or bug issues are reported.
-      - >-
-        Respond to security issues within a reasonable timeframe, even if only to acknowledge 
-        receipt and provide a timeline for investigation.
-      - >-
-        Consider using GitHub/GitLab issue templates to ensure security reports contain 
-        necessary information.
-      - >-
-        If an issue is not actually a bug or security concern, remove the label and explain why.
-      - >-
-        For valid reports, provide updates even if a fix is not immediately available.
-

@@ -38,7 +38,6 @@ const (
 	TokenPermissions     CheckName = "Token-Permissions"
 	Vulnerabilities      CheckName = "Vulnerabilities"
 	Webhooks             CheckName = "Webhooks"
-	MaintainerResponse   CheckName = "Maintainer-Response-BugSecurity"
 )
 
 var AllValidChecks []string = []string{
@@ -62,5 +61,4 @@ var AllValidChecks []string = []string{
 	TokenPermissions,
 	Vulnerabilities,
 	Webhooks,
-	MaintainerResponse,
 }

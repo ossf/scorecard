@@ -273,7 +273,9 @@ func TestRun(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			raw := &checker.RawResults{
-				MaintainerResponseResults: tt.raw,
+				MaintainedResults: checker.MaintainedData{
+					IssueResponseData: tt.raw,
+				},
 			}
 			findings, probeID, err := Run(raw)
 			if (err != nil) != tt.wantErr {

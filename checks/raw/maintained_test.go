@@ -53,6 +53,7 @@ func TestMaintained(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(archived, nil)
 		mockRepoClient.EXPECT().ListCommits().Return(commits, nil)
 		mockRepoClient.EXPECT().ListIssues().Return(issues, nil)
+		mockRepoClient.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil)
 		mockRepoClient.EXPECT().GetCreatedAt().Return(createdAt, nil)
 
 		data, err := Maintained(req)
@@ -79,6 +80,7 @@ func TestMaintained(t *testing.T) {
 
 	t.Run("returns error if IsArchived fails", func(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, fmt.Errorf("some error"))
+		mockRepoClient.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil).AnyTimes()
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -89,6 +91,7 @@ func TestMaintained(t *testing.T) {
 	t.Run("returns error if ListCommits fails", func(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
 		mockRepoClient.EXPECT().ListCommits().Return(nil, fmt.Errorf("some error"))
+		mockRepoClient.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil).AnyTimes()
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -100,6 +103,7 @@ func TestMaintained(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
 		mockRepoClient.EXPECT().ListCommits().Return([]clients.Commit{}, nil)
 		mockRepoClient.EXPECT().ListIssues().Return(nil, fmt.Errorf("some error"))
+		mockRepoClient.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil).AnyTimes()
 
 		_, err := Maintained(req)
 		if err == nil {
@@ -111,6 +115,7 @@ func TestMaintained(t *testing.T) {
 		mockRepoClient.EXPECT().IsArchived().Return(false, nil)
 		mockRepoClient.EXPECT().ListCommits().Return([]clients.Commit{}, nil)
 		mockRepoClient.EXPECT().ListIssues().Return([]clients.Issue{}, nil)
+		mockRepoClient.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil).MaxTimes(1)
 		mockRepoClient.EXPECT().GetCreatedAt().Return(time.Time{}, fmt.Errorf("some error"))
 
 		_, err := Maintained(req)

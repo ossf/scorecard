@@ -19,6 +19,8 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/checknames"
+	"github.com/ossf/scorecard/v5/internal/probes"
 )
 
 // Probe is the stable ID for this probe.
@@ -26,6 +28,10 @@ const Probe = "maintainersRespondToBugIssues"
 
 // Threshold in days for violation.
 const thresholdDays = 180
+
+func init() {
+	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.Maintained})
+}
 
 // Run consumes the raw intervals computed by checks/raw/maintainer_response.go
 // and emits exactly one finding per issue:
@@ -37,8 +43,18 @@ const thresholdDays = 180
 // "Response" means a comment from a maintainer after label was applied.
 // Tracked labels are defined in checks/raw/maintainer_response.TrackedLabels.
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
-	data := raw.MaintainerResponseResults
+	data := raw.MaintainedResults.IssueResponseData
 	var out []finding.Finding
+
+	// If there are no issues at all, return NotApplicable
+	if len(data.Items) == 0 {
+		out = append(out, finding.Finding{
+			Probe:   Probe,
+			Outcome: finding.OutcomeNotApplicable,
+			Message: "no issues with tracked labels",
+		})
+		return out, Probe, nil
+	}
 
 	for _, it := range data.Items {
 		// No tracked labeling at all → NotApplicable (not in denominator).

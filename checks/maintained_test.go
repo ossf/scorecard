@@ -336,6 +336,10 @@ func Test_Maintained(t *testing.T) {
 				}
 				return tt.isarchived, nil
 			})
+
+			// Always expect ListIssuesWithHistory since Maintained() now calls MaintainerResponse()
+			mockRepo.EXPECT().ListIssuesWithHistory().Return([]clients.Issue{}, nil).AnyTimes()
+
 			//nolint:nestif
 			if tt.archiveerr == nil {
 				mockRepo.EXPECT().ListCommits().DoAndReturn(

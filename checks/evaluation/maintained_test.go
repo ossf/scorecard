@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/createdRecently"
 	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
+	"github.com/ossf/scorecard/v5/probes/maintainersRespondToBugIssues"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -54,10 +55,15 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeNotApplicable,
+					Message: "no issues with tracked labels",
 				},
 			},
 			result: scut.TestReturn{
-				Score: 2,
+				Score:         2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -75,10 +81,15 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeNotApplicable,
+					Message: "no issues with tracked labels",
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:         0,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -96,6 +107,9 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeNotApplicable,
 				},
 			},
 			result: scut.TestReturn{
@@ -118,11 +132,15 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeNotApplicable,
 				},
 			},
 			result: scut.TestReturn{
-				Score:        0,
-				NumberOfWarn: 1,
+				Score:         0,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -146,11 +164,162 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeTrue,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeNotApplicable,
 				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "Good activity with all bug issues responded (no penalty)",
+			findings: []finding.Finding{
+				{
+					Probe:   hasRecentCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						hasRecentCommits.NumCommitsKey: "10",
+					},
+				}, {
+					Probe:   issueActivityByProjectMember.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						issueActivityByProjectMember.NumIssuesKey: "3",
+					},
+				}, {
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #1 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #2 received response",
+				},
+			},
+			result: scut.TestReturn{
+				Score: 10, // Perfect score, no penalty
+			},
+		},
+		{
+			name: "Good activity with 30% violations (25% penalty - 0.75x multiplier)",
+			findings: []finding.Finding{
+				{
+					Probe:   hasRecentCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						hasRecentCommits.NumCommitsKey: "10",
+					},
+				}, {
+					Probe:   issueActivityByProjectMember.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						issueActivityByProjectMember.NumIssuesKey: "3",
+					},
+				}, {
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #1 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #2 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #3 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeFalse,
+					Message: "issue #4 exceeded 180 days",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #5 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #6 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #7 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeFalse,
+					Message: "issue #8 exceeded 180 days",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #9 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeFalse,
+					Message: "issue #10 exceeded 180 days",
+				},
+			},
+			result: scut.TestReturn{
+				Score:        7, // 10 * 0.75 = 7.5 rounds down to 7
+				NumberOfWarn: 3, // 3 violations
+			},
+		},
+		{
+			name: "Good activity with 50% violations (50% penalty - 0.5x multiplier)",
+			findings: []finding.Finding{
+				{
+					Probe:   hasRecentCommits.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						hasRecentCommits.NumCommitsKey: "10",
+					},
+				}, {
+					Probe:   issueActivityByProjectMember.Probe,
+					Outcome: finding.OutcomeTrue,
+					Values: map[string]string{
+						issueActivityByProjectMember.NumIssuesKey: "3",
+					},
+				}, {
+					Probe:   archived.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #1 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeFalse,
+					Message: "issue #2 exceeded 180 days",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeTrue,
+					Message: "issue #3 received response",
+				}, {
+					Probe:   maintainersRespondToBugIssues.Probe,
+					Outcome: finding.OutcomeFalse,
+					Message: "issue #4 exceeded 180 days",
+				},
+			},
+			result: scut.TestReturn{
+				Score:        5, // 10 * 0.5 = 5
+				NumberOfWarn: 2, // 2 violations
 			},
 		},
 	}

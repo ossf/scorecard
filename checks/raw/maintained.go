@@ -51,5 +51,12 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 	}
 	result.CreatedAt = createdAt
 
+	// Detailed issue history for bug/security response analysis.
+	issueResponseData, err := MaintainerResponse(c)
+	if err != nil {
+		return result, fmt.Errorf("%w", err)
+	}
+	result.IssueResponseData = issueResponseData
+
 	return result, nil
 }

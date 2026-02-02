@@ -122,6 +122,7 @@ var (
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		createdRecently.Run,
+		maintainersRespondToBugIssues.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,
@@ -178,10 +179,6 @@ var (
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
 	}
-
-	MaintainersRespondToBugIssues = []ProbeImpl{
-		maintainersRespondToBugIssues.Run,
-	}
 )
 
 //nolint:gochecknoinits
@@ -204,7 +201,6 @@ func init() {
 		Uncategorized,
 		Vulnerabilities,
 		Webhook,
-		MaintainersRespondToBugIssues,
 	})
 }
 

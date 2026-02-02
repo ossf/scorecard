@@ -145,7 +145,9 @@ type Dependency struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	CreatedAt            time.Time
+	CreatedAt time.Time
+	// IssueResponseData contains detailed issue history for bug/security response analysis
+	IssueResponseData    IssueResponseData
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
