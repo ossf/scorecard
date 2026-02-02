@@ -15,6 +15,9 @@
 package checks
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
@@ -39,16 +42,31 @@ func init() {
 }
 
 // Vulnerabilities runs Vulnerabilities check.
+// It now combines two aspects:
+// 1. Current state vulnerabilities using OSV scanner.
+// 2. Historical release vulnerabilities in direct dependencies.
 func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
+	// Collect current state vulnerabilities
 	rawData, err := raw.Vulnerabilities(c)
 	if err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
 	}
 
+	// Collect release vulnerabilities
+	// This is non-fatal: if release scanning fails, we continue with current state only
+	releaseData, err := raw.ReleasesDirectDepsVulnFree(c)
+	if err != nil {
+		// Log the error but don't fail the entire check
+		fmt.Fprintf(os.Stderr, "Warning: could not scan releases for vulnerabilities: %v\n", err)
+		// Create empty result to ensure probe still runs
+		releaseData = &checker.ReleaseDirectDepsVulnsData{}
+	}
+
 	// Set the raw results.
 	pRawResults := getRawResults(c)
 	pRawResults.VulnerabilitiesResults = rawData
+	pRawResults.ReleaseDirectDepsVulnsResults = *releaseData
 
 	// Evaluate the probes.
 	findings, err := zrunner.Run(pRawResults, probes.Vulnerabilities)

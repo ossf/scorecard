@@ -105,6 +105,7 @@ var (
 	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
+		rddvf.Run,
 	}
 	CodeReview = []ProbeImpl{
 		codeApproved.Run,
@@ -177,12 +178,6 @@ var (
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
-	}
-
-	// ReleasesDirectDepsAreVulnFree groups the probe(s) for this check.
-	// If you later add more probes for this check, append them here.
-	ReleasesDirectDepsAreVulnFree = []ProbeImpl{
-		rddvf.Run,
 	}
 )
 

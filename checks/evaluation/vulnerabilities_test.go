@@ -20,6 +20,7 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/hasOSVVulnerabilities"
+	"github.com/ossf/scorecard/v5/probes/releasesDirectDepsAreVulnFree"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -36,11 +37,16 @@ func TestVulnerabilities(t *testing.T) {
 		}
 	}{
 		{
-			name: "no vulnerabilities",
+			name: "no vulnerabilities - current and releases clean",
 			findings: []finding.Finding{
 				{
 					Probe:   "hasOSVVulnerabilities",
 					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "releasesDirectDepsAreVulnFree",
+					Outcome: finding.OutcomeTrue,
+					Message: "release v1.0.0 has no known vulnerabilities",
 				},
 			},
 			result: scut.TestReturn{
@@ -48,24 +54,51 @@ func TestVulnerabilities(t *testing.T) {
 			},
 		},
 		{
-			name:     "three vulnerabilities",
-			findings: vulnFindings(t, 3),
+			name:     "three current vulnerabilities, all releases clean",
+			findings: append(vulnFindings(t, 3), cleanReleaseFindings(t, 5)...),
 			result: scut.TestReturn{
-				Score:        7,
+				Score:        7, // 6 - 3*0.6 + 4 = 4.2 + 4 = 8.2 rounds to 8, but 3 vulns = 3 so 6-3=3, 3+4=7
 				NumberOfWarn: 3,
 			},
 		},
 		{
-			name:     "twelve vulnerabilities to check that score is not less than 0",
-			findings: vulnFindings(t, 12),
+			name:     "twelve current vulnerabilities, all releases clean",
+			findings: append(vulnFindings(t, 12), cleanReleaseFindings(t, 5)...),
 			result: scut.TestReturn{
-				Score:        0,
+				Score:        4, // max penalty is 6 points, so 0 + 4 = 4
 				NumberOfWarn: 12,
 			},
 		},
 		{
-			name:     "invalid findings",
-			findings: []finding.Finding{},
+			name: "no current vulnerabilities, but releases have issues",
+			findings: append(
+				[]finding.Finding{
+					{
+						Probe:   "hasOSVVulnerabilities",
+						Outcome: finding.OutcomeFalse,
+					},
+				},
+				vulnReleaseFindings(t, 2, 5)...,
+			),
+			result: scut.TestReturn{
+				Score:        8, // 6 + (4 * 2/5) = 6 + 1.6 = 7.6 rounds to 8
+				NumberOfWarn: 3, // 3 vulnerable releases
+			},
+		},
+		{
+			name: "both current and release vulnerabilities",
+			findings: append(
+				vulnFindings(t, 2),
+				vulnReleaseFindings(t, 2, 4)...,
+			),
+			result: scut.TestReturn{
+				Score:        6, // (6 - 2) + (4 * 2/4) = 4 + 2 = 6
+				NumberOfWarn: 4,
+			},
+		},
+		{
+			name:     "invalid findings - missing current vuln probe",
+			findings: cleanReleaseFindings(t, 3),
 			result: scut.TestReturn{
 				Score: -1,
 				Error: sce.ErrScorecardInternal,
@@ -90,6 +123,42 @@ func vulnFindings(t *testing.T, n int) []finding.Finding {
 		findings[i] = finding.Finding{
 			Probe:   hasOSVVulnerabilities.Probe,
 			Outcome: finding.OutcomeTrue,
+		}
+	}
+	return findings
+}
+
+// helper to generate clean release findings.
+func cleanReleaseFindings(t *testing.T, n int) []finding.Finding {
+	t.Helper()
+	findings := make([]finding.Finding, n)
+	for i := range findings {
+		findings[i] = finding.Finding{
+			Probe:   releasesDirectDepsAreVulnFree.Probe,
+			Outcome: finding.OutcomeTrue,
+			Message: "release is clean",
+		}
+	}
+	return findings
+}
+
+// helper to generate vulnerable release findings.
+// cleanCount = number of clean releases, totalCount = total releases.
+func vulnReleaseFindings(t *testing.T, cleanCount, totalCount int) []finding.Finding {
+	t.Helper()
+	findings := make([]finding.Finding, totalCount)
+	for i := 0; i < cleanCount; i++ {
+		findings[i] = finding.Finding{
+			Probe:   releasesDirectDepsAreVulnFree.Probe,
+			Outcome: finding.OutcomeTrue,
+			Message: "release is clean",
+		}
+	}
+	for i := cleanCount; i < totalCount; i++ {
+		findings[i] = finding.Finding{
+			Probe:   releasesDirectDepsAreVulnFree.Probe,
+			Outcome: finding.OutcomeFalse,
+			Message: "release has vulnerabilities",
 		}
 	}
 	return findings

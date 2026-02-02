@@ -58,24 +58,38 @@ func TestVulnerabilities(t *testing.T) {
 				return "test_path", nil
 			}).AnyTimes()
 
+			// Mock ListReleases for the release vulnerability check
+			mockRepo.EXPECT().ListReleases().DoAndReturn(func() ([]clients.Release, error) {
+				return []clients.Release{}, nil // Return empty releases to avoid actual tarball downloads in test
+			}).AnyTimes()
+
 			mockVulnClient := mockrepo.NewMockVulnerabilitiesClient(ctrl)
-			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(t.Context(), gomock.Any(), gomock.Any()).DoAndReturn(
+			mockVulnClient.EXPECT().ListUnfixedVulnerabilities(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
 				func(ctx context.Context, commit string, localPath string) (clients.VulnerabilitiesResponse, error) {
 					return tt.expected, tt.err
 				}).MinTimes(1)
 
 			req := checker.CheckRequest{
 				RepoClient:            mockRepo,
-				Ctx:                   t.Context(),
+				Ctx:                   context.Background(),
 				VulnerabilitiesClient: mockVulnClient,
+				Dlogger:               &testDetailLogger{},
 			}
 			res := Vulnerabilities(&req)
 			if !tt.isError && res.Error != nil {
-				t.Fail()
+				t.Errorf("Expected no error, got: %v (score: %d)", res.Error, res.Score)
 			} else if tt.isError && res.Error == nil {
-				t.Fail()
+				t.Errorf("Expected error, got none")
 			}
 			ctrl.Finish()
 		})
 	}
 }
+
+// testDetailLogger is a simple implementation for testing.
+type testDetailLogger struct{}
+
+func (l *testDetailLogger) Info(msg *checker.LogMessage)  {}
+func (l *testDetailLogger) Warn(msg *checker.LogMessage)  {}
+func (l *testDetailLogger) Debug(msg *checker.LogMessage) {}
+func (l *testDetailLogger) Flush() []checker.CheckDetail  { return nil }

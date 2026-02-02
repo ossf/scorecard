@@ -24,7 +24,7 @@ import (
 )
 
 func init() {
-	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.ReleasesDirectDepsVulnFree})
+	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.Vulnerabilities})
 }
 
 // Probe is the stable ID used in def.yaml and attached to each Finding.

@@ -516,32 +516,6 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
-## ReleasesDirectDepsVulnFree 
-
-Risk: `High` (known vulnerabilities in releases)
-
-This check determines whether the project's releases contain known vulnerabilities in their
-direct dependencies at the time of release. The check examines up to the 10 most recent releases,
-downloads each release's source tarball, scans for direct dependencies using OSV-Scalibr,
-and queries the OSV (Open Source Vulnerabilities) database to identify any known vulnerabilities.
-
-Unlike the Vulnerabilities check which examines the current state of the repository,
-this check focuses on the dependencies that were bundled with each release, ensuring that
-released versions of the project do not expose users to known security issues in dependencies.
-
-A release with vulnerable dependencies is problematic because users who install that specific
-release version will be exposed to the known vulnerabilities. This is particularly important
-for projects that recommend or require users to install specific release versions rather than
-building from the main branch.
- 
-
-**Remediation steps**
-- Before creating a release, ensure all direct dependencies are updated to non-vulnerable versions.
-- Run dependency scanning tools (such as `osv-scanner` or `govulncheck` for Go projects) as part of your release process to catch vulnerabilities before publishing.
-- If a release is found to have vulnerable dependencies, publish a new patch release with updated dependencies and clearly communicate the security fix to users.
-- Consider adding automated dependency scanning to your CI/CD pipeline to prevent releases with known vulnerabilities from being published.
-- Document which dependency versions are bundled with each release, making it easier to identify and respond to newly disclosed vulnerabilities.
-
 ## SAST 
 
 Risk: `Medium` (possible unknown bugs)
@@ -721,16 +695,33 @@ enabled, as there is no API available.
 
 Risk: `High`  (known vulnerabilities)
 
-This check determines whether the project has open, unfixed vulnerabilities 
-in its own codebase or its dependencies using the [OSV (Open Source Vulnerabilities)](https://osv.dev/) service.
-An open vulnerability is readily exploited by attackers and should be fixed as soon as
-possible.
+This check determines whether the project has open, unfixed vulnerabilities using the 
+[OSV (Open Source Vulnerabilities)](https://osv.dev/) service. The check evaluates two aspects:
+
+1. **Current State**: Scans the current codebase and its dependencies for known vulnerabilities
+2. **Release History**: Examines up to the 10 most recent releases to verify they were free of 
+   vulnerable direct dependencies at the time of release
+
+An open vulnerability is readily exploited by attackers and should be fixed as soon as possible.
+
+The score is calculated using a weighted approach:
+- Current state vulnerabilities: 60% weight (each vulnerability reduces score, max penalty of 6 points)
+- Release vulnerabilities: 40% weight (proportional to clean releases vs total releases examined)
+
+For releases, only vulnerabilities that were publicly disclosed before or at the release date are 
+considered—vulnerabilities discovered later are not counted against historical releases. This ensures 
+that users installing specific release versions are not exposed to known security issues that existed 
+at the time of release.
  
 
 **Remediation steps**
-- Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev>.
+- Fix the vulnerabilities in your current code base. The details of each vulnerability can be found on <https://osv.dev>.
 - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
-- If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
+- If you believe the vulnerability does not affect your project, the vulnerability can be ignored. To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
+- Before creating a release, ensure all direct dependencies are updated to non-vulnerable versions.
+- Run dependency scanning tools (such as `osv-scanner` or `govulncheck` for Go projects) as part of your release process to catch vulnerabilities before publishing.
+- If a past release is found to have vulnerable dependencies, consider publishing a new patch release with updated dependencies and clearly communicate the security fix to users.
+- Consider adding automated dependency scanning to your CI/CD pipeline to prevent releases with known vulnerabilities from being published.
 
 ## Webhooks 
 

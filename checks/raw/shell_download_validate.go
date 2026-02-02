@@ -33,6 +33,11 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 )
 
+const (
+	// noneVersion represents the special version string that removes a dependency.
+	noneVersion = "none"
+)
+
 var (
 	// supportedShells is the list of shells that are supported by mvdan.cc/sh/v3/syntax.
 	supportedShells = []string{
@@ -536,10 +541,10 @@ func isGoUnpinnedDownload(cmd []string) bool {
 		}
 		version := parts[1]
 		/*
-			"none" is special. It removes a dependency. Hashes are always okay. Full semantic versions are okay
+			noneVersion is special. It removes a dependency. Hashes are always okay. Full semantic versions are okay
 			as long as "-insecure" is not passed.
 		*/
-		if version == "none" || hashRegex.MatchString(version) || (!insecure && semverRegex.MatchString(version)) {
+		if version == noneVersion || hashRegex.MatchString(version) || (!insecure && semverRegex.MatchString(version)) {
 			return false
 		}
 	}
