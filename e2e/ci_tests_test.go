@@ -106,12 +106,12 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/api/client-go")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 			Expect(err).Should(BeNil())
-			// url to commit is https://gitlab.com/gitlab-org/gitlab/-/commit/8ae23fa220d73fa07501aabd94214c9e83fe61a0
-			err = repoClient.InitRepo(repo, "8ae23fa220d73fa07501aabd94214c9e83fe61a0", 0)
+			// url to commit is https://gitlab.com/gitlab-org/api/client-go/-/commit/1f279e473b9fd7a145db0dd099527c2b1f81d881
+			err = repoClient.InitRepo(repo, "1f279e473b9fd7a145db0dd099527c2b1f81d881", 0)
 			Expect(err).Should(BeNil())
 			req := checker.CheckRequest{
 				Ctx:        context.Background(),
@@ -121,10 +121,10 @@ var _ = Describe("E2E TEST:"+checks.CheckCITests, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         6,
+				Score:         10,
 				NumberOfWarn:  0,
 				NumberOfInfo:  0,
-				NumberOfDebug: 22,
+				NumberOfDebug: 13,
 			}
 			result := checks.CITests(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "CI tests at commit - GitLab", &expected, &result, &dl)
