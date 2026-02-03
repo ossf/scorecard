@@ -16,6 +16,7 @@ package raw
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/ossf/scorecard/v5/checker"
 )
@@ -50,6 +51,17 @@ func Maintained(c *checker.CheckRequest) (checker.MaintainedData, error) {
 		return result, fmt.Errorf("%w", err)
 	}
 	result.CreatedAt = createdAt
+
+	// Maintainer activity (6-month lookback).
+	// This is best-effort; platforms that don't support it will return empty map.
+	cutoff := time.Now().UTC().AddDate(0, -6, 0)
+	maintainerActivity, err := c.RepoClient.GetMaintainerActivity(cutoff)
+	if err != nil {
+		// Don't fail the entire check if maintainer activity cannot be retrieved.
+		// Some platforms may not support this feature.
+		maintainerActivity = make(map[string]bool)
+	}
+	result.MaintainerActivity = maintainerActivity
 
 	return result, nil
 }

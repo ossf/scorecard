@@ -37,7 +37,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "All maintainers active",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{
 						"active-maintainer-1": true,
 						"active-maintainer-2": true,
@@ -52,7 +52,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "All maintainers inactive",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{
 						"inactive-maintainer-1": false,
 						"inactive-maintainer-2": false,
@@ -67,7 +67,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "Mixed active and inactive maintainers",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{
 						"active-maintainer":   true,
 						"inactive-maintainer": false,
@@ -82,7 +82,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "No maintainers found",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{},
 				},
 			},
@@ -93,7 +93,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "Single active maintainer",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{
 						"sole-maintainer": true,
 					},
@@ -106,7 +106,7 @@ func Test_Run(t *testing.T) {
 		{
 			name: "Single inactive maintainer",
 			raw: &checker.RawResults{
-				InactiveMaintainersResults: checker.InactiveMaintainersData{
+				MaintainedResults: checker.MaintainedData{
 					MaintainerActivity: map[string]bool{
 						"sole-maintainer": false,
 					},

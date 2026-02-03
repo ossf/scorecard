@@ -24,31 +24,28 @@ import (
 
 // RawResults contains results before a policy
 // is applied.
-//
-//nolint:govet
 type RawResults struct {
-	BinaryArtifactResults       BinaryArtifactData
+	Metadata                    MetadataData
+	MaintainedResults           MaintainedData
 	BranchProtectionResults     BranchProtectionsData
-	CIIBestPracticesResults     CIIBestPracticesData
-	CITestResults               CITestData
+	SignedReleasesResults       SignedReleasesData
+	PinningDependenciesResults  PinningDependenciesData
+	SBOMResults                 SBOMData
 	CodeReviewResults           CodeReviewData
-	ContributorsResults         ContributorsData
-	DangerousWorkflowResults    DangerousWorkflowData
 	DependencyUpdateToolResults DependencyUpdateToolData
 	FuzzingResults              FuzzingData
-	InactiveMaintainersResults  InactiveMaintainersData
 	LicenseResults              LicenseData
-	SBOMResults                 SBOMData
-	MaintainedResults           MaintainedData
-	Metadata                    MetadataData
-	PackagingResults            PackagingData
-	PinningDependenciesResults  PinningDependenciesData
-	SASTResults                 SASTData
-	SecurityPolicyResults       SecurityPolicyData
-	SignedReleasesResults       SignedReleasesData
-	TokenPermissionsResults     TokenPermissionsData
-	VulnerabilitiesResults      VulnerabilitiesData
+	BinaryArtifactResults       BinaryArtifactData
+	ContributorsResults         ContributorsData
 	WebhookResults              WebhooksData
+	PackagingResults            PackagingData
+	CITestResults               CITestData
+	VulnerabilitiesResults      VulnerabilitiesData
+	SecurityPolicyResults       SecurityPolicyData
+	SASTResults                 SASTData
+	TokenPermissionsResults     TokenPermissionsData
+	DangerousWorkflowResults    DangerousWorkflowData
+	CIIBestPracticesResults     CIIBestPracticesData
 }
 
 type MetadataData struct {
@@ -145,7 +142,10 @@ type Dependency struct {
 // MaintainedData contains the raw results
 // for the Maintained check.
 type MaintainedData struct {
-	CreatedAt            time.Time
+	CreatedAt time.Time
+	// MaintainerActivity maps maintainer usernames (lowercase) to their activity status.
+	// True indicates the maintainer has been active within the 6-month evaluation window.
+	MaintainerActivity   map[string]bool
 	Issues               []clients.Issue
 	DefaultBranchCommits []clients.Commit
 	ArchivedStatus       ArchivedStatus
@@ -220,13 +220,6 @@ type Changeset struct {
 // ContributorsData represents contributor information.
 type ContributorsData struct {
 	Users []clients.User
-}
-
-// InactiveMaintainersData contains maintainer activity information.
-type InactiveMaintainersData struct {
-	// MaintainerActivity maps maintainer usernames (lowercase) to their activity status.
-	// True indicates the maintainer has been active within the evaluation window.
-	MaintainerActivity map[string]bool
 }
 
 // VulnerabilitiesData contains the raw results

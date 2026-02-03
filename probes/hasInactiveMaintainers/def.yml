@@ -20,6 +20,9 @@ motivation: >
   security fixes and updates. Maintainers with elevated access who have not
   participated in the project within a reasonable time frame (6 months) may
   present a security risk if their accounts become compromised.
+  
+  This probe is part of the Maintained check, which evaluates both overall
+  project activity and individual maintainer engagement.
 implementation: >
   The probe identifies users with elevated repository permissions (TRIAGE, WRITE,
   MAINTAIN, or ADMIN access) and checks if they have shown activity in the last 6
@@ -33,10 +36,12 @@ implementation: >
   - **Workflows**: GitHub Actions workflow runs
   
   The probe returns one finding per maintainer indicating whether they have been
-  active or inactive.
+  active or inactive. These findings are used by the Maintained check evaluation
+  to adjust the final maintenance score.
 outcome:
   - If a maintainer has shown activity in the last 6 months, one OutcomeFalse finding is returned
   - If a maintainer has shown no activity in the last 6 months, one OutcomeTrue finding is returned
+  - If no maintainers with elevated permissions are found, one OutcomeNotApplicable finding is returned
 remediation:
   onOutcome: True
   effort: Medium

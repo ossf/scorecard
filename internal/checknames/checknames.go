@@ -27,7 +27,6 @@ const (
 	DangerousWorkflow    CheckName = "Dangerous-Workflow"
 	DependencyUpdateTool CheckName = "Dependency-Update-Tool"
 	Fuzzing              CheckName = "Fuzzing"
-	InactiveMaintainers  CheckName = "Inactive-Maintainers"
 	License              CheckName = "License"
 	Maintained           CheckName = "Maintained"
 	Packaging            CheckName = "Packaging"
@@ -51,7 +50,6 @@ var AllValidChecks []string = []string{
 	DangerousWorkflow,
 	DependencyUpdateTool,
 	Fuzzing,
-	InactiveMaintainers,
 	License,
 	Maintained,
 	Packaging,

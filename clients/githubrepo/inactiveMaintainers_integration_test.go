@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 )
 
 // TestSetupInitialization tests the setup method initialization.

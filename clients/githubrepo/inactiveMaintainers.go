@@ -22,7 +22,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/log"
@@ -531,8 +531,8 @@ func (h *maintainerHandler) checkReviews(owner, repo string) error {
 func (h *maintainerHandler) checkIssueComments(owner, repo string) error {
 	opts := &github.IssueListCommentsOptions{
 		Since:       &h.cutoff,
-		Sort:        github.String("updated"),
-		Direction:   github.String("desc"),
+		Sort:        github.Ptr("updated"),
+		Direction:   github.Ptr("desc"),
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
@@ -653,7 +653,7 @@ func (h *maintainerHandler) checkIssueActivity(owner, repo string) error {
 		if resp.NextPage == 0 {
 			break
 		}
-		opts.Page = resp.NextPage
+		opts.ListOptions.Page = resp.NextPage
 	}
 
 	return nil
@@ -749,13 +749,12 @@ func (h *maintainerHandler) checkIssueReactions(owner, repo string) error {
 		}
 
 		// Get reactions for this issue
-		reactionOpts := &github.ListOptions{PerPage: 100}
 		reactions, _, err := h.ghClient.Reactions.ListIssueReactions(
 			h.ctx,
 			owner,
 			repo,
 			*issue.Number,
-			reactionOpts,
+			&github.ListReactionOptions{ListOptions: github.ListOptions{PerPage: 100}},
 		)
 		if err != nil {
 			continue // Skip on error
@@ -798,13 +797,12 @@ func (h *maintainerHandler) checkPRReactions(owner, repo string) error {
 		}
 
 		// Get reactions for this PR
-		reactionOpts := &github.ListOptions{PerPage: 100}
 		reactions, _, err := h.ghClient.Reactions.ListIssueReactions(
 			h.ctx,
 			owner,
 			repo,
 			*pr.Number,
-			reactionOpts,
+			&github.ListReactionOptions{ListOptions: github.ListOptions{PerPage: 100}},
 		)
 		if err != nil {
 			continue // Skip on error
@@ -826,8 +824,8 @@ func (h *maintainerHandler) checkPRReactions(owner, repo string) error {
 func (h *maintainerHandler) checkCommentReactions(owner, repo string) error {
 	opts := &github.IssueListCommentsOptions{
 		Since:       &h.cutoff,
-		Sort:        github.String("updated"),
-		Direction:   github.String("desc"),
+		Sort:        github.Ptr("updated"),
+		Direction:   github.Ptr("desc"),
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
 
@@ -844,13 +842,12 @@ func (h *maintainerHandler) checkCommentReactions(owner, repo string) error {
 
 	for _, comment := range comments {
 		// Get reactions for this comment
-		reactionOpts := &github.ListOptions{PerPage: 100}
 		reactions, _, err := h.ghClient.Reactions.ListIssueCommentReactions(
 			h.ctx,
 			owner,
 			repo,
 			*comment.ID,
-			reactionOpts,
+			&github.ListReactionOptions{ListOptions: github.ListOptions{PerPage: 100}},
 		)
 		if err != nil {
 			continue // Skip on error
@@ -909,15 +906,12 @@ func (h *maintainerHandler) checkCommitCommentReactions(owner, repo string) erro
 			}
 
 			// Get reactions for this commit comment
-			reactionOpts := &github.ListCommentReactionOptions{
-				ListOptions: github.ListOptions{PerPage: 100},
-			}
 			reactions, _, err := h.ghClient.Reactions.ListCommentReactions(
 				h.ctx,
 				owner,
 				repo,
 				*comment.ID,
-				reactionOpts,
+				&github.ListReactionOptions{ListOptions: github.ListOptions{PerPage: 100}},
 			)
 			if err != nil {
 				continue
@@ -1242,27 +1236,9 @@ func (h *maintainerHandler) checkDiscussions(owner, repo string) error {
 
 // checkProjectActivity scans GitHub Projects (board) activity.
 func (h *maintainerHandler) checkProjectActivity(owner, repo string) error {
-	// List repository projects
-	opts := &github.ProjectListOptions{
-		State:       "all",
-		ListOptions: github.ListOptions{PerPage: 100},
-	}
-
-	_, _, err := h.ghClient.Repositories.ListProjects(
-		h.ctx,
-		owner,
-		repo,
-		opts,
-	)
-	if err != nil {
-		// Projects might not be enabled, accessible, or the legacy API is deprecated (404)
-		// Continue gracefully rather than failing the entire check
-		// Return nil error since this is an optional check
-		return nil //nolint:nilerr // intentionally ignoring error for deprecated API
-	}
-
-	// Projects API is deprecated, so we don't process any projects
-	// even if the call succeeds. Just return without error.
+	// GitHub Projects (Classic) API was deprecated and removed in v82.
+	// This check is no longer functional and returns early.
+	// Project activity tracking would need to be reimplemented using the new Projects v2 GraphQL API.
 	return nil
 }
 
@@ -1271,7 +1247,7 @@ func (h *maintainerHandler) checkSecurityActivity(owner, repo string) error {
 	// Check for Dependabot alerts
 	// Note: This requires special permissions and may not be available
 	vulnOpts := &github.ListAlertsOptions{
-		State: github.String("dismissed"),
+		State: github.Ptr("dismissed"),
 	}
 
 	alerts, _, err := h.ghClient.Dependabot.ListRepoAlerts(

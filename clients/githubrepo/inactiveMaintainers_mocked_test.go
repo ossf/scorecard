@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 )
 
 // setupMockGitHubServer creates a test HTTP server that mocks GitHub API responses.
@@ -76,7 +76,7 @@ func TestCheckCommits_WithMockedAPI(t *testing.T) {
 			commits: []*github.RepositoryCommit{
 				{
 					Author: &github.User{
-						Login: github.String("user1"),
+						Login: github.Ptr("user1"),
 					},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{
@@ -86,7 +86,7 @@ func TestCheckCommits_WithMockedAPI(t *testing.T) {
 				},
 				{
 					Committer: &github.User{
-						Login: github.String("user2"),
+						Login: github.Ptr("user2"),
 					},
 					Commit: &github.Commit{
 						Committer: &github.CommitAuthor{
@@ -123,7 +123,7 @@ func TestCheckCommits_WithMockedAPI(t *testing.T) {
 			commits: []*github.RepositoryCommit{
 				{
 					Author: &github.User{
-						Login: github.String("activeuser1"),
+						Login: github.Ptr("activeuser1"),
 					},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{
@@ -133,7 +133,7 @@ func TestCheckCommits_WithMockedAPI(t *testing.T) {
 				},
 				{
 					Author: &github.User{
-						Login: github.String("activeuser2"),
+						Login: github.Ptr("activeuser2"),
 					},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{
@@ -224,7 +224,7 @@ func TestCheckCommits_Pagination(t *testing.T) {
 			w.Header().Set("Link", fmt.Sprintf(`<%s>; rel="next"`, nextURL))
 			commits := []*github.RepositoryCommit{
 				{
-					Author: &github.User{Login: github.String("user1")},
+					Author: &github.User{Login: github.Ptr("user1")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
@@ -237,7 +237,7 @@ func TestCheckCommits_Pagination(t *testing.T) {
 		// Second page: return data with no next link
 		commits := []*github.RepositoryCommit{
 			{
-				Author: &github.User{Login: github.String("user2")},
+				Author: &github.User{Login: github.Ptr("user2")},
 				Commit: &github.Commit{
 					Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 				},
@@ -330,13 +330,13 @@ func TestCheckMergedPRs_WithMockedAPI(t *testing.T) {
 			name: "recently merged PRs mark users active",
 			prs: []*github.PullRequest{
 				{
-					Number:   github.Int(1),
+					Number:   github.Ptr(1),
 					MergedAt: &github.Timestamp{Time: recentDate},
 					User: &github.User{
-						Login: github.String("prauthor"),
+						Login: github.Ptr("prauthor"),
 					},
 					MergedBy: &github.User{
-						Login: github.String("merger"),
+						Login: github.Ptr("merger"),
 					},
 				},
 			},
@@ -346,10 +346,10 @@ func TestCheckMergedPRs_WithMockedAPI(t *testing.T) {
 			name: "old merged PRs ignored",
 			prs: []*github.PullRequest{
 				{
-					Number:   github.Int(2),
+					Number:   github.Ptr(2),
 					MergedAt: &github.Timestamp{Time: oldDate},
 					User: &github.User{
-						Login: github.String("oldauthor"),
+						Login: github.Ptr("oldauthor"),
 					},
 				},
 			},
@@ -359,10 +359,10 @@ func TestCheckMergedPRs_WithMockedAPI(t *testing.T) {
 			name: "unmerged PRs ignored",
 			prs: []*github.PullRequest{
 				{
-					Number:   github.Int(3),
+					Number:   github.Ptr(3),
 					MergedAt: nil,
 					User: &github.User{
-						Login: github.String("openpr"),
+						Login: github.Ptr("openpr"),
 					},
 				},
 			},
@@ -372,7 +372,7 @@ func TestCheckMergedPRs_WithMockedAPI(t *testing.T) {
 			name: "nil user/merger handled",
 			prs: []*github.PullRequest{
 				{
-					Number:   github.Int(4),
+					Number:   github.Ptr(4),
 					MergedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
@@ -445,9 +445,9 @@ func TestCheckMergedPRs_EarlyTermination(t *testing.T) {
 			// First page returns old PR - should stop here
 			prs := []*github.PullRequest{
 				{
-					Number:   github.Int(1),
+					Number:   github.Ptr(1),
 					MergedAt: &github.Timestamp{Time: oldDate},
-					User:     &github.User{Login: github.String("olduser")},
+					User:     &github.User{Login: github.Ptr("olduser")},
 				},
 			}
 
@@ -504,18 +504,18 @@ func TestCheckReviews_WithMockedAPI(t *testing.T) {
 			name: "recent reviews mark users active",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(1),
+					Number:    github.Ptr(1),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
 			reviews: map[int][]*github.PullRequestReview{
 				1: {
 					{
-						User:        &github.User{Login: github.String("reviewer1")},
+						User:        &github.User{Login: github.Ptr("reviewer1")},
 						SubmittedAt: &github.Timestamp{Time: recentDate},
 					},
 					{
-						User:        &github.User{Login: github.String("reviewer2")},
+						User:        &github.User{Login: github.Ptr("reviewer2")},
 						SubmittedAt: &github.Timestamp{Time: recentDate},
 					},
 				},
@@ -526,14 +526,14 @@ func TestCheckReviews_WithMockedAPI(t *testing.T) {
 			name: "old reviews ignored",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(2),
+					Number:    github.Ptr(2),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
 			reviews: map[int][]*github.PullRequestReview{
 				2: {
 					{
-						User:        &github.User{Login: github.String("oldreviewer")},
+						User:        &github.User{Login: github.Ptr("oldreviewer")},
 						SubmittedAt: &github.Timestamp{Time: oldDate},
 					},
 				},
@@ -544,25 +544,25 @@ func TestCheckReviews_WithMockedAPI(t *testing.T) {
 			name: "early termination when all active",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(3),
+					Number:    github.Ptr(3),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 				{
-					Number:    github.Int(4),
+					Number:    github.Ptr(4),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
 			reviews: map[int][]*github.PullRequestReview{
 				3: {
 					{
-						User:        &github.User{Login: github.String("user1")},
+						User:        &github.User{Login: github.Ptr("user1")},
 						SubmittedAt: &github.Timestamp{Time: recentDate},
 					},
 				},
 				4: {
 					// This should not be fetched due to early termination
 					{
-						User:        &github.User{Login: github.String("user2")},
+						User:        &github.User{Login: github.Ptr("user2")},
 						SubmittedAt: &github.Timestamp{Time: recentDate},
 					},
 				},
@@ -660,11 +660,11 @@ func TestCheckIssueComments_WithMockedAPI(t *testing.T) {
 			name: "recent comments mark users active",
 			comments: []*github.IssueComment{
 				{
-					User:      &github.User{Login: github.String("commenter1")},
+					User:      &github.User{Login: github.Ptr("commenter1")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 				{
-					User:      &github.User{Login: github.String("commenter2")},
+					User:      &github.User{Login: github.Ptr("commenter2")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
@@ -738,11 +738,11 @@ func TestCheckReleases_WithMockedAPI(t *testing.T) {
 			name: "recent releases mark authors active",
 			releases: []*github.RepositoryRelease{
 				{
-					Author:    &github.User{Login: github.String("releaser1")},
+					Author:    &github.User{Login: github.Ptr("releaser1")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 				{
-					Author:    &github.User{Login: github.String("releaser2")},
+					Author:    &github.User{Login: github.Ptr("releaser2")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
@@ -752,7 +752,7 @@ func TestCheckReleases_WithMockedAPI(t *testing.T) {
 			name: "old releases ignored",
 			releases: []*github.RepositoryRelease{
 				{
-					Author:    &github.User{Login: github.String("oldreleaser")},
+					Author:    &github.User{Login: github.Ptr("oldreleaser")},
 					CreatedAt: &github.Timestamp{Time: oldDate},
 				},
 			},
@@ -765,7 +765,7 @@ func TestCheckReleases_WithMockedAPI(t *testing.T) {
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 				{
-					Author: &github.User{Login: github.String("user")},
+					Author: &github.User{Login: github.Ptr("user")},
 				},
 			},
 			expectedActive: []string{},
@@ -834,8 +834,8 @@ func TestCheckIssueActivity_WithMockedAPI(t *testing.T) {
 			name: "recent issue creation marks author active",
 			issues: []*github.Issue{
 				{
-					Number:    github.Int(1),
-					User:      &github.User{Login: github.String("issueauthor")},
+					Number:    github.Ptr(1),
+					User:      &github.User{Login: github.Ptr("issueauthor")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
@@ -845,11 +845,11 @@ func TestCheckIssueActivity_WithMockedAPI(t *testing.T) {
 			name: "recent issue closure marks closer active",
 			issues: []*github.Issue{
 				{
-					Number:    github.Int(2),
-					User:      &github.User{Login: github.String("oldauthor")},
+					Number:    github.Ptr(2),
+					User:      &github.User{Login: github.Ptr("oldauthor")},
 					CreatedAt: &github.Timestamp{Time: oldDate},
 					ClosedAt:  &github.Timestamp{Time: recentDate},
-					ClosedBy:  &github.User{Login: github.String("closer")},
+					ClosedBy:  &github.User{Login: github.Ptr("closer")},
 				},
 			},
 			expectedActive: []string{"closer"},
@@ -858,8 +858,8 @@ func TestCheckIssueActivity_WithMockedAPI(t *testing.T) {
 			name: "pull requests skipped",
 			issues: []*github.Issue{
 				{
-					Number:           github.Int(3),
-					User:             &github.User{Login: github.String("prauthor")},
+					Number:           github.Ptr(3),
+					User:             &github.User{Login: github.Ptr("prauthor")},
 					CreatedAt:        &github.Timestamp{Time: recentDate},
 					PullRequestLinks: &github.PullRequestLinks{},
 				},
@@ -931,8 +931,8 @@ func TestCheckPRActivity_WithMockedAPI(t *testing.T) {
 			name: "recent PR creation marks author active",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(1),
-					User:      &github.User{Login: github.String("prauthor")},
+					Number:    github.Ptr(1),
+					User:      &github.User{Login: github.Ptr("prauthor")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
@@ -943,12 +943,12 @@ func TestCheckPRActivity_WithMockedAPI(t *testing.T) {
 			name: "assignees marked active",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(2),
+					Number:    github.Ptr(2),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
-					Assignee:  &github.User{Login: github.String("assignee1")},
+					Assignee:  &github.User{Login: github.Ptr("assignee1")},
 					Assignees: []*github.User{
-						{Login: github.String("assignee2")},
-						{Login: github.String("assignee3")},
+						{Login: github.Ptr("assignee2")},
+						{Login: github.Ptr("assignee3")},
 					},
 				},
 			},
@@ -958,11 +958,11 @@ func TestCheckPRActivity_WithMockedAPI(t *testing.T) {
 			name: "requested reviewers marked active",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(3),
+					Number:    github.Ptr(3),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 					RequestedReviewers: []*github.User{
-						{Login: github.String("reviewer1")},
-						{Login: github.String("reviewer2")},
+						{Login: github.Ptr("reviewer1")},
+						{Login: github.Ptr("reviewer2")},
 					},
 				},
 			},
@@ -972,9 +972,9 @@ func TestCheckPRActivity_WithMockedAPI(t *testing.T) {
 			name: "old PRs trigger early termination",
 			prs: []*github.PullRequest{
 				{
-					Number:    github.Int(4),
+					Number:    github.Ptr(4),
 					UpdatedAt: &github.Timestamp{Time: oldDate},
-					User:      &github.User{Login: github.String("olduser")},
+					User:      &github.User{Login: github.Ptr("olduser")},
 				},
 			},
 			expectedActive: []string{},
@@ -1039,9 +1039,9 @@ func TestCheckWorkflowActivity_WithMockedAPI(t *testing.T) {
 			name: "recent workflow runs mark actor active",
 			runs: []*github.WorkflowRun{
 				{
-					ID:        github.Int64(1),
+					ID:        github.Ptr(int64(1)),
 					CreatedAt: &github.Timestamp{Time: recentDate},
-					Actor:     &github.User{Login: github.String("workflowuser")},
+					Actor:     &github.User{Login: github.Ptr("workflowuser")},
 				},
 			},
 			expectedActive: []string{"workflowuser"},
@@ -1050,9 +1050,9 @@ func TestCheckWorkflowActivity_WithMockedAPI(t *testing.T) {
 			name: "old workflow runs skipped",
 			runs: []*github.WorkflowRun{
 				{
-					ID:        github.Int64(2),
+					ID:        github.Ptr(int64(2)),
 					CreatedAt: &github.Timestamp{Time: oldDate},
-					Actor:     &github.User{Login: github.String("oldactor")},
+					Actor:     &github.User{Login: github.Ptr("oldactor")},
 				},
 			},
 			expectedActive: []string{},
@@ -1061,7 +1061,7 @@ func TestCheckWorkflowActivity_WithMockedAPI(t *testing.T) {
 			name: "nil actor handled",
 			runs: []*github.WorkflowRun{
 				{
-					ID:        github.Int64(3),
+					ID:        github.Ptr(int64(3)),
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 			},
@@ -1127,7 +1127,7 @@ func TestCheckCommitComments_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/commits": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			commits := []*github.RepositoryCommit{
-				{SHA: github.String("abc123")},
+				{SHA: github.Ptr("abc123")},
 			}
 			mustEncode(w, commits)
 		},
@@ -1135,7 +1135,7 @@ func TestCheckCommitComments_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			comments := []*github.RepositoryComment{
 				{
-					User:      &github.User{Login: github.String("commenter1")},
+					User:      &github.User{Login: github.Ptr("commenter1")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 				},
 			}
@@ -1177,8 +1177,8 @@ func TestCheckMilestoneActivity_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			milestones := []*github.Milestone{
 				{
-					Number:    github.Int(1),
-					Creator:   &github.User{Login: github.String("creator1")},
+					Number:    github.Ptr(1),
+					Creator:   &github.User{Login: github.Ptr("creator1")},
 					CreatedAt: &github.Timestamp{Time: recentDate},
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
@@ -1226,7 +1226,7 @@ func TestCheckIssueReactions_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			issues := []*github.Issue{
 				{
-					Number:    github.Int(1),
+					Number:    github.Ptr(1),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			}
@@ -1235,7 +1235,7 @@ func TestCheckIssueReactions_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/issues/1/reactions": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			reactions := []*github.Reaction{
-				{User: &github.User{Login: github.String("reactor1")}},
+				{User: &github.User{Login: github.Ptr("reactor1")}},
 			}
 			mustEncode(w, reactions)
 		},
@@ -1274,9 +1274,9 @@ func TestCheckRepoEvents_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			events := []*github.Event{
 				{
-					Type:      github.String("PushEvent"),
+					Type:      github.Ptr("PushEvent"),
 					CreatedAt: &github.Timestamp{Time: recentDate},
-					Actor:     &github.User{Login: github.String("pusher1")},
+					Actor:     &github.User{Login: github.Ptr("pusher1")},
 				},
 			}
 			mustEncode(w, events)
@@ -1316,9 +1316,9 @@ func TestCheckDiscussions_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			events := []*github.Event{
 				{
-					Type:      github.String("DiscussionEvent"),
+					Type:      github.Ptr("DiscussionEvent"),
 					CreatedAt: &github.Timestamp{Time: recentDate},
-					Actor:     &github.User{Login: github.String("discusser1")},
+					Actor:     &github.User{Login: github.Ptr("discusser1")},
 				},
 			}
 			mustEncode(w, events)
@@ -1358,7 +1358,7 @@ func TestCheckLabelActivity_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			issues := []*github.Issue{
 				{
-					Number:    github.Int(1),
+					Number:    github.Ptr(1),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			}
@@ -1368,9 +1368,9 @@ func TestCheckLabelActivity_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			timeline := []*github.Timeline{
 				{
-					Event:     github.String("labeled"),
+					Event:     github.Ptr("labeled"),
 					CreatedAt: &github.Timestamp{Time: recentDate},
-					Actor:     &github.User{Login: github.String("labeler1")},
+					Actor:     &github.User{Login: github.Ptr("labeler1")},
 				},
 			}
 			mustEncode(w, timeline)
@@ -1410,7 +1410,7 @@ func TestCheckPRReactions_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			prs := []*github.PullRequest{
 				{
-					Number:    github.Int(1),
+					Number:    github.Ptr(1),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			}
@@ -1419,7 +1419,7 @@ func TestCheckPRReactions_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/issues/1/reactions": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			reactions := []*github.Reaction{
-				{User: &github.User{Login: github.String("prreactor1")}},
+				{User: &github.User{Login: github.Ptr("prreactor1")}},
 			}
 			mustEncode(w, reactions)
 		},
@@ -1457,7 +1457,7 @@ func TestCheckCommitCommentReactions_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/commits": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			commits := []*github.RepositoryCommit{
-				{SHA: github.String("abc123")},
+				{SHA: github.Ptr("abc123")},
 			}
 			mustEncode(w, commits)
 		},
@@ -1465,9 +1465,9 @@ func TestCheckCommitCommentReactions_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			comments := []*github.RepositoryComment{
 				{
-					ID:        github.Int64(1),
+					ID:        github.Ptr(int64(1)),
 					CreatedAt: &github.Timestamp{Time: recentDate},
-					CommitID:  github.String("abc123"),
+					CommitID:  github.Ptr("abc123"),
 				},
 			}
 			mustEncode(w, comments)
@@ -1475,7 +1475,7 @@ func TestCheckCommitCommentReactions_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/comments/1/reactions": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			reactions := []*github.Reaction{
-				{User: &github.User{Login: github.String("commitreactor1")}},
+				{User: &github.User{Login: github.Ptr("commitreactor1")}},
 			}
 			mustEncode(w, reactions)
 		},
@@ -1549,7 +1549,7 @@ func TestCheckSecurityActivity_WithMockedAPI(t *testing.T) {
 			alerts := []*github.DependabotAlert{
 				{
 					DismissedAt: &github.Timestamp{Time: recentDate},
-					DismissedBy: &github.User{Login: github.String("securityuser1")},
+					DismissedBy: &github.User{Login: github.Ptr("securityuser1")},
 				},
 			}
 			mustEncode(w, alerts)
@@ -1589,7 +1589,7 @@ func TestCheckCommentReactions_WithMockedAPI(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			comments := []*github.IssueComment{
 				{
-					ID:        github.Int64(1),
+					ID:        github.Ptr(int64(1)),
 					UpdatedAt: &github.Timestamp{Time: recentDate},
 				},
 			}
@@ -1598,7 +1598,7 @@ func TestCheckCommentReactions_WithMockedAPI(t *testing.T) {
 		"/repos/test/repo/issues/comments/1/reactions": func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			reactions := []*github.Reaction{
-				{User: &github.User{Login: github.String("commentreactor1")}},
+				{User: &github.User{Login: github.Ptr("commentreactor1")}},
 			}
 			mustEncode(w, reactions)
 		},
@@ -1651,13 +1651,13 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 						w.Header().Set("Content-Type", "application/json")
 						commits := []*github.RepositoryCommit{
 							{
-								Author: &github.User{Login: github.String("elevated-user")},
+								Author: &github.User{Login: github.Ptr("elevated-user")},
 								Commit: &github.Commit{
 									Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 								},
 							},
 							{
-								Author: &github.User{Login: github.String("non-elevated-user")},
+								Author: &github.User{Login: github.Ptr("non-elevated-user")},
 								Commit: &github.Commit{
 									Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 								},
@@ -1682,10 +1682,10 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 						w.Header().Set("Content-Type", "application/json")
 						prs := []*github.PullRequest{
 							{
-								Number:   github.Int(1),
+								Number:   github.Ptr(1),
 								MergedAt: &github.Timestamp{Time: recentDate},
-								User:     &github.User{Login: github.String("elevated-maintainer")},
-								MergedBy: &github.User{Login: github.String("external-contributor")},
+								User:     &github.User{Login: github.Ptr("elevated-maintainer")},
+								MergedBy: &github.User{Login: github.Ptr("external-contributor")},
 							},
 						}
 						mustEncode(w, prs)
@@ -1708,11 +1708,11 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 						comments := []*github.IssueComment{
 							{
 								UpdatedAt: &github.Timestamp{Time: recentDate},
-								User:      &github.User{Login: github.String("maintainer")},
+								User:      &github.User{Login: github.Ptr("maintainer")},
 							},
 							{
 								UpdatedAt: &github.Timestamp{Time: recentDate},
-								User:      &github.User{Login: github.String("random-user")},
+								User:      &github.User{Login: github.Ptr("random-user")},
 							},
 						}
 						mustEncode(w, comments)
@@ -1735,11 +1735,11 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 						releases := []*github.RepositoryRelease{
 							{
 								CreatedAt: &github.Timestamp{Time: recentDate},
-								Author:    &github.User{Login: github.String("release-manager")},
+								Author:    &github.User{Login: github.Ptr("release-manager")},
 							},
 							{
 								CreatedAt: &github.Timestamp{Time: recentDate},
-								Author:    &github.User{Login: github.String("bot-account")},
+								Author:    &github.User{Login: github.Ptr("bot-account")},
 							},
 						}
 						mustEncode(w, releases)
@@ -1760,7 +1760,7 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 					"/repos/test/repo/pulls": func(w http.ResponseWriter, r *http.Request) {
 						w.Header().Set("Content-Type", "application/json")
 						prs := []*github.PullRequest{
-							{Number: github.Int(1), UpdatedAt: &github.Timestamp{Time: recentDate}},
+							{Number: github.Ptr(1), UpdatedAt: &github.Timestamp{Time: recentDate}},
 						}
 						mustEncode(w, prs)
 					},
@@ -1769,11 +1769,11 @@ func TestSecurityBoundary_NonElevatedUsersIgnored(t *testing.T) {
 						reviews := []*github.PullRequestReview{
 							{
 								SubmittedAt: &github.Timestamp{Time: recentDate},
-								User:        &github.User{Login: github.String("core-reviewer")},
+								User:        &github.User{Login: github.Ptr("core-reviewer")},
 							},
 							{
 								SubmittedAt: &github.Timestamp{Time: recentDate},
-								User:        &github.User{Login: github.String("external-reviewer")},
+								User:        &github.User{Login: github.Ptr("external-reviewer")},
 							},
 						}
 						mustEncode(w, reviews)
@@ -1852,13 +1852,13 @@ func TestSecurityBoundary_EmptyLoginIgnored(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			commits := []*github.RepositoryCommit{
 				{
-					Author: &github.User{Login: github.String("")}, // Empty login
+					Author: &github.User{Login: github.Ptr("")}, // Empty login
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
 				},
 				{
-					Author: &github.User{Login: github.String("valid-user")},
+					Author: &github.User{Login: github.Ptr("valid-user")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
@@ -1907,13 +1907,13 @@ func TestSecurityBoundary_CaseSensitivity(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			commits := []*github.RepositoryCommit{
 				{
-					Author: &github.User{Login: github.String("TestUser")}, // Mixed case
+					Author: &github.User{Login: github.Ptr("TestUser")}, // Mixed case
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
 				},
 				{
-					Author: &github.User{Login: github.String("UPPERCASE")}, // All uppercase
+					Author: &github.User{Login: github.Ptr("UPPERCASE")}, // All uppercase
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
@@ -1963,25 +1963,25 @@ func TestSecurityBoundary_OnlyElevatedInActiveMap(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			commits := []*github.RepositoryCommit{
 				{
-					Author: &github.User{Login: github.String("maintainer1")},
+					Author: &github.User{Login: github.Ptr("maintainer1")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
 				},
 				{
-					Author: &github.User{Login: github.String("maintainer2")},
+					Author: &github.User{Login: github.Ptr("maintainer2")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
 				},
 				{
-					Author: &github.User{Login: github.String("contributor1")},
+					Author: &github.User{Login: github.Ptr("contributor1")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},
 				},
 				{
-					Author: &github.User{Login: github.String("contributor2")},
+					Author: &github.User{Login: github.Ptr("contributor2")},
 					Commit: &github.Commit{
 						Author: &github.CommitAuthor{Date: &github.Timestamp{Time: recentDate}},
 					},

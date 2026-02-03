@@ -30,7 +30,7 @@ func init() {
 	probes.MustRegister(
 		Probe,
 		Run,
-		[]checknames.CheckName{checknames.InactiveMaintainers},
+		[]checknames.CheckName{checknames.Maintained},
 	)
 }
 
@@ -44,7 +44,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
-	maintainerActivity := raw.InactiveMaintainersResults.MaintainerActivity
+	maintainerActivity := raw.MaintainedResults.MaintainerActivity
 	var findings []finding.Finding
 
 	// If no maintainers found, return a finding indicating this

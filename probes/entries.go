@@ -103,9 +103,6 @@ var (
 	Contributors = []ProbeImpl{
 		contributorsFromOrgOrCompany.Run,
 	}
-	InactiveMaintainers = []ProbeImpl{
-		hasInactiveMaintainers.Run,
-	}
 	Vulnerabilities = []ProbeImpl{
 		hasOSVVulnerabilities.Run,
 	}
@@ -125,6 +122,7 @@ var (
 		hasRecentCommits.Run,
 		issueActivityByProjectMember.Run,
 		createdRecently.Run,
+		hasInactiveMaintainers.Run,
 	}
 	CIIBestPractices = []ProbeImpl{
 		hasOpenSSFBadge.Run,

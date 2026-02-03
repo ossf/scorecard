@@ -360,65 +360,6 @@ is therefore not a definitive indication that the project is at risk.
 **Remediation steps**
 - Integrate the project with OSS-Fuzz by following the instructions [here](https://google.github.io/oss-fuzz/).
 
-## Inactive-Maintainers 
-
-Risk: `Medium` (unmaintained code, security vulnerabilities)
-
-This check tries to determine if the project has maintainers who have shown
-no activity in the last 6 months. A maintainer is considered active if they
-have performed any maintenance-related activities within the 6-month window.
-
-Inactive maintainers may indicate reduced oversight and slower response to
-security issues. Projects with all maintainers inactive are at higher risk
-of not receiving timely security patches or dependency updates.
-
-The check examines maintainer activity across multiple dimensions:
-
-**Primary Activity Signals** (strong indicators):
-- Recent commits authored by the maintainer
-- Pull requests merged by the maintainer
-- Releases published by the maintainer
-
-**Secondary Activity Signals** (code review and collaboration):
-- Pull request reviews submitted
-- Comments on issues and pull requests
-- Comments on commits
-
-**Issue/PR Management Signals**:
-- Issues or pull requests created, closed, or assigned
-- Reactions added to issues, pull requests, or comments
-
-**Triage and Organization Signals**:
-- Labels added or removed on issues/PRs
-- Milestones created, updated, or assigned
-- GitHub Discussions activity
-
-**Project Management Signals**:
-- GitHub Project board activity
-- Repository settings changes
-
-**Security Maintenance Signals**:
-- Security advisories created or updated
-- Dependabot alerts dismissed
-
-**Development Workflow Signals**:
-- GitHub Actions workflow runs triggered
-
-The score is proportional to the ratio of active maintainers:
-- 10/10: All maintainers are active
-- Proportional score: Some maintainers are active
-- 0/10: All maintainers are inactive or no maintainers found
-
-Note: This check only identifies maintainers who have explicit permissions
-on the repository (admin, maintain, or write access). Contributors without
-these permissions are not included in the evaluation.
- 
-
-**Remediation steps**
-- If you are a maintainer who is stepping away from active maintenance, consider adding new active maintainers to the project or clearly documenting the project's maintenance status.
-- For users evaluating projects: Consider the reason for inactivity. Some projects are feature-complete and require minimal maintenance. However, long-term inactivity combined with dependencies or security issues warrants caution.
-- Projects can improve their score by ensuring at least one maintainer remains active through regular commits, issue triaging, or pull request reviews.
-
 ## License 
 
 Risk: `Low` (possible impediment to security review)
@@ -458,22 +399,62 @@ License Requirements:
 
 ## Maintained 
 
-Risk: `High` (possibly unpatched vulnerabilities)
+Risk: `High` (possibly unpatched vulnerabilities, unmaintained code)
 
-This check determines whether the project is actively maintained. If the project
-is archived, it receives the lowest score. If there is at least one commit per
-week during the previous 90 days, the project receives the highest score.  If there
-is activity on issues from users who are collaborators, members, or owners of the
-project, the project receives a partial score.
+This check determines whether the project is actively maintained by evaluating
+both overall project activity and maintainer engagement.
 
-A project which is not active might not be patched, have its
-dependencies patched, or be actively tested and used. However, a lack
-of active maintenance is not necessarily always a problem. Some software,
-especially smaller utility functions, does not normally need to be maintained.
-For example, a library that determines if an integer is even would not normally
-need maintenance unless an underlying implementation language definition
-changed. A lack of active maintenance should signal that potential users should
-investigate further to judge the situation.
+**Project Activity Assessment** (90-day lookback):
+
+The check evaluates general maintenance signals:
+- Whether the project is archived (receives lowest score if true)
+- Commit activity on the default branch (at least one commit per week for highest score)
+- Issue activity from project collaborators, members, or owners
+- Project age (must be >90 days old to receive a non-zero score)
+
+**Maintainer Engagement Assessment** (180-day lookback):
+
+The check identifies users with elevated repository permissions (admin, maintain, 
+write, or triage access) and tracks whether these maintainers have shown recent 
+activity through multiple signals:
+
+- **Primary signals**: Commits, merged pull requests, releases
+- **Code review**: PR reviews, issue/PR comments, commit comments
+- **Issue/PR management**: Creating, closing, or assigning issues/PRs; adding reactions
+- **Triage**: Label management, milestone creation/assignment
+- **Project management**: GitHub Discussions, Project boards, repository settings
+- **Security**: Security advisories, Dependabot alert dismissals
+- **Workflows**: GitHub Actions workflow runs
+
+**Scoring**:
+
+The final score combines both dimensions using a penalty-factor approach:
+1. A base score is calculated from commit and issue activity (existing logic)
+2. A maintainer activity factor (0.5-1.0) is computed based on the ratio of 
+   active maintainers
+3. The final score is: base_score × maintainer_factor
+
+This means:
+- High activity + all maintainers active = Maximum score (10/10)
+- High activity + inactive maintainers = Reduced score (external contributions 
+  may not be sustainable)
+- Low activity + active maintainers = Low score (maintainers present but minimal work)
+- Low activity + inactive maintainers = Minimum score (highest risk)
+- If no maintainers are identified, only base activity score is used (no penalty)
+
+**Note on Inactive Maintainers**:
+
+Inactive maintainers may indicate:
+- Compromised account risk if elevated permissions remain unused
+- Reduced oversight and slower response to security issues
+- Uncertainty about who actively maintains the project
+
+However, a lack of active maintenance is not necessarily always a problem. Some 
+software, especially smaller utility functions, does not normally need to be 
+maintained. For example, a library that determines if an integer is even would 
+not normally need maintenance unless an underlying implementation language 
+definition changed. A lack of active maintenance should signal that potential 
+users should investigate further to judge the situation.
 
 This check will only succeed if a GitHub project is >90 days old. Projects
 that are younger than this are too new to assess whether they are maintained
@@ -482,7 +463,9 @@ are as expected.
  
 
 **Remediation steps**
-- There is no remediation work needed from projects with a low score; this check simply provides insight into the project activity and maintenance commitment. External users should determine whether the software is the type that would not normally need active maintenance.
+- If you are a maintainer stepping away from active maintenance, consider adding new active maintainers to the project or clearly documenting the project's maintenance status.
+- Review the list of users with elevated repository access and remove or  downgrade permissions for those who are no longer actively participating.
+- There is no remediation work needed from projects with a low score on the activity dimension; this check simply provides insight into the project  activity and maintenance commitment. External users should determine whether  the software is the type that would not normally need active maintenance.
 
 ## Packaging 
 

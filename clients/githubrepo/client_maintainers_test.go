@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/go-github/v53/github"
+	"github.com/google/go-github/v82/github"
 )
 
 // TestClientGetMaintainerActivityInitialization tests the client initialization.
