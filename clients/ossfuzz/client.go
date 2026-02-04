@@ -202,6 +202,11 @@ func (c *client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, erro
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+func (c *client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("HasPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 // GetDefaultBranchName implements RepoClient.GetDefaultBranchName.
 func (c *client) GetDefaultBranchName() (string, error) {
 	return "", fmt.Errorf("GetDefaultBranchName: %w", clients.ErrUnsupportedFeature)

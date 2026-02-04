@@ -37,6 +37,14 @@ type securityPolicyFilesWithURI struct {
 // SecurityPolicy checks for presence of security policy
 // and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
+	// Check for private vulnerability reporting status.
+	// This is a GitHub-specific feature; other platforms will return ErrUnsupportedFeature.
+	pvrEnabled, pvrErr := c.RepoClient.HasPrivateVulnerabilityReportingEnabled()
+	pvrAvailable := !errors.Is(pvrErr, clients.ErrUnsupportedFeature)
+	if pvrErr != nil && pvrAvailable {
+		return checker.SecurityPolicyData{}, fmt.Errorf("checking private vulnerability reporting: %w", pvrErr)
+	}
+
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
@@ -55,7 +63,11 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{
+			PolicyFiles:                            data.files,
+			PrivateVulnerabilityReportingEnabled:   pvrEnabled,
+			PrivateVulnerabilityReportingAvailable: pvrAvailable,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +107,11 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{
+		PolicyFiles:                            data.files,
+		PrivateVulnerabilityReportingEnabled:   pvrEnabled,
+		PrivateVulnerabilityReportingAvailable: pvrAvailable,
+	}, nil
 }
 
 // Check repository for repository-specific policy.

@@ -18,6 +18,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/privateVulnerabilityReportingEnabled"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
@@ -26,12 +27,13 @@ import (
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
-	// We have 4 unique probes, each should have a finding.
+	// We have 5 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
 		securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
 		securityPolicyPresent.Probe,
+		privateVulnerabilityReportingEnabled.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -55,6 +57,9 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			case securityPolicyContainsText.Probe:
 				score += scoreProbeOnce(f.Probe, m, 3)
 			case securityPolicyPresent.Probe:
+				m[f.Probe] = true
+			case privateVulnerabilityReportingEnabled.Probe:
+				// Private vulnerability reporting is informational - doesn't affect score
 				m[f.Probe] = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
