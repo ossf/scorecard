@@ -56,6 +56,7 @@ const (
 	apiResultsBucketURL     string = "SCORECARD_API_RESULTS_BUCKET_URL"
 	inputBucketURL          string = "SCORECARD_INPUT_BUCKET_URL"
 	inputBucketPrefix       string = "SCORECARD_INPUT_BUCKET_PREFIX"
+	apiBaseURL              string = "SCORECARD_API_BASE_URL"
 )
 
 var (
@@ -356,4 +357,9 @@ func GetScorecardValues() (map[string]string, error) {
 // GetCriticalityValues() returns a map of key, value pairs containing additional, criticality specific values.
 func GetCriticalityValues() (map[string]string, error) {
 	return GetAdditionalParams("criticality")
+}
+
+// GetAPIBaseURL returns the base URL for the Scorecard API.
+func GetAPIBaseURL() (string, error) {
+	return getStringConfigValue(apiBaseURL, configYAML, "APIBaseURL", "api-base-url")
 }
