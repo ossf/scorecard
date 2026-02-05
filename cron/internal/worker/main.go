@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net/http"
 	_ "net/http/pprof" //nolint:gosec
+	"os"
 	"strings"
 
 	"go.opencensus.io/stats/view"
@@ -35,6 +36,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/ossfuzz"
 	"github.com/ossf/scorecard/v5/cron/config"
 	"github.com/ossf/scorecard/v5/cron/data"
+	"github.com/ossf/scorecard/v5/cron/internal/cdn"
 	format "github.com/ossf/scorecard/v5/cron/internal/format"
 	"github.com/ossf/scorecard/v5/cron/monitoring"
 	"github.com/ossf/scorecard/v5/cron/worker"
@@ -89,6 +91,7 @@ type ScorecardWorker struct {
 	ciiClient         clients.CIIBestPracticesClient
 	ossFuzzRepoClient clients.RepoClient
 	vulnsClient       clients.VulnerabilitiesClient
+	purgeClient       cdn.Purger
 	apiBucketURL      string
 	rawBucketURL      string
 	blacklistedChecks []string
@@ -131,6 +134,12 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	}
 	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
 
+	apiBaseURL, err := config.GetAPIBaseURL()
+	if err != nil {
+		sw.logger.Info("Unable to get API base URL", "error", err)
+	}
+	sw.purgeClient = getPurger(sw.logger, apiBaseURL)
+
 	if sw.exporter, err = startMetricsExporter(); err != nil {
 		return nil, fmt.Errorf("startMetricsExporter: %w", err)
 	}
@@ -152,7 +161,7 @@ func (sw *ScorecardWorker) Close() {
 func (sw *ScorecardWorker) Process(ctx context.Context, req *data.ScorecardBatchRequest, bucketURL string) error {
 	return processRequest(ctx, req, sw.blacklistedChecks, bucketURL, sw.rawBucketURL, sw.apiBucketURL,
 		sw.checkDocs, sw.githubClient, sw.gitlabClient, sw.ossFuzzRepoClient, sw.ciiClient,
-		sw.vulnsClient, sw.logger)
+		sw.vulnsClient, sw.purgeClient, sw.logger)
 }
 
 func (sw *ScorecardWorker) PostProcess() {
@@ -167,6 +176,7 @@ func processRequest(ctx context.Context,
 	githubClient, gitlabClient clients.RepoClient, ossFuzzRepoClient clients.RepoClient,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
+	purgeClient cdn.Purger,
 	logger *log.Logger,
 ) error {
 	filename := worker.ResultFilename(batchRequest)
@@ -276,9 +286,17 @@ func processRequest(ctx context.Context,
 		if err := data.WriteToBlobStore(ctx, apiBucketURL, exportPath, exportBuffer.Bytes()); err != nil {
 			return fmt.Errorf("error during writing to exportBucketURL: %w", err)
 		}
+		path := fmt.Sprintf("/projects/%s", repo.URI())
+		if err := purgeClient.Purge(ctx, path); err != nil {
+			logger.Info(fmt.Sprintf("failed to purge CDN for %s: %v", path, err))
+		}
 		// Export result based on commitSHA.
 		if err := data.WriteToBlobStore(ctx, apiBucketURL, exportCommitSHAPath, exportBuffer.Bytes()); err != nil {
 			return fmt.Errorf("error during exportBucketURL with commit SHA: %w", err)
+		}
+		path = fmt.Sprintf("/projects/%s?commit=%s", repo.URI(), result.Repo.CommitSHA)
+		if err := purgeClient.Purge(ctx, path); err != nil {
+			logger.Info(fmt.Sprintf("failed to purge CDN for %s: %v", path, err))
 		}
 		// Export raw result.
 		if err := data.WriteToBlobStore(ctx, apiBucketURL, exportRawPath, exportRawBuffer.Bytes()); err != nil {
@@ -322,6 +340,31 @@ func startMetricsExporter() (monitoring.Exporter, error) {
 		return nil, fmt.Errorf("error during view.Register: %w", err)
 	}
 	return exporter, nil
+}
+
+// Gets the relevant purger depending on if this is a local dev environment
+// or a hosted environmen (staging or prod).
+// the API base URL should have the scheme, e.g. "https://api.scorecard.dev"
+func getPurger(logger *log.Logger, apiBaseURL string) cdn.Purger {
+	// STORAGE_EMULATOR_HOST is set locally, so we don't want to purge the CDN.
+	if os.Getenv("STORAGE_EMULATOR_HOST") != "" {
+		logger.Info("API result CDN purging disabled, STORAGE_EMULATOR_HOST is set")
+		return cdn.NewNoOpClient()
+	}
+
+	if apiBaseURL == "" {
+		logger.Info("API result CDN purging disabled, no API base URL set")
+		return cdn.NewNoOpClient()
+	}
+
+	purgeToken := os.Getenv("FASTLY_PURGE_TOKEN")
+	if purgeToken == "" {
+		logger.Info("API result CDN purging disabled, FASTLY_PURGE_TOKEN not set")
+		return cdn.NewNoOpClient()
+	}
+
+	logger.Info("API result CDN purging enabled for " + apiBaseURL)
+	return cdn.NewFastlyClient(purgeToken, apiBaseURL)
 }
 
 func main() {
