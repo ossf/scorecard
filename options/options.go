@@ -30,26 +30,27 @@ import (
 
 // Options define common options for configuring scorecard.
 type Options struct {
-	Repo            string
-	Repos           []string
-	Org             string
-	Local           string
-	Commit          string
-	LogLevel        string
-	Format          string
-	NPM             string
-	PyPI            string
-	RubyGems        string
-	Nuget           string
-	PolicyFile      string
-	ResultsFile     string
-	FileMode        string
-	ChecksToRun     []string
-	ProbesToRun     []string
-	Metadata        []string
-	CommitDepth     int
-	ShowDetails     bool
-	ShowAnnotations bool
+	Repo                  string
+	Repos                 []string
+	Org                   string
+	Local                 string
+	Commit                string
+	LogLevel              string
+	Format                string
+	NPM                   string
+	PyPI                  string
+	RubyGems              string
+	Nuget                 string
+	PolicyFile            string
+	ResultsFile           string
+	FileMode              string
+	ChecksToRun           []string
+	ProbesToRun           []string
+	Metadata              []string
+	CommitDepth           int
+	ShowDetails           bool
+	ShowAnnotations       bool
+	SkipUnsupportedChecks bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
