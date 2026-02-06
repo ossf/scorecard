@@ -39,6 +39,8 @@ additional-params:
     prefix-file:
     
   scorecard:
+    # for sending PURGE requests to CDN
+    api-base-url: https://api.scorecard.dev
     # API results bucket
     api-results-bucket-url: gs://ossf-scorecard-cron-results
     # TODO: Temporarily remove SAST and CI-Tests which require lot of GitHub API tokens.
