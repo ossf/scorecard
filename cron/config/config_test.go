@@ -45,6 +45,7 @@ const (
 	prodInputBucketURL        = "gs://ossf-scorecard-input-projects"
 	prodInputBucketPrefix     = ""
 	prodInputBucketPrefixFile = ""
+	prodAPIBaseURL            = "https://api.scorecard.dev"
 )
 
 var (
@@ -54,6 +55,7 @@ var (
 		"prefix-file": prodInputBucketPrefixFile,
 	}
 	prodScorecardParams = map[string]string{
+		"api-base-url":               prodAPIBaseURL,
 		"api-results-bucket-url":     prodAPIBucketURL,
 		"blacklisted-checks":         prodBlacklistedChecks,
 		"cii-data-bucket-url":        prodCIIDataBucket,

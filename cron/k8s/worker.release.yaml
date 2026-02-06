@@ -65,7 +65,7 @@ spec:
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
             - name: "SCORECARD_API_BASE_URL"
-              value: "https://cdn.scorecard.dev"
+              value: "https://api-staging.scorecard.dev"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard

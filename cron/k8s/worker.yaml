@@ -49,6 +49,11 @@ spec:
                 secretKeyRef:
                   name: gitlab
                   key: auth_token
+            - name: FASTLY_PURGE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fastly
+                  key: purge_token
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard
