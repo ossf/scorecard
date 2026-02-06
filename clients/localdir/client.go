@@ -259,6 +259,12 @@ func (client *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return []clients.Language{{Name: clients.All, NumLines: 1}}, nil
 }
 
+// GetMaintainerActivity implements RepoClient.GetMaintainerActivity.
+// Local directories don't have maintainer information available.
+func (client *Client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	return map[string]bool{}, nil
+}
+
 // ListLicenses implements RepoClient.ListLicenses.
 // TODO: add ListLicenses support for local directories.
 func (client *Client) ListLicenses() ([]clients.License, error) {

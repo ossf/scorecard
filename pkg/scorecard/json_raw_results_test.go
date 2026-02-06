@@ -1225,6 +1225,7 @@ func intPtr(i int32) *int32 {
 
 func TestScorecardResult_AsRawJSON(t *testing.T) {
 	t.Parallel()
+	//nolint:govet // fieldalignment - test struct, optimization not critical
 	type fields struct {
 		Repo       RepoInfo
 		Date       time.Time

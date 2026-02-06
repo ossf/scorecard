@@ -233,6 +233,11 @@ func (c *Client) Close() error {
 	return c.zip.cleanup()
 }
 
+// GetMaintainerActivity implements clients.RepoClient.
+func (c *Client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	return nil, fmt.Errorf("GetMaintainerActivity: %w", clients.ErrUnsupportedFeature)
+}
+
 func CreateAzureDevOpsClient(ctx context.Context, repo clients.Repo) (*Client, error) {
 	token := os.Getenv("AZURE_DEVOPS_AUTH_TOKEN")
 	return CreateAzureDevOpsClientWithToken(ctx, token, repo)
