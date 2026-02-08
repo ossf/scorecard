@@ -57,8 +57,15 @@ spec:
                 secretKeyRef:
                   name: gitlab
                   key: auth_token
+            - name: FASTLY_PURGE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: fastly
+                  key: purge_token
             - name: "SCORECARD_API_RESULTS_BUCKET_URL"
               value: "gs://ossf-scorecard-cron-releasetest-results"
+            - name: "SCORECARD_API_BASE_URL"
+              value: "https://api-staging.scorecard.dev"
           volumeMounts:
             - name: config-volume
               mountPath: /etc/scorecard

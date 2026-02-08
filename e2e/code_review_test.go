@@ -157,12 +157,11 @@ var _ = Describe("E2E TEST:"+checks.CheckCodeReview, func() {
 		skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 		dl := scut.TestDetailLogger{}
-		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+		repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/api/client-go")
 		Expect(err).Should(BeNil())
 		repoClient, err := gitlabrepo.CreateGitlabClient(context.Background(), repo.Host())
 		Expect(err).Should(BeNil())
 		err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
-		// err = repoClient.InitRepo(repo, "0b5ba5049f3e5b8e945305acfa45c44d63df21b1", 0)
 		Expect(err).Should(BeNil())
 
 		req := checker.CheckRequest{

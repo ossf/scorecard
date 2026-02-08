@@ -60,7 +60,7 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			skipIfTokenIsNot(gitlabPATTokenType, "GitLab only")
 
 			dl := scut.TestDetailLogger{}
-			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/gitlab")
+			repo, err := gitlabrepo.MakeGitlabRepo("gitlab.com/gitlab-org/api/client-go")
 			Expect(err).Should(BeNil())
 			repoClient, err := gitlabrepo.CreateGitlabClientWithToken(context.Background(),
 				os.Getenv("GITLAB_AUTH_TOKEN"), repo.Host())
