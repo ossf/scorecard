@@ -37,6 +37,8 @@ results.json
 **/unit-coverage.out
 e2e-coverage.out
 
+# Generated code
+internal/java/java20/
 
 # IDE directories.
 .vscode/

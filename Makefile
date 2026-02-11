@@ -60,6 +60,12 @@ $(PROTOC):
 		$(error download and install protobuf compiler package - https://developers.google.com/protocol-buffers/docs/downloads)
 	endif
 
+ANTLR4 := $(shell which antlr4)
+$(ANTLR4):
+	ifeq (,$(ANTLR4))
+		$(error download and install ANTLR v4 code generator - https://www.antlr.org/download.html)
+	endif
+
 # Installs required binaries into $(TOOLS_BIN_DIR) wherever possible.
 # Keeping a local copy instead of a global install allows for:
 # i) Controlling the binary version Scorecard depends on leading to consistent
@@ -70,6 +76,7 @@ install: ## Installs required binaries.
 install: $(GOLANGCI_LINT) \
 	$(KO) \
 	$(PROTOC_GEN_GO) $(PROTOC) \
+	$(ANTLR4) \
 	$(MOCKGEN) \
 	$(GINKGO) \
 	$(GORELEASER)
@@ -127,7 +134,7 @@ build-cron: build-controller build-worker build-cii-worker \
 	build-shuffler build-bq-transfer build-github-server \
 	build-webhook build-add-script build-validate-script
 
-build-targets = generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
+build-targets = generate-java-parser generate-mocks generate-docs build-scorecard build-cron build-proto build-attestor
 .PHONY: build generate-java-parser $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -167,7 +174,7 @@ cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN
 
 generate-java-parser:
 	# Generating golang source code for java parser
-	cd internal/java && antlr4 -Dlanguage=Go -package java20 -o java20 Java20Lexer.g4 Java20Parser.g4
+	cd internal/java && $(ANTLR4) -Dlanguage=Go -package java20 -o java20 Java20Lexer.g4 Java20Parser.g4
 
 PROBE_DEFINITION_FILES = $(shell find ./probes/ -name "def.yml")
 generate-docs: ## Generates docs
