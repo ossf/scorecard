@@ -29,7 +29,7 @@ type VulnerabilitiesClient interface {
 
 // DefaultVulnerabilitiesClient returns a new OSV Vulnerabilities client.
 func DefaultVulnerabilitiesClient() VulnerabilitiesClient {
-	return osvClient{local: false}
+	return NewOSVClient(nil)
 }
 
 // ExperimentalLocalOSVClient returns an OSV Vulnerabilities client which
