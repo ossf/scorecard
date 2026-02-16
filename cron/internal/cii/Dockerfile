@@ -24,6 +24,6 @@ ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 make build-cii-worker
 
-FROM gcr.io/distroless/base:nonroot@sha256:107333192f6732e786f65df4df77f1d8bfb500289aad09540e43e0f7b6a2b816
+FROM gcr.io/distroless/base:nonroot@sha256:e2f22688c7f48cf0657f7c0929b52174c80b73ea24ea898df7517c26621659bb
 COPY --from=cii /src/cron/internal/cii/cii-worker cron/internal/cii/cii-worker
 ENTRYPOINT ["cron/internal/cii/cii-worker"]
