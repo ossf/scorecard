@@ -26,7 +26,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 	"go.opencensus.io/stats/view"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
@@ -97,7 +99,7 @@ type ScorecardWorker struct {
 	blacklistedChecks []string
 }
 
-func newScorecardWorker() (*ScorecardWorker, error) {
+func newScorecardWorker(vulnsClient clients.VulnerabilitiesClient) (*ScorecardWorker, error) {
 	var err error
 	sw := &ScorecardWorker{}
 	if sw.checkDocs, err = docs.Read(); err != nil {
@@ -132,7 +134,7 @@ func newScorecardWorker() (*ScorecardWorker, error) {
 	if sw.ossFuzzRepoClient, err = ossfuzz.CreateOSSFuzzClientEager(ossfuzz.StatusURL); err != nil {
 		return nil, fmt.Errorf("ossfuzz.CreateOSSFuzzClientEager: %w", err)
 	}
-	sw.vulnsClient = clients.DefaultVulnerabilitiesClient()
+	sw.vulnsClient = vulnsClient
 
 	apiBaseURL, err := config.GetAPIBaseURL()
 	if err != nil {
@@ -368,11 +370,17 @@ func getPurger(logger *log.Logger, apiBaseURL string) cdn.Purger {
 }
 
 func main() {
+	info := version.GetVersionInfo()
+	actions := osvscanner.ExperimentalScannerActions{}
+	actions.RequestUserAgent = fmt.Sprintf("scorecard-cron/%s", info.GitVersion)
+	osvConfig := clients.OSVConfig{}
+	osvConfig.UserAgent = actions.RequestUserAgent
+	vulnsClient := clients.NewOSVClient(&osvConfig)
 	flag.Parse()
 	if err := config.ReadConfig(); err != nil {
 		panic(err)
 	}
-	sw, err := newScorecardWorker()
+	sw, err := newScorecardWorker(vulnsClient)
 	if err != nil {
 		panic(err)
 	}
