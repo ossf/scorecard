@@ -273,6 +273,11 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 	return nil, fmt.Errorf("GetOrgRepoClient: %w", clients.ErrUnsupportedFeature)
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+func (client *Client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("HasPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 // CreateLocalDirClient returns a client which implements RepoClient interface.
 func CreateLocalDirClient(ctx context.Context, logger *log.Logger) clients.RepoClient {
 	return &Client{

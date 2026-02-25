@@ -240,6 +240,11 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 	return nil, fmt.Errorf("GetOrgRepoClient (GitLab): %w", clients.ErrUnsupportedFeature)
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+func (client *Client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("HasPrivateVulnerabilityReportingEnabled (GitLab): %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
 }

@@ -179,6 +179,11 @@ func (c *Client) GetOrgRepoClient(context.Context) (clients.RepoClient, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+func (c *Client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListCommits() ([]clients.Commit, error) {
 	return c.commits.listCommits()
 }
