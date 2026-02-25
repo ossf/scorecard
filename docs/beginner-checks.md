@@ -1,6 +1,6 @@
 # Getting Started with Scorecard Checks for Supply Chain Security
 
-Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into three categories based on stages of the development process: [setting up your project](#1-setting-up-your-project), [accepting contributions from others](#2-manage-contributions-to-your-project), and [packaging the project to release to the world](#3-package-and-release-your-project).
+Choosing which Scorecard checks to get started with as a project maintainer can be overwhelming. This page walks through some of the most important checks to start with for project improvement, focusing on the ones that give you the biggest payoff versus effort. They're broken down into four categories based on stages of the development process: [setting up your project](#1-setting-up-your-project), [accepting contributions from others](#2-manage-contributions-to-your-project), [packaging the project to release to the world](#3-package-and-release-your-project), and [publishing supply-chain evidence with releases](#4-publish-supply-chain-evidence-with-your-releases).
 
 Note: not every Scorecard check or topic mentioned on this page might be relevant to your project. See below for more on [customizing your checks to your needs](#customize-your-checks-to-your-projects-needs). 
 
@@ -66,6 +66,35 @@ The [Packaging check](https://github.com/ossf/scorecard/blob/main/docs/checks.md
 Another benefit to releasing projects as packages is reproducibility—the version that new users can download and execute is identical to the one that you and other contributors have already reviewed. Packages also have clear versioning documentation that makes it easier to track whether any newly discovered security issues are applicable to your project.
 
 Packaging your projects makes it easier for users to receive security patches as updates. It also provides information about the release details to your users, which opens the door to more collaboration from your open-source peers.
+
+## 4. Publish supply-chain evidence with your releases
+
+As your project matures, consumers increasingly ask for release evidence in
+addition to source code quality signals. Scorecard has checks that encourage
+this release-oriented posture.
+
+### SBOM and Signed-Releases improve release transparency and trust
+
+Two checks are especially useful here:
+
+- [SBOM check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#sbom)
+- [Signed-Releases check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases)
+
+These checks reinforce complementary goals:
+
+- **SBOM** helps consumers understand dependency composition and assess exposure
+  to newly disclosed vulnerabilities.
+- **Signed-Releases** helps consumers verify artifact provenance and integrity.
+
+A practical progression for maintainers:
+
+1. Generate an SBOM in CI (for example SPDX or CycloneDX).
+2. Publish the SBOM as a release artifact.
+3. Add release signing/provenance generation in the same pipeline.
+4. Verify signatures/provenance in a downstream or pre-deploy step.
+
+This sequence keeps release assurance reproducible and machine-verifiable,
+instead of relying on manual release notes.
 
 ## Customize your checks to your project’s needs
 
