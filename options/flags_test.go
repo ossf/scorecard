@@ -31,19 +31,20 @@ func TestOptions_AddFlags(t *testing.T) {
 		{
 			name: "custom options",
 			opts: &Options{
-				Repo:        "owner/repo",
-				Local:       "/path/to/local",
-				Commit:      "1234567890abcdef",
-				LogLevel:    "debug",
-				NPM:         "npm-package",
-				PyPI:        "pypi-package",
-				RubyGems:    "rubygems-package",
-				Metadata:    []string{"key1=value1", "key2=value2"},
-				ShowDetails: true,
-				ChecksToRun: []string{"check1", "check2"},
-				PolicyFile:  "policy-file",
-				Format:      "json",
-				ResultsFile: "result.json",
+				Repo:                  "owner/repo",
+				Local:                 "/path/to/local",
+				Commit:                "1234567890abcdef",
+				LogLevel:              "debug",
+				NPM:                   "npm-package",
+				PyPI:                  "pypi-package",
+				RubyGems:              "rubygems-package",
+				Metadata:              []string{"key1=value1", "key2=value2"},
+				ShowDetails:           true,
+				ChecksToRun:           []string{"check1", "check2"},
+				PolicyFile:            "policy-file",
+				Format:                "json",
+				ResultsFile:           "result.json",
+				SkipUnsupportedChecks: true,
 			},
 		},
 	}
@@ -113,6 +114,15 @@ func TestOptions_AddFlags(t *testing.T) {
 			if cmd.Flag(FlagResultsFile).Shorthand != ShorthandFlagResultsFile {
 				t.Errorf("expected ShorthandFlagResultsFile to be %q, but got %q", ShorthandFlagResultsFile,
 					cmd.Flag(FlagResultsFile).Shorthand)
+			}
+
+			// check FlagSkipUnsupportedChecks
+			value, err := cmd.Flags().GetBool(FlagSkipUnsupportedChecks)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tt.opts.SkipUnsupportedChecks != value {
+				t.Errorf("expected FlagSkipUnsupportedChecks to be %t, got %t", tt.opts.SkipUnsupportedChecks, value)
 			}
 		})
 	}

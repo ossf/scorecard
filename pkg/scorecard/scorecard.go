@@ -387,13 +387,14 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 
 	var requiredRequestTypes []checker.RequestType
 	var err error
-	switch repo.(type) {
-	case *localdir.Repo:
+	repoType := GetRepoType(repo)
+	switch repoType {
+	case RepoLocal:
 		requiredRequestTypes = append(requiredRequestTypes, checker.FileBased)
 		if c.client == nil {
 			c.client = localdir.CreateLocalDirClient(ctx, logger)
 		}
-	case *githubrepo.Repo:
+	case RepoGitHub:
 		if c.client == nil {
 			var opts []githubrepo.Option
 			if c.gitMode {
@@ -405,20 +406,21 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 			}
 			c.client = client
 		}
-	case *gitlabrepo.Repo:
+	case RepoGitLab:
 		if c.client == nil {
 			c.client, err = gitlabrepo.CreateGitlabClient(ctx, repo.Host())
 			if err != nil {
 				return Result{}, fmt.Errorf("creating gitlab client: %w", err)
 			}
 		}
-	case *azuredevopsrepo.Repo:
+	case RepoAzureDevOPs:
 		if c.client == nil {
 			c.client, err = azuredevopsrepo.CreateAzureDevOpsClient(ctx, repo)
 			if err != nil {
 				return Result{}, fmt.Errorf("creating azure devops client: %w", err)
 			}
 		}
+	case RepoUnknown, RepoGitLocal:
 	}
 
 	if !strings.EqualFold(c.commit, clients.HeadSHA) {
