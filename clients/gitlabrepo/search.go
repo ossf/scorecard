@@ -57,20 +57,18 @@ func (handler *searchHandler) buildQuery(request clients.SearchRequest) (string,
 		return "", fmt.Errorf("%w", errEmptyQuery)
 	}
 	var queryBuilder strings.Builder
-	if _, err := queryBuilder.WriteString(
-		fmt.Sprintf("%s project:%s/%s",
-			strings.ReplaceAll(request.Query, "/", " "),
-			handler.repourl.owner, handler.repourl.projectID)); err != nil {
+	if _, err := fmt.Fprintf(&queryBuilder, "%s project:%s/%s",
+		strings.ReplaceAll(request.Query, "/", " "),
+		handler.repourl.owner, handler.repourl.projectID); err != nil {
 		return "", fmt.Errorf("WriteString: %w", err)
 	}
 	if request.Filename != "" {
-		if _, err := queryBuilder.WriteString(
-			fmt.Sprintf(" in:file filename:%s", request.Filename)); err != nil {
+		if _, err := fmt.Fprintf(&queryBuilder, " in:file filename:%s", request.Filename); err != nil {
 			return "", fmt.Errorf("WriteString: %w", err)
 		}
 	}
 	if request.Path != "" {
-		if _, err := queryBuilder.WriteString(fmt.Sprintf(" path:%s", request.Path)); err != nil {
+		if _, err := fmt.Fprintf(&queryBuilder, " path:%s", request.Path); err != nil {
 			return "", fmt.Errorf("WriteString: %w", err)
 		}
 	}
