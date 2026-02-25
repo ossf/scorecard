@@ -85,7 +85,7 @@ func (s *searchHandler) buildFilters(request clients.SearchRequest) (map[string]
 		filters["Path"] = []string{request.Path}
 	}
 	if request.Filename != "" {
-		query.WriteString(fmt.Sprintf("file:%s", request.Filename))
+		fmt.Fprintf(&query, "file:%s", request.Filename)
 	}
 
 	return filters, query.String(), nil
