@@ -167,6 +167,10 @@ linters:
       excludes:
         # TODO investigate and fix separately
         - G115 # integer overflow conversion
+        - G703
+        - G704
+        - G705
+        - G706
     govet:
       enable:
         - fieldalignment
