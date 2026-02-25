@@ -318,6 +318,252 @@ func Test_Run(t *testing.T) {
 			},
 			err: nil,
 		},
+		// Java
+		{
+			name: "Java - no files",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - safe no imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"safe-no-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - safe with imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"safe-with-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "All supported ecosystems do not declare or use unsafe code blocks",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - unsafe in sun.misc with imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe-sun-with-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - unsafe in sun.misc without imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe-sun-without-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(15)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(16)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(18)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - unsafe in jdk.internal.misc with imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe-jdk-with-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - unsafe in jdk.internal.misc without imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe-jdk-without-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-without-imports.java", LineStart: toUintPointer(15)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-without-imports.java", LineStart: toUintPointer(16)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-without-imports.java", LineStart: toUintPointer(18)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - unsafe with safe with imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe-sun-with-imports.java",
+				"unsafe-jdk-with-imports.java",
+				"safe-no-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Java - malformed file with unsafe with imports",
+			repoLanguages: []clients.Language{
+				{Name: clients.Java, NumLines: 0},
+			},
+			filenames: []string{
+				"malformed.java",
+				"unsafe-sun-with-imports.java",
+				"unsafe-jdk-with-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
+				},
+			},
+			err: nil,
+		},
 
 		// all languages
 		{
@@ -343,6 +589,7 @@ func Test_Run(t *testing.T) {
 			filenames: []string{
 				"safe-no-imports.go",
 				"safe-explicit.csproj",
+				"safe-no-imports.java",
 			},
 			expected: []finding.Finding{
 				{
@@ -354,13 +601,15 @@ func Test_Run(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "All Languages - go safe csharp unsafe",
+			name: "All Languages - go safe csharp unsafe java unsafe",
 			repoLanguages: []clients.Language{
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
 				"safe-no-imports.go",
 				"unsafe.csproj",
+				"unsafe-sun-with-imports.java",
+				"unsafe-jdk-with-imports.java",
 			},
 			expected: []finding.Finding{
 				{
@@ -373,17 +622,39 @@ func Test_Run(t *testing.T) {
 					},
 					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
+				},
 			},
 			err: nil,
 		},
 		{
-			name: "All Languages - go unsafe csharp safe",
+			name: "All Languages - go unsafe csharp safe java unsafe",
 			repoLanguages: []clients.Language{
 				{Name: clients.All, NumLines: 0},
 			},
 			filenames: []string{
 				"unsafe.go",
 				"safe-explicit.csproj",
+				"unsafe-sun-with-imports.java",
+				"unsafe-jdk-with-imports.java",
 			},
 			expected: []finding.Finding{
 				{
@@ -395,6 +666,60 @@ func Test_Run(t *testing.T) {
 						Effort: 2,
 					},
 					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "All Languages - go unsafe csharp unsafe java safe",
+			repoLanguages: []clients.Language{
+				{Name: clients.All, NumLines: 0},
+			},
+			filenames: []string{
+				"unsafe.go",
+				"unsafe.csproj",
+				"safe-no-imports.java",
+			},
+			expected: []finding.Finding{
+				{
+					Probe:   Probe,
+					Message: "Golang code uses the unsafe package",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe.go", LineStart: toUintPointer(4)},
+				},
+				{
+					Probe:   Probe,
+					Message: "C# project file allows the use of unsafe blocks",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe.csproj"},
 				},
 			},
 			err: nil,
@@ -407,6 +732,8 @@ func Test_Run(t *testing.T) {
 			filenames: []string{
 				"unsafe.go",
 				"unsafe.csproj",
+				"unsafe-sun-with-imports.java",
+				"unsafe-jdk-with-imports.java",
 			},
 			expected: []finding.Finding{
 				{
@@ -428,6 +755,26 @@ func Test_Run(t *testing.T) {
 						Effort: 2,
 					},
 					Location: &finding.Location{Path: "unsafe.csproj"},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-sun-with-imports.java", LineStart: toUintPointer(3)},
+				},
+				{
+					Probe:   Probe,
+					Message: "Java code uses the Unsafe class",
+					Outcome: finding.OutcomeTrue,
+					Remediation: &finding.Remediation{
+						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
+						Effort: 2,
+					},
+					Location: &finding.Location{Path: "unsafe-jdk-with-imports.java", LineStart: toUintPointer(3)},
 				},
 			},
 			err: nil,
@@ -503,6 +850,11 @@ func Test_Run_Error_OnMatchingFileContentDo(t *testing.T) {
 			name:          "golang error",
 			repoLanguages: []clients.Language{{Name: clients.Go, NumLines: 0}},
 			expectedErr:   fmt.Errorf("error while running function for language Check if Go code uses the unsafe package: error during ListFiles: error"),
+		},
+		{
+			name:          "java error",
+			repoLanguages: []clients.Language{{Name: clients.Java, NumLines: 0}},
+			expectedErr:   fmt.Errorf("error while running function for language Check if Java code uses the Unsafe class: error during ListFiles: error"),
 		},
 	}
 	for _, tt := range tests {

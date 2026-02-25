@@ -21,9 +21,10 @@ motivation: >
   Unsafe code allow developers to bypass normal safety checks and directly manipulate memory.
 implementation: >
   The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks.
-  Unsafe code blocks are supported in rust, go, c#, and swift, but only go and c# are supported by this probe at this time:
+  Unsafe code blocks are supported in rust, go, c#, Java, and swift, but only go, c# and Java are supported by this probe at this time:
   - for go the probe will look for the use of the `unsafe` include directive.
   - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property.
+  - for Java the probe will look at references to either the `sun.misc.Unsafe` class or the `jdk.internal.misc.Unsafe` class.
 outcome:
   - For supported ecosystem, the probe returns OutcomeTrue per unsafe block.
   - If the project has no unsafe blocks, the probe returns OutcomeFalse.
@@ -38,6 +39,7 @@ ecosystem:
   languages:
     - go
     - c#
+    - java
   clients:
     - github  
     - gitlab  
