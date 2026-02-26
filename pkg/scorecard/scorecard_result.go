@@ -54,6 +54,8 @@ type RepoInfo struct {
 }
 
 // Result struct is returned on a successful Scorecard run.
+//
+//nolint:govet // fieldalignment - complex refactoring needed
 type Result struct {
 	Repo       RepoInfo
 	Date       time.Time

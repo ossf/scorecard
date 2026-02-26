@@ -45,26 +45,27 @@ type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *Repo
-	repo          *github.Repository
-	repoClient    *github.Client
-	graphClient   *graphqlHandler
-	contributors  *contributorsHandler
-	branches      *branchesHandler
-	releases      *releasesHandler
-	workflows     *workflowsHandler
-	checkruns     *checkrunsHandler
-	statuses      *statusesHandler
-	search        *searchHandler
-	searchCommits *searchCommitsHandler
-	webhook       *webhookHandler
-	languages     *languagesHandler
-	licenses      *licensesHandler
-	git           *gitfile.Handler
-	ctx           context.Context
-	tarball       tarballHandler
-	commitDepth   int
-	gitMode       bool
+	repourl            *Repo
+	repo               *github.Repository
+	repoClient         *github.Client
+	graphClient        *graphqlHandler
+	contributors       *contributorsHandler
+	branches           *branchesHandler
+	releases           *releasesHandler
+	workflows          *workflowsHandler
+	checkruns          *checkrunsHandler
+	statuses           *statusesHandler
+	search             *searchHandler
+	searchCommits      *searchCommitsHandler
+	webhook            *webhookHandler
+	languages          *languagesHandler
+	licenses           *licensesHandler
+	inactiveMaintainer *maintainerHandler
+	git                *gitfile.Handler
+	ctx                context.Context
+	tarball            tarballHandler
+	commitDepth        int
+	gitMode            bool
 }
 
 // WithFileModeGit configures the repo client to fetch files using git.
@@ -156,6 +157,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Setup licensesHandler.
 	client.licenses.init(client.ctx, client.repourl)
+
+	// Setup inactiveMaintainerHandler.
+	// Note: cutoff is set later at query time via setCutoff
+	client.inactiveMaintainer = &maintainerHandler{}
+	client.inactiveMaintainer.init(client.ctx, client.repoClient, client.repourl)
 
 	return nil
 }
@@ -322,6 +328,20 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 // SearchCommits implements RepoClient.SearchCommits.
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return client.searchCommits.search(request)
+}
+
+// GetMaintainerActivity implements RepoClient.GetMaintainerActivity.
+func (client *Client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	// Set the cutoff time for this query
+	client.inactiveMaintainer.setCutoff(cutoff)
+
+	// Query the handler to get maintainer activity
+	activity, err := client.inactiveMaintainer.query()
+	if err != nil {
+		return nil, fmt.Errorf("query maintainer activity: %w", err)
+	}
+
+	return activity, nil
 }
 
 // Close implements RepoClient.Close.
