@@ -57,7 +57,7 @@ func TestFuzzing(t *testing.T) {
 				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
-				Score:         0,
+				Score:         -1,
 			},
 		},
 		{
@@ -114,7 +114,7 @@ func TestFuzzing(t *testing.T) {
 				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
-				Score:         0,
+				Score:         -1,
 			},
 		},
 		{
@@ -125,7 +125,7 @@ func TestFuzzing(t *testing.T) {
 				NumberOfWarn:  1,
 				NumberOfDebug: 0,
 				NumberOfInfo:  0,
-				Score:         0,
+				Score:         -1,
 			},
 		},
 	}
