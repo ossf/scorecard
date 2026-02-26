@@ -227,6 +227,71 @@ If a license file is missing the probe returns a single OutcomeNotApplicable.
 If the license is not of an approved format, the probe returns a single OutcomeFalse.
 
 
+## hasGitHubPushProtectionEnabled
+
+**Lifecycle**: beta
+
+**Description**: GitHub push protection is enabled
+
+**Motivation**: Detect whether GitHub Push Protection is enabled for the repository.
+
+**Implementation**: Reads RawResults.SecretScanningResults.GHPushProtectionEnabled (TriState).
+
+**Outcomes**: The probe emits OutcomeTrue when push protection is enabled, OutcomeFalse when disabled, and OutcomeNegative when status is inconclusive.
+
+
+## hasGitHubSecretScanningEnabled
+
+**Lifecycle**: beta
+
+**Description**: GitHub native secret scanning is enabled
+
+**Motivation**: Detect whether a GitHub repository has native secret scanning enabled.
+
+**Implementation**: Reads RawResults.SecretScanningResults.GHNativeEnabled (TriState) produced by the repo client.
+
+**Outcomes**: The probe emits OutcomeTrue when secret scanning is enabled, OutcomeFalse when disabled, and OutcomeNegative when status is inconclusive.
+
+
+## hasGitLabPipelineSecretDetection
+
+**Lifecycle**: beta
+
+**Description**: GitLab pipeline secret detection is configured
+
+**Motivation**: Detect whether the project runs GitLab Secret Detection in CI.
+
+**Implementation**: Reads RawResults.SecretScanningResults.GLPipelineSecretDetection from parsed .gitlab-ci.yml.
+
+**Outcomes**: The probe emits OutcomeTrue when pipeline secret detection is configured, and OutcomeFalse otherwise.
+
+
+## hasGitLabPushRulesPreventSecrets
+
+**Lifecycle**: beta
+
+**Description**: GitLab push rule "prevent_secrets" is enabled
+
+**Motivation**: Detect whether the project enforces push rule prevent_secrets.
+
+**Implementation**: Reads RawResults.SecretScanningResults.GLPushRulesPreventSecrets.
+
+**Outcomes**: The probe emits OutcomeTrue when the prevent_secrets push rule is enabled, and OutcomeFalse otherwise.
+
+
+## hasGitLabSecretPushProtection
+
+**Lifecycle**: beta
+
+**Description**: GitLab Secret Push Protection is enabled
+
+**Motivation**: Detect whether GitLab Secret Push Protection is enabled at the project level.
+
+**Implementation**: Reads RawResults.SecretScanningResults.GLSecretPushProtection via GitLab Projects API.
+
+**Outcomes**: The probe emits OutcomeTrue when Secret Push Protection is enabled, and OutcomeFalse otherwise.
+
+
 ## hasLicenseFile
 
 **Lifecycle**: stable
@@ -338,6 +403,104 @@ If an SBOM artifact is not found, the probe returns a single OutcomeFalse.
 
 **Outcomes**: If an SBOM file(s) is found, the probe returns OutcomeTrue for each SBOM artifact up to 5.
 If an SBOM file is not found, the probe returns a single OutcomeFalse.
+
+
+## hasThirdPartyDetectSecrets
+
+**Lifecycle**: beta
+
+**Description**: detect-secrets runs in CI
+
+**Motivation**: Detect whether the project runs detect-secrets in CI to catch leaked credentials. detect-secrets is a **commit-based scanner** typically configured to run on every push or pull request. The SecretScanning check scores this probe based on commit coverage: 100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyDetectSecrets from parsed CI configs. Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to calculate what percentage of commits had detect-secrets run in CI.
+
+**Outcomes**: The probe emits OutcomeTrue if detect-secrets is configured in CI, and OutcomeFalse otherwise.
+Score depends on commit coverage, not just tool presence.
+
+
+## hasThirdPartyGGShield
+
+**Lifecycle**: beta
+
+**Description**: GGShield runs in CI
+
+**Motivation**: Detect whether the project runs GitGuardian GGShield in CI to catch leaked credentials. GGShield is a **commit-based scanner** typically configured to run on every push or pull request. The SecretScanning check scores this probe based on commit coverage: 100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyGGShield from parsed CI configs. Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to calculate what percentage of commits had GGShield run in CI.
+
+**Outcomes**: The probe emits OutcomeTrue if GitGuardian GGShield is configured in CI, and OutcomeFalse otherwise.
+Score depends on commit coverage, not just tool presence.
+
+
+## hasThirdPartyGitSecrets
+
+**Lifecycle**: beta
+
+**Description**: git-secrets runs in CI
+
+**Motivation**: Detect whether the project runs git-secrets in CI to catch leaked credentials. git-secrets is a **commit-based scanner** typically configured to run on every push or pull request. The SecretScanning check scores this probe based on commit coverage: 100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyGitSecrets from parsed CI configs. Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to calculate what percentage of commits had git-secrets run in CI.
+
+**Outcomes**: The probe emits OutcomeTrue if git-secrets is configured in CI, and OutcomeFalse otherwise.
+Score depends on commit coverage, not just tool presence.
+
+
+## hasThirdPartyGitleaks
+
+**Lifecycle**: beta
+
+**Description**: Gitleaks runs in CI
+
+**Motivation**: Detect whether the project runs Gitleaks in CI to catch leaked credentials. Gitleaks is a **commit-based scanner** typically configured to run on every push or pull request. The SecretScanning check scores this probe based on commit coverage: 100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyGitleaks from parsed CI configs (.gitlab-ci.yml for GitLab; .github/workflows/*.yml for GitHub). Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to calculate what percentage of commits had Gitleaks run in CI.
+
+**Outcomes**: The probe emits OutcomeTrue if Gitleaks is configured in CI, and OutcomeFalse otherwise.
+Score depends on commit coverage, not just tool presence.
+
+
+## hasThirdPartyRepoSupervisor
+
+**Lifecycle**: beta
+
+**Description**: repo-supervisor runs in CI
+
+**Motivation**: Detect whether the project runs repo-supervisor to catch leaked credentials. repo-supervisor is a **periodic scanner** typically configured to run on a schedule (e.g., daily/weekly). The SecretScanning check scores this probe as: 10 points if ran in last 30 days, 1 point otherwise.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyRepoSupervisor from parsed CI configs. Checks CI run history via ListCommits() and ListCheckRunsForRef() to determine if repo-supervisor ran within the last 30 days.
+
+**Outcomes**: The probe emits OutcomeTrue if repo-supervisor is configured, and OutcomeFalse otherwise.
+Score is 10 if ran recently (last 30 days), otherwise 1.
+
+
+## hasThirdPartyShhGit
+
+**Lifecycle**: beta
+
+**Description**: shhgit runs in CI
+
+**Motivation**: Detect whether the project runs shhgit to catch leaked credentials. shhgit is a **periodic scanner** typically configured to run on a schedule (e.g., daily/weekly). The SecretScanning check scores this probe as: 10 points if ran in last 30 days, 1 point otherwise.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyShhGit from parsed CI configs. Checks CI run history via ListCommits() and ListCheckRunsForRef() to determine if shhgit ran within the last 30 days.
+
+**Outcomes**: The probe emits OutcomeTrue if shhgit is configured, and OutcomeFalse otherwise.
+Score is 10 if ran recently (last 30 days), otherwise 1.
+
+
+## hasThirdPartyTruffleHog
+
+**Lifecycle**: beta
+
+**Description**: TruffleHog runs in CI
+
+**Motivation**: Detect whether the project runs TruffleHog in CI to catch leaked credentials. TruffleHog is a **commit-based scanner** typically configured to run on every push or pull request. The SecretScanning check scores this probe based on commit coverage: 100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+
+**Implementation**: Reads RawResults.SecretScanningResults.ThirdPartyTruffleHog from parsed CI configs (.gitlab-ci.yml for GitLab; .github/workflows/*.yml for GitHub). Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to calculate what percentage of commits had TruffleHog run in CI.
+
+**Outcomes**: The probe emits OutcomeTrue if TruffleHog is configured in CI, and OutcomeFalse otherwise.
+Score depends on commit coverage, not just tool presence.
 
 
 ## hasUnverifiedBinaryArtifacts

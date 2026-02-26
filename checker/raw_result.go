@@ -48,6 +48,7 @@ type RawResults struct {
 	TokenPermissionsResults     TokenPermissionsData
 	VulnerabilitiesResults      VulnerabilitiesData
 	WebhookResults              WebhooksData
+	SecretScanningResults       SecretScanningData
 }
 
 type MetadataData struct {
@@ -492,4 +493,74 @@ func (e *ElementError) Error() string {
 
 func (e *ElementError) Unwrap() error {
 	return e.Err
+}
+
+// SecretScanningData contains the raw results for the Secret-Scanning check.
+//
+//nolint:govet
+type SecretScanningData struct {
+	// CI run statistics for third-party tools.
+	ThirdPartyCIInfo              map[string]*ToolCIStats
+	ThirdPartyDetectSecretsPaths  []string
+	Evidence                      []string
+	ThirdPartyRepoSupervisorPaths []string
+	ThirdPartyShhGitPaths         []string
+	ThirdPartyGitleaksPaths       []string
+	ThirdPartyGGShieldPaths       []string
+	ThirdPartyTruffleHogPaths     []string
+	ThirdPartyGitSecretsPaths     []string
+	Platform                      string
+	GHNativeEnabled               TriState
+	GHPushProtectionEnabled       TriState
+	GLPushRulesPreventSecrets     bool
+	ThirdPartyGitSecrets          bool
+	ThirdPartyDetectSecrets       bool
+	ThirdPartyGGShield            bool
+	ThirdPartyTruffleHog          bool
+	ThirdPartyShhGit              bool
+	ThirdPartyGitleaks            bool
+	ThirdPartyRepoSupervisor      bool
+	GLSecretPushProtection        bool
+	GLPipelineSecretDetection     bool
+}
+
+// ToolCIStats tracks CI execution statistics for a specific secret scanning tool.
+type ToolCIStats struct {
+	// ToolName is the name of the scanning tool (e.g., "gitleaks", "trufflehog")
+	ToolName string
+	// ExecutionPattern indicates whether the tool runs "periodic" or "commit-based"
+	ExecutionPattern string
+	// LastRunDate is the most recent date the tool executed (if known)
+	LastRunDate string
+	// TotalCommitsAnalyzed is the number of recent commits examined (up to 100)
+	TotalCommitsAnalyzed int
+	// CommitsWithToolRun is count of commits where this specific tool ran
+	CommitsWithToolRun int
+	// HasRecentRuns indicates if the tool ran in the last 30 days
+	HasRecentRuns bool
+}
+
+// TriState represents a three-valued logic state.
+type TriState int
+
+const (
+	// TriUnknown indicates the state is unknown or not determined.
+	TriUnknown TriState = iota
+	// TriFalse indicates a false/negative state.
+	TriFalse
+	// TriTrue indicates a true/positive state.
+	TriTrue
+)
+
+// Bool converts TriState to a boolean with a validity flag.
+// Returns (value, valid) where valid is true only for TriTrue and TriFalse.
+func (t TriState) Bool() (bool, bool) {
+	switch t {
+	case TriTrue:
+		return true, true
+	case TriFalse:
+		return false, true
+	default:
+		return false, false
+	}
 }
