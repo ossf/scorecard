@@ -415,6 +415,10 @@ checks:
       a low score on this test. There are many ways to implement fuzzing, and it is
       challenging for an automated tool like Scorecard to detect them all. A low score
       is therefore not a definitive indication that the project is at risk.
+
+      Projects that exclusively use memory-safe languages (e.g., Go, Rust, Java, Python)
+      and have no detected fuzzers will receive an "Inconclusive" (N/A) result, as
+      fuzzing is primarily recommended for memory-unsafe languages (C, C++, Objective-C).
     remediation:
       - >-
         Integrate the project with OSS-Fuzz by following the instructions

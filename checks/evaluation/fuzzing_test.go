@@ -27,20 +27,26 @@ import (
 func TestFuzzing(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name     string
-		findings []finding.Finding
-		result   scut.TestReturn
+		name                     string
+		findings                 []finding.Finding
+		usesMemoryUnsafeLanguage bool
+		result                   scut.TestReturn
 	}{
 		{
-			name: "no fuzzers",
-			findings: []finding.Finding{
-				{
-					Probe:   fuzzed.Probe,
-					Outcome: finding.OutcomeFalse,
-				},
-			},
+			name:                     "no fuzzers - unsafe language",
+			findings:                 []finding.Finding{{Probe: fuzzed.Probe, Outcome: finding.OutcomeFalse}},
+			usesMemoryUnsafeLanguage: true,
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
+				NumberOfWarn: 1,
+			},
+		},
+		{
+			name:                     "no fuzzers - safe language",
+			findings:                 []finding.Finding{{Probe: fuzzed.Probe, Outcome: finding.OutcomeFalse}},
+			usesMemoryUnsafeLanguage: false,
+			result: scut.TestReturn{
+				Score:        checker.InconclusiveResultScore,
 				NumberOfWarn: 1,
 			},
 		},
@@ -85,7 +91,7 @@ func TestFuzzing(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			got := Fuzzing(tt.name, tt.findings, &dl)
+			got := Fuzzing(tt.name, tt.findings, &dl, tt.usesMemoryUnsafeLanguage)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}

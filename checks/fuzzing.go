@@ -15,9 +15,12 @@
 package checks
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
@@ -57,7 +60,13 @@ func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	}
 
 	// Return the score evaluation.
-	ret := evaluation.Fuzzing(CheckFuzzing, findings, c.Dlogger)
+	langs, err := c.RepoClient.ListProgrammingLanguages()
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListProgrammingLanguages: %v", err))
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+
+	ret := evaluation.Fuzzing(CheckFuzzing, findings, c.Dlogger, clients.HasMemoryUnsafeLanguage(langs))
 	ret.Findings = findings
 	return ret
 }
