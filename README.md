@@ -192,6 +192,8 @@ Scores calculated from our [weekly scan](#public-data) omit the `CI-Tests`,
 `Contributors`, and `Dependency-Update-Tool` checks due to the API costs 
 associated with running them at scale.
 
+API results are cached with a CDN (thanks to [Fastly](https://www.fastly.com/) and their [Fast Forward](https://www.fastly.com/fast-forward) program). Results are purged from the CDN when new results are available, but if you notice issues with stale data, please open an issue.
+
 To enable your project to be available on the REST API, set
 [`publish_results: true`](https://github.com/ossf/scorecard-action/blob/dd5015aaf9688596b0e6d11e7f24fff566aa366b/action.yaml#L35)
 in the Scorecard GitHub Action setting.
