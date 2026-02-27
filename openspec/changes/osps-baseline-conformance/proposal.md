@@ -10,9 +10,9 @@ This is fundamentally a **product-level shift**: Scorecard today answers "how we
 
 ### Why now
 
-1. **OSPS Baseline is the emerging standard.** The OSPS Baseline (v2025-10-10) defines 59 controls across 3 maturity levels. It is maintained within the ORBIT Working Group and is becoming the reference framework for open source project security posture.
+1. **OSPS Baseline is the emerging standard.** The OSPS Baseline (v2026.02.19) defines controls across 3 maturity levels. It is maintained within the ORBIT Working Group and is becoming the reference framework for open source project security posture. See the [OSPS Baseline maintenance process](https://baseline.openssf.org/maintenance.html) for the versioning cadence.
 
-2. **The ecosystem is moving.** The PVTR GitHub Repo Scanner already evaluates 39 of 52 control requirements and powers LFX Insights security results. The OSPS Baseline GitHub Action can upload SARIF. Best Practices Badge is staging Baseline-phase work. Scorecard's large install base is an advantage, but only if it ships a conformance surface.
+2. **The ecosystem is moving.** The [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner) already evaluates 39 of 52 control requirements and powers LFX Insights security results. The OSPS Baseline GitHub Action can upload SARIF. Best Practices Badge is staging Baseline-phase work. Scorecard's large install base is an advantage, but only if it ships a conformance surface.
 
 3. **ORBIT WG alignment.** Scorecard sits within the OpenSSF alongside the ORBIT WG. The ORBIT charter's mission is "to develop and maintain interoperable resources related to the identification and presentation of security-relevant data." Scorecard producing interoperable conformance results is a natural fit.
 
@@ -20,28 +20,53 @@ This is fundamentally a **product-level shift**: Scorecard today answers "how we
 
 ### What Scorecard brings that others don't
 
-- **Deep automated analysis.** 50+ probes with structured results provide granular evidence that PVTR's shallower checks cannot match (e.g., per-workflow token permission analysis, detailed branch protection rule inspection, CI/CD injection pattern detection).
+- **Deep automated analysis.** 50+ probes with structured results provide granular evidence that the Privateer GitHub plugin's shallower checks cannot match (e.g., per-workflow token permission analysis, detailed branch protection rule inspection, CI/CD injection pattern detection).
 - **Multi-platform support.** GitHub, GitLab, Azure DevOps, and local directory scanning.
 - **Massive install base.** Scorecard Action, public API, and cron-based scanning infrastructure.
 - **Existing policy machinery.** The `policy/` package and structured results were designed for exactly this kind of downstream consumption.
 
+### Ecosystem tooling comparison
+
+Several tools operate in adjacent spaces. Understanding their capabilities clarifies what is and isn't Scorecard's job.
+
+| Dimension | **Scorecard** | **[Darnit](https://github.com/kusari-oss/darnit)** | **[AMPEL](https://github.com/carabiner-dev/ampel)** | **[Privateer GitHub Plugin](https://github.com/ossf/pvtr-github-repo-scanner)** |
+|-----------|--------------|-----------|-----------|-------------|
+| **Purpose** | Security health measurement | Compliance audit + remediation | Attestation-based policy enforcement | Baseline conformance evaluation |
+| **Action** | Analyzes repositories (read-only) | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
+| **Data source** | Collects from APIs/code | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
+| **Output** | Scores (0-10) + probe findings | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
+| **OSPS Baseline** | Partial (via probes) | Full (62 controls) | Via policy rules | 39 of 52 controls |
+| **In-toto** | Produces attestations | Produces attestations | Consumes + verifies | N/A |
+| **OSCAL** | No | No | Native support | N/A |
+| **Sigstore** | No | Signs attestations | Verifies signatures | N/A |
+| **Gemara** | Not yet (planned) | No | No | L2 + L4 native |
+| **Maturity** | Production (v5.3.0) | Alpha (v0.1.0, Jan 2026) | Production (v1.0.0) | Production, powers LFX Insights |
+| **Language** | Go | Python | Go | Go |
+
+**Integration model — three-layer pipeline:**
+
+```mermaid
+flowchart LR
+    Scorecard["Scorecard\n(Measure)"] -->|findings + attestations| Darnit["Darnit\n(Audit + Remediate)"]
+    Scorecard -->|findings + attestations| AMPEL["AMPEL\n(Enforce)"]
+    Darnit -->|compliance attestation| AMPEL
+    Scorecard -->|conformance evidence| Privateer["Privateer Plugin\n(Baseline evaluation)"]
+```
+
+Scorecard is the **data source** (measures repository security). Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
+
 ### What Scorecard must not do
 
-- **Duplicate PVTR's role as a Privateer plugin.** PVTR is the Baseline evaluator in the ORBIT ecosystem diagram. Scorecard should complement it with deeper analysis and interoperable output, not fork the evaluation model.
-- **Duplicate remediation engines.** Tools like Darn handle remediation. Scorecard exports stable, machine-readable findings for remediation tools to consume.
+- **Duplicate the Privateer plugin's role.** The [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner) is the Baseline evaluator in the ORBIT ecosystem. Scorecard should complement it with deeper analysis and interoperable output, not fork the evaluation model.
+- **Duplicate remediation.** Darnit handles compliance auditing and automated remediation (PR creation, file generation, AI-assisted fixes). Scorecard is read-only.
+- **Duplicate attestation policy enforcement.** AMPEL verifies attestations against policies and gates CI/CD pipelines. Scorecard *produces* attestations for AMPEL to consume.
 - **Turn OSPS controls into Scorecard checks.** OSPS conformance is a layer that consumes existing Scorecard signals, not 59 new checks.
 
 ## Current state
 
-### Coverage snapshot (Scorecard signals vs. OSPS v2025-10-10)
+### Coverage snapshot
 
-| Level | Controls | Covered (✅) | Partial (⚠️) | Not covered (❌) |
-|-------|----------|-------------|-------------|-----------------|
-| 1     | 24       | 6           | 9           | 9               |
-| 2     | 18       | 1           | 7           | 10              |
-| 3     | 17       | 0           | 5           | 12              |
-
-The full control-by-control mapping is in Appendix A of `docs/roadmap-ideas.md`.
+A fresh analysis of Scorecard's current coverage against OSPS Baseline v2026.02.19 is tracked in `docs/osps-baseline-coverage.md`. Previous coverage estimates against older Baseline versions should be treated as out-of-date.
 
 ### Existing Scorecard surfaces that matter
 
@@ -102,9 +127,10 @@ Spencer's position is that OSPS evidence references should point to probe findin
 2. **OSPS output format** — `--format=osps` producing a JSON conformance report
 3. **Versioned mapping file** — data-driven YAML mapping OSPS control IDs to Scorecard probes, applicability rules, and evaluation logic
 4. **Applicability engine** — detects preconditions (e.g., "has made a release") and outputs NOT_APPLICABLE
-5. **Security Insights ingestion** — reads `security-insights.yml` to satisfy metadata-dependent controls, aligning with the ORBIT ecosystem data plane
+5. **Security Insights ingestion** — reads `security-insights.yml` to satisfy metadata-dependent controls, aligning with the ORBIT ecosystem data plane; provides degraded-but-useful evaluation when absent
 6. **Attestation mechanism (v1)** — accepts repo-local metadata for non-automatable controls (pending OQ-1 resolution)
-7. **New probes and probe enhancements** for gap controls:
+7. **Scorecard control catalog extraction** — plan and mechanism to make Scorecard's control definitions consumable by other tools
+8. **New probes and probe enhancements** for gap controls:
    - Secrets detection (OSPS-BR-07.01)
    - Governance/docs presence (OSPS-GV-02.01, GV-03.01, DO-01.01, DO-02.01)
    - Dependency manifest presence (OSPS-QA-02.01)
@@ -112,96 +138,109 @@ Spencer's position is that OSPS evidence references should point to probe findin
    - Release asset inspection (multiple L2/L3 controls)
    - Signed manifest support (OSPS-BR-06.01)
    - Enforcement detection (OSPS-VM-05.*, VM-06.* — pending OQ-2 resolution)
-8. **CI gating** — `--fail-on=fail` exit code for pipeline integration
-9. **Multi-repo project-level conformance** (OSPS-QA-04.02)
-10. **Gemara Layer 4 compatibility** — output structurally compatible with ORBIT assessment result schemas
+9. **CI gating** — `--fail-on=fail` exit code for pipeline integration
+10. **Multi-repo project-level conformance** (OSPS-QA-04.02)
+11. **Gemara SDK integration** — output structurally compatible with ORBIT assessment result schemas; invest in Gemara SDK for multi-tool consumption
 
 ### Out of scope
 
 - Remediation automation (Darn's domain)
-- Replacing PVTR as a Privateer plugin
+- Replacing the Privateer plugin for GitHub repositories
 - Changing existing check scores or behavior
 - Platform enforcement (Minder's domain)
 - OSPS Baseline specification changes (ORBIT WG's domain)
 
 ## Phased delivery
 
-### Q1 2026: OSPS conformance alpha + ecosystem handshake
+Phases are ordered by outcome, not calendar quarter. Maintainer bandwidth dictates delivery timing.
 
-- OSPS output format (alpha) with `--format=osps`
-- Versioned mapping file for v2025-10-10 (alpha)
-- Applicability engine v1
-- Design + document ORBIT interop commitments (Security Insights, Gemara compatibility, PVTR complementarity)
-- Map existing probes to OSPS controls where coverage already exists
+### Phase 1: Conformance foundation + Level 1 coverage
 
-### Q2 2026: Level 1 coverage spike + declared metadata v1
+**Outcome:** Scorecard produces a useful OSPS Baseline Level 1 conformance report for any public GitHub repository, available across CLI, Action, and API surfaces.
 
-- Secrets detection probe (OSPS-BR-07.01)
-- Governance + docs presence probes (GV-02.01, GV-03.01, DO-01.01, DO-02.01)
-- Dependency manifest presence probe (QA-02.01)
-- Security policy deepening (VM-02.01, VM-03.01, VM-01.01)
-- Security Insights ingestion v1 (BR-03.01, BR-03.02, QA-04.01)
-- Attestation mechanism v1 for non-automatable controls
+- OSPS output format with `--format=osps`
+- Versioned mapping file for OSPS Baseline v2026.02.19
+- Applicability engine (detect "has made a release" and other preconditions)
+- Map existing probes to OSPS controls where coverage exists today
+- New probes for Level 1 gaps (prioritized by coverage impact):
+  - Governance/docs presence (GV-02.01, GV-03.01, DO-01.01, DO-02.01)
+  - Dependency manifest presence (QA-02.01)
+  - Security policy deepening (VM-02.01, VM-03.01, VM-01.01)
+  - Secrets detection (BR-07.01) — consume platform signals (e.g., GitHub secret scanning API) where possible
+- Security Insights ingestion v1 (BR-03.01, BR-03.02, QA-04.01) with degraded-but-useful evaluation when absent
 - CI gating: `--fail-on=fail` + coverage summary
+- Design + document ORBIT interop commitments (Security Insights, Gemara compatibility, Privateer complementarity)
+- Scorecard control catalog extraction plan (enabling other tools to consume Scorecard's control definitions)
 
-### Q3 2026: Release integrity + Level 2 core
+### Phase 2: Release integrity + Level 2 core
+
+**Outcome:** Scorecard evaluates release-related OSPS controls, covering the core of Level 2 and becoming useful for downstream due diligence workflows.
 
 - Release asset inspection layer (detect compiled assets, SBOMs, licenses with releases)
 - Signed manifest support (BR-06.01)
 - Release notes/changelog detection (BR-04.01)
+- Attestation mechanism v1 for non-automatable controls (pending OQ-1 resolution)
 - Evidence bundle output v1 (OSPS result JSON + in-toto statement + SARIF for failures)
+- Gemara SDK integration for interoperable output
 
-### Q4 2026: Enforcement detection + Level 3 + multi-repo
+### Phase 3: Enforcement detection + Level 3 + multi-repo
 
-- SCA policy + enforcement detection (VM-05.*)
-- SAST policy + enforcement detection (VM-06.*)
+**Outcome:** Scorecard covers Level 3 controls including enforcement detection and project-level aggregation.
+
+- SCA policy + enforcement detection (VM-05.* — pending OQ-2 resolution)
+- SAST policy + enforcement detection (VM-06.* — pending OQ-2 resolution)
 - Multi-repo project-level conformance aggregation (QA-04.02)
 - Attestation integration GA
 
 ## Relationship to ORBIT ecosystem
 
-```
-┌─────────────────────────────────────────────────────┐
-│                   ORBIT WG Ecosystem                │
-│                                                     │
-│  ┌──────────┐  ┌───────────┐  ┌──────────────────┐  │
-│  │  OSPS    │  │  Gemara   │  │    Security       │  │
-│  │ Baseline │  │  Schemas  │  │    Insights       │  │
-│  │ (controls│  │  (L2/L4)  │  │    (metadata)     │  │
-│  └────┬─────┘  └─────┬─────┘  └────────┬─────────┘  │
-│       │              │                  │            │
-│       ▼              ▼                  ▼            │
-│  ┌─────────────────────────────────────────────┐     │
-│  │         PVTR GitHub Repo Scanner            │     │
-│  │  (Privateer plugin, LFX Insights driver)    │     │
-│  └─────────────────────┬───────────────────────┘     │
-│                        │                             │
-│                  consumes ▲                           │
-│                        │                             │
-│  ┌─────────────────────┴───────────────────────┐     │
-│  │         OpenSSF Scorecard                   │     │
-│  │  (deep analysis, conformance output,        │     │
-│  │   multi-platform, large install base)       │     │
-│  └─────────────────────────────────────────────┘     │
-│                                                     │
-│  ┌──────────┐  ┌───────────┐                         │
-│  │  Minder  │  │   Darn    │                         │
-│  │ (enforce)│  │ (remediate│                         │
-│  └──────────┘  └───────────┘                         │
-└─────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph ORBIT["ORBIT WG Ecosystem"]
+        Baseline["OSPS Baseline\n(controls)"]
+        Gemara["Gemara\n(schemas: L2/L4)"]
+        SI["Security Insights\n(metadata)"]
+
+        subgraph Evaluation["Evaluation"]
+            Privateer["Privateer GitHub Plugin\n(LFX Insights driver)"]
+            Scorecard["OpenSSF Scorecard\n(deep analysis, conformance output,\nmulti-platform, large install base)"]
+        end
+
+        Minder["Minder\n(enforce)"]
+        Darn["Darn\n(remediate)"]
+    end
+
+    Baseline -->|defines controls| Privateer
+    Baseline -->|defines controls| Scorecard
+    Gemara -->|provides schemas| Privateer
+    Gemara -->|provides schemas| Scorecard
+    SI -->|provides metadata| Privateer
+    SI -->|provides metadata| Scorecard
+    SI -->|provides metadata| Minder
+    Scorecard -->|conformance evidence| Privateer
+    Scorecard -->|findings| Minder
+    Scorecard -->|findings| Darn
 ```
 
-**Scorecard's role**: Produce deep, probe-based conformance evidence that PVTR, Minder, and downstream consumers can use. Scorecard reads Security Insights (shared data plane), outputs Gemara L4-compatible results (shared schema), and fills analysis gaps where PVTR has `NotImplemented` steps.
+**Scorecard's role**: Produce deep, probe-based conformance evidence that the Privateer plugin, Minder, and downstream consumers can use. Scorecard reads Security Insights (shared data plane), outputs Gemara L4-compatible results (shared schema), and fills analysis gaps where the Privateer plugin has `NotImplemented` steps.
 
-**What Scorecard does NOT do**: Replace PVTR as the Privateer plugin, enforce policies (Minder's role), or perform remediation (Darn's role).
+**What Scorecard does NOT do**: Replace the Privateer plugin, enforce policies (Minder's role), or perform remediation (Darn's role).
 
 ## Success criteria
 
 1. `scorecard --format=osps --osps-level=1` produces a valid conformance report for any public GitHub repository
-2. Level 1 auto-check coverage reaches ≥80% of controls (currently ~25%)
-3. OSPS output is consumable by PVTR as supplementary evidence (validated with ORBIT WG)
-4. All four open questions (OQ-1 through OQ-4) are resolved with documented decisions
-5. No changes to existing check scores or behavior
+2. OSPS Baseline Level 1 conformance is achieved (Phase 1 outcome)
+3. OSPS output is available across CLI, Action, and API surfaces
+4. OSPS output is consumable by the Privateer plugin as supplementary evidence (validated with ORBIT WG)
+5. All four open questions (OQ-1 through OQ-4) are resolved with documented decisions
+6. No changes to existing check scores or behavior
+
+## Approval process
+
+- **[blocking]** Sign-off from Stephen Augustus and Spencer (Steering Committee)
+- **[blocking]** Review from at least 1 non-Steering Scorecard maintainer
+- **[non-blocking]** Reviews from maintainers of tools in the WG ORBIT ecosystem
+- **[informational]** Notify WG ORBIT members (TAC sign-off not required)
 
 ---
 
@@ -248,7 +287,7 @@ I believe the scoring model will continue to be useful to consumers and it shoul
 
 #### CQ-2: OSPS Baseline version targeting
 
-The roadmap targets OSPS Baseline v2025-10-10. The PVTR scanner targets v2025-02-25. The Baseline is a living spec with periodic releases. How should Scorecard handle version drift? Options:
+The roadmap previously targeted OSPS Baseline v2025-10-10. The Privateer GitHub plugin targets v2025-02-25. The Baseline is a living spec with periodic releases. How should Scorecard handle version drift? Options:
 - Support only the latest version at any given time
 - Support multiple versions concurrently via the versioned mapping file
 - Pin to a version and update on a defined cadence (e.g., quarterly)
@@ -263,7 +302,7 @@ The OSPS Baseline [FAQ](https://baseline.openssf.org/faq.html) and [Implementati
 
 #### CQ-3: Security Insights as a hard dependency
 
-Many OSPS controls depend on Security Insights data (official channels, distribution points, subproject inventory, core team). PVTR treats the Security Insights file as nearly required — most of its evaluation steps begin with `HasSecurityInsightsFile`.
+Many OSPS controls depend on Security Insights data (official channels, distribution points, subproject inventory, core team). The Privateer GitHub plugin treats the Security Insights file as nearly required — most of its evaluation steps begin with `HasSecurityInsightsFile`.
 
 Should Scorecard:
 - Treat Security Insights the same way (controls that need it go UNKNOWN without it)?
@@ -278,7 +317,7 @@ We should provide a degraded, but still-useful evaluation without a Security Ins
 
 #### CQ-4: PVTR relationship — complement vs. converge
 
-The proposal positions Scorecard as complementary to PVTR. But there's a deeper question: should this stay as two separate tools indefinitely, or is the long-term goal convergence (e.g., PVTR consuming Scorecard as a library, or Scorecard becoming a Privateer plugin itself)? Your position on this affects how tightly we couple the output formats and whether we invest in Gemara SDK integration.
+The proposal positions Scorecard as complementary to the Privateer plugin. But there's a deeper question: should this stay as two separate tools indefinitely, or is the long-term goal convergence (e.g., the Privateer plugin consuming Scorecard as a library, or Scorecard becoming a Privateer plugin itself)? Your position on this affects how tightly we couple the output formats and whether we invest in Gemara SDK integration.
 
 **Stephen's response:**
 
