@@ -146,6 +146,66 @@ The following probes exist in Scorecard but do not directly map to any OSPS Base
 
 These probes remain valuable for Scorecard's existing scoring model and may become relevant for future Baseline versions.
 
+## Existing issues and PRs relevant to gap closure
+
+The following open issues and PRs in the Scorecard repository are directly
+relevant to closing OSPS Baseline coverage gaps. These should be prioritized
+and linked to the conformance work.
+
+### Security Insights ingestion
+- [#2305](https://github.com/ossf/scorecard/issues/2305) — Support for SECURITY INSIGHTS
+- [#2479](https://github.com/ossf/scorecard/issues/2479) — SECURITY-INSIGHTS.yml implementation
+
+These are critical for OSPS-BR-03.01, BR-03.02, QA-04.01, and other
+controls that depend on declared project metadata.
+
+### Secrets detection (OSPS-BR-07.01)
+- [#30](https://github.com/ossf/scorecard/issues/30) — New check: code is scanning for secrets
+
+Open since the project's earliest days. Phase 1 priority.
+
+### SBOM (OSPS-QA-02.02)
+- [#1476](https://github.com/ossf/scorecard/issues/1476) — Feature: Detect if SBOMs generated
+- [#2605](https://github.com/ossf/scorecard/issues/2605) — Add support for SBOM analyzing at Binary-Artifacts stage
+
+The SBOM check and probes (`hasSBOM`, `hasReleaseSBOM`) already exist but
+may need enhancement for compiled release asset association.
+
+### Changelog / release notes (OSPS-BR-04.01)
+- [#4824](https://github.com/ossf/scorecard/issues/4824) — Feature: New Check: Check if the project has and maintains a CHANGELOG
+
+Direct match for Phase 2 deliverable.
+
+### Private vulnerability reporting (OSPS-VM-03.01)
+- [#2465](https://github.com/ossf/scorecard/issues/2465) — Factor whether or not private vulnerability reporting is enabled into the scorecard
+
+Direct match. GitHub's private vulnerability reporting API could provide
+platform-level evidence.
+
+### Vulnerability disclosure improvements (OSPS-VM-01.01, VM-04.01)
+- [#4192](https://github.com/ossf/scorecard/issues/4192) — Test for security policy in other places than SECURITY.md
+- [#4789](https://github.com/ossf/scorecard/issues/4789) — Rethinking vulnerability check scoring logic
+- [#1371](https://github.com/ossf/scorecard/issues/1371) — Feature: add check for vulnerability alerts
+
+### Signed releases and provenance (OSPS-BR-06.01)
+- [#4823](https://github.com/ossf/scorecard/issues/4823) — Feature: pass Signed-Releases with GitHub immutable release process
+- [#4080](https://github.com/ossf/scorecard/issues/4080) — Use GitHub attestations to check for signed releases
+- [#2684](https://github.com/ossf/scorecard/issues/2684) — Rework: Signed-Releases: Separate score calculation of provenance and signatures
+- [#1417](https://github.com/ossf/scorecard/issues/1417) — Feature: add support for keyless signed release
+
+### Threat model / security assessment (OSPS-SA-01.01, SA-03.01)
+- [#2142](https://github.com/ossf/scorecard/issues/2142) — Feature: Assess presence and maintenance of a threat model
+
+### Release scoring (OSPS-BR-02.01, BR-02.02)
+- [#1985](https://github.com/ossf/scorecard/issues/1985) — Feature: Scoring for individual releases
+
+### Minder integration
+- [#4723](https://github.com/ossf/scorecard/pull/4723) — Initial draft of using Minder rules in Scorecard (CLOSED)
+
+Draft PR that attempted to run Minder Rego rules within Scorecard,
+including OSPS-QA-05.01 and QA-03.01. Closed due to inactivity but
+demonstrates interest in deeper Minder/Scorecard integration.
+
 ## Notes
 
 - The OSPS Baseline v2026.02.19 contains 59 controls. Previous coverage
