@@ -47,10 +47,10 @@ Several tools operate in adjacent spaces. Understanding their capabilities clari
 
 ```mermaid
 flowchart LR
-    Scorecard["Scorecard\n(Measure)"] -->|findings + attestations| Darnit["Darnit\n(Audit + Remediate)"]
-    Scorecard -->|findings + attestations| AMPEL["AMPEL\n(Enforce)"]
+    Scorecard["Scorecard<br/>(Measure)"] -->|findings + attestations| Darnit["Darnit<br/>(Audit + Remediate)"]
+    Scorecard -->|findings + attestations| AMPEL["AMPEL<br/>(Enforce)"]
     Darnit -->|compliance attestation| AMPEL
-    Scorecard -->|conformance evidence| Privateer["Privateer Plugin\n(Baseline evaluation)"]
+    Scorecard -->|conformance evidence| Privateer["Privateer Plugin<br/>(Baseline evaluation)"]
 ```
 
 Scorecard is the **data source** (measures repository security). Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
@@ -197,17 +197,17 @@ Phases are ordered by outcome, not calendar quarter. Maintainer bandwidth dictat
 ```mermaid
 flowchart TD
     subgraph ORBIT["ORBIT WG Ecosystem"]
-        Baseline["OSPS Baseline\n(controls)"]
-        Gemara["Gemara\n(schemas: L2/L4)"]
-        SI["Security Insights\n(metadata)"]
+        Baseline["OSPS Baseline<br/>(controls)"]
+        Gemara["Gemara<br/>(schemas: L2/L4)"]
+        SI["Security Insights<br/>(metadata)"]
 
         subgraph Evaluation["Evaluation"]
-            Privateer["Privateer GitHub Plugin\n(LFX Insights driver)"]
-            Scorecard["OpenSSF Scorecard\n(deep analysis, conformance output,\nmulti-platform, large install base)"]
+            Privateer["Privateer GitHub Plugin<br/>(LFX Insights driver)"]
+            Scorecard["OpenSSF Scorecard<br/>(deep analysis, conformance output,<br/>multi-platform, large install base)"]
         end
 
-        Minder["Minder\n(enforce)"]
-        Darn["Darn\n(remediate)"]
+        Minder["Minder<br/>(enforce)"]
+        Darn["Darn<br/>(remediate)"]
     end
 
     Baseline -->|defines controls| Privateer
