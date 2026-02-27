@@ -77,12 +77,14 @@ Deliverables:
 Scorecard operates within the ORBIT WG ecosystem as a measurement and
 evidence tool. It does not duplicate:
 
+- **[Minder](https://github.com/mindersec/minder)** — Policy enforcement and remediation platform (OpenSSF Sandbox, ORBIT WG)
 - **[Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner)** — Baseline evaluation powered by Gemara and Security Insights
 - **[Darnit](https://github.com/kusari-oss/darnit)** — Compliance audit and remediation
 - **[AMPEL](https://github.com/carabiner-dev/ampel)** — Attestation-based policy enforcement
 
 Scorecard's role is to produce deep, probe-based conformance evidence that
-these tools and downstream consumers can use.
+these tools and downstream consumers can use. Minder already consumes
+Scorecard findings to enforce security policies across repositories.
 
 ### Design principles
 
