@@ -26,7 +26,7 @@ The conformance engine SHALL be additive. Existing checks, probes, scores, and o
 ### Mapping
 
 #### Requirement: Versioned mapping file
-The mapping between OSPS Baseline controls and Scorecard probes SHALL be maintained as a data-driven, versioned YAML file (e.g., `pkg/osps/mappings/v2025-10-10.yaml`), not hard-coded.
+The mapping between OSPS Baseline controls and Scorecard probes SHALL be maintained as a data-driven, versioned YAML file (e.g., `pkg/osps/mappings/v2026-02-19.yaml`), not hard-coded.
 
 #### Requirement: Mapping contents
 Each mapping entry SHALL specify:
@@ -72,13 +72,13 @@ The conformance engine SHALL accept attestation evidence from a repo-local metad
 
 ### Ecosystem Interoperability
 
-#### Requirement: Complementarity with PVTR
-Scorecard SHALL NOT duplicate the PVTR GitHub Repo Scanner's role as a Privateer plugin. Scorecard provides deep probe-based analysis; PVTR can consume Scorecard's OSPS output as supplementary evidence.
+#### Requirement: Complementarity with the Privateer plugin
+Scorecard SHALL NOT duplicate the [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner). Scorecard provides deep probe-based analysis; the Privateer plugin can consume Scorecard's OSPS output as supplementary evidence.
 
 #### Requirement: No enforcement
 Scorecard evaluates and reports conformance. It SHALL NOT enforce policies. The `--fail-on=fail` exit code is a reporting mechanism; the CI system is the enforcer.
 
-> **Open Question (OQ-2)**: Spencer asked whether "enforcement detection" (Q4 roadmap: detecting whether SCA/SAST gating exists) conflicts with Scorecard's stated non-enforcement role. Proposed distinction: Scorecard *detects* enforcement mechanisms, it does not *perform* enforcement. Needs maintainer consensus.
+> **Open Question (OQ-2)**: Spencer asked whether "enforcement detection" (Phase 3: detecting whether SCA/SAST gating exists) conflicts with Scorecard's stated non-enforcement role. Proposed distinction: Scorecard *detects* enforcement mechanisms, it does not *perform* enforcement. Needs maintainer consensus.
 
 ## Scenarios
 
