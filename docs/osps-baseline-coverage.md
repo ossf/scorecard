@@ -148,9 +148,9 @@ These probes remain valuable for Scorecard's existing scoring model and may beco
 
 ## Notes
 
-- The OSPS Baseline v2026.02.19 contains 59 controls. The older roadmap-ideas.md
-  mapped against v2025-10-10 which had a slightly different control set. This
-  analysis supersedes any previous coverage estimates.
+- The OSPS Baseline v2026.02.19 contains 59 controls. Previous coverage
+  estimates against older Baseline versions should be treated as out-of-date.
+  This analysis supersedes any prior mapping.
 - Controls marked NOT_OBSERVABLE cannot produce PASS or FAIL without elevated
   permissions. The conformance engine must return UNKNOWN with an explanation.
 - Many Level 2 and Level 3 controls are documentation or policy controls that
