@@ -29,32 +29,33 @@ This is fundamentally a **product-level shift**: Scorecard today answers "how we
 
 Several tools operate in adjacent spaces. Understanding their capabilities clarifies what is and isn't Scorecard's job.
 
-| Dimension | **Scorecard** | **[Minder](https://github.com/mindersec/minder)** | **[Darnit](https://github.com/kusari-oss/darnit)** | **[AMPEL](https://github.com/carabiner-dev/ampel)** | **[Privateer GitHub Plugin](https://github.com/ossf/pvtr-github-repo-scanner)** |
-|-----------|--------------|---------|-----------|-----------|-------------|
-| **Purpose** | Security health measurement | Policy enforcement + remediation platform | Compliance audit + remediation | Attestation-based policy enforcement | Baseline conformance evaluation |
-| **Action** | Analyzes repositories (read-only) | Enforces policies, auto-remediates | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
-| **Data source** | Collects from APIs/code | Collects from APIs + consumes findings from other tools | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
-| **Output** | Scores (0-10) + probe findings | Policy evaluation results + remediation PRs | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
-| **OSPS Baseline** | Partial (via probes) | Via Rego policy rules | Full (62 controls) | Via policy rules | 39 of 52 controls |
-| **In-toto** | Produces attestations | Consumes attestations | Produces attestations | Consumes + verifies | N/A |
-| **OSCAL** | No | No | No | Native support | N/A |
-| **Sigstore** | No | Verifies signatures | Signs attestations | Verifies signatures | N/A |
-| **Gemara** | Not yet (planned) | No | No | No | L2 + L4 native |
-| **Maturity** | Production (v5.3.0) | Sandbox (OpenSSF, donated Oct 2024) | Alpha (v0.1.0, Jan 2026) | Production (v1.0.0) | Production, powers LFX Insights |
-| **Language** | Go | Go | Python | Go | Go |
+| Dimension | **Scorecard** | **[Allstar](https://github.com/ossf/allstar)** | **[Minder](https://github.com/mindersec/minder)** | **[Darnit](https://github.com/kusari-oss/darnit)** | **[AMPEL](https://github.com/carabiner-dev/ampel)** | **[Privateer GitHub Plugin](https://github.com/ossf/pvtr-github-repo-scanner)** |
+|-----------|--------------|---------|---------|-----------|-----------|-------------|
+| **Purpose** | Security health measurement | GitHub policy enforcement | Policy enforcement + remediation platform | Compliance audit + remediation | Attestation-based policy enforcement | Baseline conformance evaluation |
+| **Action** | Analyzes repositories (read-only) | Monitors orgs, opens issues, auto-fixes settings | Enforces policies, auto-remediates | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
+| **Data source** | Collects from APIs/code | Collects from GitHub API + runs Scorecard checks | Collects from APIs + consumes findings from other tools | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
+| **Output** | Scores (0-10) + probe findings | GitHub issues + auto-remediated settings | Policy evaluation results + remediation PRs | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
+| **OSPS Baseline** | Partial (via probes) | Indirect (enforces subset via Scorecard checks) | Via Rego policy rules | Full (62 controls) | Via policy rules | 39 of 52 controls |
+| **In-toto** | Produces attestations | N/A | Consumes attestations | Produces attestations | Consumes + verifies | N/A |
+| **OSCAL** | No | No | No | No | Native support | N/A |
+| **Sigstore** | No | No | Verifies signatures | Signs attestations | Verifies signatures | N/A |
+| **Gemara** | Not yet (planned) | No | No | No | No | L2 + L4 native |
+| **Maturity** | Production (v5.3.0) | Production (v4.5, Scorecard sub-project) | Sandbox (OpenSSF, donated Oct 2024) | Alpha (v0.1.0, Jan 2026) | Production (v1.0.0) | Production, powers LFX Insights |
+| **Language** | Go | Go | Go | Python | Go | Go |
 
 **Integration model:**
 
 ```mermaid
 flowchart LR
-    Scorecard["Scorecard<br/>(Measure)"] -->|findings + attestations| Minder["Minder<br/>(Enforce + Remediate)"]
+    Scorecard["Scorecard<br/>(Measure)"] -->|checks| Allstar["Allstar<br/>(Enforce on GitHub)"]
+    Scorecard -->|findings + attestations| Minder["Minder<br/>(Enforce + Remediate)"]
     Scorecard -->|findings + attestations| Darnit["Darnit<br/>(Audit + Remediate)"]
     Scorecard -->|findings + attestations| AMPEL["AMPEL<br/>(Enforce)"]
     Darnit -->|compliance attestation| AMPEL
     Scorecard -->|conformance evidence| Privateer["Privateer Plugin<br/>(Baseline evaluation)"]
 ```
 
-Scorecard is the **data source** (measures repository security). Minder consumes Scorecard findings to enforce policies and auto-remediate across repositories. Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
+Scorecard is the **data source** (measures repository security). [Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (opening issues or auto-remediating settings). Minder consumes Scorecard findings to enforce policies and auto-remediate across repositories. Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
 
 ### What Scorecard must not do
 
@@ -75,6 +76,7 @@ A fresh analysis of Scorecard's current coverage against OSPS Baseline v2026.02.
 - **Checks** produce 0-10 scores — useful as signal but not conformance results
 - **Probes** produce structured boolean findings — the right granularity for control mapping
 - **Output formats** (JSON, SARIF, probe, in-toto) — OSPS output is a new format alongside these
+- **[Allstar](https://github.com/ossf/allstar)** (Scorecard sub-project) — continuously monitors GitHub organizations and enforces Scorecard checks as policies with auto-remediation. Allstar already enforces several controls aligned with OSPS Baseline (branch protection, security policy, binary artifacts, dangerous workflows). OSPS conformance output could enable Allstar to enforce Baseline conformance at the organization level.
 - **Multi-repo scanning** (`--repos`, `--org`) — needed for OSPS-QA-04.02 (subproject conformance)
 - **Serve mode** — HTTP surface for pipeline integration
 
@@ -204,7 +206,10 @@ flowchart TD
 
         subgraph Evaluation["Evaluation"]
             Privateer["Privateer GitHub Plugin<br/>(LFX Insights driver)"]
-            Scorecard["OpenSSF Scorecard<br/>(deep analysis, conformance output,<br/>multi-platform, large install base)"]
+            subgraph ScorecardEcosystem["Scorecard Ecosystem"]
+                Scorecard["OpenSSF Scorecard<br/>(deep analysis, conformance output,<br/>multi-platform, large install base)"]
+                Allstar["Allstar<br/>(GitHub policy enforcement,<br/>Scorecard sub-project)"]
+            end
         end
 
         Minder["Minder<br/>(enforce + remediate)"]
@@ -219,6 +224,7 @@ flowchart TD
     SI -->|provides metadata| Privateer
     SI -->|provides metadata| Scorecard
     SI -->|provides metadata| Minder
+    Scorecard -->|checks| Allstar
     Scorecard -->|conformance evidence| Privateer
     Scorecard -->|findings| Minder
     Scorecard -->|findings| Darnit
@@ -454,5 +460,14 @@ The coverage analysis (`docs/osps-baseline-coverage.md`) now includes a section 
 - [#4723](https://github.com/ossf/scorecard/pull/4723) — Minder/Rego integration draft (closed)
 
 Should we adopt these existing issues as the starting work items for Phase 1, or create new issues that reference them? Some of these issues have significant discussion history that may contain design decisions worth preserving.
+
+**Stephen's response:**
+
+
+#### CQ-16: Allstar's role in OSPS conformance enforcement
+
+[Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (branch protection, binary artifacts, security policy, dangerous workflows). It already enforces a subset of controls aligned with OSPS Baseline.
+
+With OSPS conformance output, Allstar could potentially enforce Baseline conformance at the organization level — e.g., opening issues or auto-remediating when a repository falls below Level 1 conformance. Should the proposal explicitly include Allstar as a Phase 1 consumer of OSPS output, or should that be deferred? And more broadly, should Allstar be considered part of the "enforcement" boundary that Scorecard itself does not cross, even though it is a Scorecard sub-project?
 
 **Stephen's response:**
