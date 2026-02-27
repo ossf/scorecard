@@ -961,8 +961,18 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 		return
 	}
 
-	// Pip install.
+		// Pip install.
 	if isPipDownload(c) {
+		pinned := !isPipUnpinnedDownload(c)
+		var remediation *finding.Remediation
+		if !pinned {
+			remediation = &finding.Remediation{
+				Text: "pin your Python dependencies by using a lockfile with hashes, e.g. `pip install --require-hashes -r requirements.txt`, " +
+					"or generate hashed requirements using pip-tools (pip-compile --generate-hashes). " +
+					"See https://pip.pypa.io/en/stable/topics/secure-installs/",
+			}
+		}
+
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -972,8 +982,9 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(!isPipUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypePipCommand,
+				Pinned:      &pinned,
+				Type:        checker.DependencyUseTypePipCommand,
+				Remediation: remediation,
 			},
 		)
 
