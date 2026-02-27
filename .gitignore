@@ -64,6 +64,3 @@ newRelease.json
 # Ignore golang's vendored files
 /vendor/
 /tools/vendor/
-
-# Roadmap drafting ideas
-docs/roadmap-ideas.md
