@@ -29,36 +29,38 @@ This is fundamentally a **product-level shift**: Scorecard today answers "how we
 
 Several tools operate in adjacent spaces. Understanding their capabilities clarifies what is and isn't Scorecard's job.
 
-| Dimension | **Scorecard** | **[Darnit](https://github.com/kusari-oss/darnit)** | **[AMPEL](https://github.com/carabiner-dev/ampel)** | **[Privateer GitHub Plugin](https://github.com/ossf/pvtr-github-repo-scanner)** |
-|-----------|--------------|-----------|-----------|-------------|
-| **Purpose** | Security health measurement | Compliance audit + remediation | Attestation-based policy enforcement | Baseline conformance evaluation |
-| **Action** | Analyzes repositories (read-only) | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
-| **Data source** | Collects from APIs/code | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
-| **Output** | Scores (0-10) + probe findings | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
-| **OSPS Baseline** | Partial (via probes) | Full (62 controls) | Via policy rules | 39 of 52 controls |
-| **In-toto** | Produces attestations | Produces attestations | Consumes + verifies | N/A |
-| **OSCAL** | No | No | Native support | N/A |
-| **Sigstore** | No | Signs attestations | Verifies signatures | N/A |
-| **Gemara** | Not yet (planned) | No | No | L2 + L4 native |
-| **Maturity** | Production (v5.3.0) | Alpha (v0.1.0, Jan 2026) | Production (v1.0.0) | Production, powers LFX Insights |
-| **Language** | Go | Python | Go | Go |
+| Dimension | **Scorecard** | **[Minder](https://github.com/mindersec/minder)** | **[Darnit](https://github.com/kusari-oss/darnit)** | **[AMPEL](https://github.com/carabiner-dev/ampel)** | **[Privateer GitHub Plugin](https://github.com/ossf/pvtr-github-repo-scanner)** |
+|-----------|--------------|---------|-----------|-----------|-------------|
+| **Purpose** | Security health measurement | Policy enforcement + remediation platform | Compliance audit + remediation | Attestation-based policy enforcement | Baseline conformance evaluation |
+| **Action** | Analyzes repositories (read-only) | Enforces policies, auto-remediates | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
+| **Data source** | Collects from APIs/code | Collects from APIs + consumes findings from other tools | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
+| **Output** | Scores (0-10) + probe findings | Policy evaluation results + remediation PRs | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
+| **OSPS Baseline** | Partial (via probes) | Via Rego policy rules | Full (62 controls) | Via policy rules | 39 of 52 controls |
+| **In-toto** | Produces attestations | Consumes attestations | Produces attestations | Consumes + verifies | N/A |
+| **OSCAL** | No | No | No | Native support | N/A |
+| **Sigstore** | No | Verifies signatures | Signs attestations | Verifies signatures | N/A |
+| **Gemara** | Not yet (planned) | No | No | No | L2 + L4 native |
+| **Maturity** | Production (v5.3.0) | Sandbox (OpenSSF, donated Oct 2024) | Alpha (v0.1.0, Jan 2026) | Production (v1.0.0) | Production, powers LFX Insights |
+| **Language** | Go | Go | Python | Go | Go |
 
-**Integration model — three-layer pipeline:**
+**Integration model:**
 
 ```mermaid
 flowchart LR
-    Scorecard["Scorecard<br/>(Measure)"] -->|findings + attestations| Darnit["Darnit<br/>(Audit + Remediate)"]
+    Scorecard["Scorecard<br/>(Measure)"] -->|findings + attestations| Minder["Minder<br/>(Enforce + Remediate)"]
+    Scorecard -->|findings + attestations| Darnit["Darnit<br/>(Audit + Remediate)"]
     Scorecard -->|findings + attestations| AMPEL["AMPEL<br/>(Enforce)"]
     Darnit -->|compliance attestation| AMPEL
     Scorecard -->|conformance evidence| Privateer["Privateer Plugin<br/>(Baseline evaluation)"]
 ```
 
-Scorecard is the **data source** (measures repository security). Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
+Scorecard is the **data source** (measures repository security). Minder consumes Scorecard findings to enforce policies and auto-remediate across repositories. Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
 
 ### What Scorecard must not do
 
 - **Duplicate the Privateer plugin's role.** The [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner) is the Baseline evaluator in the ORBIT ecosystem. Scorecard should complement it with deeper analysis and interoperable output, not fork the evaluation model.
-- **Duplicate remediation.** Darnit handles compliance auditing and automated remediation (PR creation, file generation, AI-assisted fixes). Scorecard is read-only.
+- **Duplicate policy enforcement or remediation.** [Minder](https://github.com/mindersec/minder) (OpenSSF Sandbox project, ORBIT WG) consumes Scorecard findings and enforces security policies across repositories with auto-remediation. Scorecard produces findings for Minder to act on.
+- **Duplicate compliance auditing.** Darnit handles compliance auditing and automated remediation (PR creation, file generation, AI-assisted fixes). Scorecard is read-only.
 - **Duplicate attestation policy enforcement.** AMPEL verifies attestations against policies and gates CI/CD pipelines. Scorecard *produces* attestations for AMPEL to consume.
 - **Turn OSPS controls into Scorecard checks.** OSPS conformance is a layer that consumes existing Scorecard signals, not 59 new checks.
 
@@ -144,10 +146,9 @@ Spencer's position is that OSPS evidence references should point to probe findin
 
 ### Out of scope
 
-- Remediation automation (Darn's domain)
+- Policy enforcement and remediation (Minder's and Darnit's domain)
 - Replacing the Privateer plugin for GitHub repositories
 - Changing existing check scores or behavior
-- Platform enforcement (Minder's domain)
 - OSPS Baseline specification changes (ORBIT WG's domain)
 
 ## Phased delivery
@@ -206,12 +207,13 @@ flowchart TD
             Scorecard["OpenSSF Scorecard<br/>(deep analysis, conformance output,<br/>multi-platform, large install base)"]
         end
 
-        Minder["Minder<br/>(enforce)"]
-        Darn["Darn<br/>(remediate)"]
+        Minder["Minder<br/>(enforce + remediate)"]
+        Darnit["Darnit<br/>(audit + remediate)"]
     end
 
     Baseline -->|defines controls| Privateer
     Baseline -->|defines controls| Scorecard
+    Baseline -->|defines controls| Minder
     Gemara -->|provides schemas| Privateer
     Gemara -->|provides schemas| Scorecard
     SI -->|provides metadata| Privateer
@@ -219,12 +221,12 @@ flowchart TD
     SI -->|provides metadata| Minder
     Scorecard -->|conformance evidence| Privateer
     Scorecard -->|findings| Minder
-    Scorecard -->|findings| Darn
+    Scorecard -->|findings| Darnit
 ```
 
 **Scorecard's role**: Produce deep, probe-based conformance evidence that the Privateer plugin, Minder, and downstream consumers can use. Scorecard reads Security Insights (shared data plane), outputs Gemara L4-compatible results (shared schema), and fills analysis gaps where the Privateer plugin has `NotImplemented` steps.
 
-**What Scorecard does NOT do**: Replace the Privateer plugin, enforce policies (Minder's role), or perform remediation (Darn's role).
+**What Scorecard does NOT do**: Replace the Privateer plugin, enforce policies or remediate (Minder's role), or perform compliance auditing and remediation (Darnit's role).
 
 ## Success criteria
 
@@ -416,5 +418,26 @@ The coverage analysis identifies 7 Level 1 GAP controls that need new probes (ex
 7. OSPS-QA-04.01 — Subproject listing (requires Security Insights)
 
 Do you agree with this priority ordering? Are there any controls you would move up or down, or any you would defer to Phase 2?
+
+**Stephen's response:**
+
+
+#### CQ-13: Minder integration surface
+
+[Minder](https://github.com/mindersec/minder) is an OpenSSF Sandbox project within the ORBIT WG that already consumes Scorecard findings to enforce security policies and auto-remediate across repositories. Minder uses Rego-based rules and can enforce OSPS Baseline controls via policy profiles. A draft Scorecard PR (#4723, now stale) attempted deeper integration by enabling Scorecard checks to be written using Minder's Rego rule engine.
+
+Given Minder's position in the ORBIT ecosystem:
+- Should the OSPS conformance output be designed with Minder as an explicit consumer (e.g., ensuring the output schema works well as Minder policy input)?
+- Should we coordinate with Minder maintainers during Phase 1 to validate the integration surface?
+- Is there a risk of duplicating Baseline evaluation work that Minder already does via its own rules, and if so, how should we delineate?
+
+**Stephen's response:**
+
+
+#### CQ-14: Darnit vs. Minder delineation
+
+The proposal lists both [Darnit](https://github.com/kusari-oss/darnit) and [Minder](https://github.com/mindersec/minder) as tools that handle remediation and enforcement. Their capabilities overlap in some areas (both can enforce Baseline controls, both can remediate). For Scorecard's purposes, the distinction matters primarily for the "What Scorecard must not do" boundary.
+
+Is the current framing correct — that Scorecard is the measurement layer and both Minder and Darnit are downstream consumers? Or should we position Scorecard differently relative to one versus the other, given that Minder is an OpenSSF project in the same working group while Darnit is not?
 
 **Stephen's response:**
