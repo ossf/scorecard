@@ -441,3 +441,18 @@ The proposal lists both [Darnit](https://github.com/kusari-oss/darnit) and [Mind
 Is the current framing correct — that Scorecard is the measurement layer and both Minder and Darnit are downstream consumers? Or should we position Scorecard differently relative to one versus the other, given that Minder is an OpenSSF project in the same working group while Darnit is not?
 
 **Stephen's response:**
+
+
+#### CQ-15: Existing issues as Phase 1 work items
+
+The coverage analysis (`docs/osps-baseline-coverage.md`) now includes a section mapping existing Scorecard issues to OSPS Baseline gaps. Several long-standing issues align directly with Phase 1 priorities:
+
+- [#30](https://github.com/ossf/scorecard/issues/30) — Secrets scanning (OSPS-BR-07.01), open since the project's earliest days
+- [#2305](https://github.com/ossf/scorecard/issues/2305) / [#2479](https://github.com/ossf/scorecard/issues/2479) — Security Insights ingestion
+- [#2465](https://github.com/ossf/scorecard/issues/2465) — Private vulnerability reporting (OSPS-VM-03.01)
+- [#4824](https://github.com/ossf/scorecard/issues/4824) — Changelog check (OSPS-BR-04.01)
+- [#4723](https://github.com/ossf/scorecard/pull/4723) — Minder/Rego integration draft (closed)
+
+Should we adopt these existing issues as the starting work items for Phase 1, or create new issues that reference them? Some of these issues have significant discussion history that may contain design decisions worth preserving.
+
+**Stephen's response:**
