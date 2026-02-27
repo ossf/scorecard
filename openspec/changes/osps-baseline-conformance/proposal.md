@@ -373,3 +373,48 @@ Scorecard runs at scale via the Scorecard Action (GitHub Action) and the public 
 **Stephen's response:**
 
 We need to land these capabilities for as much surface area as possible.
+
+#### CQ-9: Coverage analysis and Phase 1 scope validation
+
+The coverage analysis (`docs/osps-baseline-coverage.md`) identifies 25 Level 1 controls. Of those, 6 are COVERED, 8 are PARTIAL, 9 are GAP, and 2 are NOT_OBSERVABLE. The Phase 1 plan targets closing the 9 GAP controls. Given that 2 controls (AC-01.01, AC-02.01) are NOT_OBSERVABLE without org-admin tokens, should Phase 1 explicitly include work on improving observability (e.g., documenting what tokens are needed, or providing guidance for org admins), or should those controls remain UNKNOWN until a later phase?
+
+**Stephen's response:**
+
+
+#### CQ-10: Mapping file ownership and contribution model
+
+The versioned mapping file (e.g., `pkg/osps/mappings/v2026-02-19.yaml`) is a critical artifact that defines which probes satisfy which OSPS controls. Who should own this file? Options:
+- Scorecard maintainers only (changes require maintainer review)
+- Community-contributed with maintainer approval (like checks/probes today)
+- Co-maintained with ORBIT WG members who understand the Baseline controls
+
+This also affects how we handle disagreements about whether a probe truly satisfies a control.
+
+**Stephen's response:**
+
+
+#### CQ-11: Backwards compatibility of OSPS output format
+
+The spec requires `--format=osps` as a new output format. Since this is a new surface, we have freedom to iterate on the schema. However, once shipped, consumers will depend on it. What stability guarantees should we offer?
+- No guarantees during Phase 1 (alpha schema, may break between releases)
+- Semver-like schema versioning from day one (breaking changes increment major version)
+- Follow the Gemara L4 schema if one exists, inheriting its stability model
+
+**Stephen's response:**
+
+
+#### CQ-12: Probe gap prioritization for Phase 1
+
+The coverage analysis identifies 7 Level 1 GAP controls that need new probes (excluding the 2 that depend on Security Insights). Ranked by implementation feasibility:
+
+1. OSPS-GV-03.01 — CONTRIBUTING file presence
+2. OSPS-GV-02.01 — Issues/discussions enabled
+3. OSPS-DO-02.01 — Issue templates or bug report docs
+4. OSPS-DO-01.01 — Documentation presence heuristics
+5. OSPS-BR-07.01 — Secrets detection (platform signal consumption)
+6. OSPS-BR-03.01 / BR-03.02 — Encrypted transport (requires Security Insights)
+7. OSPS-QA-04.01 — Subproject listing (requires Security Insights)
+
+Do you agree with this priority ordering? Are there any controls you would move up or down, or any you would defer to Phase 2?
+
+**Stephen's response:**
