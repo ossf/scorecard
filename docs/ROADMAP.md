@@ -75,7 +75,12 @@ Deliverables:
 ### Ecosystem alignment
 
 Scorecard operates within the ORBIT WG ecosystem as a measurement and
-evidence tool. It does not duplicate:
+evidence tool. [Allstar](https://github.com/ossf/allstar), a Scorecard
+sub-project, continuously monitors GitHub organizations and enforces
+Scorecard check results as policies. OSPS conformance output could enable
+Allstar to enforce Baseline conformance at the organization level.
+
+Scorecard does not duplicate:
 
 - **[Minder](https://github.com/mindersec/minder)** — Policy enforcement and remediation platform (OpenSSF Sandbox, ORBIT WG)
 - **[Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner)** — Baseline evaluation powered by Gemara and Security Insights
