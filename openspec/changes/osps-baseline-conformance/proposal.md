@@ -202,3 +202,135 @@ Spencer's position is that OSPS evidence references should point to probe findin
 3. OSPS output is consumable by PVTR as supplementary evidence (validated with ORBIT WG)
 4. All four open questions (OQ-1 through OQ-4) are resolved with documented decisions
 5. No changes to existing check scores or behavior
+
+---
+
+## Maintainer review
+
+### Stephen's notes
+
+<!-- Stephen: Use this section to record your overall impressions, concerns,
+     and positions on the proposal. Edit freely — this is your space. -->
+
+**Overall assessment:**
+
+
+**Key concerns or risks:**
+
+
+**Things I agree with:**
+
+
+**Things I disagree with or want to change:**
+
+- "PVTR" is shorthand for "Privateer". Throughout this proposal it makes it appear as if https://github.com/ossf/pvtr-github-repo-scanner is separate from Privateer, when it is really THE Privateer plugin for GitHub repositories. Any references to PVTR should be corrected.
+- This proposal does not contain an even consideration of the capabilities of [Darnit](https://github.com/kusari-oss/darnit) and [AMPEL](https://github.com/carabiner-dev/ampel). We should do that comparison to get a better idea of what should be in or out of scope for Scorecard.
+- The timeline that is in this proposal is not accurate, as we're already about to enter Q2 2026. We should focus on phases and outcomes, and let maintainer bandwidth dictate delivery timing.
+- Scorecard has an existing set of checks and probes, which is essentially a control catalog. We should make a plan to extract the Scorecard control catalog so that it can be used by other tools that can handle evaluation tasks.
+- Use Mermaid when creating diagrams.
+- We need to understand what level of coverage Scorecard currently has for OSPS Baseline and that analysis should be created in a separate file (in `docs/`). Assume that any existing findings are out-of-date.
+- `docs/roadmap-ideas.md` will not be committed to the repo, as it is a rough draft which needs to be refined for public consumption. We should create `docs/ROADMAP.md` with a 2026 second-level heading with contains the publicly-consummable roadmap.
+
+**Priority ordering — what matters most to ship first:**
+
+
+### Clarifying questions
+
+The following questions need your input before this proposal can move to design. Please fill in your response under each question.
+
+#### CQ-1: Scorecard as a conformance tool — product identity
+
+The proposal frames this as a "product-level shift" where Scorecard gains a second mode: conformance evaluation alongside its existing scoring. Does this framing match your vision, or do you see conformance as eventually *replacing* the scoring model? Should we be thinking about deprecating 0-10 scores long-term, or do both modes coexist indefinitely?
+
+**Stephen's response:**
+
+I believe the scoring model will continue to be useful to consumers and it should be maintained. For now, both modes should coexist. There is no need to make a decision about this for the current iteration of the proposal.
+
+#### CQ-2: OSPS Baseline version targeting
+
+The roadmap targets OSPS Baseline v2025-10-10. The PVTR scanner targets v2025-02-25. The Baseline is a living spec with periodic releases. How should Scorecard handle version drift? Options:
+- Support only the latest version at any given time
+- Support multiple versions concurrently via the versioned mapping file
+- Pin to a version and update on a defined cadence (e.g., quarterly)
+
+**Stephen's response:**
+
+The current version of the OSPS Baseline is [v2026.02.19](https://baseline.openssf.org/versions/2026-02-19).
+
+We should align with the latest version at first and have a process for aligning with new versions on a defined cadence. We should understand the [OSPS Baseline maintenance process](https://baseline.openssf.org/maintenance.html) and align with it.
+
+The OSPS Baseline [FAQ](https://baseline.openssf.org/faq.html) and [Implementation Guidance for Maintainers](https://baseline.openssf.org/maintainers.html) may have guidance we should consider incorporating.
+
+#### CQ-3: Security Insights as a hard dependency
+
+Many OSPS controls depend on Security Insights data (official channels, distribution points, subproject inventory, core team). PVTR treats the Security Insights file as nearly required — most of its evaluation steps begin with `HasSecurityInsightsFile`.
+
+Should Scorecard:
+- Treat Security Insights the same way (controls that need it go UNKNOWN without it)?
+- Provide a degraded but still useful evaluation without it?
+- Accept alternative metadata sources (e.g., `.project`, custom config)?
+
+This also raises a broader adoption question: most projects today don't have a `security-insights.yml`. How do we avoid making the OSPS output useless for the majority of repositories?
+
+**Stephen's response:**
+
+We should provide a degraded, but still-useful evaluation without a Security Insights file, especially since our probes today can already cover a lot of ground without it. It would be good for us to eventually support alternative metadata sources, but this should not be an immediate goal.
+
+#### CQ-4: PVTR relationship — complement vs. converge
+
+The proposal positions Scorecard as complementary to PVTR. But there's a deeper question: should this stay as two separate tools indefinitely, or is the long-term goal convergence (e.g., PVTR consuming Scorecard as a library, or Scorecard becoming a Privateer plugin itself)? Your position on this affects how tightly we couple the output formats and whether we invest in Gemara SDK integration.
+
+**Stephen's response:**
+
+Multiple tools should be able to consume Scorecard, so yes, we should invest in Gemara SDK integration.
+
+#### CQ-5: Scope of new probes in 2026
+
+The roadmap calls for significant new probe development (secrets detection, governance/docs presence, dependency manifests, release asset inspection, enforcement detection). That's a lot of new surface area. Should we:
+- Build all of these within Scorecard?
+- Prioritize a subset and defer the rest?
+- Look for ways to consume signals from external tools (e.g., GitHub's secret scanning API, SBOM tools) rather than building detection from scratch?
+
+If prioritizing, which new probes matter most to you?
+
+**Stephen's response:**
+
+We should prioritize OSPS Baseline Level 1 conformance work.
+We should consider any signals that can be consumed from external sources.
+
+#### CQ-6: Community and governance process
+
+This is a major initiative touching Scorecard's product direction. What's the governance process for getting this approved?
+- Does this need a formal proposal to the Scorecard maintainer group?
+- Should this be presented at an ORBIT WG meeting?
+- Do we need sign-off from the OpenSSF TAC?
+- Who else beyond you and Spencer needs to weigh in?
+
+**Stephen's response:**
+
+We should have Stephen and Spencer sign off on this proposal as Steering Committee members. In addition, we should have reviews from:
+- [blocking] At least 1 non-Steering Scorecard maintainer
+- [non-blocking] Maintainers of tools in the WG ORBIT ecosystem
+
+This does not require review from the TAC, but we should inform WG ORBIT members.
+
+#### CQ-7: The "minimum viable conformance report"
+
+If we had to ship the smallest useful thing in Q1, what would it be? The roadmap proposes the full OSPS output format + mapping file + applicability engine. But a simpler starting point might be:
+- Just the mapping file (documentation-only, no runtime)
+- A `--format=osps` that only reports on controls Scorecard already covers (no new probes, lots of UNKNOWN)
+- Something else?
+
+What would make Q1 a success in your eyes?
+
+**Stephen's response:**
+
+As previously mentioned, the quarterly targets are not currently accurate. One of our Q2 outcomes should be OSPS Baseline Level 1 conformance.
+
+#### CQ-8: Existing Scorecard Action and API impact
+
+Scorecard runs at scale via the Scorecard Action (GitHub Action) and the public API (api.scorecard.dev). Should OSPS conformance be available through these surfaces from day one, or should it start as a CLI-only feature? The API and Action have their own release and stability considerations.
+
+**Stephen's response:**
+
+We need to land these capabilities for as much surface area as possible.
