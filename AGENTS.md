@@ -171,13 +171,21 @@ Scorecard integrates with several external services:
   - `:book:` - documentation
   - `:seedling:` - infra/tests/other
   - `:ghost:` - no release note
-- All commits must include a DCO sign-off (`-s` flag): `Signed-off-by: Name <email>`
+- **All commits MUST include a DCO sign-off.** Always pass the `-s` flag to `git commit`. This adds the `Signed-off-by` trailer using the committer's git config `user.name` and `user.email`. DCO checks will fail without it.
 - **Commit messages should be detailed.** Explain *why*, not just *what*. Use bullet points for multi-part changes.
-- **AI co-authorship trailer is required** on all AI-assisted commits:
-  ```
+- **AI co-authorship trailer is required** on all AI-assisted commits.
+- **Commit message format example:**
+  ```bash
+  git commit -s -m "$(cat <<'EOF'
+  :seedling: Short description of the change
+
+  Detailed explanation of why this change was made.
+
   Co-Authored-By: Claude <noreply@anthropic.com>
+  EOF
+  )"
   ```
-  Use just "Claude" — do not include the model version.
+  The `-s` flag adds the `Signed-off-by` line automatically. Use just "Claude" in the co-authorship trailer — do not include the model version.
 - Address review feedback without rebasing; use merge commits to sync with `main`
 
 ## Documentation
