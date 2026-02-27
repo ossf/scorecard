@@ -464,6 +464,144 @@ Should we adopt these existing issues as the starting work items for Phase 1, or
 **Stephen's response:**
 
 
+### ORBIT WG feedback
+
+The following feedback was provided by Eddie Knight (ORBIT WG Technical Steering Committee Chair, maintainer of Gemara, Privateer, and OSPS Baseline) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
+
+#### EK-1: Mapping file location
+
+> "Regarding mappings between Baseline catalog<->Scorecard checks, it is possible to easily put that into a new file with Scorecard maintainers as codeowners, pending approval from scorecard maintainers."
+
+Eddie is offering to host the Baseline-to-Scorecard mapping in the OSPS Baseline repository (or a shared location) with Scorecard maintainers as CODEOWNERS. The current proposal places the mapping in the Scorecard repo (`pkg/osps/mappings/v2026-02-19.yaml`).
+
+This affects ownership, versioning cadence, and who can update the mapping when controls or probes change. The trade-offs:
+
+- **In Scorecard repo**: Scorecard maintainers fully own the mapping. Mapping updates are coupled to Scorecard releases. Other tools cannot easily consume the mapping.
+- **In Baseline repo (or shared)**: Mapping is co-owned. Versioned alongside the Baseline spec. Other tools (Privateer, Darnit, Minder) can consume the same mapping. Scorecard maintainers retain CODEOWNERS authority.
+
+#### EK-2: Output format — no "OSPS output format"
+
+> "There is not an 'OSPS output format,' and even the relevant Gemara schemas (which are quite opinionated) are still designed to support output in multiple output formats within the SDK, such as SARIF. I would expect that you'd keep your current output logic, and then _maybe_ add basic Gemara json/yaml as another option."
+
+The current proposal defines `--format=osps` as a new output format. Eddie clarifies that the ORBIT ecosystem does not define a special "OSPS output format" — instead, the Gemara SDK supports multiple output formats (including SARIF). The suggestion is to keep Scorecard's existing output logic and optionally add Gemara JSON/YAML as another format option.
+
+This is a significant clarification that affects the spec's output requirements, the Phase 1 deliverables, and how we frame the conformance layer.
+
+#### EK-3: Technical relationship with Privateer plugin
+
+> "There is a stated goal of not duplicating the code from the plugin ossf/pvtr-github-repo-scanner, but the implementation plan as it's currently written does require duplication. In the current proposal, there would not be a technical relationship between the two codebases."
+
+Eddie identifies a contradiction: the proposal says "do not duplicate Privateer" but proposes building a parallel conformance engine with no code-level relationship to the Privateer plugin. The current plan would result in two separate codebases evaluating the same OSPS controls independently.
+
+#### EK-4: Catalog extraction needs an implementation plan
+
+> "There is cursory mention of a scorecard _catalog extraction_, which I'm hugely in favor of, but I don't see an implementation plan for that."
+
+The proposal mentions "Scorecard control catalog extraction plan" as a Phase 1 deliverable but does not specify what this means concretely. Eddie wants to see how Scorecard's checks/probes would be made consumable by other tools.
+
+#### EK-5: Alternative architecture — shared plugin model
+
+> "An alternative plan would be for us to spend a week consolidating checks/probes into the pvtr plugin (with relevant CODEOWNERS), then update Scorecard to selectively execute the plugin under the covers."
+
+Eddie proposes a fundamentally different architecture:
+
+1. Consolidate Scorecard checks/probes into the [Privateer plugin](https://github.com/ossf/pvtr-github-repo-scanner) as shared evaluation logic
+2. Scorecard executes the plugin under the covers for Baseline evaluation
+3. Privateer and LFX Insights can optionally run Scorecard checks via the same plugin
+
+**Claimed benefits:**
+- Extract the Scorecard control catalog for independent versioning
+- Instantly integrate Gemara into Scorecard
+- Allow bidirectional check execution (Scorecard runs Privateer checks; Privateer runs Scorecard checks)
+- Simplify contribution overhead for individual checks
+- Improve both codebases through shared logic
+
+**This is the central architectural decision for the proposal.** The Steering Committee needs to evaluate this against the current plan (Scorecard builds its own conformance engine).
+
+---
+
+The following clarifying questions require Steering Committee decisions informed by Eddie's feedback.
+
+#### CQ-17: Mapping file location — Scorecard repo or shared?
+
+Eddie offers to host the Baseline-to-Scorecard mapping in the Baseline repository with Scorecard maintainers as CODEOWNERS (EK-1). The current proposal places it in the Scorecard repo.
+
+Options:
+1. **Scorecard repo** (`pkg/osps/mappings/`): Scorecard owns the mapping entirely. Mapping is coupled to Scorecard releases and probe changes.
+2. **Baseline repo** (or shared location): Co-owned with ORBIT WG. Other tools can consume the same mapping. Scorecard maintainers retain CODEOWNERS authority over their portion.
+3. **Both**: Scorecard maintains a local mapping for runtime use; a shared mapping in the Baseline repo serves as the cross-tool reference. Keep them in sync.
+
+Which approach do you prefer?
+
+**Stephen's response:**
+
+
+#### CQ-18: Output format — `--format=osps` vs. Gemara SDK output
+
+Eddie clarifies that no "OSPS output format" exists in the ORBIT ecosystem (EK-2). The Gemara SDK supports multiple formats (JSON, YAML, SARIF). He suggests Scorecard keep its existing output logic and optionally add Gemara JSON/YAML as another format.
+
+This affects the spec's requirement for `--format=osps`. Options:
+1. **Keep `--format=osps`**: Define a Scorecard-specific conformance output format. Risk: inventing a format that doesn't align with the ecosystem.
+2. **Use `--format=gemara`** (or similar): Integrate the Gemara SDK and output Gemara L4 assessment results in JSON/YAML. Aligns with ecosystem, but creates a Gemara SDK dependency.
+3. **Extend existing formats**: Add conformance data to `--format=json` and `--format=sarif` outputs. No new format flag needed.
+
+Which approach do you prefer? Does the Gemara SDK dependency concern you?
+
+**Stephen's response:**
+
+
+#### CQ-19: Architectural direction — build vs. integrate
+
+This is the central decision. Eddie proposes consolidating Scorecard checks/probes into the Privateer plugin and having Scorecard execute the plugin (EK-5). The current proposal has Scorecard building its own conformance engine.
+
+**Option A: Scorecard builds its own conformance engine** (current proposal)
+- Scorecard adds a mapping file, conformance evaluation logic, and output format
+- No code-level dependency on Privateer
+- Scorecard controls its own release cadence and architecture
+- Risk: duplicates evaluation logic, no technical relationship with Privateer (EK-3)
+
+**Option B: Shared plugin model** (Eddie's alternative)
+- Scorecard checks/probes are consolidated into the Privateer plugin
+- Scorecard executes the plugin under the covers
+- Bidirectional: Privateer can also run Scorecard checks
+- Gemara integration comes for free via the plugin
+- Risk: Scorecard takes a dependency on an external plugin's release cadence and architecture; multi-platform support (GitLab, Azure DevOps, local) may not fit the plugin model; architectural coupling
+
+**Option C: Hybrid**
+- Scorecard maintains its own probe execution (its core competency)
+- Scorecard exports its probe results in a format the Privateer plugin can consume (Gemara L4)
+- The Privateer plugin consumes Scorecard output as supplementary evidence
+- Control catalog is extracted and shared, but evaluation logic stays separate
+- No code-level coupling, but interoperable output
+
+Which option do you prefer? What are your concerns about taking a dependency on the Privateer plugin codebase?
+
+**Stephen's response:**
+
+
+#### CQ-20: Catalog extraction — what does it mean concretely?
+
+Eddie is "hugely in favor" of extracting the Scorecard control catalog (EK-4) but the proposal lacks an implementation plan. Concretely, this could mean:
+
+1. **Machine-readable probe definitions**: Export `probes/*/def.yml` as a versioned catalog (already exists in the repo, but not packaged for external consumption)
+2. **Gemara L2 control definitions**: Map Scorecard probes to Gemara Layer 2 schema entries, making them available in the Gemara catalog
+3. **Shared evaluation steps**: Extract Scorecard's probe logic into a reusable Go library or Privateer plugin steps that other tools can execute
+4. **API-level catalog**: Expose probe definitions via the Scorecard API so tools can discover what Scorecard can evaluate
+
+What level of extraction do you envision? Is option 2 (Gemara L2 integration) the right target, or should we start simpler?
+
+**Stephen's response:**
+
+
+#### CQ-21: Privateer code duplication — is it acceptable?
+
+Eddie points out that the current proposal would result in two codebases evaluating the same OSPS controls independently (EK-3). Even if the proposal says "don't duplicate Privateer," building a separate conformance engine effectively does that.
+
+Is some duplication acceptable if it means Scorecard retains architectural independence? Or is avoiding duplication a hard constraint that should drive us toward the shared plugin model (CQ-19 Option B)?
+
+**Stephen's response:**
+
+
 #### CQ-16: Allstar's role in OSPS conformance enforcement
 
 [Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (branch protection, binary artifacts, security policy, dangerous workflows). It already enforces a subset of controls aligned with OSPS Baseline.
