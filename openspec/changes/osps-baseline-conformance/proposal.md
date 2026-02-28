@@ -470,14 +470,16 @@ The following feedback was provided by Eddie Knight (ORBIT WG Technical Steering
 
 #### EK-1: Mapping file location
 
-> "Regarding mappings between Baseline catalog<->Scorecard checks, it is possible to easily put that into a new file with Scorecard maintainers as codeowners, pending approval from scorecard maintainers."
+> "Regarding mappings between Baseline catalog<->Scorecard checks, it is possible to easily put that into a new file with Scorecard maintainers as codeowners, pending approval from OSPS Baseline maintainers for the change."
 
 Eddie is offering to host the Baseline-to-Scorecard mapping in the OSPS Baseline repository (or a shared location) with Scorecard maintainers as CODEOWNERS. The current proposal places the mapping in the Scorecard repo (`pkg/osps/mappings/v2026-02-19.yaml`).
 
-This affects ownership, versioning cadence, and who can update the mapping when controls or probes change. The trade-offs:
+Mappings currently exist within the Baseline Catalog and are proposed for addition to the Scorecard repository as well. The mappings could be maintained in one or both of the projects. This affects ownership, versioning cadence, and who can update the mapping when controls or probes change.
+
+The trade-offs:
 
 - **In Scorecard repo**: Scorecard maintainers fully own the mapping. Mapping updates are coupled to Scorecard releases. Other tools cannot easily consume the mapping.
-- **In Baseline repo (or shared)**: Mapping is co-owned. Versioned alongside the Baseline spec. Other tools (Privateer, Darnit, Minder) can consume the same mapping. Scorecard maintainers retain CODEOWNERS authority.
+- **In Baseline repo (or shared)**: Mapping is co-owned. Versioned alongside the Baseline spec. End users and other tools (Privateer, Darnit, Minder) can consume the same mapping. Scorecard maintainers retain CODEOWNERS authority.
 
 #### EK-2: Output format — no "OSPS output format"
 
@@ -497,7 +499,7 @@ Eddie identifies a contradiction: the proposal says "do not duplicate Privateer"
 
 > "There is cursory mention of a scorecard _catalog extraction_, which I'm hugely in favor of, but I don't see an implementation plan for that."
 
-The proposal mentions "Scorecard control catalog extraction plan" as a Phase 1 deliverable but does not specify what this means concretely. Eddie wants to see how Scorecard's checks/probes would be made consumable by other tools.
+The proposal mentions "Scorecard control catalog extraction plan" as a Phase 1 deliverable but does not specify what this means concretely or how it would be achieved.
 
 #### EK-5: Alternative architecture — shared plugin model
 
@@ -506,11 +508,11 @@ The proposal mentions "Scorecard control catalog extraction plan" as a Phase 1 d
 Eddie proposes a fundamentally different architecture:
 
 1. Consolidate Scorecard checks/probes into the [Privateer plugin](https://github.com/ossf/pvtr-github-repo-scanner) as shared evaluation logic
-2. Scorecard executes the plugin under the covers for Baseline evaluation
+2. Scorecard executes the plugin under the covers for Baseline evaluation and then Scorecard handles follow-up logic such as scoring and storing the results
 3. Privateer and LFX Insights can optionally run Scorecard checks via the same plugin
 
 **Claimed benefits:**
-- Extract the Scorecard control catalog for independent versioning
+- Extract the Scorecard control catalog for independent versioning and cross-catalog mapping to Baseline
 - Instantly integrate Gemara into Scorecard
 - Allow bidirectional check execution (Scorecard runs Privateer checks; Privateer runs Scorecard checks)
 - Simplify contribution overhead for individual checks
@@ -532,6 +534,8 @@ Options:
 3. **Both**: Scorecard maintains a local mapping for runtime use; a shared mapping in the Baseline repo serves as the cross-tool reference. Keep them in sync.
 
 Which approach do you prefer?
+
+_Note that this question is negated if consolidating check logic within `pvtr-github-repo-scanner`, because then the mappings are managed within the control catalog in Gemara format._
 
 **Stephen's response:**
 
@@ -563,15 +567,16 @@ This is the central decision. Eddie proposes consolidating Scorecard checks/prob
 **Option B: Shared plugin model** (Eddie's alternative)
 - Scorecard checks/probes are consolidated into the Privateer plugin
 - Scorecard executes the plugin under the covers
-- Bidirectional: Privateer can also run Scorecard checks
+- Bidirectional: Privateer users can also run Scorecard checks e.g., LFX Insights
 - Gemara integration comes for free via the plugin
-- Risk: Scorecard takes a dependency on an external plugin's release cadence and architecture; multi-platform support (GitLab, Azure DevOps, local) may not fit the plugin model; architectural coupling
+- Risk: Scorecard releases are coupled to plugin's release cadence; CODEOWNERS in the second repo must be meticulously managed to avoid surprises; multi-platform support (GitLab, Azure DevOps, local) will require maintenance of independent plugins with isolated data collection for each platform
 
 **Option C: Hybrid**
 - Scorecard maintains its own probe execution (its core competency)
-- Scorecard exports its probe results in a format the Privateer plugin can consume (Gemara L4)
+- Scorecard exports its probe results in a format the Privateer plugin can consume (Gemara L5)
 - The Privateer plugin consumes Scorecard output as supplementary evidence
 - Control catalog is extracted and shared, but evaluation logic stays separate
+- Users will choose between the Privateer plugin and Scorecard for Baseline evaluations
 - No code-level coupling, but interoperable output
 
 Which option do you prefer? What are your concerns about taking a dependency on the Privateer plugin codebase?
