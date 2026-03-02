@@ -89,6 +89,8 @@ The following questions were raised by Spencer (Steering Committee member) durin
 > "The attestation/provenance layer. What is doing the attestation? Is this some OIDC? A personal token? A workflow (won't have the right tokens)?"
 > — Spencer, on Section 5.1
 
+**Stakeholders:** Spencer (raised this, flagged as blocking), Stephen, Steering Committee
+
 This is a fundamental design question. Options include:
 - **Repo-local metadata files** (e.g., Security Insights, `.osps-attestations.yml`): simplest, no cryptographic identity, maintainer self-declares by committing the file.
 - **Signed attestations via Sigstore/OIDC**: strongest guarantees, but requires workflow identity and the right tokens — which Spencer correctly notes may not be available in all contexts.
@@ -101,6 +103,8 @@ This is a fundamental design question. Options include:
 > "I thought the other doc said Scorecard wasn't an enforcement tool?"
 > — Spencer, on Q4 deliverables (enforcement detection)
 
+**Stakeholders:** Spencer (raised this), Stephen, Steering Committee
+
 This is a critical framing question. The roadmap proposes *detecting* whether enforcement exists (e.g., "are SAST results required to pass before merge?"), not *performing* enforcement. But the line between "detecting enforcement" and "being an enforcement tool" needs to be drawn clearly.
 
 **Recommendation to discuss**: Scorecard detects and reports whether enforcement mechanisms are in place. It does not itself enforce. The `--fail-on=fail` CI gating is a reporting exit code, not an enforcement action — the CI system is the enforcer. This distinction should be documented explicitly.
@@ -110,6 +114,8 @@ This is a critical framing question. The roadmap proposes *detecting* whether en
 > "Not sure I see the importance [of `scan_scope`]"
 > — Spencer, on Section 9 (output schema)
 
+**Stakeholders:** Stephen (can resolve alone)
+
 The `scan_scope` field (repo|org|repos) in the proposed OSPS output schema may not carry meaningful information. If the output always describes a single repository's conformance, the scope is implicit.
 
 **Recommendation to discuss**: Drop `scan_scope` from the schema unless multi-repo aggregation (OSPS-QA-04.02) produces a fundamentally different output shape. Revisit in Q4 when project-level aggregation is implemented.
@@ -118,6 +124,8 @@ The `scan_scope` field (repo|org|repos) in the proposed OSPS output schema may n
 
 > "[Evidence] should be probe-based only, not check"
 > — Spencer, on Section 9 (output schema)
+
+**Stakeholders:** Spencer (raised this), Stephen — effectively resolved (adopted)
 
 Spencer's position is that OSPS evidence references should point to probe findings, not check-level results. This aligns with the architectural direction of Scorecard v5 (probes as the measurement unit, checks as scoring aggregations).
 
@@ -384,12 +392,16 @@ We need to land these capabilities for as much surface area as possible.
 
 #### CQ-9: Coverage analysis and Phase 1 scope validation
 
+**Stakeholders:** Stephen (can answer alone)
+
 The coverage analysis (`docs/osps-baseline-coverage.md`) identifies 25 Level 1 controls. Of those, 6 are COVERED, 8 are PARTIAL, 9 are GAP, and 2 are NOT_OBSERVABLE. The Phase 1 plan targets closing the 9 GAP controls. Given that 2 controls (AC-01.01, AC-02.01) are NOT_OBSERVABLE without org-admin tokens, should Phase 1 explicitly include work on improving observability (e.g., documenting what tokens are needed, or providing guidance for org admins), or should those controls remain UNKNOWN until a later phase?
 
 **Stephen's response:**
 
 
 #### CQ-10: Mapping file ownership and contribution model
+
+**Stakeholders:** Stephen, Eddie Knight, Baseline maintainers — partially superseded by CQ-17
 
 The versioned mapping file (e.g., `pkg/osps/mappings/v2026-02-19.yaml`) is a critical artifact that defines which probes satisfy which OSPS controls. Who should own this file? Options:
 - Scorecard maintainers only (changes require maintainer review)
@@ -403,6 +415,8 @@ This also affects how we handle disagreements about whether a probe truly satisf
 
 #### CQ-11: Backwards compatibility of OSPS output format
 
+**Stakeholders:** Stephen, Spencer, Eddie Knight — depends on CQ-18 (output format decision)
+
 The spec requires `--format=osps` as a new output format. Since this is a new surface, we have freedom to iterate on the schema. However, once shipped, consumers will depend on it. What stability guarantees should we offer?
 - No guarantees during Phase 1 (alpha schema, may break between releases)
 - Semver-like schema versioning from day one (breaking changes increment major version)
@@ -412,6 +426,8 @@ The spec requires `--format=osps` as a new output format. Since this is a new su
 
 
 #### CQ-12: Probe gap prioritization for Phase 1
+
+**Stakeholders:** Stephen (can answer alone)
 
 The coverage analysis identifies 7 Level 1 GAP controls that need new probes (excluding the 2 that depend on Security Insights). Ranked by implementation feasibility:
 
@@ -430,6 +446,8 @@ Do you agree with this priority ordering? Are there any controls you would move 
 
 #### CQ-13: Minder integration surface
 
+**Stakeholders:** Stephen, Minder maintainers, Steering Committee
+
 [Minder](https://github.com/mindersec/minder) is an OpenSSF Sandbox project within the ORBIT WG that already consumes Scorecard findings to enforce security policies and auto-remediate across repositories. Minder uses Rego-based rules and can enforce OSPS Baseline controls via policy profiles. A draft Scorecard PR (#4723, now stale) attempted deeper integration by enabling Scorecard checks to be written using Minder's Rego rule engine.
 
 Given Minder's position in the ORBIT ecosystem:
@@ -442,6 +460,8 @@ Given Minder's position in the ORBIT ecosystem:
 
 #### CQ-14: Darnit vs. Minder delineation
 
+**Stakeholders:** Stephen (can answer alone)
+
 The proposal lists both [Darnit](https://github.com/kusari-oss/darnit) and [Minder](https://github.com/mindersec/minder) as tools that handle remediation and enforcement. Their capabilities overlap in some areas (both can enforce Baseline controls, both can remediate). For Scorecard's purposes, the distinction matters primarily for the "What Scorecard must not do" boundary.
 
 Is the current framing correct — that Scorecard is the measurement layer and both Minder and Darnit are downstream consumers? Or should we position Scorecard differently relative to one versus the other, given that Minder is an OpenSSF project in the same working group while Darnit is not?
@@ -450,6 +470,8 @@ Is the current framing correct — that Scorecard is the measurement layer and b
 
 
 #### CQ-15: Existing issues as Phase 1 work items
+
+**Stakeholders:** Stephen (can answer alone)
 
 The coverage analysis (`docs/osps-baseline-coverage.md`) now includes a section mapping existing Scorecard issues to OSPS Baseline gaps. Several long-standing issues align directly with Phase 1 priorities:
 
@@ -526,6 +548,8 @@ The following clarifying questions require Steering Committee decisions informed
 
 #### CQ-17: Mapping file location — Scorecard repo or shared?
 
+**Stakeholders:** Stephen, Eddie Knight, OSPS Baseline maintainers
+
 Eddie offers to host the Baseline-to-Scorecard mapping in the Baseline repository with Scorecard maintainers as CODEOWNERS (EK-1). The current proposal places it in the Scorecard repo.
 
 Options:
@@ -542,6 +566,8 @@ _Note that this question is negated if consolidating check logic within `pvtr-gi
 
 #### CQ-18: Output format — `--format=osps` vs. Gemara SDK output
 
+**Stakeholders:** Stephen, Spencer (OQ-4 constrains this), Eddie Knight
+
 Eddie clarifies that no "OSPS output format" exists in the ORBIT ecosystem (EK-2). The Gemara SDK supports multiple formats (JSON, YAML, SARIF). He suggests Scorecard keep its existing output logic and optionally add Gemara JSON/YAML as another format.
 
 This affects the spec's requirement for `--format=osps`. Options:
@@ -555,6 +581,8 @@ Which approach do you prefer? Does the Gemara SDK dependency concern you?
 
 
 #### CQ-19: Architectural direction — build vs. integrate
+
+**Stakeholders:** Stephen, Spencer, Eddie Knight, Steering Committee, at least 1 non-Steering maintainer — this is the gating decision; most other open questions depend on its outcome
 
 This is the central decision. Eddie proposes consolidating Scorecard checks/probes into the Privateer plugin and having Scorecard execute the plugin (EK-5). The current proposal has Scorecard building its own conformance engine.
 
@@ -586,6 +614,8 @@ Which option do you prefer? What are your concerns about taking a dependency on 
 
 #### CQ-20: Catalog extraction — what does it mean concretely?
 
+**Stakeholders:** Stephen, Eddie Knight, Steering Committee
+
 Eddie is "hugely in favor" of extracting the Scorecard control catalog (EK-4) but the proposal lacks an implementation plan. Concretely, this could mean:
 
 1. **Machine-readable probe definitions**: Export `probes/*/def.yml` as a versioned catalog (already exists in the repo, but not packaged for external consumption)
@@ -600,6 +630,8 @@ What level of extraction do you envision? Is option 2 (Gemara L2 integration) th
 
 #### CQ-21: Privateer code duplication — is it acceptable?
 
+**Stakeholders:** Stephen, Spencer, Eddie Knight, Steering Committee — flows from CQ-19
+
 Eddie points out that the current proposal would result in two codebases evaluating the same OSPS controls independently (EK-3). Even if the proposal says "don't duplicate Privateer," building a separate conformance engine effectively does that.
 
 Is some duplication acceptable if it means Scorecard retains architectural independence? Or is avoiding duplication a hard constraint that should drive us toward the shared plugin model (CQ-19 Option B)?
@@ -609,8 +641,65 @@ Is some duplication acceptable if it means Scorecard retains architectural indep
 
 #### CQ-16: Allstar's role in OSPS conformance enforcement
 
+**Stakeholders:** Stephen (can answer alone)
+
 [Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (branch protection, binary artifacts, security policy, dangerous workflows). It already enforces a subset of controls aligned with OSPS Baseline.
 
 With OSPS conformance output, Allstar could potentially enforce Baseline conformance at the organization level — e.g., opening issues or auto-remediating when a repository falls below Level 1 conformance. Should the proposal explicitly include Allstar as a Phase 1 consumer of OSPS output, or should that be deferred? And more broadly, should Allstar be considered part of the "enforcement" boundary that Scorecard itself does not cross, even though it is a Scorecard sub-project?
 
 **Stephen's response:**
+
+
+### Decision priority analysis
+
+The open questions have dependencies between them. Answering them in the
+wrong order will result in rework. The recommended sequence follows.
+
+#### Tier 1 — Gating decisions (answer before all others)
+
+| Question | Why it gates | Who decides |
+|----------|-------------|-------------|
+| **CQ-19** | Architectural direction (build vs. integrate vs. hybrid). If answered as Option B (shared plugin), CQ-17, CQ-18, CQ-20, and CQ-21 are either resolved or fundamentally reframed. | Stephen + Spencer + Eddie Knight + Steering Committee |
+| **OQ-1** | Attestation identity model. Spencer flagged as blocking. Determines how non-automatable controls are handled across all phases. | Spencer + Stephen + Steering Committee |
+
+#### Tier 2 — Downstream of CQ-19 (answer once Tier 1 is resolved)
+
+| Question | Dependency | Who decides |
+|----------|-----------|-------------|
+| **CQ-18** | Output format depends on CQ-19's architectural direction. | Stephen + Spencer + Eddie Knight |
+| **CQ-17** | Mapping file location depends on CQ-19 (negated if Option B). | Stephen + Eddie Knight + Baseline maintainers |
+| **OQ-2** | Enforcement detection scope. Affects Phase 3 scope. | Spencer + Stephen + Steering Committee |
+
+#### Tier 3 — Important but non-blocking for Phase 1 start
+
+| Question | Notes | Who decides |
+|----------|-------|-------------|
+| **CQ-20** | Catalog extraction scope. Flows from CQ-19. | Stephen + Eddie Knight |
+| **CQ-21** | Code duplication tolerance. Flows from CQ-19. | Stephen + Spencer + Eddie Knight |
+| **CQ-13** | Minder integration surface. Affects ecosystem positioning. | Stephen + Minder maintainers |
+| **CQ-11** | Output stability guarantees. Depends on CQ-18. | Stephen + Spencer |
+
+#### Tier 4 — Stephen can answer alone (any time)
+
+| Question | Notes |
+|----------|-------|
+| **CQ-9** | NOT_OBSERVABLE controls — implementation detail, UNKNOWN-first principle already agreed. |
+| **CQ-12** | Probe gap priority ordering — coverage doc already proposes an order. |
+| **CQ-14** | Darnit vs. Minder delineation — ecosystem positioning Stephen can articulate. |
+| **CQ-15** | Existing issues as Phase 1 work items — backlog triage. |
+| **CQ-16** | Allstar's role — Scorecard sub-project under same Steering Committee. |
+
+#### Effectively resolved
+
+| Question | Resolution |
+|----------|-----------|
+| **OQ-3** | Drop `scan_scope` from the schema (Spencer's feedback). |
+| **OQ-4** | Evidence is probe-based only, not check-based (adopted). |
+| **CQ-10** | Partially superseded by CQ-17 (same topic with Eddie's context). |
+
+#### Recommended next steps
+
+1. **Schedule a discussion with Eddie Knight** to resolve CQ-19. Bring Spencer. This is the fork in the road — everything downstream depends on it.
+2. **Resolve OQ-1** with Spencer and the Steering Committee. Spencer flagged it as blocking, and it affects the spec regardless of CQ-19's outcome.
+3. **Answer the Tier 4 questions** at any time — they are independent and don't block others.
+4. **Once CQ-19 and OQ-1 are decided**, the Tier 2 and 3 questions can be resolved quickly since they flow from the architectural direction.
