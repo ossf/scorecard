@@ -143,13 +143,13 @@ Scorecard's processing model has four steps:
 
 ### Three-tier evaluation model
 
-```
-Evidence layer:    Probe findings (atomic boolean measurements)
-                       |
-Evaluation layers: Check scoring (0-10, existing)
-                   Conformance evaluation (PASS/FAIL/UNKNOWN, new)
-                       |
-Output formats:    JSON, in-toto, Gemara, SARIF, OSCAL, probe, default
+```mermaid
+flowchart TD
+    Probes["Probe findings<br/>(atomic boolean measurements)"]
+    Probes --> Checks["Check scoring<br/>(0-10, existing)"]
+    Probes --> Conformance["Conformance evaluation<br/>(PASS/FAIL/UNKNOWN, new)"]
+    Checks --> Formats["Output formats<br/>(JSON, in-toto, Gemara,<br/>SARIF, OSCAL, probe, default)"]
+    Conformance --> Formats
 ```
 
 Check scores and conformance labels are *parallel interpretations* of the same
@@ -310,23 +310,22 @@ flowchart TD
             end
         end
 
-        subgraph Enforcement["Policy Enforcement"]
+        subgraph Enforcement["Enforcement & Audit"]
             Minder["Minder<br/>(enforce + remediate)"]
             AMPEL["AMPEL<br/>(attestation-based<br/>policy enforcement)"]
+            Darnit["Darnit<br/>(audit + remediate)"]
         end
-
-        Darnit["Darnit<br/>(audit + remediate)"]
     end
 
     Baseline -->|defines controls| Privateer
     Baseline -->|defines controls| Scorecard
     Baseline -->|defines controls| Minder
-    Baseline -->|defines controls| AMPEL
+    Baseline -->|defines controls| Darnit
+    Baseline -->|informs policies| AMPEL
     Gemara -->|provides schemas| Privateer
     Gemara -->|provides schemas| Scorecard
     SI -->|provides metadata| Privateer
     SI -->|provides metadata| Scorecard
-    SI -->|provides metadata| Minder
     Scorecard -->|checks| Allstar
     Scorecard -->|evidence| Privateer
     Scorecard -->|evidence| Minder
