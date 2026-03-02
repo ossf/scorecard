@@ -26,6 +26,7 @@ const (
 	PropertyBasedJavaScript = "JavaScriptPropertyBasedTesting"
 	PropertyBasedTypeScript = "TypeScriptPropertyBasedTesting"
 	PythonAtheris           = "PythonAtherisFuzzer"
+	PropertyBasedPython     = "PythonPropertyBasedTesting"
 	CLibFuzzer              = "CLibFuzzer"
 	CppLibFuzzer            = "CppLibFuzzer"
 	SwiftLibFuzzer          = "SwiftLibFuzzer"
