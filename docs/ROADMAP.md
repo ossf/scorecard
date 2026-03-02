@@ -85,11 +85,14 @@ Scorecard does not duplicate:
 - **[Minder](https://github.com/mindersec/minder)** — Policy enforcement and remediation platform (OpenSSF Sandbox, ORBIT WG)
 - **[Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner)** — Baseline evaluation powered by Gemara and Security Insights
 - **[Darnit](https://github.com/kusari-oss/darnit)** — Compliance audit and remediation
-- **[AMPEL](https://github.com/carabiner-dev/ampel)** — Attestation-based policy enforcement
+- **[AMPEL](https://github.com/carabiner-dev/ampel)** — Attestation-based policy enforcement; already consumes Scorecard probe results via [policy library](https://github.com/carabiner-dev/policies/tree/main/scorecard)
 
 Scorecard's role is to produce deep, probe-based conformance evidence that
-these tools and downstream consumers can use. Minder already consumes
-Scorecard findings to enforce security policies across repositories.
+these tools and downstream consumers can use. Both Minder and AMPEL already
+consume Scorecard findings today — Minder to enforce security policies
+across repositories, and AMPEL to validate Scorecard attestations against
+[OSPS Baseline policies](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline)
+in CI/CD pipelines.
 
 ### Design principles
 
@@ -118,6 +121,5 @@ The following design questions are under active discussion among maintainers:
 ### How to contribute
 
 See the [proposal](../openspec/changes/osps-baseline-conformance/proposal.md)
-and [spec](../openspec/changes/osps-baseline-conformance/specs/osps-conformance/spec.md)
-for detailed requirements. Discussion and feedback are welcome via GitHub
-issues and the Scorecard community meetings.
+for detailed requirements and open questions. Discussion and feedback are
+welcome via GitHub issues and the Scorecard community meetings.
