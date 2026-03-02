@@ -109,6 +109,8 @@ The proposal frames this as a "product-level shift" where Scorecard gains a seco
 
 I believe the scoring model will continue to be useful to consumers and it should be maintained. For now, both modes should coexist. There is no need to make a decision about this for the current iteration of the proposal.
 
+**Update:** Check scores and conformance labels are *parallel evaluation layers* over the same probe evidence, not two competing "modes." Both can appear in the same output. The three-tier architecture model (evidence layer → evaluation layers → output formats) replaces the original "two modes" framing. OSPS conformance is *one goal*, not *the* goal — Scorecard's broader identity is as an open source security evidence engine.
+
 #### CQ-2: OSPS Baseline version targeting
 
 The roadmap previously targeted OSPS Baseline v2025-10-10. The Privateer GitHub plugin targets v2025-02-25. The Baseline is a living spec with periodic releases. How should Scorecard handle version drift? Options:
@@ -138,6 +140,8 @@ This also raises a broader adoption question: most projects today don't have a `
 **Stephen's response:**
 
 We should provide a degraded, but still-useful evaluation without a Security Insights file, especially since our probes today can already cover a lot of ground without it. It would be good for us to eventually support alternative metadata sources, but this should not be an immediate goal.
+
+**Update:** Reframed as a "metadata ingestion layer" that supports Security Insights as one source among several. SI is not privileged. Architecture invites contributions for alternative sources (SBOMs, VEX, platform APIs). No single metadata file is required for meaningful results, though metadata files may enrich results.
 
 #### CQ-4: PVTR relationship — complement vs. converge
 
@@ -268,6 +272,12 @@ Questions:
 - Is there a risk of duplicating Baseline evaluation work that Minder or AMPEL already do via their own rules, and if so, how should we delineate?
 
 **Stephen's response:**
+
+All downstream tools — Privateer, AMPEL, Minder, Darnit, and others — are equal consumers of Scorecard's output formats. The output formats should serve different tool types equally (policy, remediation, dashboarding).
+
+Scorecard SHOULD NOT (per [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)) duplicate evaluation that downstream tools handle, but this is not a MUST NOT. There could be scenarios where overlapping evaluation makes sense (e.g., Scorecard brings deeper analysis or different evidence sources).
+
+Coordinate with downstream tool maintainers during Phase 1 to validate that output formats are consumable.
 
 
 #### CQ-14: Darnit vs. Minder delineation
@@ -456,6 +466,16 @@ _Note that this question is negated if consolidating check logic within `pvtr-gi
 
 **Stephen's response:**
 
+**Decision: Option 3 (both) — two-layer mapping model.**
+
+- *Upstream* ([security-baseline](https://github.com/ossf/security-baseline) repo): Check-level relations — "OSPS-AC-03 relates to Scorecard's Branch-Protection check." Scorecard maintainers contribute via PR. The Baseline repo already has `guideline-mappings` referencing Scorecard in 9 controls (mapping to 7 checks). Scorecard can PR the missing ones.
+- *Internal* (Scorecard repo): Probe-level mappings — "OSPS-AC-03.01 is evaluated by probes X + Y with logic Z." These depend on probe implementation details and must live in Scorecard.
+
+**Language nuance** (per [security-baseline PR #476](https://github.com/ossf/security-baseline/pull/476)): Mappings were renamed to "relations" to guard against legal issues. Use "informs" / "provides evidence toward" rather than "satisfies" / "demonstrates compliance with."
+
+Taking a dependency on `github.com/ossf/security-baseline` is acceptable — it is a shared OpenSSF project with useful connectors.
+
+**Go module concern:** go.mod lives in cmd/ but module path is repo root. Import from cmd/pkg/ is unusual. Called out as potential concern, not blocking.
 
 #### CQ-18: Output format — `--format=osps` vs. ecosystem formats
 
@@ -474,6 +494,15 @@ Which approach do you prefer?
 
 **Stephen's response:**
 
+**Decision: Option 5 (combination) — the evidence model is the core deliverable; output formats are presentation layers.**
+
+Phase 1 ships:
+- **Enriched JSON** (Scorecard-native, no external dependency)
+- **In-toto predicates** — SVR first; track [Baseline Predicate PR #502](https://github.com/in-toto/attestation/pull/502). Multiple predicate types supported simultaneously. Existing Scorecard predicate type (`scorecard.dev/result/v0.1`) preserved for backwards compatibility.
+- **Gemara output** — dependency already transitive via `github.com/ossf/security-baseline` (gemara v0.7.0). The existing formatter pattern (`As<Format>()` methods) makes adding this straightforward.
+- **OSCAL Assessment Results** — using [go-oscal](https://github.com/defenseunicorns/go-oscal). The security-baseline repo already exports OSCAL Catalog format (control definitions) via go-oscal v0.6.3. Scorecard would produce OSCAL Assessment Results (findings per control for a given repo) — a complementary OSCAL model. AMPEL has native OSCAL support.
+
+There is no "OSPS output format" (confirming Eddie's, Adolfo's, and Mike's feedback). The `--format=osps` flag is replaced by the specific format flags above.
 
 #### CQ-19: Architectural direction — build vs. integrate
 
@@ -506,6 +535,18 @@ Which option do you prefer? What are your concerns about taking a dependency on 
 
 **Stephen's response:**
 
+**Decision: Option C (hybrid), designed so that scaling back to Option A remains straightforward if needed.**
+
+The architecture must ensure:
+1. Scorecard owns all probe execution (non-negotiable core competency)
+2. Scorecard owns its own conformance evaluation logic (mapping, PASS/FAIL, applicability engine all live in Scorecard)
+3. Interoperability is purely at the output layer — Gemara, in-toto, SARIF, OSCAL are presentation formats, not architectural dependencies
+4. Evaluation logic is self-contained — Scorecard can produce conformance results using its own probes and mappings, independent of external evaluation engines
+
+**Dependency guidance:** Only adopt reasonably stable dependencies when needed. `github.com/ossf/security-baseline` is an acceptable data dependency for control definitions.
+
+**Flexibility:** Under this structure, scaling back to a fully independent model (Option A) remains straightforward — deprioritize or drop specific output formatters without affecting the evaluation layer.
+
 
 #### CQ-20: Catalog extraction — what does it mean concretely?
 
@@ -533,6 +574,8 @@ Is some duplication acceptable if it means Scorecard retains architectural indep
 
 **Stephen's response:**
 
+Resolved by CQ-19 decision. Option C (hybrid) accepts that some evaluation overlap may occur. Scorecard SHOULD NOT duplicate evaluation that downstream tools handle (RFC 2119 SHOULD NOT, not MUST NOT). Scorecard retains architectural independence — interoperability is at the output layer, not the evaluation layer.
+
 
 #### CQ-22: Attestation decomposition — identity vs. tooling
 
@@ -548,6 +591,8 @@ The answers will differ per project and per control. Should OQ-1 be decomposed i
 Adolfo has offered to discuss this in depth.
 
 **Stephen's response:**
+
+Acknowledged. OQ-1 should be decomposed into identity and tooling sub-questions as Adolfo suggests. The design should allow different identity/tooling combinations per control. Detailed resolution deferred to discussion with Adolfo and Spencer.
 
 
 #### CQ-23: Mapping registry — where should the canonical mapping live?
@@ -566,6 +611,8 @@ This extends CQ-17 with Adolfo's context about the demoted Baseline registry. Sh
 
 **Stephen's response:**
 
+Resolved by the two-layer mapping model (see CQ-17). Check-level relations are contributed upstream to `ossf/security-baseline` via PR, using the existing `guideline-mappings` structure. Probe-level mappings live in Scorecard. This approach works with the current state of the security-baseline repo without requiring restoration of the demoted mapping registry.
+
 
 ---
 
@@ -574,30 +621,30 @@ This extends CQ-17 with Adolfo's context about the demoted Baseline registry. Sh
 The open questions have dependencies between them. Answering them in the
 wrong order will result in rework. The recommended sequence follows.
 
-### Tier 1 — Gating decisions (answer before all others)
+### Tier 1 — Gating decisions
 
-| Question | Why it gates | Who decides |
-|----------|-------------|-------------|
-| **CQ-19** | Architectural direction (build vs. integrate vs. hybrid). If answered as Option B (shared plugin), CQ-17, CQ-18, CQ-20, and CQ-21 are either resolved or fundamentally reframed. | Stephen + Spencer + Eddie Knight + Steering Committee |
-| **OQ-1** | Attestation identity model. Spencer flagged as blocking. Determines how non-automatable controls are handled across all phases. | Spencer + Stephen + Steering Committee |
+| Question | Status | Resolution |
+|----------|--------|------------|
+| **CQ-19** | **RESOLVED** | Option C (hybrid), designed so that scaling back to Option A remains straightforward. Scorecard owns probe execution and evaluation; interoperability at output layer only. |
+| **OQ-1** | **OPEN** | Attestation identity model. Spencer flagged as blocking. CQ-22 decomposes into identity vs. tooling. |
 
-### Tier 2 — Downstream of CQ-19 (answer once Tier 1 is resolved)
+### Tier 2 — Downstream of CQ-19
 
-| Question | Dependency | Who decides |
-|----------|-----------|-------------|
-| **CQ-18** | Output format depends on CQ-19's architectural direction. Three reviewers flagged "no OSPS output format." In-toto predicates (AP-2) and Gemara SDK are concrete alternatives. | Stephen + Spencer + Eddie Knight + Adolfo |
-| **CQ-17/CQ-23** | Mapping file location depends on CQ-19 (negated if Option B). Adolfo adds context: Baseline registry was demoted (AP-1). | Stephen + Eddie Knight + Adolfo + Baseline maintainers |
-| **CQ-22** | Attestation decomposition (identity vs. tooling). Refines OQ-1. | Stephen + Spencer + Adolfo + Eddie Knight |
-| **OQ-2** | Enforcement detection scope. Affects Phase 3 scope. | Spencer + Stephen + Steering Committee |
+| Question | Status | Resolution |
+|----------|--------|------------|
+| **CQ-18** | **RESOLVED** | Enriched JSON + in-toto predicates + Gemara + OSCAL Assessment Results. No "OSPS output format." |
+| **CQ-17/CQ-23** | **RESOLVED** | Two-layer mapping model: check-level relations in security-baseline, probe-level mappings in Scorecard. |
+| **CQ-22** | **PARTIALLY RESOLVED** | OQ-1 decomposed into identity vs. tooling sub-questions (per Adolfo). Detailed resolution deferred to discussion with Adolfo and Spencer. |
+| **OQ-2** | **OPEN** | Enforcement detection scope. Affects Phase 3 scope. Needs Spencer + Stephen + Steering Committee. |
 
 ### Tier 3 — Important but non-blocking for Phase 1 start
 
-| Question | Notes | Who decides |
-|----------|-------|-------------|
-| **CQ-20** | Catalog extraction scope. Flows from CQ-19. | Stephen + Eddie Knight |
-| **CQ-21** | Code duplication tolerance. Flows from CQ-19. | Stephen + Spencer + Eddie Knight |
-| **CQ-13** | Minder/AMPEL integration surface. Affects ecosystem positioning. | Stephen + Minder maintainers + Adolfo |
-| **CQ-11** | Output stability guarantees. Depends on CQ-18. | Stephen + Spencer |
+| Question | Status | Notes |
+|----------|--------|-------|
+| **CQ-20** | **OPEN** | Catalog extraction scope. Flows from CQ-19 (now resolved). |
+| **CQ-21** | **RESOLVED** | Some duplication acceptable. RFC 2119 SHOULD NOT, not MUST NOT. |
+| **CQ-13** | **RESOLVED** | All consumers equal. RFC 2119 SHOULD NOT duplicate evaluation. |
+| **CQ-11** | **OPEN** | Output stability guarantees. CQ-18 now resolved; this can proceed. |
 
 ### Tier 4 — Stephen can answer alone (any time)
 
@@ -615,11 +662,12 @@ wrong order will result in rework. The recommended sequence follows.
 |----------|-----------|
 | **OQ-3** | Drop `scan_scope` from the schema (Spencer's feedback). |
 | **OQ-4** | Evidence is probe-based only, not check-based (adopted). |
-| **CQ-10** | Partially superseded by CQ-17 (same topic with Eddie's context). |
+| **CQ-10** | Superseded by CQ-17 (two-layer mapping model). |
 
 ### Recommended next steps
 
-1. **Schedule a discussion with Eddie Knight and Adolfo García Veytia** to resolve CQ-19. Bring Spencer. This is the fork in the road — everything downstream depends on it.
-2. **Resolve OQ-1/CQ-22** with Spencer, Adolfo, and the Steering Committee. Spencer flagged OQ-1 as blocking. Adolfo's decomposition (identity vs. tooling) clarifies what needs to be decided.
-3. **Answer the Tier 4 questions** at any time — they are independent and don't block others.
-4. **Once CQ-19 and OQ-1/CQ-22 are decided**, the Tier 2 and 3 questions can be resolved quickly since they flow from the architectural direction.
+1. **Resolve OQ-1/CQ-22** with Spencer, Adolfo, and the Steering Committee. Spencer flagged OQ-1 as blocking. Adolfo's decomposition (identity vs. tooling) clarifies what needs to be decided. Adolfo has offered to discuss.
+2. **Resolve CQ-20** (catalog extraction scope) — now unblocked by CQ-19 resolution.
+3. **Resolve CQ-11** (output stability guarantees) — now unblocked by CQ-18 resolution.
+4. **Answer the Tier 4 questions** at any time — they are independent and don't block others.
+5. **Begin Phase 1 implementation** — the gating architectural decisions (CQ-19, CQ-18, CQ-17) are resolved.
