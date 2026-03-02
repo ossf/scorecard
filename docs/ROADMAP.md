@@ -38,7 +38,8 @@ Deliverables:
 
 - Evidence model and output formats:
   - Enriched JSON (Scorecard-native)
-  - In-toto predicates (SVR; track Baseline Predicate)
+  - In-toto predicates ([SVR](https://github.com/in-toto/attestation/blob/main/spec/predicates/svr.md);
+    track [Baseline Predicate PR #502](https://github.com/in-toto/attestation/pull/502))
   - Gemara output (via [security-baseline](https://github.com/ossf/security-baseline)
     dependency)
   - OSCAL Assessment Results (via
@@ -47,17 +48,14 @@ Deliverables:
   - Check-level relations contributed upstream to security-baseline
   - Probe-level mappings maintained in Scorecard
 - Applicability engine detecting preconditions (e.g., "has made a release")
+- Map existing probes to OSPS controls where coverage exists today
 - New probes for Level 1 gaps:
-  - Governance and documentation presence (OSPS-GV-02.01, GV-03.01,
-    DO-01.01, DO-02.01)
-  - Dependency manifest presence (OSPS-QA-02.01)
-  - Security policy deepening (OSPS-VM-02.01, VM-03.01)
-  - Secrets detection (OSPS-BR-07.01) — consuming platform signals where
-    available
-- Metadata ingestion layer — Security Insights as first supported source
-  (OSPS-BR-03.01, BR-03.02, QA-04.01); architecture supports additional
-  metadata sources
-- CI gating via `--fail-on=fail`
+  - Governance and documentation presence
+  - Dependency manifest presence
+  - Security policy deepening
+  - Secrets detection — consuming platform signals where available
+- Metadata ingestion layer — Security Insights as first supported source;
+  architecture supports additional metadata sources
 - Scorecard control catalog extraction plan
 
 #### Phase 2: Release integrity and Level 2 core
@@ -68,8 +66,8 @@ core of Level 2 and becoming useful for downstream due diligence workflows.
 Deliverables:
 
 - Release asset inspection layer
-- Signed manifest support (OSPS-BR-06.01)
-- Release notes and changelog detection (OSPS-BR-04.01)
+- Signed manifest support
+- Release notes and changelog detection
 - Attestation mechanism for non-automatable controls
 - Evidence bundle output (conformance results + in-toto statement)
 - Additional metadata sources for the ingestion layer
@@ -81,9 +79,9 @@ and project-level aggregation.
 
 Deliverables:
 
-- SCA policy and enforcement detection (OSPS-VM-05.*)
-- SAST policy and enforcement detection (OSPS-VM-06.*)
-- Multi-repo project-level conformance aggregation (OSPS-QA-04.02)
+- SCA policy and enforcement detection
+- SAST policy and enforcement detection
+- Multi-repo project-level conformance aggregation
 - Attestation integration GA
 
 ### Ecosystem alignment
