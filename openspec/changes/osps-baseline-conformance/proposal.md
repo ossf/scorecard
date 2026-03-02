@@ -35,7 +35,7 @@ Several tools operate in adjacent spaces. Understanding their capabilities clari
 | **Action** | Analyzes repositories (read-only) | Monitors orgs, opens issues, auto-fixes settings | Enforces policies, auto-remediates | Audits + fixes repositories | Verifies attestations against policies | Evaluates repos against OSPS controls |
 | **Data source** | Collects from APIs/code | Collects from GitHub API + runs Scorecard checks | Collects from APIs + consumes findings from other tools | Analyzes repo state | Consumes attestations only | Collects from GitHub API + Security Insights |
 | **Output** | Scores (0-10) + probe findings | GitHub issues + auto-remediated settings | Policy evaluation results + remediation PRs | PASS/FAIL + attestations + fixes | PASS/FAIL + results attestation | Gemara L4 assessment results |
-| **OSPS Baseline** | Partial (via probes) | Indirect (enforces subset via Scorecard checks) | Via Rego policy rules | Full (62 controls) | Via policy rules | 39 of 52 controls |
+| **OSPS Baseline** | Partial (via probes) | Indirect (enforces subset via Scorecard checks) | Via Rego policy rules | Full (62 controls) | 36 policies mapping to controls (5 consume Scorecard probes) | 39 of 52 controls |
 | **In-toto** | Produces attestations | N/A | Consumes attestations | Produces attestations | Consumes + verifies | N/A |
 | **OSCAL** | No | No | No | No | Native support | N/A |
 | **Sigstore** | No | No | Verifies signatures | Signs attestations | Verifies signatures | N/A |
@@ -48,21 +48,20 @@ Several tools operate in adjacent spaces. Understanding their capabilities clari
 ```mermaid
 flowchart LR
     Scorecard["Scorecard<br/>(Measure)"] -->|checks| Allstar["Allstar<br/>(Enforce on GitHub)"]
-    Scorecard -->|findings + attestations| Minder["Minder<br/>(Enforce + Remediate)"]
-    Scorecard -->|findings + attestations| Darnit["Darnit<br/>(Audit + Remediate)"]
-    Scorecard -->|findings + attestations| AMPEL["AMPEL<br/>(Enforce)"]
+    Scorecard -->|findings| Minder["Minder<br/>(Enforce + Remediate)"]
+    Scorecard -->|attestations| AMPEL["AMPEL<br/>(Attestation-based<br/>policy enforcement)"]
+    Scorecard -->|findings| Darnit["Darnit<br/>(Audit + Remediate)"]
     Darnit -->|compliance attestation| AMPEL
     Scorecard -->|conformance evidence| Privateer["Privateer Plugin<br/>(Baseline evaluation)"]
 ```
 
-Scorecard is the **data source** (measures repository security). [Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (opening issues or auto-remediating settings). Minder consumes Scorecard findings to enforce policies and auto-remediate across repositories. Darnit audits compliance and remediates. AMPEL enforces policies on attestations. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
+Scorecard is the **data source** (measures repository security). [Allstar](https://github.com/ossf/allstar) is a Scorecard sub-project that continuously monitors GitHub organizations and enforces Scorecard check results as policies (opening issues or auto-remediating settings). [Minder](https://github.com/mindersec/minder) consumes Scorecard findings to enforce policies and auto-remediate across repositories. [AMPEL](https://github.com/carabiner-dev/ampel) validates Scorecard attestations against policies and gates CI/CD pipelines — it already maintains [production policies consuming Scorecard probe results](https://github.com/carabiner-dev/policies/tree/main/scorecard) and [OSPS Baseline policy mappings](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline). Darnit audits compliance and remediates. The Privateer plugin evaluates Baseline conformance. They are complementary, not competing.
 
 ### What Scorecard must not do
 
 - **Duplicate the Privateer plugin's role.** The [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner) is the Baseline evaluator in the ORBIT ecosystem. Scorecard should complement it with deeper analysis and interoperable output, not fork the evaluation model.
-- **Duplicate policy enforcement or remediation.** [Minder](https://github.com/mindersec/minder) (OpenSSF Sandbox project, ORBIT WG) consumes Scorecard findings and enforces security policies across repositories with auto-remediation. Scorecard produces findings for Minder to act on.
+- **Duplicate policy enforcement or remediation.** [Minder](https://github.com/mindersec/minder) (OpenSSF Sandbox project, ORBIT WG) consumes Scorecard findings and enforces security policies across repositories with auto-remediation. [AMPEL](https://github.com/carabiner-dev/ampel) (production v1.0.0) validates Scorecard attestations against policies and gates CI/CD pipelines — it already maintains [Scorecard-consuming policies](https://github.com/carabiner-dev/policies/tree/main/scorecard) and [OSPS Baseline mappings](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline). Scorecard *produces* findings and attestations for Minder and AMPEL to consume.
 - **Duplicate compliance auditing.** Darnit handles compliance auditing and automated remediation (PR creation, file generation, AI-assisted fixes). Scorecard is read-only.
-- **Duplicate attestation policy enforcement.** AMPEL verifies attestations against policies and gates CI/CD pipelines. Scorecard *produces* attestations for AMPEL to consume.
 - **Turn OSPS controls into Scorecard checks.** OSPS conformance is a layer that consumes existing Scorecard signals, not 59 new checks.
 
 ## Current state
@@ -156,7 +155,7 @@ Spencer's position is that OSPS evidence references should point to probe findin
 
 ### Out of scope
 
-- Policy enforcement and remediation (Minder's and Darnit's domain)
+- Policy enforcement and remediation (Minder's, AMPEL's, and Darnit's domain)
 - Replacing the Privateer plugin for GitHub repositories
 - Changing existing check scores or behavior
 - OSPS Baseline specification changes (ORBIT WG's domain)
@@ -220,13 +219,18 @@ flowchart TD
             end
         end
 
-        Minder["Minder<br/>(enforce + remediate)"]
+        subgraph Enforcement["Policy Enforcement"]
+            Minder["Minder<br/>(enforce + remediate)"]
+            AMPEL["AMPEL<br/>(attestation-based<br/>policy enforcement)"]
+        end
+
         Darnit["Darnit<br/>(audit + remediate)"]
     end
 
     Baseline -->|defines controls| Privateer
     Baseline -->|defines controls| Scorecard
     Baseline -->|defines controls| Minder
+    Baseline -->|defines controls| AMPEL
     Gemara -->|provides schemas| Privateer
     Gemara -->|provides schemas| Scorecard
     SI -->|provides metadata| Privateer
@@ -235,19 +239,21 @@ flowchart TD
     Scorecard -->|checks| Allstar
     Scorecard -->|conformance evidence| Privateer
     Scorecard -->|findings| Minder
+    Scorecard -->|attestations| AMPEL
     Scorecard -->|findings| Darnit
+    Darnit -->|compliance attestation| AMPEL
 ```
 
-**Scorecard's role**: Produce deep, probe-based conformance evidence that the Privateer plugin, Minder, and downstream consumers can use. Scorecard reads Security Insights (shared data plane), outputs Gemara L4-compatible results (shared schema), and fills analysis gaps where the Privateer plugin has `NotImplemented` steps.
+**Scorecard's role**: Produce deep, probe-based conformance evidence that the Privateer plugin, Minder, AMPEL, and downstream consumers can use. Scorecard reads Security Insights (shared data plane), outputs interoperable results (shared schema), and fills analysis gaps where the Privateer plugin has `NotImplemented` steps.
 
-**What Scorecard does NOT do**: Replace the Privateer plugin, enforce policies or remediate (Minder's role), or perform compliance auditing and remediation (Darnit's role).
+**What Scorecard does NOT do**: Replace the Privateer plugin, enforce policies or remediate (Minder's and AMPEL's role), or perform compliance auditing and remediation (Darnit's role).
 
 ## Success criteria
 
 1. `scorecard --format=osps --osps-level=1` produces a valid conformance report for any public GitHub repository
 2. OSPS Baseline Level 1 conformance is achieved (Phase 1 outcome)
 3. OSPS output is available across CLI, Action, and API surfaces
-4. OSPS output is consumable by the Privateer plugin as supplementary evidence (validated with ORBIT WG)
+4. OSPS output is consumable by the Privateer plugin, AMPEL, and Minder as supplementary evidence (validated with ORBIT WG)
 5. All four open questions (OQ-1 through OQ-4) are resolved with documented decisions
 6. No changes to existing check scores or behavior
 
@@ -444,16 +450,20 @@ Do you agree with this priority ordering? Are there any controls you would move 
 **Stephen's response:**
 
 
-#### CQ-13: Minder integration surface
+#### CQ-13: Minder and AMPEL integration surfaces
 
-**Stakeholders:** Stephen, Minder maintainers, Steering Committee
+**Stakeholders:** Stephen, Minder maintainers, Adolfo García Veytia (AMPEL), Steering Committee
 
-[Minder](https://github.com/mindersec/minder) is an OpenSSF Sandbox project within the ORBIT WG that already consumes Scorecard findings to enforce security policies and auto-remediate across repositories. Minder uses Rego-based rules and can enforce OSPS Baseline controls via policy profiles. A draft Scorecard PR (#4723, now stale) attempted deeper integration by enabling Scorecard checks to be written using Minder's Rego rule engine.
+Two tools already consume Scorecard data for policy enforcement:
 
-Given Minder's position in the ORBIT ecosystem:
-- Should the OSPS conformance output be designed with Minder as an explicit consumer (e.g., ensuring the output schema works well as Minder policy input)?
-- Should we coordinate with Minder maintainers during Phase 1 to validate the integration surface?
-- Is there a risk of duplicating Baseline evaluation work that Minder already does via its own rules, and if so, how should we delineate?
+**[Minder](https://github.com/mindersec/minder)** (OpenSSF Sandbox, ORBIT WG) consumes Scorecard findings to enforce security policies and auto-remediate across repositories. Uses Rego-based rules and can enforce OSPS Baseline controls via policy profiles. A draft Scorecard PR (#4723, now stale) attempted deeper integration.
+
+**[AMPEL](https://github.com/carabiner-dev/ampel)** (production v1.0.0) validates Scorecard attestations against policies in CI/CD pipelines. Already maintains [5 Scorecard-consuming policies](https://github.com/carabiner-dev/policies/tree/main/scorecard) and [36 OSPS Baseline policy mappings](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline). Uses CEL expressions and in-toto attestations.
+
+Questions:
+- Should the OSPS conformance output be designed with Minder and AMPEL as explicit consumers (e.g., ensuring the output works as Minder policy input and as AMPEL attestation input)?
+- Should we coordinate with both Minder maintainers and Adolfo during Phase 1 to validate the integration surface?
+- Is there a risk of duplicating Baseline evaluation work that Minder or AMPEL already do via their own rules, and if so, how should we delineate?
 
 **Stephen's response:**
 
@@ -542,9 +552,72 @@ Eddie proposes a fundamentally different architecture:
 
 **This is the central architectural decision for the proposal.** The Steering Committee needs to evaluate this against the current plan (Scorecard builds its own conformance engine).
 
+### Adolfo García Veytia's feedback (AMPEL maintainer)
+
+The following feedback was provided by Adolfo García Veytia (@puerco, maintainer of [AMPEL](https://github.com/carabiner-dev/ampel)) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
+
+#### AP-1: Mapping file registry — single source preferred
+
+> "It's great that you also see the need for machine-readable data. This would help projects like AMPEL write policies that enforce the baseline controls based on the results from Scorecard and other analysis tools."
+>
+> "Initially, we were trying to build the mappings into baseline itself. I still think it's the way to go as it would be better to have a single registry and data format of those mappings (in this case baseline's). Unfortunately, the way baseline considers its mappings [was demoted](https://github.com/ossf/security-baseline/pull/476) so we don't have that registry anymore."
+
+Adolfo strongly supports machine-readable mapping data and prefers a single registry in the Baseline itself, though the Baseline's own mapping support was recently demoted (PR #476 in security-baseline). This aligns with Eddie's offer (EK-1) to host mappings in the Baseline repo, but adds the context that there is no longer an official registry for tool-to-control mappings.
+
+AMPEL already maintains its own [Scorecard-to-Baseline policy mappings](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline) (36 OSPS control policies, 5 of which directly consume Scorecard probe results). An official upstream mapping from Scorecard would benefit the entire ecosystem.
+
+#### AP-2: Output format — use in-toto predicates, not a custom format
+
+> "As others have mentioned, there is no _OSPS output format_ but there are two formal/in process of formalizing in-toto predicate types that are useful for this:
+>
+> **[Simple Verification Results](https://github.com/in-toto/attestation/blob/main/spec/predicates/svr.md)** — a simple predicate that communicates just the verified control labels along with the tool that performed the evaluation. It is a generalization of the VSA for non-SLSA controls.
+>
+> **[The "Baseline" Predicate](https://github.com/in-toto/attestation/pull/502)** — Still not merged, this predicate type was proposed by some of the baseline maintainers to capture an interoperability format more in line with the requirements in this spec, including manual assessments (what is named in this PR as 'ATTESTED')."
+
+Adolfo identifies two concrete in-toto predicate types that Scorecard should consider for output instead of inventing a custom format:
+
+1. **Simple Verification Results (SVR)**: Already merged in the in-toto attestation spec. Communicates verified control labels and the evaluating tool. Generalizes SLSA VSA to non-SLSA controls.
+2. **Baseline Predicate**: Proposed by Baseline maintainers (PR #502, not yet merged). Designed for interoperability and includes support for manual assessments (ATTESTED status).
+
+This is the most concrete guidance on output format so far and directly informs CQ-18.
+
+#### AP-3: Attestation question conflates identity and tooling
+
+> "The question here is conflating two domains. One question is _who_ signs the attestation, and how can those identities be trusted (identity). The other is _what_ (tool) generates the attestations, and more importantly, from scorecard's perspective, when. This hints at a policy implementation and the answers will most likely differ for projects and controls. Happy to chat about this one day."
+
+Adolfo clarifies that OQ-1 (attestation mechanism identity) is actually two separate questions:
+1. **Identity**: Who signs the attestation, and how are those identities trusted? (Sigstore/OIDC, personal keys, etc.)
+2. **Tooling**: What tool generates the attestation, and when? (Scorecard during scan, CI pipeline, manual process)
+
+The answers will differ per project and per control. This decomposition should inform how OQ-1 is resolved.
+
+#### AP-4: AMPEL already consumes Scorecard data for Baseline enforcement
+
+> "I agree with this role statement. Just as minder, ampel also can enforce Scorecard's data ([see an example here](https://github.com/carabiner-dev/policies/blob/ab1eb42ef179c7a0016d6b7ed72991774a48f151/scorecard/sast.json#L4)) and we also [maintain a mapping of some of scorecard's probes vs baseline controls](https://github.com/carabiner-dev/policies/blob/ab1eb42ef179c7a0016d6b7ed72991774a48f151/groups/osps-baseline/osps-vm-06.hjson#L5) that would greatly benefit from an official/upstream map.
+>
+> The probes can enrich the baseline ecosystem substantially and having the data accessible from other tools encourages other projects in the ecosystem to help maintain and improve them."
+
+AMPEL is an active consumer of Scorecard data today:
+- 5 production policies directly evaluate Scorecard probe results (SAST, binary artifacts, code review, dangerous workflows, token permissions)
+- 36 OSPS Baseline policy mappings, several of which reference Scorecard checks
+- An official upstream Scorecard-to-Baseline mapping would directly benefit AMPEL's policy library
+
+This validates the proposal's direction of making Scorecard's probe results and control mappings available to the broader ecosystem.
+
+### Mike Lieberman's feedback
+
+The following feedback was provided by Mike Lieberman (@mlieberman85) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
+
+#### ML-1: No "OSPS output format" exists
+
+> "What is OSPS output format?"
+> — on ROADMAP.md, Phase 1 deliverable
+
+Mike echoes Eddie's (EK-2) and Adolfo's (AP-2) point: there is no defined "OSPS output format." This is the third reviewer to flag this, confirming it needs to be reframed. The output format question (CQ-18) now has concrete alternatives: Gemara SDK formats (Eddie), in-toto SVR/Baseline predicates (Adolfo), or extending existing Scorecard formats.
+
 ---
 
-The following clarifying questions require Steering Committee decisions informed by Eddie's feedback.
+The following clarifying questions require Steering Committee decisions informed by reviewer feedback.
 
 #### CQ-17: Mapping file location — Scorecard repo or shared?
 
@@ -564,18 +637,20 @@ _Note that this question is negated if consolidating check logic within `pvtr-gi
 **Stephen's response:**
 
 
-#### CQ-18: Output format — `--format=osps` vs. Gemara SDK output
+#### CQ-18: Output format — `--format=osps` vs. ecosystem formats
 
-**Stakeholders:** Stephen, Spencer (OQ-4 constrains this), Eddie Knight
+**Stakeholders:** Stephen, Spencer (OQ-4 constrains this), Eddie Knight, Adolfo García Veytia
 
-Eddie clarifies that no "OSPS output format" exists in the ORBIT ecosystem (EK-2). The Gemara SDK supports multiple formats (JSON, YAML, SARIF). He suggests Scorecard keep its existing output logic and optionally add Gemara JSON/YAML as another format.
+Three reviewers (Eddie, Adolfo, Mike) independently flagged that no "OSPS output format" exists. Eddie suggests Gemara SDK formats (EK-2). Adolfo identifies two concrete in-toto predicate types (AP-2): the [Simple Verification Results (SVR)](https://github.com/in-toto/attestation/blob/main/spec/predicates/svr.md) predicate (merged) and the [Baseline Predicate](https://github.com/in-toto/attestation/pull/502) (proposed, not yet merged).
 
-This affects the spec's requirement for `--format=osps`. Options:
-1. **Keep `--format=osps`**: Define a Scorecard-specific conformance output format. Risk: inventing a format that doesn't align with the ecosystem.
-2. **Use `--format=gemara`** (or similar): Integrate the Gemara SDK and output Gemara L4 assessment results in JSON/YAML. Aligns with ecosystem, but creates a Gemara SDK dependency.
-3. **Extend existing formats**: Add conformance data to `--format=json` and `--format=sarif` outputs. No new format flag needed.
+Options:
+1. **Keep `--format=osps`**: Define a Scorecard-specific conformance output format. Risk: inventing a format that three reviewers have said doesn't belong.
+2. **Use `--format=gemara`** (or similar): Integrate the Gemara SDK and output Gemara assessment results in JSON/YAML. Aligns with ORBIT ecosystem, creates a Gemara SDK dependency.
+3. **Use in-toto predicates**: Output conformance results as in-toto attestations using SVR or the Baseline predicate. Aligns with in-toto ecosystem and Adolfo's guidance. The Baseline predicate is not yet merged.
+4. **Extend existing formats**: Add conformance data to `--format=json` and `--format=sarif` outputs. No new format flag needed.
+5. **Combination**: Use Gemara SDK for structured output + in-toto predicates for attestation output. These are not mutually exclusive.
 
-Which approach do you prefer? Does the Gemara SDK dependency concern you?
+Which approach do you prefer?
 
 **Stephen's response:**
 
@@ -639,6 +714,39 @@ Is some duplication acceptable if it means Scorecard retains architectural indep
 **Stephen's response:**
 
 
+#### CQ-22: Attestation decomposition — identity vs. tooling
+
+**Stakeholders:** Stephen, Spencer, Adolfo García Veytia, Eddie Knight
+
+Adolfo points out that OQ-1 (attestation mechanism identity) conflates two questions (AP-3):
+
+1. **Identity**: Who signs the attestation, and how are those identities trusted? (Sigstore/OIDC, personal keys, platform-native)
+2. **Tooling**: What tool generates the attestation, and when? (Scorecard during scan, CI pipeline post-scan, manual maintainer process)
+
+The answers will differ per project and per control. Should OQ-1 be decomposed into these two sub-questions, and should the design allow different identity/tooling combinations per control?
+
+Adolfo has offered to discuss this in depth.
+
+**Stephen's response:**
+
+
+#### CQ-23: Mapping registry — where should the canonical mapping live?
+
+**Stakeholders:** Stephen, Eddie Knight, Adolfo García Veytia, Baseline maintainers
+
+Three perspectives have emerged on where Scorecard-to-Baseline mappings should live:
+
+- **Eddie (EK-1)**: Host in the Baseline repo with Scorecard maintainers as CODEOWNERS
+- **Adolfo (AP-1)**: Prefers a single registry in the Baseline itself, but notes the Baseline's mapping support was [demoted](https://github.com/ossf/security-baseline/pull/476)
+- **Current proposal**: Host in Scorecard repo (`pkg/osps/mappings/`)
+
+Additionally, AMPEL already maintains [independent Scorecard-to-Baseline mappings](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline) in its policy library. An official upstream mapping would benefit both AMPEL and the wider ecosystem.
+
+This extends CQ-17 with Adolfo's context about the demoted Baseline registry. Should the Scorecard mapping effort also advocate for restoring a shared registry in the Baseline spec?
+
+**Stephen's response:**
+
+
 #### CQ-16: Allstar's role in OSPS conformance enforcement
 
 **Stakeholders:** Stephen (can answer alone)
@@ -666,8 +774,9 @@ wrong order will result in rework. The recommended sequence follows.
 
 | Question | Dependency | Who decides |
 |----------|-----------|-------------|
-| **CQ-18** | Output format depends on CQ-19's architectural direction. | Stephen + Spencer + Eddie Knight |
-| **CQ-17** | Mapping file location depends on CQ-19 (negated if Option B). | Stephen + Eddie Knight + Baseline maintainers |
+| **CQ-18** | Output format depends on CQ-19's architectural direction. Three reviewers flagged "no OSPS output format." In-toto predicates (AP-2) and Gemara SDK are concrete alternatives. | Stephen + Spencer + Eddie Knight + Adolfo |
+| **CQ-17/CQ-23** | Mapping file location depends on CQ-19 (negated if Option B). Adolfo adds context: Baseline registry was demoted (AP-1). | Stephen + Eddie Knight + Adolfo + Baseline maintainers |
+| **CQ-22** | Attestation decomposition (identity vs. tooling). Refines OQ-1. | Stephen + Spencer + Adolfo + Eddie Knight |
 | **OQ-2** | Enforcement detection scope. Affects Phase 3 scope. | Spencer + Stephen + Steering Committee |
 
 #### Tier 3 — Important but non-blocking for Phase 1 start
@@ -676,7 +785,7 @@ wrong order will result in rework. The recommended sequence follows.
 |----------|-------|-------------|
 | **CQ-20** | Catalog extraction scope. Flows from CQ-19. | Stephen + Eddie Knight |
 | **CQ-21** | Code duplication tolerance. Flows from CQ-19. | Stephen + Spencer + Eddie Knight |
-| **CQ-13** | Minder integration surface. Affects ecosystem positioning. | Stephen + Minder maintainers |
+| **CQ-13** | Minder/AMPEL integration surface. Affects ecosystem positioning. | Stephen + Minder maintainers + Adolfo |
 | **CQ-11** | Output stability guarantees. Depends on CQ-18. | Stephen + Spencer |
 
 #### Tier 4 — Stephen can answer alone (any time)
@@ -699,7 +808,7 @@ wrong order will result in rework. The recommended sequence follows.
 
 #### Recommended next steps
 
-1. **Schedule a discussion with Eddie Knight** to resolve CQ-19. Bring Spencer. This is the fork in the road — everything downstream depends on it.
-2. **Resolve OQ-1** with Spencer and the Steering Committee. Spencer flagged it as blocking, and it affects the spec regardless of CQ-19's outcome.
+1. **Schedule a discussion with Eddie Knight and Adolfo García Veytia** to resolve CQ-19. Bring Spencer. This is the fork in the road — everything downstream depends on it.
+2. **Resolve OQ-1/CQ-22** with Spencer, Adolfo, and the Steering Committee. Spencer flagged OQ-1 as blocking. Adolfo's decomposition (identity vs. tooling) clarifies what needs to be decided.
 3. **Answer the Tier 4 questions** at any time — they are independent and don't block others.
-4. **Once CQ-19 and OQ-1 are decided**, the Tier 2 and 3 questions can be resolved quickly since they flow from the architectural direction.
+4. **Once CQ-19 and OQ-1/CQ-22 are decided**, the Tier 2 and 3 questions can be resolved quickly since they flow from the architectural direction.
