@@ -2,18 +2,22 @@
 
 ## 2026
 
-### Theme: OSPS Baseline Conformance
+### Theme: Open Source Security Evidence Engine
+
+**Mission:** Scorecard produces trusted, structured security evidence for the
+open source ecosystem.
 
 Scorecard's primary initiative for 2026 is adding
-[OSPS Baseline](https://baseline.openssf.org/) conformance evaluation,
-enabling Scorecard to answer the question: _does this project meet the
-security requirements defined by the OSPS Baseline at a given maturity level?_
+[OSPS Baseline](https://baseline.openssf.org/) conformance evaluation as the
+first use case that proves this architecture. Scorecard accepts diverse inputs
+about a project's security practices, normalizes them through probe-based
+analysis, and packages the resulting evidence in interoperable formats for
+downstream tools to act on.
 
-This is a new product surface alongside Scorecard's existing 0-10 scoring
-model. Existing checks, probes, and scores are unchanged. The conformance
-layer consumes existing Scorecard signals and adds a per-control
-PASS/FAIL/UNKNOWN/NOT_APPLICABLE/ATTESTED output aligned with the
-[ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem.
+Check scores (0-10) and conformance labels (PASS/FAIL/UNKNOWN) are parallel
+evaluation layers over the same probe evidence. Existing checks, probes, and
+scores are unchanged. The conformance layer is a new product surface aligned
+with the [ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem.
 
 **Target Baseline version:** [v2026.02.19](https://baseline.openssf.org/versions/2026-02-19)
 
@@ -32,8 +36,16 @@ API surfaces.
 
 Deliverables:
 
-- OSPS output format (`--format=osps`)
-- Versioned mapping file (YAML) mapping OSPS controls to Scorecard probes
+- Evidence model and output formats:
+  - Enriched JSON (Scorecard-native)
+  - In-toto predicates (SVR; track Baseline Predicate)
+  - Gemara output (via [security-baseline](https://github.com/ossf/security-baseline)
+    dependency)
+  - OSCAL Assessment Results (via
+    [go-oscal](https://github.com/defenseunicorns/go-oscal))
+- Two-layer mapping model for OSPS Baseline v2026.02.19:
+  - Check-level relations contributed upstream to security-baseline
+  - Probe-level mappings maintained in Scorecard
 - Applicability engine detecting preconditions (e.g., "has made a release")
 - New probes for Level 1 gaps:
   - Governance and documentation presence (OSPS-GV-02.01, GV-03.01,
@@ -42,7 +54,9 @@ Deliverables:
   - Security policy deepening (OSPS-VM-02.01, VM-03.01)
   - Secrets detection (OSPS-BR-07.01) — consuming platform signals where
     available
-- Security Insights ingestion (OSPS-BR-03.01, BR-03.02, QA-04.01)
+- Metadata ingestion layer — Security Insights as first supported source
+  (OSPS-BR-03.01, BR-03.02, QA-04.01); architecture supports additional
+  metadata sources
 - CI gating via `--fail-on=fail`
 - Scorecard control catalog extraction plan
 
@@ -57,8 +71,8 @@ Deliverables:
 - Signed manifest support (OSPS-BR-06.01)
 - Release notes and changelog detection (OSPS-BR-04.01)
 - Attestation mechanism for non-automatable controls
-- Evidence bundle output (OSPS result JSON + in-toto statement)
-- Gemara SDK integration for interoperable output
+- Evidence bundle output (conformance results + in-toto statement)
+- Additional metadata sources for the ingestion layer
 
 #### Phase 3: Enforcement detection, Level 3, and multi-repo
 
@@ -74,49 +88,54 @@ Deliverables:
 
 ### Ecosystem alignment
 
-Scorecard operates within the ORBIT WG ecosystem as a measurement and
-evidence tool. [Allstar](https://github.com/ossf/allstar), a Scorecard
-sub-project, continuously monitors GitHub organizations and enforces
-Scorecard check results as policies. OSPS conformance output could enable
-Allstar to enforce Baseline conformance at the organization level.
+Scorecard operates within the ORBIT WG ecosystem as an evidence engine. All
+downstream tools consume Scorecard evidence on equal terms through published
+output formats.
 
-Scorecard does not duplicate:
+[Allstar](https://github.com/ossf/allstar), a Scorecard sub-project,
+continuously monitors GitHub organizations and enforces Scorecard check
+results as policies. OSPS conformance output could enable Allstar to enforce
+Baseline conformance at the organization level.
 
+Scorecard SHOULD NOT (per [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119))
+duplicate evaluation that downstream tools handle:
+
+- **[Privateer](https://github.com/ossf/pvtr-github-repo-scanner)** — Baseline evaluation powered by Gemara and Security Insights
 - **[Minder](https://github.com/mindersec/minder)** — Policy enforcement and remediation platform (OpenSSF Sandbox, ORBIT WG)
-- **[Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner)** — Baseline evaluation powered by Gemara and Security Insights
-- **[Darnit](https://github.com/kusari-oss/darnit)** — Compliance audit and remediation
 - **[AMPEL](https://github.com/carabiner-dev/ampel)** — Attestation-based policy enforcement; already consumes Scorecard probe results via [policy library](https://github.com/carabiner-dev/policies/tree/main/scorecard)
+- **[Darnit](https://github.com/kusari-oss/darnit)** — Compliance audit and remediation
 
-Scorecard's role is to produce deep, probe-based conformance evidence that
-these tools and downstream consumers can use. Both Minder and AMPEL already
-consume Scorecard findings today — Minder to enforce security policies
-across repositories, and AMPEL to validate Scorecard attestations against
-[OSPS Baseline policies](https://github.com/carabiner-dev/policies/tree/main/groups/osps-baseline)
-in CI/CD pipelines.
+Scorecard's role is to produce deep, probe-based security evidence that these
+tools and downstream consumers can use through interoperable output formats
+(JSON, in-toto, Gemara, SARIF, OSCAL).
 
 ### Design principles
 
-1. **UNKNOWN-first honesty.** If Scorecard cannot observe a control, the
+1. **Evidence is the product.** Scorecard's core output is structured,
+   normalized probe findings. Check scores and conformance labels are parallel
+   evaluation layers over the same evidence.
+2. **Probes normalize diversity.** Each probe understands multiple ways a
+   control outcome can be satisfied.
+3. **UNKNOWN-first honesty.** If Scorecard cannot observe a control, the
    status is UNKNOWN with an explanation — never a false PASS or FAIL.
-2. **Probes are the evidence unit.** OSPS evidence references probes and
-   their findings, not check-level scores.
-3. **Additive, not breaking.** Existing checks, probes, scores, and output
-   formats do not change behavior.
-4. **Data-driven mapping.** The mapping between OSPS controls and Scorecard
-   probes is a versioned YAML file, not hard-coded logic.
-5. **Degraded-but-useful without Security Insights.** Projects without a
-   `security-insights.yml` still get a meaningful (if incomplete) report.
+4. **All consumers are equal.** Downstream tools consume Scorecard evidence
+   through published output formats.
+5. **No metadata monopolies.** Probes may evaluate multiple sources for the
+   same data. No single metadata file is required for meaningful results,
+   though they may enrich results.
+6. **Formats are presentation.** Output formats (JSON, in-toto, Gemara,
+   SARIF, OSCAL) are views over the evidence model. No single format is
+   privileged.
 
 ### Open questions
 
 The following design questions are under active discussion among maintainers:
 
 - **Attestation identity model** — How non-automatable controls are attested
-  (repo-local metadata vs. signed attestations via Sigstore/OIDC)
+  (repo-local metadata vs. signed attestations via Sigstore/OIDC). Decomposed
+  into identity (who signs) and tooling (what generates, when) sub-questions.
 - **Enforcement detection scope** — How Scorecard detects enforcement
   mechanisms without being an enforcement tool itself
-- **Evidence format** — Ensuring output compatibility with Gemara Layer 4
-  assessment schemas
 
 ### How to contribute
 
