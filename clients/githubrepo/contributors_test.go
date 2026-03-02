@@ -82,7 +82,7 @@ func Test_mapCodeOwners(t *testing.T) {
 		var sb strings.Builder
 		sb.WriteRune('*')
 		for i := range tooManyCodeowners {
-			sb.WriteString(fmt.Sprintf(" @user%d", i))
+			fmt.Fprintf(&sb, " @user%d", i)
 		}
 		sb.WriteString("\n")
 		codeowners := io.NopCloser(strings.NewReader(sb.String()))

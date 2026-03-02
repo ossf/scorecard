@@ -30,7 +30,22 @@ import (
 var _ VulnerabilitiesClient = osvClient{}
 
 type osvClient struct {
-	local bool
+	requestUserAgent string
+	local            bool
+}
+
+type OSVConfig struct {
+	UserAgent         string
+	ExperimentalLocal bool
+}
+
+func NewOSVClient(config *OSVConfig) VulnerabilitiesClient {
+	cfg := osvClient{}
+	if config != nil {
+		cfg.local = config.ExperimentalLocal
+		cfg.requestUserAgent = config.UserAgent
+	}
+	return cfg
 }
 
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
@@ -54,6 +69,12 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if commit != "" {
 		gitCommits = append(gitCommits, commit)
 	}
+
+	exp := osvscanner.ExperimentalScannerActions{
+		PluginsEnabled:   []string{"python/requirements"},
+		PluginsDisabled:  []string{"python/requirementsenhanceable"},
+		RequestUserAgent: v.requestUserAgent,
+	}
 	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
 		DirectoryPaths:    directoryPaths,
 		IncludeGitRoot:    false,
@@ -62,10 +83,7 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		CompareOffline:    v.local,
 		DownloadDatabases: v.local,
 		// swap out the transitive requirements scanning for offline extractor
-		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
-			PluginsEnabled:  []string{"python/requirements"},
-			PluginsDisabled: []string{"python/requirementsenhanceable"},
-		},
+		ExperimentalScannerActions: exp,
 	}) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
@@ -86,8 +104,8 @@ func (v osvClient) ListUnfixedVulnerabilities(
 				continue
 			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-				ID:      vulns[i].Vulnerability.ID,
-				Aliases: vulns[i].Vulnerability.Aliases,
+				ID:      vulns[i].Vulnerability.GetId(),
+				Aliases: vulns[i].Vulnerability.GetAliases(),
 			})
 			// Remove duplicate vulnerability IDs for now as we don't report information
 			// on the source of each vulnerability yet, therefore having multiple identical

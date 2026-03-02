@@ -73,10 +73,9 @@ func (handler *searchCommitsHandler) buildQuery(request clients.SearchCommitsOpt
 		return "", fmt.Errorf("%w", errEmptyQuery)
 	}
 	var queryBuilder strings.Builder
-	if _, err := queryBuilder.WriteString(
-		fmt.Sprintf("project:%s/%s author:%s",
-			handler.repourl.owner, handler.repourl.projectID,
-			request.Author)); err != nil {
+	if _, err := fmt.Fprintf(&queryBuilder, "project:%s/%s author:%s",
+		handler.repourl.owner, handler.repourl.projectID,
+		request.Author); err != nil {
 		return "", fmt.Errorf("writestring: %w", err)
 	}
 

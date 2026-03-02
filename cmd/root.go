@@ -24,6 +24,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/release-utils/version"
 
@@ -170,12 +171,19 @@ func rootCmd(o *options.Options) error {
 
 	enabledProbes := o.Probes()
 
+	info := version.GetVersionInfo()
+	actions := osvscanner.ExperimentalScannerActions{}
+	config := clients.OSVConfig{}
+	actions.RequestUserAgent = fmt.Sprintf("scorecard-cli/%s", info.GitVersion)
+	config.UserAgent = actions.RequestUserAgent
+
 	opts := []scorecard.Option{
 		scorecard.WithLogLevel(sclog.ParseLevel(o.LogLevel)),
 		scorecard.WithCommitSHA(o.Commit),
 		scorecard.WithCommitDepth(o.CommitDepth),
 		scorecard.WithProbes(enabledProbes),
 		scorecard.WithChecks(checks),
+		scorecard.WithVulnerabilitiesClient(clients.NewOSVClient(&config)),
 	}
 	if strings.EqualFold(o.FileMode, options.FileModeGit) {
 		opts = append(opts, scorecard.WithFileModeGit())
