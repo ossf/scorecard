@@ -22,6 +22,8 @@
   * Detection based on import statements in JavaScript and TypeScript files.
 * [Atheris](https://github.com/google/atheris)
   * Detection based on the presence of `import atheris` in Python files.
+* [Hypothesis](https://github.com/HypothesisWorks/hypothesis)
+  * Detection based on the import of `hypothesis` in Python files. Hypothesis is a property-based testing framework.
 * [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz.html)
   * Detection based on presence of `libfuzzer_sys` in Rust files.
 * [FsCheck](https://github.com/fscheck/FsCheck)
