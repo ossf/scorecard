@@ -227,8 +227,7 @@ controls and Scorecard probes is a versioned data file, not hard-coded logic.
    - Release asset inspection (multiple L2/L3 controls)
    - Signed manifest support (OSPS-BR-06.01)
    - Enforcement detection (OSPS-VM-05.*, VM-06.* — pending OQ-2 resolution)
-10. **CI gating** — `--fail-on=fail` exit code for pipeline integration
-11. **Multi-repo project-level conformance** (OSPS-QA-04.02)
+10. **Multi-repo project-level conformance** (OSPS-QA-04.02)
 
 ### Future design concepts
 
@@ -272,7 +271,6 @@ Phases are ordered by outcome, not calendar quarter. Maintainer bandwidth dictat
   - Security policy deepening (VM-02.01, VM-03.01, VM-01.01)
   - Secrets detection (BR-07.01) — consume platform signals (e.g., GitHub secret scanning API) where possible
 - Metadata ingestion layer v1 — Security Insights as first supported source (BR-03.01, BR-03.02, QA-04.01); architecture supports additional metadata sources
-- CI gating: `--fail-on=fail` + coverage summary
 - Scorecard control catalog extraction plan (enabling other tools to consume Scorecard's control definitions)
 
 ### Phase 2: Release integrity + Level 2 core
