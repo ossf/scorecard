@@ -80,6 +80,10 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	// FlagSkipUnsupportedChecks is the flag name for skipping checks that are
+	// not supported by the target repo type.
+	FlagSkipUnsupportedChecks = "skip-unsupported-checks"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -206,6 +210,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagProbes,
 		o.ProbesToRun,
 		"Probes to run.",
+	)
+
+	cmd.Flags().BoolVar(
+		&o.SkipUnsupportedChecks,
+		FlagSkipUnsupportedChecks,
+		o.SkipUnsupportedChecks,
+		"skip checks that don't support the repository type",
 	)
 
 	// TODO(options): Extract logic
