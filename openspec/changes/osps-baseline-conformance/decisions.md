@@ -420,6 +420,50 @@ AMPEL is an active consumer of Scorecard data today:
 
 This validates the proposal's direction of making Scorecard's probe results and control mappings available to the broader ecosystem.
 
+#### AP-5: Probe composition supports framework-agnostic evaluation
+
+> "This point is key. Baseline looks for outcomes. Compliance can be supported by Scorecard probe data.
+>
+> The baseline control can be a 1:1 map to a probe's data, other times it will be a composite set of probes. If you add new probes to look for something new that's useful to test a baseline control, we just need to add another composition definition to say _OSPS-XX-XXX can be [probe X] or [probe set 1] or [probe set 2]_.
+>
+> This is akin to the way checks work now, but by generalizing it, the probe data can inform other framework testing tools, beyond baseline."
+> — on proposal.md, "What Scorecard SHOULD NOT do" section
+
+Adolfo validates the probe composition model and identifies the key generalization: the same pattern used by existing checks (`probes/entries.go`) can be extended to OSPS Baseline and other frameworks. A control maps to one or more probe compositions, and new detection paths can be added without changing the composition structure.
+
+**Stephen's response:** Agreed. "Probe sets" or "compositions" is the right vocabulary, without introducing additional layers of complexity. The existing check composition pattern in `probes/entries.go` is the model.
+
+#### AP-6: Conformance engine should be framework-agnostic
+
+> "I'm assuming _conformance_ here means 'framework compliance'.
+>
+> This is cool, but also ensure that Scorecard's view of the world can be used at the check and probe level to enable projects and organizations to evaluate adherence to other frameworks. Especially useful for internal/unpublished variants (profiles) of frameworks that organizations define."
+> — on proposal.md, architectural constraints section
+
+Adolfo requests that the conformance engine not be hard-wired to OSPS Baseline. Organizations may want to evaluate against internal or unpublished framework variants (profiles).
+
+**Stephen's response:** Agreed — the conformance engine should support arbitrary frameworks and organizational profiles. The probe findings are framework-agnostic by design; OSPS Baseline is the first (non-"checks") evaluation layer over them. Made explicit in the proposal.
+
+#### AP-7: Predicate types for check and probe evaluations
+
+> "The current predicate type is the full scorecard run evaluation. For completeness' sake, it would be nice to have one type for a list of check evaluations and one for probe evaluations.
+>
+> These are only useful, though, if they have more data than what an SVR has to offer, so I would wait until there is an actual need for them."
+> — on proposal.md, output formats section
+
+Adolfo suggests dedicated in-toto predicate types for check-level and probe-level results, but self-qualifies that they should wait for concrete need beyond SVR.
+
+**Stephen's response:** Agreed. Probe-level findings are available via `--format=probe` but have no in-toto wrapper today. Worth adding when there's concrete need. This may suggest a `--framework` or `--evaluation` CLI option to select evaluation layers and determine output shape. Added as a future design concept.
+
+#### AP-8: Scorecard as consumer of control catalogs
+
+> "From reading the proposal, wouldn't Scorecard rather become a _consumer_ of control catalogs?"
+> — on proposal.md, Scorecard control catalog extraction plan
+
+Adolfo challenges the "catalog extraction" framing, suggesting Scorecard should position itself as a consumer of external control catalogs rather than a publisher of its own.
+
+**Stephen's response:** Both directions — Scorecard *consumes* the OSPS Baseline catalog (via security-baseline) for conformance evaluation, and Scorecard's own probe definitions (`probes/*/def.yml`) are already machine-readable YAML with structured metadata. The "extraction plan" is about packaging those existing definitions for consumption so that external tools like AMPEL can discover what Scorecard evaluates and compose mappings against it. Clarified in the proposal.
+
 ### Mike Lieberman's feedback
 
 The following feedback was provided by Mike Lieberman (@mlieberman85) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
