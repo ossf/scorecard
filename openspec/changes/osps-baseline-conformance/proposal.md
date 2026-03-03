@@ -155,6 +155,12 @@ flowchart TD
 Check scores and conformance labels are *parallel interpretations* of the same
 probe evidence, not competing modes. Both can appear in the same output.
 
+The conformance evaluation layer is framework-agnostic by design. OSPS Baseline
+is the first use case, but the same probe evidence can be composed differently
+for other frameworks and organizational profiles. Probe findings carry no
+framework-specific semantics — only the mapping definitions (which probes
+compose into which control outcomes) are framework-specific.
+
 ### Architectural constraints
 
 1. Scorecard owns all probe execution (non-negotiable core competency)
@@ -213,12 +219,12 @@ controls and Scorecard probes is a versioned data file, not hard-coded logic.
    - Existing Scorecard predicate type (`scorecard.dev/result/v0.1`) preserved; new predicate types added as options
 3. **Two-layer mapping model** — data-driven mappings at two levels:
    - *Upstream* ([security-baseline](https://github.com/ossf/security-baseline) repo): Check-level relations — "OSPS-AC-03 relates to Scorecard's Branch-Protection check." Scorecard maintainers contribute via PR. Uses "informs" / "provides evidence toward" language (not "satisfies" / "demonstrates compliance with" — see [security-baseline PR #476](https://github.com/ossf/security-baseline/pull/476)).
-   - *Internal* (Scorecard repo): Probe-level mappings — "OSPS-AC-03.01 is evaluated by probes X + Y with logic Z." Depends on probe implementation details.
+   - *Internal* (Scorecard repo): Probe-level mappings — "OSPS-AC-03.01 is evaluated by probes X + Y with logic Z." Depends on probe implementation details. A control may map to a single probe (1:1) or a composition of probes with evaluation logic (many-to-1). This follows the same composition pattern used by [existing checks](https://github.com/ossf/scorecard/blob/main/probes/entries.go).
 4. **security-baseline dependency** — `github.com/ossf/security-baseline` as a data dependency for control definitions, Gemara types, and OSCAL catalog models
 5. **Applicability engine** — detects preconditions (e.g., "has made a release") and outputs NOT_APPLICABLE
 6. **Metadata ingestion layer** — supports Security Insights as one source among several for metadata-dependent controls (OSPS-BR-03.01, BR-03.02, QA-04.01). Architecture invites contributions for alternative sources (SBOMs, VEX, platform APIs). No single metadata file is required for meaningful results.
 7. **Attestation mechanism (v1)** — accepts repo-local metadata for non-automatable controls (pending OQ-1 resolution)
-8. **Scorecard control catalog extraction** — plan and mechanism to make Scorecard's control definitions consumable by other tools
+8. **Scorecard probe catalog** — Scorecard *consumes* external control catalogs (OSPS Baseline via security-baseline) for conformance evaluation. The catalog extraction plan packages Scorecard's own probe definitions (`probes/*/def.yml`) as a consumable artifact so external tools (e.g., AMPEL) can discover what Scorecard evaluates and compose their own mappings against it.
 9. **New probes and probe enhancements** for gap controls:
    - Secrets detection (OSPS-BR-07.01)
    - Governance/docs presence (OSPS-GV-02.01, GV-03.01, DO-01.01, DO-02.01)
@@ -239,6 +245,15 @@ design:
   convention-based) that guides probe design and helps contributors understand
   where to add new detection paths. The probe interface should be designed to
   accept multiple sources from the start, with the option to add sources later.
+- **Framework selection CLI option** — A `--framework` or `--evaluation`
+  option could let users select which evaluation layer(s) to run (checks,
+  OSPS Baseline, or a custom framework profile) and determine the output
+  shape (e.g., check-based vs. probe-based predicate type).
+- **Probe-level in-toto predicate type** — The existing
+  `scorecard.dev/result/v0.1` predicate wraps check-level results.
+  A dedicated probe-level predicate type could wrap flat probe findings for
+  framework evaluation tools. Worth adding when there is concrete need
+  beyond what SVR provides.
 
 ### Out of scope
 
