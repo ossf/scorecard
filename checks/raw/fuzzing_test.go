@@ -164,6 +164,7 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 		expectedFileMatch bool
 		expectedFuncMatch bool
 		lang              clients.LanguageName
+		configIdx         int
 		fileName          string
 		fileContent       string
 		wantErr           bool
@@ -208,10 +209,20 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			langSpecs, ok := languageFuzzSpecs[tt.lang]
+			langSpecsList, ok := languageFuzzSpecs[tt.lang]
 			if !ok && !tt.wantErr {
 				t.Errorf("retrieve supported language error")
 			}
+			if !ok {
+				return
+			}
+			if tt.configIdx >= len(langSpecsList) {
+				if !tt.wantErr {
+					t.Errorf("configIdx %d out of range for %d configs", tt.configIdx, len(langSpecsList))
+				}
+				return
+			}
+			langSpecs := langSpecsList[tt.configIdx]
 			var found bool
 			for _, fileMatchPattern := range langSpecs.filePatterns {
 				fileMatch, err := path.Match(fileMatchPattern, tt.fileName)
@@ -814,6 +825,90 @@ func Test_checkFuzzFunc(t *testing.T) {
 			},
 			fileContent: "open Expecto.ExpectoFsCheck",
 		},
+		{
+			name:     "Python Hypothesis via from import",
+			want:     true,
+			fileName: []string{"test_properties.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from hypothesis import given, strategies as st",
+		},
+		{
+			name:     "Python Hypothesis via direct import",
+			want:     true,
+			fileName: []string{"test_fuzz.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import hypothesis",
+		},
+		{
+			name:     "Python Hypothesis via submodule import",
+			want:     true,
+			fileName: []string{"test_strategies.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from hypothesis.strategies import integers, text",
+		},
+		{
+			name:     "Python Atheris detection still works",
+			want:     true,
+			fileName: []string{"fuzz_target.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import atheris",
+		},
+		{
+			name:     "Python with no fuzzing",
+			want:     false,
+			fileName: []string{"test_unit.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import pytest",
+		},
+		{
+			name:     "Python hypothesis-prefixed package is not a match",
+			want:     false,
+			fileName: []string{"test_auto.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from hypothesis_auto import given",
+		},
+		{
+			name:     "Python both Atheris and Hypothesis",
+			want:     true,
+			fileName: []string{"fuzz_all.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import atheris\nfrom hypothesis import given",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -832,8 +927,22 @@ func Test_checkFuzzFunc(t *testing.T) {
 				RepoClient: mockClient,
 			}
 			for _, l := range tt.langs {
-				got, _, err := checkFuzzFunc(&req, l.Name)
-				if (got != tt.want || err != nil) && !tt.wantErr {
+				configs, found := languageFuzzSpecs[l.Name]
+				if !found {
+					if !tt.wantErr {
+						t.Errorf("no fuzz specs for language %s", l.Name)
+					}
+					continue
+				}
+				var got bool
+				for _, config := range configs {
+					matched, _, err := checkFuzzFunc(&req, config)
+					if err != nil && !tt.wantErr {
+						t.Errorf("checkFuzzFunc() error = %v for %v", err, tt.name)
+					}
+					got = got || matched
+				}
+				if (got != tt.want) && !tt.wantErr {
 					t.Errorf("checkFuzzFunc() = %v, want %v for %v", got, tt.want, tt.name)
 				}
 			}
