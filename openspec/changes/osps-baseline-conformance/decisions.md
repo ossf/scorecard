@@ -660,6 +660,60 @@ Resolved by the two-layer mapping model (see CQ-17). Check-level relations are c
 
 ---
 
+## Scorecard user feedback
+
+### Felix Lange's feedback (Scorecard community meeting)
+
+The following feedback was provided by Felix Lange during the Scorecard
+community meeting on 2026-03-05.
+
+#### FL-1: Confidence scoring instead of binary UNKNOWN
+
+Felix suggested generalizing the UNKNOWN-first model into a confidence score
+that captures partial certainty, referencing [SAP Fosstars](https://sap.github.io/fosstars-rating-core/confidence.html).
+In the Fosstars model, a confidence score (0-10) accompanies every rating; if
+confidence falls below a threshold, the label becomes UNCLEAR regardless of the
+numeric score.
+
+**Stephen's response:** Interesting direction. The probe evidence model already
+provides the raw data for confidence derivation (each probe's outcome is
+independently observable). Added as a future design concept — formal confidence
+scoring may be added when consumer demand warrants it.
+
+#### FL-2: Single run for all output
+
+Output should allow consumers to obtain OSPS conformance evaluations and check
+details (like Maintained) without having to run Scorecard twice. The API
+(api.scorecard.dev) should also avoid requiring multiple requests.
+
+**Stephen's response:** Agreed. Added as architectural constraint #5 — a single
+Scorecard run produces both check scores and conformance results. This applies
+to CLI, Action, and API surfaces.
+
+#### FL-3: Existing checks should remain prominent
+
+Checks like Maintained help users identify abandoned projects and are valuable
+for risk assessment even when they don't map directly to OSPS controls. These
+should be preserved in a prominent manner.
+
+**Stephen's response:** Existing checks are fully preserved — check scores and
+conformance labels are parallel evaluation layers. All checks continue to
+produce scores as they do today, regardless of whether their probes map to OSPS
+controls. No check is elevated or deprioritized relative to others based on its
+OSPS Baseline coverage.
+
+#### FL-4: Simple for consumers to bring alternative frameworks
+
+It should be straightforward for consumers to evaluate against frameworks other
+than OSPS Baseline, including internal or unpublished variants.
+
+**Stephen's response:** Aligns with Adolfo's feedback (AP-6). The conformance
+engine is framework-agnostic by design — mapping definitions are the only
+framework-specific component. A `--framework` CLI option is noted as a future
+design concept.
+
+---
+
 ## Decision priority analysis
 
 The open questions have dependencies between them. Answering them in the
