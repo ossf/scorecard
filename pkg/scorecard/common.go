@@ -28,20 +28,20 @@ func textToMarkdown(s string) string {
 
 func nonStructuredResultString(d *checker.CheckDetail) string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), d.Msg.Text))
+	fmt.Fprintf(&sb, "%s: %s", typeToString(d.Type), d.Msg.Text)
 
 	if d.Msg.Path != "" {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Path))
+		fmt.Fprintf(&sb, ": %s", d.Msg.Path)
 		if d.Msg.Offset != 0 {
-			sb.WriteString(fmt.Sprintf(":%d", d.Msg.Offset))
+			fmt.Fprintf(&sb, ":%d", d.Msg.Offset)
 		}
 		if d.Msg.EndOffset != 0 && d.Msg.Offset < d.Msg.EndOffset {
-			sb.WriteString(fmt.Sprintf("-%d", d.Msg.EndOffset))
+			fmt.Fprintf(&sb, "-%d", d.Msg.EndOffset)
 		}
 	}
 
 	if d.Msg.Remediation != nil {
-		sb.WriteString(fmt.Sprintf(": %s", d.Msg.Remediation.Text))
+		fmt.Fprintf(&sb, ": %s", d.Msg.Remediation.Text)
 	}
 
 	return sb.String()
@@ -50,15 +50,15 @@ func nonStructuredResultString(d *checker.CheckDetail) string {
 func structuredResultString(d *checker.CheckDetail) string {
 	var sb strings.Builder
 	f := d.Msg.Finding
-	sb.WriteString(fmt.Sprintf("%s: %s", typeToString(d.Type), f.Message))
+	fmt.Fprintf(&sb, "%s: %s", typeToString(d.Type), f.Message)
 
 	if f.Location != nil {
-		sb.WriteString(fmt.Sprintf(": %s", f.Location.Path))
+		fmt.Fprintf(&sb, ": %s", f.Location.Path)
 		if f.Location.LineStart != nil {
-			sb.WriteString(fmt.Sprintf(":%d", *f.Location.LineStart))
+			fmt.Fprintf(&sb, ":%d", *f.Location.LineStart)
 		}
 		if f.Location.LineEnd != nil && *f.Location.LineStart < *f.Location.LineEnd {
-			sb.WriteString(fmt.Sprintf("-%d", *f.Location.LineEnd))
+			fmt.Fprintf(&sb, "-%d", *f.Location.LineEnd)
 		}
 	}
 
