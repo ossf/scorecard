@@ -67,6 +67,8 @@ Another benefit to releasing projects as packages is reproducibility—the versi
 
 Packaging your projects makes it easier for users to receive security patches as updates. It also provides information about the release details to your users, which opens the door to more collaboration from your open-source peers.
 
+As a small next step after packaging, maintainers can publish release evidence with the [SBOM check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#sbom) and the [Signed-Releases check](https://github.com/ossf/scorecard/blob/main/docs/checks.md#signed-releases). These checks help tie each release artifact to auditable metadata and signatures.
+
 ## Customize your checks to your project’s needs
 
 Based on the specifics of your project, not all the checks offered by Scorecard or discussed on this page may apply to you. For example, if you are the sole maintainer of an open-source project, the “Code Review” check would not be usable for your project.
