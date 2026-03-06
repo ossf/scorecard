@@ -38,6 +38,7 @@ require (
 )
 
 require (
+	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v82 v82.0.0
