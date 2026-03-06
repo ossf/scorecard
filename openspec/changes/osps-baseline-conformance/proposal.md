@@ -13,12 +13,30 @@ downstream tools to act on. OSPS Baseline conformance is the first use case that
 proves this architecture, and the central initiative for Scorecard's 2026
 roadmap.
 
-This is fundamentally a **product-level shift**: Scorecard today answers "how
-well does this repo follow best practices?" (graded 0-10 heuristics). OSPS
-conformance requires answering "does this project meet these MUST statements at
-this maturity level?" (PASS/FAIL/UNKNOWN/NOT_APPLICABLE per control, with
-evidence). Check scores and conformance labels are parallel evaluation layers
-over the same probe evidence — existing checks and scores are unchanged.
+This is fundamentally a **product-level shift** — the defining change for
+**Scorecard v6**. Scorecard today answers "how well does this repo follow best
+practices?" (graded 0-10 heuristics). OSPS conformance requires answering "does
+this project meet these MUST statements at this maturity level?"
+(PASS/FAIL/UNKNOWN/NOT_APPLICABLE per control, with evidence). Check scores and
+conformance labels are parallel evaluation layers over the same probe evidence —
+existing checks and scores are unchanged.
+
+### Why v6
+
+Scorecard v6 represents a major evolution: from a scoring tool to an evidence
+engine. The key changes that warrant a major version:
+
+1. **New evaluation layer** — conformance labels (PASS/FAIL/UNKNOWN) alongside
+   existing check scores (0-10), produced in a single run
+2. **Framework-agnostic architecture** — probe evidence can be composed against
+   OSPS Baseline or other frameworks via pluggable mapping definitions
+3. **Interoperable output formats** — in-toto, Gemara, OSCAL Assessment Results
+   alongside existing JSON and SARIF
+4. **Probe catalog as public interface** — probe definitions become a consumable
+   artifact for external tools
+
+Existing checks, probes, scores, and output formats are preserved. v6 is
+additive — no breaking changes to existing surfaces.
 
 ## Motivation
 
@@ -171,6 +189,9 @@ compose into which control outcomes) are framework-specific.
 4. Evaluation logic is self-contained — Scorecard can produce conformance
    results using its own probes and mappings, independent of external
    evaluation engines
+5. A single Scorecard run produces both check scores and conformance results —
+   users MUST NOT need to run Scorecard twice or make separate API requests
+   to obtain both evaluation layers
 
 **Dependency guidance:** Only adopt reasonably stable dependencies when needed.
 The [security-baseline](https://github.com/ossf/security-baseline) repo is an
@@ -254,6 +275,14 @@ design:
   A dedicated probe-level predicate type could wrap flat probe findings for
   framework evaluation tools. Worth adding when there is concrete need
   beyond what SVR provides.
+- **Confidence scoring** — The current model produces binary conformance
+  labels (PASS/FAIL/UNKNOWN). A confidence score (inspired by
+  [Fosstars](https://sap.github.io/fosstars-rating-core/confidence.html))
+  could express partial certainty — e.g., "PASS with confidence 7/10" when
+  3 of 4 mapped probes returned findings. The probe evidence model already
+  provides the raw data for confidence derivation (each probe's outcome is
+  independently observable). A formal confidence score may be added when
+  consumer demand warrants it.
 
 ### Out of scope
 

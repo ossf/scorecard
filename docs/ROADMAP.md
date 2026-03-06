@@ -2,12 +2,13 @@
 
 ## 2026
 
-### Theme: Open Source Security Evidence Engine
+### Theme: Scorecard v6 — Open Source Security Evidence Engine
 
 **Mission:** Scorecard produces trusted, structured security evidence for the
 open source ecosystem.
 
-Scorecard's primary initiative for 2026 is adding
+Scorecard v6 evolves Scorecard from a scoring tool to an evidence engine. The
+primary initiative for 2026 is adding
 [OSPS Baseline](https://baseline.openssf.org/) conformance evaluation as the
 first use case that proves this architecture. Scorecard accepts diverse inputs
 about a project's security practices, normalizes them through probe-based
@@ -15,9 +16,10 @@ analysis, and packages the resulting evidence in interoperable formats for
 downstream tools to act on.
 
 Check scores (0-10) and conformance labels (PASS/FAIL/UNKNOWN) are parallel
-evaluation layers over the same probe evidence. Existing checks, probes, and
-scores are unchanged. The conformance layer is a new product surface aligned
-with the [ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem.
+evaluation layers over the same probe evidence, produced in a single run.
+Existing checks, probes, and scores are unchanged — v6 is additive. The
+conformance layer is a new product surface aligned with the
+[ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem.
 
 **Target Baseline version:** [v2026.02.19](https://baseline.openssf.org/versions/2026-02-19)
 
