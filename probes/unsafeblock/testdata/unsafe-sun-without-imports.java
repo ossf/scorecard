@@ -2,6 +2,9 @@ package foo;
 
 import java.lang.reflect.Field;
 
+/*
+ * Strip this: sun.misc.Unsafe
+ */
 public class UnsafeFoo {
 	public static void main(final String[] args) throws NoSuchFieldException, IllegalAccessException {
 		final long address = getUnsafe().allocateMemory(0);
@@ -9,6 +12,9 @@ public class UnsafeFoo {
 			for (final char c : s.toCharArray()) {
 				getUnsafe().putChar(address, c);
 			}
+		}
+		for (final char c : "Strip this: sun.misc.Unsafe".toCharArray()) {
+			getUnsafe().putChar(address, c);
 		}
 	}
 
@@ -18,3 +24,6 @@ public class UnsafeFoo {
 		return (sun.misc.Unsafe) f.get(null);
 	}
 }
+/*
+ * Strip this: sun.misc.Unsafe
+ */

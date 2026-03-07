@@ -12,9 +12,9 @@ public class UnsafeFoo {
 		}
 	}
 
-	private static jdk.internal.misc.Unsafe getUnsafe() throws IllegalAccessException, NoSuchFieldException {
-		final Field f = jdk.internal.misc.Unsafe.class.getDeclaredField("theUnsafe");
+	private static jdk . internal . misc . Unsafe getUnsafe() throws IllegalAccessException, NoSuchFieldException {
+		final Field f = jdk . internal . misc . Unsafe . class.getDeclaredField("theUnsafe");
 		f.setAccessible(true);
-		return (jdk.internal.misc.Unsafe) f.get(null);
+		return (jdk . internal . misc . Unsafe) f.get(null);
 	}
 }

@@ -379,7 +379,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -407,7 +407,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(15)},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(21)},
 				},
 				{
 					Probe:   Probe,
@@ -417,7 +417,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(16)},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(22)},
 				},
 				{
 					Probe:   Probe,
@@ -427,7 +427,7 @@ func Test_Run(t *testing.T) {
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
 						Effort: 2,
 					},
-					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(18)},
+					Location: &finding.Location{Path: "unsafe-sun-without-imports.java", LineStart: toUintPointer(24)},
 				},
 			},
 			err: nil,
@@ -443,7 +443,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -509,7 +509,7 @@ func Test_Run(t *testing.T) {
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -519,7 +519,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -536,14 +536,13 @@ func Test_Run(t *testing.T) {
 				{Name: clients.Java, NumLines: 0},
 			},
 			filenames: []string{
-				"malformed.java",
 				"unsafe-sun-with-imports.java",
 				"unsafe-jdk-with-imports.java",
 			},
 			expected: []finding.Finding{
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -553,7 +552,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -624,7 +623,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -634,7 +633,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -669,7 +668,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -679,7 +678,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -758,7 +757,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
@@ -768,7 +767,7 @@ func Test_Run(t *testing.T) {
 				},
 				{
 					Probe:   Probe,
-					Message: "Java code uses the Unsafe class",
+					Message: "Java code imports the Unsafe class",
 					Outcome: finding.OutcomeTrue,
 					Remediation: &finding.Remediation{
 						Text:   "Visit the OpenSSF Memory Safety SIG guidance on how to make your project memory safe.\nGuidance for [Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-memory-safe-by-default-languages.md)\nGuidance for [Non Memory-Safe By Default Languages](https://github.com/ossf/Memory-Safety/blob/main/docs/best-practice-non-memory-safe-by-default-languages.md)",
