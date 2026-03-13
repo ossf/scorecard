@@ -36,27 +36,28 @@ var (
 )
 
 type Client struct {
-	repourl       *Repo
-	repo          *gitlab.Project
-	glClient      *gitlab.Client
-	contributors  *contributorsHandler
-	branches      *branchesHandler
-	releases      *releasesHandler
-	workflows     *workflowsHandler
-	checkruns     *checkrunsHandler
-	commits       *commitsHandler
-	issues        *issuesHandler
-	project       *projectHandler
-	statuses      *statusesHandler
-	search        *searchHandler
-	searchCommits *searchCommitsHandler
-	webhook       *webhookHandler
-	languages     *languagesHandler
-	licenses      *licensesHandler
-	tarball       *tarballHandler
-	graphql       *graphqlHandler
-	ctx           context.Context
-	commitDepth   int
+	repourl            *Repo
+	repo               *gitlab.Project
+	glClient           *gitlab.Client
+	contributors       *contributorsHandler
+	branches           *branchesHandler
+	releases           *releasesHandler
+	workflows          *workflowsHandler
+	checkruns          *checkrunsHandler
+	commits            *commitsHandler
+	issues             *issuesHandler
+	project            *projectHandler
+	statuses           *statusesHandler
+	search             *searchHandler
+	searchCommits      *searchCommitsHandler
+	webhook            *webhookHandler
+	languages          *languagesHandler
+	licenses           *licensesHandler
+	inactiveMaintainer *MaintainerActivityHandler
+	tarball            *tarballHandler
+	graphql            *graphqlHandler
+	ctx                context.Context
+	commitDepth        int
 }
 
 var errRepoAccess = errors.New("repo inaccessible")
@@ -158,6 +159,11 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Init graphqlHandler
 	client.graphql.init(client.ctx, client.repourl)
+
+	// Setup inactiveMaintainerHandler.
+	// Note: cutoff is set later at query time via setCutoff
+	client.inactiveMaintainer = &MaintainerActivityHandler{}
+	client.inactiveMaintainer.init(client.ctx, client.glClient, client.repourl.projectID)
 
 	return nil
 }
@@ -271,6 +277,14 @@ func (client *Client) Search(request clients.SearchRequest) (clients.SearchRespo
 
 func (client *Client) SearchCommits(request clients.SearchCommitsOptions) ([]clients.Commit, error) {
 	return client.searchCommits.search(request)
+}
+
+func (client *Client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	// Set the cutoff time for this query
+	client.inactiveMaintainer.setCutoff(cutoff)
+
+	// Query the handler to get maintainer activity
+	return client.inactiveMaintainer.GetMaintainerActivity()
 }
 
 func (client *Client) Close() error {
