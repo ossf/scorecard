@@ -55,14 +55,14 @@ type RepoInfo struct {
 
 // Result struct is returned on a successful Scorecard run.
 type Result struct {
-	Repo       RepoInfo
 	Date       time.Time
+	Repo       RepoInfo
 	Scorecard  ScorecardInfo
 	Checks     []checker.CheckResult
-	RawResults checker.RawResults
 	Findings   []finding.Finding
 	Metadata   []string
 	Config     config.Config
+	RawResults checker.RawResults
 }
 
 // AsStringResultOption provides configuration options for string Scorecard results.
@@ -408,6 +408,12 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
 		}
 		ret.RawResults.WebhookResults = rawData
+	case checks.CheckSecretScanning:
+		rawData, err := raw.SecretScanning(request)
+		if err != nil {
+			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		}
+		ret.RawResults.SecretScanningResults = rawData
 	default:
 		return sce.WithMessage(sce.ErrScorecardInternal, "unknown check")
 	}

@@ -36,27 +36,28 @@ var (
 )
 
 type Client struct {
-	repourl       *Repo
-	repo          *gitlab.Project
-	glClient      *gitlab.Client
-	contributors  *contributorsHandler
-	branches      *branchesHandler
-	releases      *releasesHandler
-	workflows     *workflowsHandler
-	checkruns     *checkrunsHandler
-	commits       *commitsHandler
-	issues        *issuesHandler
-	project       *projectHandler
-	statuses      *statusesHandler
-	search        *searchHandler
-	searchCommits *searchCommitsHandler
-	webhook       *webhookHandler
-	languages     *languagesHandler
-	licenses      *licensesHandler
-	tarball       *tarballHandler
-	graphql       *graphqlHandler
-	ctx           context.Context
-	commitDepth   int
+	repourl        *Repo
+	repo           *gitlab.Project
+	glClient       *gitlab.Client
+	contributors   *contributorsHandler
+	branches       *branchesHandler
+	releases       *releasesHandler
+	workflows      *workflowsHandler
+	checkruns      *checkrunsHandler
+	commits        *commitsHandler
+	issues         *issuesHandler
+	project        *projectHandler
+	statuses       *statusesHandler
+	search         *searchHandler
+	searchCommits  *searchCommitsHandler
+	webhook        *webhookHandler
+	languages      *languagesHandler
+	licenses       *licensesHandler
+	tarball        *tarballHandler
+	graphql        *graphqlHandler
+	ctx            context.Context
+	secretScanning *secretScanningHandler
+	commitDepth    int
 }
 
 var errRepoAccess = errors.New("repo inaccessible")
@@ -158,6 +159,8 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Init graphqlHandler
 	client.graphql.init(client.ctx, client.repourl)
+
+	client.secretScanning.init(client.ctx, client.glClient, client.repourl)
 
 	return nil
 }
@@ -331,13 +334,37 @@ func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clien
 		languages: &languagesHandler{
 			glClient: client,
 		},
-		licenses: &licensesHandler{},
-		tarball:  &tarballHandler{},
-		graphql:  &graphqlHandler{},
+		licenses:       &licensesHandler{},
+		tarball:        &tarballHandler{},
+		graphql:        &graphqlHandler{},
+		secretScanning: &secretScanningHandler{},
 	}, nil
 }
 
 // TODO(#2266): implement CreateOssFuzzRepoClient.
 func CreateOssFuzzRepoClient(ctx context.Context, logger *log.Logger) (clients.RepoClient, error) {
 	return nil, fmt.Errorf("%w, oss fuzz currently only supported for github repos", clients.ErrUnsupportedFeature)
+}
+
+func (c *Client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	r, err := c.secretScanning.get()
+	if err != nil {
+		return clients.SecretScanningSignals{}, err
+	}
+	return clients.SecretScanningSignals{
+		Platform:                  clients.PlatformGitLab,
+		GLSecretPushProtection:    r.SecretPushProtection,
+		GLPushRulesPreventSecrets: r.PushRulesPreventSecrets,
+		GLPipelineSecretDetection: r.PipelineSecretDetection,
+
+		ThirdPartyGitleaks:       r.TpGitleaks,
+		ThirdPartyTruffleHog:     r.TpTruffleHog,
+		ThirdPartyDetectSecrets:  r.TpDetectSecrets,
+		ThirdPartyGitSecrets:     r.TpGitSecrets,
+		ThirdPartyGGShield:       r.TpGGShield,
+		ThirdPartyShhGit:         r.TpShhGit,
+		ThirdPartyRepoSupervisor: r.TpRepoSupervisor,
+
+		Evidence: r.Evidence,
+	}, nil
 }
