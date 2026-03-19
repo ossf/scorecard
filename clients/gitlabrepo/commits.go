@@ -17,6 +17,7 @@ package gitlabrepo
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -76,6 +77,18 @@ func (handler *commitsHandler) setup() error {
 			// Update the page number to get the next page.
 			opt.Page = resp.NextPage
 		}
+		// GitLab API does not guarantee commit ordering.
+		// Sort commits by committed date (latest first).
+		sort.SliceStable(commits, func(i, j int) bool {
+			if commits[i].CommittedDate == nil {
+				return false
+			}
+			if commits[j].CommittedDate == nil {
+				return true
+			}
+			return commits[i].CommittedDate.After(*commits[j].CommittedDate)
+		})
+		// Sorting ensures consistent behavior across API responses.
 
 		handler.commitsRaw = commits
 		if handler.repourl.commitSHA != clients.HeadSHA {
