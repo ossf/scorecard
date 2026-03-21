@@ -19,7 +19,9 @@ Check scores (0-10) and conformance labels (PASS/FAIL/UNKNOWN) are parallel
 evaluation layers over the same probe evidence, produced in a single run.
 Existing checks, probes, and scores are unchanged — v6 is additive. The
 conformance layer is a new product surface aligned with the
-[ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem.
+[ORBIT WG](https://github.com/ossf/wg-orbit) ecosystem. (While Scorecard is not
+part of ORBIT WG, ecosystem interoperability with ORBIT tools is an overarching
+OpenSSF goal, and Scorecard interoperates through published output formats.)
 
 **Target Baseline version:** [v2026.02.19](https://baseline.openssf.org/versions/2026-02-19)
 
@@ -40,15 +42,14 @@ Deliverables:
 
 - Evidence model and output formats:
   - Enriched JSON (Scorecard-native)
-  - In-toto predicates ([SVR](https://github.com/in-toto/attestation/blob/main/spec/predicates/svr.md);
-    track [Baseline Predicate PR #502](https://github.com/in-toto/attestation/pull/502))
+  - In-toto evidence predicate (`scorecard.dev/evidence/v0.1`)
   - Gemara output (via [security-baseline](https://github.com/ossf/security-baseline)
     dependency)
   - OSCAL Assessment Results (via
     [go-oscal](https://github.com/defenseunicorns/go-oscal))
-- Two-layer mapping model for OSPS Baseline v2026.02.19:
-  - Check-level relations contributed upstream to security-baseline
-  - Probe-level mappings maintained in Scorecard
+- Unified framework abstraction for OSPS Baseline v2026.02.19:
+  - Checks and OSPS Baseline both use the same internal probe composition interface
+  - Probe-to-control mappings maintained in Scorecard
 - Applicability engine detecting preconditions (e.g., "has made a release")
 - Map existing probes to OSPS controls where coverage exists today
 - New probes for Level 1 gaps:
@@ -70,9 +71,12 @@ Deliverables:
 - Release asset inspection layer
 - Signed manifest support
 - Release notes and changelog detection
-- Attestation mechanism for non-automatable controls
 - Evidence bundle output (conformance results + in-toto statement)
 - Additional metadata sources for the ingestion layer
+
+**Note:** Phase 1 focuses on automatically verifiable controls. Design of
+attestation mechanisms (for non-automatable controls) is deferred to Phase 3 or
+beyond.
 
 #### Phase 3: Enforcement detection, Level 3, and multi-repo
 
@@ -81,9 +85,10 @@ and project-level aggregation.
 
 Deliverables:
 
-- SCA policy and enforcement detection
-- SAST policy and enforcement detection
+- SCA policy and enforcement detection (Scorecard detects enforcement mechanisms without being an enforcement tool itself)
+- SAST policy and enforcement detection (Scorecard detects enforcement mechanisms without being an enforcement tool itself)
 - Multi-repo project-level conformance aggregation
+- Attestation mechanism for non-automatable controls (deferred from Phase 2)
 - Attestation integration GA
 
 ### Ecosystem alignment
