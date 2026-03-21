@@ -3,15 +3,18 @@
 ## Summary
 
 **Mission:** Scorecard produces trusted, structured security evidence for the
-open source ecosystem. _(Full MVVSR to be developed as a follow-up deliverable
-for Steering Committee review.)_
+open source ecosystem. _(Full Mission, Vision, Values, Strategy, and Roadmap
+(MVVSR) to be developed as a follow-up deliverable for Steering Committee
+review.)_
 
 Scorecard is an **open source security evidence engine**. It accepts diverse
 inputs about a project's security practices, normalizes them through probe-based
 analysis, and packages the resulting evidence in interoperable formats for
-downstream tools to act on. OSPS Baseline conformance is the first use case that
-proves this architecture, and the central initiative for Scorecard's 2026
-roadmap.
+downstream tools to act on. (**Downstream tools** are tools that consume
+Scorecard's output to make policy decisions, enforce requirements, or aggregate
+security posture—examples: AMPEL, Minder, Privateer, Darnit, LFX Insights,
+Allstar.) OSPS Baseline conformance is the first use case that proves this
+architecture, and the central initiative for Scorecard's 2026 roadmap.
 
 This is fundamentally a **product-level shift** — the defining change for
 **Scorecard v6**. Scorecard today answers "how well does this repo follow best
@@ -20,6 +23,12 @@ this project meet these MUST statements at this maturity level?"
 (PASS/FAIL/UNKNOWN/NOT_APPLICABLE per control, with evidence). Check scores and
 conformance labels are parallel evaluation layers over the same probe evidence —
 existing checks and scores are unchanged.
+
+The conformance layer includes **both** evaluation logic (probe→control mapping,
+status determination, applicability detection) and output formatting (enriched
+JSON, in-toto, Gemara, OSCAL). It composes probe findings into control verdicts,
+just as checks compose them into 0-10 scores—same probes, different evaluation
+surfaces, single run.
 
 ### Why v6
 
@@ -42,13 +51,24 @@ additive — no breaking changes to existing surfaces.
 
 ### Why now
 
-1. **OSPS Baseline is the emerging standard.** The OSPS Baseline (v2026.02.19) defines controls across 3 maturity levels. It is maintained within the ORBIT Working Group and is becoming the reference framework for open source project security posture. See the [OSPS Baseline maintenance process](https://baseline.openssf.org/maintenance.html) for the versioning cadence.
+1. **OSPS Baseline is the emerging standard.** The OSPS Baseline (v2026.02.19) defines controls across 3 maturity levels. It is maintained within the ORBIT Working Group and is becoming the reference framework for open source project security posture. (While Scorecard is not part of ORBIT WG, ecosystem interoperability with ORBIT tools is an overarching OpenSSF goal, and Scorecard interoperates through published output formats.) See the [OSPS Baseline maintenance process](https://baseline.openssf.org/maintenance.html) for the versioning cadence.
 
 2. **The ecosystem is moving.** The [Privateer plugin for GitHub repositories](https://github.com/ossf/pvtr-github-repo-scanner) already evaluates 39 of 52 control requirements and powers LFX Insights security results. The OSPS Baseline GitHub Action can upload SARIF. Best Practices Badge is staging Baseline-phase work. Scorecard's large install base is an advantage, but only if it ships a conformance surface.
 
 3. **ORBIT WG alignment.** Scorecard sits within the OpenSSF alongside the ORBIT WG. The ORBIT charter's mission is "to develop and maintain interoperable resources related to the identification and presentation of security-relevant data." Scorecard producing interoperable conformance results is a natural fit.
 
 4. **Regulatory pressure.** The EU Cyber Resilience Act (CRA) and similar regulatory frameworks increasingly expect evidence-based security posture documentation. Scorecard produces structured evidence that downstream tools and processes may use when evaluating regulatory readiness. Scorecard does not itself guarantee CRA compliance or any other regulatory compliance.
+
+### Why framework conformance in Scorecard?
+
+Scorecard already performs the core evaluation work needed for framework conformance: probe execution, evidence collection, and probe composition. Rather than create a separate tool that duplicates this capability, the conformance layer builds on Scorecard's existing architecture:
+
+- **Probe execution**: Scorecard's probes already collect the evidence needed for control evaluation
+- **Composition model**: Checks demonstrate probe composition (e.g., the Binary-Artifacts check composes multiple binary detection probes); OSPS controls use the same composition pattern
+- **Evidence normalization**: Probes already normalize diverse signals (GitHub API, file analysis, etc.) into structured findings
+- **Applicability detection**: Scorecard already evaluates preconditions (e.g., "has made a release") for checks; controls need the same capability
+
+The conformance layer is a natural extension of Scorecard's probe-based architecture, not a bolted-on feature. Scorecard did a lot of what we needed for evaluation, so there's no need for a new tool.
 
 ### What Scorecard brings that others don't
 
@@ -135,11 +155,11 @@ only). Eddie Knight, Adolfo García Veytia, and Mike Lieberman provided
 ORBIT WG feedback on output formats, mapping file ownership, and architectural
 direction.
 
-The central architectural question (CQ-19) has been resolved: Scorecard takes
-the hybrid approach (Option C), designed so that scaling back to Option A remains
-straightforward if needed. Scorecard owns all probe execution and conformance
-evaluation logic. Interoperability is purely at the output layer. See the
-Architecture section below and [`decisions.md`](decisions.md) for details.
+The central architectural question (CQ-19) has been resolved: Scorecard owns
+all probe execution and conformance evaluation logic, with interoperability
+purely at the output layer. This hybrid approach enables scaling back to a fully
+independent model if needed. See the Architecture section below and
+[`decisions.md`](decisions.md) for details.
 
 For the full list of questions, reviewer feedback, maintainer responses, and
 decision priority analysis, see [`decisions.md`](decisions.md).
@@ -179,7 +199,13 @@ for other frameworks and organizational profiles. Probe findings carry no
 framework-specific semantics — only the mapping definitions (which probes
 compose into which control outcomes) are framework-specific.
 
-### Architectural constraints
+The three-tier model describes the structural layers of the architecture. The
+Processing model (described earlier in this section) provides the temporal data
+flow view, showing how data moves through these layers (Ingest → Analyze →
+Evaluate → Deliver). These are complementary perspectives on the same
+architecture.
+
+### Architectural target state
 
 1. Scorecard owns all probe execution (non-negotiable core competency)
 2. Scorecard owns its own conformance evaluation logic (mapping, PASS/FAIL,
@@ -196,10 +222,6 @@ compose into which control outcomes) are framework-specific.
 **Dependency guidance:** Only adopt reasonably stable dependencies when needed.
 The [security-baseline](https://github.com/ossf/security-baseline) repo is an
 acceptable data dependency for control definitions (see Scope).
-
-**Flexibility:** Under this structure, scaling back to a fully independent model
-(Option A) remains straightforward — deprioritize or drop specific output
-formatters without affecting the evaluation layer.
 
 ### Design principles
 
@@ -234,13 +256,16 @@ controls and Scorecard probes is a versioned data file, not hard-coded logic.
 1. **OSPS conformance engine** — new package that maps controls to Scorecard probes, evaluates per-control status, handles applicability
 2. **Evidence model and output formats** — the evidence model is the core deliverable; output formats are presentation layers over it:
    - Enriched JSON (Scorecard-native, no external dependency)
-   - In-toto predicates (SVR first; track [Baseline Predicate PR #502](https://github.com/in-toto/attestation/pull/502))
+   - In-toto evidence predicate (`scorecard.dev/evidence/v0.1`) — Scorecard-owned, framework-agnostic predicate supporting OSPS Baseline, SLSA, and custom frameworks with probe-level evidence. Rationale: own predicate destiny, don't depend on unmerged external PRs, support BYO frameworks.
    - Gemara output (transitive dependency via security-baseline)
    - OSCAL Assessment Results (using [go-oscal](https://github.com/defenseunicorns/go-oscal))
-   - Existing Scorecard predicate type (`scorecard.dev/result/v0.1`) preserved; new predicate types added as options
-3. **Two-layer mapping model** — data-driven mappings at two levels:
-   - *Upstream* ([security-baseline](https://github.com/ossf/security-baseline) repo): Check-level relations — "OSPS-AC-03 relates to Scorecard's Branch-Protection check." Scorecard maintainers contribute via PR. Uses "informs" / "provides evidence toward" language (not "satisfies" / "demonstrates compliance with" — see [security-baseline PR #476](https://github.com/ossf/security-baseline/pull/476)).
-   - *Internal* (Scorecard repo): Probe-level mappings — "OSPS-AC-03.01 is evaluated by probes X + Y with logic Z." Depends on probe implementation details. A control may map to a single probe (1:1) or a composition of probes with evaluation logic (many-to-1). This follows the same composition pattern used by [existing checks](https://github.com/ossf/scorecard/blob/main/probes/entries.go).
+   - **Note:** Existing `scorecard.dev/result/v0.1` predicate (check-based JSON) preserved unchanged. The new evidence predicate is additive, not a replacement. Both coexist; users choose via CLI flags.
+3. **Unified framework abstraction for OSPS Baseline v2026.02.19** — Checks and OSPS Baseline both use the same internal interface/representation (probe compositions):
+   - Probe-to-control mappings maintained in Scorecard for OSPS Baseline controls
+   - Framework evaluation layer produces conformance results (PASS/FAIL/UNKNOWN/NOT_APPLICABLE)
+   - A control may map to a single probe (1:1) or a composition of probes with evaluation logic (many-to-1)
+   - This follows the same composition pattern used by [existing checks](https://github.com/ossf/scorecard/blob/main/probes/entries.go)
+   - Checks themselves are effectively a framework (the "Scorecard framework"); OSPS Baseline is another framework over the same probe evidence
 4. **security-baseline dependency** — `github.com/ossf/security-baseline` as a data dependency for control definitions, Gemara types, and OSCAL catalog models
 5. **Applicability engine** — detects preconditions (e.g., "has made a release") and outputs NOT_APPLICABLE
 6. **Metadata ingestion layer** — supports Security Insights as one source among several for metadata-dependent controls (OSPS-BR-03.01, BR-03.02, QA-04.01). Architecture invites contributions for alternative sources (SBOMs, VEX, platform APIs). No single metadata file is required for meaningful results.
@@ -297,16 +322,23 @@ Phases are ordered by outcome, not calendar quarter. Maintainer bandwidth dictat
 
 ### Phase 1: Conformance foundation + Level 1 coverage
 
-**Outcome:** Scorecard produces a useful OSPS Baseline Level 1 conformance report for any public GitHub repository, available across CLI, Action, and API surfaces.
+**Outcome:** Scorecard produces a useful OSPS Baseline Level 1 conformance report for any public GitHub repository, available across CLI and GitHub Action.
+
+**Deployment surfaces for Phase 1:**
+- ✅ CLI (local execution)
+- ✅ GitHub Action (repository-specific results, no storage cost to Scorecard project)
+- ❌ Cron service deferred to Phase 2+ (storage/serving cost for conformance data across 1M+ repos needs evaluation)
+
+Phase 1 still delivers value: organizations can self-assess via Action or CLI without waiting for cron coverage.
 
 - Evidence model and output formats:
   - Enriched JSON (Scorecard-native)
-  - In-toto predicates ([SVR](https://github.com/in-toto/attestation/blob/main/spec/predicates/svr.md); track [Baseline Predicate PR #502](https://github.com/in-toto/attestation/pull/502))
+  - In-toto evidence predicate (`scorecard.dev/evidence/v0.1`)
   - Gemara output (transitive via [security-baseline](https://github.com/ossf/security-baseline) dependency)
-  - OSCAL Assessment Results (via [go-oscal](https://github.com/defenseunicorns/go-oscal); complements security-baseline's OSCAL Catalog export)
-- Two-layer mapping model for OSPS Baseline v2026.02.19:
-  - Check-level relations contributed upstream to security-baseline
-  - Probe-level mappings maintained in Scorecard
+  - OSCAL Assessment Results (via [go-oscal](https://github.com/defenseunicorns/go-oscal))
+- Unified framework abstraction for OSPS Baseline v2026.02.19:
+  - Probe-to-control mappings maintained in Scorecard
+  - Checks and OSPS Baseline use same internal probe composition interface
 - Applicability engine (detect "has made a release" and other preconditions)
 - Map existing probes to OSPS controls where coverage exists today
 - New probes for Level 1 gaps (prioritized by coverage impact):
@@ -315,7 +347,7 @@ Phases are ordered by outcome, not calendar quarter. Maintainer bandwidth dictat
   - Security policy deepening (VM-02.01, VM-03.01, VM-01.01)
   - Secrets detection (BR-07.01) — consume platform signals (e.g., GitHub secret scanning API) where possible
 - Metadata ingestion layer v1 — Security Insights as first supported source (BR-03.01, BR-03.02, QA-04.01); architecture supports additional metadata sources
-- Scorecard control catalog extraction plan (enabling other tools to consume Scorecard's control definitions)
+- Scorecard control catalog extraction — Extract Scorecard checks into an in-project control framework representation that uses the same unified framework abstraction as OSPS Baseline. This enables checks and OSPS Baseline controls to be treated uniformly within the evaluation layer.
 
 ### Phase 2: Release integrity + Level 2 core
 
@@ -391,6 +423,8 @@ AMPEL's role), perform compliance auditing and remediation (Darnit's role), or
 guarantee compliance with any regulatory framework.
 
 ## Success criteria
+
+The following criteria define proposal acceptance (successful Phase 1 implementation):
 
 1. Scorecard produces a valid OSPS Baseline Level 1 conformance report for any public GitHub repository across CLI, Action, and API surfaces
 2. Evidence model supports multiple output formats (enriched JSON, in-toto, Gemara, OSCAL) — each validated with at least one downstream consumer

@@ -310,6 +310,252 @@ Should we adopt these existing issues as the starting work items for Phase 1, or
 
 ---
 
+## Scorecard Maintainer Feedback: Spencer Schrock
+
+The following feedback was provided by Spencer Schrock (Scorecard Steering Committee member and maintainer) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
+
+### SS-1: Conformance layer definition (ROADMAP.md:19)
+
+**Comment**: "to be clear, in this situation 'evaluation' or 'conformance' layer, just means output format?"
+
+**Response**: The conformance layer includes **both** evaluation logic (probe→control mapping, status determination, applicability detection) and output formatting (enriched JSON, in-toto, Gemara, OSCAL). It composes probe findings into control verdicts, just as checks compose them into 0-10 scores—same probes, different evaluation surfaces, single run.
+
+**Action**: Added clarification to proposal.md where conformance layer is first introduced.
+
+**Status**: RESOLVED
+
+---
+
+### SS-2: Mapping layers clarification (ROADMAP.md:51)
+
+**Comment**: "What's the value in upstreaming check-level relations? I think mapping probes to baseline controls is fine."
+
+**Response**: Checks today are effectively a framework in their own right (probe compositions). The unified framework abstraction means both checks and OSPS Baseline use the same internal representation — probe compositions mapped to framework controls. No "two layers" or "upstreaming" needed; it's all internal to Scorecard.
+
+**Action**: Updated proposal.md and ROADMAP.md to describe unified framework abstraction instead of two-layer mapping model.
+
+**Status**: RESOLVED
+
+---
+
+### SS-3: Catalog extraction target (ROADMAP.md:61)
+
+**Comment**: "extracting to where?"
+
+**Response**: The catalog extraction means extracting Scorecard checks into an in-project control framework representation that uses the same unified framework abstraction as OSPS Baseline. This enables checks and OSPS controls to be treated uniformly within the evaluation layer. Not publishing external artifacts.
+
+**Action**: Clarified catalog extraction description in Phase 1 deliverables.
+
+**Status**: RESOLVED
+
+---
+
+### SS-4: In-toto predicate compatibility (ROADMAP.md:74)
+
+**Comment**: "will this change the intoto format we offer now. which is wrapped around our check-based JSON output?"
+
+**Response**: No. The existing in-toto statement with predicate type `scorecard.dev/result/v0.1` (wrapping check-based JSON output) is **preserved unchanged**. The new evidence predicate (`scorecard.dev/evidence/v0.1`) is **additive**, not a replacement. Both predicates coexist; users choose via CLI flags.
+
+**Action**: Added explicit note about predicate preservation to output formats section.
+
+**Status**: RESOLVED
+
+---
+
+### SS-5: Attestation scope and evidence engine (ROADMAP.md:136)
+
+**Comment**: "As an evidence engine, do we even need to attest to this data? Or is this for data produced by the cron or the action?"
+
+**Response**: Phase 1 focuses on automatically verifiable controls only. Discussion and design of attestation mechanisms (both inbound for non-automatable controls and outbound for signing Scorecard's own output) is deferred beyond Phase 1. When attestation is designed, it would apply to cron/action output.
+
+**Action**: Moved attestation deliverable from Phase 2 to Phase 3/TBD. Added note to Phase 1 scope.
+
+**Status**: DEFERRED
+
+---
+
+### SS-6: Enforcement drift concern (osps-baseline-coverage.md:207)
+
+**Comment**: "Is this going to drift into policy/enforcement? Does this conflict with our goal of evidence only?"
+
+**Response**: No drift into enforcement. Scorecard detects signals of enforcement (e.g., "SCA tool is configured") but does not enforce policies. The boundary is: Scorecard observes and reports; downstream tools (Minder, AMPEL, Allstar) enforce.
+
+**Action**: Reinforced enforcement boundary in Phase 3 description and design principles.
+
+**Status**: RESOLVED
+
+---
+
+### SS-7: Elevated access observability (osps-baseline-coverage.md:36)
+
+**Comment**: "I'd say this could be observable if it just needs the right token. If this is run in the context of an OSPO self-observation I think it's fine."
+
+**Response**: Controls requiring elevated access (org admin tokens, GitHub Apps) are marked as **observable** with access requirements noted. When elevated access is unavailable, these controls return status `UNKNOWN` with reason "Requires elevated repository access." This supports OSPO self-assessment scenarios.
+
+**Action**: Updated coverage analysis guidance to mark elevated-access controls as observable with notation.
+
+**Status**: RESOLVED
+
+---
+
+### SS-8: Cron deployment costs (decisions.md:203)
+
+**Comment**: "I would say the cron has additional barriers, cost of writing/serving more data. I have no concerns with the action"
+
+**Response**: Phase 1 conformance evaluation includes CLI and GitHub Action, but defers cron to Phase 2+ due to BigQuery storage/serving costs for conformance data across 1M+ repos. Action users manage their own storage (no cost to Scorecard infrastructure).
+
+**Action**: Added explicit cron deferral note to Phase 1 scope.
+
+**Status**: RESOLVED
+
+---
+
+### SS-9: Metadata signing (decisions.md:30)
+
+**Comment**: "the metadata could still be signed by a maintainer, just involves some manual effort on their part"
+
+**Response**: Noted as part of the broader attestation design discussion, deferred to post-Phase 1.
+
+**Action**: No immediate action; attestation design deferred.
+
+**Status**: NOTED
+
+---
+
+### SS-10: Mapping file repository location (decisions.md:218)
+
+**Comment**: "this mapping file lives in which repo?"
+
+**Response**: Probe-to-control mappings for OSPS Baseline will live in the Scorecard repository, as part of the unified framework abstraction. Checks and OSPS Baseline both use internal probe composition definitions.
+
+**Action**: Clarified in unified framework abstraction description.
+
+**Status**: RESOLVED
+
+---
+
+### SS-11: Design principles endorsement (proposal.md:205)
+
+**Comment**: "I agree with these principles"
+
+**Response**: Noted. No action needed.
+
+**Status**: ACKNOWLEDGED
+
+---
+
+### SS-12: AGENTS.md relevance (AGENTS.md:3)
+
+**Comment**: "This seems unrelated to this change. Other than I assume you using it to generate some of these docs?"
+
+**Response**: AGENTS.md provides AI collaboration guidelines for the proposal development process. Now removed from git history and .gitignored per Steering Committee discussion.
+
+**Action**: AGENTS.md removed from git history in rebase, .gitignored.
+
+**Status**: RESOLVED
+
+---
+
+## Scorecard Maintainer Feedback: Adam Korczynski
+
+The following feedback was provided by Adam Korczynski (Scorecard maintainer) on [PR #4952](https://github.com/ossf/scorecard/pull/4952).
+
+### AK-1: MVVSR acronym expansion (proposal.md:6)
+
+**Comment**: "Suggestion: Expand MVVSR here."
+
+**Response**: MVVSR = Mission, Vision, Values, Strategy, and Roadmap. Expanded on first use for clarity. Reference OpenSSF's MVVSR at https://openssf.org/about/ for potential alignment.
+
+**Action**: Changed to "Mission, Vision, Values, Strategy, and Roadmap (MVVSR) to be developed as a follow-up deliverable..."
+
+**Status**: RESOLVED
+
+---
+
+### AK-2: Rationale for embedded conformance (proposal.md:16)
+
+**Comment**: "A bit of a general question: What are the reasons of adding framework conformance to Scorecard itself instead of having a standalone tool to which we can feed Scorecard findings and where the standalone tool then gives a verdict about framework conformance?"
+
+**Response**: Scorecard already performs the core evaluation work needed for framework conformance: probe execution, evidence collection, and probe composition. The conformance layer builds on Scorecard's existing architecture rather than duplicating capabilities in a separate tool. Scorecard did a lot of what we needed for evaluation, so there's no need for a new tool.
+
+**Action**: Added "Why framework conformance in Scorecard?" section to proposal explaining architectural rationale.
+
+**Status**: RESOLVED
+
+---
+
+### AK-3: Downstream tools definition (proposal.md:106)
+
+**Comment**: "Would be good with a definition of downstream tools here."
+
+**Response**: Added definition: "Downstream tools are tools that consume Scorecard's output to make policy decisions, enforce requirements, or aggregate security posture." With examples: AMPEL, Minder, Privateer, Darnit, LFX Insights, Allstar.
+
+**Action**: Added definition where "downstream tools" first appears.
+
+**Status**: RESOLVED
+
+---
+
+### AK-4: Processing model vs Three-tier model (proposal.md:149)
+
+**Comment**: "Is this ('Processing model') the current dataflow and the following section 'Three-tier evaluation model' the intended?"
+
+**Response**: Both are complementary views of the same architecture. Processing model (Ingest → Analyze → Evaluate → Deliver) is the temporal data flow view. Three-tier model (Evidence → Evaluation → Presentation) is the structural layers view. Neither is "current" vs "intended"—they describe different aspects of the v6 architecture.
+
+**Action**: Added connecting sentence explaining relationship between the two models.
+
+**Status**: RESOLVED
+
+---
+
+### AK-5: Architectural constraints framing (proposal.md:189)
+
+**Comment**: "Not sure if this is entirely correct. Currently, I wouldn't say that Scorecard can produce conformance results, but perhaps I am understanding the context of 'constraints' incorrectly here; Are these current constraints or are they constraints that should exist with the conformance layer in Scorecard?"
+
+**Response**: These are the architectural target state we're building toward, not current state constraints. The section heading "Architectural constraints" was misleading.
+
+**Action**: Renamed section to "Architectural target state" or "Architectural principles" to clarify these describe the v6 design, not current limitations.
+
+**Status**: RESOLVED
+
+---
+
+### AK-6: Option A reference (proposal.md:201)
+
+**Comment**: "Where is Option A?"
+
+**Response**: "Option A" exists only in decisions.md (architecture options discussion). Referencing it in proposal.md creates confusion.
+
+**Action**: Removed "Option A" mention from proposal.md, inlined the actual description of what we're accomplishing (unified framework abstraction).
+
+**Status**: RESOLVED
+
+---
+
+### AK-7: ORBIT WG context (ROADMAP.md:91)
+
+**Comment**: "Why does Scorecard need to operate within the ORBIT WG ecosystem? Perhaps add a bit about what the ORBIT WG ecosystem is - that may clear it up."
+
+**Response**: Scorecard is **not** part of ORBIT WG. Ecosystem interoperability with ORBIT tools is an overarching OpenSSF goal, and Scorecard interoperates through published output formats. Added one-sentence clarification.
+
+**Action**: Added explanation after first ORBIT mention in both proposal.md and ROADMAP.md.
+
+**Status**: RESOLVED
+
+---
+
+### AK-8: Success criteria ambiguity (proposal.md:393)
+
+**Comment**: "Would be nice to make this more explicit: What is the success criteria for here? The proposal or the implementation?"
+
+**Response**: These are **proposal acceptance criteria**. The proposal is accepted when Phase 1 implementation successfully delivers the described outcomes: Level 1 conformance reports, validated output formats, downstream consumer validation, open questions resolved, and no breaking changes to existing functionality.
+
+**Action**: Add clarifying note to success criteria section: "The following criteria define proposal acceptance (successful Phase 1 implementation):"
+
+**Status**: RESOLVED
+
+---
+
 ## ORBIT WG feedback
 
 ### Eddie Knight's feedback (ORBIT WG TSC Chair)
