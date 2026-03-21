@@ -146,23 +146,23 @@ A fresh analysis of Scorecard's current coverage against OSPS Baseline v2026.02.
 - **Multi-repo scanning** (`--repos`, `--org`) — needed for OSPS-QA-04.02 (subproject conformance)
 - **Serve mode** — HTTP surface for pipeline integration
 
-## Open questions
+## Open questions and design decisions
 
-Several design questions are under active discussion. Spencer (Steering
-Committee) raised questions about attestation identity (OQ-1), enforcement
-detection scope (OQ-2), and the evidence model (OQ-4, resolved — probe-based
-only). Eddie Knight, Adolfo García Veytia, and Mike Lieberman provided
-ORBIT WG feedback on output formats, mapping file ownership, and architectural
-direction.
+The following design questions have been addressed through maintainer review and Steering Committee discussion:
 
-The central architectural question (CQ-19) has been resolved: Scorecard owns
-all probe execution and conformance evaluation logic, with interoperability
-purely at the output layer. This hybrid approach enables scaling back to a fully
-independent model if needed. See the Architecture section below and
-[`decisions.md`](decisions.md) for details.
+**Attestation mechanism for non-automatable controls** — Phase 1 focuses on automatically verifiable controls only. Discussion and design of attestation mechanisms (both inbound for non-automatable controls and outbound for signing Scorecard's own output) is deferred to Phase 3 or beyond. This avoids blocking on identity model questions (OIDC vs. repo-local metadata vs. platform-native signals) while making progress on controls Scorecard can definitively evaluate.
 
-For the full list of questions, reviewer feedback, maintainer responses, and
-decision priority analysis, see [`decisions.md`](decisions.md).
+**Enforcement detection boundary** — Scorecard detects signals of enforcement (e.g., "SCA tool is configured," "SAST results required before merge") but does not itself enforce policies. The boundary is: Scorecard observes and reports; downstream tools (Minder, AMPEL, Allstar) enforce. Phase 3 includes enforcement detection for SCA and SAST policies, but Scorecard remains an evidence engine, not an enforcement tool.
+
+**Predicate strategy** — The Steering Committee rejected in-toto SVR (too minimal, no probe-level evidence) and decided to create a new Scorecard-owned, framework-agnostic predicate type (`scorecard.dev/evidence/v0.1`). This supports OSPS Baseline, SLSA, and custom frameworks with probe-level evidence. The existing `scorecard.dev/result/v0.1` predicate (check-based) is preserved unchanged.
+
+**Architecture** — Scorecard owns all probe execution and conformance evaluation logic, with interoperability purely at the output layer (in-toto, Gemara, OSCAL). This hybrid approach enables scaling back to a fully independent model if needed.
+
+**Unified framework abstraction** — Checks and OSPS Baseline both use the same internal probe composition interface. No separate "mapping layers" or upstream contributions needed; probe-to-control mappings are maintained in Scorecard.
+
+**Evidence model** — Probe-based only, not check-based. Conformance results reference probe findings as evidence, not check scores.
+
+For the full review history including feedback from Spencer Schrock, Adam Korczynski, Eddie Knight (ORBIT WG), Adolfo García Veytia (AMPEL), Mike Lieberman, and Felix Lange, see [`decisions.md`](decisions.md).
 
 ## Architecture
 
@@ -269,7 +269,7 @@ controls and Scorecard probes is a versioned data file, not hard-coded logic.
 4. **security-baseline dependency** — `github.com/ossf/security-baseline` as a data dependency for control definitions, Gemara types, and OSCAL catalog models
 5. **Applicability engine** — detects preconditions (e.g., "has made a release") and outputs NOT_APPLICABLE
 6. **Metadata ingestion layer** — supports Security Insights as one source among several for metadata-dependent controls (OSPS-BR-03.01, BR-03.02, QA-04.01). Architecture invites contributions for alternative sources (SBOMs, VEX, platform APIs). No single metadata file is required for meaningful results.
-7. **Attestation mechanism (v1)** — accepts repo-local metadata for non-automatable controls (pending OQ-1 resolution)
+7. **Attestation mechanism (v1)** — accepts repo-local metadata for non-automatable controls
 8. **Scorecard probe catalog** — Scorecard *consumes* external control catalogs (OSPS Baseline via security-baseline) for conformance evaluation. The catalog extraction plan packages Scorecard's own probe definitions (`probes/*/def.yml`) as a consumable artifact so external tools (e.g., AMPEL) can discover what Scorecard evaluates and compose their own mappings against it.
 9. **New probes and probe enhancements** for gap controls:
    - Secrets detection (OSPS-BR-07.01)
@@ -278,7 +278,7 @@ controls and Scorecard probes is a versioned data file, not hard-coded logic.
    - Security policy deepening (OSPS-VM-02.01, VM-03.01, VM-01.01)
    - Release asset inspection (multiple L2/L3 controls)
    - Signed manifest support (OSPS-BR-06.01)
-   - Enforcement detection (OSPS-VM-05.*, VM-06.* — pending OQ-2 resolution)
+   - Enforcement detection (OSPS-VM-05.*, VM-06.*)
 10. **Multi-repo project-level conformance** (OSPS-QA-04.02)
 
 ### Future design concepts
@@ -356,7 +356,7 @@ Phase 1 still delivers value: organizations can self-assess via Action or CLI wi
 - Release asset inspection layer (detect compiled assets, SBOMs, licenses with releases)
 - Signed manifest support (BR-06.01)
 - Release notes/changelog detection (BR-04.01)
-- Attestation mechanism v1 for non-automatable controls (pending OQ-1 resolution)
+- Attestation mechanism v1 for non-automatable controls
 - Evidence bundle output v1 (conformance results + in-toto statement + SARIF for failures)
 - Additional metadata sources for the ingestion layer
 
@@ -364,8 +364,8 @@ Phase 1 still delivers value: organizations can self-assess via Action or CLI wi
 
 **Outcome:** Scorecard covers Level 3 controls including enforcement detection and project-level aggregation.
 
-- SCA policy + enforcement detection (VM-05.* — pending OQ-2 resolution)
-- SAST policy + enforcement detection (VM-06.* — pending OQ-2 resolution)
+- SCA policy + enforcement detection (VM-05.*)
+- SAST policy + enforcement detection (VM-06.*)
 - Multi-repo project-level conformance aggregation (QA-04.02)
 - Attestation integration GA
 
