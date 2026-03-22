@@ -383,7 +383,7 @@ $(KOCACHE_PATH):
 
 scorecard-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
-			   KO_DOCKER_REPO=ghcr.io/ossf/scorecard \
+			   KO_DOCKER_REPO=ghcr.io/ossf/scorecard/v5 \
 			   LDFLAGS="$(LDFLAGS)" \
 			   KO_CACHE=$(KOCACHE_PATH) \
 			   $(KO) build --bare \
