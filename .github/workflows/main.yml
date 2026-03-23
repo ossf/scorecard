@@ -54,7 +54,7 @@ jobs:
         echo "go-mod=$(go env GOMODCACHE)" >> "$GITHUB_OUTPUT"
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
-       uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 #v5.0.4
+       uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
        with:
          path: |
           ${{ steps.go-cache-paths.outputs.go-build }}
@@ -73,7 +73,7 @@ jobs:
          files: ./unit-coverage.out
          verbose: true
      - name: Run PAT Token E2E  #using retry because the GitHub token is being throttled.
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        env:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
@@ -127,7 +127,7 @@ jobs:
          check-latest: true
          cache: true
      - name: generate mocks
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -192,7 +192,7 @@ jobs:
          check-latest: true
          cache: true
      - name: build-proto
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -287,7 +287,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -314,7 +314,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        with:
           max_attempts: 3
           retry_on: error
@@ -350,7 +350,7 @@ jobs:
          check-latest: true
          cache: true
      - name: Run build
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
        with:
           max_attempts: 3
           retry_on: error
