@@ -45,24 +45,29 @@ type languageFuzzConfig struct {
 }
 
 // Contains fuzzing specifications for programming languages.
+// A language may have multiple fuzzer configs (e.g. Python has both Atheris and Hypothesis).
 // Please use the type Language defined in clients/languages.go rather than a raw string.
-var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
+var languageFuzzSpecs = map[clients.LanguageName][]languageFuzzConfig{
 	// Default fuzz patterns for Go.
 	clients.Go: {
-		filePatterns: []string{"*_test.go"},
-		funcPattern:  `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
-		Name:         fuzzers.BuiltInGo,
-		URL:          asPointer("https://go.dev/doc/fuzz/"),
-		Desc: asPointer(
-			"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+		{
+			filePatterns: []string{"*_test.go"},
+			funcPattern:  `func\s+Fuzz\w+\s*\(\w+\s+\*testing.F\)`,
+			Name:         fuzzers.BuiltInGo,
+			URL:          asPointer("https://go.dev/doc/fuzz/"),
+			Desc: asPointer(
+				"Go fuzzing intelligently walks through the source code to report failures and find vulnerabilities."),
+		},
 	},
 	// Fuzz patterns for Erlang based on property-based testing.
 	clients.Erlang: {
-		filePatterns: []string{"*.erl", "*.hrl"},
-		// Look for direct imports of QuickCheck or Proper,
-		funcPattern: `-include_lib\("(eqc|proper)/include/(eqc|proper).hrl"\)\.`,
-		Name:        fuzzers.PropertyBasedErlang,
-		Desc:        propertyBasedDescription("Erlang"),
+		{
+			filePatterns: []string{"*.erl", "*.hrl"},
+			// Look for direct imports of QuickCheck or Proper,
+			funcPattern: `-include_lib\("(eqc|proper)/include/(eqc|proper).hrl"\)\.`,
+			Name:        fuzzers.PropertyBasedErlang,
+			Desc:        propertyBasedDescription("Erlang"),
+		},
 	},
 	// Fuzz patterns for Haskell based on property-based testing.
 	//
@@ -78,30 +83,36 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.Haskell: {
-		filePatterns: []string{"*.hs", "*.lhs"},
-		// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
-		// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
-		funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
-		Name:        fuzzers.PropertyBasedHaskell,
-		Desc:        propertyBasedDescription("Haskell"),
+		{
+			filePatterns: []string{"*.hs", "*.lhs"},
+			// Look for direct imports of QuickCheck, Hedgehog, validity, or SmallCheck,
+			// or their indirect imports through the higher-level Hspec or Tasty testing frameworks.
+			funcPattern: `import\s+(qualified\s+)?Test\.((Hspec|Tasty)\.)?(QuickCheck|Hedgehog|Validity|SmallCheck)`,
+			Name:        fuzzers.PropertyBasedHaskell,
+			Desc:        propertyBasedDescription("Haskell"),
+		},
 	},
 
 	// Fuzz patterns for Elixir based on property-based testing.
 	clients.Elixir: {
-		filePatterns: []string{"*.ex", "*.exs"},
-		// Look for direct imports of PropCheck, and StreamData.
-		funcPattern: `use\s+(PropCheck|ExUnitProperties)`,
-		Name:        fuzzers.PropertyBasedElixir,
-		Desc:        propertyBasedDescription("Elixir"),
+		{
+			filePatterns: []string{"*.ex", "*.exs"},
+			// Look for direct imports of PropCheck, and StreamData.
+			funcPattern: `use\s+(PropCheck|ExUnitProperties)`,
+			Name:        fuzzers.PropertyBasedElixir,
+			Desc:        propertyBasedDescription("Elixir"),
+		},
 	},
 
 	// Fuzz patterns for Gleam based on property-based testing.
 	clients.Gleam: {
-		filePatterns: []string{"*.gleam"},
-		// Look for direct imports of PropCheck, and StreamData.
-		funcPattern: `import\s+qcheck`, // Gleam library
-		Name:        fuzzers.PropertyBasedGleam,
-		Desc:        propertyBasedDescription("Gleam"),
+		{
+			filePatterns: []string{"*.gleam"},
+			// Look for direct imports of PropCheck, and StreamData.
+			funcPattern: `import\s+qcheck`, // Gleam library
+			Name:        fuzzers.PropertyBasedGleam,
+			Desc:        propertyBasedDescription("Gleam"),
+		},
 	},
 	// Fuzz patterns for JavaScript and TypeScript based on property-based testing.
 	//
@@ -113,62 +124,88 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.JavaScript: {
-		filePatterns: []string{"*.js", "*.jsx"},
-		// Look for direct imports of fast-check and its test runners integrations.
-		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
-			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
-		Name: fuzzers.PropertyBasedJavaScript,
-		Desc: propertyBasedDescription("JavaScript"),
+		{
+			filePatterns: []string{"*.js", "*.jsx"},
+			// Look for direct imports of fast-check and its test runners integrations.
+			funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
+				`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
+			Name: fuzzers.PropertyBasedJavaScript,
+			Desc: propertyBasedDescription("JavaScript"),
+		},
 	},
 	clients.TypeScript: {
-		filePatterns: []string{"*.ts", "*.tsx"},
-		// Look for direct imports of fast-check and its test runners integrations.
-		funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
-			`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
-		Name: fuzzers.PropertyBasedTypeScript,
-		Desc: propertyBasedDescription("TypeScript"),
+		{
+			filePatterns: []string{"*.ts", "*.tsx"},
+			// Look for direct imports of fast-check and its test runners integrations.
+			funcPattern: `(from\s+['"](fast-check|@fast-check/(ava|jest|vitest))['"]|` +
+				`require\(\s*['"](fast-check|@fast-check/(ava|jest|vitest))['"]\s*\))`,
+			Name: fuzzers.PropertyBasedTypeScript,
+			Desc: propertyBasedDescription("TypeScript"),
+		},
 	},
 	clients.Python: {
-		filePatterns: []string{"*.py"},
-		funcPattern:  `import atheris`,
-		Name:         fuzzers.PythonAtheris,
-		Desc: asPointer(
-			"Python fuzzing by way of Atheris"),
+		{
+			filePatterns: []string{"*.py"},
+			funcPattern:  `import atheris`,
+			Name:         fuzzers.PythonAtheris,
+			Desc: asPointer(
+				"Python fuzzing by way of Atheris"),
+		},
+		// Property-based testing in Python.
+		//
+		// Based on the import of:
+		// * https://github.com/HypothesisWorks/hypothesis
+		{
+			filePatterns: []string{"*.py"},
+			funcPattern:  `(from|import)\s+hypothesis\b`,
+			Name:         fuzzers.PropertyBasedPython,
+			Desc:         propertyBasedDescription("Python"),
+		},
 	},
 	clients.C: {
-		filePatterns: []string{"*.c"},
-		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzers.CLibFuzzer,
-		Desc: asPointer(
-			"Fuzzed with C LibFuzzer"),
+		{
+			filePatterns: []string{"*.c"},
+			funcPattern:  `LLVMFuzzerTestOneInput`,
+			Name:         fuzzers.CLibFuzzer,
+			Desc: asPointer(
+				"Fuzzed with C LibFuzzer"),
+		},
 	},
 	clients.Cpp: {
-		filePatterns: []string{"*.cc", "*.cpp"},
-		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzers.CppLibFuzzer,
-		Desc: asPointer(
-			"Fuzzed with cpp LibFuzzer"),
+		{
+			filePatterns: []string{"*.cc", "*.cpp"},
+			funcPattern:  `LLVMFuzzerTestOneInput`,
+			Name:         fuzzers.CppLibFuzzer,
+			Desc: asPointer(
+				"Fuzzed with cpp LibFuzzer"),
+		},
 	},
 	clients.Rust: {
-		filePatterns: []string{"*.rs"},
-		funcPattern:  `libfuzzer_sys`,
-		Name:         fuzzers.RustCargoFuzz,
-		Desc: asPointer(
-			"Fuzzed with Cargo-fuzz"),
+		{
+			filePatterns: []string{"*.rs"},
+			funcPattern:  `libfuzzer_sys`,
+			Name:         fuzzers.RustCargoFuzz,
+			Desc: asPointer(
+				"Fuzzed with Cargo-fuzz"),
+		},
 	},
 	clients.Java: {
-		filePatterns: []string{"*.java"},
-		funcPattern:  `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
-		Name:         fuzzers.JavaJazzerFuzzer,
-		Desc: asPointer(
-			"Fuzzed with Jazzer fuzzer"),
+		{
+			filePatterns: []string{"*.java"},
+			funcPattern:  `com.code_intelligence.jazzer.api.FuzzedDataProvider;`,
+			Name:         fuzzers.JavaJazzerFuzzer,
+			Desc: asPointer(
+				"Fuzzed with Jazzer fuzzer"),
+		},
 	},
 	clients.Swift: {
-		filePatterns: []string{"*.swift"},
-		funcPattern:  `LLVMFuzzerTestOneInput`,
-		Name:         fuzzers.SwiftLibFuzzer,
-		Desc: asPointer(
-			"Fuzzed with Swift LibFuzzer"),
+		{
+			filePatterns: []string{"*.swift"},
+			funcPattern:  `LLVMFuzzerTestOneInput`,
+			Name:         fuzzers.SwiftLibFuzzer,
+			Desc: asPointer(
+				"Fuzzed with Swift LibFuzzer"),
+		},
 	},
 	// Fuzz patterns for C# and F# based on property-based testing.
 	//
@@ -180,18 +217,22 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	//
 	// This is not an exhaustive list.
 	clients.CSharp: {
-		filePatterns: []string{"*.cs"},
-		// Look for direct imports of FsCheck and its test runner integrations.
-		funcPattern: `(using\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck));`,
-		Name:        fuzzers.PropertyBasedCSharp,
-		Desc:        propertyBasedDescription("C#"),
+		{
+			filePatterns: []string{"*.cs"},
+			// Look for direct imports of FsCheck and its test runner integrations.
+			funcPattern: `(using\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck));`,
+			Name:        fuzzers.PropertyBasedCSharp,
+			Desc:        propertyBasedDescription("C#"),
+		},
 	},
 	clients.FSharp: {
-		filePatterns: []string{"*.fs"},
-		// Look for direct imports of FsCheck and its test runner integrations.
-		funcPattern: `(open\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck))`,
-		Name:        fuzzers.PropertyBasedFSharp,
-		Desc:        propertyBasedDescription("F#"),
+		{
+			filePatterns: []string{"*.fs"},
+			// Look for direct imports of FsCheck and its test runner integrations.
+			funcPattern: `(open\s+(FsCheck|FsCheck\.(NUnit|Xunit)|Expecto\.ExpectoFsCheck))`,
+			Name:        fuzzers.PropertyBasedFSharp,
+			Desc:        propertyBasedDescription("F#"),
+		},
 	},
 	// TODO: add more language-specific fuzz patterns & configs.
 }
@@ -235,19 +276,25 @@ func Fuzzing(c *checker.CheckRequest) (checker.FuzzingData, error) {
 	}
 	prominentLangs := getProminentLanguages(langs)
 	for _, lang := range prominentLangs {
-		usingFuzzFunc, files, e := checkFuzzFunc(c, lang)
-		if e != nil {
-			return checker.FuzzingData{}, fmt.Errorf("%w", e)
+		configs, found := languageFuzzSpecs[lang]
+		if !found {
+			continue
 		}
-		if usingFuzzFunc {
-			detectedFuzzers = append(detectedFuzzers,
-				checker.Tool{
-					Name:  languageFuzzSpecs[lang].Name,
-					URL:   languageFuzzSpecs[lang].URL,
-					Desc:  languageFuzzSpecs[lang].Desc,
-					Files: files,
-				},
-			)
+		for _, config := range configs {
+			usingFuzzFunc, files, e := checkFuzzFunc(c, config)
+			if e != nil {
+				return checker.FuzzingData{}, fmt.Errorf("%w", e)
+			}
+			if usingFuzzFunc {
+				detectedFuzzers = append(detectedFuzzers,
+					checker.Tool{
+						Name:  config.Name,
+						URL:   config.URL,
+						Desc:  config.Desc,
+						Files: files,
+					},
+				)
+			}
 		}
 	}
 	return checker.FuzzingData{Fuzzers: detectedFuzzers}, nil
@@ -286,24 +333,17 @@ func checkOSSFuzz(c *checker.CheckRequest) (bool, error) {
 	return result.Hits > 0, nil
 }
 
-func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []checker.File, error) {
+func checkFuzzFunc(c *checker.CheckRequest, config languageFuzzConfig) (bool, []checker.File, error) {
 	if c.RepoClient == nil {
 		return false, nil, nil
 	}
 	data := filesWithPatternStr{
 		files: make([]checker.File, 0),
 	}
-	// Search language-specified fuzz func patterns in the hashmap.
-	pattern, found := languageFuzzSpecs[lang]
-	if !found {
-		// If the fuzz patterns for the current language not supported yet,
-		// we return it as false (not found), nil (no files), and nil (no errors).
-		return false, nil, nil
-	}
 	// Get patterns for file and func.
 	// We use the file pattern in the matcher to match the test files,
 	// and put the func pattern in var data to match file contents (func names).
-	filePatterns, funcPattern := pattern.filePatterns, pattern.funcPattern
+	filePatterns, funcPattern := config.filePatterns, config.funcPattern
 	var dataFiles []checker.File
 	for _, filePattern := range filePatterns {
 		matcher := fileparser.PathMatcher{
@@ -319,7 +359,7 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 	}
 
 	if len(dataFiles) == 0 {
-		// This means no fuzz funcs matched for this language.
+		// This means no fuzz funcs matched for this config.
 		return false, nil, nil
 	}
 	return true, dataFiles, nil
