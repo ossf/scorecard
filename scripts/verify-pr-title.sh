@@ -40,17 +40,17 @@ TITLE=$(echo "$TITLE" | sed -E 's/^\[[\w\-\.]*\][[:space:]]*//')
 # Check for required emoji prefixes
 # Using both emoji and :emoji: formats for compatibility
 if echo "$TITLE" | grep -qE '^(⚠|:warning:)'; then
-    PR_TYPE="⚠ Breaking Change"
+    PR_TYPE="⚠ Breaking change"
 elif echo "$TITLE" | grep -qE '^(✨|:sparkles:)'; then
-    PR_TYPE="✨ Non-breaking Feature"
+    PR_TYPE="✨ Non-breaking feature"
 elif echo "$TITLE" | grep -qE '^(🐛|:bug:)'; then
-    PR_TYPE="🐛 Patch Fix"
+    PR_TYPE="🐛 Patch fix"
 elif echo "$TITLE" | grep -qE '^(📖|:book:)'; then
-    PR_TYPE="📖 Documentation"
-elif echo "$TITLE" | grep -qE '^(🚀|:rocket:)'; then
-    PR_TYPE="🚀 Release"
+    PR_TYPE="📖 Documentation changes (user or developer)"
 elif echo "$TITLE" | grep -qE '^(🌱|:seedling:)'; then
     PR_TYPE="🌱 Infra/Tests/Other"
+elif echo "$TITLE" | grep -qE '^(👻|:ghost:)'; then
+    PR_TYPE="👻 No release note"
 else
     printf "❌ PR Title Verification Failed\n\n"
     printf "Title: '%s'\n\n" "$PR_TITLE"
@@ -59,10 +59,10 @@ else
     printf "%s\n" "- Breaking change: ⚠ (':warning:')"
     printf "%s\n" "- Non-breaking feature: ✨ (':sparkles:')"
     printf "%s\n" "- Patch fix: 🐛 (':bug:')"
-    printf "%s\n" "- Docs: 📖 (':book:')"
-    printf "%s\n" "- Release: 🚀 (':rocket:')"
-    printf "%s\n\n" "- Infra/Tests/Other: 🌱 (':seedling:')"
-    printf "More details: https://sigs.k8s.io/kubebuilder-release-tools/VERSIONING.md\n"
+    printf "%s\n" "- Documentation changes (user or developer): 📖 (':book:')"
+    printf "%s\n" "- Infra/Tests/Other: 🌱 (':seedling:')"
+    printf "%s\n\n" "- No release note: 👻 (':ghost:')"
+    printf "More details: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#pr-process\n"
     exit 1
 fi
 
