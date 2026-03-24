@@ -198,6 +198,10 @@ func (client *Client) GetDefaultBranchName() (string, error) {
 	return "", fmt.Errorf("GetDefaultBranchName: %w", clients.ErrUnsupportedFeature)
 }
 
+func (client *Client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	return clients.SecretScanningSignals{}, fmt.Errorf("GetSecretScanningSignals: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListCommits implements RepoClient.ListCommits.
 func (client *Client) ListCommits() ([]clients.Commit, error) {
 	return nil, fmt.Errorf("ListCommits: %w", clients.ErrUnsupportedFeature)
