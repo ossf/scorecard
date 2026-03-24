@@ -162,6 +162,21 @@ func (mr *MockRepoClientMockRecorder) GetOrgRepoClient(arg0 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrgRepoClient", reflect.TypeOf((*MockRepoClient)(nil).GetOrgRepoClient), arg0)
 }
 
+// HasPrivateVulnerabilityReportingEnabled mocks base method.
+func (m *MockRepoClient) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasPrivateVulnerabilityReportingEnabled")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// HasPrivateVulnerabilityReportingEnabled indicates an expected call of HasPrivateVulnerabilityReportingEnabled.
+func (mr *MockRepoClientMockRecorder) HasPrivateVulnerabilityReportingEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasPrivateVulnerabilityReportingEnabled", reflect.TypeOf((*MockRepoClient)(nil).HasPrivateVulnerabilityReportingEnabled))
+}
+
 // InitRepo mocks base method.
 func (m *MockRepoClient) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
 	m.ctrl.T.Helper()

@@ -337,6 +337,11 @@ func (c *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient, erro
 	return nil, clients.ErrUnsupportedFeature
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+func (c *Client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListIssues() ([]clients.Issue, error) {
 	return nil, clients.ErrUnsupportedFeature
 }

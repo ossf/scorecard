@@ -284,6 +284,48 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 	return c, nil
 }
 
+// HasPrivateVulnerabilityReportingEnabled implements RepoClient.HasPrivateVulnerabilityReportingEnabled.
+// This makes a direct API call to GET /repos/{owner}/{repo}/private-vulnerability-reporting
+// since go-github v53 doesn't have native support for this endpoint.
+//
+// API documentation: https://docs.github.com/en/rest/repos/repos#check-if-private-vulnerability-reporting-is-enabled-for-a-repository
+func (client *Client) HasPrivateVulnerabilityReportingEnabled() (bool, error) {
+	url := fmt.Sprintf("repos/%s/%s/private-vulnerability-reporting",
+		client.repourl.owner, client.repourl.repo)
+
+	req, err := client.repoClient.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, fmt.Errorf("creating request for private vulnerability reporting: %w", err)
+	}
+
+	// Response structure for the PVR endpoint
+	var result struct {
+		Enabled bool `json:"enabled"`
+	}
+
+	resp, err := client.repoClient.Do(client.ctx, req, &result)
+	if err != nil {
+		// Handle specific HTTP error codes
+		if resp != nil {
+			switch resp.StatusCode {
+			case 404:
+				// Repository not found or feature not available
+				return false, nil
+			case 422:
+				// Bad request - feature might not be available for this repo type (e.g., forks)
+				return false, nil
+			case 403:
+				// Forbidden - likely rate limited or insufficient permissions
+				return false, fmt.Errorf("access denied for private vulnerability reporting check (may be rate limited): %w", err)
+			}
+		}
+		return false, fmt.Errorf("fetching private vulnerability reporting status for %s/%s: %w",
+			client.repourl.owner, client.repourl.repo, err)
+	}
+
+	return result.Enabled, nil
+}
+
 // ListWebhooks implements RepoClient.ListWebhooks.
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
