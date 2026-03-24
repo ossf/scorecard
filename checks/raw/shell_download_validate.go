@@ -51,6 +51,10 @@ var (
 		append(shellInterpreters, append(shellNames, pythonInterpreters...)...)...)...)
 )
 
+const (
+	noneVersion = "none"
+)
+
 // Note: aws is handled separately because it uses different
 // cli options.
 var downloadUtils = []string{
@@ -539,7 +543,7 @@ func isGoUnpinnedDownload(cmd []string) bool {
 			"none" is special. It removes a dependency. Hashes are always okay. Full semantic versions are okay
 			as long as "-insecure" is not passed.
 		*/
-		if version == "none" || hashRegex.MatchString(version) || (!insecure && semverRegex.MatchString(version)) {
+		if version == noneVersion || hashRegex.MatchString(version) || (!insecure && semverRegex.MatchString(version)) {
 			return false
 		}
 	}
