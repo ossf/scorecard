@@ -15,8 +15,14 @@
 package githubrepo
 
 import (
+	"context"
 	"errors"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/google/go-github/v82/github"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -75,4 +81,41 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSearchCommitsHandle422(t *testing.T) {
+	t.Parallel()
+	handler := searchCommitsHandler{
+		ghClient: github.NewClient(&http.Client{
+			Transport: &mockErrorTransport{
+				statusCode: http.StatusUnprocessableEntity,
+			},
+		}),
+		ctx: context.Background(),
+		repourl: &Repo{
+			commitSHA: clients.HeadSHA,
+			owner:     "testowner",
+			repo:      "testrepo",
+		},
+	}
+
+	commits, err := handler.search(clients.SearchCommitsOptions{Author: "testbot"})
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
+	if len(commits) != 0 {
+		t.Fatalf("expected 0 commits, got: %d", len(commits))
+	}
+}
+
+type mockErrorTransport struct {
+	statusCode int
+}
+
+func (m *mockErrorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: m.statusCode,
+		Body:       io.NopCloser(strings.NewReader(`{"message": "Validation Failed"}`)),
+		Header:     make(http.Header),
+	}, nil
 }
