@@ -24,6 +24,7 @@ import (
 // Fuzzing applies the score policy for the Fuzzing check.
 func Fuzzing(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
+	usesMemoryUnsafeLanguage bool,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		fuzzed.Probe,
@@ -56,5 +57,10 @@ func Fuzzing(name string,
 	if fuzzerDetected {
 		return checker.CreateMaxScoreResult(name, "project is fuzzed")
 	}
-	return checker.CreateMinScoreResult(name, "project is not fuzzed")
+
+	if usesMemoryUnsafeLanguage {
+		return checker.CreateMinScoreResult(name, "project is not fuzzed")
+	}
+
+	return checker.CreateInconclusiveResult(name, "fuzzing not required for memory-safe languages")
 }
