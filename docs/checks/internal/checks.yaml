@@ -51,7 +51,7 @@ checks:
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, GitLab, local
     short: Determines if the project uses a dependency update tool.
     description: |
       Risk: `High` (possibly vulnerable to attacks on known flaws)
@@ -286,7 +286,7 @@ checks:
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the project requires human code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
@@ -303,7 +303,7 @@ checks:
       subversion.
 
       The check determines whether the most recent changes (over the last ~30 commits) have 
-      an approval on GitHub
+      an approval on GitHub/GitLab
       or if the merger is different from the committer (implicit review). It also
       performs a similar check for reviews using
       [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
