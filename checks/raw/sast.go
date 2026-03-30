@@ -40,7 +40,6 @@ var errInvalid = errors.New("invalid")
 var sastTools = map[string]bool{
 	"github-advanced-security": true,
 	"github-code-scanning":     true,
-	"lgtm-com":                 true,
 	"sonarcloud":               true,
 	"sonarqubecloud":           true,
 }
