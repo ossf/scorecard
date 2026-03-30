@@ -16,7 +16,9 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v82/github"
@@ -49,7 +51,11 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		query,
 		&github.SearchOptions{ListOptions: github.ListOptions{PerPage: 100}})
 	if err != nil {
-		return nil, fmt.Errorf("Search.Code: %w", err)
+		var gerr *github.ErrorResponse
+		if errors.As(err, &gerr) && gerr.Response.StatusCode == http.StatusUnprocessableEntity {
+			return nil, nil // Return empty list on 422
+		}
+		return nil, fmt.Errorf("Search.Commits: %w", err)
 	}
 
 	return searchCommitsResponseFrom(resp), nil
