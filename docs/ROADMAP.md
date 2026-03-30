@@ -47,6 +47,7 @@ Deliverables:
     dependency)
   - OSCAL Assessment Results (via
     [go-oscal](https://github.com/defenseunicorns/go-oscal))
+  - OpenSSF Best Practices Badge [Automation Proposals](https://github.com/coreinfrastructure/best-practices-badge/blob/main/docs/automation-proposals.md)
 - Unified framework abstraction for OSPS Baseline v2026.02.19:
   - Checks and OSPS Baseline both use the same internal probe composition interface
   - Probe-to-control mappings maintained in Scorecard
