@@ -336,6 +336,7 @@ func Test_Maintained(t *testing.T) {
 				}
 				return tt.isarchived, nil
 			})
+			mockRepo.EXPECT().GetMaintainerActivity(gomock.Any()).Return(map[string]bool{}, nil).AnyTimes()
 			//nolint:nestif
 			if tt.archiveerr == nil {
 				mockRepo.EXPECT().ListCommits().DoAndReturn(

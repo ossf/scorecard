@@ -227,6 +227,23 @@ If a license file is missing the probe returns a single OutcomeNotApplicable.
 If the license is not of an approved format, the probe returns a single OutcomeFalse.
 
 
+## hasInactiveMaintainers
+
+**Lifecycle**: experimental
+
+**Description**: Check whether the project has inactive maintainers.
+
+**Motivation**: Projects that have inactive maintainers may be more difficult to get timely security fixes and updates. Maintainers with elevated access who have not participated in the project within a reasonable time frame (6 months) may present a security risk if their accounts become compromised.
+This probe is part of the Maintained check, which evaluates both overall project activity and individual maintainer engagement.
+
+**Implementation**: The probe identifies users with elevated repository permissions (TRIAGE, WRITE, MAINTAIN, or ADMIN access) and checks if they have shown activity in the last 6 months. Activity includes various maintenance-related contributions: - **Primary signals**: commits, merged pull requests, releases - **Code review**: PR reviews, issue/PR comments, commit comments - **Issue/PR management**: creating, closing, or assigning issues/PRs; adding reactions - **Triage**: label management, milestone creation/assignment - **Project management**: GitHub Discussions, Project boards, repository settings - **Security**: security advisories, Dependabot alert dismissals - **Workflows**: GitHub Actions workflow runs
+The probe returns one finding per maintainer indicating whether they have been active or inactive. These findings are used by the Maintained check evaluation to adjust the final maintenance score.
+
+**Outcomes**: If a maintainer has shown activity in the last 6 months, one OutcomeFalse finding is returned
+If a maintainer has shown no activity in the last 6 months, one OutcomeTrue finding is returned
+If no maintainers with elevated permissions are found, one OutcomeNotApplicable finding is returned
+
+
 ## hasLicenseFile
 
 **Lifecycle**: stable

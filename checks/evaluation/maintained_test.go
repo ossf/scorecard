@@ -21,6 +21,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/archived"
 	"github.com/ossf/scorecard/v5/probes/createdRecently"
+	"github.com/ossf/scorecard/v5/probes/hasInactiveMaintainers"
 	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	scut "github.com/ossf/scorecard/v5/utests"
@@ -54,10 +55,14 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   hasInactiveMaintainers.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
-				Score: 2,
+				Score:        2,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -75,10 +80,14 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   hasInactiveMaintainers.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
-				Score: 0,
+				Score:        0,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -95,6 +104,9 @@ func TestMaintained(t *testing.T) {
 					Outcome: finding.OutcomeTrue,
 				}, {
 					Probe:   createdRecently.Probe,
+					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   hasInactiveMaintainers.Probe,
 					Outcome: finding.OutcomeFalse,
 				},
 			},
@@ -118,11 +130,15 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeFalse,
+				}, {
+					Probe:   hasInactiveMaintainers.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        0,
 				NumberOfWarn: 1,
+				NumberOfInfo: 1,
 			},
 		},
 		{
@@ -146,11 +162,15 @@ func TestMaintained(t *testing.T) {
 				}, {
 					Probe:   createdRecently.Probe,
 					Outcome: finding.OutcomeTrue,
+				}, {
+					Probe:   hasInactiveMaintainers.Probe,
+					Outcome: finding.OutcomeFalse,
 				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
 				NumberOfWarn: 1,
+				NumberOfInfo: 1,
 			},
 		},
 	}
