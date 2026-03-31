@@ -14,6 +14,8 @@
 
 package clients
 
+import "strings"
+
 // LanguageName is the name of a language, a customized type of string.
 type LanguageName string
 
@@ -46,6 +48,9 @@ const (
 
 	// ObjectiveC: the objective c language.
 	ObjectiveC LanguageName = "objectivec"
+
+	// ObjectiveCpp: the objective c++ language.
+	ObjectiveCpp LanguageName = "objective-c++"
 
 	// Ruby: https://www.ruby-lang.org/
 	Ruby LanguageName = "ruby"
@@ -110,4 +115,25 @@ type Language struct {
 	NumLines int
 
 	// TODO: add more properties for Language.
+}
+
+// HasMemoryUnsafeLanguage returns true if any of the languages in the list are memory-unsafe.
+// Based on OpenSSF best practices:
+// https://github.com/ossf/scorecard/blob/main/docs/checks.md#fuzzing
+func HasMemoryUnsafeLanguage(langs []Language) bool {
+	memoryUnsafeLanguages := map[LanguageName]bool{
+		C:             true,
+		Cpp:           true,
+		ObjectiveC:    true,
+		ObjectiveCpp:  true,
+		"objective-c": true, // Robustness for hyphenated Objective-C
+	}
+
+	for _, lang := range langs {
+		normalizedName := LanguageName(strings.ToLower(string(lang.Name)))
+		if memoryUnsafeLanguages[normalizedName] {
+			return true
+		}
+	}
+	return false
 }
