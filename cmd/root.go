@@ -48,9 +48,18 @@ import (
 var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
-	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
-		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
+	scorecardLong = `A tool that calculates the OpenSSF security scorecard for open source projects.
+
+Quick Start:
+  scorecard github.com/owner/repo
+
+Example:
+  scorecard github.com/ossf/scorecard
+
+Note:
+  You must provide ONE of the following: --repo, --local, --org, or package flags.`
+
+	scorecardUse   = `scorecard`
 	scorecardShort = "OpenSSF Scorecard"
 )
 
@@ -213,6 +222,9 @@ func rootCmd(o *options.Options) error {
 	}
 
 	if sawRuntimeErr {
+		if o.SummaryOnly {
+			return nil // suppress error for summary mode
+		}
 		return errChecksFailed
 	}
 
@@ -325,13 +337,31 @@ func processRepo(
 	})
 
 	// End banners BEFORE RESULTS
-	if o.Format == options.FormatDefault {
+	if o.Format == options.FormatDefault && !o.SummaryOnly {
 		if len(enabledProbes) > 0 {
 			printProbeResults(uri, enabledProbes)
 		} else {
 			printCheckResults(uri, enabledChecks)
 			fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 		}
+	}
+
+	if o.SummaryOnly {
+		total := 0.0
+		count := 0.0
+
+		for _, check := range result.Checks {
+			total += float64(check.Score)
+			count++
+		}
+
+		if count > 0 {
+			fmt.Fprintf(os.Stdout, "Final Score: %.2f\n", total/count)
+		} else {
+			fmt.Fprintf(os.Stdout, "Final Score: N/A\n")
+		}
+
+		return &result, nil
 	}
 
 	if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
