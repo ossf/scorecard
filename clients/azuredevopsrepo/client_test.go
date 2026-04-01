@@ -117,7 +117,7 @@ func TestGetCreatedAt_AuditSuccess(t *testing.T) {
 		queryLog: func(ctx context.Context, args audit.QueryLogArgs) (*audit.AuditLogQueryResult, error) {
 			hasMore := false
 			return &audit.AuditLogQueryResult{
-				HasMore: &hasMore,
+				HasMore:                  &hasMore,
 				DecoratedAuditLogEntries: &[]audit.DecoratedAuditLogEntry{},
 			}, nil
 		},
