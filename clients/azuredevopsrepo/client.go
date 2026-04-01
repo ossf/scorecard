@@ -54,6 +54,7 @@ type Client struct {
 	contributors  *contributorsHandler
 	languages     *languagesHandler
 	policy        *policyHandler
+	releases      *releasesHandler
 	search        *searchHandler
 	searchCommits *searchCommitsHandler
 	servicehooks  *servicehooksHandler
@@ -111,6 +112,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	c.languages.init(c.ctx, c.repourl)
 
 	c.policy.init(c.ctx, c.repourl)
+
+	c.releases.init(c.ctx, c.repourl)
 
 	c.search.init(c.ctx, c.repourl)
 
@@ -196,7 +199,7 @@ func (c *Client) ListLicenses() ([]clients.License, error) {
 }
 
 func (c *Client) ListReleases() ([]clients.Release, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.releases.listReleases()
 }
 
 func (c *Client) ListContributors() ([]clients.User, error) {
@@ -308,6 +311,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		policy: &policyHandler{
 			gitClient:    gitClient,
 			policyClient: policyClient,
+		},
+		releases: &releasesHandler{
+			gitClient: gitClient,
 		},
 		search: &searchHandler{
 			searchClient: searchClient,
