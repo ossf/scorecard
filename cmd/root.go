@@ -48,7 +48,7 @@ import (
 var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
-	scorecardLong = `A tool that calculates OpenSSF security scorecard for open source projects.
+	scorecardLong = `A tool that calculates the OpenSSF security scorecard for open source projects.
 
 Quick Start:
   scorecard github.com/owner/repo
@@ -222,6 +222,9 @@ func rootCmd(o *options.Options) error {
 	}
 
 	if sawRuntimeErr {
+		if o.SummaryOnly {
+			return nil // suppress error for summary mode
+		}
 		return errChecksFailed
 	}
 
@@ -334,13 +337,31 @@ func processRepo(
 	})
 
 	// End banners BEFORE RESULTS
-	if o.Format == options.FormatDefault {
+	if o.Format == options.FormatDefault && !o.SummaryOnly {
 		if len(enabledProbes) > 0 {
 			printProbeResults(uri, enabledProbes)
 		} else {
 			printCheckResults(uri, enabledChecks)
 			fmt.Fprintln(os.Stderr, "\nRESULTS\n-------")
 		}
+	}
+
+	if o.SummaryOnly {
+		total := 0.0
+		count := 0.0
+
+		for _, check := range result.Checks {
+			total += float64(check.Score)
+			count++
+		}
+
+		if count > 0 {
+			fmt.Fprintf(os.Stdout, "Final Score: %.2f\n", total/count)
+		} else {
+			fmt.Fprintf(os.Stdout, "Final Score: N/A\n")
+		}
+
+		return &result, nil
 	}
 
 	if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
