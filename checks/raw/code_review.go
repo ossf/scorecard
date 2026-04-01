@@ -25,8 +25,9 @@ import (
 )
 
 var (
-	rePhabricatorRevID = regexp.MustCompile(`Differential Revision:[^\r\n]*(D\d+)`)
-	rePiperRevID       = regexp.MustCompile(`PiperOrigin-RevId:\s*(\d{3,})`)
+	rePhabricatorRevID = regexp.MustCompile(`(?i)Differential Revision:[^\r\n]*(D\d+)`)
+	rePiperRevID       = regexp.MustCompile(`(?i)PiperOrigin-RevId:\s*(\d{3,})`)
+	reReviewedBy       = regexp.MustCompile(`(?im)^Reviewed-by:\s*(.+)$`)
 )
 
 // CodeReview retrieves the raw data for the Code-Review check.
@@ -112,6 +113,31 @@ func getPiperRevisionID(c *clients.Commit) string {
 	return match[1]
 }
 
+func getCommitMessageReviews(c *clients.Commit) []clients.Review {
+	matches := reReviewedBy.FindAllStringSubmatch(c.Message, -1)
+	var reviews []clients.Review
+	for _, match := range matches {
+		if len(match) > 1 {
+			reviewerName := strings.TrimSpace(match[1])
+			if reviewerName != "" {
+				user := clients.User{Login: reviewerName}
+				reviews = append(reviews, clients.Review{
+					State:  "APPROVED",
+					Author: &user,
+				})
+			}
+		}
+	}
+	return reviews
+}
+
+func getCommitMessageReviewedByRevisionID(c *clients.Commit) string {
+	if reReviewedBy.MatchString(c.Message) {
+		return c.SHA
+	}
+	return ""
+}
+
 type revisionInfo struct {
 	Platform checker.ReviewPlatform
 	ID       string
@@ -132,6 +158,9 @@ func detectCommitRevisionInfo(c *clients.Commit) revisionInfo {
 	}
 	if revisionID := getPiperRevisionID(c); revisionID != "" {
 		return revisionInfo{checker.ReviewPlatformPiper, revisionID}
+	}
+	if revisionID := getCommitMessageReviewedByRevisionID(c); revisionID != "" {
+		return revisionInfo{checker.ReviewPlatformCommitMessageReview, revisionID}
 	}
 
 	return revisionInfo{checker.ReviewPlatformUnknown, ""}
@@ -164,6 +193,9 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 			if rev.Platform == checker.ReviewPlatformGitHub {
 				newChangeset.Reviews = getGithubReviews(&commits[i])
 				newChangeset.Author = getGithubAuthor(&commits[i])
+			} else if rev.Platform == checker.ReviewPlatformCommitMessageReview {
+				newChangeset.Reviews = getCommitMessageReviews(&commits[i])
+				newChangeset.Author = commits[i].Committer
 			}
 
 			changesetsByRevInfo[rev] = newChangeset

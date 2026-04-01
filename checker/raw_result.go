@@ -200,12 +200,13 @@ type CodeReviewData struct {
 type ReviewPlatform = string
 
 const (
-	ReviewPlatformGitHub      ReviewPlatform = "GitHub"
-	ReviewPlatformProw        ReviewPlatform = "Prow"
-	ReviewPlatformGerrit      ReviewPlatform = "Gerrit"
-	ReviewPlatformPhabricator ReviewPlatform = "Phabricator"
-	ReviewPlatformPiper       ReviewPlatform = "Piper"
-	ReviewPlatformUnknown     ReviewPlatform = "Unknown"
+	ReviewPlatformGitHub              ReviewPlatform = "GitHub"
+	ReviewPlatformProw                ReviewPlatform = "Prow"
+	ReviewPlatformGerrit              ReviewPlatform = "Gerrit"
+	ReviewPlatformPhabricator         ReviewPlatform = "Phabricator"
+	ReviewPlatformPiper               ReviewPlatform = "Piper"
+	ReviewPlatformCommitMessageReview ReviewPlatform = "CommitMessageReview"
+	ReviewPlatformUnknown             ReviewPlatform = "Unknown"
 )
 
 type Changeset struct {

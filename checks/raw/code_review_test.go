@@ -111,6 +111,11 @@ func Test_getChangesets(t *testing.T) {
 			Message: "followup\nReviewed-on: server.url \nReviewed-by:user-123",
 			SHA:     "def",
 		}
+
+		reviewedByCommit = clients.Commit{
+			Message: "Fix issue 4730\n\nReviewed-by: reviewer@example.com",
+			SHA:     "123abc456def",
+		}
 	)
 
 	tests := []struct {
@@ -381,6 +386,24 @@ func Test_getChangesets(t *testing.T) {
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					RevisionID:     "D78910",
 					Commits:        []clients.Commit{phabricatorCommitG},
+				},
+			},
+		},
+		{
+			name:    "commit message with reviewed-by",
+			commits: []clients.Commit{reviewedByCommit},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformCommitMessageReview,
+					RevisionID:     "123abc456def",
+					Commits:        []clients.Commit{reviewedByCommit},
+					Reviews: []clients.Review{
+						{
+							State:  "APPROVED",
+							Author: &clients.User{Login: "reviewer@example.com"},
+						},
+					},
+					Author: clients.User{},
 				},
 			},
 		},

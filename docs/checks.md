@@ -209,7 +209,8 @@ an approval on GitHub
 or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
-"lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
+"lgtm" or "approved"), [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by"),
+and commit messages ("Reviewed-by").
 If recent changes are solely bot activity (e.g. Dependabot, Renovate bot, or custom bots),
 the check returns inconclusively.
 
