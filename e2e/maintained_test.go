@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v5/utests"
@@ -83,6 +84,28 @@ var _ = Describe("E2E TEST:"+checks.CheckMaintained, func() {
 			result := checks.Maintained(&req)
 			// New version.
 			scut.ValidateTestReturn(GinkgoTB(), "active repo", &expected, &result, &dl)
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return valid maintained status - Azure DevOps", func() {
+			skipIfTokenIsNot(azureDevOpsPATTokenType, "Azure DevOps only")
+
+			dl := scut.TestDetailLogger{}
+			repo, err := azuredevopsrepo.MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			Expect(err).Should(BeNil())
+			repoClient, err := azuredevopsrepo.CreateAzureDevOpsClient(context.Background(), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			result := checks.Maintained(&req)
+			Expect(result.Error).Should(BeNil())
+			// The test repo is newly created with limited activity, so the score may be low.
+			Expect(result.Score).Should(BeNumerically(">=", 0))
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

@@ -1,4 +1,4 @@
-// Copyright 2024 OpenSSF Scorecard Authors
+// Copyright 2026 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,9 +23,9 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 )
 
-var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
-	Context("Search - Azure DevOps", func() {
-		It("Should return search results", func() {
+var _ = Describe("E2E TEST: azuredevopsrepo.searchCommitsHandler", func() {
+	Context("SearchCommits - Azure DevOps", func() {
+		It("Should search commits", func() {
 			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
 
@@ -35,14 +35,11 @@ var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			request := clients.SearchRequest{
-				Query:    "scorecard",
-				Filename: "README.md",
-			}
-			results, err := repoClient.Search(request)
+			commits, err := repoClient.SearchCommits(clients.SearchCommitsOptions{})
 			Expect(err).Should(BeNil())
-			Expect(results.Hits).Should(BeNumerically(">", 0))
-			Expect(len(results.Results)).Should(BeNumerically(">", 0))
+			Expect(commits).ShouldNot(BeNil())
+
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

@@ -152,7 +152,9 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 func (c *Client) GetCreatedAt() (time.Time, error) {
 	createdAt, err := c.audit.getRepsitoryCreatedAt()
 	if err != nil {
-		return time.Time{}, err
+		// The audit log may not be accessible (e.g., insufficient permissions).
+		// Fall back to the first commit date.
+		return c.commits.getFirstCommitCreatedAt()
 	}
 
 	// The audit log may not be enabled on the repository
