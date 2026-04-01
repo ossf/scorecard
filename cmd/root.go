@@ -48,9 +48,18 @@ import (
 var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
-	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
-		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
+	scorecardLong = `A tool that calculates OpenSSF security scorecard for open source projects.
+
+Quick Start:
+  scorecard github.com/owner/repo
+
+Example:
+  scorecard github.com/ossf/scorecard
+
+Note:
+  You must provide ONE of the following: --repo, --local, --org, or package flags.`
+
+	scorecardUse   = `scorecard`
 	scorecardShort = "OpenSSF Scorecard"
 )
 
