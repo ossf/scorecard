@@ -8,7 +8,7 @@ For the proposal itself (motivation, scope, phased delivery, ecosystem
 positioning), see [`proposal.md`](proposal.md).
 
 For the control-by-control coverage analysis, see
-[`docs/osps-baseline-coverage.md`](../../docs/osps-baseline-coverage.md).
+[`osps-baseline-coverage.md`](osps-baseline-coverage.md).
 
 ---
 
