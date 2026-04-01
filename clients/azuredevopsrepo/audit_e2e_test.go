@@ -1,4 +1,4 @@
-// Copyright 2024 OpenSSF Scorecard Authors
+// Copyright 2026 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@ package azuredevopsrepo
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -23,9 +24,9 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 )
 
-var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
-	Context("Search - Azure DevOps", func() {
-		It("Should return search results", func() {
+var _ = Describe("E2E TEST: azuredevopsrepo.auditHandler", func() {
+	Context("Audit - Azure DevOps", func() {
+		It("Should return repository creation date", func() {
 			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
 
@@ -35,14 +36,13 @@ var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			request := clients.SearchRequest{
-				Query:    "scorecard",
-				Filename: "README.md",
-			}
-			results, err := repoClient.Search(request)
+			createdAt, err := repoClient.GetCreatedAt()
+			// GetCreatedAt may fail if the PAT lacks audit log permissions,
+			// but falls back to first commit date. Either way, it should not error.
 			Expect(err).Should(BeNil())
-			Expect(results.Hits).Should(BeNumerically(">", 0))
-			Expect(len(results.Results)).Should(BeNumerically(">", 0))
+			Expect(createdAt).ShouldNot(Equal(time.Time{}))
+
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })
