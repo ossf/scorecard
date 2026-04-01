@@ -22,12 +22,12 @@ The vision and architectural rationale live in [`proposal.md`](proposal.md); thi
 3. Production-ready conformance results in JSON output
 4. Evidence validated against OSPS Baseline v2026.02.19 controls
 5. Existing checks, probes, and scores unchanged (v6 is additive)
-6. Features previously gated behind `SCORECARD_V6` and `SCORECARD_EXPERIMENTAL` promoted or migrated
+6. Existing flagged features (`SCORECARD_V6`, `SCORECARD_EXPERIMENTAL`) promoted or migrated
 
 **Forge support in Phase 1:**
 - **GitHub:** Primary target (full L1 coverage)
-- **GitLab:** Supported where existing probes already work; controls relying on unavailable API features produce `UNKNOWN` (not `FAIL`)
-- **Azure DevOps:** Deferred (experimental forge + experimental feature = too much uncertainty)
+- **GitLab:** Deferred to a future phase
+- **Azure DevOps:** Deferred to a future phase
 - **Local directory:** Conformance results for file-based probes only
 
 **Not in Phase 1:**
@@ -68,7 +68,7 @@ Step 0: OpenFeature with existing env vars
 
 Scorecard has ad-hoc feature flags checked via `os.LookupEnv()`. A hard-coded delete list in `checks/all_checks.go` manually removes experimental checks. Flags don't have explicit lifecycle management. A `// UPGRADEv4: remove` comment at `options.go:251` shows cleanup doesn't happen organically.
 
-The current `SCORECARD_V6` env var was written for a different vision of v6 than what this plan describes. Several existing features under flag have an implicit contract to be promoted in v6.
+The existing `SCORECARD_V6` env var predates the conformance work described in this plan. Several features under flag have an implicit contract to be promoted in v6.
 
 ### Feature promotion
 
@@ -277,7 +277,7 @@ Framework abstraction is proven with checks. Now build OSPS Baseline conformance
 
 ### Control catalog: import security-baseline package (recommendation — pending approval)
 
-The plan previously described a "versioned data file" for control definitions. Instead, import the Go package from [`github.com/ossf/security-baseline`](https://github.com/ossf/security-baseline):
+Import the Go package from [`github.com/ossf/security-baseline`](https://github.com/ossf/security-baseline) rather than maintaining a separate versioned data file:
 
 - **Control catalog** (what controls exist, their names, levels, requirements) comes from the upstream dependency
 - **Probe-to-control mappings** (which Scorecard probes satisfy which controls) live in Scorecard
@@ -309,7 +309,7 @@ Implement `ConformanceFramework` for OSPS Baseline v2026.02.19.
 
 ### Forge-specific behavior
 
-Controls that rely on API features not available on a given forge produce `UNKNOWN` with an explanation, not `FAIL`. The coverage analysis (Step 4) should document forge-specific gaps per control.
+Phase 1 targets GitHub only. GitLab and Azure DevOps conformance support is deferred to a future phase.
 
 **Deliverable:**
 - PR 1: Add `github.com/ossf/security-baseline` dependency; control mapping data structure
@@ -335,10 +335,9 @@ The existing [`osps-baseline-coverage.md`](osps-baseline-coverage.md) identifies
 Before writing gap probes, review the coverage analysis against the current Baseline spec. This review confirms:
 - Which controls truly have gaps vs. which are already covered by existing probes
 - Whether existing probe-to-control mappings are correct
-- Which controls produce `UNKNOWN` on non-GitHub forges and why
 - Whether the gap count (currently estimated at 9) is accurate
 
-**Deliverable:** Updated `osps-baseline-coverage.md` with human-validated mappings and forge-specific coverage notes. This is a review task, not a code task.
+**Deliverable:** Updated `osps-baseline-coverage.md` with human-validated mappings. This is a review task, not a code task.
 
 ---
 
@@ -408,7 +407,7 @@ Individual PRs per probe or probe group. Each PR includes:
 5. All L1 gap controls closed
 6. Existing checks, probes, scores unchanged (v6 is additive)
 7. Previously flagged features (Webhooks, SBOM, raw format, SARIF) promoted
-8. GitHub and GitLab supported; Azure DevOps deferred
+8. GitHub supported; GitLab and Azure DevOps deferred
 
 **Deferred to Phase 2:**
 - Probe catalog extraction (publish probe definitions as consumable artifact)
@@ -446,6 +445,75 @@ Phase 1 must demonstrate value before Phase 2 begins. Success criteria:
 - Multi-repo project-level conformance
 - Attestation GA
 - Module path bump to `v6`
+
+---
+
+## Codebase reuse map
+
+v6 should extend existing infrastructure rather than duplicate it. This section
+documents what already exists and where each step plugs in.
+
+### Execution pipeline
+
+The main execution flow in `pkg/scorecard/scorecard.go` is:
+
+```
+Run() → runScorecard() → populateRawResults() → runEnabledChecks() / runEnabledProbes() → FormatResults()
+```
+
+The conformance evaluator fits into this flow without creating a parallel
+pipeline:
+1. Probes run as normal (unchanged)
+2. After probe execution, conformance evaluator consumes `Result.Findings`
+3. Conformance results added to `Result` struct
+4. `FormatResults()` serializes both checks and conformance
+
+### Reusable components
+
+| Component | Location | How v6 uses it |
+|-----------|----------|----------------|
+| Probe runner | `probes/zrunner/runner.go` | Runs probes; conformance consumes findings output |
+| Probe registration | `internal/probes/probes.go` | New probes use `probes.MustRegister()` |
+| Probe grouping | `probes/entries.go` | Add OSPS Baseline probe group |
+| Finding types | `finding/finding.go` | Reuse `Outcome` type — `OutcomeNotApplicable` already exists |
+| Format dispatcher | `pkg/scorecard/scorecard_result.go:142-182` | Add v6 format case to switch statement |
+| Raw data population | `pkg/scorecard/scorecard_result.go:278-410` | Add OSPS Baseline to `assignRawData()` |
+| Evaluation pattern | `checks/evaluation/*.go` (19 files) | Template for conformance evaluation functions |
+| File parsing | `checks/fileparser/listing.go` | Reuse for Security Insights, governance docs, etc. |
+| Score constructors | `checker/check_result.go:107-245` | Reuse pattern for conformance result constructors |
+| RepoClient interface | `clients/repo_client.go` | Already injected via `CheckRequest`; no changes |
+| Config system | `config/config.go` | Extensible for conformance annotations |
+| Policy system | `policy/policy.go` | Extensible for conformance enforcement rules |
+| Result struct | `pkg/scorecard/scorecard_result.go` | Add `Conformance` field alongside existing `Checks` |
+
+### Duplication risks
+
+The following plan elements risk duplicating existing infrastructure and should
+be validated during implementation:
+
+1. **Framework `Result` interface** — the plan proposes a new `Result`
+   interface, but conformance evaluation could follow the simpler existing
+   pattern: a function taking `(findings []finding.Finding) → ConformanceResult`,
+   matching how `checks/evaluation/*.go` works. Validate whether the interface
+   abstraction adds value beyond the function pattern.
+
+2. **Conformance status types** — `finding.Outcome` already defines
+   `OutcomeTrue`, `OutcomeFalse`, `OutcomeNotAvailable`, `OutcomeNotApplicable`.
+   Per-control conformance status could map directly to these existing types
+   rather than defining new PASS/FAIL/UNKNOWN/NOT_APPLICABLE constants.
+   Evaluate whether the existing types are sufficient or whether control-level
+   status is semantically distinct from probe-level outcome.
+
+3. **Applicability engine** — `OutcomeNotApplicable` already exists as a
+   finding outcome. Applicability could be implemented as probes that produce
+   `NotApplicable` findings for controls whose preconditions aren't met,
+   rather than a separate engine. Evaluate whether the probe-based approach
+   or a dedicated engine is cleaner.
+
+4. **Gap probe overlap** — several "gap" controls (VM-01.01 security policy
+   exists, GV-03.01 contribution guidelines) may already be partially covered
+   by existing probes (`securityPolicyPresent`, etc.). Step 4 (human review)
+   will catch this, but implementation should verify before writing new probes.
 
 ---
 
