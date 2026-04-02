@@ -122,6 +122,55 @@ func TestCodereview(t *testing.T) {
 			},
 		},
 		{
+			name: "Prow PR with both lgtm and approved labels - 2 approvals",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "alice",
+					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: time.Now(),
+						Labels: []clients.Label{
+							{
+								Name: "lgtm",
+							},
+							{
+								Name: "approved",
+							},
+						},
+					},
+				},
+			},
+			expected: scut.TestReturn{
+				Score: 10,
+			},
+		},
+		{
+			name: "Prow PR with only approved label",
+			commits: []clients.Commit{
+				{
+					SHA: "sha",
+					Committer: clients.User{
+						Login: "bob",
+					},
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: time.Now(),
+						Labels: []clients.Label{
+							{
+								Name: "approved",
+							},
+						},
+					},
+				},
+			},
+			expected: scut.TestReturn{
+				Score: 10,
+			},
+		},
+		{
 			name: "Valid PR's and commits with merged by someone else",
 			commits: []clients.Commit{
 				{

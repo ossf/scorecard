@@ -165,7 +165,7 @@ func isTest(s string) bool {
 		"appveyor", "buildkite", "circleci", "e2e", "github-actions", "jenkins",
 		"mergeable", "packit-as-a-service", "semaphoreci", "test", "travis-ci",
 		"flutter-dashboard", "cirrus-ci", "Cirrus CI", "azure-pipelines", "ci/woodpecker",
-		"vstfs:///build/build",
+		"vstfs:///build/build", "prow",
 	} {
 		if strings.Contains(l, pattern) {
 			return true
