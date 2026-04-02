@@ -41,6 +41,7 @@ type Client struct {
 	glClient      *gitlab.Client
 	contributors  *contributorsHandler
 	branches      *branchesHandler
+	tags          *tagsHandler
 	releases      *releasesHandler
 	workflows     *workflowsHandler
 	checkruns     *checkrunsHandler
@@ -55,6 +56,7 @@ type Client struct {
 	licenses      *licensesHandler
 	tarball       *tarballHandler
 	graphql       *graphqlHandler
+	accessLevels  *accessLevelHandler
 	ctx           context.Context
 	commitDepth   int
 }
@@ -120,6 +122,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 	// Init branchesHandler
 	client.branches.init(client.repourl)
 
+	// Init tagsHandler
+	client.tags.init(client.repourl)
+
 	// Init releasesHandler
 	client.releases.init(client.repourl)
 
@@ -137,6 +142,9 @@ func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitD
 
 	// Init statusesHandler
 	client.statuses.init(client.repourl)
+
+	// Init accessLevelHandler
+	client.accessLevels.init(client.repourl)
 
 	// Init searchHandler
 	client.search.init(client.repourl)
@@ -232,6 +240,30 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return client.branches.getBranch(branch)
 }
 
+// ListBranches returns the names of all branches in the repository.
+func (client *Client) ListBranches() ([]string, error) {
+	return client.branches.listBranches()
+}
+
+// GetMinimumAccessLevel determines the minimum (most restrictive) access level
+// from a list of TagAccessDescriptions.
+func (client *Client) GetMinimumAccessLevel(
+	accessLevels []*gitlab.TagAccessDescription,
+) (gitlab.AccessLevelValue, error) {
+	return client.accessLevels.getMinimumAccessLevel(accessLevels)
+}
+
+// GetProtectedTagPatterns returns all protected tag patterns for this repository.
+// This is exposed for GitLab-specific probes that need to analyze raw protection settings.
+func (client *Client) GetProtectedTagPatterns() ([]*gitlab.ProtectedTag, error) {
+	return client.tags.getProtectedPatterns()
+}
+
+// GetTag implements RepoClient.GetTag.
+func (client *Client) GetTag(tagName string) (*clients.TagRef, error) {
+	return client.tags.getTag(tagName)
+}
+
 func (client *Client) GetCreatedAt() (time.Time, error) {
 	return client.project.getCreatedAt()
 }
@@ -298,6 +330,9 @@ func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clien
 		branches: &branchesHandler{
 			glClient: client,
 		},
+		tags: &tagsHandler{
+			glClient: client,
+		},
 		releases: &releasesHandler{
 			glClient: client,
 		},
@@ -334,6 +369,9 @@ func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clien
 		licenses: &licensesHandler{},
 		tarball:  &tarballHandler{},
 		graphql:  &graphqlHandler{},
+		accessLevels: &accessLevelHandler{
+			glClient: client,
+		},
 	}, nil
 }
 
