@@ -100,6 +100,11 @@ func (r *Repo) Metadata() []string {
 	return r.metadata
 }
 
+// Type implements Repo.Type.
+func (r *Repo) Type() clients.RepoType {
+	return clients.RepoTypeAzureDevOps
+}
+
 // Path() implements RepoClient.Path.
 func (r *Repo) Path() string {
 	return fmt.Sprintf("%s/%s/%s/%s", r.organization, r.project, "_git", r.name)
