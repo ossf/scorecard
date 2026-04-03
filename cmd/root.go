@@ -160,7 +160,7 @@ func rootCmd(o *options.Options) error {
 	// this call to policy is different from the one in scorecard.Run
 	// this one is concerned with a policy file, while the scorecard.Run call is
 	// more concerned with the supported request types
-	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes, "")
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}

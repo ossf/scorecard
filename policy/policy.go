@@ -25,6 +25,8 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/clients"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
@@ -143,6 +145,7 @@ func GetEnabled(
 	sp *ScorecardPolicy,
 	argsChecks []string,
 	requiredRequestTypes []checker.RequestType,
+	repoType clients.RepoType,
 ) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
@@ -156,6 +159,9 @@ func GetEnabled(
 						fmt.Sprintf("Unsupported RequestType %s by check: %s",
 							fmt.Sprint(requiredRequestTypes), checkName))
 			}
+			if !isSupportedRepoType(checkName, repoType) {
+				continue
+			}
 			if !enableCheck(checkName, &enabledChecks) {
 				return enabledChecks,
 					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
@@ -165,9 +171,9 @@ func GetEnabled(
 		// Populate checks to run with policy file.
 		for checkName := range sp.GetPolicies() {
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
-				// We silently ignore the check, like we do
-				// for the default case when no argsChecks
-				// or policy are present.
+				continue
+			}
+			if !isSupportedRepoType(checkName, repoType) {
 				continue
 			}
 
@@ -180,6 +186,9 @@ func GetEnabled(
 		// Enable all checks that are supported.
 		for checkName := range checks.GetAll() {
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
+				continue
+			}
+			if !isSupportedRepoType(checkName, repoType) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -214,6 +223,33 @@ func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestTy
 		requiredRequestTypes,
 		checks.GetAllWithExperimental()[checkName].SupportedRequestTypes)
 	return len(unsupported) == 0
+}
+
+// isSupportedRepoType checks if a check supports the given repo type
+// based on the repos field in checks.yaml. If the docs cannot be read
+// or the check is not found, it defaults to supported (permissive).
+func isSupportedRepoType(checkName string, repoType clients.RepoType) bool {
+	if repoType == "" {
+		return true
+	}
+
+	d, err := docs.Read()
+	if err != nil {
+		return true
+	}
+
+	checkDoc, err := d.GetCheck(checkName)
+	if err != nil {
+		return true
+	}
+
+	supportedTypes := checkDoc.GetSupportedRepoTypes()
+	for _, t := range supportedTypes {
+		if strings.EqualFold(t, string(repoType)) {
+			return true
+		}
+	}
+	return false
 }
 
 // Enables checks by name.
