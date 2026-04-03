@@ -45,6 +45,7 @@ type RepoClient interface {
 	GetDefaultBranchName() (string, error)
 	GetDefaultBranch() (*BranchRef, error)
 	GetOrgRepoClient(context.Context) (RepoClient, error)
+	HasPrivateVulnerabilityReportingEnabled() (bool, error)
 	ListCommits() ([]Commit, error)
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)

@@ -300,6 +300,12 @@ type SASTWorkflow struct {
 // for the Security-Policy check.
 type SecurityPolicyData struct {
 	PolicyFiles []SecurityPolicyFile
+	// PrivateVulnerabilityReportingEnabled indicates whether GitHub's Private Vulnerability Reporting is enabled.
+	// This is only meaningful when PrivateVulnerabilityReportingAvailable is true.
+	PrivateVulnerabilityReportingEnabled bool
+	// PrivateVulnerabilityReportingAvailable indicates whether the PVR check was available for this repo.
+	// This will be false for non-GitHub repositories where the feature is not supported.
+	PrivateVulnerabilityReportingAvailable bool
 }
 
 // BinaryArtifactData contains the raw results
