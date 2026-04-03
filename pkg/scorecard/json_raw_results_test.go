@@ -1226,12 +1226,12 @@ func intPtr(i int32) *int32 {
 func TestScorecardResult_AsRawJSON(t *testing.T) {
 	t.Parallel()
 	type fields struct {
-		Repo       RepoInfo
 		Date       time.Time
+		Repo       RepoInfo
 		Scorecard  ScorecardInfo
 		Checks     []checker.CheckResult
-		RawResults checker.RawResults
 		Metadata   []string
+		RawResults checker.RawResults
 	}
 	tests := []struct { //nolint:govet
 		name       string

@@ -242,6 +242,10 @@ func (c *client) ListStatuses(ref string) ([]clients.Status, error) {
 	return nil, fmt.Errorf("ListStatuses: %w", clients.ErrUnsupportedFeature)
 }
 
+func (client *client) GetSecretScanningSignals() (clients.SecretScanningSignals, error) {
+	return clients.SecretScanningSignals{}, fmt.Errorf("GetSecretScanningSignals: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListWebhooks implements RepoClient.ListWebhooks.
 func (c *client) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
