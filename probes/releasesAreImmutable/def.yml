@@ -1,0 +1,37 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: releasesAreImmutable
+lifecycle: experimental
+short: Check that the project's GitHub releases are marked as immutable.
+motivation: >
+  Immutable releases prevent release artifacts from being modified or deleted after publication,
+  ensuring consumers always receive the same artifacts that were originally published.
+implementation: >
+  The probe checks whether the last 5 releases on GitHub are marked as immutable.
+outcome:
+  - For each of the last 5 releases, the probe returns OutcomeTrue if the release is marked as immutable.
+  - For each of the last 5 releases, the probe returns OutcomeFalse if the release is not marked as immutable.
+  - If the project has no releases, the probe returns OutcomeNotApplicable.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Enable immutable releases for your repository. See https://docs.github.com/repositories/releasing-projects-on-github/managing-releases-in-a-repository
+    - When creating a release, mark it as immutable to prevent future modification of release assets.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
