@@ -15,11 +15,13 @@
 package unsafeblock
 
 import (
+	"bytes"
 	"embed"
 	"fmt"
 	"go/parser"
 	"go/token"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -51,6 +53,11 @@ var languageMemorySafeSpecs = map[clients.LanguageName]languageMemoryCheckConfig
 	clients.CSharp: {
 		funcPointer: checkDotnetAllowUnsafeBlocks,
 		Desc:        "Check if C# code uses unsafe blocks",
+	},
+
+	clients.Java: {
+		funcPointer: checkJavaUnsafeClass,
+		Desc:        "Check if Java code uses the Unsafe class",
 	},
 }
 
@@ -207,4 +214,120 @@ func csProjAllosUnsafeBlocks(path string, content []byte, args ...interface{}) (
 	}
 
 	return true, nil
+}
+
+// Java
+
+var (
+	// javaMultiLineCommentRe matches /* ... */ comments (including across newlines).
+	javaMultiLineCommentRe = regexp.MustCompile(`(?s)/\*.*?\*/`)
+	// javaSingleLineCommentRe matches // ... to end of line.
+	javaSingleLineCommentRe = regexp.MustCompile(`//[^\n]*`)
+	// javaMultiLineStringRe matches multi-line string literals.
+	javaMultiLineStringRe = regexp.MustCompile(`(?s)""".*?"""`)
+	// javaSingleLineStringRe matches single-line string literals.
+	javaSingleLineStringRe = regexp.MustCompile(`"(?:[^"\\]|\\.)*"`)
+
+	// javaUnsafeImportRe matches import statements for sun.misc.Unsafe or
+	// jdk.internal.misc.Unsafe, allowing optional whitespace between tokens
+	// (e.g. "import  sun . misc . Unsafe ;").
+	javaUnsafeImportRe = regexp.MustCompile(
+		`\bimport\s+(?:sun\s*\.\s*misc|jdk\s*\.\s*internal\s*\.\s*misc)\s*\.\s*Unsafe\s*;`)
+
+	// javaUnsafeFQNRe matches fully-qualified references to sun.misc.Unsafe or
+	// jdk.internal.misc.Unsafe in code (including inside import statements).
+	javaUnsafeFQNRe = regexp.MustCompile(
+		`\b(?:sun\s*\.\s*misc|jdk\s*\.\s*internal\s*\.\s*misc)\s*\.\s*Unsafe\b`)
+)
+
+// stripJavaComments removes single-line and multi-line comments from Java
+// source, preserving newlines so that line numbers remain accurate.
+func stripJavaComments(content []byte) []byte {
+	// Replace multi-line comments with an equal number of newlines.
+	src := javaMultiLineCommentRe.ReplaceAllFunc(content, func(match []byte) []byte {
+		return bytes.Repeat([]byte("\n"), bytes.Count(match, []byte("\n")))
+	})
+	// Remove single-line comments (the newline itself is not part of the match).
+	return javaSingleLineCommentRe.ReplaceAll(src, nil)
+}
+
+// stripJavaStringLiterals removes single-line and multi-line string literals from Java
+// source, preserving newlines so that line numbers remain accurate.
+func stripJavaStringLiterals(content []byte) []byte {
+	// Replace multi-line string literals with an equal number of newlines.
+	src := javaMultiLineStringRe.ReplaceAllFunc(content, func(match []byte) []byte {
+		return bytes.Repeat([]byte("\n"), bytes.Count(match, []byte("\n")))
+	})
+	// Remove single-line string literals (the newline itself is not part of the match).
+	return javaSingleLineStringRe.ReplaceAll(src, nil)
+}
+
+// javaLineNumber returns the 1-based line number of the byte at offset within src.
+func javaLineNumber(src []byte, offset int) uint {
+	return uint(bytes.Count(src[:offset], []byte("\n")) + 1)
+}
+
+func checkJavaUnsafeClass(client *checker.CheckRequest) ([]finding.Finding, error) {
+	findings := []finding.Finding{}
+	if err := fileparser.OnMatchingFileContentDo(client.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*.java",
+		CaseSensitive: false,
+	}, javaCodeUsesUnsafeClass, &findings); err != nil {
+		return nil, err
+	}
+
+	return findings, nil
+}
+
+func javaCodeUsesUnsafeClass(path string, content []byte, args ...interface{}) (bool, error) {
+	findings, ok := args[0].(*[]finding.Finding)
+	if !ok {
+		// panic if it is not correct type
+		panic(fmt.Sprintf("expected type findings, got %v", reflect.TypeOf(args[0])))
+	}
+
+	src := stripJavaStringLiterals(stripJavaComments(content))
+
+	// Report each import of an Unsafe class.
+	importLocs := javaUnsafeImportRe.FindAllIndex(src, -1)
+	for _, loc := range importLocs {
+		line := javaLineNumber(src, loc[0])
+		found, err := finding.NewWith(fs, Probe,
+			"Java code imports the Unsafe class", &finding.Location{
+				Path: path, LineStart: &line,
+			}, finding.OutcomeTrue)
+		if err != nil {
+			return false, fmt.Errorf("create finding: %w", err)
+		}
+		*findings = append(*findings, *found)
+	}
+
+	// Report fully-qualified usages of an Unsafe class that are not part of
+	// an import statement (i.e. direct usage without a prior import).
+	for _, loc := range javaUnsafeFQNRe.FindAllIndex(src, -1) {
+		if withinAnyRange(loc[0], importLocs) {
+			continue
+		}
+		line := javaLineNumber(src, loc[0])
+		found, err := finding.NewWith(fs, Probe,
+			"Java code uses the Unsafe class", &finding.Location{
+				Path: path, LineStart: &line,
+			}, finding.OutcomeTrue)
+		if err != nil {
+			return false, fmt.Errorf("create finding: %w", err)
+		}
+		*findings = append(*findings, *found)
+	}
+
+	return true, nil
+}
+
+// withinAnyRange reports whether offset falls inside any of the given [start, end) ranges.
+func withinAnyRange(offset int, ranges [][]int) bool {
+	for _, r := range ranges {
+		if offset >= r[0] && offset < r[1] {
+			return true
+		}
+	}
+	return false
 }
