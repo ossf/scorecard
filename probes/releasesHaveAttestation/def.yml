@@ -1,0 +1,39 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: releasesHaveAttestation
+lifecycle: experimental
+short: Check that the project's GitHub releases have artifact attestations.
+motivation: >
+  GitHub artifact attestations provide cryptographically verifiable provenance for release assets,
+  allowing consumers to verify that artifacts were produced by a known workflow before consuming them.
+implementation: >
+  The probe checks whether all release assets in the last five GitHub releases have artifact
+  attestations. It uses the release asset digest exposed by GitHub and verifies that a corresponding
+  attestation exists via the GitHub attestations API.
+outcome:
+  - For each of the last 5 releases, the probe returns OutcomeTrue if all release assets have artifact attestations.
+  - For each of the last 5 releases, the probe returns OutcomeFalse if one or more release assets do not have artifact attestations.
+  - If the project has no GitHub releases, the probe returns OutcomeNotApplicable.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Use GitHub artifact attestations to attest your release artifacts. See https://docs.github.com/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations for details.
+    - Ensure that all release assets have a corresponding digest and attestation.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github

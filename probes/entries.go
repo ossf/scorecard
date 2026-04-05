@@ -47,6 +47,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveAttestation"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
@@ -140,6 +141,7 @@ var (
 	}
 	SignedReleases = []ProbeImpl{
 		releasesAreSigned.Run,
+		releasesHaveAttestation.Run,
 		releasesHaveProvenance.Run,
 	}
 	BranchProtection = []ProbeImpl{
