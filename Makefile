@@ -363,7 +363,7 @@ e2e-gitlab: build-scorecard | $(GINKGO)
 
 e2e-azure-devops-token: ## Runs e2e tests that require a AZURE_DEVOPS_AUTH_TOKEN
 e2e-azure-devops-token: build-scorecard check-env-azure-devops | $(GINKGO)
-	TEST_AZURE_DEVOPS_EXTERNAL=1 $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus "Azure DevOps" ./...
+	SCORECARD_EXPERIMENTAL=1 TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="AZURE_DEVOPS_PAT" $(GINKGO) --race -p -vv -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus "Azure DevOps" ./...
 
 e2e-attestor: ## Runs e2e tests for scorecard-attestor
 	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
