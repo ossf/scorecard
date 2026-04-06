@@ -33,7 +33,7 @@ jobs:
     environment: gitlab
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
+        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
       - name: Clone the code
@@ -86,7 +86,7 @@ jobs:
           command: make e2e-gitlab-token
 
       - name: codecov
-        uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # 5.5.3
+        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # 6.0.0
         with:
          files: "*e2e-coverage.out"
          verbose: true
