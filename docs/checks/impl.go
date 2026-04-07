@@ -30,9 +30,9 @@ var errCheckNotExist = errors.New("check does not exist")
 const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
 
 var (
-	cachedDoc  Doc
-	cachedErr  error
-	readOnce   sync.Once
+	readOnce      sync.Once
+	errCachedRead error
+	cachedDoc     Doc
 )
 
 // DocImpl implements `Doc` interface and
@@ -50,12 +50,12 @@ func Read() (Doc, error) {
 		m, e := internal.ReadDoc()
 		if e != nil {
 			cachedDoc = &DocImpl{}
-			cachedErr = fmt.Errorf("internal.ReadDoc: %w", e)
+			errCachedRead = fmt.Errorf("internal.ReadDoc: %w", e)
 			return
 		}
 		cachedDoc = &DocImpl{internaldoc: m}
 	})
-	return cachedDoc, cachedErr
+	return cachedDoc, errCachedRead
 }
 
 // GetCheck returns the information for check `name`.
