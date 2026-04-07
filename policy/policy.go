@@ -149,6 +149,9 @@ func GetEnabled(
 ) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
+	// Read docs once to avoid re-parsing YAML for every check.
+	checkDocs, docsErr := docs.Read()
+
 	switch {
 	case len(argsChecks) != 0:
 		// Populate checks to run with the `--repo` CLI argument.
@@ -159,7 +162,7 @@ func GetEnabled(
 						fmt.Sprintf("Unsupported RequestType %s by check: %s",
 							fmt.Sprint(requiredRequestTypes), checkName))
 			}
-			if !isSupportedRepoType(checkName, repoType) {
+			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -173,7 +176,7 @@ func GetEnabled(
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
-			if !isSupportedRepoType(checkName, repoType) {
+			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
 				continue
 			}
 
@@ -188,7 +191,7 @@ func GetEnabled(
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
-			if !isSupportedRepoType(checkName, repoType) {
+			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -228,18 +231,18 @@ func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestTy
 // isSupportedRepoType checks if a check supports the given repo type
 // based on the repos field in checks.yaml. If the docs cannot be read
 // or the check is not found, it defaults to supported (permissive).
-func isSupportedRepoType(checkName string, repoType clients.RepoType) bool {
+func isSupportedRepoType(d docs.Doc, docsErr error, checkName string, repoType clients.RepoType) bool {
 	if repoType == "" {
 		return true
 	}
 
-	d, err := docs.Read()
-	if err != nil {
+	if docsErr != nil {
 		return true
 	}
 
-	checkDoc, err := d.GetCheck(checkName)
-	if err != nil {
+	// Use case-insensitive lookup to match enableCheck behavior.
+	checkDoc := findCheckDoc(d, checkName)
+	if checkDoc == nil {
 		return true
 	}
 
@@ -250,6 +253,16 @@ func isSupportedRepoType(checkName string, repoType clients.RepoType) bool {
 		}
 	}
 	return false
+}
+
+// findCheckDoc performs a case-insensitive lookup of a check in the docs.
+func findCheckDoc(d docs.Doc, checkName string) docs.CheckDoc {
+	for _, c := range d.GetChecks() {
+		if strings.EqualFold(c.GetName(), checkName) {
+			return c
+		}
+	}
+	return nil
 }
 
 // Enables checks by name.
