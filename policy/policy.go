@@ -149,8 +149,16 @@ func GetEnabled(
 ) (checker.CheckNameToFnMap, error) {
 	enabledChecks := checker.CheckNameToFnMap{}
 
-	// Read docs once to avoid re-parsing YAML for every check.
-	checkDocs, docsErr := docs.Read()
+	// Build a case-insensitive repo-type lookup map once, only when needed.
+	var repoTypeLookup map[string][]string
+	if repoType != "" {
+		if d, err := docs.Read(); err == nil {
+			repoTypeLookup = make(map[string][]string)
+			for _, c := range d.GetChecks() {
+				repoTypeLookup[strings.ToLower(c.GetName())] = c.GetSupportedRepoTypes()
+			}
+		}
+	}
 
 	switch {
 	case len(argsChecks) != 0:
@@ -162,7 +170,7 @@ func GetEnabled(
 						fmt.Sprintf("Unsupported RequestType %s by check: %s",
 							fmt.Sprint(requiredRequestTypes), checkName))
 			}
-			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
+			if !isSupportedRepoType(repoTypeLookup, checkName, repoType) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -176,7 +184,7 @@ func GetEnabled(
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
-			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
+			if !isSupportedRepoType(repoTypeLookup, checkName, repoType) {
 				continue
 			}
 
@@ -191,7 +199,7 @@ func GetEnabled(
 			if !isSupportedCheck(checkName, requiredRequestTypes) {
 				continue
 			}
-			if !isSupportedRepoType(checkDocs, docsErr, checkName, repoType) {
+			if !isSupportedRepoType(repoTypeLookup, checkName, repoType) {
 				continue
 			}
 			if !enableCheck(checkName, &enabledChecks) {
@@ -229,40 +237,24 @@ func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestTy
 }
 
 // isSupportedRepoType checks if a check supports the given repo type
-// based on the repos field in checks.yaml. If the docs cannot be read
-// or the check is not found, it defaults to supported (permissive).
-func isSupportedRepoType(d docs.Doc, docsErr error, checkName string, repoType clients.RepoType) bool {
-	if repoType == "" {
+// using a pre-built lookup map. If the map is nil (docs unavailable or
+// repoType empty) or the check is not found, it defaults to supported.
+func isSupportedRepoType(repoTypeLookup map[string][]string, checkName string, repoType clients.RepoType) bool {
+	if repoTypeLookup == nil {
 		return true
 	}
 
-	if docsErr != nil {
+	supportedTypes, exists := repoTypeLookup[strings.ToLower(checkName)]
+	if !exists {
 		return true
 	}
 
-	// Use case-insensitive lookup to match enableCheck behavior.
-	checkDoc := findCheckDoc(d, checkName)
-	if checkDoc == nil {
-		return true
-	}
-
-	supportedTypes := checkDoc.GetSupportedRepoTypes()
 	for _, t := range supportedTypes {
 		if strings.EqualFold(t, string(repoType)) {
 			return true
 		}
 	}
 	return false
-}
-
-// findCheckDoc performs a case-insensitive lookup of a check in the docs.
-func findCheckDoc(d docs.Doc, checkName string) docs.CheckDoc {
-	for _, c := range d.GetChecks() {
-		if strings.EqualFold(c.GetName(), checkName) {
-			return c
-		}
-	}
-	return nil
 }
 
 // Enables checks by name.
