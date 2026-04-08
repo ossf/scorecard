@@ -26,7 +26,7 @@ import (
 var _ = Describe("E2E TEST: azuredevopsrepo.buildsHandler", func() {
 	Context("Builds - Azure DevOps", func() {
 		It("Should return successful builds", func() {
-			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/jamiemagee/jamiemagee/_git/jamiemagee")
+			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
 
 			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)
@@ -37,7 +37,8 @@ var _ = Describe("E2E TEST: azuredevopsrepo.buildsHandler", func() {
 
 			builds, err := repoClient.ListSuccessfulWorkflowRuns("azure-pipelines.yml")
 			Expect(err).Should(BeNil())
-			Expect(len(builds)).Should(BeNumerically(">", 0))
+			// Builds may be empty if hosted parallelism hasn't been granted yet.
+			Expect(builds).ShouldNot(BeNil())
 		})
 	})
 })
