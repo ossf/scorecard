@@ -1,0 +1,17 @@
+presubmits:
+  org/repo:
+    - name: pull-build
+      decorate: true
+      always_run: true
+      command:
+        - make
+        - build
+      args:
+        - -j4
+
+    - name: pull-unit-test
+      decorate: true
+      command:
+        - go
+        - test
+        - ./...

@@ -1,0 +1,36 @@
+presubmits:
+  org/repo:
+    - name: pull-lint
+      decorate: true
+      always_run: true
+      command:
+        - golangci-lint
+        - run
+      args:
+        - --timeout=5m
+
+    - name: pull-test
+      decorate: true
+      command:
+        - make
+        - test
+
+postsubmits:
+  org/repo:
+    - name: post-security-scan
+      decorate: true
+      command:
+        - trivy
+        - fs
+        - --security-checks
+        - vuln
+        - .
+
+periodics:
+  - name: nightly-codeql
+    interval: 24h
+    decorate: true
+    command:
+      - codeql
+      - database
+      - analyze
