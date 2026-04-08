@@ -151,6 +151,8 @@ func TestSecurityPolicy(t *testing.T) {
 				return os.Open(tt.path)
 			}).AnyTimes()
 
+			mockRepoClient.EXPECT().HasPrivateVulnerabilityReportingEnabled().Return(true, nil).AnyTimes()
+
 			dl := scut.TestDetailLogger{}
 			c := checker.CheckRequest{
 				RepoClient: mockRepoClient,
