@@ -252,4 +252,11 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		o.FileMode,
 		fmt.Sprintf("mode to fetch repository files: %s", strings.Join(allowedModes, ", ")),
 	)
+
+	cmd.Flags().BoolVar(
+		&o.SummaryOnly,
+		"summary-only",
+		o.SummaryOnly,
+		"show only the final score summary without detailed checks",
+	)
 }
