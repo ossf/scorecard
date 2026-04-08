@@ -48,7 +48,9 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &trueVal,
+								},
 							},
 						},
 					},
@@ -66,13 +68,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &trueVal,
+								},
 							},
 						},
 					},
@@ -90,13 +96,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &falseVal,
+								},
 							},
 						},
 					},
@@ -114,13 +124,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &trueVal,
+								},
 							},
 						},
 					},
@@ -138,13 +152,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								EnforceAdmins: nil,
+								RefProtectionRule: clients.RefProtectionRule{
+									EnforceAdmins: nil,
+								},
 							},
 						},
 					},
