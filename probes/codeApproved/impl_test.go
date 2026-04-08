@@ -328,6 +328,37 @@ func TestProbeCodeApproved(t *testing.T) {
 				finding.OutcomeFalse,
 			},
 		},
+		{
+			name: "reviewed by commit message gives true outcome",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformCommitMessageReview,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "developer"},
+									Message:   "Fix issue\nReviewed-by: reviewer@example.com",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									State:  "APPROVED",
+									Author: &clients.User{Login: "reviewer@example.com"},
+								},
+							},
+							Author: clients.User{
+								Login: "developer",
+							},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
 	}
 
 	for _, tt := range probeTests {
