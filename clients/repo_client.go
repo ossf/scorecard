@@ -57,5 +57,6 @@ type RepoClient interface {
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)
+	GetSecretScanningSignals() (SecretScanningSignals, error)
 	Close() error
 }

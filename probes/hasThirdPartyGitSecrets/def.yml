@@ -1,0 +1,32 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasThirdPartyGitSecrets
+lifecycle: beta
+short: git-secrets runs in CI
+motivation: >
+  Detect whether the project runs git-secrets in CI to catch leaked credentials.
+  git-secrets is a **commit-based scanner** typically configured to run on every push or pull request.
+  The SecretScanning check scores this probe based on commit coverage:
+  100% coverage=10 points, 70-99%=7, 50-69%=5, <50%=3, tool present but not running=1.
+implementation: >
+  Reads RawResults.SecretScanningResults.ThirdPartyGitSecrets from parsed CI configs.
+  Analyzes the last 100 commits via ListCommits() and ListCheckRunsForRef() to
+  calculate what percentage of commits had git-secrets run in CI.
+outcome:
+  - The probe emits OutcomeTrue if git-secrets is configured in CI, and OutcomeFalse otherwise.
+  - Score depends on commit coverage, not just tool presence.
+ecosystem:
+  languages: [all]
+  clients: [github, gitlab]
