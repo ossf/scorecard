@@ -154,7 +154,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	if !strings.EqualFold(opts.Commit, clients.HeadSHA) {
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
-	enabledChecks, err := policy.GetEnabled(nil, opts.Checks(), requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(nil, opts.Checks(), requiredRequestTypes, repo.Type())
 	if err != nil {
 		http.Error(w, fmt.Sprintf("GetEnabled: %v", err), http.StatusInternalServerError)
 		return

@@ -425,7 +425,7 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 		requiredRequestTypes = append(requiredRequestTypes, checker.CommitBased)
 	}
 
-	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes)
+	checksToRun, err := policy.GetEnabled(nil, c.checks, requiredRequestTypes, repo.Type())
 	if err != nil {
 		return Result{}, fmt.Errorf("getting enabled checks: %w", err)
 	}

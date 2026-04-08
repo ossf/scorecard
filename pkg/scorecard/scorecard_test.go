@@ -166,6 +166,7 @@ func TestRun(t *testing.T) {
 			repo := mockrepo.NewMockRepo(ctrl)
 
 			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+			repo.EXPECT().Type().Return(clients.RepoTypeGitHub).AnyTimes()
 
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 
@@ -281,6 +282,7 @@ func TestRun_WithProbes(t *testing.T) {
 
 			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
 			repo.EXPECT().Host().Return("github.com").AnyTimes()
+			repo.EXPECT().Type().Return(clients.RepoTypeGitHub).AnyTimes()
 
 			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
 			mockRepoClient.EXPECT().URI().Return(repo.URI()).AnyTimes()

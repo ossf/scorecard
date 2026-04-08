@@ -211,7 +211,7 @@ func processRequest(ctx context.Context,
 			commitSHA = repoReq.GetCommit()
 			requiredRequestType = append(requiredRequestType, checker.CommitBased)
 		}
-		checksToRun, err := policy.GetEnabled(nil /*policy*/, nil /*checks*/, requiredRequestType)
+		checksToRun, err := policy.GetEnabled(nil /*policy*/, nil /*checks*/, requiredRequestType, repo.Type())
 		if err != nil {
 			return fmt.Errorf("error during policy.GetEnabled: %w", err)
 		}
