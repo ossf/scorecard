@@ -102,7 +102,7 @@ if a past commit includes illegal content such as child pornography, it may be
 necessary to use a force push to rewrite the history rather than simply hide the
 commit.
 
-This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
+This test has tiered scoring. You receive partial credit for requirements met within your current tier. However, a tier must be fully satisfied before you can earn points from the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
 Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
