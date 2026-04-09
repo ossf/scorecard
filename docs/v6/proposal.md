@@ -135,7 +135,7 @@ different evidence sources), but the default posture is complementarity.
 
 ### Coverage snapshot
 
-A fresh analysis of Scorecard's current coverage against OSPS Baseline v2026.02.19 is tracked in `docs/osps-baseline-coverage.md`. Previous coverage estimates against older Baseline versions should be treated as out-of-date.
+A fresh analysis of Scorecard's current coverage against OSPS Baseline v2026.02.19 is tracked in [`osps-baseline-coverage.md`](osps-baseline-coverage.md). Previous coverage estimates against older Baseline versions should be treated as out-of-date.
 
 ### Existing Scorecard surfaces that matter
 
