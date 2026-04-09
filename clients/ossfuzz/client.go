@@ -271,3 +271,8 @@ func (c *client) ListLicenses() ([]clients.License, error) {
 func (c *client) GetCreatedAt() (time.Time, error) {
 	return time.Time{}, fmt.Errorf("GetCreatedAt: %w", clients.ErrUnsupportedFeature)
 }
+
+// GetMaintainerActivity implements RepoClient.GetMaintainerActivity.
+func (c *client) GetMaintainerActivity(cutoff time.Time) (map[string]bool, error) {
+	return nil, fmt.Errorf("GetMaintainerActivity: %w", clients.ErrUnsupportedFeature)
+}
