@@ -39,6 +39,7 @@ func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 		// TODO: remove this check when v6 is released
 		delete(possibleChecks, CheckWebHooks)
 		delete(possibleChecks, CheckSBOM)
+		delete(possibleChecks, CheckChangelog)
 	}
 
 	return possibleChecks
