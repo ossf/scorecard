@@ -23,6 +23,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
@@ -312,6 +313,7 @@ func TestGetEnabled(t *testing.T) {
 		policyFile            string
 		argsChecks            []string
 		requiredRequestTypes  []checker.RequestType
+		repoType              clients.RepoType
 		expectedEnabledChecks int
 		expectedError         bool
 	}{
@@ -319,6 +321,7 @@ func TestGetEnabled(t *testing.T) {
 			name:                  "checks limited to those specified by checks arg",
 			argsChecks:            []string{"Binary-Artifacts"},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased},
+			repoType:              clients.RepoTypeGitHub,
 			expectedEnabledChecks: 1,
 			expectedError:         false,
 		},
@@ -326,6 +329,7 @@ func TestGetEnabled(t *testing.T) {
 			name:                  "mix of supported and unsupported checks",
 			argsChecks:            []string{"Binary-Artifacts", "UnsupportedCheck"},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
+			repoType:              clients.RepoTypeGitHub,
 			expectedEnabledChecks: 1,
 			expectedError:         true,
 		},
@@ -333,6 +337,7 @@ func TestGetEnabled(t *testing.T) {
 			name:                  "request types limit enabled checks",
 			argsChecks:            []string{},
 			requiredRequestTypes:  []checker.RequestType{checker.FileBased, checker.CommitBased},
+			repoType:              clients.RepoTypeGitHub,
 			expectedEnabledChecks: 7, // All checks which are FileBased and CommitBased
 			expectedError:         false,
 		},
@@ -341,7 +346,32 @@ func TestGetEnabled(t *testing.T) {
 			policyFile:            "testdata/policy-ok.yaml",
 			argsChecks:            []string{},
 			requiredRequestTypes:  []checker.RequestType{},
+			repoType:              clients.RepoTypeGitHub,
 			expectedEnabledChecks: 3,
+			expectedError:         false,
+		},
+		{
+			name:                  "azure devops repo type filters GitHub-only checks",
+			argsChecks:            []string{"Binary-Artifacts", "Dangerous-Workflow"},
+			requiredRequestTypes:  []checker.RequestType{},
+			repoType:              clients.RepoTypeAzureDevOps,
+			expectedEnabledChecks: 1, // Only Binary-Artifacts supports Azure DevOps
+			expectedError:         false,
+		},
+		{
+			name:                  "empty repo type is permissive",
+			argsChecks:            []string{"Binary-Artifacts", "Dangerous-Workflow"},
+			requiredRequestTypes:  []checker.RequestType{},
+			repoType:              "",
+			expectedEnabledChecks: 2, // Both enabled when repo type is empty
+			expectedError:         false,
+		},
+		{
+			name:                  "default checks filtered by azure devops repo type",
+			argsChecks:            []string{},
+			requiredRequestTypes:  []checker.RequestType{},
+			repoType:              clients.RepoTypeAzureDevOps,
+			expectedEnabledChecks: 11, // Only checks with Azure DevOps in repos field
 			expectedError:         false,
 		},
 	}
@@ -362,7 +392,7 @@ func TestGetEnabled(t *testing.T) {
 				sp = pol
 			}
 
-			enabledChecks, err := GetEnabled(sp, tt.argsChecks, tt.requiredRequestTypes)
+			enabledChecks, err := GetEnabled(sp, tt.argsChecks, tt.requiredRequestTypes, tt.repoType)
 
 			if len(enabledChecks) != tt.expectedEnabledChecks {
 				t.Errorf("Unexpected number of enabled checks: got %v, want %v", len(enabledChecks), tt.expectedEnabledChecks)

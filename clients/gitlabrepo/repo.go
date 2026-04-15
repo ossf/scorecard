@@ -166,6 +166,11 @@ func (r *Repo) Metadata() []string {
 	return r.metadata
 }
 
+// Type implements Repo.Type.
+func (r *Repo) Type() clients.RepoType {
+	return clients.RepoTypeGitLab
+}
+
 // Path() implements RepoClient.Path.
 func (r *Repo) Path() string {
 	return fmt.Sprintf("%s/%s", r.owner, r.project)

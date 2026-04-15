@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/ossf/scorecard/v5/docs/checks/internal"
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -27,6 +28,12 @@ import (
 var errCheckNotExist = errors.New("check does not exist")
 
 const docURL = "https://github.com/ossf/scorecard/blob/%s/docs/checks.md"
+
+var (
+	readOnce      sync.Once
+	errCachedRead error
+	cachedDoc     Doc
+)
 
 // DocImpl implements `Doc` interface and
 // contains checks' documentation.
@@ -37,15 +44,18 @@ type DocImpl struct {
 }
 
 // Read loads the checks' documentation.
+// The embedded YAML is parsed once and cached for subsequent calls.
 func Read() (Doc, error) {
-	m, e := internal.ReadDoc()
-	if e != nil {
-		d := DocImpl{}
-		return &d, fmt.Errorf("internal.ReadDoc: %w", e)
-	}
-
-	d := DocImpl{internaldoc: m}
-	return &d, nil
+	readOnce.Do(func() {
+		m, e := internal.ReadDoc()
+		if e != nil {
+			cachedDoc = &DocImpl{}
+			errCachedRead = fmt.Errorf("internal.ReadDoc: %w", e)
+			return
+		}
+		cachedDoc = &DocImpl{internaldoc: m}
+	})
+	return cachedDoc, errCachedRead
 }
 
 // GetCheck returns the information for check `name`.

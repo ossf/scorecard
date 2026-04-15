@@ -51,7 +51,7 @@ checks:
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, Azure DevOps, local
     short: Determines if the project uses a dependency update tool.
     description: |
       Risk: `High` (possibly vulnerable to attacks on known flaws)
@@ -89,7 +89,7 @@ checks:
   Binary-Artifacts:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, GitLab, local
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project has generated executable (binary) artifacts in the source repository.
     description: |
       Risk: `High` (non-reviewable code)
@@ -140,7 +140,7 @@ checks:
   Branch-Protection:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub, GitLab
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)
@@ -226,7 +226,7 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
-    repos: GitHub, GitLab
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the project runs tests before pull requests are merged.
     description: |
       Risk: `Low` (possible unknown vulnerabilities)
@@ -286,7 +286,7 @@ checks:
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     short: Determines if the project requires human code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
@@ -359,7 +359,7 @@ checks:
   Contributors:
     risk: Low
     tags: source-code
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     short: Determines if the project has a set of contributors from multiple organizations (e.g., companies).
     description: |
       Risk: `Low` (lower number of trusted code reviewers)
@@ -466,7 +466,7 @@ checks:
   Pinned-Dependencies:
     risk: Medium
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, Azure DevOps, local
     short: Determines if the project has declared and pinned the dependencies of its build process.
     description: |
       Risk: `Medium` (possible compromised dependencies)
@@ -532,7 +532,7 @@ checks:
   SAST:
     risk: Medium
     tags: supply-chain, security, testing
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     short: Determines if the project uses static code analysis.
     description: |
       Risk: `Medium` (possible unknown bugs)
@@ -603,7 +603,7 @@ checks:
   Security-Policy:
     risk: Medium
     short: Determines if the project has published a security policy.
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     tags: supply-chain, security, policy
     description: |
       Risk: `Medium` (possible insecure reporting of vulnerabilities)
@@ -746,7 +746,7 @@ checks:
   Vulnerabilities:
     risk: High
     tags: supply-chain, security, vulnerabilities
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: |
       Risk: `High`  (known vulnerabilities)
@@ -810,7 +810,7 @@ checks:
   License:
     risk: Low
     tags: license
-    repos: GitHub, local
+    repos: GitHub, Azure DevOps, local
     short: Determines if the project has defined a license.
     description: |
       Risk: `Low` (possible impediment to security review)
