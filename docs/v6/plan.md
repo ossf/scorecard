@@ -45,15 +45,17 @@ Step 0: OpenFeature with existing env vars
   │
   └─► Step 1: Framework abstraction (proven with checks)
         │
-        └─► Step 2: JSON output
+        └─► Step 2: JSON output + CLI integration
               │
               └─► Step 3: OSPS Baseline as second framework
                     │
                     └─► Step 4: Human review of L1 coverage analysis
                           │
-                          └─► Step 5: Complete L1 coverage (gap probes)
+                          └─► Step 5: Fix probe-eval synchronization hazard
                                 │
-                                └─► Phase 1 complete: L1 conformance evidence
+                                └─► Step 6: Complete L1 coverage (gap probes)
+                                      │
+                                      └─► Phase 1 complete: L1 conformance evidence
 ```
 
 ---
@@ -128,7 +130,7 @@ E2E tests currently do not set feature flag env vars, meaning experimental and v
 ## Step 1: Framework abstraction
 
 **Requires:** Step 0 (feature flags operational)
-**Enables:** Steps 2-5 (output format, OSPS Baseline, gap probes)
+**Enables:** Steps 2-6 (output format, OSPS Baseline, gap probes)
 **Estimated scope:** 2-3 PRs (~500 lines)
 
 ### Problem
@@ -223,11 +225,11 @@ for any phase that adds GitLab or Azure DevOps conformance support.
 
 ---
 
-## Step 2: JSON output
+## Step 2: JSON output + CLI integration
 
 **Requires:** Step 1 (framework abstraction exists)
-**Enables:** Step 3 (conformance engine testable), Step 5 (gap probes testable)
-**Estimated scope:** 1 PR (~300 lines)
+**Enables:** Step 3 (conformance engine testable), Step 6 (gap probes testable)
+**Estimated scope:** 2-3 PRs (~500 lines)
 
 ### Problem
 
@@ -298,13 +300,54 @@ org-level permissions," "platform does not support this capability"). Adding
 this field from day one is cheap and prevents schema breakage when non-GitHub
 forges produce UNKNOWN results for platform-specific reasons.
 
+### CLI integration (recommendation — pending approval)
+
+Users need to know how to invoke conformance evaluation. The proposal's
+architectural target state #5 says: "A single Scorecard run produces both
+check scores and conformance results — users MUST NOT need to run Scorecard
+twice."
+
+**Recommendation:** When `scorecard.v6` is enabled, conformance results are
+automatically included alongside check results in the same run. No new
+`--framework` or `--conformance` flag needed — the feature gate controls
+whether conformance evaluation runs.
+
+- `scorecard --repo=foo` (v6 disabled) → existing behavior, checks only
+- `SCORECARD_V6=1 scorecard --repo=foo` → checks + conformance in output
+- `--format=json` with v6 enabled includes both checks and conformance
+- New `--format=json-v6` (or similar) uses the unified `evaluations` schema
+
+This avoids introducing new CLI flags and avoids interaction with the existing
+`--checks` / `--probes` mutual exclusivity. Conformance evaluation consumes
+probe findings regardless of which execution path produced them.
+
+### Probe discoverability and remediation content
+
+When a user sees a conformance result like "FAIL on OSPS-GV-03.01, evidence:
+contributingFilePresent," they need to understand what that probe evaluates
+and how to remediate. This is part of the conformance user experience.
+
+Probes already have `def.yml` metadata with `short`, `motivation`,
+`implementation`, `outcome`, and `remediation` fields. Conformance output
+should surface this metadata to users, either:
+- Inline in JSON output (remediation text per failing control)
+- Via a `--list-probes` or `--describe-probe` CLI subcommand
+- Via generated documentation linked from conformance output
+
+The approach should be designed alongside the JSON schema work. Remediation
+content for conformance controls may need to reference the OSPS Baseline
+spec directly (linking to the control definition) in addition to probe-level
+remediation.
+
 ### What this enables
 
 - Test conformance engine outputs as we build OSPS Baseline (Step 3)
-- Validate gap probes produce correct evidence (Step 5)
+- Validate gap probes produce correct evidence (Step 6)
 - Existing JSON consumers unaffected (backward-compatible path preserved)
+- Users can invoke conformance evaluation and understand results
 
-**Deliverable:** Single PR adding conformance output serialization.
+**Deliverable:** PRs adding conformance output serialization, CLI integration,
+and probe discoverability mechanism.
 
 **Gated behind:** `scorecard.v6`
 
@@ -313,7 +356,7 @@ forges produce UNKNOWN results for platform-specific reasons.
 ## Step 3: OSPS Baseline as second framework
 
 **Requires:** Steps 1 (framework abstraction) + 2 (JSON output)
-**Enables:** Step 4 (coverage review), Step 5 (gap probes testable against L1 controls)
+**Enables:** Step 4 (coverage review), Step 6 (gap probes testable against L1 controls)
 **Estimated scope:** 3-4 PRs (~800 lines)
 
 ### Problem
@@ -369,7 +412,7 @@ Phase 1 targets GitHub only. GitLab and Azure DevOps conformance support is defe
 ## Step 4: Human review of L1 coverage analysis
 
 **Requires:** Step 3 (conformance engine operational with existing probe mappings)
-**Enables:** Step 5 (validated understanding of what probes need to be written)
+**Enables:** Steps 5-6 (sync hazard fix and gap probes)
 
 ### Problem
 
@@ -386,9 +429,45 @@ Before writing gap probes, review the coverage analysis against the current Base
 
 ---
 
-## Step 5: Complete L1 coverage (gap probes)
+## Step 5: Fix probe-eval synchronization hazard
 
-**Requires:** Step 4 (human-validated coverage analysis)
+**Requires:** Step 4 (coverage analysis identifies which probes need to be added)
+**Enables:** Step 6 (gap probes can be added without 3-location synchronization tax)
+**Estimated scope:** 1-2 PRs (~300 lines)
+
+### Problem
+
+Evaluation functions in `checks/evaluation/*.go` hardcode `expectedProbes`
+lists that must match `probes/entries.go` exactly. Adding a probe requires
+updating at least three locations:
+
+1. Probe implementation (`probes/*/impl.go`)
+2. Probe grouping (`probes/entries.go`)
+3. Evaluation function's `expectedProbes` list (`checks/evaluation/*.go`)
+
+A mismatch between any of these causes "invalid probe results" runtime
+failures. Step 6 will add 9+ probes — each subject to this synchronization
+tax. Fixing the hazard first reduces the per-probe overhead and eliminates
+a class of runtime errors.
+
+### Solution
+
+Derive `expectedProbes` from the probe registry rather than hardcoding
+them in evaluation functions. The probe registration system
+(`internal/probes/probes.go`) already knows which probes exist and which
+checks they belong to. Evaluation functions should query this registry
+instead of maintaining independent lists.
+
+**Deliverable:** PR that eliminates hardcoded `expectedProbes` lists in
+evaluation functions, replacing them with registry-derived probe sets.
+
+**Gated behind:** `scorecard.v6` (or ungated if the fix is backward-compatible)
+
+---
+
+## Step 6: Complete L1 coverage (gap probes)
+
+**Requires:** Steps 4 (human-validated coverage analysis) + 5 (sync hazard fixed)
 **Enables:** Phase 1 completion (all L1 controls evaluatable)
 **Estimated scope:** Depends on validated gap count (currently estimated 9-12 PRs, ~1,200 lines)
 
@@ -450,9 +529,11 @@ Individual PRs per probe or probe group. Each PR includes:
 3. Framework abstraction proven with existing checks before OSPS Baseline
 4. OpenFeature infrastructure operational with existing env vars
 5. All L1 gap controls closed
-6. Existing checks, probes, scores unchanged (v6 is additive)
-7. Previously flagged features (Webhooks, SBOM, raw format, SARIF) promoted
-8. GitHub supported; GitLab and Azure DevOps deferred
+6. Probe-eval synchronization hazard eliminated
+7. Users can discover probe metadata and remediation content
+8. Existing checks, probes, scores unchanged (v6 is additive)
+9. Previously flagged features (Webhooks, SBOM, raw format, SARIF) promoted
+10. GitHub supported; GitLab and Azure DevOps deferred
 
 **Deferred to Phase 2:**
 - Probe catalog extraction (publish probe definitions as consumable artifact)
