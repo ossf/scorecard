@@ -159,13 +159,25 @@ Phase 1 delivers L1. Phase 2 adds L2 controls to the same framework. Phase 3 add
 ### Architecture
 
 ```go
+// PlatformCapabilities describes what the underlying forge supports.
+// On GitHub, all capabilities are true. On other forges, unsupported
+// features are false, allowing the evaluation layer to distinguish
+// "platform can't observe this" (UNKNOWN) from "project doesn't do
+// this" (NOT_APPLICABLE or FAIL).
+type PlatformCapabilities struct {
+    SupportedFeatures map[string]bool  // e.g., "releases": true, "webhooks": false
+}
+
 // Framework represents an evaluation surface over probe findings
 type Framework interface {
     // Name returns the framework identifier (e.g., "scorecard-checks", "osps-baseline")
     Name() string
 
-    // Evaluate takes probe findings and produces framework-specific results
-    Evaluate(findings []finding.Finding) (Result, error)
+    // Evaluate takes probe findings and platform capabilities, producing
+    // framework-specific results. Capabilities allow the evaluator to
+    // return UNKNOWN (with reason) when the platform cannot observe a
+    // control, rather than misinterpreting absent findings.
+    Evaluate(findings []finding.Finding, caps PlatformCapabilities) (Result, error)
 }
 
 // Result represents a framework's evaluation outcome
@@ -178,13 +190,32 @@ type Result interface {
 }
 ```
 
+In Phase 1 (GitHub-only), `PlatformCapabilities` is fully-capable (all
+features `true`). The parameter has no behavioral effect but is present in
+the interface from day one, avoiding a breaking change when non-GitHub
+conformance support is introduced.
+
 **What this proves:**
 1. Existing checks work through the abstraction (no behavior change)
 2. The interface supports different evaluation semantics (scores vs. labels)
 3. Probe findings are framework-agnostic (same input, different outputs)
+4. Evaluation layer can distinguish platform limitations from project state
+
+### Prerequisite for non-GitHub conformance: `ErrUnsupportedFeature` standardization
+
+`ErrUnsupportedFeature` handling in raw checks is currently inconsistent:
+`license.go` falls back to file detection, `security_policy.go` silently
+skips, `branch_protection.go` produces an error result. Before non-GitHub
+conformance support is introduced, this must be standardized so that
+`PlatformCapabilities` can be correctly populated from the client's actual
+behavior.
+
+This standardization is not a Phase 1 deliverable (Phase 1 targets GitHub
+only, where `ErrUnsupportedFeature` never fires), but it is a prerequisite
+for any phase that adds GitLab or Azure DevOps conformance support.
 
 **Deliverable:**
-- PR 1: Define `Framework` interface and `Result` types
+- PR 1: Define `Framework` interface, `Result` types, and `PlatformCapabilities`
 - PR 2: Implement `CheckFramework` wrapping existing checks
 - PR 3: Validate all existing checks produce identical scores through abstraction
 
@@ -219,7 +250,10 @@ Add a `conformance` field alongside existing `checks`:
   "conformance": {  // new, optional
     "framework": "osps-baseline",
     "version": "2026.02.19",
-    "controls": [...]
+    "controls": [
+      {"id": "AC-01.01", "status": "PASS", ...},
+      {"id": "AC-02.01", "status": "UNKNOWN", "reason": "Requires org-level permissions", ...}
+    ]
   }
 }
 ```
@@ -243,7 +277,10 @@ All evaluation surfaces live under a unified `evaluations` key:
     "osps-baseline": {         // conformance results
       "version": "2026.02.19",
       "level": 1,
-      "controls": [{"id": "AC-01.01", "status": "PASS", ...}]
+      "controls": [
+        {"id": "AC-01.01", "status": "PASS", ...},
+        {"id": "AC-02.01", "status": "UNKNOWN", "reason": "Requires org-level permissions", ...}
+      ]
     }
   }
 }
@@ -252,6 +289,14 @@ All evaluation surfaces live under a unified `evaluations` key:
 Old schema (`"checks": [...]`) stays available as the default for backward compatibility. New schema available via `--format=json-v6` or similar. When v6 becomes default, new schema becomes the default JSON output.
 
 Pros: Naturally supports additional frameworks without schema changes; structurally consistent. Cons: More work upfront; migration path needed.
+
+### UNKNOWN statuses include a reason field
+
+Both schema options include a `reason` field on controls with UNKNOWN status.
+This field explains *why* the control could not be evaluated (e.g., "requires
+org-level permissions," "platform does not support this capability"). Adding
+this field from day one is cheap and prevents schema breakage when non-GitHub
+forges produce UNKNOWN results for platform-specific reasons.
 
 ### What this enables
 
@@ -433,6 +478,15 @@ Phase 1 must demonstrate value before Phase 2 begins. Success criteria:
 - Attestation mechanism design review
 - Evidence bundle packaging
 - Cron infrastructure (with storage/serving cost model)
+- `ErrUnsupportedFeature` standardization (prerequisite for non-GitHub conformance)
+
+**Release probes and platform-specific implementations:** Six Level 2
+controls depend on "releases" (BR-02.01, BR-04.01, BR-06.01, LE-02.02,
+LE-03.02, QA-02.02). The concept maps to GitHub Releases, but other forges
+handle release distribution differently (e.g., Azure DevOps uses Azure
+Artifacts feeds, classic release pipelines, or pipeline artifacts). Release-
+related probes will need platform-specific implementations when non-GitHub
+conformance support is introduced.
 
 **Each Phase 2 deliverable will be separately scoped and approved.**
 
@@ -445,6 +499,19 @@ Phase 1 must demonstrate value before Phase 2 begins. Success criteria:
 - Multi-repo project-level conformance
 - Attestation GA
 - Module path bump to `v6`
+
+---
+
+## Azure DevOps graduation from experimental
+
+Azure DevOps support is currently behind the `scorecard.experimental` flag.
+Graduation criteria will be defined collaboratively with the ADO component
+maintainers when ADO conformance support is actively scoped. The
+`PlatformCapabilities` design (Step 1) and `ErrUnsupportedFeature`
+standardization (Phase 2 prerequisite) directly inform what graduation
+requires — the evaluation layer must correctly distinguish platform
+limitations from project state before conformance results on ADO are
+meaningful.
 
 ---
 
