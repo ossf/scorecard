@@ -233,7 +233,11 @@ acceptable data dependency for control definitions (see Scope).
    API-based, metadata-based, external-service, convention-based) guides probe
    design.
 3. **UNKNOWN-first honesty.** If Scorecard cannot observe a control, the
-   status is UNKNOWN with an explanation — never a false PASS or FAIL.
+   status is UNKNOWN with an explanation — never a false PASS or FAIL. For
+   non-GitHub platforms, correctly distinguishing UNKNOWN (platform cannot
+   observe this control) from NOT_APPLICABLE (control is not relevant to
+   this project) requires platform capability metadata, which is part of
+   the evaluation layer design (see [`plan.md`](plan.md), Step 1).
 4. **All consumers are equal.** Downstream tools — Privateer, AMPEL, Minder,
    Darnit, and others — consume Scorecard evidence through published output
    formats.
@@ -359,6 +363,13 @@ Phase 1 still delivers value: organizations can self-assess via Action or CLI wi
 - Attestation mechanism v1 for non-automatable controls
 - Evidence bundle output v1 (conformance results + in-toto statement + SARIF for failures)
 - Additional metadata sources for the ingestion layer
+
+**Note:** Six L2 controls depend on "releases" (BR-02.01, BR-04.01, BR-06.01,
+LE-02.02, LE-03.02, QA-02.02). The concept maps to GitHub Releases, but other
+forges handle release distribution differently (e.g., Azure DevOps uses Azure
+Artifacts feeds, classic release pipelines, or pipeline artifacts). Release-
+related probes will need platform-specific implementations when non-GitHub
+conformance support is introduced.
 
 ### Phase 3: Enforcement detection + Level 3 + multi-repo
 
