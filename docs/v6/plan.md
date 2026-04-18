@@ -6,7 +6,7 @@
 
 v6 is a clean, backwards-compatible successor to v5. All v6 features land within the v5 module behind feature flags. When all flags graduate to default-on, the module path bumps from `github.com/ossf/scorecard/v5` to `github.com/ossf/scorecard/v6`.
 
-This plan orders work by **dependency and risk**. Prove architectural abstractions with existing code before building new features. Each step declares what it requires and what it enables.
+This plan orders work by **dependency and risk**. Prove architectural abstractions with existing code before building new features. Each step declares what it requires and what it enables. Steps on separate branches of the dependency graph can proceed in parallel.
 
 The vision and architectural rationale live in [`proposal.md`](proposal.md); this document is the execution plan.
 
@@ -41,29 +41,43 @@ The vision and architectural rationale live in [`proposal.md`](proposal.md); thi
 ### Dependency graph
 
 ```
-Step 0: OpenFeature with existing env vars
+Step 0: OpenFeature
   │
-  └─► Step 1: Framework abstraction (proven with checks)
+  └─► Step 1: Sync hazard fix
         │
-        └─► Step 2: JSON output + CLI integration
+        └─► Step 2: Framework abstraction
               │
-              └─► Step 3: OSPS Baseline as second framework
+              ├─► Step 3: JSON schema ────────────────────────┐
+              │                                               │
+              ├─► Step 4: CLI integration (parallel with 3)   │
+              │                                               │
+              ├─► Step 5: Probe discoverability               │
+              │          (parallel with 3-6)                  │
+              │                                               │
+              └──────────────────────────────────────────────►│
+                                                              │
+                  Step 6: OSPS Baseline engine ◄──────────────┘
+                  (requires Steps 2 + 3)
                     │
-                    └─► Step 4: Human review of L1 coverage analysis
+                    └─► Step 7: Human review of L1 coverage
                           │
-                          └─► Step 5: Fix probe-eval synchronization hazard
+                          └─► Step 8: Gap probes
                                 │
-                                └─► Step 6: Complete L1 coverage (gap probes)
-                                      │
-                                      └─► Phase 1 complete: L1 conformance evidence
+                                └─► Phase 1 complete
+                                    (requires all steps)
 ```
+
+**Parallel execution opportunities:**
+- Steps 3, 4, 5 can proceed concurrently after Step 2 completes
+- Step 5 (probe discoverability) has no downstream dependencies until Phase 1 completion
+- Step 6 waits only for Steps 2 and 3 (not 4 or 5)
 
 ---
 
 ## Step 0: OpenFeature infrastructure
 
 **Requires:** Nothing
-**Enables:** Feature gating for all subsequent v6 work; promotion of existing flagged features
+**Enables:** All subsequent steps
 **Estimated scope:** 1 PR (~200 lines)
 
 ### Problem
@@ -105,7 +119,7 @@ Introduce [OpenFeature](https://openfeature.dev/) (`github.com/open-feature/go-s
 - User workflows unchanged
 - CLI flags unchanged
 
-### Flag structure (recommendation — pending approval)
+### Flag structure
 
 Two flags for Phase 1. The OpenFeature spec does not prescribe naming conventions; this is a project-level decision.
 
@@ -116,7 +130,7 @@ scorecard.v6              — all v6 conformance features (single gate)
 
 Per-feature granular flags (e.g., `v6.conformance-evaluation`, `v6.probe.<name>`) are deferred until actual need arises (e.g., cron rollout requiring partial enablement). Two flags is sufficient for Phase 1.
 
-### Testing strategy (recommendation — pending approval)
+### Testing strategy
 
 E2E tests currently do not set feature flag env vars, meaning experimental and v6 features have zero e2e coverage. The OpenFeature migration should include:
 - E2E test suite runs twice: once with default flags, once with `SCORECARD_V6=1`
@@ -127,10 +141,36 @@ E2E tests currently do not set feature flag env vars, meaning experimental and v
 
 ---
 
-## Step 1: Framework abstraction
+## Step 1: Fix probe-eval synchronization hazard
 
-**Requires:** Step 0 (feature flags operational)
-**Enables:** Steps 2-6 (output format, OSPS Baseline, gap probes)
+**Requires:** Step 0 (feature flags operational; `FeatureGate` on `checker.Check` changes probe registration)
+**Enables:** Steps 2-8 (all subsequent probe and evaluation work benefits from cleaner registration)
+**Estimated scope:** 1-2 PRs (~300 lines)
+
+### Problem
+
+Evaluation functions in `checks/evaluation/*.go` hardcode `expectedProbes` lists that must match `probes/entries.go` exactly. Adding a probe requires updating at least three locations:
+
+1. Probe implementation (`probes/*/impl.go`)
+2. Probe grouping (`probes/entries.go`)
+3. Evaluation function's `expectedProbes` list (`checks/evaluation/*.go`)
+
+A mismatch between any of these causes "invalid probe results" runtime failures. Fixing this early de-risks the entire plan — Steps 2, 6, and 8 all involve probe registration or evaluation.
+
+### Solution
+
+Derive `expectedProbes` from the probe registry rather than hardcoding them in evaluation functions. The probe registration system (`internal/probes/probes.go`) already knows which probes exist and which checks they belong to. Evaluation functions should query this registry instead of maintaining independent lists.
+
+**Deliverable:** PR that eliminates hardcoded `expectedProbes` lists in evaluation functions, replacing them with registry-derived probe sets.
+
+**Gated behind:** `scorecard.v6` (or ungated if the fix is backward-compatible)
+
+---
+
+## Step 2: Framework abstraction
+
+**Requires:** Step 1 (sync hazard fixed; clean probe registration to build on)
+**Enables:** Steps 3-8 (all downstream work)
 **Estimated scope:** 2-3 PRs (~500 lines)
 
 ### Problem
@@ -147,7 +187,7 @@ Checks are hard-coded compositions of probes into 0-10 scores. There's no abstra
 - The *pattern* is reusable: "take findings, apply evaluation rules, produce verdict"
 - Don't shoehorn — checks and conformance have different evaluation semantics
 
-### Baseline levels are one framework, not three (recommendation — pending approval)
+### Baseline levels are one framework, not three
 
 OSPS Baseline has three maturity levels (L1, L2, L3). These are **not** separate frameworks. Levels are additive — L1 controls are a subset of L2, which are a subset of L3. The conformance evaluation takes a level parameter:
 
@@ -192,10 +232,7 @@ type Result interface {
 }
 ```
 
-In Phase 1 (GitHub-only), `PlatformCapabilities` is fully-capable (all
-features `true`). The parameter has no behavioral effect but is present in
-the interface from day one, avoiding a breaking change when non-GitHub
-conformance support is introduced.
+In Phase 1 (GitHub-only), `PlatformCapabilities` is fully-capable (all features `true`). The parameter has no behavioral effect but is present in the interface from day one, avoiding a breaking change when non-GitHub conformance support is introduced.
 
 **What this proves:**
 1. Existing checks work through the abstraction (no behavior change)
@@ -205,16 +242,9 @@ conformance support is introduced.
 
 ### Prerequisite for non-GitHub conformance: `ErrUnsupportedFeature` standardization
 
-`ErrUnsupportedFeature` handling in raw checks is currently inconsistent:
-`license.go` falls back to file detection, `security_policy.go` silently
-skips, `branch_protection.go` produces an error result. Before non-GitHub
-conformance support is introduced, this must be standardized so that
-`PlatformCapabilities` can be correctly populated from the client's actual
-behavior.
+`ErrUnsupportedFeature` handling in raw checks is currently inconsistent: `license.go` falls back to file detection, `security_policy.go` silently skips, `branch_protection.go` produces an error result. Before non-GitHub conformance support is introduced, this must be standardized so that `PlatformCapabilities` can be correctly populated from the client's actual behavior.
 
-This standardization is not a Phase 1 deliverable (Phase 1 targets GitHub
-only, where `ErrUnsupportedFeature` never fires), but it is a prerequisite
-for any phase that adds GitLab or Azure DevOps conformance support.
+This standardization is not a Phase 1 deliverable (Phase 1 targets GitHub only, where `ErrUnsupportedFeature` never fires), but it is a prerequisite for any phase that adds GitLab or Azure DevOps conformance support.
 
 **Deliverable:**
 - PR 1: Define `Framework` interface, `Result` types, and `PlatformCapabilities`
@@ -225,21 +255,18 @@ for any phase that adds GitLab or Azure DevOps conformance support.
 
 ---
 
-## Step 2: JSON output + CLI integration
+## Step 3: JSON schema
 
-**Requires:** Step 1 (framework abstraction exists)
-**Enables:** Step 3 (conformance engine testable), Step 6 (gap probes testable)
-**Estimated scope:** 2-3 PRs (~500 lines)
+**Requires:** Step 2 (framework `Result` types exist for serialization)
+**Enables:** Step 6 (conformance engine output testable)
+**Can proceed in parallel with:** Steps 4 and 5
+**Estimated scope:** 1 PR (~300 lines)
 
 ### Problem
 
 No output format supports conformance results. Before building OSPS Baseline, we need a way to serialize and validate conformance verdicts.
 
-### Solution
-
-Extend existing JSON output with conformance results, gated behind `scorecard.v6`.
-
-### Schema design (recommendation — pending approval)
+### Schema design
 
 **Observation:** `checks` and `conformance` as parallel top-level keys is structurally odd if existing checks will eventually be modeled as a control framework. A more natural design treats all evaluation surfaces uniformly.
 
@@ -294,76 +321,79 @@ Pros: Naturally supports additional frameworks without schema changes; structura
 
 ### UNKNOWN statuses include a reason field
 
-Both schema options include a `reason` field on controls with UNKNOWN status.
-This field explains *why* the control could not be evaluated (e.g., "requires
-org-level permissions," "platform does not support this capability"). Adding
-this field from day one is cheap and prevents schema breakage when non-GitHub
-forges produce UNKNOWN results for platform-specific reasons.
+Both schema options include a `reason` field on controls with UNKNOWN status. This field explains *why* the control could not be evaluated (e.g., "requires org-level permissions," "platform does not support this capability"). Adding this field from day one is cheap and prevents schema breakage when non-GitHub forges produce UNKNOWN results for platform-specific reasons.
 
-### CLI integration (recommendation — pending approval)
+**Deliverable:** Single PR adding conformance output serialization to the format dispatcher in `pkg/scorecard/scorecard_result.go`.
 
-Users need to know how to invoke conformance evaluation. The proposal's
-architectural target state #5 says: "A single Scorecard run produces both
-check scores and conformance results — users MUST NOT need to run Scorecard
-twice."
+**Gated behind:** `scorecard.v6`
 
-**Recommendation:** When `scorecard.v6` is enabled, conformance results are
-automatically included alongside check results in the same run. No new
-`--framework` or `--conformance` flag needed — the feature gate controls
-whether conformance evaluation runs.
+---
+
+## Step 4: CLI integration
+
+**Requires:** Step 2 (framework abstraction exists to wire into the run)
+**Enables:** Phase 1 completion (users can invoke conformance evaluation)
+**Can proceed in parallel with:** Steps 3, 5, and 6
+**Estimated scope:** 1 PR (~200 lines)
+
+### Problem
+
+Users need to know how to invoke conformance evaluation. The proposal's architectural target state #5 says: "A single Scorecard run produces both check scores and conformance results — users MUST NOT need to run Scorecard twice."
+
+### Solution
+
+When `scorecard.v6` is enabled, conformance results are automatically included alongside check results in the same run. No new `--framework` or `--conformance` flag needed — the feature gate controls whether conformance evaluation runs.
 
 - `scorecard --repo=foo` (v6 disabled) → existing behavior, checks only
 - `SCORECARD_V6=1 scorecard --repo=foo` → checks + conformance in output
 - `--format=json` with v6 enabled includes both checks and conformance
 - New `--format=json-v6` (or similar) uses the unified `evaluations` schema
 
-This avoids introducing new CLI flags and avoids interaction with the existing
-`--checks` / `--probes` mutual exclusivity. Conformance evaluation consumes
-probe findings regardless of which execution path produced them.
+This avoids introducing new CLI flags and avoids interaction with the existing `--checks` / `--probes` mutual exclusivity. Conformance evaluation consumes probe findings regardless of which execution path produced them.
 
-### Probe discoverability and remediation content
-
-When a user sees a conformance result like "FAIL on OSPS-GV-03.01, evidence:
-contributingFilePresent," they need to understand what that probe evaluates
-and how to remediate. This is part of the conformance user experience.
-
-Probes already have `def.yml` metadata with `short`, `motivation`,
-`implementation`, `outcome`, and `remediation` fields. Conformance output
-should surface this metadata to users, either:
-- Inline in JSON output (remediation text per failing control)
-- Via a `--list-probes` or `--describe-probe` CLI subcommand
-- Via generated documentation linked from conformance output
-
-The approach should be designed alongside the JSON schema work. Remediation
-content for conformance controls may need to reference the OSPS Baseline
-spec directly (linking to the control definition) in addition to probe-level
-remediation.
-
-### What this enables
-
-- Test conformance engine outputs as we build OSPS Baseline (Step 3)
-- Validate gap probes produce correct evidence (Step 6)
-- Existing JSON consumers unaffected (backward-compatible path preserved)
-- Users can invoke conformance evaluation and understand results
-
-**Deliverable:** PRs adding conformance output serialization, CLI integration,
-and probe discoverability mechanism.
+**Deliverable:** PR wiring framework evaluation into the main execution path (`pkg/scorecard/scorecard.go`) when `scorecard.v6` is enabled.
 
 **Gated behind:** `scorecard.v6`
 
 ---
 
-## Step 3: OSPS Baseline as second framework
+## Step 5: Probe discoverability and remediation content
 
-**Requires:** Steps 1 (framework abstraction) + 2 (JSON output)
-**Enables:** Step 4 (coverage review), Step 6 (gap probes testable against L1 controls)
+**Requires:** Step 2 (framework abstraction defines what probes contribute to)
+**Enables:** Phase 1 completion (users can understand conformance results)
+**Can proceed in parallel with:** Steps 3, 4, 6, 7, and 8
+**Estimated scope:** 1-2 PRs (~300 lines)
+
+### Problem
+
+When a user sees a conformance result like "FAIL on OSPS-GV-03.01, evidence: contributingFilePresent," they need to understand what that probe evaluates and how to remediate. This is part of the conformance user experience.
+
+### Solution
+
+Probes already have `def.yml` metadata with `short`, `motivation`, `implementation`, `outcome`, and `remediation` fields. Conformance output should surface this metadata to users, either:
+- Inline in JSON output (remediation text per failing control)
+- Via a `--list-probes` or `--describe-probe` CLI subcommand
+- Via generated documentation linked from conformance output
+
+Remediation content for conformance controls may need to reference the OSPS Baseline spec directly (linking to the control definition) in addition to probe-level remediation.
+
+**Deliverable:** PRs adding probe discoverability mechanism and remediation content surfacing.
+
+**Gated behind:** `scorecard.v6`
+
+---
+
+## Step 6: OSPS Baseline as second framework
+
+**Requires:** Steps 2 (framework abstraction) + 3 (JSON schema for testing output)
+**Enables:** Step 7 (coverage review with real conformance output)
 **Estimated scope:** 3-4 PRs (~800 lines)
 
 ### Problem
 
 Framework abstraction is proven with checks. Now build OSPS Baseline conformance using the proven architecture.
 
-### Control catalog: import security-baseline package (recommendation — pending approval)
+### Control catalog: import security-baseline package
 
 Import the Go package from [`github.com/ossf/security-baseline`](https://github.com/ossf/security-baseline) rather than maintaining a separate versioned data file:
 
@@ -409,10 +439,10 @@ Phase 1 targets GitHub only. GitLab and Azure DevOps conformance support is defe
 
 ---
 
-## Step 4: Human review of L1 coverage analysis
+## Step 7: Human review of L1 coverage analysis
 
-**Requires:** Step 3 (conformance engine operational with existing probe mappings)
-**Enables:** Steps 5-6 (sync hazard fix and gap probes)
+**Requires:** Step 6 (conformance engine operational with existing probe mappings)
+**Enables:** Step 8 (validated understanding of what probes need to be written)
 
 ### Problem
 
@@ -429,45 +459,9 @@ Before writing gap probes, review the coverage analysis against the current Base
 
 ---
 
-## Step 5: Fix probe-eval synchronization hazard
+## Step 8: Complete L1 coverage (gap probes)
 
-**Requires:** Step 4 (coverage analysis identifies which probes need to be added)
-**Enables:** Step 6 (gap probes can be added without 3-location synchronization tax)
-**Estimated scope:** 1-2 PRs (~300 lines)
-
-### Problem
-
-Evaluation functions in `checks/evaluation/*.go` hardcode `expectedProbes`
-lists that must match `probes/entries.go` exactly. Adding a probe requires
-updating at least three locations:
-
-1. Probe implementation (`probes/*/impl.go`)
-2. Probe grouping (`probes/entries.go`)
-3. Evaluation function's `expectedProbes` list (`checks/evaluation/*.go`)
-
-A mismatch between any of these causes "invalid probe results" runtime
-failures. Step 6 will add 9+ probes — each subject to this synchronization
-tax. Fixing the hazard first reduces the per-probe overhead and eliminates
-a class of runtime errors.
-
-### Solution
-
-Derive `expectedProbes` from the probe registry rather than hardcoding
-them in evaluation functions. The probe registration system
-(`internal/probes/probes.go`) already knows which probes exist and which
-checks they belong to. Evaluation functions should query this registry
-instead of maintaining independent lists.
-
-**Deliverable:** PR that eliminates hardcoded `expectedProbes` lists in
-evaluation functions, replacing them with registry-derived probe sets.
-
-**Gated behind:** `scorecard.v6` (or ungated if the fix is backward-compatible)
-
----
-
-## Step 6: Complete L1 coverage (gap probes)
-
-**Requires:** Steps 4 (human-validated coverage analysis) + 5 (sync hazard fixed)
+**Requires:** Step 7 (human-validated coverage analysis)
 **Enables:** Phase 1 completion (all L1 controls evaluatable)
 **Estimated scope:** Depends on validated gap count (currently estimated 9-12 PRs, ~1,200 lines)
 
@@ -479,7 +473,7 @@ OSPS Baseline L1 has gap controls where Scorecard has no coverage. Phase 1 requi
 
 Write new probes for validated gap controls. **Metadata ingestion already exists** via `checks/fileparser/` — no new infrastructure needed.
 
-**Estimated gap controls and probe work** (subject to Step 4 review):
+**Estimated gap controls and probe work** (subject to Step 7 review):
 
 1. **Governance/docs presence**
    - GV-02.01: Governance documentation
@@ -528,8 +522,8 @@ Individual PRs per probe or probe group. Each PR includes:
 2. Available via CLI and GitHub Action (production-ready JSON output)
 3. Framework abstraction proven with existing checks before OSPS Baseline
 4. OpenFeature infrastructure operational with existing env vars
-5. All L1 gap controls closed
-6. Probe-eval synchronization hazard eliminated
+5. Probe-eval synchronization hazard eliminated
+6. All L1 gap controls closed
 7. Users can discover probe metadata and remediation content
 8. Existing checks, probes, scores unchanged (v6 is additive)
 9. Previously flagged features (Webhooks, SBOM, raw format, SARIF) promoted
@@ -561,13 +555,7 @@ Phase 1 must demonstrate value before Phase 2 begins. Success criteria:
 - Cron infrastructure (with storage/serving cost model)
 - `ErrUnsupportedFeature` standardization (prerequisite for non-GitHub conformance)
 
-**Release probes and platform-specific implementations:** Six Level 2
-controls depend on "releases" (BR-02.01, BR-04.01, BR-06.01, LE-02.02,
-LE-03.02, QA-02.02). The concept maps to GitHub Releases, but other forges
-handle release distribution differently (e.g., Azure DevOps uses Azure
-Artifacts feeds, classic release pipelines, or pipeline artifacts). Release-
-related probes will need platform-specific implementations when non-GitHub
-conformance support is introduced.
+**Release probes and platform-specific implementations:** Six Level 2 controls depend on "releases" (BR-02.01, BR-04.01, BR-06.01, LE-02.02, LE-03.02, QA-02.02). The concept maps to GitHub Releases, but other forges handle release distribution differently (e.g., Azure DevOps uses Azure Artifacts feeds, classic release pipelines, or pipeline artifacts). Release-related probes will need platform-specific implementations when non-GitHub conformance support is introduced.
 
 **Each Phase 2 deliverable will be separately scoped and approved.**
 
@@ -585,21 +573,13 @@ conformance support is introduced.
 
 ## Azure DevOps graduation from experimental
 
-Azure DevOps support is currently behind the `scorecard.experimental` flag.
-Graduation criteria will be defined collaboratively with the ADO component
-maintainers when ADO conformance support is actively scoped. The
-`PlatformCapabilities` design (Step 1) and `ErrUnsupportedFeature`
-standardization (Phase 2 prerequisite) directly inform what graduation
-requires — the evaluation layer must correctly distinguish platform
-limitations from project state before conformance results on ADO are
-meaningful.
+Azure DevOps support is currently behind the `scorecard.experimental` flag. Graduation criteria will be defined collaboratively with the ADO component maintainers when ADO conformance support is actively scoped. The `PlatformCapabilities` design (Step 2) and `ErrUnsupportedFeature` standardization (Phase 2 prerequisite) directly inform what graduation requires — the evaluation layer must correctly distinguish platform limitations from project state before conformance results on ADO are meaningful.
 
 ---
 
 ## Codebase reuse map
 
-v6 should extend existing infrastructure rather than duplicate it. This section
-documents what already exists and where each step plugs in.
+v6 should extend existing infrastructure rather than duplicate it. This section documents what already exists and where each step plugs in.
 
 ### Execution pipeline
 
@@ -609,8 +589,7 @@ The main execution flow in `pkg/scorecard/scorecard.go` is:
 Run() → runScorecard() → populateRawResults() → runEnabledChecks() / runEnabledProbes() → FormatResults()
 ```
 
-The conformance evaluator fits into this flow without creating a parallel
-pipeline:
+The conformance evaluator fits into this flow without creating a parallel pipeline:
 1. Probes run as normal (unchanged)
 2. After probe execution, conformance evaluator consumes `Result.Findings`
 3. Conformance results added to `Result` struct
@@ -632,36 +611,19 @@ pipeline:
 | RepoClient interface | `clients/repo_client.go` | Already injected via `CheckRequest`; no changes |
 | Config system | `config/config.go` | Extensible for conformance annotations |
 | Policy system | `policy/policy.go` | Extensible for conformance enforcement rules |
-| Result struct | `pkg/scorecard/scorecard_result.go` | Add `Conformance` field alongside existing `Checks` |
+| Result struct | `pkg/scorecard/scorecard_result.go` | Add conformance field alongside existing `Checks` |
 
 ### Duplication risks
 
-The following plan elements risk duplicating existing infrastructure and should
-be validated during implementation:
+The following plan elements risk duplicating existing infrastructure and should be validated during implementation:
 
-1. **Framework `Result` interface** — the plan proposes a new `Result`
-   interface, but conformance evaluation could follow the simpler existing
-   pattern: a function taking `(findings []finding.Finding) → ConformanceResult`,
-   matching how `checks/evaluation/*.go` works. Validate whether the interface
-   abstraction adds value beyond the function pattern.
+1. **Framework `Result` interface** — the plan proposes a new `Result` interface, but conformance evaluation could follow the simpler existing pattern: a function taking `(findings []finding.Finding) → ConformanceResult`, matching how `checks/evaluation/*.go` works. Validate whether the interface abstraction adds value beyond the function pattern.
 
-2. **Conformance status types** — `finding.Outcome` already defines
-   `OutcomeTrue`, `OutcomeFalse`, `OutcomeNotAvailable`, `OutcomeNotApplicable`.
-   Per-control conformance status could map directly to these existing types
-   rather than defining new PASS/FAIL/UNKNOWN/NOT_APPLICABLE constants.
-   Evaluate whether the existing types are sufficient or whether control-level
-   status is semantically distinct from probe-level outcome.
+2. **Conformance status types** — `finding.Outcome` already defines `OutcomeTrue`, `OutcomeFalse`, `OutcomeNotAvailable`, `OutcomeNotApplicable`. Per-control conformance status could map directly to these existing types rather than defining new PASS/FAIL/UNKNOWN/NOT_APPLICABLE constants. Evaluate whether the existing types are sufficient or whether control-level status is semantically distinct from probe-level outcome.
 
-3. **Applicability engine** — `OutcomeNotApplicable` already exists as a
-   finding outcome. Applicability could be implemented as probes that produce
-   `NotApplicable` findings for controls whose preconditions aren't met,
-   rather than a separate engine. Evaluate whether the probe-based approach
-   or a dedicated engine is cleaner.
+3. **Applicability engine** — `OutcomeNotApplicable` already exists as a finding outcome. Applicability could be implemented as probes that produce `NotApplicable` findings for controls whose preconditions aren't met, rather than a separate engine. Evaluate whether the probe-based approach or a dedicated engine is cleaner.
 
-4. **Gap probe overlap** — several "gap" controls (VM-01.01 security policy
-   exists, GV-03.01 contribution guidelines) may already be partially covered
-   by existing probes (`securityPolicyPresent`, etc.). Step 4 (human review)
-   will catch this, but implementation should verify before writing new probes.
+4. **Gap probe overlap** — several "gap" controls (VM-01.01 security policy exists, GV-03.01 contribution guidelines) may already be partially covered by existing probes (`securityPolicyPresent`, etc.). Step 7 (human review) will catch this, but implementation should verify before writing new probes.
 
 ---
 
