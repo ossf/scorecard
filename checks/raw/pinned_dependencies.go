@@ -831,6 +831,9 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 }
 
 func isActionDependencyPinned(actionUses string) bool {
+	// Strip inline YAML comment (e.g. "# pinned to main") before evaluating.
+	actionUses = strings.SplitN(actionUses, " #", 2)[0]
+
 	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
 	if localActionRegex.MatchString(actionUses) {
 		return true

@@ -184,6 +184,16 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			uses:     "docker://rhysd/actionlint:latest@sha256:5f957b2a08d223e48133e1a914ed046bea12e578fe2f6ae4de47fdbe691a2468",
 			ispinned: true,
 		},
+		{
+			desc:     "pinned SHA with inline comment should be pinned",
+			uses:     "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675 # main",
+			ispinned: true,
+		},
+		{
+			desc:     "mutable branch ref remains unpinned",
+			uses:     "actions/checkout@main",
+			ispinned: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
