@@ -26,12 +26,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Harden Runner
-      uses: step-security/harden-runner@e3f713f2d8f53843e71c69a996d56f51aa9adfb9 # v2.14.1
+      uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
       with:
         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-    - name: Verifier action
-      id: verifier
-      uses: kubernetes-sigs/kubebuilder-release-tools@012269a88fa4c034a0acf1ba84c26b195c0dbab4 # v0.4.3
+    # Checkout the base branch (target of the PR) to ensure we run trusted code
+    # Never checkout the PR branch in pull_request_target to avoid code injection
+    - name: Checkout base branch
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        ref: ${{ github.base_ref }}
+
+    - name: Verify PR title
+      id: verifier
+      env:
+        # Pass PR title as environment variable to avoid shell injection
+        PR_TITLE: ${{ github.event.pull_request.title }}
+      run: |
+        ./scripts/verify-pr-title.sh "$PR_TITLE"

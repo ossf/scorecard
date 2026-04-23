@@ -6,7 +6,7 @@
 
 #### What is the current behavior?
 
-#### What is the new behavior (if this is a feature change)?**
+#### What is the new behavior (if this is a feature change)?
 
 - [ ] Tests for the changes have been added (for bug fixes/features)
 

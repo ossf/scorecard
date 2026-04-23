@@ -26,7 +26,7 @@ import (
 var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
 	Context("Search - Azure DevOps", func() {
 		It("Should return search results", func() {
-			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/jamiemagee/jamiemagee/_git/scorecard")
+			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
 
 			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)

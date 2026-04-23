@@ -42,6 +42,7 @@ const (
 	patTokenType tokenType = iota
 	githubWorkflowDefaultTokenType
 	gitlabPATTokenType
+	azureDevOpsPATTokenType
 )
 
 var tokType tokenType
@@ -62,6 +63,8 @@ var _ = BeforeSuite(func() {
 		tokType = githubWorkflowDefaultTokenType
 	case "GITLAB_PAT":
 		tokType = gitlabPATTokenType
+	case "AZURE_DEVOPS_PAT":
+		tokType = azureDevOpsPATTokenType
 	default:
 		panic(fmt.Sprintf("invalid TOKEN_TYPE: %s", tt))
 	}

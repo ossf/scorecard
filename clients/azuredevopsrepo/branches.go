@@ -96,6 +96,7 @@ func (b *branchesHandler) getBranch(branchName string) (*clients.BranchRef, erro
 		return nil, fmt.Errorf("error parsing repository ID %s: %w", b.repourl.id, err)
 	}
 	args := git.GetPolicyConfigurationsArgs{
+		Project:      &b.repourl.project,
 		RepositoryId: &repositoryID,
 		RefName:      &refName,
 	}
