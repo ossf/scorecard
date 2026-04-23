@@ -67,10 +67,12 @@ jobs:
 
       - name: Run GitLab tokenless E2E
         if: github.event_name == 'pull_request'
+        timeout-minutes: 30
         run: make e2e-gitlab
 
       - name: Run GitLab PAT E2E  # skip if auth token is not available
         if: ${{ github.event_name == 'push' && github.actor != 'dependabot[bot]' }}
+        timeout-minutes: 30
         env:
           GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: make e2e-gitlab-token
