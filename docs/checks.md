@@ -205,7 +205,7 @@ subverted a contributor's account), because a reviewer might detect the
 subversion.
 
 The check determines whether the most recent changes (over the last ~30 commits) have 
-an approval on GitHub
+an approval on GitHub/GitLab
 or if the merger is different from the committer (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels

@@ -371,7 +371,7 @@ func TestGetEnabled(t *testing.T) {
 			argsChecks:            []string{},
 			requiredRequestTypes:  []checker.RequestType{},
 			repoType:              clients.RepoTypeAzureDevOps,
-			expectedEnabledChecks: 11, // Only checks with Azure DevOps in repos field
+			expectedEnabledChecks: 13, // Only checks with Azure DevOps in repos field
 			expectedError:         false,
 		},
 	}
