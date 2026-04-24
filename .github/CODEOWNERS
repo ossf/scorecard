@@ -9,3 +9,6 @@
 # Docs
 *.md @ossf/scorecard-doc-maintainers
 /docs/ @ossf/scorecard-doc-maintainers
+
+# Azure DevOps
+/clients/azuredevopsrepo/ @ossf/scorecard-azure-maintainers

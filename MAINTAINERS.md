@@ -18,6 +18,10 @@ The current standing Steering Committee members are as follows:
 - Adam Korczynski ([@AdamKorcz](https://github.com/AdamKorcz)), ADA Logics
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
 
+## `scorecard-azure-maintainers`
+
+- Jamie Magee ([@JamieMagee](https://github.com/JamieMagee)), Microsoft
+
 ## `scorecard-doc-maintainers`
 
 -
