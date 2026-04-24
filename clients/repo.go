@@ -14,6 +14,20 @@
 
 package clients
 
+// RepoType identifies the hosting platform of a repository.
+type RepoType string
+
+const (
+	// RepoTypeGitHub represents a GitHub-hosted repository.
+	RepoTypeGitHub RepoType = "GitHub"
+	// RepoTypeGitLab represents a GitLab-hosted repository.
+	RepoTypeGitLab RepoType = "GitLab"
+	// RepoTypeAzureDevOps represents an Azure DevOps-hosted repository.
+	RepoTypeAzureDevOps RepoType = "Azure DevOps"
+	// RepoTypeLocal represents a local directory.
+	RepoTypeLocal RepoType = "local"
+)
+
 // Repo interface uniquely identifies a repo.
 type Repo interface {
 	// Path returns the specifier of the repository within its forge
@@ -29,4 +43,6 @@ type Repo interface {
 	IsValid() error
 	Metadata() []string
 	AppendMetadata(metadata ...string)
+	// Type returns the hosting platform type.
+	Type() RepoType
 }

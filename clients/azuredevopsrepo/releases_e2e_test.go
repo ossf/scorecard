@@ -23,9 +23,9 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 )
 
-var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
-	Context("Search - Azure DevOps", func() {
-		It("Should return search results", func() {
+var _ = Describe("E2E TEST: azuredevopsrepo.releasesHandler", func() {
+	Context("Releases - Azure DevOps", func() {
+		It("Should return releases from tags", func() {
 			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
 
@@ -35,14 +35,21 @@ var _ = Describe("E2E TEST: azuredevopsrepo.searchHandler", func() {
 			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
 			Expect(err).Should(BeNil())
 
-			request := clients.SearchRequest{
-				Query:    "scorecard",
-				Filename: "README.md",
-			}
-			results, err := repoClient.Search(request)
+			releases, err := repoClient.ListReleases()
 			Expect(err).Should(BeNil())
-			Expect(results.Hits).Should(BeNumerically(">", 0))
-			Expect(len(results.Results)).Should(BeNumerically(">", 0))
+			Expect(len(releases)).Should(BeNumerically(">", 0))
+
+			// At least one tag should be v0.1.0
+			found := false
+			for _, r := range releases {
+				if r.TagName == "v0.1.0" {
+					found = true
+					Expect(r.TargetCommitish).ShouldNot(BeEmpty())
+				}
+			}
+			Expect(found).Should(BeTrue())
+
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

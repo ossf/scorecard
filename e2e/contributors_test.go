@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	scut "github.com/ossf/scorecard/v5/utests"
@@ -79,6 +80,31 @@ var _ = Describe("E2E TEST:"+checks.CheckContributors, func() {
 				}
 			}
 			Expect(len(c)).Should(BeNumerically(">", 0))
+		})
+		It("Should return valid project contributors - Azure DevOps", func() {
+			skipIfTokenIsNot(azureDevOpsPATTokenType, "Azure DevOps only")
+
+			dl := scut.TestDetailLogger{}
+			repo, err := azuredevopsrepo.MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			Expect(err).Should(BeNil())
+			repoClient, err := azuredevopsrepo.CreateAzureDevOpsClient(context.Background(), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			contributors, err := repoClient.ListContributors()
+			Expect(err).Should(BeNil())
+			Expect(len(contributors)).Should(BeNumerically(">", 0))
+
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			result := checks.Contributors(&req)
+			Expect(result.Error).Should(BeNil())
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

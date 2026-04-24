@@ -15,8 +15,13 @@
 package azuredevopsrepo
 
 import (
+	"context"
+	"errors"
+	"sync"
 	"testing"
+	"time"
 
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 )
 
@@ -62,5 +67,73 @@ func TestIsArchived(t *testing.T) {
 				t.Errorf("IsArchived() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestGetCreatedAt_AuditError_FallsBackToFirstCommit(t *testing.T) {
+	t.Parallel()
+
+	expectedTime := time.Date(2025, time.February, 28, 3, 0, 0, 0, time.UTC)
+
+	// Create an audit handler that always errors (simulates permission denied)
+	auditOnce := new(sync.Once)
+	auditOnce.Do(func() {}) // mark as already executed
+	ah := &auditHandler{
+		once:     auditOnce,
+		errSetup: errors.New("Access Denied: needs View audit log permission"),
+		repourl:  &Repo{project: "test", name: "test"},
+	}
+
+	// Create a commits handler with a pre-set firstCommitCreatedAt
+	commitsOnce := new(sync.Once)
+	commitsOnce.Do(func() {}) // mark as already executed
+	ch := &commitsHandler{
+		once:                 commitsOnce,
+		firstCommitCreatedAt: expectedTime,
+		repourl:              &Repo{id: "test-id"},
+	}
+
+	client := &Client{
+		audit:   ah,
+		commits: ch,
+	}
+
+	got, err := client.GetCreatedAt()
+	if err != nil {
+		t.Fatalf("GetCreatedAt() unexpected error: %v", err)
+	}
+	if !got.Equal(expectedTime) {
+		t.Errorf("GetCreatedAt() = %v, want %v", got, expectedTime)
+	}
+}
+
+func TestGetCreatedAt_AuditSuccess(t *testing.T) {
+	t.Parallel()
+
+	expectedTime := time.Date(2025, time.February, 28, 3, 0, 0, 0, time.UTC)
+
+	ah := &auditHandler{
+		once: new(sync.Once),
+		queryLog: func(ctx context.Context, args audit.QueryLogArgs) (*audit.AuditLogQueryResult, error) {
+			hasMore := false
+			return &audit.AuditLogQueryResult{
+				HasMore:                  &hasMore,
+				DecoratedAuditLogEntries: &[]audit.DecoratedAuditLogEntry{},
+			}, nil
+		},
+		createdAt: expectedTime,
+		repourl:   &Repo{project: "test", name: "test"},
+	}
+
+	client := &Client{
+		audit: ah,
+	}
+
+	got, err := client.GetCreatedAt()
+	if err != nil {
+		t.Fatalf("GetCreatedAt() unexpected error: %v", err)
+	}
+	if !got.Equal(expectedTime) {
+		t.Errorf("GetCreatedAt() = %v, want %v", got, expectedTime)
 	}
 }
