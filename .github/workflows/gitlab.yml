@@ -66,24 +66,16 @@ jobs:
             go mod download
 
       - name: Run GitLab tokenless E2E
-        uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         if: github.event_name == 'pull_request'
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-gitlab
+        timeout-minutes: 30
+        run: make e2e-gitlab
 
       - name: Run GitLab PAT E2E  # skip if auth token is not available
-        uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
         if: ${{ github.event_name == 'push' && github.actor != 'dependabot[bot]' }}
+        timeout-minutes: 30
         env:
           GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: make e2e-gitlab-token
+        run: make e2e-gitlab-token
 
       - name: codecov
         uses: codecov/codecov-action@1af58845a975a7985b0beb0cbe6fbbb71a41dbad # 5.5.3
