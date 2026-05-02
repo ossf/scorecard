@@ -32,7 +32,8 @@ import (
 const (
 	refPrefix = "refs/heads/"
 	//nolint:lll
-	classicBranchErrMsg = "some github tokens can't read classic branch protection rules: https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
+	classicBranchErrMsg = "branch protection rules are not accessible with the current token (GITHUB_TOKEN lacks admin read permission on branch protection); " +
+		"use a fine-grained personal access token with 'administration: read' instead — see https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
 )
 
 // See https://github.community/t/graphql-api-protected-branch/14380
@@ -474,7 +475,10 @@ func getBranchRefFrom(data *branch, rules []*repoRuleSet) *clients.BranchRef {
 }
 
 func isPermissionsError(err error) bool {
-	return strings.Contains(err.Error(), "Resource not accessible")
+	// GitHub GraphQL may return "Resource not accessible by integration" (when using
+	// GITHUB_TOKEN or a fine-grained token without admin permission).  Check
+	// case-insensitively to guard against capitalisation differences across API versions.
+	return strings.Contains(strings.ToLower(err.Error()), "resource not accessible")
 }
 
 const (

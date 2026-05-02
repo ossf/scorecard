@@ -127,6 +127,11 @@ func generateTextUnpinned(rr *checker.Dependency) string {
 		return fmt.Sprintf("%s not pinned by hash", owner)
 	}
 
+	if rr.Type == checker.DependencyUseTypePipCommand {
+		return "pipCommand not pinned by hash: add --require-hashes to pin package hashes, " +
+			"or use a requirements file with hashes (see https://pip.pypa.io/en/stable/topics/secure-installs/)"
+	}
+
 	return fmt.Sprintf("%s not pinned by hash", rr.Type)
 }
 
