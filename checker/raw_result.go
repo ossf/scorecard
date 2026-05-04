@@ -299,7 +299,8 @@ type SASTWorkflow struct {
 // SecurityPolicyData contains the raw results
 // for the Security-Policy check.
 type SecurityPolicyData struct {
-	PolicyFiles []SecurityPolicyFile
+	PolicyFiles                          []SecurityPolicyFile
+	PrivateVulnerabilityReportingEnabled *bool
 }
 
 // BinaryArtifactData contains the raw results

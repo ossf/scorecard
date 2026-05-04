@@ -411,6 +411,21 @@ For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
 If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 
 
+## privateVulnerabilityReportingEnabled
+
+**Lifecycle**: experimental
+
+**Description**: Check if GitHub private vulnerability reporting is enabled.
+
+**Motivation**: Private vulnerability reporting gives security researchers a private channel for reporting vulnerabilities to maintainers.
+
+**Implementation**: The probe checks GitHub's private vulnerability reporting setting when the repository client supports it.
+
+**Outcomes**: If private vulnerability reporting is enabled, one finding with OutcomeTrue is returned.
+If private vulnerability reporting is disabled, one finding with OutcomeFalse is returned.
+If the setting is not available for the repository client, one finding with OutcomeNotApplicable is returned.
+
+
 ## releasesAreSigned
 
 **Lifecycle**: stable

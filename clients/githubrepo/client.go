@@ -284,6 +284,20 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 	return c, nil
 }
 
+// PrivateVulnerabilityReportingEnabled returns whether GitHub private vulnerability reporting is enabled.
+func (client *Client) PrivateVulnerabilityReportingEnabled() (*bool, error) {
+	enabled, resp, err := client.repoClient.Repositories.IsPrivateReportingEnabled(
+		client.ctx, client.repourl.owner, client.repourl.repo)
+	if err != nil {
+		if resp != nil && (resp.StatusCode == http.StatusNotFound ||
+			resp.StatusCode == http.StatusUnprocessableEntity) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("private vulnerability reporting: %w", err)
+	}
+	return &enabled, nil
+}
+
 // ListWebhooks implements RepoClient.ListWebhooks.
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()

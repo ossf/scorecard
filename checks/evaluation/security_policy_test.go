@@ -99,11 +99,16 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "privateVulnerabilityReportingEnabled",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				Score:         checker.MinResultScore,
+				NumberOfInfo:  1,
+				NumberOfWarn:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -125,12 +130,17 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "privateVulnerabilityReportingEnabled",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.InconclusiveResultScore,
-				Error:        sce.ErrScorecardInternal,
-				NumberOfWarn: 1,
-				NumberOfInfo: 3,
+				Score:         checker.InconclusiveResultScore,
+				Error:         sce.ErrScorecardInternal,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -152,11 +162,16 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "privateVulnerabilityReportingEnabled",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         6,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -178,10 +193,14 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "privateVulnerabilityReportingEnabled",
+					Outcome: finding.OutcomeTrue,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
-				NumberOfInfo: 4,
+				NumberOfInfo: 5,
 			},
 		},
 	}

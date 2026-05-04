@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 )
@@ -37,10 +38,14 @@ type securityPolicyFilesWithURI struct {
 // SecurityPolicy checks for presence of security policy
 // and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
+	privateReportingEnabled, err := privateVulnerabilityReportingEnabled(c.RepoClient)
+	if err != nil {
+		return checker.SecurityPolicyData{}, err
+	}
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
-	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
+	err = fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
@@ -55,7 +60,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{
+			PolicyFiles:                          data.files,
+			PrivateVulnerabilityReportingEnabled: privateReportingEnabled,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +103,22 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{
+		PolicyFiles:                          data.files,
+		PrivateVulnerabilityReportingEnabled: privateReportingEnabled,
+	}, nil
+}
+
+func privateVulnerabilityReportingEnabled(repoClient clients.RepoClient) (*bool, error) {
+	githubClient, ok := repoClient.(*githubrepo.Client)
+	if !ok {
+		return nil, nil
+	}
+	enabled, err := githubClient.PrivateVulnerabilityReportingEnabled()
+	if err != nil {
+		return nil, fmt.Errorf("check private vulnerability reporting: %w", err)
+	}
+	return enabled, nil
 }
 
 // Check repository for repository-specific policy.
