@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -108,6 +109,30 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			result := checks.Vulnerabilities(&checkRequest)
 			// New version.
 			scut.ValidateTestReturn(GinkgoTB(), "osv vulnerabilities", &expected, &result, &dl)
+			Expect(repoClient.Close()).Should(BeNil())
+		})
+		It("Should return vulnerabilities check runs - Azure DevOps", func() {
+			skipIfTokenIsNot(azureDevOpsPATTokenType, "Azure DevOps only")
+
+			repo, err := azuredevopsrepo.MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			Expect(err).Should(BeNil())
+			repoClient, err := azuredevopsrepo.CreateAzureDevOpsClient(context.Background(), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			dl := scut.TestDetailLogger{}
+			checkRequest := checker.CheckRequest{
+				Ctx:                   context.Background(),
+				RepoClient:            repoClient,
+				VulnerabilitiesClient: clients.DefaultVulnerabilitiesClient(),
+				Repo:                  repo,
+				Dlogger:               &dl,
+			}
+			result := checks.Vulnerabilities(&checkRequest)
+			Expect(result.Error).Should(BeNil())
+			// Test repo has no known vulnerabilities, expect max score.
+			Expect(result.Score).Should(BeNumerically("==", checker.MaxResultScore))
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})

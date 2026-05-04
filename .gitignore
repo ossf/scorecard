@@ -64,3 +64,6 @@ newRelease.json
 # Ignore golang's vendored files
 /vendor/
 /tools/vendor/
+
+# AI tooling instructions
+AGENTS.md

@@ -54,6 +54,7 @@ type Client struct {
 	contributors  *contributorsHandler
 	languages     *languagesHandler
 	policy        *policyHandler
+	releases      *releasesHandler
 	search        *searchHandler
 	searchCommits *searchCommitsHandler
 	servicehooks  *servicehooksHandler
@@ -112,6 +113,8 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 
 	c.policy.init(c.ctx, c.repourl)
 
+	c.releases.init(c.ctx, c.repourl)
+
 	c.search.init(c.ctx, c.repourl)
 
 	c.searchCommits.init(c.ctx, c.repourl)
@@ -152,7 +155,9 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 func (c *Client) GetCreatedAt() (time.Time, error) {
 	createdAt, err := c.audit.getRepsitoryCreatedAt()
 	if err != nil {
-		return time.Time{}, err
+		// The audit log may not be accessible (e.g., insufficient permissions).
+		// Fall back to the first commit date.
+		return c.commits.getFirstCommitCreatedAt()
 	}
 
 	// The audit log may not be enabled on the repository
@@ -194,7 +199,7 @@ func (c *Client) ListLicenses() ([]clients.License, error) {
 }
 
 func (c *Client) ListReleases() ([]clients.Release, error) {
-	return nil, clients.ErrUnsupportedFeature
+	return c.releases.listReleases()
 }
 
 func (c *Client) ListContributors() ([]clients.User, error) {
@@ -306,6 +311,9 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		policy: &policyHandler{
 			gitClient:    gitClient,
 			policyClient: policyClient,
+		},
+		releases: &releasesHandler{
+			gitClient: gitClient,
 		},
 		search: &searchHandler{
 			searchClient: searchClient,
