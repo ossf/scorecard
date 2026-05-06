@@ -528,6 +528,11 @@ checks:
         the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found
         by the Token-Permissions check.
       - >-
+        For Python tooling installed inside GitHub workflows or release scripts, prefer a small requirements file
+        with exact versions and hashes, then install it with `python -m pip install --require-hashes -r <file>`.
+        This avoids trusting a mutable package artifact during the build bootstrap step while keeping the workflow
+        readable.
+      - >-
         To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
   SAST:
     risk: Medium
