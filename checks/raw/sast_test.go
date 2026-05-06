@@ -180,6 +180,37 @@ func TestSAST(t *testing.T) {
 			},
 		},
 		{
+			name: "Recognizes SonarQube Cloud check run",
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number:   1,
+						MergedAt: mergedOneHourAgo,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Commits: []checker.SASTCommit{
+					{
+						AssociatedMergeRequest: clients.PullRequest{
+							Number:   1,
+							MergedAt: mergedOneHourAgo,
+						},
+						Compliant: true,
+					},
+				},
+			},
+			checkRuns: []clients.CheckRun{
+				{
+					Status:     "completed",
+					Conclusion: "success",
+					App: clients.CheckRunApp{
+						Slug: "sonarqubecloud",
+					},
+				},
+			},
+		},
+		{
 			name:  "Has Snyk",
 			files: []string{".github/workflows/github-workflow-snyk.yaml"},
 			commits: []clients.Commit{
