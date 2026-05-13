@@ -53,3 +53,41 @@ func Test_Run(t *testing.T) {
 		})
 	}
 }
+
+func TestRunSecureWorkflowRemediationLink(t *testing.T) {
+	t.Parallel()
+
+	locationType := checker.PermissionLocationTop
+	name := "contents"
+	value := "write"
+	workflow := "scorecard-analysis.yml"
+	raw := &checker.RawResults{
+		Metadata: checker.MetadataData{
+			Metadata: map[string]string{
+				"repository.uri":           "github.com/ossf/scorecard",
+				"repository.defaultBranch": "main",
+			},
+		},
+		TokenPermissionsResults: checker.TokenPermissionsData{
+			NumTokens: 1,
+			TokenPermissions: []checker.TokenPermission{
+				{
+					LocationType: &locationType,
+					Name:         &name,
+					Value:        &value,
+					Type:         checker.PermissionLevelWrite,
+					File:         &checker.File{Path: ".github/workflows/" + workflow},
+				},
+			},
+		},
+	}
+
+	findings, _, err := Run(raw)
+	if err != nil {
+		t.Fatalf("Run() unexpected error: %v", err)
+	}
+	if len(findings) != 1 {
+		t.Fatalf("Run() got %d findings, want 1", len(findings))
+	}
+	test.AssertSecureWorkflowRemediation(t, findings[0].Remediation, workflow)
+}

@@ -15,6 +15,7 @@
 package test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -32,6 +33,25 @@ func AssertOutcomes(t *testing.T, got []finding.Finding, want []finding.Outcome)
 		if got[i].Outcome != want[i] {
 			t.Errorf("got outcome %v, wanted %v for finding: %v", got[i].Outcome, want[i], got[i])
 		}
+	}
+}
+
+// AssertSecureWorkflowRemediation checks that remediation markdown points to the
+// generated workflow URL without using an auto-linked bare URL as the label.
+func AssertSecureWorkflowRemediation(t *testing.T, got *finding.Remediation, workflow string) {
+	t.Helper()
+	if got == nil {
+		t.Fatal("expected remediation")
+	}
+
+	want := "Visit [StepSecurity Secure Workflow]" +
+		"(https://app.stepsecurity.io/secureworkflow/github.com/ossf/scorecard/" +
+		workflow + "/main?enable=permissions)."
+	if !strings.Contains(got.Markdown, want) {
+		t.Errorf("remediation markdown %q does not contain %q", got.Markdown, want)
+	}
+	if strings.Contains(got.Markdown, "[https://app.stepsecurity.io/secureworkflow]") {
+		t.Errorf("remediation markdown contains a bare secureworkflow link label: %q", got.Markdown)
 	}
 }
 
