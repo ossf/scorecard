@@ -1655,6 +1655,26 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}
 }
 
+func TestMakefileDownload(t *testing.T) {
+	t.Parallel()
+
+	content, err := os.ReadFile("./testdata/Makefile-pkg-managers")
+	if err != nil {
+		t.Errorf("cannot read file: %v", err)
+	}
+
+	var r checker.PinningDependenciesData
+	_, err = validateMakefileIsFreeOfInsecureDownloads("./testdata/Makefile-pkg-managers", content, &r)
+	if !errCmp(err, nil) {
+		t.Error(cmp.Diff(err, nil, cmpopts.EquateErrors()))
+	}
+
+	unpinned := countUnpinned(r.Dependencies)
+	if unpinned != 1 {
+		t.Errorf("expected 1 unpinned. Got %v", unpinned)
+	}
+}
+
 func TestGitHubWorkflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint:govet

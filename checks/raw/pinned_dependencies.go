@@ -69,6 +69,11 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	// Makefile downloads.
+	if err := collectMakefileInsecureDownloads(c, &results); err != nil {
+		return checker.PinningDependenciesData{}, err
+	}
+
 	// Action script downloads.
 	if err := collectGitHubWorkflowScriptInsecureDownloads(c, &results); err != nil {
 		return checker.PinningDependenciesData{}, err
@@ -313,6 +318,58 @@ var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileCon
 	}
 
 	return true, nil
+}
+
+func collectMakefileInsecureDownloads(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
+	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "Makefile*",
+		CaseSensitive: false,
+	}, validateMakefileIsFreeOfInsecureDownloads, r)
+}
+
+var validateMakefileIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"validateMakefileIsFreeOfInsecureDownloads requires exactly 1 arguments: got %v: %w",
+			len(args), errInvalidArgLength)
+	}
+
+	if !isMakefile(pathfn) {
+		return true, nil
+	}
+
+	pdata := dataAsPinnedDependenciesPointer(args[0])
+	script := makefileRecipesAsShellScript(content)
+	if !fileparser.CheckFileContainsCommands(script, "#") {
+		return true, nil
+	}
+
+	if err := validateShellFile(pathfn, 0, 0, script, map[string]bool{}, pdata); err != nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func isMakefile(pathfn string) bool {
+	name := filepath.Base(pathfn)
+	return strings.EqualFold(name, "Makefile") || strings.HasPrefix(strings.ToLower(name), "makefile.")
+}
+
+func makefileRecipesAsShellScript(content []byte) []byte {
+	lines := bytes.Split(content, []byte("\n"))
+	for i, line := range lines {
+		if len(line) > 0 && line[0] == '\t' {
+			lines[i] = line[1:]
+		} else {
+			lines[i] = nil
+		}
+	}
+	return bytes.Join(lines, []byte("\n"))
 }
 
 func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {

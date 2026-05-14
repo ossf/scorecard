@@ -1,0 +1,5 @@
+install:
+	curl -sSL https://example.com/install.sh | bash
+	pip install requests==2.31.0
+
+.PHONY: install
