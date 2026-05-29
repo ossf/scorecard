@@ -109,7 +109,9 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 		for _, commit := range mr.Commits.Nodes {
 			commitToMRIID[commit.SHA] = mr.IID
 		}
-		commitToMRIID[mr.MergeCommitSHA] = mr.IID
+		if mr.MergeCommitSHA != "" {
+			commitToMRIID[mr.MergeCommitSHA] = mr.IID
+		}
 	}
 
 	iidToMr := make(map[string]clients.PullRequest)
@@ -161,10 +163,15 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 			mrno = mr.ID.ID
 		}
 
+		headSHA := mr.DiffHeadSHA
+		if headSHA == "" {
+			headSHA = mr.MergeCommitSHA
+		}
+
 		iidToMr[mr.IID] = clients.PullRequest{
 			Number:   mrno,
 			MergedAt: mr.MergedAt,
-			HeadSHA:  mr.MergeCommitSHA,
+			HeadSHA:  headSHA,
 			Author:   clients.User{Login: mr.Author.Username, ID: int64(mr.Author.ID.ID)},
 			Reviews:  vals,
 			MergedBy: clients.User{Login: mr.MergedBy.Username, ID: int64(mr.MergedBy.ID.ID)},

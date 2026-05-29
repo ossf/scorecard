@@ -17,6 +17,7 @@ package gitlabrepo
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
@@ -58,6 +59,50 @@ func TestParsingEmail(t *testing.T) {
 				t.Errorf("Parser didn't work as expected: %s != %s", tt.expected, result)
 			}
 		})
+	}
+}
+
+func TestZipUsesDiffHeadSHAForMergeRequestHead(t *testing.T) {
+	t.Parallel()
+
+	committedDate := time.Date(2026, 5, 29, 0, 0, 0, 0, time.UTC)
+	commitSHA := "commit-from-merge-request"
+	diffHeadSHA := "diff-head-sha"
+	data := graphqlData{}
+	data.Project.MergeRequests.Nodes = []graphqlMergeRequestNode{
+		{
+			IID:         "7",
+			MergedAt:    committedDate,
+			DiffHeadSHA: diffHeadSHA,
+			Commits: struct {
+				Nodes []struct {
+					SHA string `graphql:"sha"`
+				} `graphql:"nodes"`
+			}{
+				Nodes: []struct {
+					SHA string `graphql:"sha"`
+				}{
+					{SHA: commitSHA},
+				},
+			},
+		},
+	}
+	commitsRaw := []*gitlab.Commit{
+		{
+			ID:            commitSHA,
+			Message:       "fix: example",
+			CommittedDate: &committedDate,
+		},
+	}
+
+	handler := &commitsHandler{}
+	commits := handler.zip(commitsRaw, data)
+
+	if len(commits) != 1 {
+		t.Fatalf("zip() returned %d commits, want 1", len(commits))
+	}
+	if got := commits[0].AssociatedMergeRequest.HeadSHA; got != diffHeadSHA {
+		t.Fatalf("AssociatedMergeRequest.HeadSHA = %q, want %q", got, diffHeadSHA)
 	}
 }
 
