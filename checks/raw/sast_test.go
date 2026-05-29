@@ -271,6 +271,29 @@ func TestSAST(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Has Brakeman",
+			files: []string{".github/workflows/github-brakeman-workflow.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.BrakemanWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-brakeman-workflow.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

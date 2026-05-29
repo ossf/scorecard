@@ -1,0 +1,16 @@
+name: Brakeman
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  brakeman:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: devmasx/brakeman-linter-action@0dc80fcccf87915ccb1761669014015214f36287

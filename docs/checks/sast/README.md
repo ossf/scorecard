@@ -7,6 +7,8 @@
   * Detection based on GitHub workflows using one of the actions from the set at https://github.com/snyk/actions
 * [Sonar](https://docs.sonarsource.com/sonarqube/latest/setup-and-upgrade/overview/)
   * Detection based on the presence of a `pom.xml` file specifying a `sonar.host.url`, or GitHub Action checks run against PRs.
+* [Brakeman](https://brakemanscanner.org/)
+  * Detection based on GitHub workflows using `devmasx/brakeman-linter-action`.
 
 # Add Support
 

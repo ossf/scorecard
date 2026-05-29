@@ -93,6 +93,12 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, hadolintWorkflows...)
 
+	brakemanWorkflows, err := getSastUsesWorkflows(c, "^devmasx/brakeman-linter-action$", checker.BrakemanWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, brakemanWorkflows...)
+
 	return data, nil
 }
 

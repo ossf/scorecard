@@ -69,10 +69,14 @@ func Test_Run(t *testing.T) {
 						{
 							Type: checker.HadolintWorkflow,
 						},
+						{
+							Type: checker.BrakemanWorkflow,
+						},
 					},
 				},
 			},
 			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
 				finding.OutcomeTrue,
@@ -146,10 +150,13 @@ func Test_Run_tools(t *testing.T) {
 						{
 							Type: checker.PysaWorkflow,
 						},
+						{
+							Type: checker.BrakemanWorkflow,
+						},
 					},
 				},
 			},
-			tools: []string{"Sonar", "Pysa"},
+			tools: []string{"Sonar", "Pysa", "Brakeman"},
 		},
 	}
 	for _, tt := range tests {
