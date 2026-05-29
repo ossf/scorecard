@@ -15,6 +15,9 @@
 package checks
 
 import (
+	"io"
+	"os"
+	"strings"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -144,6 +147,17 @@ func TestDependencyUpdateTool(t *testing.T) {
 				Score:        10,
 			},
 		},
+		{
+			name:              "renovate config found by file lookup",
+			wantErr:           false,
+			files:             []string{},
+			CallSearchCommits: 0,
+			expected: scut.TestReturn{
+				NumberOfInfo: 1,
+				NumberOfWarn: 0,
+				Score:        10,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -151,6 +165,16 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+			if tt.name == "renovate config found by file lookup" {
+				mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(path string) (io.ReadCloser, error) {
+					if path == "renovate.json" {
+						return io.NopCloser(strings.NewReader("{}")), nil
+					}
+					return nil, os.ErrNotExist
+				}).AnyTimes()
+			} else if tt.CallSearchCommits > 0 {
+				mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
+			}
 			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
@@ -170,6 +194,7 @@ func TestDependencyUpdateTool_noSearchCommits(t *testing.T) {
 	mockRepo := mockrepo.NewMockRepoClient(ctrl)
 	files := []string{"README.md"}
 	mockRepo.EXPECT().ListFiles(gomock.Any()).Return(files, nil)
+	mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
 	mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
 	dl := scut.TestDetailLogger{}
 	c := &checker.CheckRequest{

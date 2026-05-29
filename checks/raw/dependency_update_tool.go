@@ -17,6 +17,7 @@ package raw
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -29,6 +30,54 @@ const (
 	dependabotID = 49699333
 )
 
+type dependencyToolConfig struct {
+	Name        string
+	URL         string
+	Description string
+	Paths       []string
+}
+
+var dependencyToolConfigs = []dependencyToolConfig{
+	{
+		Name:        "Dependabot",
+		URL:         "https://github.com/dependabot",
+		Description: "Automated dependency updates built into GitHub",
+		Paths: []string{
+			".github/dependabot.yml",
+			".github/dependabot.yaml",
+		},
+	},
+	{
+		Name:        "RenovateBot",
+		URL:         "https://github.com/renovatebot/renovate",
+		Description: "Automated dependency updates. Multi-platform and multi-language.",
+		Paths: []string{
+			"renovate.json",
+			"renovate.json5",
+			".github/renovate.json",
+			".github/renovate.json5",
+			".gitlab/renovate.json",
+			".gitlab/renovate.json5",
+			".renovaterc",
+			".renovaterc.json",
+			".renovaterc.json5",
+		},
+	},
+	{
+		Name:        "scala-steward",
+		URL:         "https://github.com/scala-steward-org/scala-steward",
+		Description: "Works with Maven, Mill, sbt, and Scala CLI.",
+		Paths: []string{
+			".scala-steward.conf",
+			"scala-steward.conf",
+			".github/.scala-steward.conf",
+			".github/scala-steward.conf",
+			".config/.scala-steward.conf",
+			".config/scala-steward.conf",
+		},
+	},
+}
+
 // DependencyUpdateTool is the exported name for Dependency-Update-Tool.
 func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolData, error) {
 	var tools []checker.Tool
@@ -37,6 +86,16 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("%w", err)
 	}
 
+	if len(tools) != 0 {
+		return checker.DependencyUpdateToolData{Tools: tools}, nil
+	}
+
+	tools, err = findDependencyFiles(c)
+	if err != nil {
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			return checker.DependencyUpdateToolData{}, fmt.Errorf("dependency update tool config lookup: %w", err)
+		}
+	}
 	if len(tools) != 0 {
 		return checker.DependencyUpdateToolData{Tools: tools}, nil
 	}
@@ -67,6 +126,30 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 	return checker.DependencyUpdateToolData{Tools: tools}, nil
 }
 
+func findDependencyFiles(c clients.RepoClient) ([]checker.Tool, error) {
+	var tools []checker.Tool
+	for _, config := range dependencyToolConfigs {
+		for _, path := range config.Paths {
+			reader, err := c.GetFileReader(path)
+			if err != nil {
+				if errors.Is(err, clients.ErrUnsupportedFeature) {
+					return nil, err
+				}
+				if !errors.Is(err, os.ErrNotExist) {
+					return nil, err
+				}
+				continue
+			}
+			if reader != nil {
+				reader.Close()
+			}
+			tools = append(tools, dependencyTool(config, path))
+			break
+		}
+	}
+	return tools, nil
+}
+
 var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name string, args ...interface{}) (bool, error) {
 	if len(args) != 1 {
 		return false, fmt.Errorf("checkDependencyFileExists requires exactly one argument: %w", errInvalidArgLength)
@@ -79,65 +162,34 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 
 	switch strings.ToLower(name) {
 	case ".github/dependabot.yml", ".github/dependabot.yaml":
-		*ptools = append(*ptools, checker.Tool{
-			Name: "Dependabot",
-			URL:  asPointer("https://github.com/dependabot"),
-			Desc: asPointer("Automated dependency updates built into GitHub"),
-			Files: []checker.File{
-				{
-					Path:   name,
-					Type:   finding.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
-			},
-		})
-
-	// https://docs.renovatebot.com/configuration-options/
-	case "renovate.json",
-		"renovate.json5",
-		".github/renovate.json",
-		".github/renovate.json5",
-		".gitlab/renovate.json",
-		".gitlab/renovate.json5",
-		".renovaterc",
-		".renovaterc.json",
+		*ptools = append(*ptools, dependencyTool(dependencyToolConfigs[0], name))
+	case "renovate.json", "renovate.json5", ".github/renovate.json", ".github/renovate.json5",
+		".gitlab/renovate.json", ".gitlab/renovate.json5", ".renovaterc", ".renovaterc.json",
 		".renovaterc.json5":
-		*ptools = append(*ptools, checker.Tool{
-			Name: "RenovateBot",
-			URL:  asPointer("https://github.com/renovatebot/renovate"),
-			Desc: asPointer("Automated dependency updates. Multi-platform and multi-language."),
-			Files: []checker.File{
-				{
-					Path:   name,
-					Type:   finding.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
-			},
-		})
-	// https://github.com/scala-steward-org/scala-steward/blob/main/docs/repo-specific-configuration.md
-	case ".scala-steward.conf",
-		"scala-steward.conf",
-		".github/.scala-steward.conf",
-		".github/scala-steward.conf",
-		".config/.scala-steward.conf",
-		".config/scala-steward.conf":
-		*ptools = append(*ptools, checker.Tool{
-			Name: "scala-steward",
-			URL:  asPointer("https://github.com/scala-steward-org/scala-steward"),
-			Desc: asPointer("Works with Maven, Mill, sbt, and Scala CLI."),
-			Files: []checker.File{
-				{
-					Path:   name,
-					Type:   finding.FileTypeSource,
-					Offset: checker.OffsetDefault,
-				},
-			},
-		})
+		*ptools = append(*ptools, dependencyTool(dependencyToolConfigs[1], name))
+	case ".scala-steward.conf", "scala-steward.conf", ".github/.scala-steward.conf",
+		".github/scala-steward.conf", ".config/.scala-steward.conf", ".config/scala-steward.conf":
+		*ptools = append(*ptools, dependencyTool(dependencyToolConfigs[2], name))
 	}
 
 	// Continue iterating, even if we have found a tool.
 	// It's needed for all probes results to be populated.
 	return true, nil
+}
+
+func dependencyTool(config dependencyToolConfig, path string) checker.Tool {
+	return checker.Tool{
+		Name: config.Name,
+		URL:  asPointer(config.URL),
+		Desc: asPointer(config.Description),
+		Files: []checker.File{
+			{
+				Path:   path,
+				Type:   finding.FileTypeSource,
+				Offset: checker.OffsetDefault,
+			},
+		},
+	}
 }
 
 func asPointer(s string) *string {

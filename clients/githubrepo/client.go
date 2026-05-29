@@ -202,7 +202,32 @@ func (client *Client) GetFileReader(filename string) (io.ReadCloser, error) {
 		}
 		return f, nil
 	}
-	return client.tarball.getFile(filename)
+	f, err := client.tarball.getFile(filename)
+	if err == nil {
+		return f, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
+	ref := client.repourl.commitSHA
+	if strings.EqualFold(ref, clients.HeadSHA) {
+		ref = client.repo.GetDefaultBranch()
+	}
+	reader, _, err := client.repoClient.Repositories.DownloadContents(
+		client.ctx,
+		client.repourl.owner,
+		client.repourl.repo,
+		filename,
+		&github.RepositoryContentGetOptions{Ref: ref},
+	)
+	if err != nil {
+		var errResp *github.ErrorResponse
+		if errors.As(err, &errResp) && errResp.Response.StatusCode == http.StatusNotFound {
+			return nil, fmt.Errorf("github contents getfile: %w", os.ErrNotExist)
+		}
+		return nil, fmt.Errorf("github contents getfile: %w", err)
+	}
+	return reader, nil
 }
 
 // ListCommits implements RepoClient.ListCommits.

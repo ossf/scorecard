@@ -15,6 +15,9 @@
 package raw
 
 import (
+	"io"
+	"os"
+	"strings"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -226,6 +229,13 @@ func TestDependencyUpdateTool(t *testing.T) {
 				{Committer: clients.User{ID: dependabotID}},
 			},
 		},
+		{
+			name:              "dependency update tool config found by file lookup",
+			wantErr:           false,
+			want:              1,
+			CallSearchCommits: 0,
+			files:             []string{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -234,6 +244,16 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
+			if tt.name == "dependency update tool config found by file lookup" {
+				mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(path string) (io.ReadCloser, error) {
+					if path == "renovate.json" {
+						return io.NopCloser(strings.NewReader("{}")), nil
+					}
+					return nil, os.ErrNotExist
+				}).AnyTimes()
+			} else if tt.CallSearchCommits > 0 {
+				mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(nil, clients.ErrUnsupportedFeature)
+			}
 			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
 
 			got, err := DependencyUpdateTool(mockRepo)

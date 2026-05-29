@@ -16,12 +16,14 @@ package githubrepo
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -44,6 +46,60 @@ type getcontentTest struct {
 	err      error
 	filename string
 	output   []byte
+}
+
+func TestClientGetFileReaderFallsBackToContents(t *testing.T) {
+	t.Parallel()
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/repos/o/r/contents/renovate.json" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("ref"); got != "abc123" {
+			t.Errorf("unexpected ref: %s", got)
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"type":"file","encoding":"base64","content":"e30="}`))
+	}))
+	t.Cleanup(ts.Close)
+
+	ghClient := github.NewClient(ts.Client())
+	baseURL, err := url.Parse(ts.URL + "/")
+	if err != nil {
+		t.Fatalf("url.Parse: %v", err)
+	}
+	ghClient.BaseURL = baseURL
+
+	once := new(sync.Once)
+	once.Do(func() {})
+	client := &Client{
+		ctx:        context.Background(),
+		repo:       &github.Repository{DefaultBranch: github.String("main")},
+		repoClient: ghClient,
+		repourl: &Repo{
+			owner:     "o",
+			repo:      "r",
+			commitSHA: "abc123",
+		},
+		tarball: tarballHandler{
+			once:    once,
+			tempDir: t.TempDir(),
+		},
+	}
+
+	reader, err := client.GetFileReader("renovate.json")
+	if err != nil {
+		t.Fatalf("GetFileReader: %v", err)
+	}
+	defer reader.Close()
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		t.Fatalf("io.ReadAll: %v", err)
+	}
+	if got := string(content); got != "{}" {
+		t.Errorf("content = %q, want %q", got, "{}")
+	}
 }
 
 func isSortedString(x, y string) bool {
