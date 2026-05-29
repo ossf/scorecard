@@ -40,6 +40,9 @@ func Vulnerabilities(name string,
 	var numVulnsFound int
 	for i := range findings {
 		f := &findings[i]
+		if f.Outcome == finding.OutcomeNotApplicable {
+			return checker.CreateInconclusiveResult(name, f.Message)
+		}
 		if f.Outcome == finding.OutcomeTrue {
 			numVulnsFound++
 			checker.LogFinding(dl, f, checker.DetailWarn)

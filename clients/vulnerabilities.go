@@ -44,7 +44,8 @@ func ExperimentalLocalOSVClient() VulnerabilitiesClient {
 
 // VulnerabilitiesResponse is the response from the vuln DB.
 type VulnerabilitiesResponse struct {
-	Vulnerabilities []Vulnerability
+	Vulnerabilities   []Vulnerability
+	ScanTargetMissing bool
 }
 
 // Vulnerability uniquely identifies a reported security vuln.

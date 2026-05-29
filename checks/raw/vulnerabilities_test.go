@@ -59,6 +59,13 @@ func TestVulnerabilities(t *testing.T) {
 			vulnsResponse:   clients.VulnerabilitiesResponse{},
 		},
 		{
+			name:            "scan target missing",
+			wantErr:         false,
+			numberofCommits: 0,
+			vulnsResponse:   clients.VulnerabilitiesResponse{ScanTargetMissing: true},
+			want:            checker.VulnerabilitiesData{ScanTargetMissing: true},
+		},
+		{
 			name:            "vulns err response",
 			wantErr:         true,
 			vulnsError:      true,
@@ -110,6 +117,9 @@ func TestVulnerabilities(t *testing.T) {
 			if !tt.wantErr {
 				if len(got.Vulnerabilities) != len(tt.want.Vulnerabilities) {
 					t.Errorf("Vulnerabilities() got = %v, want %v", len(got.Vulnerabilities), len(tt.want.Vulnerabilities))
+				}
+				if got.ScanTargetMissing != tt.want.ScanTargetMissing {
+					t.Errorf("Vulnerabilities() ScanTargetMissing got = %v, want %v", got.ScanTargetMissing, tt.want.ScanTargetMissing)
 				}
 			}
 

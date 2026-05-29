@@ -224,7 +224,8 @@ type ContributorsData struct {
 // VulnerabilitiesData contains the raw results
 // for the Vulnerabilities check.
 type VulnerabilitiesData struct {
-	Vulnerabilities []clients.Vulnerability
+	Vulnerabilities   []clients.Vulnerability
+	ScanTargetMissing bool
 }
 
 type SecurityPolicyInformationType string

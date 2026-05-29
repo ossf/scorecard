@@ -38,7 +38,8 @@ func Vulnerabilities(c *checker.CheckRequest) (checker.VulnerabilitiesData, erro
 		return checker.VulnerabilitiesData{}, fmt.Errorf("vulnerabilitiesClient.ListUnfixedVulnerabilities: %w", err)
 	}
 	return checker.VulnerabilitiesData{
-		Vulnerabilities: resp.Vulnerabilities,
+		Vulnerabilities:   resp.Vulnerabilities,
+		ScanTargetMissing: resp.ScanTargetMissing,
 	}, nil
 }
 

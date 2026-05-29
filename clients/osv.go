@@ -69,6 +69,9 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	if commit != "" {
 		gitCommits = append(gitCommits, commit)
 	}
+	if len(directoryPaths) == 0 && len(gitCommits) == 0 {
+		return VulnerabilitiesResponse{ScanTargetMissing: true}, nil
+	}
 
 	exp := osvscanner.ExperimentalScannerActions{
 		PluginsEnabled:   []string{"python/requirements"},

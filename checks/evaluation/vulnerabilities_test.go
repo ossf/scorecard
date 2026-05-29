@@ -64,6 +64,19 @@ func TestVulnerabilities(t *testing.T) {
 			},
 		},
 		{
+			name: "scan target missing",
+			findings: []finding.Finding{
+				{
+					Probe:   hasOSVVulnerabilities.Probe,
+					Message: "Project could not be scanned for OSV vulnerabilities",
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
+			result: scut.TestReturn{
+				Score: -1,
+			},
+		},
+		{
 			name:     "invalid findings",
 			findings: []finding.Finding{},
 			result: scut.TestReturn{

@@ -56,3 +56,18 @@ func TestEmptyProject(t *testing.T) {
 		t.Fatalf("empty directory shouldn't throw an error: %v", err)
 	}
 }
+
+func TestEmptyScanTarget(t *testing.T) {
+	t.Parallel()
+	var client osvClient
+	resp, err := client.ListUnfixedVulnerabilities(t.Context(), "", "")
+	if err != nil {
+		t.Fatalf("empty scan target shouldn't throw an error: %v", err)
+	}
+	if len(resp.Vulnerabilities) != 0 {
+		t.Fatalf("empty scan target returned vulnerabilities: %v", resp.Vulnerabilities)
+	}
+	if !resp.ScanTargetMissing {
+		t.Fatal("empty scan target should be marked missing")
+	}
+}

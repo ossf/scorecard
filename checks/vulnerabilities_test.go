@@ -32,11 +32,19 @@ func TestVulnerabilities(t *testing.T) {
 		name     string
 		expected clients.VulnerabilitiesResponse
 		isError  bool
+		score    int
 	}{
 		{
 			name:     "Valid response",
 			isError:  false,
 			expected: clients.VulnerabilitiesResponse{},
+			score:    checker.MaxResultScore,
+		},
+		{
+			name:     "scan target missing",
+			isError:  false,
+			expected: clients.VulnerabilitiesResponse{ScanTargetMissing: true},
+			score:    checker.InconclusiveResultScore,
 		},
 	}
 
@@ -74,6 +82,9 @@ func TestVulnerabilities(t *testing.T) {
 				t.Fail()
 			} else if tt.isError && res.Error == nil {
 				t.Fail()
+			}
+			if res.Score != tt.score {
+				t.Errorf("Vulnerabilities() score = %v, want %v", res.Score, tt.score)
 			}
 			ctrl.Finish()
 		})

@@ -60,6 +60,17 @@ func Test_Run(t *testing.T) {
 				finding.OutcomeFalse,
 			},
 		},
+		{
+			name: "scan target missing",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					ScanTargetMissing: true,
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotApplicable,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

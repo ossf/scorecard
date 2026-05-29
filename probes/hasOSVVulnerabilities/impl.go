@@ -45,6 +45,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	var findings []finding.Finding
 
+	if raw.VulnerabilitiesResults.ScanTargetMissing {
+		f, err := finding.NewNotApplicable(fs, Probe,
+			"Project could not be scanned for OSV vulnerabilities", nil)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+		return findings, Probe, nil
+	}
+
 	// if no vulns were found
 	if len(raw.VulnerabilitiesResults.Vulnerabilities) == 0 {
 		f, err := finding.NewWith(fs, Probe,
