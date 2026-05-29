@@ -537,6 +537,33 @@ func TestOnMatchingFileContent(t *testing.T) {
 	}
 }
 
+func TestOnMatchingFileContentIncludesFilePathOnCallbackError(t *testing.T) {
+	t.Parallel()
+
+	const workflowPath = ".github/workflows/bad.yaml"
+	ctrl := gomock.NewController(t)
+	mockRepo := mockrepo.NewMockRepoClient(ctrl)
+	mockRepo.EXPECT().ListFiles(gomock.Any()).Return([]string{workflowPath}, nil)
+	mockRepo.EXPECT().GetFileReader(workflowPath).Return(io.NopCloser(strings.NewReader("")), nil)
+
+	err := OnMatchingFileContentDo(mockRepo, PathMatcher{
+		Pattern:       ".github/workflows/*",
+		CaseSensitive: false,
+	}, func(string, []byte, ...interface{}) (bool, error) {
+		return false, errTest
+	})
+
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), workflowPath) {
+		t.Fatalf("expected error to include %q, got %q", workflowPath, err)
+	}
+	if !errors.Is(err, errTest) {
+		t.Fatalf("expected error to wrap errTest, got %q", err)
+	}
+}
+
 // TestOnAllFilesDo tests the OnAllFilesDo function.
 func TestOnAllFilesDo(t *testing.T) {
 	t.Parallel()

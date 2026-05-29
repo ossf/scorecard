@@ -140,7 +140,7 @@ func onMatchingFileDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
 			return sce.WithMessage(sce.ErrScorecardInternal, msg)
 		}
 		if err != nil {
-			return err
+			return fmt.Errorf("%s: %w", file, err)
 		}
 
 		if !continueIter {
