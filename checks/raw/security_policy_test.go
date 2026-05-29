@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"io"
 	"os"
 	"strings"
@@ -23,9 +24,24 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
+
+type privateVulnerabilityReportingRepoClient struct {
+	clients.RepoClient
+	enabled bool
+	err     error
+}
+
+func (c privateVulnerabilityReportingRepoClient) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return c.enabled, c.err
+}
+
+func boolPtr(v bool) *bool {
+	return &v
+}
 
 func Test_isSecurityPolicyFilename(t *testing.T) {
 	t.Parallel()
@@ -55,6 +71,57 @@ func Test_isSecurityPolicyFilename(t *testing.T) {
 			t.Parallel()
 			if got := isSecurityPolicyFilename(tt.filename); got != tt.expected {
 				t.Errorf("isSecurityPolicyFilename() = %v, want %v for %v", got, tt.expected, tt.name)
+			}
+		})
+	}
+}
+
+func TestPrivateVulnerabilityReportingStatus(t *testing.T) {
+	t.Parallel()
+	errUnexpected := errors.New("unexpected")
+	tests := []struct {
+		name    string
+		client  privateVulnerabilityReportingRepoClient
+		want    *bool
+		wantErr error
+	}{
+		{
+			name:   "enabled",
+			client: privateVulnerabilityReportingRepoClient{enabled: true},
+			want:   boolPtr(true),
+		},
+		{
+			name:   "disabled",
+			client: privateVulnerabilityReportingRepoClient{enabled: false},
+			want:   boolPtr(false),
+		},
+		{
+			name:    "error",
+			client:  privateVulnerabilityReportingRepoClient{err: errUnexpected},
+			wantErr: errUnexpected,
+		},
+		{
+			name:   "unsupported",
+			client: privateVulnerabilityReportingRepoClient{err: clients.ErrUnsupportedFeature},
+			want:   nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := privateVulnerabilityReportingStatus(tt.client)
+			if !errors.Is(err, tt.wantErr) {
+				t.Fatalf("privateVulnerabilityReportingStatus error = %v, want %v", err, tt.wantErr)
+			}
+			if tt.want == nil {
+				if got != nil {
+					t.Fatalf("privateVulnerabilityReportingStatus = %v, want nil", *got)
+				}
+				return
+			}
+			if got == nil || *got != *tt.want {
+				t.Fatalf("privateVulnerabilityReportingStatus = %v, want %v", got, tt.want)
 			}
 		})
 	}

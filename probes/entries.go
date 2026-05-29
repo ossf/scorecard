@@ -61,6 +61,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPrivateVulnerabilityReportingEnabled"
 	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
 	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
 	"github.com/ossf/scorecard/v5/probes/unsafeblock"
@@ -80,6 +81,7 @@ var (
 	// SecurityPolicy check.
 	SecurityPolicy = []ProbeImpl{
 		securityPolicyPresent.Run,
+		securityPolicyPrivateVulnerabilityReportingEnabled.Run,
 		securityPolicyContainsLinks.Run,
 		securityPolicyContainsVulnerabilityDisclosure.Run,
 		securityPolicyContainsText.Run,

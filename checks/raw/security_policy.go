@@ -34,13 +34,21 @@ type securityPolicyFilesWithURI struct {
 	files []checker.SecurityPolicyFile
 }
 
+type privateVulnerabilityReportingClient interface {
+	IsPrivateVulnerabilityReportingEnabled() (bool, error)
+}
+
 // SecurityPolicy checks for presence of security policy
 // and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
-	err := fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
+	privateVulnerabilityReportingEnabled, err := privateVulnerabilityReportingStatus(c.RepoClient)
+	if err != nil {
+		return checker.SecurityPolicyData{}, err
+	}
+	err = fileparser.OnAllFilesDo(c.RepoClient, isSecurityPolicyFile, &data)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
@@ -55,7 +63,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{
+			PolicyFiles:                          data.files,
+			PrivateVulnerabilityReportingEnabled: privateVulnerabilityReportingEnabled,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +106,25 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{
+		PolicyFiles:                          data.files,
+		PrivateVulnerabilityReportingEnabled: privateVulnerabilityReportingEnabled,
+	}, nil
+}
+
+func privateVulnerabilityReportingStatus(repoClient clients.RepoClient) (*bool, error) {
+	client, ok := repoClient.(privateVulnerabilityReportingClient)
+	if !ok {
+		return nil, nil
+	}
+	enabled, err := client.IsPrivateVulnerabilityReportingEnabled()
+	if err != nil {
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &enabled, nil
 }
 
 // Check repository for repository-specific policy.

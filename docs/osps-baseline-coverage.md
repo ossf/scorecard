@@ -79,7 +79,7 @@ coverage status and evidence columns accordingly.
 | OSPS-SA-02.01 | Docs describe external interfaces | GAP | None | Documentation control. Requires attestation. |
 | OSPS-SA-03.01 | Security assessment performed | GAP | None | Process control. Requires attestation with evidence link. |
 | OSPS-VM-01.01 | CVD policy with response timeframe | PARTIAL | `securityPolicyContainsVulnerabilityDisclosure`, `securityPolicyContainsText` | Security-Policy check detects disclosure language. Does not verify explicit timeframe commitment. |
-| OSPS-VM-03.01 | Private vulnerability reporting method | PARTIAL | `securityPolicyContainsLinks` | Detects links in SECURITY.md. Does not verify private reporting is actually enabled (e.g., GitHub PSIRT feature). |
+| OSPS-VM-03.01 | Private vulnerability reporting method | PARTIAL | `securityPolicyContainsLinks`, `securityPolicyPrivateVulnerabilityReportingEnabled` | Detects links in SECURITY.md and, for GitHub repositories, verifies whether private vulnerability reporting is enabled. |
 | OSPS-VM-04.01 | Publicly publish vulnerability data | GAP | None | No probe checks for GitHub Security Advisories, OSV entries, or CVE publication. |
 
 ## Level 3 controls (17)
@@ -179,8 +179,8 @@ Direct match for Phase 2 deliverable.
 ### Private vulnerability reporting (OSPS-VM-03.01)
 - [#2465](https://github.com/ossf/scorecard/issues/2465) — Factor whether or not private vulnerability reporting is enabled into the scorecard
 
-Direct match. GitHub's private vulnerability reporting API could provide
-platform-level evidence.
+Direct match. GitHub's private vulnerability reporting API provides
+platform-level evidence for GitHub repositories.
 
 ### Vulnerability disclosure improvements (OSPS-VM-01.01, VM-04.01)
 - [#4192](https://github.com/ossf/scorecard/issues/4192) — Test for security policy in other places than SECURITY.md

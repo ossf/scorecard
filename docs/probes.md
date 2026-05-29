@@ -621,6 +621,21 @@ If no security policy is found, the probe returns one finding with OutcomeFalse.
 If no security file is found, one finding with OutcomeFalse is returned.
 
 
+## securityPolicyPrivateVulnerabilityReportingEnabled
+
+**Lifecycle**: experimental
+
+**Description**: Check whether GitHub private vulnerability reporting is enabled.
+
+**Motivation**: Private vulnerability reporting gives researchers a built-in private channel for submitting suspected vulnerabilities without immediately disclosing them publicly.
+
+**Implementation**: For GitHub repositories, the implementation uses the REST API endpoint that reports whether private vulnerability reporting is enabled. For clients where that setting is unavailable, the probe returns OutcomeNotApplicable.
+
+**Outcomes**: If private vulnerability reporting is enabled, one finding with OutcomeTrue is returned.
+If private vulnerability reporting is disabled, one finding with OutcomeFalse is returned.
+If the setting is unavailable for the repository client, one finding with OutcomeNotApplicable is returned.
+
+
 ## testsRunInCI
 
 **Lifecycle**: stable
