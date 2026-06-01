@@ -30,7 +30,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/go-git/go-git/v5/plumbing/storer"
 	cp "github.com/otiai10/copy"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -288,29 +287,29 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 }
 
 func (c *Client) GetCreatedAt() (time.Time, error) {
-	// Retrieve the first commit of the repository
+	// Retrieve the oldest commit of the repository.
 	commitIter, err := c.gitRepo.Log(&git.LogOptions{Order: git.LogOrderCommitterTime})
 	if err != nil {
 		return time.Time{}, fmt.Errorf("git.Log: %w", err)
 	}
 	defer commitIter.Close()
 
-	// Iterate through the commits to find the first one
-	var firstCommit *object.Commit
+	var oldestCommit *object.Commit
 	err = commitIter.ForEach(func(c *object.Commit) error {
-		firstCommit = c
-		return storer.ErrStop
+		if oldestCommit == nil || c.Committer.When.Before(oldestCommit.Committer.When) {
+			oldestCommit = c
+		}
+		return nil
 	})
-	if err != nil && !errors.Is(err, storer.ErrStop) {
+	if err != nil {
 		return time.Time{}, fmt.Errorf("commitIter.ForEach: %w", err)
 	}
 
-	if firstCommit == nil {
+	if oldestCommit == nil {
 		return time.Time{}, errNilCommitFound
 	}
 
-	// Return the commit time of the first commit
-	return firstCommit.Committer.When, nil
+	return oldestCommit.Committer.When, nil
 }
 
 func (c *Client) GetDefaultBranchName() (string, error) {
