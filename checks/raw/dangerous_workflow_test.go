@@ -101,6 +101,26 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "fork repo description",
+			variable: "github.event.pull_request.head.repo.description",
+			expected: true,
+		},
+		{
+			name:     "fork repo homepage",
+			variable: "github.event.pull_request.head.repo.homepage",
+			expected: true,
+		},
+		{
+			name:     "trusted fork repo id",
+			variable: "github.event.pull_request.head.repo.id",
+			expected: false,
+		},
+		{
+			name:     "workflow_run head branch",
+			variable: "github.event.workflow_run.head_branch",
+			expected: true,
+		},
+		{
 			name:     "discussion title",
 			variable: "github.event.discussion.title",
 			expected: true,
