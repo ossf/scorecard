@@ -135,6 +135,96 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "toJSON(github.repository)",
 			expected: false,
 		},
+		{
+			name:     "commits committer name",
+			variable: "github.event.commits[0].committer.name",
+			expected: true,
+		},
+		{
+			name:     "commits committer email",
+			variable: "github.event.commits[0].committer.email",
+			expected: true,
+		},
+		{
+			name:     "head_commit committer name",
+			variable: "github.event.head_commit.committer.name",
+			expected: true,
+		},
+		{
+			name:     "head_commit committer email",
+			variable: "github.event.head_commit.committer.email",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_branch",
+			variable: "github.event.workflow_run.head_branch",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_commit message",
+			variable: "github.event.workflow_run.head_commit.message",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_commit author name",
+			variable: "github.event.workflow_run.head_commit.author.name",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_commit author email",
+			variable: "github.event.workflow_run.head_commit.author.email",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_commit committer name",
+			variable: "github.event.workflow_run.head_commit.committer.name",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_commit committer email",
+			variable: "github.event.workflow_run.head_commit.committer.email",
+			expected: true,
+		},
+		{
+			name:     "workflow_run pull_requests head ref",
+			variable: "github.event.workflow_run.pull_requests[0].head.ref",
+			expected: true,
+		},
+		{
+			name:     "fork forkee description",
+			variable: "github.event.fork.forkee.description",
+			expected: true,
+		},
+		{
+			name:     "release name",
+			variable: "github.event.release.name",
+			expected: true,
+		},
+		{
+			name:     "release body",
+			variable: "github.event.release.body",
+			expected: true,
+		},
+		{
+			name:     "release tag_name",
+			variable: "github.event.release.tag_name",
+			expected: true,
+		},
+		{
+			name:     "deployment payload",
+			variable: "github.event.deployment.payload",
+			expected: true,
+		},
+		{
+			name:     "deployment description",
+			variable: "github.event.deployment.description",
+			expected: true,
+		},
+		{
+			name:     "trusted workflow_run id",
+			variable: "github.event.workflow_run.id",
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

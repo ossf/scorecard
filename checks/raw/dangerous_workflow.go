@@ -42,16 +42,33 @@ func containsUntrustedContextPattern(variable string) bool {
 			`review_comment\.body|` +
 			`pages.*\.page_name|` +
 			`commits.*\.message|` +
+			`commits.*\.author\.email|` +
+			`commits.*\.author\.name|` +
+			`commits.*\.committer\.name|` +
+			`commits.*\.committer\.email|` +
 			`head_commit\.message|` +
 			`head_commit\.author\.email|` +
 			`head_commit\.author\.name|` +
-			`commits.*\.author\.email|` +
-			`commits.*\.author\.name|` +
+			`head_commit\.committer\.name|` +
+			`head_commit\.committer\.email|` +
 			`blocked_user\.name|` +
 			`blocked_user\.email|` +
 			`pull_request\.head\.ref|` +
 			`pull_request\.head\.label|` +
-			`pull_request\.head\.repo\.default_branch).*`)
+			`pull_request\.head\.repo\.default_branch|` +
+			`workflow_run\.head_branch|` +
+			`workflow_run\.head_commit\.message|` +
+			`workflow_run\.head_commit\.author\.name|` +
+			`workflow_run\.head_commit\.author\.email|` +
+			`workflow_run\.head_commit\.committer\.name|` +
+			`workflow_run\.head_commit\.committer\.email|` +
+			`workflow_run\.pull_requests.*\.head\.ref|` +
+			`fork\.forkee\.description|` +
+			`release\.name|` +
+			`release\.body|` +
+			`release\.tag_name|` +
+			`deployment\.payload|` +
+			`deployment\.description).*`)
 
 	if strings.Contains(variable, "github.head_ref") {
 		return true
