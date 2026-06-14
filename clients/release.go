@@ -20,10 +20,19 @@ type Release struct {
 	URL             string
 	TargetCommitish string
 	Assets          []ReleaseAsset
+	Tag             *ReleaseTag
 }
 
 // ReleaseAsset is part of the Release bundle.
 type ReleaseAsset struct {
 	Name string
 	URL  string
+}
+
+// ReleaseTag contains git tag metadata associated with a release.
+type ReleaseTag struct {
+	Name              string
+	URL               string
+	TargetCommitish   string
+	SignatureVerified bool
 }

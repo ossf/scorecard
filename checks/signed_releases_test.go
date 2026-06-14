@@ -54,7 +54,26 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: -1,
+				Score: 0,
+			},
+		},
+		{
+			name: "Release with verified signed tag",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					Tag: &clients.ReleaseTag{
+						Name:              "v1.0.0",
+						URL:               "http://foo.com/v1.0.0",
+						TargetCommitish:   "master",
+						SignatureVerified: true,
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
 			},
 		},
 		{

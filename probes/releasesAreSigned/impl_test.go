@@ -154,6 +154,47 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "Has verified signed tag.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Tag: &clients.ReleaseTag{
+								Name:              "v1.0",
+								URL:               "https://github.com/test/repo/releases/tag/v1.0",
+								TargetCommitish:   "abc123",
+								SignatureVerified: true,
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Has unsigned tag-only release.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Tag: &clients.ReleaseTag{
+								Name:            "v1.0",
+								URL:             "https://github.com/test/repo/releases/tag/v1.0",
+								TargetCommitish: "abc123",
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
 			name: "Many releases.",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{

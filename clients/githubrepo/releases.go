@@ -55,6 +55,12 @@ func (handler *releasesHandler) setup() error {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.releases = releasesFrom(releases)
+		tags, err := handler.listTagReleases()
+		if err != nil {
+			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
+		}
+		handler.releases = mergeTagReleases(handler.releases, tags)
 	})
 	return handler.errSetup
 }
@@ -81,6 +87,91 @@ func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 			})
 		}
 		releases = append(releases, release)
+	}
+	return releases
+}
+
+func (handler *releasesHandler) listTagReleases() ([]clients.Release, error) {
+	refs, _, err := handler.client.Git.ListMatchingRefs(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, "tags/",
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Git.ListMatchingRefs: %w", err)
+	}
+
+	releases := make([]clients.Release, 0, len(refs))
+	for _, ref := range refs {
+		tag := handler.releaseTagFromRef(ref)
+		if tag == nil {
+			continue
+		}
+
+		releases = append(releases, clients.Release{
+			TagName:         tag.Name,
+			URL:             tag.URL,
+			TargetCommitish: tag.TargetCommitish,
+			Tag:             tag,
+		})
+	}
+	return releases, nil
+}
+
+func (handler *releasesHandler) releaseTagFromRef(ref *github.Reference) *clients.ReleaseTag {
+	if ref == nil || ref.Object == nil {
+		return nil
+	}
+
+	name := strings.TrimPrefix(ref.GetRef(), "refs/tags/")
+	if name == "" {
+		return nil
+	}
+
+	tag := &clients.ReleaseTag{
+		Name:            name,
+		URL:             ref.GetURL(),
+		TargetCommitish: ref.Object.GetSHA(),
+	}
+
+	if ref.Object.GetType() != "tag" {
+		return tag
+	}
+
+	gitTag, _, err := handler.client.Git.GetTag(
+		handler.ctx, handler.repourl.owner, handler.repourl.repo, ref.Object.GetSHA(),
+	)
+	if err != nil {
+		return tag
+	}
+
+	if gitTag.Object != nil {
+		tag.TargetCommitish = gitTag.Object.GetSHA()
+	}
+	if gitTag.Verification != nil {
+		tag.SignatureVerified = gitTag.Verification.GetVerified()
+	}
+	return tag
+}
+
+func mergeTagReleases(releases, tags []clients.Release) []clients.Release {
+	if len(tags) == 0 {
+		return releases
+	}
+
+	releaseByTag := make(map[string]int, len(releases))
+	for i := range releases {
+		releaseByTag[releases[i].TagName] = i
+	}
+
+	for i := range tags {
+		tagRelease := tags[i]
+		if releaseIndex, ok := releaseByTag[tagRelease.TagName]; ok {
+			releases[releaseIndex].Tag = tagRelease.Tag
+			if releases[releaseIndex].TargetCommitish == "" {
+				releases[releaseIndex].TargetCommitish = tagRelease.TargetCommitish
+			}
+			continue
+		}
+		releases = append(releases, tagRelease)
 	}
 	return releases
 }

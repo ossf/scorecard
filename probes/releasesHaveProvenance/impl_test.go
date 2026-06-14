@@ -153,6 +153,26 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "Has tag-only release without provenance.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Tag: &clients.ReleaseTag{
+								Name:            "v1.0",
+								URL:             "https://github.com/test/repo/releases/tag/v1.0",
+								TargetCommitish: "abc123",
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
 			name: "enforce lookback limit of 5 releases",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{

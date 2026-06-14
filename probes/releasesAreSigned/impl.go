@@ -57,11 +57,26 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			break
 		}
 
-		if len(release.Assets) == 0 {
+		totalReleases++
+		if release.Tag != nil && release.Tag.SignatureVerified {
+			loc := &finding.Location{
+				Type: finding.FileTypeURL,
+				Path: release.Tag.URL,
+			}
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("signed release tag: %s", release.Tag.Name),
+				loc,
+				finding.OutcomeTrue)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f.Values = map[string]string{
+				ReleaseNameKey: release.TagName,
+			}
+			findings = append(findings, *f)
 			continue
 		}
 
-		totalReleases++
 		signed := false
 		for j := range release.Assets {
 			asset := release.Assets[j]
