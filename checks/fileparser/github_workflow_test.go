@@ -995,6 +995,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "changesets action",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-changesets-action.yaml",
+			expected: true,
+		},
+		{
+			name:     "changeset publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-changesets-cli.yaml",
+			expected: true,
+		},
+		{
 			name:     "regression",
 			filename: "../testdata/.github/workflows/spicedb-release.yaml",
 			expected: true,
