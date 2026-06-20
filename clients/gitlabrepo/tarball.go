@@ -175,8 +175,14 @@ func (handler *tarballHandler) getTarball() error {
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
 
-	handler.files = append(handler.files,
-		strings.TrimPrefix(ciYaml.Name(), filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
+	filename := strings.TrimPrefix(
+		ciYaml.Name(),
+		filepath.Clean(handler.tempDir)+string(os.PathSeparator),
+	)
+
+	filename = filepath.ToSlash(filename)
+
+	handler.files = append(handler.files, filename)
 	return nil
 }
 
@@ -263,8 +269,14 @@ func (handler *tarballHandler) extractTarball() error {
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
-			handler.files = append(handler.files,
-				strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
+			filename := strings.TrimPrefix(
+				filenamepath,
+				filepath.Clean(handler.tempDir)+string(os.PathSeparator),
+			)
+
+			filename = filepath.ToSlash(filename)
+
+			handler.files = append(handler.files, filename)
 		case tar.TypeXGlobalHeader, tar.TypeSymlink:
 			continue
 		default:
