@@ -725,6 +725,98 @@ func Test_fetchGitRepositoryFromRubyGems(t *testing.T) {
 	}
 }
 
+func Test_fetchGitRepositoryFromWinget(t *testing.T) {
+	t.Parallel()
+	type args struct {
+		packageName    string
+		versionsResult string
+		localeResult   string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "fetchGitRepositoryFromWinget_notepadplusplus",
+			args: args{
+				packageName:    "Notepad++.Notepad++",
+				versionsResult: `[{"name":"8.9.6.2","type":"dir"},{"name":"8.9.6.4","type":"dir"}]`,
+				localeResult: `# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+PackageIdentifier: Notepad++.Notepad++
+PackageVersion: 8.9.6.4
+PackageLocale: en-US
+Publisher: Notepad++ Team
+PackageName: Notepad++
+PackageUrl: https://notepad-plus-plus.org/
+License: GPL-3.0-or-later
+LicenseUrl: https://github.com/notepad-plus-plus/notepad-plus-plus/blob/HEAD/LICENSE
+ShortDescription: Notepad++ is a free source code editor that supports several languages.
+ManifestType: defaultLocale
+ManifestVersion: 1.12.0
+`,
+			},
+			want:    "https://github.com/notepad-plus-plus/notepad-plus-plus",
+			wantErr: false,
+		},
+		{
+			name: "fetchGitRepositoryFromWinget_no_github_url",
+			args: args{
+				packageName:    "Notepad++.Notepad++",
+				versionsResult: `[{"name":"8.9.6.4","type":"dir"}]`,
+				localeResult: `PackageIdentifier: Notepad++.Notepad++
+PackageVersion: 8.9.6.4
+PackageUrl: https://notepad-plus-plus.org/
+`,
+			},
+			want:    "",
+			wantErr: true,
+		},
+		{
+			name: "fetchGitRepositoryFromWinget_versions_error",
+			args: args{
+				packageName:    "Notepad++.Notepad++",
+				versionsResult: "",
+			},
+			want:    "",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			p := pmc.NewMockClient(ctrl)
+			p.EXPECT().GetURI(gomock.Any()).
+				DoAndReturn(func(uri string) (*http.Response, error) {
+					if strings.Contains(uri, "api.github.com") {
+						if tt.wantErr && tt.args.versionsResult == "" {
+							return nil, errors.New("error")
+						}
+						return &http.Response{
+							StatusCode: http.StatusOK,
+							Body:       io.NopCloser(bytes.NewBufferString(tt.args.versionsResult)),
+						}, nil
+					}
+					// raw.githubusercontent.com call
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(bytes.NewBufferString(tt.args.localeResult)),
+					}, nil
+				}).AnyTimes()
+			got, err := fetchGitRepositoryFromWinget(tt.args.packageName, p)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("fetchGitRepositoryFromWinget() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("fetchGitRepositoryFromWinget() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 	t.Parallel()
 	type args struct {

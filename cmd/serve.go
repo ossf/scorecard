@@ -50,6 +50,7 @@ type scorecardRequest struct {
 	PyPI            string   `json:"pypi,omitempty"`
 	RubyGems        string   `json:"rubygems,omitempty"`
 	Nuget           string   `json:"nuget,omitempty"`
+	Winget          string   `json:"winget,omitempty"`
 	Commit          string   `json:"commit,omitempty"`
 	FileMode        string   `json:"file_mode,omitempty"`
 	Checks          []string `json:"checks,omitempty"`
@@ -78,6 +79,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 		req.PyPI = r.URL.Query().Get("pypi")
 		req.RubyGems = r.URL.Query().Get("rubygems")
 		req.Nuget = r.URL.Query().Get("nuget")
+		req.Winget = r.URL.Query().Get("winget")
 		req.Checks = strings.Split(r.URL.Query().Get("checks"), ",")
 		req.Commit = r.URL.Query().Get("commit")
 		req.ShowDetails = r.URL.Query().Get("show_details") == "true"
@@ -95,6 +97,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	opts.PyPI = req.PyPI
 	opts.RubyGems = req.RubyGems
 	opts.Nuget = req.Nuget
+	opts.Winget = req.Winget
 	opts.Commit = req.Commit
 	if opts.Commit == "" {
 		opts.Commit = clients.HeadSHA
@@ -121,7 +124,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 
 	p := &pmc.PackageManagerClient{}
 	// Set repo from package managers
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(opts.NPM, opts.PyPI, opts.RubyGems, opts.Nuget, p)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(opts.NPM, opts.PyPI, opts.RubyGems, opts.Nuget, opts.Winget, p)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("fetchGitRepositoryFromPackageManagers: %v", err), http.StatusInternalServerError)
 		return

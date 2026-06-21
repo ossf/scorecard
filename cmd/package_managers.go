@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -71,7 +72,7 @@ type packageMangerResponse struct {
 	exists         bool
 }
 
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget, winget string,
 	manager pmc.Client,
 ) (packageMangerResponse, error) {
 	if npm != "" {
@@ -98,6 +99,13 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 	if nuget != "" {
 		nugetClient := ngt.NugetClient{Manager: manager}
 		gitRepo, err := fetchGitRepositoryFromNuget(nuget, &nugetClient)
+		return packageMangerResponse{
+			exists:         true,
+			associatedRepo: gitRepo,
+		}, err
+	}
+	if winget != "" {
+		gitRepo, err := fetchGitRepositoryFromWinget(winget, manager)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
@@ -218,4 +226,89 @@ func fetchGitRepositoryFromNuget(packageName string, nugetClient ngt.Client) (st
 			fmt.Sprintf("could not find source repo for nuget package: %v", err))
 	}
 	return repositoryURI, nil
+}
+
+type wingetContentsEntry struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+var wingetGitHubURLRegexp = regexp.MustCompile(`https?://github\.com/[^\s"']+`)
+
+// Gets the GitHub repository URL for the winget package.
+// Reads manifests directly from the microsoft/winget-pkgs GitHub repository.
+// Note: https://api.winget.run/v2 was considered but appears unmaintained
+func fetchGitRepositoryFromWinget(packageID string, manager pmc.Client) (string, error) {
+	dotIdx := strings.Index(packageID, ".")
+	if dotIdx < 0 {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("invalid winget package ID format (expected Publisher.Name): %s", packageID))
+	}
+	publisher := packageID[:dotIdx]
+	appName := packageID[dotIdx+1:]
+	firstChar := strings.ToLower(string([]rune(publisher)[0]))
+
+	// List version directories from microsoft/winget-pkgs
+	versionsURL := fmt.Sprintf(
+		"https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/%s/%s/%s",
+		firstChar, url.PathEscape(publisher), url.PathEscape(appName),
+	)
+	resp, err := manager.GetURI(versionsURL)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to fetch winget versions for %s: %v", packageID, err))
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find winget package: %s", packageID))
+	}
+
+	var entries []wingetContentsEntry
+	if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to parse winget versions response: %v", err))
+	}
+	if len(entries) == 0 {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("no versions found for winget package: %s", packageID))
+	}
+
+	// Take the last listed version (most recently added to the repo)
+	latestVersion := entries[len(entries)-1].Name
+
+	// Fetch the locale YAML from raw.githubusercontent.com (no auth required for public repos)
+	localeFile := fmt.Sprintf("%s.%s.locale.en-US.yaml", publisher, appName)
+	rawURL := fmt.Sprintf(
+		"https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/%s/%s/%s/%s/%s",
+		firstChar,
+		url.PathEscape(publisher),
+		url.PathEscape(appName),
+		url.PathEscape(latestVersion),
+		url.PathEscape(localeFile),
+	)
+	yamlResp, err := manager.GetURI(rawURL)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to fetch winget locale manifest for %s: %v", packageID, err))
+	}
+	defer yamlResp.Body.Close()
+
+	body, err := io.ReadAll(yamlResp.Body)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("failed to read winget locale manifest for %s: %v", packageID, err))
+	}
+
+	// Scan the YAML for any GitHub URL and extract the repo root
+	for _, rawMatch := range wingetGitHubURLRegexp.FindAll(body, -1) {
+		for _, matcher := range pypiMatchers {
+			if repo := matcher(string(rawMatch)); repo != "" {
+				return repo, nil
+			}
+		}
+	}
+
+	return "", sce.WithMessage(sce.ErrScorecardInternal,
+		fmt.Sprintf("could not find source repo for winget package: %s", packageID))
 }

@@ -41,6 +41,7 @@ type Options struct {
 	PyPI            string
 	RubyGems        string
 	Nuget           string
+	Winget          string
 	PolicyFile      string
 	ResultsFile     string
 	FileMode        string
@@ -128,7 +129,7 @@ func (o *Options) Validate() error {
 	var errs []error
 
 	// Validate exactly one of `--repo`, `--repos`, `--org`, `--npm`, `--pypi`, `--rubygems`,
-	// `--nuget`, `--local` is enabled.
+	// `--nuget`, `--winget`, `--local` is enabled.
 	if boolSum(o.Repo != "",
 		len(o.Repos) > 0,
 		o.Org != "",
@@ -136,6 +137,7 @@ func (o *Options) Validate() error {
 		o.PyPI != "",
 		o.RubyGems != "",
 		o.Nuget != "",
+		o.Winget != "",
 		o.Local != "") != 1 {
 		errs = append(
 			errs,
