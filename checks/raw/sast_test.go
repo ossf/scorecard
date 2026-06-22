@@ -271,6 +271,75 @@ func TestSAST(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "Has Semgrep",
+			files: []string{".github/workflows/github-semgrep-workflow.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.SemgrepWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-semgrep-workflow.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "Has Bandit",
+			files: []string{".github/workflows/github-bandit-workflow.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.BanditWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-bandit-workflow.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:  "Has gosec",
+			files: []string{".github/workflows/github-gosec-workflow.yaml"},
+			commits: []clients.Commit{
+				{
+					AssociatedMergeRequest: clients.PullRequest{
+						Number: 1,
+					},
+				},
+			},
+			expected: checker.SASTData{
+				Workflows: []checker.SASTWorkflow{
+					{
+						Type: checker.GosecWorkflow,
+						File: checker.File{
+							Path:   ".github/workflows/github-gosec-workflow.yaml",
+							Offset: checker.OffsetDefault,
+							Type:   finding.FileTypeSource,
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

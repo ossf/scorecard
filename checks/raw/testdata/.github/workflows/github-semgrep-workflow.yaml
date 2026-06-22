@@ -1,0 +1,23 @@
+name: Semgrep
+on:
+  pull_request: {}
+  push:
+    branches:
+      - main
+      - 'releases/*'
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    name: semgrep/ci
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: semgrep/semgrep@v1
+        with:
+          config: p/default
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}

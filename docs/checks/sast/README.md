@@ -7,6 +7,12 @@
   * Detection based on GitHub workflows using one of the actions from the set at https://github.com/snyk/actions
 * [Sonar](https://docs.sonarsource.com/sonarqube/latest/setup-and-upgrade/overview/)
   * Detection based on the presence of a `pom.xml` file specifying a `sonar.host.url`, or GitHub Action checks run against PRs.
+* [Semgrep](https://github.com/semgrep/semgrep)
+  * Detection based on GitHub workflows using `semgrep/semgrep` or the legacy `returntocorp/semgrep-action`.
+* [Bandit](https://github.com/PyCQA/bandit-action)
+  * Detection based on GitHub workflows using `PyCQA/bandit-action`.
+* [gosec](https://github.com/securego/gosec)
+  * Detection based on GitHub workflows using `securego/gosec` or `securecodewarrior/github-action-gosec`.
 
 # Add Support
 

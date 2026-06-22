@@ -93,6 +93,24 @@ func SAST(c *checker.CheckRequest) (checker.SASTData, error) {
 	}
 	data.Workflows = append(data.Workflows, hadolintWorkflows...)
 
+	semgrepWorkflows, err := getSastUsesWorkflows(c, "^returntocorp/semgrep-action$|^semgrep/semgrep$", checker.SemgrepWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, semgrepWorkflows...)
+
+	banditWorkflows, err := getSastUsesWorkflows(c, "^PyCQA/bandit-action$", checker.BanditWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, banditWorkflows...)
+
+	gosecWorkflows, err := getSastUsesWorkflows(c, "^securego/gosec$|^securecodewarrior/github-action-gosec$", checker.GosecWorkflow)
+	if err != nil {
+		return data, err
+	}
+	data.Workflows = append(data.Workflows, gosecWorkflows...)
+
 	return data, nil
 }
 
