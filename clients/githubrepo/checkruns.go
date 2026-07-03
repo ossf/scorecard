@@ -113,7 +113,7 @@ func (handler *checkrunsHandler) setup() error {
 		if err := handler.graphClient.Query(handler.ctx, handler.checkData, vars); err != nil {
 			// quit early without setting crsErrSetup for "Resource not accessible by integration" error
 			// for whatever reason, this check doesn't work with a GITHUB_TOKEN, only a PAT
-			if strings.Contains(err.Error(), "Resource not accessible by integration") {
+			if strings.Contains(err.Error(), "Resource not accessible by integration") || strings.Contains(err.Error(), "Resource not accessible by personal access token") {
 				return
 			}
 			handler.errSetup = err
