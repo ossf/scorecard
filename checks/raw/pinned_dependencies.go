@@ -35,6 +35,19 @@ import (
 	"github.com/ossf/scorecard/v5/remediation"
 )
 
+// The dependency must be pinned by sha256 hash, e.g.,
+// FROM something@sha256:${ARG},
+// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
+var dockerfilePinnedRegex = regexp.MustCompile(`.*@sha256:([a-f\d]{64}|\${.*})`)
+
+var githubVarRegex = regexp.MustCompile(`{{[^{}]*}}`)
+
+var (
+	localActionRegex     = regexp.MustCompile(`^\..+[^/]`)
+	publicActionRegex    = regexp.MustCompile(`.*@[a-fA-F\d]{40,}`)
+	dockerhubActionRegex = regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
+)
+
 type dotnetCsprojLockedData struct {
 	Path          string
 	LockedModeSet bool
@@ -487,10 +500,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
 	contentReader := bytes.NewReader(content)
-	// The dependency must be pinned by sha256 hash, e.g.,
-	// FROM something@sha256:${ARG},
-	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
-	regex := regexp.MustCompile(`.*@sha256:([a-f\d]{64}|\${.*})`)
+	regex := dockerfilePinnedRegex
 
 	pinnedAsNames := make(map[string]bool)
 	res, err := parser.Parse(contentReader)
@@ -642,7 +652,6 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		return false, fileparser.FormatActionlintError(errs)
 	}
 
-	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
 	for jobName, job := range workflow.Jobs {
 		if len(fileparser.GetJobName(job)) > 0 {
 			jobName = fileparser.GetJobName(job)
@@ -831,16 +840,13 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 }
 
 func isActionDependencyPinned(actionUses string) bool {
-	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
 	if localActionRegex.MatchString(actionUses) {
 		return true
 	}
 
-	publicActionRegex := regexp.MustCompile(`.*@[a-fA-F\d]{40,}`)
 	if publicActionRegex.MatchString(actionUses) {
 		return true
 	}
 
-	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
 	return dockerhubActionRegex.MatchString(actionUses)
 }
