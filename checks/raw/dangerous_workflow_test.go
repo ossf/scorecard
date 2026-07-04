@@ -106,19 +106,19 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
-    		name:     "issue comment body",
-    		variable: "github.event.issue_comment.comment.body",
-    		expected: true,
+			name:     "issue comment body",
+			variable: "github.event.issue_comment.comment.body",
+			expected: true,
 		},
 		{
-		    name:     "commit comment body",
-		    variable: "github.event.commit_comment.comment.body",
-		    expected: true,
+			name:     "commit comment body",
+			variable: "github.event.commit_comment.comment.body",
+			expected: true,
 		},
 		{
-		    name:     "fork forkee name",
-		    variable: "github.event.fork.forkee.name",
-		    expected: true,
+			name:     "fork forkee name",
+			variable: "github.event.fork.forkee.name",
+			expected: true,
 		},
 		{
 			name:     "toJSON github.event",
