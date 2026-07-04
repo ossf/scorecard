@@ -38,12 +38,12 @@ func containsUntrustedContextPattern(variable string) bool {
 			`discussion\.title|` +
 			`discussion\.body|` +
 			`comment\.body|` +
-				`issue_comment\.comment\.body|` +
-				`commit_comment\.comment\.body|` +
+			`issue_comment\.comment\.body|` +
+			`commit_comment\.comment\.body|` +
 			`review\.body|` +
 			`review_comment\.body|` +
 			`pages.*\.page_name|` +
-				`fork\.forkee\.name|` +
+			`fork\.forkee\.name|` +
 			`commits.*\.message|` +
 			`head_commit\.message|` +
 			`head_commit\.author\.email|` +
