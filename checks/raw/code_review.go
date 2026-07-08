@@ -70,7 +70,7 @@ func getProwRevisionID(c *clients.Commit) string {
 	mr := c.AssociatedMergeRequest
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
 		for _, l := range c.AssociatedMergeRequest.Labels {
-			if l.Name == "lgtm" || l.Name == "approved" && mr.Number != 0 {
+			if (l.Name == "lgtm" || l.Name == "approved") && mr.Number != 0 {
 				return strconv.Itoa(mr.Number)
 			}
 		}
