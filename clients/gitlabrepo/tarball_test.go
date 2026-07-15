@@ -15,10 +15,13 @@
 package gitlabrepo
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -26,6 +29,35 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 )
+
+func createTarball(t *testing.T, files map[string]string) string {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "archive.tar.gz")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatalf("create archive: %v", err)
+	}
+	gz := gzip.NewWriter(f)
+	tw := tar.NewWriter(gz)
+	for name, contents := range files {
+		if err := tw.WriteHeader(&tar.Header{Name: name, Mode: 0o644, Size: int64(len(contents))}); err != nil {
+			t.Fatalf("write header: %v", err)
+		}
+		if _, err := tw.Write([]byte(contents)); err != nil {
+			t.Fatalf("write contents: %v", err)
+		}
+	}
+	if err := tw.Close(); err != nil {
+		t.Fatalf("close tar writer: %v", err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatalf("close gzip writer: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("close archive: %v", err)
+	}
+	return path
+}
 
 type listfileTest struct {
 	predicate func(string) (bool, error)
@@ -178,5 +210,34 @@ func TestExtractTarball(t *testing.T) {
 				t.Error("client.files not cleaned up!")
 			}
 		})
+	}
+}
+
+func TestExtractTarballCreatesMissingDirectoriesAndEmptyFiles(t *testing.T) {
+	t.Parallel()
+	handler, err := setup(createTarball(t, map[string]string{
+		"project/nested/deep/file.txt": "contents",
+		"project/empty.txt":            "",
+	}))
+	if err != nil {
+		t.Fatalf("test setup failed: %v", err)
+	}
+	defer handler.cleanup()
+
+	if err := handler.extractTarball(); err != nil {
+		t.Fatalf("extract tarball: %v", err)
+	}
+	for filename, want := range map[string]string{
+		"nested/deep/file.txt": "contents",
+		"empty.txt":            "",
+	} {
+		got, err := os.ReadFile(filepath.Join(handler.tempDir, filename))
+		if err != nil {
+			t.Errorf("read %q: %v", filename, err)
+			continue
+		}
+		if string(got) != want {
+			t.Errorf("contents of %q = %q, want %q", filename, got, want)
+		}
 	}
 }
