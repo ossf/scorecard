@@ -963,6 +963,15 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 
 	// Pip install.
 	if isPipDownload(c) {
+		pinned := !isPipUnpinnedDownload(c)
+		var remediation *finding.Remediation
+		if !pinned {
+			remediation = &finding.Remediation{
+				Text: "pin your pip installs by using a requirements file with hashes and " +
+					"passing the --require-hashes option " +
+					"(https://pip.pypa.io/en/stable/topics/secure-installs/#hash-checking-mode)",
+			}
+		}
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -972,8 +981,9 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(!isPipUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypePipCommand,
+				Pinned:      &pinned,
+				Type:        checker.DependencyUseTypePipCommand,
+				Remediation: remediation,
 			},
 		)
 
