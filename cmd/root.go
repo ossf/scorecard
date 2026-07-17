@@ -257,12 +257,6 @@ func makeRepo(uri string) (clients.Repo, error) {
 	}
 	compositeErr = errors.Join(compositeErr, errGitHub)
 
-	repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
-	if errGitLab == nil {
-		return repo, nil
-	}
-	compositeErr = errors.Join(compositeErr, errGitLab)
-
 	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	if experimental {
 		repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
@@ -270,7 +264,16 @@ func makeRepo(uri string) (clients.Repo, error) {
 			return repo, nil
 		}
 		compositeErr = errors.Join(compositeErr, errAzureDevOps)
+		if azuredevopsrepo.HasAzureDevOpsHost(uri) {
+			return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
+		}
 	}
+
+	repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
+	if errGitLab == nil {
+		return repo, nil
+	}
+	compositeErr = errors.Join(compositeErr, errGitLab)
 
 	return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
 }
