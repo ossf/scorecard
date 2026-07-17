@@ -222,7 +222,11 @@ func TestExtractTarballCreatesMissingDirectoriesAndEmptyFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("test setup failed: %v", err)
 	}
-	defer handler.cleanup()
+	defer func() {
+		if err := handler.cleanup(); err != nil {
+			t.Fatalf("cleanup failed: %v", err)
+		}
+	}()
 
 	if err := handler.extractTarball(); err != nil {
 		t.Fatalf("extract tarball: %v", err)
