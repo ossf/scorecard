@@ -59,3 +59,10 @@ type RepoClient interface {
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)
 	Close() error
 }
+
+// PrivateVulnerabilityReportingClient exposes repository-level support for
+// privately reporting vulnerabilities. Not every repository provider supports
+// this capability, so it is intentionally kept separate from RepoClient.
+type PrivateVulnerabilityReportingClient interface {
+	IsPrivateVulnerabilityReportingEnabled() (bool, error)
+}

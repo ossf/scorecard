@@ -37,6 +37,7 @@ type securityPolicyFilesWithURI struct {
 // SecurityPolicy checks for presence of security policy
 // and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
+	privateReporting := privateVulnerabilityReportingStatus(c.RepoClient)
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
@@ -55,7 +56,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{
+			PolicyFiles:                   data.files,
+			PrivateVulnerabilityReporting: privateReporting,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +99,31 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{
+		PolicyFiles:                   data.files,
+		PrivateVulnerabilityReporting: privateReporting,
+	}, nil
+}
+
+func privateVulnerabilityReportingStatus(
+	repoClient clients.RepoClient,
+) checker.PrivateVulnerabilityReportingStatus {
+	client, ok := repoClient.(clients.PrivateVulnerabilityReportingClient)
+	if !ok {
+		return checker.PrivateVulnerabilityReportingNotSupported
+	}
+
+	enabled, err := client.IsPrivateVulnerabilityReportingEnabled()
+	switch {
+	case errors.Is(err, clients.ErrUnsupportedFeature):
+		return checker.PrivateVulnerabilityReportingNotSupported
+	case err != nil:
+		return checker.PrivateVulnerabilityReportingNotAvailable
+	case enabled:
+		return checker.PrivateVulnerabilityReportingEnabled
+	default:
+		return checker.PrivateVulnerabilityReportingDisabled
+	}
 }
 
 // Check repository for repository-specific policy.

@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"io"
 	"os"
 	"strings"
@@ -23,9 +24,20 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
+
+type privateReportingRepoClient struct {
+	clients.RepoClient
+	enabled bool
+	err     error
+}
+
+func (c *privateReportingRepoClient) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return c.enabled, c.err
+}
 
 func Test_isSecurityPolicyFilename(t *testing.T) {
 	t.Parallel()
@@ -55,6 +67,66 @@ func Test_isSecurityPolicyFilename(t *testing.T) {
 			t.Parallel()
 			if got := isSecurityPolicyFilename(tt.filename); got != tt.expected {
 				t.Errorf("isSecurityPolicyFilename() = %v, want %v for %v", got, tt.expected, tt.name)
+			}
+		})
+	}
+}
+
+func TestPrivateVulnerabilityReportingStatus(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		enabled bool
+		err     error
+		capable bool
+		want    checker.PrivateVulnerabilityReportingStatus
+	}{
+		{
+			name:    "enabled",
+			enabled: true,
+			capable: true,
+			want:    checker.PrivateVulnerabilityReportingEnabled,
+		},
+		{
+			name:    "disabled",
+			capable: true,
+			want:    checker.PrivateVulnerabilityReportingDisabled,
+		},
+		{
+			name:    "unsupported",
+			err:     clients.ErrUnsupportedFeature,
+			capable: true,
+			want:    checker.PrivateVulnerabilityReportingNotSupported,
+		},
+		{
+			name:    "not available",
+			err:     errors.New("api unavailable"),
+			capable: true,
+			want:    checker.PrivateVulnerabilityReportingNotAvailable,
+		},
+		{
+			name: "client has no capability",
+			want: checker.PrivateVulnerabilityReportingNotSupported,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			baseClient := mockrepo.NewMockRepoClient(ctrl)
+			var repoClient clients.RepoClient = baseClient
+			if tt.capable {
+				repoClient = &privateReportingRepoClient{
+					RepoClient: baseClient,
+					enabled:    tt.enabled,
+					err:        tt.err,
+				}
+			}
+
+			got := privateVulnerabilityReportingStatus(repoClient)
+			if got != tt.want {
+				t.Errorf("privateVulnerabilityReportingStatus() = %v, want %v", got, tt.want)
 			}
 		})
 	}
