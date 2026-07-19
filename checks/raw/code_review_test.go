@@ -406,3 +406,55 @@ func Test_getChangesets(t *testing.T) {
 		})
 	}
 }
+
+func Test_getProwRevisionID(t *testing.T) {
+	t.Parallel()
+	merged := time.Date(2023, time.March, 21, 13, 42, 0, 0, time.UTC)
+	tests := []struct {
+		name     string
+		commit   clients.Commit
+		expected string
+	}{
+		{
+			name: "lgtm label with a valid merge request number",
+			commit: clients.Commit{
+				AssociatedMergeRequest: clients.PullRequest{
+					Number:   7,
+					MergedAt: merged,
+					Labels:   []clients.Label{{Name: "lgtm"}},
+				},
+			},
+			expected: "7",
+		},
+		{
+			name: "lgtm label but no merge request number",
+			commit: clients.Commit{
+				AssociatedMergeRequest: clients.PullRequest{
+					Number:   0,
+					MergedAt: merged,
+					Labels:   []clients.Label{{Name: "lgtm"}},
+				},
+			},
+			expected: "",
+		},
+		{
+			name: "approved label but no merge request number",
+			commit: clients.Commit{
+				AssociatedMergeRequest: clients.PullRequest{
+					Number:   0,
+					MergedAt: merged,
+					Labels:   []clients.Label{{Name: "approved"}},
+				},
+			},
+			expected: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := getProwRevisionID(&tt.commit); got != tt.expected {
+				t.Errorf("getProwRevisionID() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
