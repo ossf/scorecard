@@ -572,6 +572,20 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate rust publishing workflow using cargo",
 		},
 		{
+			// Rust packages via cargo-dist (axodotdev). Builds multi-platform
+			// release artifacts; often used instead of bare `cargo publish` in
+			// the top-level workflow. See https://opensource.axo.dev/cargo-dist/
+			// and https://github.com/ossf/scorecard/issues/5145.
+			Steps: []*JobMatcherStep{
+				{
+					// Match `dist plan|build|publish` or `cargo dist ...`.
+					// Word boundary on `dist` avoids matching "distribution".
+					Run: `(?:^|[\s;&|])dist (?:plan|build|publish)\b|cargo dist\b`,
+				},
+			},
+			LogText: "candidate rust publishing workflow using cargo-dist",
+		},
+		{
 			// Ko container action. https://github.com/google/ko
 			Steps: []*JobMatcherStep{
 				{
