@@ -144,6 +144,7 @@ func (handler *tarballHandler) getTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.CreateTemp: %w", err)
 	}
+	defer ciFile.Close()
 	err = handler.apiFunction(url, tempDir, ciFile)
 	if err != nil {
 		return fmt.Errorf("gitlab.apiFunction: %w", err)
@@ -210,10 +211,12 @@ func (handler *tarballHandler) extractTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
+	defer in.Close()
 	gz, err := gzip.NewReader(in)
 	if err != nil {
 		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
+	defer gz.Close()
 	tr := tar.NewReader(gz)
 	for {
 		header, err := tr.Next()
@@ -260,6 +263,7 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
+				outFile.Close()
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
