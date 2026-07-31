@@ -1,0 +1,162 @@
+package provider
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
+)
+
+// DefaultRESTBaseURL is the public cached OpenSSF Scorecard REST API.
+const DefaultRESTBaseURL = "https://api.scorecard.dev"
+
+// Sentinel errors returned for non-200 responses.
+var (
+	errBadRequest       = errors.New("invalid Scorecard REST API request")
+	errUnexpectedStatus = errors.New("unexpected Scorecard REST API status")
+)
+
+var cachedCaveats = []string{
+	"Cached results cover only projects that have opted in via publish_results: true.",
+	"The weekly public scan omits the CI-Tests, Contributors, and Dependency-Update-Tool checks.",
+	"Scorecard results are heuristic signals, not a guarantee of security; there are false positives and false negatives.",
+}
+
+// CachedRESTProvider reads pre-computed results from the public Scorecard REST API.
+type CachedRESTProvider struct {
+	BaseURL string
+	Client  *http.Client
+}
+
+// Compile-time check that CachedRESTProvider implements Provider.
+var _ Provider = (*CachedRESTProvider)(nil)
+
+// NewCachedREST returns a CachedRESTProvider. If baseURL is empty, the public
+// API (DefaultRESTBaseURL) is used.
+func NewCachedREST(baseURL string) *CachedRESTProvider {
+	if baseURL == "" {
+		baseURL = DefaultRESTBaseURL
+	}
+	return &CachedRESTProvider{
+		BaseURL: strings.TrimSuffix(baseURL, "/"),
+		Client:  &http.Client{Timeout: 30 * time.Second},
+	}
+}
+
+// Capabilities implements Provider.
+func (p *CachedRESTProvider) Capabilities() Capabilities {
+	return Capabilities{
+		Source:        model.SourceCachedREST,
+		Complete:      false,
+		OmittedChecks: []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"},
+	}
+}
+
+// restResult mirrors the api.scorecard.dev getResult response body.
+type restResult struct {
+	Date string `json:"date"`
+	Repo struct {
+		Name   string `json:"name"`
+		Commit string `json:"commit"`
+	} `json:"repo"`
+	Scorecard struct {
+		Version string `json:"version"`
+		Commit  string `json:"commit"`
+	} `json:"scorecard"`
+	Score  float64 `json:"score"`
+	Checks []struct {
+		Name          string   `json:"name"`
+		Score         int      `json:"score"`
+		Reason        string   `json:"reason"`
+		Details       []string `json:"details"`
+		Documentation *struct {
+			Short string `json:"short"`
+			URL   string `json:"url"`
+		} `json:"documentation"`
+	} `json:"checks"`
+}
+
+// GetResult implements Provider by querying the cached REST API.
+func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, commit string) (*model.Result, error) {
+	endpoint := fmt.Sprintf("%s/projects/%s/%s/%s",
+		p.BaseURL,
+		url.PathEscape(ref.Platform),
+		url.PathEscape(ref.Org),
+		url.PathEscape(ref.Name),
+	)
+	if commit != "" {
+		endpoint += "?commit=" + url.QueryEscape(commit)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, nil)
+	if err != nil {
+		return nil, fmt.Errorf("building request: %w", err)
+	}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := p.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("requesting Scorecard results for %s: %w", ref.String(), err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	switch resp.StatusCode {
+	case http.StatusOK:
+		// proceed
+	case http.StatusNotFound:
+		return nil, &NotFoundError{Ref: ref}
+	case http.StatusBadRequest:
+		return nil, fmt.Errorf("%w for %s (HTTP 400); check the repository reference and commit", errBadRequest, ref.String())
+	default:
+		return nil, fmt.Errorf("%w %d for %s", errUnexpectedStatus, resp.StatusCode, ref.String())
+	}
+
+	var rr restResult
+	if err := json.NewDecoder(resp.Body).Decode(&rr); err != nil {
+		return nil, fmt.Errorf("decoding Scorecard results for %s: %w", ref.String(), err)
+	}
+	return p.toResult(ref, commit, &rr), nil
+}
+
+func (p *CachedRESTProvider) toResult(ref model.RepoRef, commit string, rr *restResult) *model.Result {
+	checks := make([]model.Check, 0, len(rr.Checks))
+	for _, c := range rr.Checks {
+		mc := model.Check{
+			Name:    c.Name,
+			Score:   c.Score,
+			Reason:  c.Reason,
+			Details: c.Details,
+		}
+		if c.Documentation != nil {
+			mc.Documentation = &model.Documentation{Short: c.Documentation.Short, URL: c.Documentation.URL}
+		}
+		checks = append(checks, mc)
+	}
+
+	resolvedCommit := rr.Repo.Commit
+	if resolvedCommit == "" {
+		resolvedCommit = commit
+	}
+
+	return &model.Result{
+		Repo:      ref,
+		Commit:    resolvedCommit,
+		Date:      rr.Date,
+		Scorecard: model.ScorecardInfo{Version: rr.Scorecard.Version, Commit: rr.Scorecard.Commit},
+		Source:    model.SourceCachedREST,
+		Score:     rr.Score,
+		Checks:    checks,
+		Caveats:   cachedCaveats,
+		Attribution: &model.Attribution{
+			DataLicense: "CDLA-Permissive-2.0",
+			SourceURL:   p.BaseURL,
+		},
+		Complete: false,
+	}
+}
