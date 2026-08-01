@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/catalog"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/provider"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/scorecardref"
@@ -81,7 +83,7 @@ type compareReposOutput struct {
 }
 
 // registerResultTools registers the scorecard-results capability tools.
-func registerResultTools(s *mcp.Server, p provider.Provider) {
+func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalog) {
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "get_repo_score",
 		Description: "Return an OpenSSF Scorecard aggregate score and a per-check summary " +
@@ -137,9 +139,7 @@ func registerResultTools(s *mcp.Server, p provider.Provider) {
 		}
 		c, ok := res.FindCheck(in.Check)
 		if !ok {
-			return nil, getCheckResultOutput{}, fmt.Errorf(
-				"%w: %q for %s; use list_checks to see valid check names",
-				errCheckNotFound, in.Check, ref.String())
+			return nil, getCheckResultOutput{}, checkAbsenceError(in.Check, ref.String(), cat, p)
 		}
 		return nil, getCheckResultOutput{
 			Repo:        res.Repo,
@@ -183,6 +183,29 @@ func registerResultTools(s *mcp.Server, p provider.Provider) {
 		}
 		return nil, out, nil
 	})
+}
+
+// checkAbsenceError explains why a requested check is missing from a
+// repository's results, distinguishing an unknown check name, a known but
+// experimental check, and a known check this provider's scan omits.
+func checkAbsenceError(name, repo string, cat *catalog.Catalog, p provider.Provider) error {
+	detail, err := cat.Explain(name)
+	if err != nil {
+		return fmt.Errorf("%w: %q; use list_checks to see valid check names", errCheckUnknown, name)
+	}
+	if detail.Experimental {
+		return fmt.Errorf(
+			"%w: %q is only included when a scan runs with SCORECARD_EXPERIMENTAL set",
+			errCheckExperimental, name)
+	}
+	for _, oc := range p.Capabilities().OmittedChecks {
+		if strings.EqualFold(oc, name) {
+			return fmt.Errorf(
+				"%w: %s omits %q from its results; live scanning will cover it in a future version",
+				errCheckOmitted, p.Capabilities().Source, name)
+		}
+	}
+	return fmt.Errorf("%w: no result for %q on %s with this provider", errCheckOmitted, name, repo)
 }
 
 // compareOne fetches one repository's aggregate score for compare_repos,
