@@ -209,7 +209,7 @@ func (z *zipHandler) extractZip() error {
 		outFile.Close()
 
 		filename := strings.TrimPrefix(filenamepath, destinationPrefix)
-		z.files = append(z.files, filename)
+		z.files = append(z.files, filepath.ToSlash(filename))
 	}
 	return nil
 }
