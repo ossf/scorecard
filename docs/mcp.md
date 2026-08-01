@@ -53,6 +53,13 @@ cd scorecard-mcp
 go build -o bin/scorecard-mcp ./cmd/scorecard-mcp
 ```
 
+> **Troubleshooting:** if `go build` fails with
+> `compile: version "X" does not match go tool version "Y"` across many
+> stdlib packages, you have a stray `GOROOT` environment variable pointing at
+> a different Go toolchain than the one on `PATH` (common with multiple Go
+> version managers, e.g. gimme). Run `env -u GOROOT go build ...` instead, or
+> unset `GOROOT` in your shell profile.
+
 The server speaks MCP over **stdio**; no credentials are required for the cached
 REST provider.
 
@@ -133,6 +140,9 @@ See [`AGENTS.md`](AGENTS.md) for the workflow and conventions.
 go test ./...
 golangci-lint run ./...
 ```
+
+(See the [Install](#install) troubleshooting note if these fail with a Go
+toolchain version mismatch.)
 
 ## Roadmap
 

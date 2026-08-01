@@ -15,9 +15,11 @@ var Version = "dev"
 
 // Sentinel errors returned by tool handlers.
 var (
-	errCheckRequired = errors.New("check is required; use list_checks to discover valid check names")
-	errCheckNotFound = errors.New("check not found in results")
-	errReposRequired = errors.New("repos is required; provide one or more repository references")
+	errCheckRequired     = errors.New("check is required; use list_checks to discover valid check names")
+	errCheckUnknown      = errors.New("not a Scorecard check")
+	errCheckExperimental = errors.New("check is experimental")
+	errCheckOmitted      = errors.New("check omitted from this provider's scan")
+	errReposRequired     = errors.New("repos is required; provide one or more repository references")
 )
 
 // instructions is placed in the client's system prompt. It carries the
@@ -47,12 +49,11 @@ func New(p provider.Provider) (*mcp.Server, error) {
 		Instructions: instructions,
 	})
 
-	registerResultTools(s, p)
-
 	cat, err := catalog.New()
 	if err != nil {
 		return nil, err
 	}
+	registerResultTools(s, p, cat)
 	registerCatalogTools(s, cat)
 	registerCatalogResources(s, cat)
 

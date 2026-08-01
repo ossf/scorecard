@@ -19,7 +19,12 @@ var errUnknownCheck = errors.New("unknown check")
 // experimentalChecks lists checks excluded from Scorecard's default set unless
 // SCORECARD_EXPERIMENTAL is set. Source of truth: ossf/scorecard
 // checks/all_checks.go (getAll deletes these). This is version-sensitive;
-// revisit when upgrading the scorecard dependency.
+// catalog_test.go's TestExperimentalChecksVersionPin fails on a scorecard
+// version bump as a reminder to re-verify this list by hand. A test that
+// diffs checks.GetAllWithExperimental() against checks.GetAll() directly
+// would catch drift automatically, but importing the checks package pulls in
+// Scorecard's full client/raw-check dependency graph just for a test — not
+// worth that cost for a two-entry, rarely-changing list.
 var experimentalChecks = map[string]bool{
 	"Webhooks": true,
 	"SBOM":     true,

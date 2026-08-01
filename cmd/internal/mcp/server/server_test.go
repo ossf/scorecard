@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -13,8 +14,9 @@ import (
 
 // fakeProvider implements provider.Provider with canned data (no network).
 type fakeProvider struct {
-	result *model.Result
-	err    error
+	result        *model.Result
+	err           error
+	omittedChecks []string
 }
 
 func (f *fakeProvider) GetResult(_ context.Context, ref model.RepoRef, _ string) (*model.Result, error) {
@@ -27,7 +29,7 @@ func (f *fakeProvider) GetResult(_ context.Context, ref model.RepoRef, _ string)
 }
 
 func (f *fakeProvider) Capabilities() provider.Capabilities {
-	return provider.Capabilities{Source: model.SourceCachedREST}
+	return provider.Capabilities{Source: model.SourceCachedREST, OmittedChecks: f.omittedChecks}
 }
 
 func fakeResult() *model.Result {
@@ -152,6 +154,22 @@ func TestGetRepoScoreInvalidCommit(t *testing.T) {
 	}
 }
 
+// toolErrorText returns the text of a failed tool call's first content item.
+func toolErrorText(t *testing.T, res *mcp.CallToolResult) string {
+	t.Helper()
+	if !res.IsError {
+		t.Fatal("expected a tool error")
+	}
+	if len(res.Content) == 0 {
+		t.Fatal("expected error content")
+	}
+	tc, ok := res.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected text content, got %T", res.Content[0])
+	}
+	return tc.Text
+}
+
 func TestGetCheckResultUnknown(t *testing.T) {
 	t.Parallel()
 	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
@@ -164,8 +182,68 @@ func TestGetCheckResultUnknown(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CallTool: %v", err)
 	}
-	if !res.IsError {
-		t.Error("expected a tool error for an unknown check")
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "not a Scorecard check") {
+		t.Errorf("error = %q, want mention of an unknown check", text)
+	}
+}
+
+func TestGetCheckResultExperimental(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "SBOM"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "experimental") {
+		t.Errorf("error = %q, want mention that SBOM is experimental", text)
+	}
+}
+
+func TestGetCheckResultOmitted(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{
+		result:        fakeResult(),
+		omittedChecks: []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"},
+	})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "CI-Tests"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "omits") {
+		t.Errorf("error = %q, want mention that this provider omits the check", text)
+	}
+}
+
+func TestGetCheckResultAbsentGeneric(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	// License is a real, non-experimental check, not in fakeResult()'s
+	// checks and not in this fake provider's (empty) OmittedChecks.
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "License"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "no result for") {
+		t.Errorf("error = %q, want a generic no-result message", text)
 	}
 }
 

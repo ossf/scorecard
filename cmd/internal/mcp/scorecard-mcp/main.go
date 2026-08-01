@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -24,10 +25,14 @@ func main() {
 }
 
 func run() error {
+	baseURL := flag.String("base-url", os.Getenv("SCORECARD_MCP_BASE_URL"),
+		"Base URL of the Scorecard REST API (default: the public api.scorecard.dev)")
+	flag.Parse()
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	p := provider.NewCachedREST("")
+	p := provider.NewCachedREST(*baseURL)
 	s, err := server.New(p)
 	if err != nil {
 		return err
