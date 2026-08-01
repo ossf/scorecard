@@ -1,17 +1,13 @@
-# scorecard-mcp
+# `scorecard-mcp`
 
-[![ci](https://github.com/uwu-tools/scorecard-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/uwu-tools/scorecard-mcp/actions/workflows/ci.yml)
-[![lint](https://github.com/uwu-tools/scorecard-mcp/actions/workflows/lint.yml/badge.svg)](https://github.com/uwu-tools/scorecard-mcp/actions/workflows/lint.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/uwu-tools/scorecard-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/uwu-tools/scorecard-mcp)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-fbab2c.svg)](CODE_OF_CONDUCT.md)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 An [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server for
 [OpenSSF Scorecard](https://github.com/ossf/scorecard). It exposes Scorecard's
 security-posture data to MCP clients (Claude Desktop/Code, VS Code, and others)
 as well-typed, read-only tools and resources.
 
-> **Status: incubating.** This server currently reads pre-computed results from
+> **Status: experimental.** This server currently reads pre-computed results from
 > the public Scorecard REST API (`api.scorecard.dev`). On-demand, in-process
 > scanning (via the Scorecard library) is designed for but not yet implemented —
 > see [Roadmap](#roadmap). The intended endgame is to contribute this as an
@@ -129,8 +125,9 @@ Data from the REST API is licensed under
 ## Development
 
 This project is built spec-first with [OpenSpec](https://openspec.dev)
-(`openspec/`) and with the MCP dev Agent Skills. See [`AGENTS.md`](AGENTS.md) for
-the workflow and conventions.
+(`openspec/`) and with the MCP dev Agent Skills.
+
+See [`AGENTS.md`](AGENTS.md) for the workflow and conventions.
 
 ```sh
 go test ./...
@@ -145,10 +142,15 @@ golangci-lint run ./...
 - **Streamable HTTP transport** for hosted/mixed environments.
 - **Upstreaming** as an in-tree `scorecard mcp` subcommand in `ossf/scorecard`.
 
+## References
+
+- [Initial implementation and design decisions](docs/init-impl.md)
+- [MCP design audit and resolutions](docs/mcp-design-audit.md)
+
 ## Community
 
 - [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Contributing](CONTRIBUTING.md) (including the DCO sign-off requirement)
+- [Contributing](CONTRIBUTING.md)
 - [Security Policy](SECURITY.md)
 - [Support](SUPPORT.md)
 - [Maintainers](MAINTAINERS.md)
