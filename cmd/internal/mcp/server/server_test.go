@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -271,6 +272,130 @@ func TestCompareReposInlineError(t *testing.T) {
 	}
 	if out.Results[1].Error == "" {
 		t.Error("second entry should carry an inline parse error")
+	}
+}
+
+// resultWithDetails returns a result whose single check carries n detail lines.
+func resultWithDetails(n int) *model.Result {
+	details := make([]string, n)
+	for i := range details {
+		details[i] = fmt.Sprintf("detail line %d", i)
+	}
+	return &model.Result{
+		Date:      "2024-01-02T03:04:05Z",
+		Scorecard: model.ScorecardInfo{Version: "v5.5.0"},
+		Source:    model.SourceCachedREST,
+		Score:     7.0,
+		Checks:    []model.Check{{Name: "Pinned-Dependencies", Score: 5, Reason: "some pinned", Details: details}},
+	}
+}
+
+func getCheckDetail(t *testing.T, p provider.Provider, args map[string]any) checkDetail {
+	t.Helper()
+	cs, done := newTestSession(t, p)
+	defer done()
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "get_check_result", Arguments: args})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+	return decodeStructured[getCheckResultOutput](t, res).Check
+}
+
+func TestGetCheckResultDetailsTruncatedByDefault(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies"})
+	if c.DetailsTotal != 60 {
+		t.Errorf("details_total = %d, want 60", c.DetailsTotal)
+	}
+	if !c.DetailsTruncated {
+		t.Error("details_truncated = false, want true")
+	}
+	if len(c.Details) != defaultMaxDetails {
+		t.Errorf("details len = %d, want %d (default)", len(c.Details), defaultMaxDetails)
+	}
+}
+
+func TestGetCheckResultMaxDetailsRespected(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies", "max_details": 5})
+	if len(c.Details) != 5 || !c.DetailsTruncated || c.DetailsTotal != 60 {
+		t.Errorf("details=%d truncated=%v total=%d, want 5/true/60", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetCheckResultMaxDetailsClampedHigh(t *testing.T) {
+	t.Parallel()
+	// A value above the cap is clamped to maxMaxDetails; with fewer details than
+	// the cap, nothing is truncated.
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies", "max_details": 100000})
+	if len(c.Details) != 60 || c.DetailsTruncated || c.DetailsTotal != 60 {
+		t.Errorf("details=%d truncated=%v total=%d, want 60/false/60", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetCheckResultNoDetailsNotTruncated(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(3)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies"})
+	if len(c.Details) != 3 || c.DetailsTruncated || c.DetailsTotal != 3 {
+		t.Errorf("details=%d truncated=%v total=%d, want 3/false/3", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetRepoScoreValidCommitAccepted(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_repo_score",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "commit": "64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("valid 40-hex commit should be accepted: %v", res.Content)
+	}
+}
+
+func TestCompareReposTruncatesNotRejects(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	repos := make([]string, maxCompareRepos+2)
+	for i := range repos {
+		repos[i] = fmt.Sprintf("ossf/repo-%d", i)
+	}
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": repos},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("more than the max should truncate, not reject: %v", res.Content)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if !out.Truncated {
+		t.Error("truncated = false, want true")
+	}
+	if len(out.Results) != maxCompareRepos {
+		t.Errorf("results = %d, want %d", len(out.Results), maxCompareRepos)
+	}
+	// Order is preserved despite concurrent fetch.
+	for i, r := range out.Results {
+		if want := fmt.Sprintf("ossf/repo-%d", i); r.Input != want {
+			t.Errorf("results[%d].Input = %q, want %q", i, r.Input, want)
+		}
 	}
 }
 
