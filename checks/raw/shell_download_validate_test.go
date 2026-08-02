@@ -293,6 +293,55 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 			args: args{
 				cmd: []string{"dotnet", "build"},
 			},
+			want: true,
+		},
+		{
+			name: "dotnet build locked",
+			args: args{
+				cmd: []string{"dotnet", "build", "--locked-mode"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet build without restore",
+			args: args{
+				cmd: []string{"dotnet", "build", "--no-restore"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet test runner locked-mode argument",
+			args: args{
+				cmd: []string{"dotnet", "test", "--", "--locked-mode"},
+			},
+			want: true,
+		},
+		{
+			name: "msbuild restore before build",
+			args: args{
+				cmd: []string{"msbuild", "-restore"},
+			},
+			want: true,
+		},
+		{
+			name: "msbuild restore before build locked",
+			args: args{
+				cmd: []string{"msbuild", "-restore", "-p:RestoreLockedMode=true"},
+			},
+			want: false,
+		},
+		{
+			name: "dotnet msbuild restore before build",
+			args: args{
+				cmd: []string{"dotnet", "msbuild", "-restore"},
+			},
+			want: true,
+		},
+		{
+			name: "dotnet msbuild restore before build locked",
+			args: args{
+				cmd: []string{"dotnet", "msbuild", "/r", "/restoreProperty:RestoreLockedMode=true"},
+			},
 			want: false,
 		},
 		{
@@ -359,6 +408,173 @@ func Test_isDotNetUnpinnedDownload(t *testing.T) {
 				t.Errorf("isNugetUnpinnedDownload() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestIsDotNetCliImplicitRestore(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		cmd  []string
+		want bool
+	}{
+		{
+			name: "build",
+			cmd:  []string{"dotnet", "build"},
+			want: true,
+		},
+		{
+			name: "windows executable",
+			cmd:  []string{"dotnet.exe", "build"},
+			want: true,
+		},
+		{
+			name: "case insensitive",
+			cmd:  []string{"DOTNET", "BUILD"},
+			want: true,
+		},
+		{
+			name: "pack",
+			cmd:  []string{"dotnet", "pack"},
+			want: true,
+		},
+		{
+			name: "pack nuspec without project restore",
+			cmd:  []string{"dotnet", "pack", "package.nuspec"},
+			want: false,
+		},
+		{
+			name: "pack nuspec after options without project restore",
+			cmd:  []string{"dotnet", "pack", "--configuration", "Release", "package.nuspec"},
+			want: false,
+		},
+		{
+			name: "pack project using nuspec property",
+			cmd:  []string{"dotnet", "pack", "app.csproj", "-p:NuspecFile=app.nuspec"},
+			want: true,
+		},
+		{
+			name: "pack project using Windows nuspec property",
+			cmd:  []string{"dotnet", "pack", "/p:NuspecFile=app.nuspec", "app.csproj"},
+			want: true,
+		},
+		{
+			name: "pack absolute nuspec without project restore",
+			cmd:  []string{"dotnet", "pack", "/tmp/package.nuspec"},
+			want: false,
+		},
+		{
+			name: "pack output path ending in nuspec",
+			cmd:  []string{"dotnet", "pack", "--output", "package.nuspec"},
+			want: true,
+		},
+		{
+			name: "publish",
+			cmd:  []string{"dotnet", "publish"},
+			want: true,
+		},
+		{name: "new outside scope", cmd: []string{"dotnet", "new", "console"}, want: false},
+		{name: "run outside scope", cmd: []string{"dotnet", "run"}, want: false},
+		{
+			name: "test",
+			cmd:  []string{"dotnet", "test"},
+			want: true,
+		},
+		{
+			name: "no restore",
+			cmd:  []string{"dotnet", "build", "--no-restore"},
+			want: false,
+		},
+		{
+			name: "no build",
+			cmd:  []string{"dotnet", "publish", "--no-build"},
+			want: false,
+		},
+		{
+			name: "test runner no-restore argument",
+			cmd:  []string{"dotnet", "test", "--", "--no-restore"},
+			want: true,
+		},
+		{
+			name: "test runner help argument",
+			cmd:  []string{"dotnet", "test", "--", "--help"},
+			want: true,
+		},
+		{
+			name: "quoted test runner separator",
+			cmd:  []string{"dotnet", "test", "'--'", "--no-restore"},
+			want: true,
+		},
+		{
+			name: "help",
+			cmd:  []string{"dotnet", "build", "--help"},
+			want: false,
+		},
+		{
+			name: "explicit restore",
+			cmd:  []string{"dotnet", "restore"},
+			want: false,
+		},
+		{
+			name: "build server",
+			cmd:  []string{"dotnet", "build-server", "shutdown"},
+			want: false,
+		},
+		{
+			name: "other executable",
+			cmd:  []string{"other", "build"},
+			want: false,
+		},
+		{
+			name: "missing command",
+			cmd:  []string{"dotnet"},
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isDotNetCliImplicitRestore(tt.cmd); got != tt.want {
+				t.Errorf("isDotNetCliImplicitRestore() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsMsBuildRestore(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		cmd  []string
+		want bool
+	}{
+		{name: "restore target", cmd: []string{"msbuild", "/t:restore"}, want: true},
+		{name: "long restore target", cmd: []string{"msbuild.exe", "-target:Build,Restore"}, want: true},
+		{name: "restore before build", cmd: []string{"msbuild", "-restore"}, want: true},
+		{name: "short restore before build", cmd: []string{"msbuild", "/r"}, want: true},
+		{name: "explicit true", cmd: []string{"msbuild", "-restore:true"}, want: true},
+		{name: "explicit false", cmd: []string{"msbuild", "-restore:false"}, want: false},
+		{name: "dotnet msbuild", cmd: []string{"dotnet", "msbuild", "-restore"}, want: true},
+		{name: "dotnet executable msbuild", cmd: []string{"dotnet.exe", "msbuild", "/r:true"}, want: true},
+		{name: "ordinary build", cmd: []string{"msbuild", "project.csproj"}, want: false},
+		{name: "dotnet build", cmd: []string{"dotnet", "build"}, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isMsBuildRestore(tt.cmd); got != tt.want {
+				t.Errorf("isMsBuildRestore(%v) = %t, want %t", tt.cmd, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIsUnpinnedMsBuildCliRestoreRejectsOtherCommands(t *testing.T) {
+	t.Parallel()
+	if !isUnpinnedMsBuildCliRestore([]string{"other", "-restore", "-p:RestoreLockedMode=true"}) {
+		t.Error("non-MSBuild command should not be treated as a pinned MSBuild restore")
 	}
 }
 

@@ -689,8 +689,13 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 				}
 				return false, err
 			}
-			// Skip unsupported shells. We don't support Windows shells or some Unix shells.
+			// We don't have a general PowerShell parser, but simple direct commands are
+			// safe to collect without interpreting the rest of the script.
 			if !isSupportedShell(shell) {
+				if isPowerShell(shell) && !isWorkflowBlockScalar(content, execRun.Run.Pos) {
+					script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
+					collectPowerShellNuGetCommand(pathfn, run, string(script), uint(execRun.Run.Pos.Line), pdata)
+				}
 				continue
 			}
 
@@ -706,6 +711,139 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 	}
 
 	return true, nil
+}
+
+func isPowerShell(shell string) bool {
+	fields := strings.Fields(shell)
+	if len(fields) == 0 {
+		return false
+	}
+
+	return isBinaryName("pwsh", fields[0]) ||
+		isBinaryName("pwsh.exe", fields[0]) ||
+		isBinaryName("powershell", fields[0]) ||
+		isBinaryName("powershell.exe", fields[0])
+}
+
+func stripPowerShellLineComment(line string) string {
+	var quote byte
+	escaped := false
+	for i := 0; i < len(line); i++ {
+		char := line[i]
+		if escaped {
+			escaped = false
+			continue
+		}
+
+		if char == '`' && quote != '\'' {
+			escaped = true
+			continue
+		}
+
+		switch char {
+		case '\'', '"':
+			if quote == 0 {
+				quote = char
+			} else if quote == char {
+				quote = 0
+			}
+		case '#':
+			if quote == 0 && (i == 0 || line[i-1] == ' ' || line[i-1] == '\t') {
+				return line[:i]
+			}
+		}
+	}
+
+	return line
+}
+
+func isPowerShellNuGetBinary(name string) bool {
+	return isBinaryName("dotnet", name) ||
+		isBinaryName("dotnet.exe", name) ||
+		isBinaryName("msbuild", name) ||
+		isBinaryName("msbuild.exe", name)
+}
+
+func isWorkflowBlockScalar(content []byte, pos *actionlint.Pos) bool {
+	if pos == nil || pos.Line < 1 || pos.Col < 1 {
+		return true
+	}
+
+	lines := bytes.Split(content, []byte("\n"))
+	if pos.Line > len(lines) || pos.Col > len(lines[pos.Line-1]) {
+		return true
+	}
+
+	scalar := bytes.TrimSpace(lines[pos.Line-1][pos.Col-1:])
+	return len(scalar) > 0 && (scalar[0] == '|' || scalar[0] == '>')
+}
+
+func splitSimplePowerShellCommand(line string) ([]string, bool) {
+	var args []string
+	var arg strings.Builder
+	var quote byte
+	escaped := false
+	flush := func() {
+		if arg.Len() > 0 {
+			args = append(args, arg.String())
+			arg.Reset()
+		}
+	}
+
+	for i := 0; i < len(line); i++ {
+		char := line[i]
+		if escaped {
+			arg.WriteByte(char)
+			escaped = false
+			continue
+		}
+		if char == '`' && quote != '\'' {
+			escaped = true
+			continue
+		}
+		if quote != 0 {
+			if char == quote {
+				quote = 0
+			} else {
+				arg.WriteByte(char)
+			}
+			continue
+		}
+
+		switch char {
+		case '\'', '"':
+			quote = char
+		case ' ', '\t':
+			flush()
+		case ';', '|', '&', '<', '>', '(', ')', '{', '}':
+			return nil, false
+		default:
+			arg.WriteByte(char)
+		}
+	}
+	if escaped || quote != 0 {
+		return nil, false
+	}
+
+	flush()
+	return args, true
+}
+
+// collectPowerShellNuGetCommand detects a simple direct dotnet or MSBuild invocation.
+// Multiline and compound PowerShell scripts are skipped because they require a full parser.
+func collectPowerShellNuGetCommand(pathfn, run, script string, runLine uint, r *checker.PinningDependenciesData) {
+	if strings.ContainsAny(run, "\r\n") || strings.ContainsAny(script, "\r\n") {
+		return
+	}
+
+	snippet := strings.TrimSpace(stripPowerShellLineComment(run))
+	commandLine := strings.TrimSpace(stripPowerShellLineComment(script))
+	command, ok := splitSimplePowerShellCommand(commandLine)
+	if !ok || len(command) == 0 || !isPowerShellNuGetBinary(command[0]) {
+		return
+	}
+
+	collectNugetDependency(runLine, runLine, command, snippet, pathfn, r)
 }
 
 // Check pinning of github actions in workflows.
