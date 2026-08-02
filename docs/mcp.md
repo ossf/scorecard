@@ -18,17 +18,17 @@ server never asserts that a repository "is secure" or "is insecure."
 
 ## What it provides
 
-**Tools**
+### Tools
 
-| Tool | Description |
-| --- | --- |
-| `get_repo_score` | Aggregate score + per-check summary for a repository |
+| Tool               | Description                                                        |
+| ------------------ | ------------------------------------------------------------------ |
+| `get_repo_score`   | Aggregate score + per-check summary for a repository               |
 | `get_check_result` | Full result (score, reason, details) for one check on a repository |
-| `compare_repos` | Aggregate scores across several repositories |
-| `list_checks` | Catalog of Scorecard checks (offline) |
-| `explain_check` | Methodology, risk, and remediation for one check (offline) |
+| `compare_repos`    | Aggregate scores across several repositories                       |
+| `list_checks`      | Catalog of Scorecard checks (offline)                              |
+| `explain_check`    | Methodology, risk, and remediation for one check (offline)         |
 
-**Resources**
+### Resources
 
 - `scorecard://checks` — index of all checks
 - `scorecard://checks/{name}` — documentation for a single check
@@ -53,17 +53,30 @@ cd scorecard-mcp
 go build -o bin/scorecard-mcp ./cmd/scorecard-mcp
 ```
 
-> **Troubleshooting:** if `go build` fails with
+> **Troubleshooting:** if `go install` or `go build` fails with
 > `compile: version "X" does not match go tool version "Y"` across many
 > stdlib packages, you have a stray `GOROOT` environment variable pointing at
 > a different Go toolchain than the one on `PATH` (common with multiple Go
-> version managers, e.g. gimme). Run `env -u GOROOT go build ...` instead, or
-> unset `GOROOT` in your shell profile.
+> version managers, e.g. gimme). Run `env -u GOROOT go install ...` (or
+> `env -u GOROOT go build ...`) instead, or unset `GOROOT` in your shell
+> profile.
 
 The server speaks MCP over **stdio**; no credentials are required for the cached
 REST provider.
 
 ## Configure your MCP client
+
+> `go install` places the binary in `$(go env GOPATH)/bin` (or `$GOBIN` if
+> set), which is **not on `PATH` by default** on most systems. Either add
+> that directory to `PATH`, or use its absolute path
+> (`$(go env GOPATH)/bin/scorecard-mcp`) in the configs below.
+
+**Claude Code** — register globally with the CLI instead of hand-editing
+JSON:
+
+```sh
+claude mcp add scorecard --scope user -- "$(go env GOPATH)/bin/scorecard-mcp"
+```
 
 **Claude Desktop / Claude Code** (`.mcp.json` or the app's MCP config):
 
@@ -101,6 +114,8 @@ Asking a client "What's the OpenSSF Scorecard for ossf/scorecard?" calls
 {
   "repo": { "platform": "github.com", "org": "ossf", "name": "scorecard" },
   "commit": "64febf8c5229...",
+  "date": "2026-08-01T02:19:41Z",
+  "scorecard": { "version": "v5.3.0", "commit": "c22063e786c1..." },
   "source": "cached-rest",
   "score": 8.7,
   "checks": [
@@ -111,9 +126,19 @@ Asking a client "What's the OpenSSF Scorecard for ossf/scorecard?" calls
     "Cached results cover only projects that have opted in via publish_results: true.",
     "The weekly public scan omits the CI-Tests, Contributors, and Dependency-Update-Tool checks."
   ],
-  "attribution": { "data_license": "CDLA-Permissive-2.0", "source_url": "https://api.scorecard.dev" }
+  "attribution": {
+    "data_license": "CDLA-Permissive-2.0",
+    "source_url": "https://api.scorecard.dev"
+  },
+  "complete": false
 }
 ```
+
+`commit` is the _target repository's_ resolved commit; `scorecard.commit` and
+`scorecard.version` identify the build of the Scorecard tool that produced the
+result — the two are unrelated and easy to confuse. `complete` reports whether
+the provider ran the full check set (the cached REST provider always reports
+`false`, since it omits three checks — see [Caveats](#caveats)).
 
 ## Caveats
 
@@ -124,10 +149,13 @@ The cached REST provider:
 - omits the `CI-Tests`, `Contributors`, and `Dependency-Update-Tool` checks
   (excluded from the weekly public scan);
 - reports a check or aggregate score of `-1` as **inconclusive** — not a
-  failing score.
-
-Data from the REST API is licensed under
-[CDLA Permissive 2.0](https://cdla.dev/permissive-2-0).
+  failing score. `reason` on an inconclusive check is passed through verbatim
+  from the upstream API and can be a raw internal-error string (e.g. a
+  GitHub token/permissions failure inside Scorecard itself) rather than a
+  descriptive explanation;
+- passes `date` through as returned by `api.scorecard.dev`, which is not
+  normalized to a single format (observed as both a full RFC 3339 timestamp
+  and a bare `YYYY-MM-DD` date depending on the repository).
 
 ## Development
 
@@ -169,3 +197,6 @@ toolchain version mismatch.)
 ## License
 
 Apache 2.0 — see [`LICENSE`](LICENSE).
+
+Data from the REST API is licensed under
+[CDLA Permissive 2.0](https://github.com/ossf/scorecard#scorecard-rest-api).
