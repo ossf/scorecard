@@ -68,7 +68,7 @@ func TestCatalogExplain(t *testing.T) {
 // binaries, so that function reliably returns "" under `go test`.
 func TestExperimentalChecksVersionPin(t *testing.T) {
 	t.Parallel()
-	const verifiedVersion = "v5.5.0"
+	const verifiedVersion = "v5.5.1-0.20260715062425-64febf8c5229"
 	if v := scorecardGoModVersion(t); v != verifiedVersion {
 		t.Fatalf("scorecard dependency is %s, last verified against %s; manually check "+
 			"experimentalChecks in catalog.go against checks/all_checks.go's getAll(), "+
