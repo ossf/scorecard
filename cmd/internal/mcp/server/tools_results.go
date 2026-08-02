@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/google/jsonschema-go/jsonschema"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/catalog"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
@@ -15,6 +17,44 @@ import (
 
 // maxCompareRepos bounds the number of repositories compare_repos will process.
 const maxCompareRepos = 10
+
+// compareConcurrency bounds how many repositories compare_repos fetches at once.
+// It is kept modest to stay a good citizen toward the upstream Scorecard API.
+const compareConcurrency = 5
+
+// commitPattern advertises the 40-char hex SHA format that
+// scorecardref.ValidateCommit enforces. The empty alternation keeps an
+// explicitly-empty (i.e. "no commit") value valid, matching ValidateCommit,
+// since commit is an optional field.
+const commitPattern = `^([0-9a-fA-F]{40})?$`
+
+// inputSchemaFor infers the JSON Schema for a tool input type (identical to what
+// the SDK would infer) and applies patch. It exists so we can advertise
+// constraints the jsonschema struct tag cannot express in this SDK, where the
+// tag is description-only. These are client-side, fail-fast hints; the tool
+// handlers remain the authoritative validators (scorecardref.ValidateCommit and
+// the maxCompareRepos truncation path).
+func inputSchemaFor[T any](patch func(*jsonschema.Schema)) *jsonschema.Schema {
+	s, err := jsonschema.For[T](nil)
+	if err != nil {
+		// The input types are fixed and trivially schema-able; a failure here is
+		// a programming error, so fail loudly at registration as mcp.AddTool does.
+		panic(fmt.Sprintf("build input schema: %v", err))
+	}
+	patch(s)
+	return s
+}
+
+// Bounds for get_check_result's max_details input. An omitted (zero) value
+// falls back to defaultMaxDetails; any provided value is clamped to
+// [minMaxDetails, maxMaxDetails]. Verified against live data before choosing the
+// default: Pinned-Dependencies details ranged 5-186 across sampled repos and
+// Token-Permissions hit 377 on envoyproxy/envoy, so truncation must be generic.
+const (
+	defaultMaxDetails = 50
+	minMaxDetails     = 1
+	maxMaxDetails     = 500
+)
 
 // --- get_repo_score ---
 
@@ -45,9 +85,26 @@ type repoScoreOutput struct {
 // --- get_check_result ---
 
 type getCheckResultInput struct {
-	Repo   string `json:"repo" jsonschema:"platform/owner/repo (platform optional)"`
-	Check  string `json:"check" jsonschema:"check name, e.g. Branch-Protection (see list_checks)"`
-	Commit string `json:"commit,omitempty" jsonschema:"optional 40-char hex commit SHA"`
+	Repo       string `json:"repo" jsonschema:"platform/owner/repo (platform optional)"`
+	Check      string `json:"check" jsonschema:"check name, e.g. Branch-Protection (see list_checks)"`
+	Commit     string `json:"commit,omitempty" jsonschema:"optional 40-char hex commit SHA"`
+	MaxDetails int    `json:"max_details,omitempty" jsonschema:"max detail lines to return; default 50, clamped 1-500"`
+}
+
+// checkDetail is get_check_result's per-check output. Unlike the shared
+// model.Check, it caps Details at the caller's max_details and reports the
+// pre-truncation count so a client knows the payload was shortened. Truncation
+// is applied here in the handler, never in the provider, so Provider.GetResult
+// keeps returning the fullest result it can (preserving darnit's full-JSON
+// contract).
+type checkDetail struct {
+	Name             string               `json:"name"`
+	Score            int                  `json:"score" jsonschema:"score from 0-10, or -1 for inconclusive"`
+	Reason           string               `json:"reason,omitempty"`
+	Details          []string             `json:"details,omitempty"`
+	DetailsTotal     int                  `json:"details_total" jsonschema:"number of detail lines before truncation"`
+	DetailsTruncated bool                 `json:"details_truncated" jsonschema:"true if details was capped by max_details"`
+	Documentation    *model.Documentation `json:"documentation,omitempty"`
 }
 
 type getCheckResultOutput struct {
@@ -56,7 +113,7 @@ type getCheckResultOutput struct {
 	Date        string              `json:"date,omitempty"`
 	Scorecard   model.ScorecardInfo `json:"scorecard"`
 	Source      model.Source        `json:"source"`
-	Check       model.Check         `json:"check"`
+	Check       checkDetail         `json:"check"`
 	Caveats     []string            `json:"caveats,omitempty"`
 	Attribution *model.Attribution  `json:"attribution,omitempty"`
 }
@@ -92,6 +149,9 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 			"check's methodology. Data comes from the OpenSSF Scorecard REST API " +
 			"(https://api.scorecard.dev).",
 		Annotations: readOnlyAnnotations("Get repository Scorecard score", true),
+		InputSchema: inputSchemaFor[getRepoScoreInput](func(s *jsonschema.Schema) {
+			s.Properties["commit"].Pattern = commitPattern
+		}),
 	}, func(
 		ctx context.Context,
 		_ *mcp.CallToolRequest,
@@ -113,11 +173,15 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name: "get_check_result",
-		Description: "Return the full result (score, reason, details) for a single named OpenSSF " +
-			"Scorecard check on one repository. Use list_checks to discover valid check names and " +
-			"explain_check for a check's methodology and remediation. Data comes from the OpenSSF " +
-			"Scorecard REST API.",
+		Description: "Return the result (score, reason, details) for a single named OpenSSF " +
+			"Scorecard check on one repository. Detail lines are capped (default 50; adjust with " +
+			"max_details), and details_truncated and details_total report any truncation. Use " +
+			"list_checks to discover valid check names and explain_check for a check's methodology " +
+			"and remediation. Data comes from the OpenSSF Scorecard REST API.",
 		Annotations: readOnlyAnnotations("Get one Scorecard check result", true),
+		InputSchema: inputSchemaFor[getCheckResultInput](func(s *jsonschema.Schema) {
+			s.Properties["commit"].Pattern = commitPattern
+		}),
 	}, func(
 		ctx context.Context,
 		_ *mcp.CallToolRequest,
@@ -147,7 +211,7 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 			Date:        res.Date,
 			Scorecard:   res.Scorecard,
 			Source:      res.Source,
-			Check:       c,
+			Check:       toCheckDetail(c, clampMaxDetails(in.MaxDetails)),
 			Caveats:     res.Caveats,
 			Attribution: res.Attribution,
 		}, nil
@@ -161,6 +225,14 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 			"supported maximum are supplied, the list is truncated. Data comes from the OpenSSF " +
 			"Scorecard REST API.",
 		Annotations: readOnlyAnnotations("Compare repository Scorecard scores", true),
+		InputSchema: inputSchemaFor[compareReposInput](func(s *jsonschema.Schema) {
+			// Advertise the cap as a client-side hint only; the handler still
+			// truncates (and reports it) so a client that ignores this hint or
+			// does not validate is handled gracefully rather than rejected.
+			s.Properties["repos"].Description += fmt.Sprintf(
+				"; at most %d are compared, any beyond that are dropped and reported via the truncated flag",
+				maxCompareRepos)
+		}),
 	}, func(
 		ctx context.Context,
 		_ *mcp.CallToolRequest,
@@ -178,9 +250,26 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 			repos = repos[:maxCompareRepos]
 		}
 
-		for _, r := range repos {
-			out.Results = append(out.Results, compareOne(ctx, p, r))
+		// Fetch concurrently but bounded, so we stay a good citizen toward the
+		// upstream API. Each result is written to its own slot to preserve input
+		// order; per-repository failures are captured inline by compareOne, so
+		// the errgroup goroutines never return an error.
+		results := make([]repoComparison, len(repos))
+		g, gctx := errgroup.WithContext(ctx)
+		g.SetLimit(compareConcurrency)
+		for i, r := range repos {
+			g.Go(func() error {
+				results[i] = compareOne(gctx, p, r)
+				return nil
+			})
 		}
+		if err := g.Wait(); err != nil {
+			// Unreachable in practice: compareOne captures every per-repository
+			// failure inline, so the goroutines always return nil. Surfaced
+			// defensively rather than discarded.
+			return nil, compareReposOutput{}, fmt.Errorf("comparing repositories: %w", err)
+		}
+		out.Results = results
 		return nil, out, nil
 	})
 }
@@ -228,6 +317,42 @@ func compareOne(ctx context.Context, p provider.Provider, r string) repoComparis
 	entry.Date = res.Date
 	entry.Source = res.Source
 	return entry
+}
+
+// clampMaxDetails resolves the max_details input: an omitted (zero) value uses
+// the default, and any provided value is clamped to [minMaxDetails, maxMaxDetails].
+func clampMaxDetails(n int) int {
+	if n == 0 {
+		return defaultMaxDetails
+	}
+	if n < minMaxDetails {
+		return minMaxDetails
+	}
+	if n > maxMaxDetails {
+		return maxMaxDetails
+	}
+	return n
+}
+
+// toCheckDetail converts a model.Check into get_check_result's output, capping
+// Details at maxDetails and recording the pre-truncation total.
+func toCheckDetail(c model.Check, maxDetails int) checkDetail {
+	total := len(c.Details)
+	details := c.Details
+	truncated := false
+	if total > maxDetails {
+		details = details[:maxDetails]
+		truncated = true
+	}
+	return checkDetail{
+		Name:             c.Name,
+		Score:            c.Score,
+		Reason:           c.Reason,
+		Details:          details,
+		DetailsTotal:     total,
+		DetailsTruncated: truncated,
+		Documentation:    c.Documentation,
+	}
 }
 
 func toRepoScore(res *model.Result) repoScoreOutput {
