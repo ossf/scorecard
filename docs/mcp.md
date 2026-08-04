@@ -105,6 +105,59 @@ claude mcp add scorecard --scope user -- "$(go env GOPATH)/bin/scorecard-mcp"
 
 (Use an absolute path to the binary if it is not on your `PATH`.)
 
+## Try it with the MCP Inspector
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is the
+quickest way to exercise the server directly, without wiring it into a client.
+It needs [Node.js](https://nodejs.org/) (for `npx`); nothing to install ahead of
+time.
+
+Point it at the binary you installed or built — `scorecard-mcp` if it is on your
+`PATH`, otherwise an absolute path such as `./bin/scorecard-mcp` or
+`$(go env GOPATH)/bin/scorecard-mcp`.
+
+### Interactive UI
+
+```sh
+npx @modelcontextprotocol/inspector scorecard-mcp
+```
+
+This launches a local web UI and prints a URL with a session token. Open it,
+click **Connect**, then use the **Tools** and **Resources** tabs to browse and
+invoke everything — for example, call `get_repo_score` with
+`repo = github.com/ossf/scorecard`.
+
+### Command line (scriptable)
+
+The same Inspector has a `--cli` mode for non-interactive checks — handy for a
+quick smoke test or CI:
+
+```sh
+# List the registered tools, resources, and resource templates
+npx @modelcontextprotocol/inspector --cli scorecard-mcp --method tools/list
+npx @modelcontextprotocol/inspector --cli scorecard-mcp --method resources/list
+npx @modelcontextprotocol/inspector --cli scorecard-mcp --method resources/templates/list
+
+# Offline tools (no network)
+npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+  --method tools/call --tool-name list_checks
+npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+  --method tools/call --tool-name explain_check --tool-arg check=Branch-Protection
+
+# Read a documentation resource
+npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+  --method resources/read --uri scorecard://checks
+
+# Live query against api.scorecard.dev
+npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+  --method tools/call --tool-name get_repo_score --tool-arg repo=github.com/ossf/scorecard
+```
+
+Pass a tool's arguments with repeated `--tool-arg key=value` flags (for example,
+add `--tool-arg commit=<sha>` to pin a query to a specific commit). An unknown
+check name returns a tool error suggesting `list_checks`, which is a quick way to
+confirm error handling works.
+
 ## Example
 
 Asking a client "What's the OpenSSF Scorecard for ossf/scorecard?" calls

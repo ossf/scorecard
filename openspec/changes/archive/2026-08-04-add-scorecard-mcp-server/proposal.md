@@ -1,7 +1,9 @@
+# Proposal: Scorecard MCP Server
+
 ## Why
 
 OpenSSF Scorecard produces rich, structured security-posture data for open source
-repositories, but today an AI agent can only get at it by scraping the website,
+repositories, but today an AI agent can only get at it by scraping the site,
 hand-rolling REST calls, or shelling out to the CLI and parsing output. There is
 no first-class, agent-native way to ask "what are this repo's security signals?"
 and get back structured, provenance-tagged data. An MCP server closes that gap —
@@ -26,7 +28,7 @@ to upstreaming it as an in-tree `scorecard mcp` subcommand alongside the existin
 - Every result carries **provenance metadata** (resolved commit SHA, scan/
   generation date, Scorecard version, and which provider/source produced it) so
   downstream consumers can cache and reproduce it — notably darnit
-  (issue https://github.com/darnitdevorg/darnit/issues/194),
+  (issue <https://github.com/darnitdevorg/darnit/issues/194>),
   which reuses Scorecard JSON across many OpenSSF Baseline controls. Retrieval
   tools accept an optional `commit` argument to fetch immutable results for a
   specific commit (supported by both the REST API and the library).
@@ -44,6 +46,7 @@ to upstreaming it as an in-tree `scorecard mcp` subcommand alongside the existin
 ## Capabilities
 
 ### New Capabilities
+
 - `mcp-server`: MCP server runtime — protocol lifecycle over stdio (Streamable
   HTTP left to a later change), tool and resource registration, parsing of
   `platform/owner/repo` package references, uniform structured-JSON responses,
@@ -60,6 +63,7 @@ to upstreaming it as an in-tree `scorecard mcp` subcommand alongside the existin
   and as read-only documentation resources.
 
 ### Modified Capabilities
+
 <!-- None — this is a greenfield change; no existing specs are modified. -->
 
 ## Impact
@@ -80,7 +84,7 @@ to upstreaming it as an in-tree `scorecard mcp` subcommand alongside the existin
   auth code is required.
 - **Consumers:** MCP clients (Claude Desktop/Code, etc.) locally via stdio;
   darnit as a JSON consumer once its adapter
-  (https://github.com/darnitdevorg/darnit/issues/194) is wired.
+  (<https://github.com/darnitdevorg/darnit/issues/194>) is wired.
 - **Compatibility:** greenfield — no breaking changes.
 
 ## Non-goals
@@ -101,4 +105,4 @@ to upstreaming it as an in-tree `scorecard mcp` subcommand alongside the existin
   scope here.
 - **darnit-side integration code.** We guarantee a stable JSON contract; wiring it
   into darnit's `ExecutionContext` is the scope of darnit issue
-  https://github.com/darnitdevorg/darnit/issues/194, not this change.
+  <https://github.com/darnitdevorg/darnit/issues/194>, not this change.
