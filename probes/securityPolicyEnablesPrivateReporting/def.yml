@@ -1,0 +1,27 @@
+id: securityPolicyEnablesPrivateReporting
+lifecycle: stable
+short: Check that the project has private vulnerability reporting enabled.
+motivation: >
+  Private vulnerability reporting provides a secure mechanism for users to report vulnerabilities.
+implementation: >
+  The implementation checks the GitHub GraphQL API for the isPrivateVulnerabilityReportingEnabled flag.
+outcome:
+  - If private reporting is enabled, one finding with OutcomeTrue is returned.
+  - If private reporting is explicitly disabled, one finding with OutcomeFalse is returned.
+  - If private reporting is not supported or not available, one finding with OutcomeNotApplicable is returned.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - 'On GitHub:'
+    - Enable private vulnerability disclosure in your repository settings https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
+  markdown:
+    - 'On GitHub:'
+    - Enable private vulnerability disclosure in your [repository settings](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository)
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir
