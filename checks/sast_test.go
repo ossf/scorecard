@@ -50,8 +50,9 @@ func Test_SAST(t *testing.T) {
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
 			expected: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfWarn: 1,
+				Score:         checker.MinResultScore,
+				NumberOfWarn:  1,
+				NumberOfDebug: 8,
 			},
 		},
 		{
@@ -61,8 +62,9 @@ func Test_SAST(t *testing.T) {
 			searchresult: clients.SearchResponse{},
 			checkRuns:    []clients.CheckRun{},
 			expected: scut.TestReturn{
-				Score: checker.InconclusiveResultScore,
-				Error: sce.ErrScorecardInternal,
+				Score:         checker.InconclusiveResultScore,
+				Error:         sce.ErrScorecardInternal,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -87,7 +89,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -112,7 +114,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -138,7 +140,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -163,7 +165,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -179,9 +181,10 @@ func Test_SAST(t *testing.T) {
 			searchresult: clients.SearchResponse{},
 			path:         ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
-				Score:        7,
-				NumberOfWarn: 1,
-				NumberOfInfo: 1,
+				Score:         7,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 8,
 			},
 		},
 		{
@@ -215,7 +218,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  2,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -250,7 +253,7 @@ func Test_SAST(t *testing.T) {
 			expected: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  2,
-				NumberOfDebug: 1,
+				NumberOfDebug: 9,
 			},
 		},
 		{
@@ -288,9 +291,10 @@ func Test_SAST(t *testing.T) {
 			},
 			path: ".github/workflows/airflow-codeql-workflow.yaml",
 			expected: scut.TestReturn{
-				Score:        7,
-				NumberOfWarn: 1,
-				NumberOfInfo: 1,
+				Score:         7,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 8,
 			},
 		},
 		{
@@ -312,9 +316,10 @@ func Test_SAST(t *testing.T) {
 			searchresult: clients.SearchResponse{},
 			path:         ".github/workflows/github-hadolint-workflow.yaml",
 			expected: scut.TestReturn{
-				Score:        checker.MaxResultScore,
-				NumberOfWarn: 1,
-				NumberOfInfo: 1,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  1,
+				NumberOfInfo:  1,
+				NumberOfDebug: 8,
 			},
 		},
 	}
@@ -334,6 +339,7 @@ func Test_SAST(t *testing.T) {
 				return tt.commits, tt.err
 			})
 			mockRepoClient.EXPECT().ListCheckRunsForRef("").Return(tt.checkRuns, nil).AnyTimes()
+			mockRepoClient.EXPECT().ListStatuses("").Return([]clients.Status{}, nil).AnyTimes()
 			mockRepoClient.EXPECT().Search(searchRequest).Return(tt.searchresult, nil).AnyTimes()
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
 				func(predicate func(string) (bool, error)) ([]string, error) {

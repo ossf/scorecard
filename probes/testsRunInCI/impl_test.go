@@ -243,6 +243,20 @@ func Test_isTest(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "prow",
+			args: args{
+				s: "prow",
+			},
+			want: true,
+		},
+		{
+			name: "prow-job-name",
+			args: args{
+				s: "pull-ci-org-repo-master-unit-tests",
+			},
+			want: true, // matches "test" pattern
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

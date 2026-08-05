@@ -62,6 +62,42 @@ func getGithubReviews(c *clients.Commit) (reviews []clients.Review) {
 	return reviews
 }
 
+func getProwReviews(c *clients.Commit) (reviews []clients.Review) {
+	reviews = []clients.Review{}
+	mr := c.AssociatedMergeRequest
+
+	// Count Prow labels as approvals
+	// In Prow: lgtm = code review approval, approved = maintainer approval
+	hasLGTM := false
+	hasApproved := false
+
+	for _, label := range mr.Labels {
+		if label.Name == "lgtm" {
+			hasLGTM = true
+		}
+		if label.Name == "approved" {
+			hasApproved = true
+		}
+	}
+
+	// Create synthetic reviews from Prow labels
+	// This allows existing review counting logic to work with Prow
+	if hasLGTM {
+		reviews = append(reviews, clients.Review{
+			Author: &clients.User{Login: "prow-lgtm"},
+			State:  "APPROVED",
+		})
+	}
+	if hasApproved {
+		reviews = append(reviews, clients.Review{
+			Author: &clients.User{Login: "prow-approved"},
+			State:  "APPROVED",
+		})
+	}
+
+	return reviews
+}
+
 func getGithubAuthor(c *clients.Commit) (author clients.User) {
 	return c.AssociatedMergeRequest.Author
 }
@@ -70,7 +106,7 @@ func getProwRevisionID(c *clients.Commit) string {
 	mr := c.AssociatedMergeRequest
 	if !c.AssociatedMergeRequest.MergedAt.IsZero() {
 		for _, l := range c.AssociatedMergeRequest.Labels {
-			if l.Name == "lgtm" || l.Name == "approved" && mr.Number != 0 {
+			if (l.Name == "lgtm" || l.Name == "approved") && mr.Number != 0 {
 				return strconv.Itoa(mr.Number)
 			}
 		}
@@ -161,8 +197,12 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 				Commits:        []clients.Commit{commits[i]},
 			}
 
-			if rev.Platform == checker.ReviewPlatformGitHub {
+			switch rev.Platform {
+			case checker.ReviewPlatformGitHub:
 				newChangeset.Reviews = getGithubReviews(&commits[i])
+				newChangeset.Author = getGithubAuthor(&commits[i])
+			case checker.ReviewPlatformProw:
+				newChangeset.Reviews = getProwReviews(&commits[i])
 				newChangeset.Author = getGithubAuthor(&commits[i])
 			}
 
