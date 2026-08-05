@@ -265,7 +265,7 @@ func makeRepo(uri string) (clients.Repo, error) {
 		}
 		compositeErr = errors.Join(compositeErr, errAzureDevOps)
 		if azuredevopsrepo.HasAzureDevOpsHost(uri) {
-			return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
+			return nil, fmt.Errorf("unable to parse Azure DevOps repository URI: %w", errAzureDevOps)
 		}
 	}
 
