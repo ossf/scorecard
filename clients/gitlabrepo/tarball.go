@@ -210,10 +210,12 @@ func (handler *tarballHandler) extractTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
+	defer in.Close()
 	gz, err := gzip.NewReader(in)
 	if err != nil {
 		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
+	defer gz.Close()
 	tr := tar.NewReader(gz)
 	for {
 		header, err := tr.Next()
@@ -234,22 +236,17 @@ func (handler *tarballHandler) extractTarball() error {
 				continue
 			}
 
-			if err := os.Mkdir(dirpath, 0o755); err != nil {
+			if err := os.MkdirAll(dirpath, 0o755); err != nil {
 				return fmt.Errorf("error during os.Mkdir: %w", err)
 			}
 		case tar.TypeReg:
-			if header.Size <= 0 {
-				continue
-			}
 			filenamepath, err := extractAndValidateArchivePath(header.Name, handler.tempDir)
 			if err != nil {
 				return err
 			}
 
-			if _, err := os.Stat(filepath.Dir(filenamepath)); os.IsNotExist(err) {
-				if err := os.Mkdir(filepath.Dir(filenamepath), 0o755); err != nil {
-					return fmt.Errorf("os.Mkdir: %w", err)
-				}
+			if err := os.MkdirAll(filepath.Dir(filenamepath), 0o755); err != nil {
+				return fmt.Errorf("os.MkdirAll: %w", err)
 			}
 			outFile, err := os.Create(filenamepath)
 			if err != nil {
@@ -260,9 +257,12 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
+				outFile.Close()
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
-			outFile.Close()
+			if err := outFile.Close(); err != nil {
+				return fmt.Errorf("os.File.Close: %w", err)
+			}
 			handler.files = append(handler.files,
 				strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
 		case tar.TypeXGlobalHeader, tar.TypeSymlink:
