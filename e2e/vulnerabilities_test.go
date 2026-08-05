@@ -30,6 +30,7 @@ import (
 
 var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 	Context("E2E TEST:Validating vulnerabilities status", func() {
+		const numOpen62541Vulns = 7 // this may change as new vulns are discovered
 		It("Should return that there are vulnerabilities", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-vulnerabilities-open62541")
 			Expect(err).Should(BeNil())
