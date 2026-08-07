@@ -76,6 +76,11 @@ func (client *Client) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
 }
 
+// IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
+func (client *Client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("IsPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 func isDir(p string) (bool, error) {
 	fileInfo, err := os.Stat(p)
 	if err != nil {

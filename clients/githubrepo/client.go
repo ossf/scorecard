@@ -239,6 +239,11 @@ func (client *Client) IsArchived() (bool, error) {
 	return client.graphClient.isArchived()
 }
 
+// IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
+func (client *Client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return client.graphClient.isPrivateVulnerabilityReportingEnabled()
+}
+
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
