@@ -426,6 +426,21 @@ For each of the last 5 releases, the probe returns OutcomeFalse, if the release 
 If the project has no releases, the probe returns OutcomeNotApplicable.
 
 
+## releasesHaveAttestation
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project's GitHub releases have artifact attestations.
+
+**Motivation**: GitHub artifact attestations provide cryptographically verifiable provenance for release assets, allowing consumers to verify that artifacts were produced by a known workflow before consuming them.
+
+**Implementation**: The probe checks whether all release assets in the last five GitHub releases have artifact attestations. It uses the release asset digest exposed by GitHub and verifies that a corresponding attestation exists via the GitHub attestations API.
+
+**Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if all release assets have artifact attestations.
+For each of the last 5 releases, the probe returns OutcomeFalse if one or more release assets do not have artifact attestations.
+If the project has no GitHub releases, the probe returns OutcomeNotApplicable.
+
+
 ## releasesHaveProvenance
 
 **Lifecycle**: stable
