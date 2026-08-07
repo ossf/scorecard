@@ -119,6 +119,31 @@ func isSortedString(x, y string) bool {
 	return x < y
 }
 
+func TestTrimPrefixReturnsRepositoryPath(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		clientPath string
+		pathfn     string
+		want       string
+	}{
+		{
+			name:       "native paths",
+			clientPath: filepath.Join("repo", "root"),
+			pathfn:     filepath.Join("repo", "root", ".github", "workflows", "ci.yml"),
+			want:       ".github/workflows/ci.yml",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := trimPrefix(tt.pathfn, tt.clientPath); got != tt.want {
+				t.Errorf("trimPrefix() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 //nolint:gocognit
 func TestClient_GetFileListAndContent(t *testing.T) {
 	t.Parallel()
