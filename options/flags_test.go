@@ -178,6 +178,41 @@ func TestOptions_AddFlags_Format(t *testing.T) {
 	}
 }
 
+func TestOptions_AddFlags_SkipErrors(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		opts *Options
+		name string
+	}{
+		{
+			name: "Skip errors",
+			opts: &Options{
+				SkipErrors: true,
+			},
+		},
+		{
+			name: "Don't skip errors",
+			opts: &Options{
+				SkipErrors: false,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cmd := &cobra.Command{}
+			tt.opts.AddFlags(cmd)
+			value, err := cmd.Flags().GetBool(FlagSkipErrors)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if tt.opts.SkipErrors != value {
+				t.Fatalf("expected FlagSkipErrors to be %t, got %t", tt.opts.SkipErrors, value)
+			}
+		})
+	}
+}
+
 func TestOptions_AddFlags_Annotations(t *testing.T) {
 	t.Parallel()
 	tests := []struct {

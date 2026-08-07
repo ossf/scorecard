@@ -80,6 +80,10 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	// FlagSkipErrors is the flag name for continuing a scan when individual
+	// checks or probes fail at runtime.
+	FlagSkipErrors = "skip-errors"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -206,6 +210,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagProbes,
 		o.ProbesToRun,
 		"Probes to run.",
+	)
+
+	cmd.Flags().BoolVar(
+		&o.SkipErrors,
+		FlagSkipErrors,
+		o.SkipErrors,
+		"continue scanning and report on successful checks/probes even if one or more fail at runtime",
 	)
 
 	// TODO(options): Extract logic
