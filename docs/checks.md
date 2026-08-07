@@ -7,6 +7,45 @@ remediation steps to improve the score, and an explanation of the risks
 associated with a low score. The checks are continually changing and we welcome
 community feedback. If you have ideas for additions or new detection techniques,
 please [contribute](../CONTRIBUTING.md)!
+## Artifact-Integrity 
+
+Risk: `High` (potential for distribution of tampered artifacts)
+
+This check evaluates whether a project provides integrity verification mechanisms for its released artifacts,
+such as SLSA provenance (https://slsa.dev), cryptographic signatures (GPG/minisign/cosign), or checksums (SHA256 preferred).
+
+Software releases often distribute compiled binaries or packaged artifacts. Without integrity verification,
+users cannot reliably determine whether downloaded artifacts have been tampered with, corrupted, or replaced
+by malicious versions.
+
+The check analyzes release assets and associated files to determine if the project provides:
+
+  - Cryptographic checksums (e.g., `.sha256`, `.sha512`, or checksum files)
+  - Signature files (e.g., `.sig`, `.asc`, or GPG signatures)
+  - References to verification instructions in release notes or documentation
+
+Projects that provide verifiable artifacts enable users to confirm authenticity and integrity before execution.
+
+Lack of artifact integrity verification increases several risks:
+
+  - Distribution of compromised binaries through supply chain attacks
+  - Man-in-the-middle (MITM) attacks altering downloaded artifacts
+  - Accidental corruption of artifacts without detection
+  - Reduced trust in release authenticity
+
+Providing checksums or signatures helps ensure that users can independently verify that artifacts have not
+been altered since publication.
+
+For more information, see:\n      - https://en.wikipedia.org/wiki/File_verification\n      - https://slsa.dev (SLSA provenance)
+ 
+
+**Remediation steps**
+- Generate SHA256 checksums (preferred) or stronger for all release artifacts and publish alongside. For full provenance, use SLSA (https://slsa.dev).
+- Provide signature files (e.g., GPG `.sig` or `.asc`) for released artifacts and publish the public key used for signing.
+- Include verification instructions in release notes or documentation to help users validate artifacts.
+- Automate artifact signing and checksum generation as part of the CI/CD release process.
+- Ensure that verification files are easily discoverable and consistently named across releases.
+
 ## Binary-Artifacts 
 
 Risk: `High` (non-reviewable code)
