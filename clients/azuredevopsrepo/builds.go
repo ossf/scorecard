@@ -77,6 +77,10 @@ func (b *buildsHandler) listSuccessfulBuilds(filename string) ([]clients.Workflo
 		continuationToken = response.ContinuationToken
 	}
 
+	if len(buildDefinitions) == 0 {
+		return []clients.WorkflowRun{}, nil
+	}
+
 	buildIds := make([]int, 0, len(buildDefinitions))
 	for i := range buildDefinitions {
 		buildIds = append(buildIds, *buildDefinitions[i].Id)
