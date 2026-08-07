@@ -49,7 +49,7 @@ var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
+	scorecardUse  = `scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
 		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
 	scorecardShort = "OpenSSF Scorecard"
 )
