@@ -1655,6 +1655,56 @@ func TestShellScriptDownloadPinned(t *testing.T) {
 	}
 }
 
+func TestPipInstallRemediation(t *testing.T) {
+	t.Parallel()
+	//nolint:govet
+	tests := []struct {
+		name           string
+		script         string
+		pinned         bool
+		hasRemediation bool
+	}{
+		{
+			name:           "unpinned pip install",
+			script:         "pip install some-package",
+			pinned:         false,
+			hasRemediation: true,
+		},
+		{
+			name:           "unpinned python -m pip install",
+			script:         "python -m pip install some-package",
+			pinned:         false,
+			hasRemediation: true,
+		},
+		{
+			name:           "pip install with --require-hashes",
+			script:         "pip install --require-hashes -r requirements.txt",
+			pinned:         true,
+			hasRemediation: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var r checker.PinningDependenciesData
+			_, err := validateShellScriptIsFreeOfInsecureDownloads("script.sh", []byte(tt.script), &r)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(r.Dependencies) != 1 {
+				t.Fatalf("expected 1 dependency. Got %v", len(r.Dependencies))
+			}
+			dep := r.Dependencies[0]
+			if *dep.Pinned != tt.pinned {
+				t.Errorf("expected pinned to be %v. Got %v", tt.pinned, *dep.Pinned)
+			}
+			if (dep.Remediation != nil) != tt.hasRemediation {
+				t.Errorf("expected remediation presence to be %v. Got %+v", tt.hasRemediation, dep.Remediation)
+			}
+		})
+	}
+}
+
 func TestGitHubWorkflowRunDownload(t *testing.T) {
 	t.Parallel()
 	//nolint:govet
