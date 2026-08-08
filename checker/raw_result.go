@@ -29,6 +29,7 @@ import (
 type RawResults struct {
 	BinaryArtifactResults       BinaryArtifactData
 	BranchProtectionResults     BranchProtectionsData
+	ChangelogResults            ChangelogData
 	CIIBestPracticesResults     CIIBestPracticesData
 	CITestResults               CITestData
 	CodeReviewResults           CodeReviewData
@@ -321,6 +322,14 @@ type SignedReleasesData struct {
 type DependencyUpdateToolData struct {
 	// Tools contains a list of tools.
 	Tools []Tool
+}
+
+// ChangelogData contains the raw results for the Changelog check.
+type ChangelogData struct {
+	ChangelogFiles        []File
+	ChangelogVersions     []string
+	ReleasesWithChangelog int
+	TotalReleases         int
 }
 
 // WebhooksData contains the raw results
