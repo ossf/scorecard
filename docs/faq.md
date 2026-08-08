@@ -25,7 +25,7 @@ This page answers frequently asked questions about Scorecard, including its purp
 
 Yes.
 
-Over a million projects are automatically tracked by the Scorecard project. Use the webviewer to see these scores, replacing the placeholder text with the platform, user/org, and repository name: https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
+Over a million projects are automatically tracked by the Scorecard project. Use the [Scorecard webviewer](https://scorecard.dev/viewer/), a browser-based result viewer for Scorecard scan results, to see these scores. To open a specific repository, replace the placeholder text in this URL template with the platform, user/org, and repository name: https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>.
 
 For example: 
  - [https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)

@@ -125,14 +125,14 @@ metrics. Prominent projects that use Scorecard include:
 
 ### View a Project's Score
 
-To see scores for projects regularly scanned by Scorecard, navigate to the [webviewer](https://scorecard.dev/viewer/?uri=). You can also replace the placeholder text (platform, user/org, and repository name) in the following template link to generate a custom Scorecard link for a repo:
+To see scores for projects regularly scanned by Scorecard, use the [Scorecard webviewer](https://scorecard.dev/viewer/), a browser-based result viewer for Scorecard scan results. You can also replace the placeholder text (platform, user/org, and repository name) in the following URL template to open a specific repo:
 `https://scorecard.dev/viewer/?uri=<github_or_gitlab>.com/<user_name_or_org>/<repository_name>`
 
 For example:
  - [https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard](https://scorecard.dev/viewer/?uri=github.com/ossf/scorecard)
  - [https://scorecard.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient](https://scorecard.dev/viewer/?uri=gitlab.com/fdroid/fdroidclient)
 
-To view scores for projects not included in the webviewer, use the [Scorecard CLI](#scorecard-command-line-interface).
+To view scores for projects without pre-calculated results in the webviewer, use the [Scorecard CLI](#scorecard-command-line-interface).
 
 ### Public Data
 
