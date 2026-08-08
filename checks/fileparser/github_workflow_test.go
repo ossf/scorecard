@@ -985,6 +985,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "go publish using step-security goreleaser-action fork",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-go-step-security.yaml",
+			expected: true,
+		},
+		{
 			name:     "cargo publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
 			expected: true,
