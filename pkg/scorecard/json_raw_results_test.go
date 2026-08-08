@@ -1102,20 +1102,22 @@ func TestJsonScorecardRawResult(t *testing.T) {
 				Name:      stringPtr("main"),
 				Protected: boolPtr(true),
 				BranchProtectionRule: clients.BranchProtectionRule{
-					AllowDeletions:   boolPtr(true),
-					AllowForcePushes: boolPtr(false),
+					RefProtectionRule: clients.RefProtectionRule{
+						AllowDeletions:       boolPtr(true),
+						AllowForcePushes:     boolPtr(false),
+						RequireLinearHistory: boolPtr(true),
+						EnforceAdmins:        boolPtr(true),
+						CheckRules: clients.StatusChecksRule{
+							RequiresStatusChecks: boolPtr(true),
+							Contexts:             []string{"ci"},
+							UpToDateBeforeMerge:  boolPtr(true),
+						},
+					},
 					PullRequestRule: clients.PullRequestRule{
 						Required:                     boolPtr(true),
 						RequireCodeOwnerReviews:      boolPtr(true),
 						DismissStaleReviews:          boolPtr(true),
 						RequiredApprovingReviewCount: intPtr(2),
-					},
-					RequireLinearHistory: boolPtr(true),
-					EnforceAdmins:        boolPtr(true),
-					CheckRules: clients.StatusChecksRule{
-						RequiresStatusChecks: boolPtr(true),
-						Contexts:             []string{"ci"},
-						UpToDateBeforeMerge:  boolPtr(true),
 					},
 				},
 			},
@@ -1303,7 +1305,9 @@ func TestAddBranchProtectionRawResults(t *testing.T) {
 						Name:      stringPtr("main"),
 						Protected: boolPtr(true),
 						BranchProtectionRule: clients.BranchProtectionRule{
-							AllowDeletions: boolPtr(false),
+							RefProtectionRule: clients.RefProtectionRule{
+								AllowDeletions: boolPtr(false),
+							},
 						},
 					},
 				},

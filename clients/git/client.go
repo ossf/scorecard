@@ -287,6 +287,13 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return branchRef, nil
 }
 
+// GetTag returns information about a tag and its protection rules.
+func (c *Client) GetTag(tagName string) (*clients.TagRef, error) {
+	// Tags are not protected in local git repositories
+	// Return unsupported feature
+	return nil, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) GetCreatedAt() (time.Time, error) {
 	// Retrieve the first commit of the repository
 	commitIter, err := c.gitRepo.Log(&git.LogOptions{Order: git.LogOrderCommitterTime})

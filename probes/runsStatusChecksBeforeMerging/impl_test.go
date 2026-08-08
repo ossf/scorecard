@@ -46,8 +46,10 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{"foo"},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{"foo"},
+									},
 								},
 							},
 						},
@@ -66,16 +68,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{"foo"},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{"foo"},
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{"foo"},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{"foo"},
+									},
 								},
 							},
 						},
@@ -94,16 +100,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{"foo"},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{"foo"},
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{},
+									},
 								},
 							},
 						},
@@ -122,16 +132,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{},
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{"foo"},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{"foo"},
+									},
 								},
 							},
 						},
@@ -150,16 +164,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{},
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									Contexts: []string{},
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										Contexts: []string{},
+									},
 								},
 							},
 						},

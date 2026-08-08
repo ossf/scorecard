@@ -188,6 +188,11 @@ func (client *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("ListBranches: %w", clients.ErrUnsupportedFeature)
 }
 
+// GetTag implements RepoClient.GetTag.
+func (client *Client) GetTag(tagName string) (*clients.TagRef, error) {
+	return nil, fmt.Errorf("GetTag: %w", clients.ErrUnsupportedFeature)
+}
+
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.
 func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return nil, fmt.Errorf("GetDefaultBranch: %w", clients.ErrUnsupportedFeature)

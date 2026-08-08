@@ -1,0 +1,38 @@
+# Copyright 2025 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: tagsCannotDuplicateBranchNames
+lifecycle: stable
+short: Check that tags cannot be created with branch names (GitLab-specific)
+motivation: >
+  On GitLab, allowing anyone to create tags with the same names as branches can enable branch shadowing attacks. This probe verifies that protected tag patterns exist to prevent the creation of tags matching branch names, with appropriate access restrictions.
+implementation: >
+  This probe checks for protected tag patterns that match all branch names in the repository and ensures the CreateAccessLevels are restrictive (No one=0 or Maintainer+=40).
+outcome:
+  - The probe returns OutcomeTrue (2 points) if all branches are covered by patterns that allow only "No one" (AccessLevel=0) to create tags.
+  - The probe returns OutcomeTrue (1 point) if all branches are covered by patterns that allow only Maintainer+ (AccessLevel>=40) to create tags.
+  - The probe returns OutcomeFalse if branches can have tags created by Developer (AccessLevel=30) or if some branches are not covered by protective patterns.
+  - The probe returns OutcomeNotApplicable for non-GitLab platforms.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Add protected tag patterns to prevent tags with branch names from being created by unauthorized users.
+  markdown:
+    - For GitLab projects, configure protected tags with patterns matching your branch names (e.g., `main`, `develop`, or wildcards like `release-*`) with CreateAccessLevel set to "No one" or "Maintainer" minimum.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - gitlab

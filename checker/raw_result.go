@@ -45,6 +45,7 @@ type RawResults struct {
 	SASTResults                 SASTData
 	SecurityPolicyResults       SecurityPolicyData
 	SignedReleasesResults       SignedReleasesData
+	TagProtectionResults        TagProtectionsData
 	TokenPermissionsResults     TokenPermissionsData
 	VulnerabilitiesResults      VulnerabilitiesData
 	WebhookResults              WebhooksData
@@ -334,6 +335,28 @@ type WebhooksData struct {
 type BranchProtectionsData struct {
 	Branches        []clients.BranchRef
 	CodeownersFiles []string
+}
+
+// TagProtectionsData contains the raw results
+// for the Tag-Protection check.
+type TagProtectionsData struct {
+	Tags []clients.TagRef
+	// GitLab-specific data for advanced analysis
+	// List of all branch names (GitLab only)
+	GitLabBranches []string
+	// Protected tag patterns with details (GitLab only)
+	GitLabProtectedTags []GitLabProtectedTagInfo
+}
+
+// GitLabProtectedTagInfo contains
+// GitLab-specific protected tag
+// pattern information.
+type GitLabProtectedTagInfo struct {
+	Pattern string
+	// Minimum access level required
+	// to create (0=No one, 30=Developer,
+	// 40=Maintainer, 50=Owner)
+	CreateAccessLevel int
 }
 
 // Tool represents a tool.

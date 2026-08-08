@@ -30,7 +30,9 @@ import (
 )
 
 const (
-	refPrefix = "refs/heads/"
+	refPrefixBranch = "refs/heads/"
+	refPrefixTag    = "refs/tags/"
+	refPrefix       = refPrefixBranch // Default to branches for backward compatibility
 	//nolint:lll
 	classicBranchErrMsg = "some github tokens can't read classic branch protection rules: https://github.com/ossf/scorecard-action/blob/main/docs/authentication/fine-grained-auth-token.md"
 )
@@ -151,6 +153,7 @@ type branch struct {
 	RefUpdateRule        *refUpdateRule
 	BranchProtectionRule *branchProtectionRule
 }
+
 type defaultBranchData struct {
 	Repository struct {
 		DefaultBranchRef *branch
@@ -251,7 +254,10 @@ func (handler *branchesHandler) init(ctx context.Context, repourl *Repo) {
 func (handler *branchesHandler) setup() error {
 	handler.once.Do(func() {
 		if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-			handler.errSetup = fmt.Errorf("%w: branches only supported for HEAD queries", clients.ErrUnsupportedFeature)
+			handler.errSetup = fmt.Errorf(
+				"%w: branches only supported for HEAD queries",
+				clients.ErrUnsupportedFeature,
+			)
 			return
 		}
 		vars := map[string]interface{}{
@@ -259,9 +265,14 @@ func (handler *branchesHandler) setup() error {
 			"name":  githubv4.String(handler.repourl.repo),
 		}
 
-		// Fetch default branch name and any repository rulesets, which are available with basic read permission.
+		// Fetch default branch name and any repository rulesets,
+		// which are available with basic read permission.
 		rulesData := new(ruleSetData)
-		if err := handler.graphClient.Query(handler.ctx, rulesData, vars); err != nil {
+		if err := handler.graphClient.Query(
+			handler.ctx,
+			rulesData,
+			vars,
+		); err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 			return
 		}
@@ -269,7 +280,8 @@ func (handler *branchesHandler) setup() error {
 		handler.ruleSets = getActiveRuleSetsFrom(rulesData)
 
 		// Attempt to fetch branch protection rules, which require admin permission.
-		// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
+		// Ignore permissions errors if we know the repository is using rulesets,
+		// so non-admins can still get a score.
 		handler.data = new(defaultBranchData)
 		if err := handler.graphClient.Query(handler.ctx, handler.data, vars); err != nil {
 			// always report errors which aren't token permission related
@@ -308,7 +320,8 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 		"branchRefName": githubv4.String(refPrefix + branchName),
 	}
 	// Attempt to fetch branch protection rules, which require admin permission.
-	// Ignore permissions errors if we know the repository is using rulesets, so non-admins can still get a score.
+	// Ignore permissions errors if we know the repository is using rulesets,
+	// so non-admins can still get a score.
 	queryData := new(branchData)
 	if err := handler.graphClient.Query(handler.ctx, queryData, vars); err != nil {
 		// always report errors which aren't token permission related
@@ -399,8 +412,8 @@ func copyNonAdminSettings(src interface{}, dst *clients.BranchProtectionRule) {
 		copyBoolPtr(v.RequiresCodeOwnerReviews, &dst.PullRequestRule.RequireCodeOwnerReviews)
 		copyStringSlice(v.RequiredStatusCheckContexts, &dst.CheckRules.Contexts)
 
-		// Evaluate if we have data to infer that the project requires PRs to make changes. If we don't have data, we let
-		// Required stay nil
+		// Evaluate if we have data to infer that the project requires PRs
+		// to make changes. If we don't have data, we let Required stay nil
 		if valueOrZero(v.RequiredApprovingReviewCount) > 0 || valueOrZero(v.RequiresCodeOwnerReviews) {
 			dst.PullRequestRule.Required = asPtr(true)
 		}
@@ -480,20 +493,51 @@ func isPermissionsError(err error) bool {
 const (
 	ruleConditionDefaultBranch = "~DEFAULT_BRANCH"
 	ruleConditionAllBranches   = "~ALL"
-	ruleDeletion               = "DELETION"
-	ruleForcePush              = "NON_FAST_FORWARD"
-	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
-	rulePullRequest            = "PULL_REQUEST"
-	ruleStatusCheck            = "REQUIRED_STATUS_CHECKS"
+	// Rule types that apply to both branches and tags.
+	ruleDeletion    = "DELETION"
+	ruleForcePush   = "NON_FAST_FORWARD"
+	ruleLinear      = "REQUIRED_LINEAR_HISTORY"
+	rulePullRequest = "PULL_REQUEST"
+	ruleStatusCheck = "REQUIRED_STATUS_CHECKS"
+	// Rule types specific to tags.
+	ruleCreation   = "CREATION"            // Restricts who can create refs
+	ruleUpdate     = "UPDATE"              // Prevents ref updates/re-assignment
+	ruleSignatures = "REQUIRED_SIGNATURES" // Requires signed commits/tags
+	// Target types for rulesets.
+	targetBranch = "BRANCH"
+	targetTag    = "TAG"
 )
 
 func rulesMatchingBranch(rules []*repoRuleSet, name string, defaultRef bool) ([]*repoRuleSet, error) {
+	return rulesMatchingRef(
+		rules,
+		name,
+		defaultRef,
+		targetBranch,
+		refPrefixBranch,
+	)
+}
+
+// rulesMatchingRef returns
+// rulesets that match a
+// given ref (branch or tag).
+// This is the shared implementation
+// used by both rulesMatchingBranch
+// and rulesMatchingTag.
+func rulesMatchingRef(
+	rules []*repoRuleSet,
+	name string,
+	defaultRef bool,
+	targetType,
+	refPrefix string,
+) ([]*repoRuleSet, error) {
 	refName := refPrefix + name
 	ret := make([]*repoRuleSet, 0)
 nextRule:
 	for _, rule := range rules {
-		// Skip rulesets that don't target branches
-		if rule.Target != nil && *rule.Target != "BRANCH" {
+		// Skip rulesets that don't target the specified
+		// type (branch or tag)
+		if rule.Target != nil && *rule.Target != targetType {
 			continue
 		}
 
@@ -540,9 +584,11 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 	for _, r := range rules {
 		// Init values of base checkbox as if they're unchecked
 		translated := clients.BranchProtectionRule{
-			AllowDeletions:       asPtr(true),
-			AllowForcePushes:     asPtr(true),
-			RequireLinearHistory: asPtr(false),
+			RefProtectionRule: clients.RefProtectionRule{
+				AllowDeletions:       asPtr(true),
+				AllowForcePushes:     asPtr(true),
+				RequireLinearHistory: asPtr(false),
+			},
 			PullRequestRule: clients.PullRequestRule{
 				Required: asPtr(false),
 			},
@@ -565,6 +611,52 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 			}
 		}
 		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
+	}
+}
+
+// applyRepoRulesToTag applies repository rules to a tag reference.
+// This function handles tag-specific rules (creation, update, signatures)
+// as well as shared rules (deletion, force push).
+func applyRepoRulesToTag(tagRef *clients.TagRef, rules []*repoRuleSet) {
+	// If there are any rules, the tag is considered protected
+	if len(rules) > 0 {
+		*tagRef.Protected = true
+	}
+
+	for _, r := range rules {
+		// Init values assuming no restrictions
+		translated := clients.TagProtectionRule{
+			RefProtectionRule: clients.RefProtectionRule{
+				AllowDeletions:       asPtr(true),
+				AllowForcePushes:     asPtr(true),
+				RequireLinearHistory: asPtr(false),
+			},
+			AllowUpdates:      asPtr(true),
+			RequireSignatures: asPtr(false),
+			RestrictCreation:  asPtr(false),
+		}
+
+		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
+
+		for _, rule := range r.Rules.Nodes {
+			switch rule.Type {
+			case ruleDeletion:
+				translated.AllowDeletions = asPtr(false)
+			case ruleForcePush, ruleUpdate:
+				// Both prevent tag updates/force pushes
+				translated.AllowForcePushes = asPtr(false)
+				translated.AllowUpdates = asPtr(false)
+			case ruleLinear:
+				translated.RequireLinearHistory = asPtr(true)
+			case ruleCreation:
+				translated.RestrictCreation = asPtr(true)
+			case ruleSignatures:
+				translated.RequireSignatures = asPtr(true)
+			case ruleStatusCheck:
+				translateRequiredStatusRepoRuleForTag(&translated, rule)
+			}
+		}
+		mergeTagProtectionRules(&tagRef.TagProtectionRule, &translated)
 	}
 }
 
@@ -592,10 +684,36 @@ func translateRequiredStatusRepoRule(base *clients.BranchProtectionRule, rule *r
 	}
 }
 
+// translateRequiredStatusRepoRuleForTag translates status check rules for tags.
+// Tags can have status checks just like branches.
+func translateRequiredStatusRepoRuleForTag(base *clients.TagProtectionRule, rule *repoRule) {
+	statusParams := rule.Parameters.StatusCheckParameters
+	if len(statusParams.RequiredStatusChecks) == 0 {
+		return
+	}
+	base.CheckRules.RequiresStatusChecks = asPtr(true)
+	base.CheckRules.UpToDateBeforeMerge = statusParams.StrictRequiredStatusChecksPolicy
+	for _, chk := range statusParams.RequiredStatusChecks {
+		if chk.Context == nil {
+			continue
+		}
+		base.CheckRules.Contexts = append(base.CheckRules.Contexts, *chk.Context)
+	}
+}
+
 // Merge strategy:
 //   - if both are nil, keep it nil
 //   - if any of them is not nil, keep the most restrictive one
 func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) {
+	mergeRefProtectionRules(&base.RefProtectionRule, &translated.RefProtectionRule)
+	if base.RequireLastPushApproval == nil || valueOrZero(translated.RequireLastPushApproval) {
+		base.RequireLastPushApproval = translated.RequireLastPushApproval
+	}
+	mergePullRequestReviews(&base.PullRequestRule, &translated.PullRequestRule)
+}
+
+// mergeRefProtectionRules merges the shared protection rules (used by both branches and tags).
+func mergeRefProtectionRules(base, translated *clients.RefProtectionRule) {
 	if base.AllowDeletions == nil || (translated.AllowDeletions != nil && !*translated.AllowDeletions) {
 		base.AllowDeletions = translated.AllowDeletions
 	}
@@ -610,14 +728,24 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		// https://github.com/ossf/scorecard/issues/3480
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
-	if base.RequireLastPushApproval == nil || valueOrZero(translated.RequireLastPushApproval) {
-		base.RequireLastPushApproval = translated.RequireLastPushApproval
-	}
 	if base.RequireLinearHistory == nil || valueOrZero(translated.RequireLinearHistory) {
 		base.RequireLinearHistory = translated.RequireLinearHistory
 	}
 	mergeCheckRules(&base.CheckRules, &translated.CheckRules)
-	mergePullRequestReviews(&base.PullRequestRule, &translated.PullRequestRule)
+}
+
+// mergeTagProtectionRules merges tag protection rules using the most restrictive values.
+func mergeTagProtectionRules(base, translated *clients.TagProtectionRule) {
+	mergeRefProtectionRules(&base.RefProtectionRule, &translated.RefProtectionRule)
+	if base.AllowUpdates == nil || (translated.AllowUpdates != nil && !*translated.AllowUpdates) {
+		base.AllowUpdates = translated.AllowUpdates
+	}
+	if base.RequireSignatures == nil || valueOrZero(translated.RequireSignatures) {
+		base.RequireSignatures = translated.RequireSignatures
+	}
+	if base.RestrictCreation == nil || valueOrZero(translated.RestrictCreation) {
+		base.RestrictCreation = translated.RestrictCreation
+	}
 }
 
 func mergeCheckRules(base, translated *clients.StatusChecksRule) {

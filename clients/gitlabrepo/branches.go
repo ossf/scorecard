@@ -33,6 +33,7 @@ type branchesHandler struct {
 	defaultBranchRef         *clients.BranchRef
 	queryProject             fnProject
 	queryBranch              fnQueryBranch
+	queryBranches            fnListBranches
 	getProtectedBranch       fnProtectedBranch
 	getProjectChecks         fnListProjectStatusChecks
 	getApprovalConfiguration fnGetApprovalConfiguration
@@ -44,6 +45,7 @@ func (handler *branchesHandler) init(repourl *Repo) {
 	handler.once = new(sync.Once)
 	handler.queryProject = handler.glClient.Projects.GetProject
 	handler.queryBranch = handler.glClient.Branches.GetBranch
+	handler.queryBranches = handler.glClient.Branches.ListBranches
 	handler.getProtectedBranch = handler.glClient.ProtectedBranches.GetProtectedBranch
 	handler.getProjectChecks = handler.glClient.ExternalStatusChecks.ListProjectStatusChecks
 	handler.getApprovalConfiguration = handler.glClient.Projects.GetApprovalConfiguration
@@ -54,6 +56,8 @@ type (
 		options ...gitlab.RequestOptionFunc) (*gitlab.Project, *gitlab.Response, error)
 	fnQueryBranch func(pid interface{}, branch string,
 		options ...gitlab.RequestOptionFunc) (*gitlab.Branch, *gitlab.Response, error)
+	fnListBranches func(pid interface{}, opt *gitlab.ListBranchesOptions,
+		options ...gitlab.RequestOptionFunc) ([]*gitlab.Branch, *gitlab.Response, error)
 	fnProtectedBranch func(pid interface{}, branch string,
 		options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error)
 	fnListProjectStatusChecks func(pid interface{}, opt *gitlab.ListOptions,
@@ -170,6 +174,38 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 	}
 }
 
+func (handler *branchesHandler) listBranches() ([]string, error) {
+	if handler.errSetup != nil {
+		return nil, fmt.Errorf("error during branchesHandler.setup: %w", handler.errSetup)
+	}
+
+	var allBranches []string
+	opts := &gitlab.ListBranchesOptions{
+		ListOptions: gitlab.ListOptions{
+			PerPage: 100,
+			Page:    1,
+		},
+	}
+
+	for {
+		branches, resp, err := handler.queryBranches(handler.repourl.projectID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("request for branches failed with error %w", err)
+		}
+
+		for _, branch := range branches {
+			allBranches = append(allBranches, branch.Name)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return allBranches, nil
+}
+
 func makeContextsFromResp(checks []*gitlab.ProjectStatusCheck) []string {
 	ret := make([]string, len(checks))
 	for i, statusCheck := range checks {
@@ -209,11 +245,13 @@ func makeBranchRefFrom(branch *gitlab.Branch, protectedBranch *gitlab.ProtectedB
 		Name:      &branch.Name,
 		Protected: &branch.Protected,
 		BranchProtectionRule: clients.BranchProtectionRule{
-			PullRequestRule:  pullRequestReviewRule,
-			AllowDeletions:   newFalse(),
-			AllowForcePushes: &protectedBranch.AllowForcePush,
-			EnforceAdmins:    newTrue(),
-			CheckRules:       statusChecksRule,
+			RefProtectionRule: clients.RefProtectionRule{
+				AllowDeletions:   newFalse(),
+				AllowForcePushes: &protectedBranch.AllowForcePush,
+				EnforceAdmins:    newTrue(),
+				CheckRules:       statusChecksRule,
+			},
+			PullRequestRule: pullRequestReviewRule,
 		},
 	}
 

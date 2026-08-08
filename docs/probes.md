@@ -32,6 +32,19 @@ If the project is not archived, the outcome is OutcomeFalse.
 **Outcomes**: The probe returns one OutcomeTrue for each branch that is disallowed from users deleting it, and one OutcomeFalse for branches where users are able to delete it. Scorecard only considers default and releases branches.
 
 
+## blocksDeleteOnTags
+
+**Lifecycle**: stable
+
+**Description**: Check that tag deletion is blocked
+
+**Motivation**: Blocking tag deletion prevents attackers from removing release tags.
+
+**Implementation**: The probe checks if AllowDeletions is set to false for protected release tags.
+
+**Outcomes**: The probe returns OutcomeTrue if deletion is blocked, OutcomeFalse otherwise, and OutcomeNotApplicable if no release tags exist.
+
+
 ## blocksForcePushOnBranches
 
 **Lifecycle**: stable
@@ -44,6 +57,38 @@ If the project is not archived, the outcome is OutcomeFalse.
 
 **Outcomes**: The probe returns one OutcomeTrue for each branch that is blocked from force pushes, and one OutcomeFalse for branches that allows force push.
 Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the repository.
+
+
+## blocksForcePushOnTags
+
+**Lifecycle**: stable
+
+**Description**: Check that force push is blocked on release tags
+
+**Motivation**: Blocking force pushes to tags prevents rewriting history that tags point to, ensuring immutability of releases.
+
+**Implementation**: Checks if AllowForcePushes is set to false for protected release tags.
+
+**Outcomes**: If force push is blocked, the probe returns OutcomeTrue.
+If force push is allowed, the probe returns OutcomeFalse.
+If the tag is not protected, the probe returns OutcomeFalse.
+If there are no release tags, the probe returns OutcomeNotApplicable.
+
+
+## blocksUpdateOnTags
+
+**Lifecycle**: stable
+
+**Description**: Check that tag updates are blocked on release tags
+
+**Motivation**: Blocking tag updates prevents tags from being moved to different commits, ensuring release stability.
+
+**Implementation**: Checks if AllowUpdates is set to false for protected release tags.
+
+**Outcomes**: If tag updates are blocked, the probe returns OutcomeTrue.
+If tag updates are allowed, the probe returns OutcomeFalse.
+If the tag is not protected, the probe returns OutcomeFalse.
+If there are no release tags, the probe returns OutcomeNotApplicable.
 
 
 ## branchProtectionAppliesToAdmins
@@ -168,6 +213,22 @@ If no tool is detected, the probe returns OutcomeFalse.
 
 **Outcomes**: If a fuzzing tool is found, one finding per tool with OutcomeTrue is returned.
 If no fuzzing tool is found, or the project uses a tool we don't detect, one finding with OutcomeFalse is returned.
+
+
+## gitlabReleaseTagsAreProtected
+
+**Lifecycle**: stable
+
+**Description**: Check that GitLab release tags have appropriate creation restrictions
+
+**Motivation**: On GitLab, restricting who can create release tags prevents unauthorized users from publishing malicious releases. This probe verifies that protected tag patterns exist for release tags with appropriate access restrictions.
+
+**Implementation**: This probe checks if release tags are covered by protected tag patterns and ensures the CreateAccessLevels are restrictive (No one=0 or Maintainer+=40).
+
+**Outcomes**: The probe returns OutcomeTrue (8 points) if all release tags are covered by patterns that allow only "No one" (AccessLevel=0) to create tags.
+The probe returns OutcomeTrue (4 points) if all release tags are covered by patterns that allow only Maintainer+ (AccessLevel>=40) to create tags.
+The probe returns OutcomeFalse if release tags can be created by Developer (AccessLevel=30) or if some release tags are not covered by protective patterns.
+The probe returns OutcomeNotApplicable for non-GitLab platforms or if there are no release tags.
 
 
 ## hasBinaryArtifacts
@@ -507,6 +568,22 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 **Outcomes**: The probe returns one OutcomeTrue for each branch that requires pull requests to change code, and one OutcomeFalse for branches that don't.
 
 
+## requiresSignedTags
+
+**Lifecycle**: stable
+
+**Description**: Check that signed tags are required
+
+**Motivation**: Requiring signed tags ensures release tags are cryptographically verified and authenticated.
+
+**Implementation**: Checks if RequireSignedCommits is enabled for protected release tags.
+
+**Outcomes**: If signed tags are required, the probe returns OutcomeTrue.
+If unsigned tags are allowed, the probe returns OutcomeFalse.
+If the tag is not protected, the probe returns OutcomeFalse.
+If there are no release tags, the probe returns OutcomeNotApplicable.
+
+
 ## requiresUpToDateBranches
 
 **Lifecycle**: stable
@@ -518,6 +595,22 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 **Implementation**: The probe checks the branch protection rules of default and release branches in the repository.
 
 **Outcomes**: The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
+
+
+## restrictsTagCreation
+
+**Lifecycle**: stable
+
+**Description**: Check that tag creation is restricted
+
+**Motivation**: Restricting who can create tags prevents unauthorized users from creating malicious release tags.
+
+**Implementation**: Checks if RestrictCreation is enabled for protected release tags.
+
+**Outcomes**: If tag creation is restricted, the probe returns OutcomeTrue.
+If anyone can create tags, the probe returns OutcomeFalse.
+If the tag is not protected, the probe returns OutcomeFalse.
+If there are no release tags, the probe returns OutcomeNotApplicable.
 
 
 ## runsStatusChecksBeforeMerging
@@ -619,6 +712,51 @@ If no security policy is found, the probe returns one finding with OutcomeFalse.
 
 **Outcomes**: If a security policy file is found, one finding with OutcomeTrue is returned.
 If no security file is found, one finding with OutcomeFalse is returned.
+
+
+## tagProtectionAppliesToAdmins
+
+**Lifecycle**: stable
+
+**Description**: Check that tag protection rules apply to administrators
+
+**Motivation**: Applying protection to administrators ensures consistent security across all user roles.
+
+**Implementation**: Checks if EnforceAdmins is enabled for protected release tags.
+
+**Outcomes**: If protection applies to admins, the probe returns OutcomeTrue.
+If admins can bypass protection, the probe returns OutcomeFalse.
+If the tag is not protected, the probe returns OutcomeFalse.
+If there are no release tags, the probe returns OutcomeNotApplicable.
+
+
+## tagsAreProtected
+
+**Lifecycle**: stable
+
+**Description**: Check that release tags are protected
+
+**Motivation**: Protected tags prevent unauthorized modifications, deletions, or force-pushes to release tags.
+
+**Implementation**: The probe checks the protection status of all release tags.
+
+**Outcomes**: The probe returns OutcomeTrue for each protected tag, OutcomeFalse for unprotected tags, and OutcomeNotApplicable if no release tags exist.
+
+
+## tagsCannotDuplicateBranchNames
+
+**Lifecycle**: stable
+
+**Description**: Check that tags cannot be created with branch names (GitLab-specific)
+
+**Motivation**: On GitLab, allowing anyone to create tags with the same names as branches can enable branch shadowing attacks. This probe verifies that protected tag patterns exist to prevent the creation of tags matching branch names, with appropriate access restrictions.
+
+**Implementation**: This probe checks for protected tag patterns that match all branch names in the repository and ensures the CreateAccessLevels are restrictive (No one=0 or Maintainer+=40).
+
+**Outcomes**: The probe returns OutcomeTrue (2 points) if all branches are covered by patterns that allow only "No one" (AccessLevel=0) to create tags.
+The probe returns OutcomeTrue (1 point) if all branches are covered by patterns that allow only Maintainer+ (AccessLevel>=40) to create tags.
+The probe returns OutcomeFalse if branches can have tags created by Developer (AccessLevel=30) or if some branches are not covered by protective patterns.
+The probe returns OutcomeNotApplicable for non-GitLab platforms.
 
 
 ## testsRunInCI

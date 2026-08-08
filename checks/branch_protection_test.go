@@ -87,10 +87,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 				{
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
+							EnforceAdmins:        &trueVal,
+							RequireLinearHistory: &trueVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -98,19 +104,21 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:        &trueVal,
-						RequireLinearHistory: &trueVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
 					},
 				},
 				{
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &falseVal,
-							Contexts:             nil,
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &falseVal,
+								Contexts:             nil,
+							},
+							EnforceAdmins:        &falseVal,
+							RequireLinearHistory: &falseVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -118,10 +126,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:        &falseVal,
-						RequireLinearHistory: &falseVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
 					},
 				},
 				nil,
@@ -147,10 +151,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &falseVal,
-							Contexts:             nil,
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &falseVal,
+								Contexts:             nil,
+							},
+							EnforceAdmins:        &falseVal,
+							RequireLinearHistory: &falseVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -158,11 +168,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:           &falseVal,
-						RequireLinearHistory:    &falseVal,
 						RequireLastPushApproval: &falseVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -183,10 +189,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
+							EnforceAdmins:        &trueVal,
+							RequireLinearHistory: &trueVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -194,21 +206,23 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:           &trueVal,
 						RequireLastPushApproval: &trueVal,
-						RequireLinearHistory:    &trueVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				},
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &falseVal,
-							Contexts:             nil,
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &falseVal,
+								Contexts:             nil,
+							},
+							EnforceAdmins:        &falseVal,
+							RequireLinearHistory: &falseVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -216,11 +230,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:           &falseVal,
 						RequireLastPushApproval: &falseVal,
-						RequireLinearHistory:    &falseVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -241,10 +251,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
+							EnforceAdmins:        &trueVal,
+							RequireLinearHistory: &trueVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -252,21 +268,23 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:           &trueVal,
 						RequireLastPushApproval: &trueVal,
-						RequireLinearHistory:    &trueVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				},
 				{
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
+							EnforceAdmins:        &trueVal,
+							RequireLinearHistory: &trueVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -274,11 +292,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &trueVal,
 							RequiredApprovingReviewCount: &oneVal,
 						},
-						EnforceAdmins:           &trueVal,
 						RequireLastPushApproval: &trueVal,
-						RequireLinearHistory:    &trueVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				},
 			},
@@ -300,10 +314,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &falseVal,
-							Contexts:             nil,
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &falseVal,
+								Contexts:             nil,
+							},
+							EnforceAdmins:        &falseVal,
+							RequireLinearHistory: &falseVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -311,11 +331,7 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:           &falseVal,
 						RequireLastPushApproval: &falseVal,
-						RequireLinearHistory:    &falseVal,
-						AllowForcePushes:        &falseVal,
-						AllowDeletions:          &falseVal,
 					},
 				}, {
 					Name:      &rel1,
@@ -339,10 +355,16 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &falseVal,
-							Contexts:             nil,
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &falseVal,
+								Contexts:             nil,
+							},
+							EnforceAdmins:        &falseVal,
+							RequireLinearHistory: &falseVal,
+							AllowForcePushes:     &falseVal,
+							AllowDeletions:       &falseVal,
 						},
 						PullRequestRule: clients.PullRequestRule{
 							Required:                     &trueVal,
@@ -350,10 +372,6 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 							RequireCodeOwnerReviews:      &falseVal,
 							RequiredApprovingReviewCount: &zeroVal,
 						},
-						EnforceAdmins:        &falseVal,
-						RequireLinearHistory: &falseVal,
-						AllowForcePushes:     &falseVal,
-						AllowDeletions:       &falseVal,
 					},
 				},
 			},
@@ -376,10 +394,12 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &main,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
 						},
 					},
 				},
@@ -387,10 +407,12 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 					Name:      &rel1,
 					Protected: &trueVal,
 					BranchProtectionRule: clients.BranchProtectionRule{
-						CheckRules: clients.StatusChecksRule{
-							RequiresStatusChecks: &trueVal,
-							UpToDateBeforeMerge:  &trueVal,
-							Contexts:             []string{"foo"},
+						RefProtectionRule: clients.RefProtectionRule{
+							CheckRules: clients.StatusChecksRule{
+								RequiresStatusChecks: &trueVal,
+								UpToDateBeforeMerge:  &trueVal,
+								Contexts:             []string{"foo"},
+							},
 						},
 					},
 				},
