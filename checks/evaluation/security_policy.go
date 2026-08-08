@@ -21,16 +21,18 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyEnablesPrivateReporting"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
-	// We have 4 unique probes, each should have a finding.
+	// We have 5 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
 		securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
+		securityPolicyEnablesPrivateReporting.Probe,
 		securityPolicyPresent.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -40,6 +42,8 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 
 	score := 0
 	m := make(map[string]bool)
+	pvrEnabled := false
+	pvrUnknown := true
 	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
@@ -54,6 +58,9 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 				score += scoreProbeOnce(f.Probe, m, 6)
 			case securityPolicyContainsText.Probe:
 				score += scoreProbeOnce(f.Probe, m, 3)
+			case securityPolicyEnablesPrivateReporting.Probe:
+				pvrEnabled = true
+				pvrUnknown = false
 			case securityPolicyPresent.Probe:
 				m[f.Probe] = true
 			default:
@@ -62,6 +69,11 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
+		case finding.OutcomeNotApplicable:
+			logLevel = checker.DetailDebug
+			if f.Probe == securityPolicyEnablesPrivateReporting.Probe {
+				pvrUnknown = true
+			}
 		default:
 			logLevel = checker.DetailDebug
 		}
@@ -74,6 +86,18 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
+	}
+	// Adjust score based on private vulnerability reporting status.
+	// Enabled: keep score. Unknown: -1. Disabled: -2.
+	if pvrUnknown {
+		if score > 0 {
+			score--
+		}
+	} else if !pvrEnabled {
+		score -= 2
+		if score < 0 {
+			score = 0
+		}
 	}
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
