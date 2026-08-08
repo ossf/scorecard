@@ -191,8 +191,8 @@ func (handler *tarballHandler) extractTarball() error {
 				continue
 			}
 
-			if err := os.Mkdir(dirpath, 0o755); err != nil {
-				return fmt.Errorf("error during os.Mkdir: %w", err)
+			if err := os.MkdirAll(dirpath, 0o755); err != nil {
+				return fmt.Errorf("error during os.MkdirAll: %w", err)
 			}
 		case tar.TypeReg:
 			if header.Size <= 0 {
@@ -204,8 +204,8 @@ func (handler *tarballHandler) extractTarball() error {
 			}
 
 			if _, err := os.Stat(filepath.Dir(filenamepath)); os.IsNotExist(err) {
-				if err := os.Mkdir(filepath.Dir(filenamepath), 0o755); err != nil {
-					return fmt.Errorf("os.Mkdir: %w", err)
+				if err := os.MkdirAll(filepath.Dir(filenamepath), 0o755); err != nil {
+					return fmt.Errorf("os.MkdirAll: %w", err)
 				}
 			}
 			outFile, err := os.Create(filenamepath)
