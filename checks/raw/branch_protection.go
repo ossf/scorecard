@@ -71,8 +71,13 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 	}
 	for _, release := range releases {
 		if release.TargetCommitish == "" {
-			// Log with a named error if target_commitish is nil.
-			return checker.BranchProtectionsData{}, fmt.Errorf("%w", errInternalCommitishNil)
+			// Some releases don't have a target commitish. Skip rather than failing the whole check.
+			if cr.Dlogger != nil {
+				cr.Dlogger.Debug(&checker.LogMessage{
+					Text: fmt.Sprintf("release %s has no target commitish, skipping", release.TagName),
+				})
+			}
+			continue
 		}
 
 		// TODO: if this is a sha, get the associated branch. for now, ignore.
@@ -88,8 +93,14 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 		// Get the associated release branch.
 		branchRef, err := c.GetBranch(release.TargetCommitish)
 		if err != nil {
-			return checker.BranchProtectionsData{},
-				fmt.Errorf("error during GetBranch(%s): %w", release.TargetCommitish, err)
+			// The branch may have been renamed or deleted since the release was published.
+			// Skip it rather than failing the whole check.
+			if cr.Dlogger != nil {
+				cr.Dlogger.Debug(&checker.LogMessage{
+					Text: fmt.Sprintf("error during GetBranch(%s): %v, skipping", release.TargetCommitish, err),
+				})
+			}
+			continue
 		}
 		if branches.add(branchRef) {
 			continue
@@ -102,8 +113,13 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 		}
 		branchRef, err = c.GetBranch(redirectBranch)
 		if err != nil {
-			return checker.BranchProtectionsData{},
-				fmt.Errorf("error during GetBranch(%s) %w", redirectBranch, err)
+			// The redirect branch may not exist either. Skip it rather than failing the whole check.
+			if cr.Dlogger != nil {
+				cr.Dlogger.Debug(&checker.LogMessage{
+					Text: fmt.Sprintf("error during GetBranch(%s): %v, skipping", redirectBranch, err),
+				})
+			}
+			continue
 		}
 		branches.add(branchRef)
 		// Branch doesn't exist or was deleted. Continue.

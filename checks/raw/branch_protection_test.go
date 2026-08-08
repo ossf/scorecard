@@ -136,7 +136,9 @@ func TestBranchProtection(t *testing.T) {
 					TargetCommitish: "",
 				},
 			},
-			wantErr: errInternalCommitishNil,
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "release-branch-err",
@@ -151,7 +153,9 @@ func TestBranchProtection(t *testing.T) {
 					err:  errBPTest,
 				},
 			},
-			wantErr: errBPTest,
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "nil-release-branch",
@@ -191,6 +195,23 @@ func TestBranchProtection(t *testing.T) {
 						Name: &releaseBranchName,
 					},
 				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "master-to-main-redirect-err",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: mainBranchName,
+					err:  errBPTest,
+				},
+			},
+			want: checker.BranchProtectionsData{
 				CodeownersFiles: []string{},
 			},
 		},
