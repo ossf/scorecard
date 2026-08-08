@@ -17,11 +17,8 @@ package gitfile
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/go-git/go-git/v5"
@@ -30,8 +27,6 @@ import (
 
 	"github.com/ossf/scorecard/v5/clients"
 )
-
-var errPathTraversal = errors.New("requested file outside repo")
 
 const repoDir = "repo*"
 
@@ -160,13 +155,10 @@ func (h *Handler) GetFile(filename string) (*os.File, error) {
 		return nil, fmt.Errorf("setup: %w", err)
 	}
 
-	// check for path traversal
-	path := filepath.Join(h.tempDir, filename)
-	if !strings.HasPrefix(path, filepath.Clean(h.tempDir)+string(os.PathSeparator)) {
-		return nil, errPathTraversal
-	}
-
-	f, err := os.Open(path)
+	// Open the file within the checkout root. os.OpenInRoot keeps the read
+	// contained even when the requested name resolves through a symlink that
+	// the clone materialized on disk pointing outside the repo.
+	f, err := os.OpenInRoot(h.tempDir, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
