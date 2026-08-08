@@ -22,16 +22,18 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPrivateVulnerabilityReportingEnabled"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
-	// We have 4 unique probes, each should have a finding.
+	// Every Security-Policy probe must provide a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
 		securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
 		securityPolicyPresent.Probe,
+		securityPolicyPrivateVulnerabilityReportingEnabled.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
@@ -40,6 +42,7 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 
 	score := 0
 	m := make(map[string]bool)
+	privateReportingEnabled := false
 	var logLevel checker.DetailType
 	for i := range findings {
 		f := &findings[i]
@@ -56,12 +59,19 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 				score += scoreProbeOnce(f.Probe, m, 3)
 			case securityPolicyPresent.Probe:
 				m[f.Probe] = true
+			case securityPolicyPrivateVulnerabilityReportingEnabled.Probe:
+				privateReportingEnabled = true
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
+		case finding.OutcomeNotSupported:
+			if f.Probe == securityPolicyPrivateVulnerabilityReportingEnabled.Probe {
+				continue
+			}
+			logLevel = checker.DetailDebug
 		default:
 			logLevel = checker.DetailDebug
 		}
@@ -73,7 +83,21 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
 			return checker.CreateRuntimeErrorResult(name, e)
 		}
+		if privateReportingEnabled {
+			return checker.CreateResultWithScore(
+				name, "private vulnerability reporting enabled", 8)
+		}
 		return checker.CreateMinScoreResult(name, "security policy file not detected")
+	}
+
+	if privateReportingEnabled {
+		if m[securityPolicyContainsLinks.Probe] {
+			score = checker.MaxResultScore
+		} else if score < 8 {
+			score = 8
+		}
+		return checker.CreateResultWithScore(
+			name, "security policy file and private vulnerability reporting detected", score)
 	}
 	return checker.CreateResultWithScore(name, "security policy file detected", score)
 }
