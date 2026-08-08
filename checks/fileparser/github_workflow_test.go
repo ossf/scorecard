@@ -990,6 +990,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "cargo-dist plan/build",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo-dist.yaml",
+			expected: true,
+		},
+		{
+			name:     "cargo-dist false positive (distribution prose)",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo-dist-false.yaml",
+			expected: false,
+		},
+		{
 			name:     "semantic-release publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
 			expected: true,
