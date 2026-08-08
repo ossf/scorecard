@@ -61,15 +61,26 @@ func GetClients(ctx context.Context, repoURI, localURI string, logger *log.Logge
 	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	var repoClient clients.RepoClient
 
-	repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
-	if repo != nil && makeRepoError == nil {
-		repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
-	}
-
-	if experimental && (makeRepoError != nil || repo == nil) {
+	if experimental {
 		repo, makeRepoError = azdorepo.MakeAzureDevOpsRepo(repoURI)
 		if repo != nil && makeRepoError == nil {
 			repoClient, makeRepoError = azdorepo.CreateAzureDevOpsClient(ctx, repo)
+		}
+		if azdorepo.HasAzureDevOpsHost(repoURI) && (makeRepoError != nil || repo == nil) {
+			return repo,
+				nil,
+				nil,
+				nil,
+				nil,
+				packageclient.CreateDepsDevClient(),
+				fmt.Errorf("error making azure devops repo: %w", makeRepoError)
+		}
+	}
+
+	if makeRepoError != nil || repo == nil {
+		repo, makeRepoError = glrepo.MakeGitlabRepo(repoURI)
+		if repo != nil && makeRepoError == nil {
+			repoClient, makeRepoError = glrepo.CreateGitlabClient(ctx, repo.Host())
 		}
 	}
 
