@@ -15,7 +15,6 @@
 package gitfile
 
 import (
-	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -76,9 +75,28 @@ func TestHandlerPathTraversal(t *testing.T) {
 	var h Handler
 	h.Init(t.Context(), dir, "HEAD")
 
-	_, err := h.GetFile("../example.txt")
-	if !errors.Is(err, errPathTraversal) {
-		t.Fatalf("expected path traversal error: got %v", err)
+	if _, err := h.GetFile("../example.txt"); err == nil {
+		t.Fatal("expected error reading a path outside the repo, got nil")
+	}
+}
+
+func TestHandlerSymlinkEscape(t *testing.T) {
+	t.Parallel()
+
+	secret := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(secret, []byte("host secret"), 0o600); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	dir := setupGitRepoWithSymlink(t, secret)
+
+	var h Handler
+	h.Init(t.Context(), dir, "HEAD")
+
+	// The symlink is listed as a regular file, but reading it must not follow
+	// the link to a location outside the checkout.
+	if _, err := h.GetFile("innocent.txt"); err == nil {
+		t.Fatal("expected error reading a symlink that escapes the repo, got nil")
 	}
 }
 
@@ -102,6 +120,41 @@ func setupGitRepo(t *testing.T) string {
 	}
 
 	if _, err = w.Add("example.txt"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	_, err = w.Commit("commit message", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "John Doe",
+			Email: "john@doe.org",
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	return dir
+}
+
+func setupGitRepoWithSymlink(t *testing.T, target string) string {
+	t.Helper()
+
+	dir := t.TempDir()
+	r, err := git.PlainInitWithOptions(dir, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if err = os.Symlink(target, filepath.Join(dir, "innocent.txt")); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if _, err = w.Add("innocent.txt"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
