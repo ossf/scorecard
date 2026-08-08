@@ -106,6 +106,76 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "wiki page title",
+			variable: "github.event.pages[0].title",
+			expected: true,
+		},
+		{
+			name:     "previous title before edit",
+			variable: "github.event.changes.title.from",
+			expected: true,
+		},
+		{
+			name:     "previous body before edit",
+			variable: "github.event.changes.body.from",
+			expected: true,
+		},
+		{
+			name:     "previous pull request head ref",
+			variable: "github.event.changes.head.ref.from",
+			expected: true,
+		},
+		{
+			name:     "merge group head ref",
+			variable: "github.event.merge_group.head_ref",
+			expected: true,
+		},
+		{
+			name:     "merge group committer name",
+			variable: "github.event.merge_group.committer.name",
+			expected: true,
+		},
+		{
+			name:     "merge group committer email",
+			variable: "github.event.merge_group.committer.email",
+			expected: true,
+		},
+		{
+			name:     "workflow path",
+			variable: "github.event.workflow.path",
+			expected: true,
+		},
+		{
+			name:     "workflow run path",
+			variable: "github.event.workflow_run.path",
+			expected: true,
+		},
+		{
+			name:     "workflow run referenced workflow path",
+			variable: "github.event.workflow_run.referenced_workflows[0].path",
+			expected: true,
+		},
+		{
+			name:     "trusted wiki page sha",
+			variable: "github.event.pages[0].sha",
+			expected: false,
+		},
+		{
+			name:     "trusted previous pull request head sha",
+			variable: "github.event.changes.head.sha.from",
+			expected: false,
+		},
+		{
+			name:     "trusted merge group head sha",
+			variable: "github.event.merge_group.head_sha",
+			expected: false,
+		},
+		{
+			name:     "trusted workflow id",
+			variable: "github.event.workflow.id",
+			expected: false,
+		},
+		{
 			name:     "toJSON github.event",
 			variable: "toJSON(github.event)",
 			expected: true,
