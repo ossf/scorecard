@@ -49,6 +49,15 @@ func containsUntrustedContextPattern(variable string) bool {
 			`commits.*\.author\.name|` +
 			`blocked_user\.name|` +
 			`blocked_user\.email|` +
+			`fork\.forkee\.name|` +
+			`fork\.forkee\.full_name|` +
+			`fork\.forkee\.description|` +
+			`fork\.forkee\.homepage|` +
+			`fork\.forkee\.default_branch|` +
+			`workflow_run\.head_branch|` +
+			`workflow_run\.display_title|` +
+			`workflow_run\.head_repository\.description|` +
+			`workflow_run\.pull_requests.*\.head\.ref|` +
 			`pull_request\.head\.ref|` +
 			`pull_request\.head\.label|` +
 			`pull_request\.head\.repo\.default_branch).*`)
