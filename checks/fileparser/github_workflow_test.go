@@ -1004,6 +1004,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			filename: "../testdata/.github/workflows/github-workflow-packaging-elixir.yaml",
 			expected: true,
 		},
+		{
+			name:     "winget publish using winget-releaser",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-winget.yaml",
+			expected: true,
+		},
+		{
+			name:     "winget publish using wingetcreate",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-wingetcreate.yaml",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

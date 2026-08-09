@@ -604,6 +604,34 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate publishing workflow using elixir",
 		},
+		{
+			// Winget packages using winget-releaser.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "vedantmgoyal9/winget-releaser",
+				},
+			},
+			LogText: "candidate winget publishing workflow using winget-releaser",
+		},
+		{
+			// Winget packages using winget-releaser under its old owner name,
+			// which is still used by some projects.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "vedantmgoyal2009/winget-releaser",
+				},
+			},
+			LogText: "candidate winget publishing workflow using winget-releaser",
+		},
+		{
+			// Winget packages using wingetcreate.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "wingetcreate.*submit",
+				},
+			},
+			LogText: "candidate winget publishing workflow using wingetcreate",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
