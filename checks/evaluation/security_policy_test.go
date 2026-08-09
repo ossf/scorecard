@@ -99,10 +99,14 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MinResultScore,
-				NumberOfInfo: 1,
+				NumberOfInfo: 2,
 				NumberOfWarn: 3,
 			},
 		},
@@ -125,12 +129,16 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.InconclusiveResultScore,
 				Error:        sce.ErrScorecardInternal,
 				NumberOfWarn: 1,
-				NumberOfInfo: 3,
+				NumberOfInfo: 4,
 			},
 		},
 		{
@@ -152,10 +160,14 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        6,
-				NumberOfInfo: 2,
+				NumberOfInfo: 3,
 				NumberOfWarn: 2,
 			},
 		},
@@ -178,10 +190,43 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
+				NumberOfInfo: 5,
+			},
+		},
+		{
+			name: "file found with private reporting enabled",
+			findings: []finding.Finding{
+				{Probe: "securityPolicyContainsVulnerabilityDisclosure", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyContainsLinks", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyContainsText", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyPresent", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyEnablesPrivateReporting", Outcome: finding.OutcomeTrue},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 5,
+			},
+		},
+		{
+			name: "file found with private reporting disabled",
+			findings: []finding.Finding{
+				{Probe: "securityPolicyContainsVulnerabilityDisclosure", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyContainsLinks", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyContainsText", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyPresent", Outcome: finding.OutcomeTrue},
+				{Probe: "securityPolicyEnablesPrivateReporting", Outcome: finding.OutcomeFalse},
+			},
+			result: scut.TestReturn{
+				Score:        8,
 				NumberOfInfo: 4,
+				NumberOfWarn: 1,
 			},
 		},
 	}
