@@ -199,7 +199,11 @@ func (z *zipHandler) extractZip() error {
 			return fmt.Errorf("file.Open: %w", err)
 		}
 
-		written, err := io.CopyN(outFile, rc, maxSize)
+		// Read one byte past the limit so an entry that is exactly maxSize still
+		// succeeds while anything larger trips the check below. io.CopyN caps the
+		// copy at its third argument, so passing maxSize here would make written
+		// top out at maxSize and the comparison could never be true.
+		written, err := io.CopyN(outFile, rc, maxSize+1)
 		if err != nil && !errors.Is(err, io.EOF) {
 			return fmt.Errorf("%w io.Copy: %w", errZipNotFound, err)
 		}
