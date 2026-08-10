@@ -1,0 +1,33 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# wingetcreate driven from PowerShell, where the command is split using the
+# backtick continuation character rather than a backslash. Modelled on
+# microsoft/PowerToys' package-submissions.yml.
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    steps:
+      - name: Submit package to Windows Package Manager Community Repository
+        run: |
+          curl.exe -JLO https://aka.ms/wingetcreate/latest
+          .\wingetcreate.exe update Foo.Bar `
+            --version $env:RELEASE_VERSION `
+            --urls "https://example.com/foo.exe" `
+            --submit

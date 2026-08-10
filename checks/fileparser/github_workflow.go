@@ -624,10 +624,12 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate winget publishing workflow using winget-releaser",
 		},
 		{
-			// Winget packages using wingetcreate.
+			// Winget packages using wingetcreate. These workflows run on Windows and
+			// commonly split the command with PowerShell's backtick continuation,
+			// which is not stripped like a backslash is, so match across newlines.
 			Steps: []*JobMatcherStep{
 				{
-					Run: "wingetcreate.*submit",
+					Run: "(?s)wingetcreate.*submit",
 				},
 			},
 			LogText: "candidate winget publishing workflow using wingetcreate",

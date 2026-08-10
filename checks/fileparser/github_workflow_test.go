@@ -1010,8 +1010,18 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "winget publish using winget-releaser under its previous owner name",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-winget-legacy-owner.yaml",
+			expected: true,
+		},
+		{
 			name:     "winget publish using wingetcreate",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-wingetcreate.yaml",
+			expected: true,
+		},
+		{
+			name:     "winget publish using wingetcreate with PowerShell backtick continuation",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-wingetcreate-powershell.yaml",
 			expected: true,
 		},
 	}
