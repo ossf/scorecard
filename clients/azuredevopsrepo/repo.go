@@ -15,6 +15,7 @@
 package azuredevopsrepo
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -36,11 +37,49 @@ type Repo struct {
 	metadata      []string
 }
 
+const (
+	azureDevOpsHost        = "dev.azure.com"
+	visualStudioHostSuffix = ".visualstudio.com"
+	defaultCollection      = "DefaultCollection"
+	gitPathSegment         = "_git"
+)
+
+var errInvalidAzureDevOpsPathSegment = errors.New("invalid Azure DevOps path segment")
+
+func hasAzureDevOpsHost(input string) bool {
+	u, err := url.Parse(withDefaultScheme(input))
+	if err != nil {
+		return false
+	}
+
+	host := strings.ToLower(u.Hostname())
+	return host == azureDevOpsHost || strings.HasSuffix(host, visualStudioHostSuffix)
+}
+
+// HasAzureDevOpsHost reports whether input uses an Azure DevOps cloud hostname.
+func HasAzureDevOpsHost(input string) bool {
+	return hasAzureDevOpsHost(input)
+}
+
+func pathSegments(u *url.URL) ([]string, error) {
+	escapedSegments := strings.Split(strings.Trim(u.EscapedPath(), "/"), "/")
+	segments := make([]string, len(escapedSegments))
+	for i, escapedSegment := range escapedSegments {
+		segment, err := url.PathUnescape(escapedSegment)
+		if err != nil || strings.Contains(segment, "/") {
+			return nil, errInvalidAzureDevOpsPathSegment
+		}
+		segments[i] = segment
+	}
+	return segments, nil
+}
+
 // Parses input string into repoURL struct
 /*
- Accepted input string formats are as follows:
+ Accepted input string formats, with or without an https scheme, are as follows:
 	- "dev.azure.com/<organization:string>/<project:string>/_git/<repository:string>"
-	- "https://dev.azure.com/<organization:string>/<project:string>/_git/<repository:string>"
+	- "<organization:string>.visualstudio.com/<project:string>/_git/<repository:string>"
+	- "<organization:string>.visualstudio.com/DefaultCollection/<project:string>/_git/<repository:string>"
 */
 func (r *Repo) parse(input string) error {
 	u, err := url.Parse(withDefaultScheme(input))
@@ -48,13 +87,62 @@ func (r *Repo) parse(input string) error {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 	}
 
-	const splitLen = 4
-	split := strings.SplitN(strings.Trim(u.Path, "/"), "/", splitLen)
-	if len(split) != splitLen {
+	if !strings.EqualFold(u.Scheme, "https") || u.Port() != "" {
 		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Azure DevOps repo format is invalid: %s", input))
 	}
 
-	r.scheme, r.host, r.organization, r.project, r.name = u.Scheme, u.Host, split[0], split[1], split[3]
+	host := strings.ToLower(u.Hostname())
+	segments, err := pathSegments(u)
+	if err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Azure DevOps repo format is invalid: %s", input))
+	}
+
+	var organization, project, gitSegment, name string
+	switch {
+	case host == azureDevOpsHost:
+		if len(segments) != 4 {
+			return sce.WithMessage(
+				sce.ErrScorecardInternal,
+				fmt.Sprintf("Azure DevOps repo format is invalid: %s", input),
+			)
+		}
+		organization, project, gitSegment, name = segments[0], segments[1], segments[2], segments[3]
+	case strings.HasSuffix(host, visualStudioHostSuffix):
+		organization = strings.TrimSuffix(host, visualStudioHostSuffix)
+		if organization == "" || strings.Contains(organization, ".") {
+			return sce.WithMessage(
+				sce.ErrScorecardInternal,
+				fmt.Sprintf("Azure DevOps repo format is invalid: %s", input),
+			)
+		}
+
+		switch {
+		case len(segments) == 3:
+			project, gitSegment, name = segments[0], segments[1], segments[2]
+		case len(segments) == 4 && strings.EqualFold(segments[0], defaultCollection):
+			project, gitSegment, name = segments[1], segments[2], segments[3]
+		default:
+			return sce.WithMessage(
+				sce.ErrScorecardInternal,
+				fmt.Sprintf("Azure DevOps repo format is invalid: %s", input),
+			)
+		}
+	default:
+		return sce.WithMessage(
+			sce.ErrScorecardInternal,
+			fmt.Sprintf("Azure DevOps repo format is invalid: %s", input),
+		)
+	}
+
+	if organization == "" || project == "" || !strings.EqualFold(gitSegment, gitPathSegment) || name == "" {
+		return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Azure DevOps repo format is invalid: %s", input))
+	}
+
+	r.scheme = "https"
+	r.host = azureDevOpsHost
+	r.organization = organization
+	r.project = project
+	r.name = name
 	return nil
 }
 
