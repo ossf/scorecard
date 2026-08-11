@@ -241,7 +241,16 @@ func (client *Client) IsArchived() (bool, error) {
 
 // IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
 func (client *Client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
-	return client.graphClient.isPrivateVulnerabilityReportingEnabled()
+	if !strings.EqualFold(client.repourl.commitSHA, clients.HeadSHA) {
+		return false, fmt.Errorf("%w: IsPrivateVulnerabilityReportingEnabled only supported for HEAD queries", clients.ErrUnsupportedFeature)
+	}
+	enabled, _, err := client.repoClient.Repositories.IsPrivateReportingEnabled(
+		client.ctx, client.repourl.owner, client.repourl.repo,
+	)
+	if err != nil {
+		return false, fmt.Errorf("checking private vulnerability reporting: %w", err)
+	}
+	return enabled, nil
 }
 
 // GetDefaultBranch implements RepoClient.GetDefaultBranch.

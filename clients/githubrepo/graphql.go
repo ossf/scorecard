@@ -44,7 +44,6 @@ const (
 type graphqlData struct {
 	Repository struct {
 		IsArchived githubv4.Boolean
-		IsPrivateVulnerabilityReportingEnabled githubv4.Boolean
 		Object     struct {
 			Commit struct {
 				History struct {
@@ -145,7 +144,6 @@ type graphqlHandler struct {
 	commits     []clients.Commit
 	issues      []clients.Issue
 	archived    bool
-	pvrEnabled  bool
 	commitDepth int
 }
 
@@ -210,7 +208,6 @@ func (handler *graphqlHandler) setup() error {
 		handler.commits, handler.errSetup = populateCommits(handler, vars)
 		handler.issues = issuesFrom(handler.data)
 		handler.archived = bool(handler.data.Repository.IsArchived)
-		handler.pvrEnabled = bool(handler.data.Repository.IsPrivateVulnerabilityReportingEnabled)
 	})
 	return handler.errSetup
 }
@@ -240,16 +237,6 @@ func (handler *graphqlHandler) isArchived() (bool, error) {
 		return false, fmt.Errorf("error during graphqlHandler.setup: %w", err)
 	}
 	return handler.archived, nil
-}
-
-func (handler *graphqlHandler) isPrivateVulnerabilityReportingEnabled() (bool, error) {
-	if !strings.EqualFold(handler.repourl.commitSHA, clients.HeadSHA) {
-		return false, fmt.Errorf("%w: IsPrivateVulnerabilityReportingEnabled only supported for HEAD queries", clients.ErrUnsupportedFeature)
-	}
-	if err := handler.setup(); err != nil {
-		return false, fmt.Errorf("error during graphqlHandler.setup: %w", err)
-	}
-	return handler.pvrEnabled, nil
 }
 
 func commitsFrom(data *graphqlData, repoOwner, repoName string) ([]clients.Commit, error) {
