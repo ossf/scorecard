@@ -17,6 +17,7 @@ package gitlabrepo
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
@@ -132,5 +133,51 @@ func TestListRawCommits(t *testing.T) {
 				t.Errorf("listCommits() = %v, want %v", len(commits), cmp.Diff(len(commits), tt.want))
 			}
 		})
+	}
+}
+
+func TestZipUsesDiffHeadShaForMergeRequestHead(t *testing.T) {
+	t.Parallel()
+
+	committedDate := time.Now()
+	handler := &commitsHandler{}
+	commits := handler.zip([]*gitlab.Commit{
+		{
+			ID:            "commit-sha",
+			CommittedDate: &committedDate,
+		},
+	}, graphqlData{
+		Project: struct {
+			MergeRequests struct {
+				Nodes []graphqlMergeRequestNode `graphql:"nodes"`
+			} `graphql:"mergeRequests(sort: MERGED_AT_DESC, state: merged, mergedBefore: $mergedBefore)"`
+		}{
+			MergeRequests: struct {
+				Nodes []graphqlMergeRequestNode `graphql:"nodes"`
+			}{
+				Nodes: []graphqlMergeRequestNode{
+					{
+						IID:            "7",
+						DiffHeadSHA:    "diff-head-sha",
+						MergeCommitSHA: "merge-commit-sha",
+						Commits: struct {
+							Nodes []struct {
+								SHA string `graphql:"sha"`
+							} `graphql:"nodes"`
+						}{
+							Nodes: []struct {
+								SHA string `graphql:"sha"`
+							}{
+								{SHA: "commit-sha"},
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	if got, want := commits[0].AssociatedMergeRequest.HeadSHA, "diff-head-sha"; got != want {
+		t.Errorf("AssociatedMergeRequest.HeadSHA = %q, want %q", got, want)
 	}
 }
