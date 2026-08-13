@@ -22,6 +22,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/rhysd/actionlint"
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -141,6 +142,72 @@ func TestUntrustedContextVariables(t *testing.T) {
 			t.Parallel()
 			if r := containsUntrustedContextPattern(tt.variable); !r == tt.expected {
 				t.Fail()
+			}
+		})
+	}
+}
+
+func TestValidateUntrustedCodeCheckout(t *testing.T) {
+	t.Parallel()
+
+	const workflowPrefix = `on:
+  pull_request_target:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+`
+	tests := []struct {
+		name     string
+		inputs   string
+		expected int
+	}{
+		{
+			name: "explicit unsafe fork checkout",
+			inputs: `          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
+          allow-unsafe-pr-checkout: true
+`,
+			expected: 1,
+		},
+		{
+			name: "protected by checkout default",
+			inputs: `          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
+`,
+			expected: 0,
+		},
+		{
+			name: "head ref without fork repository",
+			inputs: `          ref: ${{ github.head_ref }}
+          allow-unsafe-pr-checkout: true
+`,
+			expected: 0,
+		},
+		{
+			name: "existing pull request expression",
+			inputs: `          ref: ${{ github.event.pull_request.head.sha }}
+`,
+			expected: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			workflow, errs := actionlint.Parse([]byte(workflowPrefix + tt.inputs))
+			if workflow == nil {
+				t.Fatalf("failed to parse workflow: %v", errs)
+			}
+
+			data := checker.DangerousWorkflowData{}
+			if err := validateUntrustedCodeCheckout(workflow, "workflow.yml", &data); err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(tt.expected, len(data.Workflows)); diff != "" {
+				t.Errorf("dangerous workflow count mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

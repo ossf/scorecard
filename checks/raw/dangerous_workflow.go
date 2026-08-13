@@ -73,6 +73,9 @@ var (
 	triggerWorkflowRun              = triggerName("workflow_run")
 	checkoutUntrustedPullRequestRef = "github.event.pull_request"
 	checkoutUntrustedWorkflowRunRef = "github.event.workflow_run"
+	checkoutUntrustedHeadRef        = "github.head_ref"
+	checkoutUntrustedForkRepository = "github.event.pull_request.head.repo.full_name"
+	checkoutAllowUnsafePRInput      = "allow-unsafe-pr-checkout"
 )
 
 // DangerousWorkflow retrieves the raw data for the DangerousWorkflow check.
@@ -174,6 +177,21 @@ func createJob(job *actionlint.Job) *checker.WorkflowJob {
 	return &r
 }
 
+func isExplicitUnsafeForkCheckout(action *actionlint.ExecAction, ref string) bool {
+	repository, ok := action.Inputs["repository"]
+	if !ok || repository.Value == nil {
+		return false
+	}
+	allowUnsafe, ok := action.Inputs[checkoutAllowUnsafePRInput]
+	if !ok || allowUnsafe.Value == nil {
+		return false
+	}
+
+	return strings.Contains(repository.Value.Value, checkoutUntrustedForkRepository) &&
+		strings.Contains(ref, checkoutUntrustedHeadRef) &&
+		strings.EqualFold(strings.TrimSpace(allowUnsafe.Value.Value), "true")
+}
+
 func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
@@ -202,7 +220,8 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		}
 
 		if strings.Contains(ref.Value.Value, checkoutUntrustedPullRequestRef) ||
-			strings.Contains(ref.Value.Value, checkoutUntrustedWorkflowRunRef) {
+			strings.Contains(ref.Value.Value, checkoutUntrustedWorkflowRunRef) ||
+			isExplicitUnsafeForkCheckout(e, ref.Value.Value) {
 			line := fileparser.GetLineNumber(step.Pos)
 			pdata.Workflows = append(pdata.Workflows,
 				checker.DangerousWorkflow{
