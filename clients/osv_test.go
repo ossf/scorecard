@@ -60,8 +60,11 @@ func TestEmptyProject(t *testing.T) {
 // TestCommitOnlyNoLocalPath reproduces the failure some clients (e.g. GitLab, which
 // has no on-disk checkout) hit: passing a commit without a local path used to make
 // osv-scanner fall back to scanning the filesystem root.
+//
+// Not run in parallel: osv-scanner's SetLogger writes to a shared, unsynchronized
+// global, so running this concurrently with another test that also calls
+// ListUnfixedVulnerabilities (e.g. TestEmptyProject) trips the race detector.
 func TestCommitOnlyNoLocalPath(t *testing.T) {
-	t.Parallel()
 	var client osvClient
 	commit := "0000000000000000000000000000000000000000"
 	_, err := client.ListUnfixedVulnerabilities(t.Context(), commit, "")
