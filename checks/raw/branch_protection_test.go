@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 var (
@@ -294,8 +295,10 @@ func TestBranchProtection(t *testing.T) {
 				})
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
 
+			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepoClient,
+				Dlogger:    &dl,
 			}
 			rawData, err := BranchProtection(c)
 			if !errors.Is(err, tt.wantErr) {
