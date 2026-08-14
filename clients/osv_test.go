@@ -56,3 +56,16 @@ func TestEmptyProject(t *testing.T) {
 		t.Fatalf("empty directory shouldn't throw an error: %v", err)
 	}
 }
+
+// TestCommitOnlyNoLocalPath reproduces the failure some clients (e.g. GitLab, which
+// has no on-disk checkout) hit: passing a commit without a local path used to make
+// osv-scanner fall back to scanning the filesystem root.
+func TestCommitOnlyNoLocalPath(t *testing.T) {
+	t.Parallel()
+	var client osvClient
+	commit := "0000000000000000000000000000000000000000"
+	_, err := client.ListUnfixedVulnerabilities(t.Context(), commit, "")
+	if err != nil {
+		t.Fatalf("commit without a local path shouldn't throw an error: %v", err)
+	}
+}
