@@ -16,7 +16,9 @@ package githubrepo
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/google/go-github/v82/github"
@@ -49,7 +51,14 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 		query,
 		&github.SearchOptions{ListOptions: github.ListOptions{PerPage: 100}})
 	if err != nil {
-		return nil, fmt.Errorf("Search.Code: %w", err)
+		var ghErr *github.ErrorResponse
+		if errors.As(err, &ghErr) && ghErr.Response != nil && ghErr.Response.StatusCode == http.StatusUnprocessableEntity {
+			// Some GitHub instances (e.g. newly indexed public repos, GHES) return 422 for
+			// otherwise valid commit search queries. Treat this as "no data" rather than
+			// failing the whole check, consistent with clients.ErrUnsupportedFeature handling.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("Search.Commits: %w", err)
 	}
 
 	return searchCommitsResponseFrom(resp), nil
