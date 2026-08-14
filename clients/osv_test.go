@@ -64,6 +64,8 @@ func TestEmptyProject(t *testing.T) {
 // Not run in parallel: osv-scanner's SetLogger writes to a shared, unsynchronized
 // global, so running this concurrently with another test that also calls
 // ListUnfixedVulnerabilities (e.g. TestEmptyProject) trips the race detector.
+//
+//nolint:paralleltest // shares osv-scanner's global logger with TestEmptyProject; see comment above
 func TestCommitOnlyNoLocalPath(t *testing.T) {
 	var client osvClient
 	commit := "0000000000000000000000000000000000000000"
