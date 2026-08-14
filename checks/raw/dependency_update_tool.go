@@ -46,7 +46,11 @@ func DependencyUpdateTool(c clients.RepoClient) (checker.DependencyUpdateToolDat
 		// TODO https://github.com/ossf/scorecard/issues/1709
 		// some repo clients (e.g. local) don't currently have the ability to search commits,
 		// but some data is better than none.
-		if errors.Is(err, clients.ErrUnsupportedFeature) {
+		//
+		// Some repos also aren't indexed by GitHub's commit search yet, which returns a 422
+		// for this otherwise-valid query. Treat that the same way: assume no commit-search-based
+		// tools were found, rather than failing the whole check.
+		if errors.Is(err, clients.ErrUnsupportedFeature) || errors.Is(err, clients.ErrCommitSearchUnprocessable) {
 			return checker.DependencyUpdateToolData{Tools: tools}, nil
 		}
 		return checker.DependencyUpdateToolData{}, fmt.Errorf("dependabot commit search: %w", err)

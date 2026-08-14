@@ -106,8 +106,8 @@ func TestSearchCommitsHandles422(t *testing.T) {
 	}
 
 	commits, err := handler.search(clients.SearchCommitsOptions{Author: "testAuthor"})
-	if err != nil {
-		t.Fatalf("expected no error, got: %v", err)
+	if !errors.Is(err, clients.ErrCommitSearchUnprocessable) {
+		t.Fatalf("expected ErrCommitSearchUnprocessable, got: %v", err)
 	}
 	if len(commits) != 0 {
 		t.Fatalf("expected 0 commits, got: %d", len(commits))
