@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"fmt"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -176,6 +177,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 		wantErr           bool
 		want              int
 		SearchCommits     []clients.Commit
+		SearchCommitsErr  error
 		CallSearchCommits int
 		files             []string
 	}{
@@ -226,6 +228,14 @@ func TestDependencyUpdateTool(t *testing.T) {
 				{Committer: clients.User{ID: dependabotID}},
 			},
 		},
+		{
+			name:              "commit search unprocessable (e.g. repo not indexed yet)",
+			wantErr:           false,
+			want:              0,
+			CallSearchCommits: 1,
+			files:             []string{},
+			SearchCommitsErr:  fmt.Errorf("Search.Commits: %w", clients.ErrCommitSearchUnprocessable),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -234,7 +244,7 @@ func TestDependencyUpdateTool(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil)
-			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, nil).Times(tt.CallSearchCommits)
+			mockRepo.EXPECT().SearchCommits(gomock.Any()).Return(tt.SearchCommits, tt.SearchCommitsErr).Times(tt.CallSearchCommits)
 
 			got, err := DependencyUpdateTool(mockRepo)
 			if (err != nil) != tt.wantErr {
