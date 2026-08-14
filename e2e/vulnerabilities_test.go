@@ -48,13 +48,10 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-<<<<<<< HEAD
-				Score:         checker.MaxResultScore - 3, // 4 vulnerabilities remove 4 points.
-				NumberOfWarn:  3,
-=======
 				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
 				NumberOfWarn:  numOpen62541Vulns,
->>>>>>> ff71791f (update e2e test to account for new vulns (#5159))
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -80,13 +77,10 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-<<<<<<< HEAD
-				Score:         checker.MaxResultScore - 3, // 4 vulnerabilities remove 4 points.
-				NumberOfWarn:  3,
-=======
 				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
 				NumberOfWarn:  numOpen62541Vulns,
->>>>>>> ff71791f (update e2e test to account for new vulns (#5159))
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
