@@ -30,6 +30,7 @@ import (
 func containsUntrustedContextPattern(variable string) bool {
 	// GitHub event context details that may be attacker controlled.
 	// See https://securitylab.github.com/research/github-actions-untrusted-input/
+	// See also https://github.com/github/codeql/blob/main/actions/ql/lib/ext/config/untrusted_event_properties.yml
 	untrustedContextPattern := regexp.MustCompile(
 		`.*(issue\.title|` +
 			`issue\.body|` +
@@ -41,14 +42,24 @@ func containsUntrustedContextPattern(variable string) bool {
 			`review\.body|` +
 			`review_comment\.body|` +
 			`pages.*\.page_name|` +
+			`pages.*\.title|` +
+			`changes\.title\.from|` +
+			`changes\.body\.from|` +
+			`changes\.head\.ref\.from|` +
 			`commits.*\.message|` +
 			`head_commit\.message|` +
 			`head_commit\.author\.email|` +
 			`head_commit\.author\.name|` +
 			`commits.*\.author\.email|` +
 			`commits.*\.author\.name|` +
+			`merge_group\.head_ref|` +
+			`merge_group\.committer\.email|` +
+			`merge_group\.committer\.name|` +
 			`blocked_user\.name|` +
 			`blocked_user\.email|` +
+			`workflow\.path|` +
+			`workflow_run\.path|` +
+			`workflow_run\.referenced_workflows.*\.path|` +
 			`pull_request\.head\.ref|` +
 			`pull_request\.head\.label|` +
 			`pull_request\.head\.repo\.default_branch).*`)
