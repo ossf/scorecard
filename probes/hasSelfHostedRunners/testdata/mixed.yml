@@ -1,0 +1,11 @@
+name: mixed
+on: push
+jobs:
+  hosted:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo hello
+  selfhosted:
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      - run: echo hello
