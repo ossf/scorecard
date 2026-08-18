@@ -30,6 +30,7 @@ import (
 
 var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 	Context("E2E TEST:Validating vulnerabilities status", func() {
+		const numOpen62541Vulns = 7 // this may change as new vulns are discovered
 		It("Should return that there are vulnerabilities", func() {
 			repo, err := githubrepo.MakeGithubRepo("ossf-tests/scorecard-check-vulnerabilities-open62541")
 			Expect(err).Should(BeNil())
@@ -47,8 +48,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 4, // 4 vulnerabilities remove 4 points.
-				NumberOfWarn:  4,
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -74,8 +75,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
-				Score:         checker.MaxResultScore - 4, // 4 vulnerabilities remove 4 points.
-				NumberOfWarn:  4,
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
