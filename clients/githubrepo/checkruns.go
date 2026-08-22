@@ -49,6 +49,9 @@ type checkRunsGraphqlData struct {
 													Conclusion githubv4.CheckConclusionState
 													Status     githubv4.CheckStatusState
 												}
+												PageInfo struct {
+													HasNextPage bool
+												}
 											} `graphql:"checkSuites(first: $checksToAnalyze)"`
 										}
 									}
@@ -148,7 +151,16 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		for _, pr := range commit.AssociatedPullRequests.Nodes {
 			var crs []clients.CheckRun
+			truncated := false
 			for _, c := range pr.Commits.Nodes {
+				// checkSuites(first: $checksToAnalyze) is not paginated. Empty
+				// suites from installed apps sort first, so a successful
+				// github-actions suite can sit past this page. Caching the
+				// partial list would hide it from the REST fallback. (#5149)
+				if c.Commit.CheckSuites.PageInfo.HasNextPage {
+					truncated = true
+					break
+				}
 				for _, checkRun := range c.Commit.CheckSuites.Nodes {
 					crs = append(crs, clients.CheckRun{
 						// the REST API returns lowercase. the graphQL API returns upper
@@ -159,6 +171,9 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 						},
 					})
 				}
+			}
+			if truncated {
+				continue
 			}
 			headRef := string(pr.HeadRefOid)
 			checkCache[headRef] = crs
