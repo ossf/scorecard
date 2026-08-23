@@ -40,5 +40,24 @@ var _ = Describe("E2E TEST: azuredevopsrepo.buildsHandler", func() {
 			// Builds may be empty if hosted parallelism hasn't been granted yet.
 			Expect(builds).ShouldNot(BeNil())
 		})
+		It("Should return no builds when the YAML file does not exist", func() {
+			repo, err := MakeAzureDevOpsRepo(
+				"https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing",
+			)
+			Expect(err).Should(BeNil())
+
+			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)
+			Expect(err).Should(BeNil())
+
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+
+			builds, err := repoClient.ListSuccessfulWorkflowRuns("does-not-exist.yml")
+			Expect(err).Should(BeNil())
+			Expect(builds).ShouldNot(BeNil())
+			Expect(builds).Should(BeEmpty())
+
+			Expect(repoClient.Close()).Should(BeNil())
+		})
 	})
 })

@@ -189,27 +189,40 @@ func (z *zipHandler) extractZip() error {
 			continue
 		}
 
-		outFile, err := os.OpenFile(filenamepath, os.O_CREATE|os.O_WRONLY, 0o644)
-		if err != nil {
-			return fmt.Errorf("os.OpenFile: %w", err)
+		if err := extractEntry(file, filenamepath); err != nil {
+			return err
 		}
-
-		rc, err := file.Open()
-		if err != nil {
-			return fmt.Errorf("file.Open: %w", err)
-		}
-
-		written, err := io.CopyN(outFile, rc, maxSize)
-		if err != nil && !errors.Is(err, io.EOF) {
-			return fmt.Errorf("%w io.Copy: %w", errZipNotFound, err)
-		}
-		if written > maxSize {
-			return errFileTooLarge
-		}
-		outFile.Close()
 
 		filename := strings.TrimPrefix(filenamepath, destinationPrefix)
-		z.files = append(z.files, filename)
+		z.files = append(z.files, filepath.ToSlash(filename))
+	}
+	return nil
+}
+
+// extractEntry writes a single zip entry to filenamepath, enforcing the
+// per-entry size cap. The defers guarantee both the destination file and the
+// entry reader are closed on every return path, including the error ones.
+func extractEntry(file *zip.File, filenamepath string) error {
+	outFile, err := os.OpenFile(filenamepath, os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return fmt.Errorf("os.OpenFile: %w", err)
+	}
+	defer outFile.Close()
+
+	rc, err := file.Open()
+	if err != nil {
+		return fmt.Errorf("file.Open: %w", err)
+	}
+	defer rc.Close()
+
+	// Allow one byte past the limit so an entry that is exactly maxSize still
+	// succeeds while anything larger trips the check below.
+	written, err := io.Copy(outFile, io.LimitReader(rc, maxSize+1))
+	if err != nil {
+		return fmt.Errorf("%w io.Copy: %w", errZipNotFound, err)
+	}
+	if written > maxSize {
+		return errFileTooLarge
 	}
 	return nil
 }
