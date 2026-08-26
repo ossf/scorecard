@@ -41,8 +41,9 @@ func isMatchingPath(fullpath string, matchPathTo PathMatcher) (bool, error) {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 	}
 
-	// No match on the fullpath, let's try on the filename only.
-	if !match {
+	// No match on the fullpath, optionally try on the filename only.
+	// ExactPath callers have already selected a specific repository path.
+	if !match && !matchPathTo.ExactPath {
 		if match, err = path.Match(pattern, filename); err != nil {
 			return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalFilenameMatch, err))
 		}
@@ -63,6 +64,9 @@ func isTestdataFile(fullpath string) bool {
 type PathMatcher struct {
 	Pattern       string
 	CaseSensitive bool
+	// ExactPath disables the filename fallback and matches Pattern only against
+	// the complete repository path.
+	ExactPath bool
 }
 
 // DoWhileTrueOnFileReader takes a filepath, its reader and

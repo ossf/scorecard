@@ -185,6 +185,7 @@ func Test_isMatchingPath(t *testing.T) {
 		pattern       string
 		fullpath      string
 		caseSensitive bool
+		exactPath     bool
 	}
 	tests := []struct {
 		name    string
@@ -192,6 +193,26 @@ func Test_isMatchingPath(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
+		{
+			name: "exact path does not fall back to matching a filename",
+			args: args{
+				pattern:       "SECURITY.md",
+				fullpath:      ".review-pro/node/security.md",
+				caseSensitive: false,
+				exactPath:     true,
+			},
+			want: false,
+		},
+		{
+			name: "exact path still matches the selected file",
+			args: args{
+				pattern:       "SECURITY.md",
+				fullpath:      "SECURITY.md",
+				caseSensitive: false,
+				exactPath:     true,
+			},
+			want: true,
+		},
 		{
 			name: "matching path",
 			args: args{
@@ -317,6 +338,7 @@ func Test_isMatchingPath(t *testing.T) {
 			got, err := isMatchingPath(tt.args.fullpath, PathMatcher{
 				Pattern:       tt.args.pattern,
 				CaseSensitive: tt.args.caseSensitive,
+				ExactPath:     tt.args.exactPath,
 			})
 			if (err != nil) != tt.wantErr {
 				t.Errorf("isMatchingPath() error = %v, wantErr %v", err, tt.wantErr)
