@@ -1004,6 +1004,21 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			filename: "../testdata/.github/workflows/github-workflow-packaging-elixir.yaml",
 			expected: true,
 		},
+		{
+			name:     "github cli release",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-github-cli.yaml",
+			expected: true,
+		},
+		{
+			name:     "nextcloud app store release",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-nextcloud.yaml",
+			expected: true,
+		},
+		{
+			name:     "github cli release view only",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-github-cli-view.yaml",
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
