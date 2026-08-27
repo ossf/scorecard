@@ -156,13 +156,15 @@ func getJobStrategyMatrixIncludeCombinations(job *actionlint.Job) []*actionlint.
 	return nil
 }
 
-// FormatActionlintError combines the errors into a single one.
-func FormatActionlintError(errs []*actionlint.Error) error {
+// FormatActionlintError combines the errors into a single one, prefixed with the path
+// of the workflow file that failed to parse so callers scanning many files can tell
+// which one caused the failure.
+func FormatActionlintError(fp string, errs []*actionlint.Error) error {
 	if len(errs) == 0 {
 		return nil
 	}
 	builder := strings.Builder{}
-	builder.WriteString(errInvalidGitHubWorkflow.Error() + ":")
+	builder.WriteString(errInvalidGitHubWorkflow.Error() + " (" + fp + "):")
 	for _, err := range errs {
 		builder.WriteString("\n" + err.Error())
 	}

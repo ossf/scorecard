@@ -52,7 +52,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 
 		workflow, errs := actionlint.Parse(fc)
 		if len(errs) > 0 && workflow == nil {
-			e := fileparser.FormatActionlintError(errs)
+			e := fileparser.FormatActionlintError(fp, errs)
 			return data, e
 		}
 

@@ -639,7 +639,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
-		return false, fileparser.FormatActionlintError(errs)
+		return false, fileparser.FormatActionlintError(pathfn, errs)
 	}
 
 	githubVarRegex := regexp.MustCompile(`{{[^{}]*}}`)
@@ -759,7 +759,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
-		return false, fileparser.FormatActionlintError(errs)
+		return false, fileparser.FormatActionlintError(pathfn, errs)
 	}
 
 	for jobName, job := range workflow.Jobs {

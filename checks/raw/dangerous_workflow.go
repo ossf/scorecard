@@ -116,7 +116,7 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 
 	workflow, errs := actionlint.Parse(content)
 	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
+		return false, fileparser.FormatActionlintError(path, errs)
 	}
 
 	// 1. Check for untrusted code checkout with pull_request_target and a ref
