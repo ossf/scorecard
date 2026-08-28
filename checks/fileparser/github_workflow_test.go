@@ -985,6 +985,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "GitHub CLI release publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-gh-release.yaml",
+			expected: true,
+		},
+		{
 			name:     "cargo publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
 			expected: true,

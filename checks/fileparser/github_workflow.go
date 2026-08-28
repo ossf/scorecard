@@ -563,6 +563,15 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate golang publishing workflow",
 		},
 		{
+			// GitHub Release artifacts published with the GitHub CLI.
+			Steps: []*JobMatcherStep{
+				{
+					Run: `\bgh\s+release\s+create\b`,
+				},
+			},
+			LogText: "candidate publishing workflow using GitHub releases",
+		},
+		{
 			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
 			Steps: []*JobMatcherStep{
 				{
