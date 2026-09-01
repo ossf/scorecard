@@ -167,9 +167,10 @@ bq extract --destination_format=NEWLINE_DELIMITED_JSON
 
 ```
 
-The list of projects that are checked is available in the
-[`cron/internal/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv)
-file in this repository. If you would like us to track more, please feel free to
+The list of projects that are checked is available in
+[`cron/internal/data/projects.csv`](https://github.com/ossf/scorecard-infra/blob/main/cron/internal/data/projects.csv)
+in [`ossf/scorecard-infra`](https://github.com/ossf/scorecard-infra), where the batch
+scanning pipeline now lives. If you would like us to track more, please feel free to
 send a Pull Request with others. Currently, this list is derived from **projects
 hosted on GitHub ONLY**. We do plan to expand them in near future to account for
 projects hosted on other source control systems.

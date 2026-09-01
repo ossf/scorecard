@@ -1,3 +1,3 @@
 # cloud builds
 
-The container images for scorecard and the cron job is built using `cloud build` in `gcp`.
+The container image for scorecard is built using `cloud build` in `gcp`.
