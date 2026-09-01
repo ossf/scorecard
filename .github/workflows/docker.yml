@@ -55,12 +55,6 @@ jobs:
       matrix:
         target:
           - 'scorecard-docker'
-          - 'cron-controller-docker'
-          - 'cron-worker-docker'
-          - 'cron-cii-worker-docker'
-          - 'cron-bq-transfer-docker'
-          - 'cron-webhook-docker'
-          - 'cron-github-server-docker'
           - 'build-attestor-docker'
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest

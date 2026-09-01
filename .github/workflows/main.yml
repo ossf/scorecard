@@ -26,7 +26,6 @@ on:
       - main
 
 env:
-  PROTOC_VERSION: 21.6
   GO_VERSION: stable
 
 jobs:
@@ -95,11 +94,6 @@ jobs:
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
-     - name: Install Protoc
-       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
      - name: Cache builds
        # https://github.com/mvdan/github-actions-golang#how-do-i-set-up-caching-between-builds
        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -161,58 +155,13 @@ jobs:
             make generate-docs
      - name: ensure generated check and probe documentation match the source
        run: git diff --exit-code
-  build-proto:
-    name: build-proto
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-     - name: Harden Runner
-       uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
-       with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-     - name: Install Protoc
-       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Clone the code
-       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-       with:
-          fetch-depth: 0
-     - name: Setup Go
-       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-       with:
-         go-version: ${{ env.GO_VERSION }}
-         check-latest: true
-         cache: true
-     - name: build-proto
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-       with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: |
-            go env -w GOFLAGS=-mod=mod
-            make build-proto
   build-matrix:
     strategy:
       matrix:
         target:
           - 'build-scorecard'
-          - 'build-controller'
-          - 'build-worker'
-          - 'build-cii-worker'
-          - 'build-shuffler'
-          - 'build-bq-transfer'
-          - 'build-github-server'
-          - 'build-webhook'
-          - 'build-add-script'
-          - 'build-validate-script'
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
-    needs: build-proto
     permissions:
       contents: read
     steps:
@@ -291,69 +240,6 @@ jobs:
           command: |
             go env -w GOFLAGS=-mod=mod
             make validate-docs
-  add-projects:
-    name: add-projects
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-     - name: Harden Runner
-       uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
-       with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-     - name: Clone the code
-       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-     - name: Setup Go
-       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-       with:
-         go-version: ${{ env.GO_VERSION }}
-         check-latest: true
-         cache: true
-     - name: Run build
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-       with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: |
-            go env -w GOFLAGS=-mod=mod
-            make add-projects
-            git diff --exit-code
-  validate-projects:
-    name: validate-projects
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-     - name: Harden Runner
-       uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
-       with:
-         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
-
-     - name: Install Protoc
-       uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-       with:
-        version: ${{ env.PROTOC_VERSION }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-     - name: Clone the code
-       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-       with:
-          fetch-depth: 0
-     - name: Setup Go
-       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-       with:
-         go-version: ${{ env.GO_VERSION }}
-         check-latest: true
-         cache: true
-     - name: Run build
-       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-       with:
-          max_attempts: 3
-          retry_on: error
-          timeout_minutes: 30
-          command: |
-            go env -w GOFLAGS=-mod=mod
-            make validate-projects
   license-check:
     name: license boilerplate check
     runs-on: ubuntu-latest
