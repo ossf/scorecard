@@ -28,8 +28,6 @@ project. This document describes the contribution guidelines for the project.
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
 * [Adding New Probes](#adding-new-probes)
 * [Where the CI Tests are configured](#where-the-ci-tests-are-configured)
-* [dailyscore-cronjob](#dailyscore-cronjob)
-  * [Deploying the cron job](#deploying-the-cron-job)
 * [How do I add additional GitHub repositories to be scanned by scorecard dailyscore?](#how-do-i-add-additional-github-repositories-to-be-scanned-by-scorecard-dailyscore)
 * [Adding New Checks](#adding-new-checks)
 * [Updating Docs](#updating-docs)
@@ -201,14 +199,17 @@ For public repos, classic personal access tokens need the following scopes:
 
 ## How do I add additional GitHub repositories to be scanned by Scorecard weekly?
 
-Scorecard maintains the list of GitHub repositories in a file
-https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv
+The weekly batch scanning pipeline, including the scan inventories, moved to
+[`ossf/scorecard-infra`](https://github.com/ossf/scorecard-infra). Scorecard
+maintains the list of GitHub repositories in a file
+https://github.com/ossf/scorecard-infra/blob/main/cron/internal/data/projects.csv
 
 GitLab repositories are listed in:
-https://github.com/ossf/scorecard/blob/main/cron/internal/data/gitlab-projects.csv
+https://github.com/ossf/scorecard-infra/blob/main/cron/internal/data/gitlab-projects.csv
 
-Append your desired repositories to the end of these files, then run `make add-projects`.
-Commit the changes and submit a PR and scorecard would start scanning in subsequent runs.
+Append your desired repositories to the end of these files, then run `make add-projects`
+in `ossf/scorecard-infra`. Commit the changes and submit a PR there and scorecard would
+start scanning in subsequent runs.
 
 ## Adding new checks
 
