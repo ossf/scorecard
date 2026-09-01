@@ -31,17 +31,10 @@ updates:
       # These actions directly influence the build process and are excluded from grouped updates
       exclude-patterns:
         - "actions/setup-go"
-        - "arduino/setup-protoc"
         - "goreleaser/goreleaser-action"
 - package-ecosystem: docker
   directories:
     - "/"
-    - "/cron/internal/bq"
-    - "/cron/internal/worker"
-    - "/cron/internal/webhook"
-    - "/cron/internal/controller"
-    - "/cron/internal/cii"
-    - "/clients/githubrepo/roundtripper/tokens/server"
     - "/attestor"
   schedule:
     interval: weekly
