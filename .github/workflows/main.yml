@@ -79,7 +79,7 @@ jobs:
           GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
        run: make e2e-pat
      - name: codecov
-       uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # 2.1.0
+       uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # 7.0.0
        if: ${{ github.event_name != 'pull_request' || github.actor != 'dependabot[bot]' }}
        with:
          files: "*e2e-coverage.out"
