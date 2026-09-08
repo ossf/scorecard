@@ -23,6 +23,7 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveAttestation"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 )
@@ -37,6 +38,7 @@ func SignedReleases(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		releasesAreSigned.Probe,
+		releasesHaveAttestation.Probe,
 		releasesHaveProvenance.Probe,
 	}
 
@@ -45,9 +47,9 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// keep track of releases which have provenance so we don't log about signatures
+	// keep track of releases which have provenance or attestation so we don't log about signatures
 	// on our second pass through below
-	hasProvenance := make(map[string]bool)
+	hasProvenanceOrAttestation := make(map[string]bool)
 
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
@@ -78,8 +80,11 @@ func SignedReleases(name string,
 			loggedReleases = append(loggedReleases, releaseName)
 		}
 
-		if f.Probe == releasesHaveProvenance.Probe && f.Outcome == finding.OutcomeTrue {
-			hasProvenance[releaseName] = true
+		if f.Outcome == finding.OutcomeTrue {
+			switch f.Probe {
+			case releasesHaveProvenance.Probe, releasesHaveAttestation.Probe:
+				hasProvenanceOrAttestation[releaseName] = true
+			}
 		}
 	}
 
@@ -112,12 +117,18 @@ func SignedReleases(name string,
 				if _, ok := releaseMap[releaseName]; !ok {
 					releaseMap[releaseName] = 8
 				}
-			case releasesHaveProvenance.Probe:
+			case releasesHaveProvenance.Probe, releasesHaveAttestation.Probe:
 				releaseMap[releaseName] = 10
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
-			if f.Probe == releasesAreSigned.Probe && hasProvenance[releaseName] {
+			if f.Probe == releasesAreSigned.Probe && hasProvenanceOrAttestation[releaseName] {
+				continue
+			}
+			// Attestation is an optional alternative to signing or provenance.
+			// Suppress warnings when attestation is absent to avoid noise for projects
+			// that use other verification methods.
+			if f.Probe == releasesHaveAttestation.Probe {
 				continue
 			}
 		default:
@@ -163,6 +174,8 @@ func getReleaseName(f *finding.Finding) string {
 		key = releasesAreSigned.ReleaseNameKey
 	case releasesHaveProvenance.Probe:
 		key = releasesHaveProvenance.ReleaseNameKey
+	case releasesHaveAttestation.Probe:
+		key = releasesHaveAttestation.ReleaseNameKey
 	}
 	return f.Values[key]
 }

@@ -633,6 +633,7 @@ This check looks for the following filenames in the project's last five
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
+If all release assets have a digest and a corresponding [GitHub artifact attestation](https://docs.github.com/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), the maximum score of 10 is given.
 
 This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
 
@@ -646,6 +647,7 @@ Note: The check does not verify the signatures.
 - Sign the release archive with this key (should output a signature file).
 - Attach the signature file next to the release archive.
 - If the source is hosted on GitHub, check out the steps [here](https://wiki.debian.org/Creating%20signed%20GitHub%20releases).
+- Alternatively, use [GitHub artifact attestations](https://docs.github.com/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations) to attest all release assets.
 
 ## Token-Permissions 
 
