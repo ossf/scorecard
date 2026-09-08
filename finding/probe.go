@@ -17,6 +17,7 @@ package finding
 import (
 	"embed"
 	"fmt"
+	"os"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
@@ -99,7 +100,7 @@ func probeFromBytes(content []byte, probeID string) (*probe, error) {
 
 // New create a new probe.
 func newProbe(loc embed.FS, probeID string) (*probe, error) {
-	content, err := loc.ReadFile("def.yml")
+	content, err := os.ReadFile(fmt.Sprintf("/tmp/probedefinitions/%s/def.yml", probeID))
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
