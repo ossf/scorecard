@@ -22,6 +22,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/releasesAreImmutable"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
@@ -37,6 +38,7 @@ func SignedReleases(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		releasesAreSigned.Probe,
+		releasesAreImmutable.Probe,
 		releasesHaveProvenance.Probe,
 	}
 
@@ -45,9 +47,11 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// keep track of releases which have provenance so we don't log about signatures
-	// on our second pass through below
+	// keep track of releases which have provenance or signatures so we don't log
+	// redundant false findings on our second pass through below
 	hasProvenance := make(map[string]bool)
+	hasSignature := make(map[string]bool)
+	hasImmutable := make(map[string]bool)
 
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
@@ -78,8 +82,15 @@ func SignedReleases(name string,
 			loggedReleases = append(loggedReleases, releaseName)
 		}
 
-		if f.Probe == releasesHaveProvenance.Probe && f.Outcome == finding.OutcomeTrue {
-			hasProvenance[releaseName] = true
+		if f.Outcome == finding.OutcomeTrue {
+			switch f.Probe {
+			case releasesHaveProvenance.Probe:
+				hasProvenance[releaseName] = true
+			case releasesAreSigned.Probe:
+				hasSignature[releaseName] = true
+			case releasesAreImmutable.Probe:
+				hasImmutable[releaseName] = true
+			}
 		}
 	}
 
@@ -108,7 +119,7 @@ func SignedReleases(name string,
 			logLevel = checker.DetailInfo
 			totalTrue++
 			switch f.Probe {
-			case releasesAreSigned.Probe:
+			case releasesAreSigned.Probe, releasesAreImmutable.Probe:
 				if _, ok := releaseMap[releaseName]; !ok {
 					releaseMap[releaseName] = 8
 				}
@@ -117,8 +128,15 @@ func SignedReleases(name string,
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
-			if f.Probe == releasesAreSigned.Probe && hasProvenance[releaseName] {
-				continue
+			switch f.Probe {
+			case releasesAreSigned.Probe:
+				if hasProvenance[releaseName] || hasImmutable[releaseName] {
+					continue
+				}
+			case releasesAreImmutable.Probe:
+				if hasProvenance[releaseName] || hasSignature[releaseName] {
+					continue
+				}
 			}
 		default:
 			logLevel = checker.DetailDebug
@@ -161,6 +179,8 @@ func getReleaseName(f *finding.Finding) string {
 	switch f.Probe {
 	case releasesAreSigned.Probe:
 		key = releasesAreSigned.ReleaseNameKey
+	case releasesAreImmutable.Probe:
+		key = releasesAreImmutable.ReleaseNameKey
 	case releasesHaveProvenance.Probe:
 		key = releasesHaveProvenance.ReleaseNameKey
 	}

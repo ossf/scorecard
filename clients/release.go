@@ -20,6 +20,7 @@ type Release struct {
 	URL             string
 	TargetCommitish string
 	Assets          []ReleaseAsset
+	IsImmutable     bool
 }
 
 // ReleaseAsset is part of the Release bundle.
