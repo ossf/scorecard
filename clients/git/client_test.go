@@ -140,6 +140,28 @@ func TestListCommits(t *testing.T) {
 	}
 }
 
+func TestGetCreatedAtReturnsOldestCommit(t *testing.T) {
+	t.Parallel()
+
+	repoPath, wantCreatedAt := createTimedTestRepo(t)
+	client := &Client{}
+	repo, err := localdir.MakeLocalDirRepo(repoPath)
+	if err != nil {
+		t.Fatalf("MakeLocalDirRepo(%s) failed: %v", repoPath, err)
+	}
+	if err := client.InitRepo(repo, clients.HeadSHA, 10); err != nil {
+		t.Fatalf("InitRepo(%s) failed: %v", repoPath, err)
+	}
+
+	createdAt, err := client.GetCreatedAt()
+	if err != nil {
+		t.Fatalf("GetCreatedAt() failed: %v", err)
+	}
+	if !createdAt.Equal(wantCreatedAt) {
+		t.Fatalf("GetCreatedAt() = %v, want %v", createdAt, wantCreatedAt)
+	}
+}
+
 func TestSearch(t *testing.T) {
 	t.Parallel()
 	testCases := []struct {
@@ -230,4 +252,63 @@ func TestSearch(t *testing.T) {
 			}
 		})
 	}
+}
+
+func createTimedTestRepo(t *testing.T) (string, time.Time) {
+	t.Helper()
+	dir := t.TempDir()
+
+	r, err := gitV5.PlainInit(dir, false)
+	if err != nil {
+		t.Fatalf("PlainInit() failed: %v", err)
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatalf("Worktree() failed: %v", err)
+	}
+
+	createdAt := time.Date(2024, 1, 2, 3, 4, 5, 0, time.UTC)
+	if err := os.WriteFile(filepath.Join(dir, "first.txt"), []byte("first"), 0o600); err != nil {
+		t.Fatalf("WriteFile() failed: %v", err)
+	}
+	if _, err := w.Add("first.txt"); err != nil {
+		t.Fatalf("Add() failed: %v", err)
+	}
+	if _, err := w.Commit("First commit", &gitV5.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test Author",
+			Email: "author@example.com",
+			When:  createdAt,
+		},
+		Committer: &object.Signature{
+			Name:  "Test Committer",
+			Email: "committer@example.com",
+			When:  createdAt,
+		},
+	}); err != nil {
+		t.Fatalf("Commit() failed: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "second.txt"), []byte("second"), 0o600); err != nil {
+		t.Fatalf("WriteFile() failed: %v", err)
+	}
+	if _, err := w.Add("second.txt"); err != nil {
+		t.Fatalf("Add() failed: %v", err)
+	}
+	if _, err := w.Commit("Second commit", &gitV5.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test Author",
+			Email: "author@example.com",
+			When:  createdAt.Add(24 * time.Hour),
+		},
+		Committer: &object.Signature{
+			Name:  "Test Committer",
+			Email: "committer@example.com",
+			When:  createdAt.Add(24 * time.Hour),
+		},
+	}); err != nil {
+		t.Fatalf("Commit() failed: %v", err)
+	}
+
+	return dir, createdAt
 }
