@@ -990,6 +990,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "ko publish using ko-build/setup-ko",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-build.yaml",
+			expected: true,
+		},
+		{
+			name:     "ko publish using imjasonh/setup-ko",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-imjasonh.yaml",
+			expected: true,
+		},
+		{
 			name:     "semantic-release publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
 			expected: true,
