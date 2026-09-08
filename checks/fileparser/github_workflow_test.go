@@ -985,6 +985,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "ko publish (renamed action)",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-renamed-action.yaml",
+			expected: true,
+		},
+		{
+			name:     "ko publish (legacy action)",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-legacy-action.yaml",
+			expected: true,
+		},
+		{
 			name:     "cargo publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
 			expected: true,

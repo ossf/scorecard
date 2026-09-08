@@ -573,10 +573,20 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 		},
 		{
 			// Ko container action. https://github.com/google/ko
+			// The action was renamed from imjasonh/setup-ko to ko-build/setup-ko,
+			// so both spellings need their own single-step matcher: JobMatcher
+			// requires every listed step to match, and a workflow uses only one
+			// of them. See https://github.com/ossf/scorecard/issues/5133.
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "imjasonh/setup-ko",
 				},
+			},
+			LogText: "candidate container publishing workflow using ko",
+		},
+		{
+			// Ko container action. https://github.com/google/ko
+			Steps: []*JobMatcherStep{
 				{
 					Uses: "ko-build/setup-ko",
 				},
