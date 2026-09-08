@@ -414,7 +414,8 @@ func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Re
 	return nil
 }
 
-func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *Result) error {
+func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *Result, skipErrors bool) error {
+	logger := log.NewLogger(log.DefaultLevel)
 	seen := map[string]bool{}
 	for _, probeName := range probesToRun {
 		p, err := proberegistration.Get(probeName)
@@ -425,6 +426,13 @@ func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret
 			if !seen[checkName] {
 				err := assignRawData(checkName, request, ret)
 				if err != nil {
+					if skipErrors {
+						logger.Error(err, fmt.Sprintf("skipping raw data for %q due to error", checkName))
+						// Mark as seen so we don't retry the same failing collection
+						// for other probes that depend on it.
+						seen[checkName] = true
+						continue
+					}
 					return err
 				}
 				seen[checkName] = true

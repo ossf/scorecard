@@ -96,6 +96,7 @@ func runScorecard(ctx context.Context,
 	ciiClient clients.CIIBestPracticesClient,
 	vulnsClient clients.VulnerabilitiesClient,
 	projectClient packageclient.ProjectPackageClient,
+	skipErrors bool,
 ) (Result, error) {
 	if err := repoClient.InitRepo(repo, commitSHA, commitDepth); err != nil {
 		// No need to call sce.WithMessage() since InitRepo will do that for us.
@@ -166,7 +167,7 @@ func runScorecard(ctx context.Context,
 
 	// If the user runs probes
 	if len(probesToRun) > 0 {
-		err = runEnabledProbes(request, probesToRun, &ret)
+		err = runEnabledProbes(request, probesToRun, &ret, skipErrors)
 		if err != nil {
 			return Result{}, err
 		}
@@ -222,9 +223,12 @@ func findConfigFile(rc clients.RepoClient) (io.ReadCloser, string) {
 func runEnabledProbes(request *checker.CheckRequest,
 	probesToRun []string,
 	ret *Result,
+	skipErrors bool,
 ) error {
+	logger := sclog.NewLogger(sclog.DefaultLevel)
+
 	// Add RawResults to request
-	err := populateRawResults(request, probesToRun, ret)
+	err := populateRawResults(request, probesToRun, ret, skipErrors)
 	if err != nil {
 		return err
 	}
@@ -243,6 +247,10 @@ func runEnabledProbes(request *checker.CheckRequest,
 			findings, _, err = probe.Implementation(&ret.RawResults)
 		}
 		if err != nil {
+			if skipErrors {
+				logger.Error(err, fmt.Sprintf("skipping probe %q due to error", probeName))
+				continue
+			}
 			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
 		}
 		probeFindings = append(probeFindings, findings...)
@@ -263,6 +271,7 @@ type runConfig struct {
 	probes        []string
 	commitDepth   int
 	gitMode       bool
+	skipErrors    bool
 }
 
 type Option func(*runConfig) error
@@ -358,6 +367,16 @@ func WithFileModeGit() Option {
 	}
 }
 
+// WithSkipErrors configures the analysis to continue when individual checks or
+// probes fail at runtime, returning results for everything that succeeded
+// instead of aborting the whole run on the first error.
+func WithSkipErrors(skip bool) Option {
+	return func(c *runConfig) error {
+		c.skipErrors = skip
+		return nil
+	}
+}
+
 // Run analyzes a given repository and returns the result. You can modify the
 // run behavior by passing in [Option] arguments. In the absence of a particular
 // option a default is used. Refer to the various Options for details.
@@ -431,5 +450,5 @@ func Run(ctx context.Context, repo clients.Repo, opts ...Option) (Result, error)
 	}
 
 	return runScorecard(ctx, repo, c.commit, c.commitDepth, checksToRun, c.probes,
-		c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient)
+		c.client, c.ossfuzzClient, c.ciiClient, c.vulnClient, c.projectClient, c.skipErrors)
 }

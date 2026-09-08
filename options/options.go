@@ -50,6 +50,9 @@ type Options struct {
 	CommitDepth     int
 	ShowDetails     bool
 	ShowAnnotations bool
+	// SkipErrors continues a scan when individual checks or probes fail at
+	// runtime, reporting on everything that succeeded instead of aborting.
+	SkipErrors bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
