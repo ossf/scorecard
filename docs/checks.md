@@ -189,6 +189,45 @@ However, note that in those overlapping cases, Scorecard can only report what it
 **Remediation steps**
 - Sign up for the [OpenSSF Best Practices program](https://www.bestpractices.dev/).
 
+## Changelog 
+
+Risk: `Low` (possibly missing context on release changes)
+
+This check tries to determine if the project maintains a changelog file and
+whether releases include changelog entries. A changelog provides a human-readable
+log of notable changes for each release, showing project maturity and helping
+users understand what has changed between versions.
+
+This aligns with [OSPS-BR-04](https://github.com/ossf/security-baseline) which
+requires that all releases provide a descriptive log of functional and security
+modifications.
+
+The check currently looks for changelog files at the top level of the repository
+(e.g. `CHANGELOG.md`, `CHANGES`, `NEWS`, `HISTORY`, `RELEASE-NOTES`) and checks
+whether the last 5 releases include changelog-named assets.
+
+Changelog File Exists (3/10 points):
+  - A changelog file is found in the repository root.
+
+Releases Have Changelog Entries (up to 7/10 points):
+  - Points are awarded proportionally based on how many of the last 5 releases
+    have corresponding version entries in the changelog file.
+  - Releases with substantive release notes (GitHub/GitLab release body) also
+    count, even without a changelog file entry.
+  - Auto-generated "Full Changelog" links alone do not count.
+  - If the project has no releases, no points are awarded for this portion.
+
+Version matching works by extracting version strings from the changelog
+(e.g. `## [1.0.0]`, `Version 1.0`, `1.0.0 (date)`) and comparing them
+against release tags (with `v` prefix stripped).
+ 
+
+**Remediation steps**
+- Add a CHANGELOG.md file to the root of your repository.
+- Follow the format recommended by [Keep a Changelog](https://keepachangelog.com/).
+- Ensure the changelog is updated with each release to document notable changes.
+- Include a changelog file as a release asset for each release.
+
 ## Code-Review 
 
 Risk: `High` (unintentional vulnerabilities or possible injection of malicious

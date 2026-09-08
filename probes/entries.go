@@ -30,6 +30,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/dismissesStaleReviews"
 	"github.com/ossf/scorecard/v5/probes/fuzzed"
 	"github.com/ossf/scorecard/v5/probes/hasBinaryArtifacts"
+	"github.com/ossf/scorecard/v5/probes/hasChangelogFile"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowUntrustedCheckout"
 	"github.com/ossf/scorecard/v5/probes/hasFSFOrOSIApprovedLicense"
@@ -47,6 +48,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
 	"github.com/ossf/scorecard/v5/probes/pinsDependencies"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveChangelog"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveVerifiedProvenance"
 	"github.com/ossf/scorecard/v5/probes/requiresApproversForPullRequests"
@@ -88,6 +90,10 @@ var (
 	// DependencyUpdateTool check.
 	DependencyToolUpdates = []ProbeImpl{
 		dependencyUpdateToolConfigured.Run,
+	}
+	Changelog = []ProbeImpl{
+		hasChangelogFile.Run,
+		releasesHaveChangelog.Run,
 	}
 	Fuzzing = []ProbeImpl{
 		fuzzed.Run,
@@ -183,6 +189,7 @@ var (
 func init() {
 	All = concatMultipleProbes([][]ProbeImpl{
 		BinaryArtifacts,
+		Changelog,
 		CIIBestPractices,
 		CITests,
 		CodeReview,
