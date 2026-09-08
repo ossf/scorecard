@@ -340,6 +340,21 @@ If an SBOM artifact is not found, the probe returns a single OutcomeFalse.
 If an SBOM file is not found, the probe returns a single OutcomeFalse.
 
 
+## hasSelfHostedRunners
+
+**Lifecycle**: experimental
+
+**Description**: Flags GitHub Actions jobs that run on self-hosted runners.
+
+**Motivation**: GitHub-hosted runners are ephemeral and isolated, so they're thrown away after each job. Self-hosted runners carry no such guarantee: unless the maintainer hardens them, they persist between jobs and a malicious pull request can poison the machine. A poisoned runner can steal secrets and tokens, tamper with release artifacts, or falsify test results, so knowing a project exposes self-hosted runners is a useful signal on its own.
+
+**Implementation**: The probe parses each GitHub Actions workflow under .github/workflows and inspects the runs-on clause of every job. A job is flagged when it targets a runner group (which only exist for self-hosted runners) or when its labels include the "self-hosted" label that GitHub assigns to every self-hosted runner. Jobs whose runs-on is entirely a ${{ }} expression can't be resolved statically and are left alone. Note this misses jobs that reach a self-hosted runner purely through a custom label, since those labels are indistinguishable from custom GitHub-hosted larger-runner labels without querying the runner configuration.
+
+**Outcomes**: The probe returns one OutcomeTrue per job that runs on a self-hosted runner.
+If no job uses a self-hosted runner, the probe returns a single OutcomeFalse.
+If a workflow file can't be parsed, the probe returns an OutcomeError for that file.
+
+
 ## hasUnverifiedBinaryArtifacts
 
 **Lifecycle**: stable

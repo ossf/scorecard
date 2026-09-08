@@ -41,6 +41,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/hasRecentCommits"
 	"github.com/ossf/scorecard/v5/probes/hasReleaseSBOM"
 	"github.com/ossf/scorecard/v5/probes/hasSBOM"
+	"github.com/ossf/scorecard/v5/probes/hasSelfHostedRunners"
 	"github.com/ossf/scorecard/v5/probes/hasUnverifiedBinaryArtifacts"
 	"github.com/ossf/scorecard/v5/probes/issueActivityByProjectMember"
 	"github.com/ossf/scorecard/v5/probes/jobLevelPermissions"
@@ -176,6 +177,7 @@ var (
 	// Probes which don't use pre-computed raw data but rather collect it themselves.
 	Independent = []IndependentProbeImpl{
 		unsafeblock.Run,
+		hasSelfHostedRunners.Run,
 	}
 )
 
