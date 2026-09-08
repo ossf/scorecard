@@ -94,15 +94,15 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 		branchRef, err := c.GetBranch(release.TargetCommitish)
 		if err != nil {
 			// The branch may have been renamed or deleted since the release was published.
-			// Skip it rather than failing the whole check.
+			// Don't skip yet: some RepoClient implementations return an error rather than
+			// a nil branch for a missing branch, so fall through to check for a redirect
+			// (e.g. master -> main) before giving up.
 			if cr.Dlogger != nil {
 				cr.Dlogger.Debug(&checker.LogMessage{
-					Text: fmt.Sprintf("error during GetBranch(%s): %v, skipping", release.TargetCommitish, err),
+					Text: fmt.Sprintf("error during GetBranch(%s): %v", release.TargetCommitish, err),
 				})
 			}
-			continue
-		}
-		if branches.add(branchRef) {
+		} else if branches.add(branchRef) {
 			continue
 		}
 

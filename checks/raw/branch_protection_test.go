@@ -241,6 +241,34 @@ func TestBranchProtection(t *testing.T) {
 			},
 		},
 		{
+			name: "master-to-main-redirect-after-primary-lookup-err",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: "master",
+					err:  errBPTest,
+				},
+				{
+					name: mainBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &mainBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &mainBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
 			name: "default-and-release-branches",
 			releases: []clients.Release{
 				{
