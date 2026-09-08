@@ -3,7 +3,7 @@
 Currently there is no automation to sync changes to these files to the GKE cluster.
 Changes must be manually applied with `kubectl` by a user with permissions to modify the cluster.
 
-Before committing any changes, it is recommended to check your YAML files for errors with [yamllint](yamllint.readthedocs.io). To check all YAML files in this directory, run:
+Before committing any changes, it is recommended to check your YAML files for errors with [yamllint](https://yamllint.readthedocs.io). To check all YAML files in this directory, run:
 ```
 yamllint -d relaxed .
 ```

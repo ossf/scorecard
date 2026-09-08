@@ -8,7 +8,7 @@ Scale OSSF Scorecard to 100k+ repositories.
 
 ## Background
 
-[Scorecard](github.com/oosf/scorecard) is an open source project by Google in
+[Scorecard](https://github.com/ossf/scorecard) is an open source project by Google in
 collaboration with [OpenSSF](https://openssf.org/) to automate the analysis and
 trust decisions on the security posture of an open source project. As part of
 this project we (Google) maintain a cron job, which calculates Scorecard results
