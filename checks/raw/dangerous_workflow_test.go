@@ -135,6 +135,66 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "toJSON(github.repository)",
 			expected: false,
 		},
+		{
+			name:     "fork forkee name",
+			variable: "github.event.fork.forkee.name",
+			expected: true,
+		},
+		{
+			name:     "fork forkee description",
+			variable: "github.event.fork.forkee.description",
+			expected: true,
+		},
+		{
+			name:     "fork forkee default branch",
+			variable: "github.event.fork.forkee.default_branch",
+			expected: true,
+		},
+		{
+			name:     "fork forkee homepage",
+			variable: "github.event.fork.forkee.homepage",
+			expected: true,
+		},
+		{
+			name:     "trusted fork forkee id",
+			variable: "github.event.fork.forkee.id",
+			expected: false,
+		},
+		{
+			name:     "pull request head repo description",
+			variable: "github.event.pull_request.head.repo.description",
+			expected: true,
+		},
+		{
+			name:     "pull request head repo homepage",
+			variable: "github.event.pull_request.head.repo.homepage",
+			expected: true,
+		},
+		{
+			name:     "trusted pull request head repo id",
+			variable: "github.event.pull_request.head.repo.id",
+			expected: false,
+		},
+		{
+			name:     "workflow run head branch",
+			variable: "github.event.workflow_run.head_branch",
+			expected: true,
+		},
+		{
+			name:     "workflow run head commit message",
+			variable: "github.event.workflow_run.head_commit.message",
+			expected: true,
+		},
+		{
+			name:     "workflow run head repository description",
+			variable: "github.event.workflow_run.head_repository.description",
+			expected: true,
+		},
+		{
+			name:     "trusted workflow run id",
+			variable: "github.event.workflow_run.id",
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
