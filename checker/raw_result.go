@@ -299,8 +299,26 @@ type SASTWorkflow struct {
 // SecurityPolicyData contains the raw results
 // for the Security-Policy check.
 type SecurityPolicyData struct {
-	PolicyFiles []SecurityPolicyFile
+	PolicyFiles                   []SecurityPolicyFile
+	PrivateVulnerabilityReporting PrivateVulnerabilityReportingStatus
 }
+
+// PrivateVulnerabilityReportingStatus describes whether a repository provides
+// a private vulnerability reporting channel. NotSupported is the zero value so
+// file-only and non-GitHub checks retain their existing behavior.
+type PrivateVulnerabilityReportingStatus int
+
+const (
+	// PrivateVulnerabilityReportingNotSupported means the repository provider
+	// does not expose this setting.
+	PrivateVulnerabilityReportingNotSupported PrivateVulnerabilityReportingStatus = iota
+	// PrivateVulnerabilityReportingEnabled means private reporting is enabled.
+	PrivateVulnerabilityReportingEnabled
+	// PrivateVulnerabilityReportingDisabled means private reporting is disabled.
+	PrivateVulnerabilityReportingDisabled
+	// PrivateVulnerabilityReportingNotAvailable means the setting could not be retrieved.
+	PrivateVulnerabilityReportingNotAvailable
+)
 
 // BinaryArtifactData contains the raw results
 // for the Binary-Artifact check.

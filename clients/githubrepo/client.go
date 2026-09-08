@@ -36,9 +36,10 @@ import (
 )
 
 var (
-	_                     clients.RepoClient = &Client{}
-	errInputRepoType                         = errors.New("input repo should be of type repoURL")
-	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
+	_                     clients.RepoClient                          = &Client{}
+	_                     clients.PrivateVulnerabilityReportingClient = &Client{}
+	errInputRepoType                                                  = errors.New("input repo should be of type repoURL")
+	errDefaultBranchEmpty                                             = errors.New("default branch name is empty")
 )
 
 type Option func(*repoClientConfig) error

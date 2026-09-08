@@ -20,6 +20,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyPrivateVulnerabilityReportingEnabled"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -184,14 +185,118 @@ func TestSecurityPolicy(t *testing.T) {
 				NumberOfInfo: 4,
 			},
 		},
+		{
+			name: "private reporting enabled without policy file",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   securityPolicyPrivateVulnerabilityReportingEnabled.Probe,
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 1,
+				NumberOfWarn: 4,
+			},
+		},
+		{
+			name: "private reporting enabled with empty policy file",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   securityPolicyPrivateVulnerabilityReportingEnabled.Probe,
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 2,
+				NumberOfWarn: 3,
+			},
+		},
+		{
+			name: "private reporting enabled with linked policy",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   securityPolicyPrivateVulnerabilityReportingEnabled.Probe,
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 3,
+				NumberOfWarn: 2,
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			dl := scut.TestDetailLogger{}
-			got := SecurityPolicy(tt.name, tt.findings, &dl)
+			got := SecurityPolicy(tt.name, withPrivateReportingFinding(tt.findings), &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
 	}
+}
+
+func withPrivateReportingFinding(findings []finding.Finding) []finding.Finding {
+	for i := range findings {
+		if findings[i].Probe == securityPolicyPrivateVulnerabilityReportingEnabled.Probe {
+			return findings
+		}
+	}
+
+	ret := append([]finding.Finding(nil), findings...)
+	return append(ret, finding.Finding{
+		Probe:   securityPolicyPrivateVulnerabilityReportingEnabled.Probe,
+		Outcome: finding.OutcomeNotSupported,
+	})
 }
