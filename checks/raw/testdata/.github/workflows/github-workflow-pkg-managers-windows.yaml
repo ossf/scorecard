@@ -1,0 +1,51 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: Windows package manager commands
+on: push
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - run: dotnet build -c Release
+      - run: DOTNET.EXE test -c Release
+      - run: dotnet pack --locked-mode
+      - run: dotnet publish --no-restore
+      - run: dotnet test --no-build
+      - run: Write-Output "dotnet build"
+      - run: |
+          # Multiline PowerShell requires a full parser and is intentionally skipped.
+          dotnet new console `
+            --no-restore
+          dotnet run --locked-mode
+      - run: dotnet restore --locked-mode
+      - run: dotnet build # --no-restore is only a comment
+      - run: dotnet test --locked-mode # --no-restore is only a comment
+      - run: dotnet run "--property:Fragment=#keep" --locked-mode
+      - run: dotnet msbuild -restore
+      - run: dotnet msbuild -restore -p:RestoreLockedMode=true
+      - run: msbuild -restore
+      - run: MSBUILD.EXE /r /restoreProperty:RestoreLockedMode=true
+      - run: dotnet publish '--no-restore'
+      - run: dotnet test '--locked-mode'
+      - run: dotnet build; Write-Output --no-restore
+      - run: dotnet build <# --locked-mode #>
+      - run: dotnet build
+      - shell: powershell
+        run: dotnet publish --locked-mode
+      - shell: pwsh
+        run: dotnet build
+      - run: >-
+          dotnet publish
+      - run: dotnet pack --output ${{ github.workspace }}\nuget

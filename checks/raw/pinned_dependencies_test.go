@@ -23,6 +23,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/rhysd/actionlint"
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -284,7 +285,7 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 		{
 			name:     "npm packages without verification",
 			filename: "./testdata/.github/workflows/github-workflow-pkg-managers.yaml",
-			unpinned: 52,
+			unpinned: 53,
 		},
 		{
 			name:             "Can't identify OS but doesn't crash",
@@ -326,6 +327,186 @@ func TestGithubWorkflowPkgManagerPinning(t *testing.T) {
 				t.Errorf("expected %v processing errors. Got %v", tt.processingErrors, len(r.ProcessingErrors))
 			}
 		})
+	}
+}
+
+func TestGitHubWorkflowPowerShellDotNetCommands(t *testing.T) {
+	t.Parallel()
+
+	filename := "./testdata/.github/workflows/github-workflow-pkg-managers-windows.yaml"
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		t.Fatalf("cannot read file: %v", err)
+	}
+
+	path := strings.Replace(filename, "./testdata/", "", 1)
+	var result checker.PinningDependenciesData
+	if _, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(path, content, &result); err != nil {
+		t.Fatalf("validate workflow: %v", err)
+	}
+
+	expected := []struct {
+		snippet string
+		line    uint
+		pinned  bool
+	}{
+		{snippet: "dotnet build -c Release", line: 21, pinned: false},
+		{snippet: "DOTNET.EXE test -c Release", line: 22, pinned: false},
+		{snippet: "dotnet pack --locked-mode", line: 23, pinned: true},
+		{snippet: "dotnet restore --locked-mode", line: 32, pinned: true},
+		{snippet: "dotnet build", line: 33, pinned: false},
+		{snippet: "dotnet test --locked-mode", line: 34, pinned: true},
+		{snippet: "dotnet msbuild -restore", line: 36, pinned: false},
+		{snippet: "dotnet msbuild -restore -p:RestoreLockedMode=true", line: 37, pinned: true},
+		{snippet: "msbuild -restore", line: 38, pinned: false},
+		{snippet: "MSBUILD.EXE /r /restoreProperty:RestoreLockedMode=true", line: 39, pinned: true},
+		{snippet: "dotnet test '--locked-mode'", line: 41, pinned: true},
+		{snippet: "dotnet build", line: 44, pinned: false},
+		{snippet: "dotnet publish --locked-mode", line: 46, pinned: true},
+		{snippet: "dotnet build", line: 48, pinned: false},
+		{snippet: `dotnet pack --output ${{ github.workspace }}\nuget`, line: 51, pinned: false},
+	}
+	if len(result.Dependencies) != len(expected) {
+		t.Fatalf("expected %d dependencies, got %d: %+v", len(expected), len(result.Dependencies), result.Dependencies)
+	}
+
+	for i, want := range expected {
+		got := result.Dependencies[i]
+		if got.Location == nil || got.Pinned == nil {
+			t.Fatalf("dependency %d is missing location or pinning data: %+v", i, got)
+		}
+		if got.Location.Path != path || got.Location.Snippet != want.snippet ||
+			got.Location.Offset != want.line || got.Location.EndOffset != want.line ||
+			got.Type != checker.DependencyUseTypeNugetCommand || *got.Pinned != want.pinned {
+			t.Errorf("dependency %d mismatch: got %+v, want snippet %q at line %d with pinned=%t",
+				i, got, want.snippet, want.line, want.pinned)
+		}
+		if !want.pinned && got.Remediation == nil {
+			t.Errorf("dependency %d is unpinned but has no remediation", i)
+		}
+		if want.pinned && got.Remediation != nil {
+			t.Errorf("dependency %d is pinned but has remediation: %+v", i, got.Remediation)
+		}
+	}
+}
+
+func TestIsPowerShell(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		shell string
+		want  bool
+	}{
+		{name: "pwsh", shell: "pwsh", want: true},
+		{name: "pwsh executable", shell: "PWSH.EXE -NoProfile", want: true},
+		{name: "Windows PowerShell", shell: "powershell", want: true},
+		{name: "Windows PowerShell executable", shell: "PowerShell.exe -Command", want: true},
+		{name: "empty", shell: "", want: false},
+		{name: "bash", shell: "bash", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isPowerShell(tt.shell); got != tt.want {
+				t.Errorf("isPowerShell(%q) = %t, want %t", tt.shell, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestStripPowerShellLineComment(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		line string
+		want string
+	}{
+		{name: "whole line", line: "  # comment", want: "  "},
+		{name: "inline", line: "dotnet build # --no-restore", want: "dotnet build "},
+		{name: "double quoted", line: `dotnet run "#value"`, want: `dotnet run "#value"`},
+		{name: "single quoted", line: "dotnet run '#value'", want: "dotnet run '#value'"},
+		{name: "embedded in token", line: "dotnet run value#fragment", want: "dotnet run value#fragment"},
+		{name: "escaped", line: "dotnet run `#value", want: "dotnet run `#value"},
+		{name: "escaped quote", line: "dotnet run \"value`\"#fragment\"", want: "dotnet run \"value`\"#fragment\""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := stripPowerShellLineComment(tt.line); got != tt.want {
+				t.Errorf("stripPowerShellLineComment(%q) = %q, want %q", tt.line, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestSplitSimplePowerShellCommand(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		line string
+		want []string
+		ok   bool
+	}{
+		{name: "plain", line: "dotnet build -c Release", want: []string{"dotnet", "build", "-c", "Release"}, ok: true},
+		{name: "quoted option", line: "dotnet build '--no-restore'", want: []string{"dotnet", "build", "--no-restore"}, ok: true},
+		{name: "escaped space", line: "dotnet build value` with` spaces", want: []string{"dotnet", "build", "value with spaces"}, ok: true},
+		{name: "semicolon", line: "dotnet build; Write-Output done", ok: false},
+		{name: "pipeline", line: "dotnet build | Write-Output", ok: false},
+		{name: "block comment", line: "dotnet build <# comment #>", ok: false},
+		{name: "unterminated quote", line: "dotnet build 'value", ok: false},
+		{name: "line continuation", line: "dotnet build `", ok: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got, ok := splitSimplePowerShellCommand(tt.line)
+			if ok != tt.ok {
+				t.Fatalf("splitSimplePowerShellCommand(%q) ok = %t, want %t", tt.line, ok, tt.ok)
+			}
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("splitSimplePowerShellCommand(%q) mismatch (-want +got):\n%s", tt.line, diff)
+			}
+		})
+	}
+}
+
+func TestIsWorkflowBlockScalar(t *testing.T) {
+	t.Parallel()
+	content := []byte("run: dotnet build\nrun: |-\n  dotnet test\nrun: >-\n  dotnet pack\n")
+	tests := []struct {
+		pos  *actionlint.Pos
+		name string
+		want bool
+	}{
+		{name: "missing position", pos: nil, want: true},
+		{name: "invalid line", pos: &actionlint.Pos{}, want: true},
+		{name: "line out of bounds", pos: &actionlint.Pos{Line: 10, Col: 6}, want: true},
+		{name: "column out of bounds", pos: &actionlint.Pos{Line: 1, Col: 100}, want: true},
+		{name: "inline", pos: &actionlint.Pos{Line: 1, Col: 6}, want: false},
+		{name: "literal", pos: &actionlint.Pos{Line: 2, Col: 6}, want: true},
+		{name: "folded", pos: &actionlint.Pos{Line: 4, Col: 6}, want: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isWorkflowBlockScalar(content, tt.pos); got != tt.want {
+				t.Errorf("isWorkflowBlockScalar() = %t, want %t", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCollectPowerShellNuGetCommandSkipsMultiline(t *testing.T) {
+	t.Parallel()
+	var result checker.PinningDependenciesData
+	collectPowerShellNuGetCommand("workflow.yaml", "dotnet build\n--locked-mode",
+		"dotnet build\n--locked-mode", 10, &result)
+	if len(result.Dependencies) != 0 {
+		t.Errorf("expected multiline command to be skipped, got %+v", result.Dependencies)
 	}
 }
 
@@ -1245,6 +1426,12 @@ func TestShellscriptInsecureDownloadsLineNumber(t *testing.T) {
 					t:         checker.DependencyUseTypeNugetCommand,
 				},
 				{
+					snippet:   "dotnet build",
+					startLine: 65,
+					endLine:   65,
+					t:         checker.DependencyUseTypeNugetCommand,
+				},
+				{
 					snippet:   `bash <(curl --silent --show-error "https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash")`,
 					startLine: 69,
 					endLine:   69,
@@ -1415,7 +1602,7 @@ func TestDockerfileScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/Dockerfile-pkg-managers",
-			unpinned: 63,
+			unpinned: 64,
 		},
 		{
 			name:     "download with some python",
@@ -1555,7 +1742,7 @@ func TestShellScriptDownload(t *testing.T) {
 		{
 			name:     "pkg managers",
 			filename: "./testdata/script-pkg-managers",
-			unpinned: 56,
+			unpinned: 57,
 		},
 		{
 			name:             "invalid shell script",
