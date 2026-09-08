@@ -58,6 +58,9 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
 	}
 
+	// TODO(#2465): Populate PrivateVulnerabilityReportingEnabled from the GitHub API.
+	// For now, mark as unknown (nil) so the evaluation can handle all platforms.
+
 	// Check if present in parent org.
 	// https#://docs.github.com/en/github/building-a-strong-community/creating-a-default-community-health-file.
 	client, err := c.RepoClient.GetOrgRepoClient(c.Ctx)
