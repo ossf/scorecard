@@ -45,8 +45,12 @@ func containsUntrustedContextPattern(variable string) bool {
 			`head_commit\.message|` +
 			`head_commit\.author\.email|` +
 			`head_commit\.author\.name|` +
+			`head_commit\.committer\.email|` +
+			`head_commit\.committer\.name|` +
 			`commits.*\.author\.email|` +
 			`commits.*\.author\.name|` +
+			`commits.*\.committer\.email|` +
+			`commits.*\.committer\.name|` +
 			`blocked_user\.name|` +
 			`blocked_user\.email|` +
 			`pull_request\.head\.ref|` +

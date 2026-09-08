@@ -86,6 +86,26 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "head_commit committer name",
+			variable: "github.event.head_commit.committer.name",
+			expected: true,
+		},
+		{
+			name:     "head_commit committer email",
+			variable: "github.event.head_commit.committer.email",
+			expected: true,
+		},
+		{
+			name:     "commits committer name",
+			variable: "github.event.commits[0].committer.name",
+			expected: true,
+		},
+		{
+			name:     "commits committer email",
+			variable: "github.event.commits[0].committer.email",
+			expected: true,
+		},
+		{
 			name:     "blocked_user name",
 			variable: "github.event.pull_request.organization.blocked_user.name",
 			expected: true,
