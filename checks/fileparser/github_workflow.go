@@ -563,6 +563,16 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate golang publishing workflow",
 		},
 		{
+			// Go packages using the StepSecurity-maintained fork of goreleaser-action.
+			// https://github.com/step-security/goreleaser-action
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "step-security/goreleaser-action",
+				},
+			},
+			LogText: "candidate golang publishing workflow",
+		},
+		{
 			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
 			Steps: []*JobMatcherStep{
 				{
