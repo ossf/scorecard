@@ -1606,6 +1606,65 @@ func TestShellScriptDownload(t *testing.T) {
 	}
 }
 
+func TestMakefileDownload(t *testing.T) {
+	t.Parallel()
+
+	content := []byte("INSTALL_URL = https://example.com/install.sh\n" +
+		"install:\n" +
+		"\t@curl -sSL https://example.com/install.sh | bash\n" +
+		"\t# curl -sSL https://example.com/comment.sh | bash\n" +
+		"download:\n" +
+		"\t-curl -sSL https://example.com/tool.sh > /tmp/tool\n" +
+		"run:\n" +
+		"\t+bash /tmp/tool\n" +
+		"continued:\n" +
+		"\tcurl -sSL https://example.com/continued.sh \\\n" +
+		"\t\t| bash\n")
+
+	var result checker.PinningDependenciesData
+	_, err := validateMakefileInsecureDownloads("Makefile", content, &result)
+	if err != nil {
+		t.Fatalf("validateMakefileInsecureDownloads() error = %v", err)
+	}
+
+	want := []struct {
+		line uint
+	}{
+		{line: 3},
+		{line: 8},
+		{line: 10},
+	}
+	for _, expected := range want {
+		found := func(dep checker.Dependency) bool {
+			return !*dep.Pinned && dep.Location.Path == "Makefile" &&
+				dep.Location.Offset == expected.line && dep.Type == checker.DependencyUseTypeDownloadThenRun
+		}
+		if !scut.ValidatePinningDependencies(found, &result) {
+			t.Errorf("missing Makefile finding at line %d", expected.line)
+		}
+	}
+	if got := countUnpinned(result.Dependencies); got != len(want) {
+		t.Errorf("expected %d unpinned dependencies, got %d", len(want), got)
+	}
+	if len(result.ProcessingErrors) != 0 {
+		t.Errorf("expected no processing errors, got %d", len(result.ProcessingErrors))
+	}
+}
+
+func TestMakefileDownloadIgnoresNonMakefiles(t *testing.T) {
+	t.Parallel()
+
+	var result checker.PinningDependenciesData
+	_, err := validateMakefileInsecureDownloads("NotAMakefile.txt",
+		[]byte("\tcurl -sSL https://example.com/install.sh | bash\n"), &result)
+	if err != nil {
+		t.Fatalf("validateMakefileInsecureDownloads() error = %v", err)
+	}
+	if len(result.Dependencies) != 0 {
+		t.Errorf("expected non-Makefile content to be ignored, got %d dependencies", len(result.Dependencies))
+	}
+}
+
 func TestShellScriptDownloadPinned(t *testing.T) {
 	t.Parallel()
 	//nolint:govet

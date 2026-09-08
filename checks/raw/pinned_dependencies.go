@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -66,6 +67,11 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 
 	// Script downloads.
 	if err := collectShellScriptInsecureDownloads(c, &results); err != nil {
+		return checker.PinningDependenciesData{}, err
+	}
+
+	// Makefile downloads.
+	if err := collectMakefileInsecureDownloads(c, &results); err != nil {
 		return checker.PinningDependenciesData{}, err
 	}
 
@@ -288,6 +294,108 @@ func collectShellScriptInsecureDownloads(c *checker.CheckRequest, r *checker.Pin
 		Pattern:       "*",
 		CaseSensitive: false,
 	}, validateShellScriptIsFreeOfInsecureDownloads, r)
+}
+
+func collectMakefileInsecureDownloads(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
+	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       "*Makefile*",
+		CaseSensitive: false,
+	}, validateMakefileInsecureDownloads, r)
+}
+
+var validateMakefileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
+	pathfn string,
+	content []byte,
+	args ...interface{},
+) (bool, error) {
+	if len(args) != 1 {
+		return false, fmt.Errorf(
+			"validateMakefileInsecureDownloads requires exactly 1 arguments: got %v: %w",
+			len(args), errInvalidArgLength)
+	}
+
+	if fileIsInVendorDir(pathfn) || !isMakefile(pathfn) {
+		return true, nil
+	}
+
+	pdata := dataAsPinnedDependenciesPointer(args[0])
+	taintedFiles := make(map[string]bool)
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	var command strings.Builder
+	var startLine uint
+	lineNumber := uint(0)
+
+	validateCommand := func(endLine uint) error {
+		if command.Len() == 0 {
+			return nil
+		}
+		err := validateShellFile(pathfn, startLine, endLine, []byte(command.String()), taintedFiles, pdata)
+		command.Reset()
+		return err
+	}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		cmd, ok := makeRecipeCommand(line)
+		if !ok {
+			endLine := lineNumber
+			if endLine > 0 {
+				endLine--
+			}
+			if err := validateCommand(endLine); err != nil {
+				return false, err
+			}
+			lineNumber++
+			continue
+		}
+
+		if command.Len() == 0 {
+			startLine = lineNumber
+		}
+		command.WriteString(cmd)
+		if strings.HasSuffix(strings.TrimRight(cmd, " \t\r"), "\\") {
+			command.WriteByte('\n')
+			lineNumber++
+			continue
+		}
+
+		if err := validateCommand(lineNumber); err != nil {
+			return false, err
+		}
+		lineNumber++
+	}
+	if err := scanner.Err(); err != nil {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("scan Makefile: %v", err))
+	}
+	endLine := lineNumber
+	if endLine > 0 {
+		endLine--
+	}
+	if err := validateCommand(endLine); err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func isMakefile(pathfn string) bool {
+	name := strings.ToLower(filepath.Base(pathfn))
+	return name == "makefile" || name == "gnumakefile" || strings.HasPrefix(name, "makefile.")
+}
+
+func makeRecipeCommand(line string) (string, bool) {
+	if !strings.HasPrefix(line, "\t") {
+		return "", false
+	}
+
+	command := strings.TrimLeft(line[1:], " \t")
+	for len(command) > 0 && strings.ContainsRune("@-+", rune(command[0])) {
+		command = strings.TrimLeft(command[1:], " \t")
+	}
+	if command == "" || strings.HasPrefix(command, "#") {
+		return "", false
+	}
+	return command, true
 }
 
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
