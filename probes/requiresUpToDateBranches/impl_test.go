@@ -47,8 +47,10 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &trueVal,
+									},
 								},
 							},
 						},
@@ -67,16 +69,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &trueVal,
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &trueVal,
+									},
 								},
 							},
 						},
@@ -95,16 +101,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &trueVal,
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &falseVal,
+									},
 								},
 							},
 						},
@@ -123,16 +133,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &falseVal,
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &trueVal,
+									},
 								},
 							},
 						},
@@ -151,16 +165,20 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: &falseVal,
+									},
 								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								CheckRules: clients.StatusChecksRule{
-									UpToDateBeforeMerge: nil,
+								RefProtectionRule: clients.RefProtectionRule{
+									CheckRules: clients.StatusChecksRule{
+										UpToDateBeforeMerge: nil,
+									},
 								},
 							},
 						},

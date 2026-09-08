@@ -35,6 +35,7 @@ const (
 	SBOM                 CheckName = "SBOM"
 	SecurityPolicy       CheckName = "Security-Policy"
 	SignedReleases       CheckName = "Signed-Releases"
+	TagProtection        CheckName = "Tag-Protection"
 	TokenPermissions     CheckName = "Token-Permissions"
 	Vulnerabilities      CheckName = "Vulnerabilities"
 	Webhooks             CheckName = "Webhooks"
@@ -58,6 +59,7 @@ var AllValidChecks []string = []string{
 	SBOM,
 	SecurityPolicy,
 	SignedReleases,
+	TagProtection,
 	TokenPermissions,
 	Vulnerabilities,
 	Webhooks,

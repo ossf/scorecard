@@ -48,7 +48,9 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &falseVal,
+								},
 							},
 						},
 					},
@@ -66,13 +68,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &falseVal,
+								},
 							},
 						},
 					},
@@ -90,13 +96,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &falseVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &trueVal,
+								},
 							},
 						},
 					},
@@ -114,13 +124,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &falseVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &falseVal,
+								},
 							},
 						},
 					},
@@ -138,13 +152,17 @@ func Test_Run(t *testing.T) {
 						{
 							Name: &branchVal1,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: &trueVal,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: &trueVal,
+								},
 							},
 						},
 						{
 							Name: &branchVal2,
 							BranchProtectionRule: clients.BranchProtectionRule{
-								AllowDeletions: nil,
+								RefProtectionRule: clients.RefProtectionRule{
+									AllowDeletions: nil,
+								},
 							},
 						},
 					},
