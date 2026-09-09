@@ -453,6 +453,26 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
 func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResult, bool) {
 	jobMatchers := []JobMatcher{
 		{
+			// GitHub CLI release commands publish release artifacts without a
+			// third-party action.
+			Steps: []*JobMatcherStep{
+				{
+					Run: `\bgh[[:space:]]+release[[:space:]]+(create|upload|edit)\b`,
+				},
+			},
+			LogText: "candidate GitHub release publishing workflow using gh",
+		},
+		{
+			// The official Nextcloud App Store release API publishes an app
+			// archive outside the package-manager-specific matchers below.
+			Steps: []*JobMatcherStep{
+				{
+					Run: `https://apps\.nextcloud\.com/api/v1/apps/releases\b`,
+				},
+			},
+			LogText: "candidate Nextcloud App Store publishing workflow",
+		},
+		{
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "actions/setup-node",
