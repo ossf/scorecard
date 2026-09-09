@@ -27,7 +27,25 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 )
 
+// contextIndexPattern matches a quoted index accessor, e.g. ['issue'] or
+// ["title"], so it can be rewritten to the equivalent dotted form.
+var contextIndexPattern = regexp.MustCompile(`\[\s*['"]([^'"]*)['"]\s*\]`)
+
+// normalizeContextExpression rewrites a GitHub Actions expression into the
+// dotted, lower-case spelling the patterns below are written against. GitHub
+// evaluates these expressions case-insensitively and lets a property be reached
+// with either dereference (github.event.issue.title) or index syntax
+// (github.event['issue']['title'], github['event'].issue.title), so without
+// this a re-cased or index-form expression accesses the same untrusted value
+// while slipping past detection. This matches the case-insensitive handling the
+// toJSON pattern already relies on. Numeric indexes like commits[0] are left
+// alone because the patterns already account for them.
+func normalizeContextExpression(expr string) string {
+	return strings.ToLower(contextIndexPattern.ReplaceAllString(expr, ".$1"))
+}
+
 func containsUntrustedContextPattern(variable string) bool {
+	variable = normalizeContextExpression(variable)
 	// GitHub event context details that may be attacker controlled.
 	// See https://securitylab.github.com/research/github-actions-untrusted-input/
 	untrustedContextPattern := regexp.MustCompile(
@@ -191,7 +209,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 		if !ok || e.Uses == nil {
 			continue
 		}
-		if !strings.Contains(e.Uses.Value, "actions/checkout") {
+		if !strings.Contains(strings.ToLower(e.Uses.Value), "actions/checkout") {
 			continue
 		}
 		// Check for reference. If not defined for a pull_request_target event, this defaults to
@@ -201,8 +219,9 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 
-		if strings.Contains(ref.Value.Value, checkoutUntrustedPullRequestRef) ||
-			strings.Contains(ref.Value.Value, checkoutUntrustedWorkflowRunRef) {
+		refValue := normalizeContextExpression(ref.Value.Value)
+		if strings.Contains(refValue, checkoutUntrustedPullRequestRef) ||
+			strings.Contains(refValue, checkoutUntrustedWorkflowRunRef) {
 			line := fileparser.GetLineNumber(step.Pos)
 			pdata.Workflows = append(pdata.Workflows,
 				checker.DangerousWorkflow{
