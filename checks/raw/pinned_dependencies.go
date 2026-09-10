@@ -768,10 +768,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		}
 
 		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
+			if !isSameRepositoryAction(job.WorkflowCall.Uses.Value) {
 				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
@@ -794,10 +791,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if strings.HasPrefix(execAction.Uses.Value, "./") {
+			if isSameRepositoryAction(execAction.Uses.Value) {
 				continue
 			}
 			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
@@ -806,6 +800,16 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	}
 
 	return true, nil
+}
+
+// isSameRepositoryAction reports whether actionUses references an action or
+// reusable workflow in the same repository using either the workspace-relative
+// or self-repository syntax.
+// See https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/find-and-customize-actions#adding-an-action-from-the-same-repository.
+//
+//nolint:lll
+func isSameRepositoryAction(actionUses string) bool {
+	return strings.HasPrefix(actionUses, "./") || strings.HasPrefix(actionUses, "$/")
 }
 
 func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
@@ -831,8 +835,7 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 }
 
 func isActionDependencyPinned(actionUses string) bool {
-	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
-	if localActionRegex.MatchString(actionUses) {
+	if isSameRepositoryAction(actionUses) {
 		return true
 	}
 

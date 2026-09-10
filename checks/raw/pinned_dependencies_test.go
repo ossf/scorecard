@@ -60,6 +60,10 @@ func TestGithubWorkflowPinning(t *testing.T) {
 			filename: "./testdata/.github/workflows/workflow-local-action.yaml",
 		},
 		{
+			name:     "Self-repository action workflow",
+			filename: "./testdata/.github/workflows/workflow-self-repository-action.yaml",
+		},
+		{
 			name:     "Non-pinned workflow",
 			filename: "./testdata/.github/workflows/workflow-not-pinned.yaml",
 			warns:    2,
@@ -162,6 +166,11 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 		{
 			desc:     "local workflow",
 			uses:     "./.github/uses.yml",
+			ispinned: true,
+		},
+		{
+			desc:     "self-repository action",
+			uses:     "$/.github/actions/setup-dotnet",
 			ispinned: true,
 		},
 		{
