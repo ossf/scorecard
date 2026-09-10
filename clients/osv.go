@@ -70,6 +70,19 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		gitCommits = append(gitCommits, commit)
 	}
 
+	// osv-scanner defaults to scanning the filesystem root when a commit is given but
+	// no directory is (e.g. the GitLab client, which has no on-disk checkout), which
+	// can fail on restricted paths. Give it a harmless empty directory instead so the
+	// commit-based lookup still runs without walking the whole filesystem.
+	if len(directoryPaths) == 0 && len(gitCommits) > 0 {
+		emptyDir, mkdirErr := os.MkdirTemp("", "scorecard-osv-scan")
+		if mkdirErr != nil {
+			return VulnerabilitiesResponse{}, fmt.Errorf("os.MkdirTemp: %w", mkdirErr)
+		}
+		defer os.RemoveAll(emptyDir)
+		directoryPaths = append(directoryPaths, emptyDir)
+	}
+
 	exp := osvscanner.ExperimentalScannerActions{
 		PluginsEnabled:   []string{"python/requirements"},
 		PluginsDisabled:  []string{"python/requirementsenhanceable"},
