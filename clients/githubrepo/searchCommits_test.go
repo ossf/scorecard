@@ -16,7 +16,12 @@ package githubrepo
 
 import (
 	"errors"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/google/go-github/v82/github"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -74,5 +79,37 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 					testcase.expectedQuery, query)
 			}
 		})
+	}
+}
+
+type unprocessableEntityRoundTripper struct{}
+
+func (unprocessableEntityRoundTripper) RoundTrip(_ *http.Request) (*http.Response, error) {
+	return &http.Response{
+		Status:     "422 Unprocessable Entity",
+		StatusCode: http.StatusUnprocessableEntity,
+		Body:       io.NopCloser(strings.NewReader(`{"message": "Validation Failed"}`)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func TestSearchCommitsHandles422(t *testing.T) {
+	t.Parallel()
+	handler := searchCommitsHandler{
+		ghClient: github.NewClient(&http.Client{Transport: unprocessableEntityRoundTripper{}}),
+		ctx:      t.Context(),
+		repourl: &Repo{
+			commitSHA: clients.HeadSHA,
+			owner:     "testowner",
+			repo:      "testrepo",
+		},
+	}
+
+	commits, err := handler.search(clients.SearchCommitsOptions{Author: "testAuthor"})
+	if !errors.Is(err, clients.ErrCommitSearchUnprocessable) {
+		t.Fatalf("expected ErrCommitSearchUnprocessable, got: %v", err)
+	}
+	if len(commits) != 0 {
+		t.Fatalf("expected 0 commits, got: %d", len(commits))
 	}
 }
