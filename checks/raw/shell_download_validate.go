@@ -120,6 +120,45 @@ func getWgetOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	return "", false, nil
 }
 
+// getCurlOutputFile returns the file curl writes to, if any.
+//
+// Unlike wget there is no filename to fall back on: with no output flag curl
+// writes to stdout, so nothing lands on disk to be executed later. curl's short
+// options are case-sensitive and -o and -O mean different things, so they are
+// matched exactly rather than with EqualFold.
+func getCurlOutputFile(cmd []string) (pathfn string, ok bool, err error) {
+	if !isBinaryName("curl", cmd[0]) {
+		return "", false, nil
+	}
+
+	// -o/--output names the file directly.
+	for i := 1; i < len(cmd)-1; i++ {
+		if cmd[i] == "-o" || cmd[i] == "--output" {
+			return cmd[i+1], true, nil
+		}
+	}
+
+	// -O/--remote-name writes to the basename of the URL.
+	for i := 1; i < len(cmd); i++ {
+		if cmd[i] != "-O" && cmd[i] != "--remote-name" {
+			continue
+		}
+		for j := 1; j < len(cmd); j++ {
+			if !strings.HasPrefix(cmd[j], "http") {
+				continue
+			}
+			u, err := url.Parse(cmd[j])
+			if err != nil {
+				return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
+			}
+			return path.Base(u.Path), true, nil
+		}
+		return "", false, nil
+	}
+
+	return "", false, nil
+}
+
 func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 	if isBinaryName("gsutil", cmd[0]) {
 		for i := 1; i < len(cmd)-1; i++ {
@@ -174,6 +213,12 @@ func getOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 
 	// Wget.
 	fn, b, err := getWgetOutputFile(cmd)
+	if err != nil || b {
+		return fn, b, err
+	}
+
+	// Curl.
+	fn, b, err = getCurlOutputFile(cmd)
 	if err != nil || b {
 		return fn, b, err
 	}
