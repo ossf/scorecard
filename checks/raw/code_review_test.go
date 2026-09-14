@@ -124,6 +124,66 @@ func Test_getChangesets(t *testing.T) {
 			},
 			Message: "merge commitSHA prow_self_merged from GitHub",
 		}
+		prowCommitSelfMergedUnsquashed = clients.Commit{
+			SHA: "prow_self_merged_unsquashed",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 4,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 43 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "kratos"},
+				MergedBy: clients.User{Login: "kratos"},
+				Labels:   []clients.Label{{Name: "lgtm"}},
+			},
+			Message: "unsquashed commitSHA prow_self_merged_unsquashed from GitHub",
+		}
+		prowCommitApprovedLabel = clients.Commit{
+			SHA: "prow_approved_label",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 5,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 44 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "hades"},
+				MergedBy: clients.User{Login: "hades"},
+				Labels:   []clients.Label{{Name: "approved"}},
+			},
+			Message: "merge commitSHA prow_approved_label from GitHub",
+		}
+		prowCommitReviewedByOther = clients.Commit{
+			SHA: "prow_reviewed",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 6,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 45 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "kratos"},
+				MergedBy: clients.User{Login: "kratos"},
+				Labels:   []clients.Label{{Name: "lgtm"}},
+				Reviews: []clients.Review{
+					{
+						Author: &clients.User{Login: "athena"},
+						State:  "APPROVED",
+					},
+				},
+			},
+			Message: "merge commitSHA prow_reviewed from GitHub",
+		}
+		unknownCommit = clients.Commit{
+			SHA:     "unknown_platform",
+			Message: "commit without any revision markers",
+		}
+		piperCommit = clients.Commit{
+			Message: "a piper change\nPiperOrigin-RevId: 123456789",
+			SHA:     "piper_sha",
+		}
+		prowCommitLabelledNotMerged = clients.Commit{
+			SHA: "prow_labelled_not_merged",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number:   7,
+				Author:   clients.User{Login: "kratos"},
+				MergedBy: clients.User{Login: "kratos"},
+				Labels:   []clients.Label{{Name: "lgtm"}},
+			},
+			Message: "commitSHA prow_labelled_not_merged from GitHub",
+		}
 	)
 
 	tests := []struct {
@@ -412,6 +472,144 @@ func Test_getChangesets(t *testing.T) {
 							State:  "APPROVED",
 						},
 					},
+				},
+			},
+		},
+		{
+			name:    "prow: label keeps the pull request author and reviews without squash",
+			commits: []clients.Commit{prowCommitSelfMerged, prowCommitSelfMergedUnsquashed},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "4",
+					Commits:        []clients.Commit{prowCommitSelfMerged, prowCommitSelfMergedUnsquashed},
+					Author:         clients.User{Login: "kratos"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "kratos"},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "prow: label keeps the pull request author and reviews in reverse chronological order",
+			commits: []clients.Commit{prowCommitSelfMergedUnsquashed, prowCommitSelfMerged},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "4",
+					Commits:        []clients.Commit{prowCommitSelfMerged, prowCommitSelfMergedUnsquashed},
+					Author:         clients.User{Login: "kratos"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "kratos"},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "prow: approved label keeps the pull request author and reviews",
+			commits: []clients.Commit{prowCommitApprovedLabel},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "5",
+					Commits:        []clients.Commit{prowCommitApprovedLabel},
+					Author:         clients.User{Login: "hades"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "hades"},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "prow: pull request reviews are kept next to the merge approval",
+			commits: []clients.Commit{prowCommitReviewedByOther},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "6",
+					Commits:        []clients.Commit{prowCommitReviewedByOther},
+					Author:         clients.User{Login: "kratos"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "athena"},
+							State:  "APPROVED",
+						},
+						{
+							Author: &clients.User{Login: "kratos"},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "mixed: prow + gh",
+			commits: []clients.Commit{prowCommitSelfMerged, commitC},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "4",
+					Commits:        []clients.Commit{prowCommitSelfMerged},
+					Author:         clients.User{Login: "kratos"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "kratos"},
+							State:  "APPROVED",
+						},
+					},
+				},
+				{
+					ReviewPlatform: checker.ReviewPlatformGitHub,
+					RevisionID:     "3",
+					Commits:        []clients.Commit{commitC},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "unknown platform keeps no review data",
+			commits: []clients.Commit{unknownCommit},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformUnknown,
+					RevisionID:     "unknown_platform",
+					Commits:        []clients.Commit{unknownCommit},
+				},
+			},
+		},
+		{
+			name:    "piper: changesets keep no review data (control)",
+			commits: []clients.Commit{piperCommit},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformPiper,
+					RevisionID:     "123456789",
+					Commits:        []clients.Commit{piperCommit},
+				},
+			},
+		},
+		{
+			name:    "prow: an unmerged labelled pull request is not a prow changeset (control)",
+			commits: []clients.Commit{prowCommitLabelledNotMerged},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformUnknown,
+					RevisionID:     "prow_labelled_not_merged",
+					Commits:        []clients.Commit{prowCommitLabelledNotMerged},
 				},
 			},
 		},
