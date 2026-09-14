@@ -205,6 +205,57 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 	}
 }
 
+func TestIsSameRepositoryAction(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		uses string
+		want bool
+	}{
+		{
+			name: "workspace-relative action",
+			uses: "./.github/actions/setup-dotnet",
+			want: true,
+		},
+		{
+			name: "self-repository action",
+			uses: "$/.github/actions/setup-dotnet",
+			want: true,
+		},
+		{
+			name: "empty workspace-relative path",
+			uses: "./",
+			want: false,
+		},
+		{
+			name: "empty self-repository path",
+			uses: "$/",
+			want: false,
+		},
+		{
+			name: "workspace-relative path with trailing slash",
+			uses: "./.github/actions/setup-dotnet/",
+			want: false,
+		},
+		{
+			name: "self-repository path with trailing slash",
+			uses: "$/.github/actions/setup-dotnet/",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := isSameRepositoryAction(tt.uses); got != tt.want {
+				t.Errorf("isSameRepositoryAction(%q) = %v, want %v", tt.uses, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestNonGithubWorkflowPinning(t *testing.T) {
 	t.Parallel()
 

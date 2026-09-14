@@ -809,7 +809,17 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 //
 //nolint:lll
 func isSameRepositoryAction(actionUses string) bool {
-	return strings.HasPrefix(actionUses, "./") || strings.HasPrefix(actionUses, "$/")
+	var actionPath string
+	switch {
+	case strings.HasPrefix(actionUses, "./"):
+		actionPath = strings.TrimPrefix(actionUses, "./")
+	case strings.HasPrefix(actionUses, "$/"):
+		actionPath = strings.TrimPrefix(actionUses, "$/")
+	default:
+		return false
+	}
+
+	return actionPath != "" && !strings.HasSuffix(actionPath, "/")
 }
 
 func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
