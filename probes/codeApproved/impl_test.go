@@ -386,6 +386,163 @@ func TestProbeCodeApproved(t *testing.T) {
 				finding.OutcomeTrue,
 			},
 		},
+		{
+			name: "prow: self-merged changeset with no review data is not approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "prow: changeset reviewed without approval is not approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "COMMENTED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "prow: bot authored self-merged changeset is not approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "dependabot"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "dependabot"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{
+								IsBot: true,
+								Login: "dependabot",
+							},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "gerrit: changesets are approved without review data",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformGerrit,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "phabricator: changesets are approved without review data",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformPhabricator,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "piper: changesets are approved without review data",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformPiper,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{},
+							Author:  clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
 	}
 
 	for _, tt := range probeTests {
