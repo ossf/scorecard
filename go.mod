@@ -41,6 +41,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v82 v82.0.0
+	github.com/google/osv-scalibr v0.4.2-0.20260109123902-cf20290d7624
 	github.com/google/osv-scanner/v2 v2.3.2
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.1.2
@@ -146,7 +147,6 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-github/v75 v75.0.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/google/osv-scalibr v0.4.2-0.20260109123902-cf20290d7624 // indirect
 	github.com/google/pprof v0.0.0-20260115054156-294ebfa9ad83 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
