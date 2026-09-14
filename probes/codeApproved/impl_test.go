@@ -328,6 +328,64 @@ func TestProbeCodeApproved(t *testing.T) {
 				finding.OutcomeFalse,
 			},
 		},
+		{
+			name: "prow: self-merged changeset with no reviews is not approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "kratos"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "prow: changeset merged by another user is approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "loki"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
 	}
 
 	for _, tt := range probeTests {

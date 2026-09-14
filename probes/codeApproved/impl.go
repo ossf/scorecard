@@ -116,12 +116,13 @@ func approvedRun(reviewData *checker.CodeReviewData, fs embed.FS, probeID string
 func approved(c *checker.Changeset) (bool, error) {
 	switch c.ReviewPlatform {
 	// reviewed outside GitHub / GitLab
-	case checker.ReviewPlatformProw,
-		checker.ReviewPlatformGerrit,
+	case checker.ReviewPlatformGerrit,
 		checker.ReviewPlatformPhabricator,
 		checker.ReviewPlatformPiper:
 		return true, nil
 	}
+	// Prow changesets are detected from the labels of a merged GitHub pull request, so the
+	// review data is available and the author/reviewer comparison below still applies.
 	for _, review := range c.Reviews {
 		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
 			return true, nil
