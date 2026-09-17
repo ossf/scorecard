@@ -420,9 +420,7 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 // A packaging workflow using GitHub's supported packages:
 // https://docs.github.com/en/packages.
 func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
-	// TODO: add support for GitHub registries.
-	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
-	match, ok := fileparser.IsPackagingWorkflow(workflow, fp)
+	match, ok := fileparser.IsGitHubPackagesWorkflow(workflow, fp)
 	// Print debug messages.
 	pdata.results.TokenPermissions = append(pdata.results.TokenPermissions,
 		checker.TokenPermission{

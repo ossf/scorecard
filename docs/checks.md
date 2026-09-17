@@ -675,7 +675,7 @@ warnings for more sensitive run-level permissions, listed below:
 * `checks` - May allow an attacker to remove pre-submit checks and introduce a bug.
 * `contents` - Allows an attacker to commit unreviewed code. However, points are not reduced if the job utilizes a recognized packaging action or command.
 * `deployments` - May allow an attacker to charge repo owner by triggering VM runs, and tiny chance an attacker can trigger a remote service with code they own if server accepts code/location variables unsanitized.
-* `packages` - Allows an attacker to publish packages. However, points are not reduced if the job utilizes a recognized packaging action or command.
+* `packages` - Allows an attacker to publish packages. However, points are not reduced if the job explicitly publishes to a recognized GitHub Packages registry.
 * `security-events` - May allow an attacker to read vulnerability reports before a patch is available. However, points are not reduced if the job utilizes a recognized action for uploading SARIF results.
 * `statuses` - May allow an attacker to change the result of pre-submit checks and get a PR merged.
 
