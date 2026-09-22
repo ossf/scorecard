@@ -23,7 +23,6 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -85,9 +84,15 @@ func isDir(p string) (bool, error) {
 }
 
 func trimPrefix(pathfn, clientPath string) string {
-	cleanPath := path.Clean(pathfn)
-	prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
-	return strings.TrimPrefix(cleanPath, prefix)
+	// pathfn comes from filepath.Walk and uses the OS-native separator;
+	// clean it accordingly, then normalize the result to forward slashes
+	// since the rest of the codebase expects repo-relative "/"-separated paths.
+	cleanPath := filepath.Clean(pathfn)
+	// clientPath may have been supplied with "/" separators (e.g. on Windows),
+	// so clean it the same way before using it to build the prefix to trim.
+	prefix := fmt.Sprintf("%s%s", filepath.Clean(clientPath), string(os.PathSeparator))
+	trimmed := strings.TrimPrefix(cleanPath, prefix)
+	return filepath.ToSlash(trimmed)
 }
 
 func listFiles(clientPath string, logger *log.Logger) ([]string, error) {

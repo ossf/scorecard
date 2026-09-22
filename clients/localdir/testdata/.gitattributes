@@ -1,0 +1,4 @@
+# These fixtures are compared byte-for-byte in client_test.go, so their
+# content must never be rewritten by Git's line-ending conversion (e.g.
+# core.autocrlf on Windows).
+* -text
