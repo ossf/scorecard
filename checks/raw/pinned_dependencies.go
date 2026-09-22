@@ -748,7 +748,7 @@ func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
 	) (bool, error) {
 		parsed, err := lockfile.Parse(content)
 		if err != nil {
-			// Ignore unreadable/unsupported lockfiles rather than failing the check.
+			//nolint:nilerr // intentional: fall back to standard pin detection on a malformed lockfile.
 			return false, nil
 		}
 		lf = &parsed
@@ -791,7 +791,10 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			"validateGitHubActionWorkflow requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
-	lf, _ := args[1].(*lockfile.File)
+	lf, ok := args[1].(*lockfile.File)
+	if !ok {
+		lf = nil
+	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil

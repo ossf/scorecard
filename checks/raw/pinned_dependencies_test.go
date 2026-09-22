@@ -22,11 +22,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/github/actions-lockfile/go/pkg/lockfile"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/mock/gomock"
 
-	"github.com/github/actions-lockfile/go/pkg/lockfile"
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
@@ -255,10 +255,10 @@ func TestActionPinnedByLockfile(t *testing.T) {
 	}
 
 	tests := []struct {
+		lf       *lockfile.File
 		desc     string
 		pathfn   string
 		uses     string
-		lf       *lockfile.File
 		ispinned bool
 	}{
 		{
