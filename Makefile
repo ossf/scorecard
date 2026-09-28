@@ -234,10 +234,11 @@ e2e-attestor: ## Runs e2e tests for scorecard-attestor
 
 ###############################################################################
 
-##@ TODO(#744)
+##@ Images
 ################################## make ko-images #############################
 ko-targets = scorecard-ko
 .PHONY: ko-images $(ko-targets)
+ko-images: ## Build all ko images
 ko-images: $(ko-targets)
 
 KOCACHE_PATH=/tmp/ko
@@ -245,6 +246,7 @@ KOCACHE_PATH=/tmp/ko
 $(KOCACHE_PATH):
 	mkdir -p $(KOCACHE_PATH)
 
+scorecard-ko: ## Build the scorecard ko image
 scorecard-ko: | $(KO) $(KOCACHE_PATH)
 	KO_DATA_DATE_EPOCH=$(SOURCE_DATE_EPOCH) \
 			   KO_DOCKER_REPO=ghcr.io/ossf/scorecard \
