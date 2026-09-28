@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Add a repository to the weekly scan
+    url: https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md#adding-repositories-to-the-weekly-scan
+    about: >-
+      The weekly batch scan and its projects.csv/gitlab-projects.csv
+      inventories moved to ossf/scorecard-infra. Add your repository there
+      instead of opening an issue here.
