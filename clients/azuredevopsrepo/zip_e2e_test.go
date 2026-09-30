@@ -26,7 +26,9 @@ import (
 var _ = Describe("E2E TEST: azuredevopsrepo.zipHandler", func() {
 	Context("Zip - Azure DevOps", func() {
 		It("Should list files in repository", func() {
-			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			repo, err := MakeAzureDevOpsRepo(
+				"https://openssf-scorecard.visualstudio.com/scorecard-testing/_git/scorecard-testing",
+			)
 			Expect(err).Should(BeNil())
 
 			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)
@@ -56,7 +58,9 @@ var _ = Describe("E2E TEST: azuredevopsrepo.zipHandler", func() {
 			Expect(repoClient.Close()).Should(BeNil())
 		})
 		It("Should get file reader for a file", func() {
-			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			repo, err := MakeAzureDevOpsRepo(
+				"https://openssf-scorecard.visualstudio.com/DefaultCollection/scorecard-testing/_git/scorecard-testing",
+			)
 			Expect(err).Should(BeNil())
 
 			repoClient, err := CreateAzureDevOpsClient(context.Background(), repo)

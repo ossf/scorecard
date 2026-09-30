@@ -220,8 +220,8 @@ func (handler *tarballHandler) extractTarball() error {
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
-			handler.files = append(handler.files,
-				strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
+			filename := strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator))
+			handler.files = append(handler.files, filepath.ToSlash(filename))
 		case tar.TypeXGlobalHeader, tar.TypeSymlink:
 			continue
 		default:

@@ -15,10 +15,12 @@
 package azuredevopsrepo
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -69,6 +71,49 @@ func setup(inputFile string) (zipHandler, error) {
 		// here, it won't get executed later when setup() is called.
 	})
 	return zipHandler, nil
+}
+
+func TestExtractZipTooLarge(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	zipFile, err := os.Create(filepath.Join(tempDir, "repo.zip"))
+	if err != nil {
+		t.Fatalf("os.Create: %v", err)
+	}
+
+	// A single entry one byte past the cap. Zeros deflate to a tiny archive, so
+	// this stays small on disk while decompressing to more than maxSize.
+	zw := zip.NewWriter(zipFile)
+	w, err := zw.Create("bomb")
+	if err != nil {
+		t.Fatalf("zip.Create: %v", err)
+	}
+	if _, err := io.CopyN(w, zeroReader{}, maxSize+1); err != nil {
+		t.Fatalf("write entry: %v", err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("zip.Close: %v", err)
+	}
+	if err := zipFile.Close(); err != nil {
+		t.Fatalf("file.Close: %v", err)
+	}
+
+	handler := zipHandler{tempDir: tempDir, tempZipFile: zipFile.Name()}
+	if err := handler.extractZip(); !errors.Is(err, errFileTooLarge) {
+		t.Errorf("expected errFileTooLarge, got %v", err)
+	}
+}
+
+// zeroReader is an infinite source of zero bytes, used to inflate a zip entry
+// past the size cap without allocating the whole payload up front.
+type zeroReader struct{}
+
+func (zeroReader) Read(p []byte) (int, error) {
+	for i := range p {
+		p[i] = 0
+	}
+	return len(p), nil
 }
 
 //nolint:gocognit

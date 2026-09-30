@@ -42,7 +42,7 @@ func Test_listSuccessfulBuilds(t *testing.T) {
 				}, nil
 			},
 			getBuilds: func(ctx context.Context, args build.GetBuildsArgs) (*build.GetBuildsResponseValue, error) {
-				return &build.GetBuildsResponseValue{}, nil
+				return nil, errors.New("getBuilds should not be called")
 			},
 			want:    []clients.WorkflowRun{},
 			wantErr: false,

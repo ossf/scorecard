@@ -95,6 +95,18 @@ func TestGetClients(t *testing.T) {
 			wantErr:               false,
 			isGhHost:              true,
 		},
+		{
+			name: "malformed Azure DevOps URL does not fall through to GitLab",
+			args: args{
+				ctx:      t.Context(),
+				repoURI:  "http://teamgitlab.visualstudio.com/project/_git/repo",
+				localURI: "",
+			},
+			shouldRepoClientBeNil: true,
+			shouldRepoBeNil:       true,
+			wantErr:               true,
+			experimental:          true,
+		},
 	}
 
 	for _, tt := range tests {
