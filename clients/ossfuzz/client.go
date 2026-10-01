@@ -222,6 +222,11 @@ func (c *client) ListReleases() ([]clients.Release, error) {
 	return nil, fmt.Errorf("ListReleases: %w", clients.ErrUnsupportedFeature)
 }
 
+// IsReleaseImmutable implements RepoClient.IsReleaseImmutable.
+func (c *client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
+	return false, fmt.Errorf("IsReleaseImmutable: %w", clients.ErrUnsupportedFeature)
+}
+
 // ListContributors implements RepoClient.ListContributors.
 func (c *client) ListContributors() ([]clients.User, error) {
 	return nil, fmt.Errorf("ListContributors: %w", clients.ErrUnsupportedFeature)

@@ -45,9 +45,15 @@ type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *Repo
-	repo          *github.Repository
-	repoClient    *github.Client
+	repourl    *Repo
+	repo       *github.Repository
+	repoClient *github.Client
+	// dotcomClient is a github.com-targeted REST client, only set when the
+	// primary client targets a GitHub Enterprise Server (GH_HOST). It's used
+	// as a fallback for lookups (e.g. IsReleaseImmutable) whose data may
+	// live on github.com via GitHub Connect even though scorecard itself is
+	// configured against the enterprise server.
+	dotcomClient  *github.Client
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
 	branches      *branchesHandler
@@ -364,6 +370,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 
 	var client *github.Client
 	var graphClient *githubv4.Client
+	var dotcomClient *github.Client
 	githubHost, isGhHost := os.LookupEnv("GH_HOST")
 
 	if isGhHost && githubHost != defaultGhHost {
@@ -377,14 +384,21 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		}
 
 		graphClient = githubv4.NewEnterpriseClient(githubGraphqlURL, httpClient)
+
+		// GitHub Connect lets Actions on a GHES instance resolve `uses:`
+		// references to repositories hosted on github.com. Keep a
+		// dotcom-targeted REST client as a fallback for lookups whose data
+		// may only exist there (e.g. IsReleaseImmutable).
+		dotcomClient = github.NewClient(httpClient)
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)
 	}
 
 	return &Client{
-		ctx:        ctx,
-		repoClient: client,
+		ctx:          ctx,
+		repoClient:   client,
+		dotcomClient: dotcomClient,
 		graphClient: &graphqlHandler{
 			client: graphClient,
 		},
