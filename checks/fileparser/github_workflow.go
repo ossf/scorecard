@@ -593,6 +593,24 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate publishing workflow using semantic-release",
 		},
 		{
+			// Changesets GitHub Action. https://github.com/changesets/action
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "changesets/action",
+				},
+			},
+			LogText: "candidate publishing workflow using changesets",
+		},
+		{
+			// Changesets CLI invoked directly. https://github.com/changesets/changesets
+			Steps: []*JobMatcherStep{
+				{
+					Run: "changeset publish",
+				},
+			},
+			LogText: "candidate publishing workflow using changesets",
+		},
+		{
 			// Elixir packaging
 			Steps: []*JobMatcherStep{
 				{
