@@ -51,7 +51,15 @@ func containsUntrustedContextPattern(variable string) bool {
 			`blocked_user\.email|` +
 			`pull_request\.head\.ref|` +
 			`pull_request\.head\.label|` +
-			`pull_request\.head\.repo\.default_branch).*`)
+			`pull_request\.head\.repo\.default_branch|` +
+			`pull_request\.head\.repo\.description|` +
+			`pull_request\.head\.repo\.homepage|` +
+			`fork\.forkee\.name|` +
+			`fork\.forkee\.description|` +
+			`fork\.forkee\.default_branch|` +
+			`fork\.forkee\.homepage|` +
+			`workflow_run\.head_branch|` +
+			`workflow_run\.head_repository\.description).*`)
 
 	if strings.Contains(variable, "github.head_ref") {
 		return true
