@@ -713,7 +713,7 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r)
+	}, validateGitHubActionWorkflow, r, c)
 	if err != nil {
 		return err
 	}
@@ -745,11 +745,15 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflow requires exactly 1 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateGitHubActionWorkflow requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
+	c, ok := args[1].(*checker.CheckRequest)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *checker.CheckRequest for arg 1")
+	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
@@ -772,7 +776,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			// Check whether this is an action defined in the same repo,
 			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
 			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
-				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+				dep := newGHActionDependency(c, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
@@ -800,7 +804,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if strings.HasPrefix(execAction.Uses.Value, "./") {
 				continue
 			}
-			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
+			dep := newGHActionDependency(c, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -808,7 +812,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
+func newGHActionDependency(c *checker.CheckRequest, uses, pathfn string, line int) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
 			Path:      pathfn,
@@ -817,7 +821,7 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 			EndOffset: uint(line), // `Uses` always span a single line.
 			Snippet:   uses,
 		},
-		Pinned: asBoolPointer(isActionDependencyPinned(uses)),
+		Pinned: asBoolPointer(isActionDependencyPinned(c, uses)),
 		Type:   checker.DependencyUseTypeGHAction,
 	}
 	parts := strings.SplitN(uses, "@", 2)
@@ -830,7 +834,7 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 	return dep
 }
 
-func isActionDependencyPinned(actionUses string) bool {
+func isActionDependencyPinned(c *checker.CheckRequest, actionUses string) bool {
 	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
 	if localActionRegex.MatchString(actionUses) {
 		return true
@@ -842,5 +846,62 @@ func isActionDependencyPinned(actionUses string) bool {
 	}
 
 	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
-	return dockerhubActionRegex.MatchString(actionUses)
+	if dockerhubActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	return isActionPinnedByImmutableRelease(c, actionUses)
+}
+
+// isActionPinnedByImmutableRelease reports whether actionUses references a
+// tag that corresponds to a published GitHub release with the
+// `immutable: true` flag set. GitHub guarantees that the tag, and therefore
+// the code delivered to consumers, cannot change once such a release is
+// published, so referencing it is equivalent to pinning by full commit SHA.
+// https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases
+func isActionPinnedByImmutableRelease(c *checker.CheckRequest, actionUses string) bool {
+	if c == nil || c.RepoClient == nil {
+		return false
+	}
+
+	owner, repo, tag, ok := parseActionOwnerRepoTag(actionUses)
+	if !ok {
+		return false
+	}
+
+	immutable, err := c.RepoClient.IsReleaseImmutable(owner, repo, tag)
+	if err != nil {
+		if c.Dlogger != nil {
+			c.Dlogger.Debug(&checker.LogMessage{
+				Text: fmt.Sprintf("unable to check release immutability for %v: %v", actionUses, err),
+			})
+		}
+		return false
+	}
+	return immutable
+}
+
+// parseActionOwnerRepoTag extracts the owner, repo, and ref (tag) from a
+// workflow `uses:` value of the form `owner/repo[/subpath]@ref`. It returns
+// ok=false for values that aren't of this shape (e.g. local/self-repo
+// actions, or Docker references), or where ref looks like a commit SHA
+// rather than a tag.
+func parseActionOwnerRepoTag(actionUses string) (owner, repo, tag string, ok bool) {
+	atIdx := strings.IndexByte(actionUses, '@')
+	if atIdx <= 0 || atIdx == len(actionUses)-1 {
+		return "", "", "", false
+	}
+	repoPath := actionUses[:atIdx]
+	ref := actionUses[atIdx+1:]
+
+	if strings.HasPrefix(repoPath, "docker://") {
+		return "", "", "", false
+	}
+
+	parts := strings.SplitN(repoPath, "/", 3)
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", "", false
+	}
+
+	return parts[0], parts[1], ref, true
 }
