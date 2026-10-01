@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -323,7 +323,7 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 }
 
 func fileIsInVendorDir(pathfn string) bool {
-	cleanedPath := filepath.Clean(pathfn)
+	cleanedPath := path.Clean(pathfn)
 	splitCleanedPath := strings.Split(cleanedPath, "/")
 
 	for _, d := range splitCleanedPath {
@@ -710,10 +710,11 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r, c)
+	}, validateGitHubActionWorkflow, r, c, cache)
 	if err != nil {
 		return err
 	}
@@ -734,6 +735,35 @@ func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []c
 	}
 }
 
+// immutableReleaseCacheKey identifies a single owner/repo/tag release lookup.
+type immutableReleaseCacheKey struct {
+	owner, repo, tag string
+}
+
+// immutableReleaseCache memoizes IsReleaseImmutable results for the duration
+// of a single PinningDependencies scan, so that repeated `uses:` references
+// to the same release (common across many workflow files) only trigger one
+// API call. It's only safe for sequential use, which matches how
+// fileparser.OnMatchingFileContentDo iterates over files.
+type immutableReleaseCache struct {
+	results map[immutableReleaseCacheKey]bool
+}
+
+func (cache *immutableReleaseCache) get(owner, repo, tag string) (immutable, ok bool) {
+	if cache == nil {
+		return false, false
+	}
+	immutable, ok = cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}]
+	return immutable, ok
+}
+
+func (cache *immutableReleaseCache) set(owner, repo, tag string, immutable bool) {
+	if cache == nil {
+		return
+	}
+	cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}] = immutable
+}
+
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
 var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
@@ -745,14 +775,18 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 2 {
+	if len(args) != 3 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflow requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateGitHubActionWorkflow requires exactly 3 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 	c, ok := args[1].(*checker.CheckRequest)
 	if !ok {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *checker.CheckRequest for arg 1")
+	}
+	cache, ok := args[2].(*immutableReleaseCache)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *immutableReleaseCache for arg 2")
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
@@ -772,11 +806,8 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		}
 
 		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
-				dep := newGHActionDependency(c, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+			if !isSameRepositoryReference(job.WorkflowCall.Uses.Value) {
+				dep := newGHActionDependency(c, cache, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
@@ -798,13 +829,10 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if strings.HasPrefix(execAction.Uses.Value, "./") {
+			if isSameRepositoryReference(execAction.Uses.Value) {
 				continue
 			}
-			dep := newGHActionDependency(c, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
+			dep := newGHActionDependency(c, cache, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -812,7 +840,13 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-func newGHActionDependency(c *checker.CheckRequest, uses, pathfn string, line int) checker.Dependency {
+func isSameRepositoryReference(uses string) bool {
+	return strings.HasPrefix(uses, "./") || strings.HasPrefix(uses, "$/")
+}
+
+func newGHActionDependency(
+	c *checker.CheckRequest, cache *immutableReleaseCache, uses, pathfn string, line int,
+) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
 			Path:      pathfn,
@@ -821,7 +855,7 @@ func newGHActionDependency(c *checker.CheckRequest, uses, pathfn string, line in
 			EndOffset: uint(line), // `Uses` always span a single line.
 			Snippet:   uses,
 		},
-		Pinned: asBoolPointer(isActionDependencyPinned(c, uses)),
+		Pinned: asBoolPointer(isActionDependencyPinned(c, cache, uses)),
 		Type:   checker.DependencyUseTypeGHAction,
 	}
 	parts := strings.SplitN(uses, "@", 2)
@@ -834,9 +868,8 @@ func newGHActionDependency(c *checker.CheckRequest, uses, pathfn string, line in
 	return dep
 }
 
-func isActionDependencyPinned(c *checker.CheckRequest, actionUses string) bool {
-	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
-	if localActionRegex.MatchString(actionUses) {
+func isActionDependencyPinned(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
+	if isSameRepositoryReference(actionUses) {
 		return true
 	}
 
@@ -850,7 +883,7 @@ func isActionDependencyPinned(c *checker.CheckRequest, actionUses string) bool {
 		return true
 	}
 
-	return isActionPinnedByImmutableRelease(c, actionUses)
+	return isActionPinnedByImmutableRelease(c, cache, actionUses)
 }
 
 // isActionPinnedByImmutableRelease reports whether actionUses references a
@@ -859,7 +892,10 @@ func isActionDependencyPinned(c *checker.CheckRequest, actionUses string) bool {
 // the code delivered to consumers, cannot change once such a release is
 // published, so referencing it is equivalent to pinning by full commit SHA.
 // https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases
-func isActionPinnedByImmutableRelease(c *checker.CheckRequest, actionUses string) bool {
+//
+// Successful lookups are memoized in cache by (owner, repo, tag), since the
+// same release is frequently referenced from many workflow files in a scan.
+func isActionPinnedByImmutableRelease(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
 	if c == nil || c.RepoClient == nil {
 		return false
 	}
@@ -867,6 +903,10 @@ func isActionPinnedByImmutableRelease(c *checker.CheckRequest, actionUses string
 	owner, repo, tag, ok := parseActionOwnerRepoTag(actionUses)
 	if !ok {
 		return false
+	}
+
+	if immutable, ok := cache.get(owner, repo, tag); ok {
+		return immutable
 	}
 
 	immutable, err := c.RepoClient.IsReleaseImmutable(owner, repo, tag)
@@ -878,6 +918,7 @@ func isActionPinnedByImmutableRelease(c *checker.CheckRequest, actionUses string
 		}
 		return false
 	}
+	cache.set(owner, repo, tag, immutable)
 	return immutable
 }
 

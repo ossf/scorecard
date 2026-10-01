@@ -17,6 +17,7 @@ package raw
 import (
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -99,7 +100,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -165,6 +166,11 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: true,
 		},
 		{
+			desc:     "self repository action",
+			uses:     "$/.github/actions/example",
+			ispinned: true,
+		},
+		{
 			desc:     "non-github docker image pinned by digest",
 			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
 			ispinned: true,
@@ -188,7 +194,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
-			p := isActionDependencyPinned(nil, tt.uses)
+			p := isActionDependencyPinned(nil, nil, tt.uses)
 			if p != tt.ispinned {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
@@ -253,11 +259,93 @@ func TestIsActionDependencyPinnedByImmutableRelease(t *testing.T) {
 			}
 
 			c := &checker.CheckRequest{RepoClient: mockRepoClient}
-			p := isActionDependencyPinned(c, tt.uses)
+			p := isActionDependencyPinned(c, &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}, tt.uses)
 			if p != tt.ispinned {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
 		})
+	}
+}
+
+func TestIsActionPinnedByImmutableReleaseCachesResults(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	// Only one call is expected even though the lookup is performed twice
+	// below, since the second lookup should be served from cache.
+	mockRepoClient.EXPECT().
+		IsReleaseImmutable("actions", "checkout", "v4.2.0").
+		Return(true, nil).
+		Times(1)
+
+	c := &checker.CheckRequest{RepoClient: mockRepoClient}
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
+
+	for i := 0; i < 2; i++ {
+		pinned := isActionPinnedByImmutableRelease(c, cache, "actions/checkout@v4.2.0")
+		if !pinned {
+			t.Fatalf("call %d: expected pinned=true", i)
+		}
+	}
+}
+
+func TestIsSameRepositoryReference(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		uses string
+		want bool
+	}{
+		{
+			name: "workspace-relative action",
+			uses: "./.github/actions/example",
+			want: true,
+		},
+		{
+			name: "self repository action",
+			uses: "$/.github/actions/example",
+			want: true,
+		},
+		{
+			name: "external action",
+			uses: "example/action@main",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isSameRepositoryReference(tt.uses); got != tt.want {
+				t.Errorf("isSameRepositoryReference(%q) = %v, want %v", tt.uses, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGithubWorkflowSelfRepositoryReferences(t *testing.T) {
+	t.Parallel()
+
+	content := []byte(`
+on: push
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: $/.github/actions/example
+  workflow:
+    uses: $/.github/workflows/example.yml
+`)
+	var result checker.PinningDependenciesData
+
+	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result,
+		(*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
+	if err != nil {
+		t.Fatalf("validateGitHubActionWorkflow: %v", err)
+	}
+	if len(result.Dependencies) != 0 {
+		t.Errorf("expected no dependencies, got %v", result.Dependencies)
 	}
 }
 
@@ -317,7 +405,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -477,7 +565,7 @@ func TestDockerfilePinning(t *testing.T) {
 			}
 
 			var r checker.PinningDependenciesData
-			_, err = validateDockerfilesPinning(filepath.Join("testdata", tt.filename), content, &r)
+			_, err = validateDockerfilesPinning(path.Join("testdata", tt.filename), content, &r)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -1865,7 +1953,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			p = strings.Replace(p, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if err != nil {
 				t.Errorf("validateGitHubActionWorkflow: %v", err)
 			}
@@ -2171,6 +2259,13 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
 				return os.Open(filepath.Join("testdata", file))
 			})
+			// workflow-not-pinned.yaml references github/codeql-action/analyze@v1,
+			// an unpinned tag, which triggers an immutable-release lookup.
+			if tt.filename == ".github/workflows/workflow-not-pinned.yaml" {
+				mockRepoClient.EXPECT().
+					IsReleaseImmutable("github", "codeql-action", "v1").
+					Return(false, nil)
+			}
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
