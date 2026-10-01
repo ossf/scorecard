@@ -26,13 +26,19 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
+const (
+	ownerEndpointUser = "users"
+	ownerEndpointOrg  = "orgs"
+)
+
 type releasesHandler struct {
-	client   *github.Client
-	once     *sync.Once
-	ctx      context.Context
-	errSetup error
-	repourl  *Repo
-	releases []clients.Release
+	client              *github.Client
+	once                *sync.Once
+	ctx                 context.Context
+	errSetup            error
+	repourl             *Repo
+	releases            []clients.Release
+	ownerEndpointPrefix string
 }
 
 func (handler *releasesHandler) init(ctx context.Context, repourl *Repo) {
@@ -55,8 +61,56 @@ func (handler *releasesHandler) setup() error {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
 		}
 		handler.releases = releasesFrom(releases)
+		handler.ownerEndpointPrefix = handler.resolveOwnerEndpointPrefix()
+		handler.checkAttestations()
 	})
 	return handler.errSetup
+}
+
+// resolveOwnerEndpointPrefix determines whether the repo owner is a GitHub
+// user or organization and returns the corresponding API path prefix.
+// It calls the GitHub Users API once so that hasAttestation can use a single
+// endpoint per asset instead of trying both.
+func (handler *releasesHandler) resolveOwnerEndpointPrefix() string {
+	user, _, err := handler.client.Users.Get(handler.ctx, handler.repourl.owner)
+	if err != nil {
+		// Fall back to users; hasAttestation will skip on 404.
+		return ownerEndpointUser
+	}
+	if strings.EqualFold(user.GetType(), "Organization") {
+		return ownerEndpointOrg
+	}
+	return ownerEndpointUser
+}
+
+func (handler *releasesHandler) checkAttestations() {
+	for i := range handler.releases {
+		for j := range handler.releases[i].Assets {
+			asset := &handler.releases[i].Assets[j]
+			if asset.Digest == "" {
+				continue
+			}
+			asset.HasAttestation = handler.hasAttestation(asset.Digest)
+		}
+	}
+}
+
+type attestationResponse struct {
+	Attestations []interface{} `json:"attestations"`
+}
+
+func (handler *releasesHandler) hasAttestation(digest string) bool {
+	endpoint := fmt.Sprintf("%s/%s/attestations/%s", handler.ownerEndpointPrefix, handler.repourl.owner, digest)
+	req, err := handler.client.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return false
+	}
+	var body attestationResponse
+	_, err = handler.client.Do(handler.ctx, req, &body)
+	if err != nil {
+		return false
+	}
+	return len(body.Attestations) > 0
 }
 
 func (handler *releasesHandler) getReleases() ([]clients.Release, error) {
@@ -76,8 +130,9 @@ func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 		}
 		for _, a := range r.Assets {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{
-				Name: a.GetName(),
-				URL:  r.GetHTMLURL(),
+				Name:   a.GetName(),
+				URL:    r.GetHTMLURL(),
+				Digest: a.GetDigest(),
 			})
 		}
 		releases = append(releases, release)
