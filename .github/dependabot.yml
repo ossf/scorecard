@@ -18,6 +18,8 @@ updates:
         - "github.com/google/osv-scanner/v*" # influences Vulnerabilities check and may require go directive fixes
         - "github.com/golangci/golangci-lint/v*" # require linter fixes before merge
         - "go.yaml.in/yaml/v*" # pre-release API changes have broken actionlint's pinned version when bumped
+        - "github.com/moby/buildkit" # has forced opencontainers/runtime-spec bumps incompatible with pinned containerd
+        - "github.com/goreleaser/goreleaser/v*" # has forced go directive bumps ahead of what CI runners support
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
