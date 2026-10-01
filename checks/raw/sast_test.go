@@ -167,14 +167,14 @@ func TestSAST(t *testing.T) {
 					Status:     "completed",
 					Conclusion: "success",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 				{
 					Status:     "completed",
 					Conclusion: "success",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 			},
