@@ -165,6 +165,11 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 			ispinned: true,
 		},
 		{
+			desc:     "self repository action",
+			uses:     "$/.github/actions/example",
+			ispinned: true,
+		},
+		{
 			desc:     "non-github docker image pinned by digest",
 			uses:     "docker://gcr.io/distroless/static-debian11@sha256:9e6f8952f12974d088f648ed6252ea1887cdd8641719c8acd36bf6d2537e71c0",
 			ispinned: true,
@@ -193,6 +198,64 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
 		})
+	}
+}
+
+func TestIsSameRepositoryReference(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		uses string
+		want bool
+	}{
+		{
+			name: "workspace-relative action",
+			uses: "./.github/actions/example",
+			want: true,
+		},
+		{
+			name: "self repository action",
+			uses: "$/.github/actions/example",
+			want: true,
+		},
+		{
+			name: "external action",
+			uses: "example/action@main",
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := isSameRepositoryReference(tt.uses); got != tt.want {
+				t.Errorf("isSameRepositoryReference(%q) = %v, want %v", tt.uses, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGithubWorkflowSelfRepositoryReferences(t *testing.T) {
+	t.Parallel()
+
+	content := []byte(`
+on: push
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: $/.github/actions/example
+  workflow:
+    uses: $/.github/workflows/example.yml
+`)
+	var result checker.PinningDependenciesData
+
+	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result)
+	if err != nil {
+		t.Fatalf("validateGitHubActionWorkflow: %v", err)
+	}
+	if len(result.Dependencies) != 0 {
+		t.Errorf("expected no dependencies, got %v", result.Dependencies)
 	}
 }
 

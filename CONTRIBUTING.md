@@ -53,7 +53,7 @@ You must install these tools:
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
 1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.23.0](https://golang.org/dl/) or higher.
+    [v1.26.0](https://golang.org/dl/) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
@@ -177,7 +177,7 @@ While they are included in `make all`, running them individually is faster.
 
 ## Changing score results
 
-As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged. 
+As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged.
 It is a good idea to discuss such changes in a GitHub issue before implementing them.
 
 ## Linting
@@ -225,7 +225,7 @@ A summary for each check needs to be included in the `README.md`.
 In most cases, to update the documentation simply edit the corresponding
 `.md` file, with the notable exception of the auto-generated file `checks.md`.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > **DO NOT** edit `docs/checks.md` directly, as that is an
 > auto-generated file. Edit `docs/checks/internal/checks.yaml` instead.
 
