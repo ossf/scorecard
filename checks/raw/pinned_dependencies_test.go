@@ -99,7 +99,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -188,7 +188,72 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
-			p := isActionDependencyPinned(tt.uses)
+			p := isActionDependencyPinned(nil, tt.uses)
+			if p != tt.ispinned {
+				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
+			}
+		})
+	}
+}
+
+func TestIsActionDependencyPinnedByImmutableRelease(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc            string
+		uses            string
+		immutable       bool
+		immutableErr    error
+		expectQueryCall bool
+		ispinned        bool
+	}{
+		{
+			desc:            "tag backed by an immutable release is pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutable:       true,
+			expectQueryCall: true,
+			ispinned:        true,
+		},
+		{
+			desc:            "tag not backed by an immutable release is not pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutable:       false,
+			expectQueryCall: true,
+			ispinned:        false,
+		},
+		{
+			desc:            "error checking release immutability is treated as not pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutableErr:    errInvalidArgLength,
+			expectQueryCall: true,
+			ispinned:        false,
+		},
+		{
+			desc:            "already SHA-pinned dependency doesn't call the API",
+			uses:            "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+			expectQueryCall: false,
+			ispinned:        true,
+		},
+		{
+			desc:            "local action doesn't call the API",
+			uses:            "./.github/uses.yml",
+			expectQueryCall: false,
+			ispinned:        true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			if tt.expectQueryCall {
+				mockRepoClient.EXPECT().
+					IsReleaseImmutable("actions", "checkout", "v4.2.0").
+					Return(tt.immutable, tt.immutableErr)
+			}
+
+			c := &checker.CheckRequest{RepoClient: mockRepoClient}
+			p := isActionDependencyPinned(c, tt.uses)
 			if p != tt.ispinned {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
@@ -252,7 +317,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -1800,7 +1865,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			p = strings.Replace(p, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil))
 			if err != nil {
 				t.Errorf("validateGitHubActionWorkflow: %v", err)
 			}
