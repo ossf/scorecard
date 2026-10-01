@@ -464,6 +464,22 @@ RESULTS
 
 For more information on available annotations or how to make annotations, see [the configuration doc](config/README.md).
 
+##### Continuing on Errors
+
+By default, if any check or probe fails with a runtime error (for example, a
+transient API failure while scanning), Scorecard exits with a non-zero status.
+Use the `--skip-errors` option to continue the scan and still report on every
+check or probe that succeeded:
+
+```
+./scorecard --repo=github.com/ossf-tests/scorecard-check-branch-protection-e2e --skip-errors
+```
+
+Failures are logged to stderr, results for the successful checks/probes are
+printed as usual, and the command exits with a zero status. This is useful when
+scanning many repositories (e.g. with `--repos` or `--org`) and you don't want a
+single failing check to abort the whole run.
+
 ##### Using a GitLab Repository
 
 To run Scorecard on a GitLab repository, you must create a [GitLab Access Token](https://gitlab.com/-/profile/personal_access_tokens) with the following permissions:
