@@ -39,6 +39,7 @@ require (
 
 require (
 	github.com/caarlos0/env/v6 v6.10.1
+	github.com/github/actions-lockfile/go v0.0.5
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v82 v82.0.0
 	github.com/google/osv-scanner/v2 v2.3.2
