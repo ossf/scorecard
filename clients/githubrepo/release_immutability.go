@@ -15,21 +15,14 @@
 package githubrepo
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 
-	"github.com/shurcooL/githubv4"
+	"github.com/google/go-github/v82/github"
 
 	sce "github.com/ossf/scorecard/v5/errors"
 )
-
-//nolint:govet
-type releaseImmutabilityData struct {
-	Repository struct {
-		Release struct {
-			Immutable githubv4.Boolean
-		} `graphql:"release(tagName: $tag)"`
-	} `graphql:"repository(owner: $owner, name: $name)"`
-}
 
 // IsReleaseImmutable reports whether the release tagged tag in owner/repo is
 // published with GitHub's immutable-release guarantee. This lets workflows
@@ -41,15 +34,50 @@ type releaseImmutabilityData struct {
 // (e.g. immutable releases aren't enabled, the ref isn't a release tag, or
 // the release predates the setting being enabled), this returns false with
 // no error.
+//
+// When scorecard is configured against a GitHub Enterprise Server via
+// GH_HOST, GitHub Actions resolves `uses:` references using an
+// enterprise-first lookup and falls back to github.com through GitHub
+// Connect. IsReleaseImmutable mirrors that: it queries the configured host
+// first, and if the repository (or release) can't be resolved there, falls
+// back to a separately authenticated github.com client (when one is
+// configured).
 func (client *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
-	var data releaseImmutabilityData
-	vars := map[string]interface{}{
-		"owner": githubv4.String(owner),
-		"name":  githubv4.String(repo),
-		"tag":   githubv4.String(tag),
+	immutable, found, err := queryReleaseImmutable(client.ctx, client.repoClient, owner, repo, tag)
+	if err != nil {
+		return false, err
 	}
-	if err := client.graphClient.client.Query(client.ctx, &data, vars); err != nil {
-		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+	if found {
+		return immutable, nil
 	}
-	return bool(data.Repository.Release.Immutable), nil
+
+	if client.dotcomClient == nil {
+		return false, nil
+	}
+
+	immutable, _, err = queryReleaseImmutable(client.ctx, client.dotcomClient, owner, repo, tag)
+	if err != nil {
+		return false, err
+	}
+	return immutable, nil
+}
+
+// queryReleaseImmutable fetches the release tagged tag in owner/repo from
+// ghClient via the "get a release by tag name" REST API and reports whether
+// it's immutable. found reports whether the repository/tag could be
+// resolved on the queried host at all; a 404 is treated as "not found"
+// rather than an error so callers can fall back to another host.
+func queryReleaseImmutable(
+	ctx context.Context,
+	ghClient *github.Client,
+	owner, repo, tag string,
+) (immutable, found bool, err error) {
+	release, resp, err := ghClient.Repositories.GetReleaseByTag(ctx, owner, repo, tag)
+	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return false, false, nil
+		}
+		return false, false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("GetReleaseByTag: %v", err))
+	}
+	return release.GetImmutable(), true, nil
 }
