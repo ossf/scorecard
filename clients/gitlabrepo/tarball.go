@@ -43,6 +43,7 @@ var (
 	errTarballNotFound  = errors.New("tarball not found")
 	errTarballCorrupted = errors.New("corrupted tarball")
 	errZipSlip          = errors.New("ZipSlip path detected")
+	errTooManyRedirects = errors.New("stopped after 10 redirects")
 )
 
 func extractAndValidateArchivePath(path, dest string) (string, error) {
@@ -186,7 +187,23 @@ func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.Fil
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
 	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
-	resp, err := http.DefaultClient.Do(req)
+	// The archive endpoint commonly 302s to object storage or a CDN. Go only
+	// strips a fixed set of well-known auth headers across a redirect, so the
+	// PRIVATE-TOKEN would otherwise be replayed to whatever host we land on.
+	// Drop it once the redirect leaves the original host so the credential is
+	// never handed to a third party.
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return errTooManyRedirects
+			}
+			if req.URL.Host != via[0].URL.Host {
+				req.Header.Del("PRIVATE-TOKEN")
+			}
+			return nil
+		},
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
