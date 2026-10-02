@@ -466,8 +466,48 @@ func TestFormatActionlintError(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			if err := FormatActionlintError(tt.args.errs); (err != nil) != tt.wantErr {
+			if err := FormatActionlintError("irrelevant.yaml", tt.args.errs); (err != nil) != tt.wantErr {
 				t.Errorf("FormatActionlintError() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestFormatActionlintError_IncludesFilePath(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		fp      string
+		content string
+	}{
+		{
+			name:    "unparsable workflow file",
+			fp:      ".github/workflows/build.yml",
+			content: "on: [push\n  pull_request:\njobs:\n  build:\n    runs-on: ubuntu-latest\n",
+		},
+		{
+			name:    "second, differently-named unparsable file",
+			fp:      ".github/workflows/release.yaml",
+			content: "jobs:\n  release:\n    runs-on: [\n",
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, errs := actionlint.Parse([]byte(tt.content))
+			if len(errs) == 0 {
+				t.Fatalf("test fixture did not produce a parse error, fix the fixture")
+			}
+			err := FormatActionlintError(tt.fp, errs)
+			if err == nil {
+				t.Fatalf("expected non-nil error")
+			}
+			if !strings.Contains(err.Error(), tt.fp) {
+				t.Errorf("FormatActionlintError(%q, ...) = %q; want it to contain the file path %q so a caller "+
+					"scanning many workflow files can tell which file failed to parse (issue #5072: today an "+
+					"internal parse error is indistinguishable across files)",
+					tt.fp, err.Error(), tt.fp)
 			}
 		})
 	}

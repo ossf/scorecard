@@ -150,7 +150,7 @@ func Test_patchWorkflow(t *testing.T) {
 				patchedErrs := validatePatchedWorkflow(output, inputErrs)
 				if len(patchedErrs) > 0 {
 					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i,
-						fileparser.FormatActionlintError(patchedErrs))
+						fileparser.FormatActionlintError(tt.filePath, patchedErrs))
 				}
 
 				if dup, ok := tt.duplicates[i]; ok {
