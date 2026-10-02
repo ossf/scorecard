@@ -593,10 +593,25 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate publishing workflow using semantic-release",
 		},
 		{
-			// Elixir packaging
+			// Elixir packaging. erlef/setup-elixir is the pre-rename name of
+			// erlef/setup-beam (same repository, github.com/erlef/setup-elixir
+			// redirects to it); matched here for projects that still pin the
+			// old name.
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "erlef/setup-elixir",
+				},
+				{
+					Run: ".*hex.publish.*",
+				},
+			},
+			LogText: "candidate publishing workflow using elixir",
+		},
+		{
+			// Elixir packaging, current action name.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "erlef/setup-beam",
 				},
 				{
 					Run: ".*hex.publish.*",
