@@ -44,6 +44,12 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 	if err != nil {
 		return checker.SecurityPolicyData{}, err
 	}
+	var pvrEnabled *bool
+	pvr, err := c.RepoClient.IsPrivateVulnerabilityReportingEnabled()
+	if err == nil {
+		pvrEnabled = &pvr
+	}
+
 	// If we found files in the repo, return immediately.
 	if len(data.files) > 0 {
 		for idx := range data.files {
@@ -55,7 +61,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{PolicyFiles: data.files, PrivateVulnerabilityReportingEnabled: pvrEnabled}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +101,7 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{PolicyFiles: data.files, PrivateVulnerabilityReportingEnabled: pvrEnabled}, nil
 }
 
 // Check repository for repository-specific policy.

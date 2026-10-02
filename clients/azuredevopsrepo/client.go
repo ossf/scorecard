@@ -136,6 +136,11 @@ func (c *Client) IsArchived() (bool, error) {
 	return *c.repo.IsDisabled, nil
 }
 
+// IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
+func (c *Client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("IsPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
 	return c.zip.listFiles(predicate)
 }
