@@ -1025,3 +1025,107 @@ func TestIsPackagingWorkflow(t *testing.T) {
 		})
 	}
 }
+
+func TestIsGitHubPackagesWorkflow(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		filename string
+		expected bool
+	}{
+		{
+			name:     "npm GitHub Packages publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-github.yaml",
+			expected: true,
+		},
+		{
+			name:     "NuGet GitHub Packages publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-nuget.yaml",
+			expected: true,
+		},
+		{
+			name:     "PyPI publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-pypi.yaml",
+			expected: false,
+		},
+		{
+			name:     "crates.io publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-cargo.yaml",
+			expected: false,
+		},
+		{
+			name:     "Docker publish without GitHub registry",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-action.yaml",
+			expected: false,
+		},
+		{
+			name:     "Docker publish to GHCR",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-ghcr.yaml",
+			expected: true,
+		},
+		{
+			name:     "lookalike Docker registry",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-lookalike.yaml",
+			expected: false,
+		},
+		{
+			name:     "unrelated registry and publisher",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-unrelated-registry.yaml",
+			expected: false,
+		},
+		{
+			name:     "Docker build with GHCR tag but no push",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-ghcr-no-push.yaml",
+			expected: false,
+		},
+		{
+			name:     "npm setup overridden by external registry",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-external-override.yaml",
+			expected: false,
+		},
+		{
+			name:     "publisher before GitHub registry setup",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-setup-after-publish.yaml",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			content, err := stdos.ReadFile(tt.filename)
+			if err != nil {
+				t.Fatalf("cannot read file: %v", err)
+			}
+			workflow, errs := actionlint.Parse(content)
+			if len(errs) > 0 && workflow == nil {
+				t.Fatalf("cannot parse file: %v", errs)
+			}
+			path := strings.Replace(tt.filename, "../testdata/", "", 1)
+
+			_, got := IsGitHubPackagesWorkflow(workflow, path)
+			if got != tt.expected {
+				t.Errorf("IsGitHubPackagesWorkflow() = %v, expected %v", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestContainsGitHubPackageRegistry(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]bool{
+		"https://npm.pkg.github.com":               true,
+		"https://maven.pkg.github.com/org/repo":    true,
+		"ghcr.io/example/image:latest":             true,
+		"https://ghcr.io.example.com/image:latest": false,
+		"https://npm.pkg.github.com.evil.example":  false,
+		"evil-npm.pkg.github.com":                  false,
+	}
+	for value, expected := range tests {
+		if got := containsGitHubPackageRegistry(value); got != expected {
+			t.Errorf("containsGitHubPackageRegistry(%q) = %v, expected %v", value, got, expected)
+		}
+	}
+}

@@ -16,6 +16,7 @@ package fileparser
 
 import (
 	"fmt"
+	"net/url"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -36,6 +37,24 @@ const (
 	windows             = "windows"
 	os                  = "os"
 	matrixos            = "matrix.os"
+)
+
+var (
+	packagingCommandPatterns = []struct {
+		ecosystem string
+		pattern   *regexp.Regexp
+	}{
+		{"npm", regexp.MustCompile(`\bnpm\b.*\b(publish|ci-release)\b`)},
+		{"maven", regexp.MustCompile(`\bmvnw?\b.*\b(deploy|publish)\b`)},
+		{"gradle", regexp.MustCompile(`\bgradle\b.*\b(publish|deploy)\b`)},
+		{"sbt", regexp.MustCompile(`\bsbt\b.*\bci-release\b`)},
+		{"gem", regexp.MustCompile(`\bgem\b.*\bpush\b`)},
+		{"nuget", regexp.MustCompile(`\bnuget\b.*\bpush\b`)},
+		{"docker", regexp.MustCompile(`\bdocker\b.*\bpush\b`)},
+		{"cargo", regexp.MustCompile(`\bcargo\b.*\bpublish\b`)},
+		{"npm", regexp.MustCompile(`\bnpx\s+.*semantic-release\b`)},
+	}
+	registryOverridePattern = regexp.MustCompile(`(?i)(--registry(?:=|\s)|--repository(?:=|\s)|(?:^|\s)-source(?:=|\s)|-daltdeploymentrepository=)`)
 )
 
 // GetJobName returns Name.Value if non-nil, else returns "".
@@ -607,4 +626,149 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
+}
+
+// IsGitHubPackagesWorkflow checks whether a packaging job explicitly targets
+// one of GitHub's package registries.
+//
+// IsPackagingWorkflow intentionally includes external registries because the
+// Packaging check classifies publishing workflows in general. Token-Permissions
+// needs the narrower result: an external publish does not require the
+// repository's `packages: write` permission. An explicit registry is required
+// here so a generic publish action cannot be treated as a GitHub package job.
+func IsGitHubPackagesWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResult, bool) {
+	for _, job := range workflow.Jobs {
+		configured := map[string]bool{}
+		for _, step := range job.Steps {
+			if run := getRun(step); run != nil {
+				for _, command := range strings.FieldsFunc(strings.ToLower(run.Value), func(r rune) bool {
+					return r == '&' || r == '|' || r == ';' || r == '\n' || r == '\r'
+				}) {
+					command = strings.TrimSpace(strings.SplitN(command, "#", 2)[0])
+					ecosystem, ok := publishingEcosystem(command)
+					if !ok {
+						continue
+					}
+					if containsGitHubPackageRegistry(command) || (configured[ecosystem] && !hasRegistryOverride(command)) {
+						return JobMatchResult{
+							File: checker.File{
+								Path:   fp,
+								Type:   finding.FileTypeSource,
+								Offset: GetLineNumber(job.Pos),
+							},
+							Msg: fmt.Sprintf("GitHub Packages registry detected in publishing workflow: %v", fp),
+						}, true
+					}
+				}
+			}
+			if uses := GetUses(step); uses != nil {
+				ecosystem := ""
+				switch strings.Split(uses.Value, "@")[0] {
+				case "actions/setup-node":
+					ecosystem = "npm"
+				case "actions/setup-java":
+					ecosystem = "maven"
+				}
+				if ecosystem != "" {
+					configured[ecosystem] = false
+					for key, input := range getWith(step) {
+						if input != nil && input.Value != nil && isRegistryInput(key) && containsGitHubPackageRegistry(input.Value.Value) {
+							configured[ecosystem] = true
+						}
+					}
+				}
+				if strings.Split(uses.Value, "@")[0] == "docker/build-push-action" && dockerPushEnabled(step) {
+					for key, input := range getWith(step) {
+						if input != nil && input.Value != nil && strings.EqualFold(key, "tags") && containsGitHubPackageRegistry(input.Value.Value) {
+							return JobMatchResult{
+								File: checker.File{Path: fp, Type: finding.FileTypeSource, Offset: GetLineNumber(job.Pos)},
+								Msg:  fmt.Sprintf("GitHub Packages registry detected in publishing workflow: %v", fp),
+							}, true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return JobMatchResult{
+		File: checker.File{
+			Path:   fp,
+			Type:   finding.FileTypeSource,
+			Offset: checker.OffsetDefault,
+		},
+		Msg: fmt.Sprintf("no explicit GitHub Packages registry in publishing workflow: %v", fp),
+	}, false
+}
+
+func publishingEcosystem(command string) (string, bool) {
+	for _, candidate := range packagingCommandPatterns {
+		if candidate.pattern.MatchString(command) {
+			return candidate.ecosystem, true
+		}
+	}
+	return "", false
+}
+
+func hasRegistryOverride(command string) bool {
+	if containsGitHubPackageRegistry(command) {
+		return false
+	}
+	return registryOverridePattern.MatchString(command)
+}
+
+func isPackagingStep(step *actionlint.Step) bool {
+	if uses := GetUses(step); uses != nil {
+		name := strings.Split(uses.Value, "@")[0]
+		switch name {
+		case "docker/build-push-action", "erlef/setup-elixir", "goreleaser/goreleaser-action",
+			"imjasonh/setup-ko", "ko-build/setup-ko", "pypa/gh-action-pypi-publish",
+			"relekang/python-semantic-release":
+			return true
+		}
+	}
+	if run := getRun(step); run != nil {
+		return regexp.MustCompile(`(?i)\b(npm|mvnw?|gradle|sbt|gem|nuget|docker|cargo)\b.*\b(publish|push|deploy|ci-release)\b|npx\s+.*semantic-release`).MatchString(run.Value)
+	}
+	return false
+}
+
+func dockerPushEnabled(step *actionlint.Step) bool {
+	for key, input := range getWith(step) {
+		if input != nil && input.Value != nil && strings.EqualFold(key, "push") {
+			return strings.EqualFold(strings.TrimSpace(input.Value.Value), "true")
+		}
+	}
+	return false
+}
+
+func isRegistryInput(key string) bool {
+	switch strings.ToLower(key) {
+	case "registry-url", "server-url", "tags", "destination", "destinations":
+		return true
+	default:
+		return false
+	}
+}
+
+func containsGitHubPackageRegistry(value string) bool {
+	for _, token := range strings.FieldsFunc(strings.ToLower(value), func(r rune) bool {
+		return r == ' ' || r == '\'' || r == '"' || r == '`' || r == ',' || r == ';'
+	}) {
+		candidate := token
+		if !strings.Contains(candidate, "://") {
+			candidate = "https://" + candidate
+		}
+		u, err := url.Parse(candidate)
+		if err != nil || u.Hostname() == "" {
+			continue
+		}
+		host := strings.TrimSuffix(strings.ToLower(u.Hostname()), ".")
+		switch host {
+		case "npm.pkg.github.com", "maven.pkg.github.com", "nuget.pkg.github.com",
+			"rubygems.pkg.github.com", "ghcr.io":
+			return true
+		}
+	}
+	return false
 }
