@@ -161,7 +161,9 @@ func getChangesets(commits []clients.Commit) []checker.Changeset {
 				Commits:        []clients.Commit{commits[i]},
 			}
 
-			if rev.Platform == checker.ReviewPlatformGitHub {
+			// Prow changesets are detected from the labels of a merged GitHub pull request,
+			// so the same review data is available for them.
+			if rev.Platform == checker.ReviewPlatformGitHub || rev.Platform == checker.ReviewPlatformProw {
 				newChangeset.Reviews = getGithubReviews(&commits[i])
 				newChangeset.Author = getGithubAuthor(&commits[i])
 			}
