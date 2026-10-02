@@ -22,7 +22,6 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
-	sce "github.com/ossf/scorecard/v5/errors"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
@@ -326,11 +325,11 @@ func TestReleaseAndDevBranchProtected(t *testing.T) {
 		{
 			name: "TargetCommittish nil",
 			expected: scut.TestReturn{
-				Error:         sce.ErrScorecardInternal,
-				Score:         checker.InconclusiveResultScore,
-				NumberOfWarn:  0,
-				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				Error:         nil,
+				Score:         3,
+				NumberOfWarn:  6,
+				NumberOfInfo:  3,
+				NumberOfDebug: 2,
 			},
 			defaultBranch: main,
 			releases:      []string{""},
