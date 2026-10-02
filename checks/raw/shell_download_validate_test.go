@@ -705,3 +705,107 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 		})
 	}
 }
+
+func Test_getCurlOutputFile(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		cmd      []string
+		wantFile string
+		wantOK   bool
+	}{
+		{
+			name:     "short output flag",
+			cmd:      []string{"curl", "-o", "d.sh", "https://example.com/install.sh"},
+			wantFile: "d.sh",
+			wantOK:   true,
+		},
+		{
+			name:     "long output flag",
+			cmd:      []string{"curl", "--output", "d.sh", "https://example.com/install.sh"},
+			wantFile: "d.sh",
+			wantOK:   true,
+		},
+		{
+			name:     "output flag after the url",
+			cmd:      []string{"curl", "-sSL", "https://example.com/install.sh", "-o", "d.sh"},
+			wantFile: "d.sh",
+			wantOK:   true,
+		},
+		{
+			name:     "remote name uses the url basename",
+			cmd:      []string{"curl", "-O", "https://example.com/path/install.sh"},
+			wantFile: "install.sh",
+			wantOK:   true,
+		},
+		{
+			name:     "long remote name",
+			cmd:      []string{"curl", "--remote-name", "https://example.com/path/install.sh"},
+			wantFile: "install.sh",
+			wantOK:   true,
+		},
+		{
+			// Without an output flag curl writes to stdout, so nothing lands on disk.
+			name:   "no output flag",
+			cmd:    []string{"curl", "-sSL", "https://example.com/install.sh"},
+			wantOK: false,
+		},
+		{
+			name:   "not curl",
+			cmd:    []string{"wget", "-O", "d.sh", "https://example.com/install.sh"},
+			wantOK: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			gotFile, gotOK, err := getCurlOutputFile(tt.cmd)
+			if err != nil {
+				t.Fatalf("getCurlOutputFile() error = %v", err)
+			}
+			if gotOK != tt.wantOK {
+				t.Errorf("getCurlOutputFile() ok = %v, want %v", gotOK, tt.wantOK)
+			}
+			if gotFile != tt.wantFile {
+				t.Errorf("getCurlOutputFile() file = %q, want %q", gotFile, tt.wantFile)
+			}
+		})
+	}
+}
+
+// A curl download written with -o was never recorded as a fetched file, so the
+// later execution of that file was not flagged, while the wget spelling was.
+func Test_getOutputFile_curl(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		cmd      []string
+		wantFile string
+		wantOK   bool
+	}{
+		{
+			name:     "wget, the spelling that already worked",
+			cmd:      []string{"wget", "-O", "d.sh", "https://example.com/install.sh"},
+			wantFile: "d.sh",
+			wantOK:   true,
+		},
+		{
+			name:     "curl with -o",
+			cmd:      []string{"curl", "-o", "d.sh", "https://example.com/install.sh"},
+			wantFile: "d.sh",
+			wantOK:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			gotFile, gotOK, err := getOutputFile(tt.cmd)
+			if err != nil {
+				t.Fatalf("getOutputFile() error = %v", err)
+			}
+			if gotOK != tt.wantOK || gotFile != tt.wantFile {
+				t.Errorf("getOutputFile() = (%q, %v), want (%q, %v)", gotFile, gotOK, tt.wantFile, tt.wantOK)
+			}
+		})
+	}
+}
