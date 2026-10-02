@@ -515,7 +515,7 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 **Motivation**: Requiring PRs to be in sync with the base branch is good practice.
 
-**Implementation**: The probe checks the branch protection rules of default and release branches in the repository.
+**Implementation**: The probe checks the branch protection rules of default and release branches in the repository. For GitHub-hosted projects, an active repository ruleset that requires a merge queue also satisfies this probe, since a merge queue tests each change against the latest version of the base branch before merging.
 
 **Outcomes**: The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
 
