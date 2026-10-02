@@ -572,11 +572,17 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate rust publishing workflow using cargo",
 		},
 		{
-			// Ko container action. https://github.com/google/ko
+			// Ko container action (original spelling). https://github.com/ko-build/ko
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "imjasonh/setup-ko",
 				},
+			},
+			LogText: "candidate container publishing workflow using ko",
+		},
+		{
+			// Ko container action (current spelling). https://github.com/ko-build/setup-ko
+			Steps: []*JobMatcherStep{
 				{
 					Uses: "ko-build/setup-ko",
 				},
