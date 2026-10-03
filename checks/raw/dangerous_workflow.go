@@ -38,6 +38,7 @@ func containsUntrustedContextPattern(variable string) bool {
 			`discussion\.title|` +
 			`discussion\.body|` +
 			`comment\.body|` +
+		    `fork\.forkee\.name|` +
 			`review\.body|` +
 			`review_comment\.body|` +
 			`pages.*\.page_name|` +
