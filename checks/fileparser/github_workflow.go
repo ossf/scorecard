@@ -15,11 +15,13 @@
 package fileparser
 
 import (
+	"bytes"
 	"fmt"
 	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/rhysd/actionlint"
 
@@ -68,6 +70,50 @@ func GetLineNumber(pos *actionlint.Pos) uint {
 		return checker.OffsetDefault
 	}
 	return uint(pos.Line)
+}
+
+// IsWorkflowRunBlockScalar reports whether the workflow source at pos is a YAML
+// block scalar. Block scalars start with `|` or `>` and may include a chomping
+// indicator (`-` or `+`) and an indentation indicator (for example `|-`, `>-`,
+// or `|2`).
+//
+// actionlint records a run value as *actionlint.String and does not keep the
+// scalar style. For a block scalar, Pos is the indicator line and the script
+// starts on the next line. For a plain, single-quoted, or double-quoted scalar,
+// including a value that contains ${{ }}, the script starts on Pos itself.
+//
+// A nil position, or a line or column outside content, is reported as a block
+// scalar. Callers then keep the historical line base, and this function does
+// not panic.
+func IsWorkflowRunBlockScalar(content []byte, pos *actionlint.Pos) bool {
+	if pos == nil || pos.Line < 1 || pos.Col < 1 {
+		return true
+	}
+	line := content
+	for n := 1; n < pos.Line; n++ {
+		i := bytes.IndexByte(line, '\n')
+		if i < 0 {
+			return true
+		}
+		line = line[i+1:]
+	}
+	if i := bytes.IndexByte(line, '\n'); i >= 0 {
+		line = line[:i]
+	}
+	if len(line) > 0 && line[len(line)-1] == '\r' {
+		line = line[:len(line)-1]
+	}
+	// Column is a 1-based character index, matching go-yaml's mark.
+	col := 1
+	for len(line) > 0 {
+		r, size := utf8.DecodeRune(line)
+		if col == pos.Col {
+			return r == '|' || r == '>'
+		}
+		line = line[size:]
+		col++
+	}
+	return true
 }
 
 // GetUses returns the 'uses' statement in this step or nil if this step does not have one.
