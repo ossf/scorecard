@@ -233,7 +233,7 @@ checks:
 
       This check tries to determine if the project runs tests before pull requests are
       merged. It is currently limited to repositories hosted on GitHub, and does not
-      support other source hosting repositories (i.e., Forges). This check only 
+      support other source hosting repositories (i.e., Forges). This check only
       considers tests which run successfully.
 
       Running tests helps developers catch mistakes early on, which can reduce the
@@ -479,6 +479,33 @@ checks:
 
       The check works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows
       which are used during the build and release process of a project.
+      The check also examines npm `package-lock.json` and `npm-shrinkwrap.json` files.
+      When both are present in the same project directory, `npm-shrinkwrap.json` takes precedence.
+      For applicable packages, it checks whether an integrity hash has a valid SHA-1 or SHA-512
+      SRI format; it does not download packages or verify their contents.
+
+      Registry package entries are not required to contain resolved URLs because
+      npm supports omitting them with omit-lockfile-registry-resolved.
+
+      Git dependencies require a full 40-character commit SHA in the lockfile.
+
+      Local directories, workspace links, and bundled packages are excluded from the integrity check.
+
+      When a corresponding package.json is available, the check also compares its
+      dependencies, devDependencies, and optionalDependencies with the effective
+      lockfile. Missing dependencies and declared workspaces absent from the
+      lockfile are reported as unpinned. Workspace dependencies may be installed
+      locally or hoisted to an ancestor directory.
+
+      This comparison checks dependency presence, not version-range compatibility,
+      and does not include peerDependencies. Workspace discovery supports positive
+      patterns matched by gobwas/glob, with leading ./ prefixes removed; negated
+      patterns are reported as processing errors.
+
+      Manifest comparison errors are recorded without discarding integrity-check
+      results. Projects without an npm lockfile are not reported as unpinned by
+      this lockfile check.
+
       Special considerations for Go modules treat full semantic versions as pinned
       due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
 
@@ -514,9 +541,12 @@ checks:
         specific version used (and the archive SHA hashes).
       - >-
         If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for
-        npm), make sure to check these in the source code as well. These files
-        maintain signatures for the entire dependency tree and saves from future
-        exploitation in case the package is compromised.
+        npm), make sure to check these in the source code as well.
+
+        For npm, commit the effective lockfile and keep it synchronized with package.json
+        and declared workspaces. Ensure downloaded non-Git packages contain integrity
+        hashes, and pin Git dependencies to full commit SHAs.
+
       - >-
         For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds
         across multiple architectures, you can pin to the manifest list hash instead
