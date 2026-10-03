@@ -411,6 +411,21 @@ For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
 If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 
 
+## releasesAreImmutable
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project's GitHub releases are marked as immutable.
+
+**Motivation**: Immutable releases prevent release artifacts from being modified or deleted after publication, ensuring consumers always receive the same artifacts that were originally published.
+
+**Implementation**: The probe checks whether the last 5 releases on GitHub are marked as immutable.
+
+**Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if the release is marked as immutable.
+For each of the last 5 releases, the probe returns OutcomeFalse if the release is not marked as immutable.
+If the project has no releases, the probe returns OutcomeNotApplicable.
+
+
 ## releasesAreSigned
 
 **Lifecycle**: stable
