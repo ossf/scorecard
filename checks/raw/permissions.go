@@ -18,13 +18,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/checks/raw/github"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 type permission string
@@ -87,7 +86,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 
 	pdata.results.NumTokens += 1
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		return false, fileparser.FormatActionlintError(errs)
 	}
@@ -116,7 +115,7 @@ var validateGitHubActionTokenPermissions fileparser.DoWhileTrueOnFileContent = f
 	return true, nil
 }
 
-func validatePermission(permissionKey permission, permissionValue *actionlint.PermissionScope,
+func validatePermission(permissionKey permission, permissionValue *ghworkflow.PermissionScope,
 	permLoc checker.PermissionLocation, path string, p *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
@@ -191,7 +190,7 @@ func typeOfPermission(val string) checker.PermissionLevel {
 	return checker.PermissionLevelUnknown
 }
 
-func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permLoc checker.PermissionLocation,
+func validateMapPermissions(scopes map[string]*ghworkflow.PermissionScope, permLoc checker.PermissionLocation,
 	path string, pdata *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
@@ -203,7 +202,7 @@ func validateMapPermissions(scopes map[string]*actionlint.PermissionScope, permL
 	return nil
 }
 
-func validatePermissions(permissions *actionlint.Permissions, permLoc checker.PermissionLocation,
+func validatePermissions(permissions *ghworkflow.Permissions, permLoc checker.PermissionLocation,
 	path string, pdata *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
@@ -265,7 +264,7 @@ func validatePermissions(permissions *actionlint.Permissions, permLoc checker.Pe
 	return nil
 }
 
-func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
+func validateTopLevelPermissions(workflow *ghworkflow.Workflow, path string,
 	pdata *permissionCbData,
 ) error {
 	// Check if permissions are set explicitly.
@@ -290,7 +289,7 @@ func validateTopLevelPermissions(workflow *actionlint.Workflow, path string,
 		pdata, map[permission]bool{})
 }
 
-func validatejobLevelPermissions(workflow *actionlint.Workflow, path string,
+func validatejobLevelPermissions(workflow *ghworkflow.Workflow, path string,
 	pdata *permissionCbData,
 	ignoredPermissions map[permission]bool,
 ) error {
@@ -334,7 +333,7 @@ func isPermissionOfInterest(name permission, ignoredPermissions map[permission]b
 	return false
 }
 
-func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
+func createIgnoredPermissions(workflow *ghworkflow.Workflow, fp string,
 	pdata *permissionCbData,
 ) map[permission]bool {
 	ignoredPermissions := make(map[permission]bool)
@@ -352,14 +351,14 @@ func createIgnoredPermissions(workflow *actionlint.Workflow, fp string,
 }
 
 // Scanning tool run externally and SARIF file uploaded.
-func isSARIFUploadWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func isSARIFUploadWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	// TODO: some third party tools may upload directly through their actions.
 	// Very unlikely.
 	// See https://github.com/marketplace for tools.
 	return isAllowedWorkflow(workflow, fp, pdata)
 }
 
-func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func isAllowedWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	//nolint:lll
 	allowlist := map[string]bool{
 		// CodeQl analysis workflow automatically sends sarif file to GitHub.
@@ -419,7 +418,7 @@ func isAllowedWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissi
 
 // A packaging workflow using GitHub's supported packages:
 // https://docs.github.com/en/packages.
-func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func requiresPackagesPermissions(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	// TODO: add support for GitHub registries.
 	// Example: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-npm-registry.
 	match, ok := fileparser.IsPackagingWorkflow(workflow, fp)
@@ -439,12 +438,12 @@ func requiresPackagesPermissions(workflow *actionlint.Workflow, fp string, pdata
 }
 
 // requiresContentsPermissions returns true if the workflow requires the `contents: write` permission.
-func requiresContentsPermissions(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func requiresContentsPermissions(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	return isReleasingWorkflow(workflow, fp, pdata) || isGitHubPagesDeploymentWorkflow(workflow, fp, pdata)
 }
 
 // isGitHubPagesDeploymentWorkflow returns true if the workflow involves pushing static pages to GitHub pages.
-func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func isGitHubPagesDeploymentWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{
 			Steps: []*fileparser.JobMatcherStep{
@@ -461,7 +460,7 @@ func isGitHubPagesDeploymentWorkflow(workflow *actionlint.Workflow, fp string, p
 }
 
 // isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
-func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permissionCbData) bool {
+func isReleasingWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
 	jobMatchers := []fileparser.JobMatcher{
 		{
 			// Python packages.
@@ -527,7 +526,7 @@ func isReleasingWorkflow(workflow *actionlint.Workflow, fp string, pdata *permis
 	return isWorkflowOf(workflow, fp, jobMatchers, "not a releasing workflow", pdata)
 }
 
-func isWorkflowOf(workflow *actionlint.Workflow, fp string,
+func isWorkflowOf(workflow *ghworkflow.Workflow, fp string,
 	jobMatchers []fileparser.JobMatcher, msg string,
 	pdata *permissionCbData,
 ) bool {
