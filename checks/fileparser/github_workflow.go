@@ -604,6 +604,24 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate publishing workflow using elixir",
 		},
+		{
+			// Helm charts pushed to an OCI registry.
+			Steps: []*JobMatcherStep{
+				{
+					Run: "helm.*push",
+				},
+			},
+			LogText: "candidate helm chart publishing workflow using helm push",
+		},
+		{
+			// Helm charts published to a GitHub Pages chart repository.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "helm/chart-releaser-action",
+				},
+			},
+			LogText: "candidate helm chart publishing workflow using chart-releaser",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")

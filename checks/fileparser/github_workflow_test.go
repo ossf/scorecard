@@ -1004,6 +1004,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			filename: "../testdata/.github/workflows/github-workflow-packaging-elixir.yaml",
 			expected: true,
 		},
+		{
+			name:     "helm push publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-helm-push.yaml",
+			expected: true,
+		},
+		{
+			name:     "helm chart-releaser publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-helm-chart-releaser.yaml",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
