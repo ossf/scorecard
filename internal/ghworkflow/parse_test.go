@@ -192,8 +192,10 @@ func TestParseSyntaxError(t *testing.T) {
 	if len(errs) != 1 {
 		t.Fatalf("got %d errors, want 1: %v", len(errs), errs)
 	}
-	if errs[0].Kind != "syntax-check" || errs[0].Line != 5 {
-		t.Errorf("error = %+v, want syntax-check on line 5", errs[0])
+	// The YAML library reports where it ran out of input: the line after the
+	// unterminated flow sequence.
+	if errs[0].Kind != "syntax-check" || errs[0].Line != 6 {
+		t.Errorf("error = %+v, want syntax-check on line 6", errs[0])
 	}
 }
 

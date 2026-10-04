@@ -18,7 +18,7 @@ package ghworkflow
 // returns is converted into this package's types.
 
 import (
-	"github.com/rhysd/actionlint"
+	actionlint "actionlint.kjanat.dev"
 )
 
 func parse(content []byte) (*Workflow, []*Error) {
@@ -145,9 +145,16 @@ func convertJob(j *actionlint.Job) *Job {
 		Pos:         convertPos(j.Pos),
 	}
 	if j.RunsOn != nil {
+		// The backend reports `runs-on: ${{ ... }}` in Expression and keeps
+		// LabelsExpr for `runs-on: {labels: ${{ ... }}}`. Both are a single
+		// expression in place of the label list.
+		labelsExpr := j.RunsOn.Expression
+		if labelsExpr == nil {
+			labelsExpr = j.RunsOn.LabelsExpr
+		}
 		out.RunsOn = &Runner{
 			Labels:     convertStrings(j.RunsOn.Labels),
-			LabelsExpr: convertString(j.RunsOn.LabelsExpr),
+			LabelsExpr: convertString(labelsExpr),
 		}
 	}
 	if j.Defaults != nil {
