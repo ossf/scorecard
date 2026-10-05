@@ -537,35 +537,162 @@ nextRule:
 }
 
 func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
+	var enforced clients.BranchProtectionRule
+	var enforcedRuleSets []*repoRuleSet
+
+	// Classic protection can contribute guaranteed protection only when
+	// it is already enforced on admins.
+	if valueOrZero(branchRef.BranchProtectionRule.EnforceAdmins) {
+		enforced = branchRef.BranchProtectionRule
+		enforced.CheckRules.Contexts = slices.Clone(enforced.CheckRules.Contexts)
+	}
+
+	// Collect guaranteed ruleset protection independently of classic bypass.
 	for _, r := range rules {
-		// Init values of base checkbox as if they're unchecked
-		translated := clients.BranchProtectionRule{
-			AllowDeletions:       asPtr(true),
-			AllowForcePushes:     asPtr(true),
-			RequireLinearHistory: asPtr(false),
-			PullRequestRule: clients.PullRequestRule{
-				Required: asPtr(false),
-			},
+		if len(r.BypassActors.Nodes) != 0 {
+			continue
 		}
 
-		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
+		enforcedRuleSets = append(enforcedRuleSets, r)
 
-		for _, rule := range r.Rules.Nodes {
-			switch rule.Type {
-			case ruleDeletion:
-				translated.AllowDeletions = asPtr(false)
-			case ruleForcePush:
-				translated.AllowForcePushes = asPtr(false)
-			case ruleLinear:
-				translated.RequireLinearHistory = asPtr(true)
-			case rulePullRequest:
-				translatePullRequestRepoRule(&translated, rule)
-			case ruleStatusCheck:
-				translateRequiredStatusRepoRule(&translated, rule)
-			}
-		}
+		translated := translateRepoRuleSet(r)
+		mergeBranchProtectionRules(&enforced, &translated)
 		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
 	}
+
+	allBypassCovered := true
+
+	for _, r := range rules {
+		if len(r.BypassActors.Nodes) == 0 {
+			continue
+		}
+
+		translated := translateRepoRuleSet(r)
+		if repoRuleSetProtectionCovered(&enforced, &translated, r, enforcedRuleSets) {
+			translated.EnforceAdmins = nil
+		} else {
+			allBypassCovered = false
+		}
+
+		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
+	}
+
+	// Upgrade classic admin bypass only when guaranteed protection covers
+	// every represented setting and no bypassable ruleset remains uncovered.
+	if valueOrZero(enforced.EnforceAdmins) && allBypassCovered &&
+		repoRuleSetProtectionCovered(
+			&enforced,
+			&branchRef.BranchProtectionRule,
+			&repoRuleSet{},
+			nil,
+		) {
+		branchRef.BranchProtectionRule.EnforceAdmins = asPtr(true)
+	}
+}
+
+func translateRepoRuleSet(r *repoRuleSet) clients.BranchProtectionRule {
+	translated := clients.BranchProtectionRule{
+		AllowDeletions:       asPtr(true),
+		AllowForcePushes:     asPtr(true),
+		RequireLinearHistory: asPtr(false),
+		EnforceAdmins:        asPtr(len(r.BypassActors.Nodes) == 0),
+		PullRequestRule: clients.PullRequestRule{
+			Required: asPtr(false),
+		},
+	}
+
+	for _, rule := range r.Rules.Nodes {
+		switch rule.Type {
+		case ruleDeletion:
+			translated.AllowDeletions = asPtr(false)
+		case ruleForcePush:
+			translated.AllowForcePushes = asPtr(false)
+		case ruleLinear:
+			translated.RequireLinearHistory = asPtr(true)
+		case rulePullRequest:
+			translatePullRequestRepoRule(&translated, rule)
+		case ruleStatusCheck:
+			translateRequiredStatusRepoRule(&translated, rule)
+		}
+	}
+	return translated
+}
+
+func repoRuleSetProtectionCovered(
+	enforced, translated *clients.BranchProtectionRule,
+	r *repoRuleSet,
+	enforcedRuleSets []*repoRuleSet,
+) bool {
+	// Keep bypass handling conservative for protections that the translated
+	// branch-protection model cannot fully represent.
+	for _, rule := range r.Rules.Nodes {
+		switch rule.Type {
+		case ruleDeletion, ruleForcePush, ruleLinear:
+		case rulePullRequest:
+			if valueOrZero(rule.Parameters.PullRequestParameters.RequiredReviewThreadResolution) &&
+				!reviewThreadResolutionCovered(enforcedRuleSets) {
+				return false
+			}
+		case ruleStatusCheck:
+			for _, check := range rule.Parameters.StatusCheckParameters.RequiredStatusChecks {
+				if check.IntegrationID != nil &&
+					!statusCheckIntegrationCovered(check, enforcedRuleSets) {
+					return false
+				}
+			}
+		case "CREATION", "REQUIRED_SIGNATURES":
+			if !parameterlessRuleCovered(rule.Type, enforcedRuleSets) {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+
+	if !valueOrZero(translated.AllowDeletions) &&
+		(enforced.AllowDeletions == nil || *enforced.AllowDeletions) {
+		return false
+	}
+	if !valueOrZero(translated.AllowForcePushes) &&
+		(enforced.AllowForcePushes == nil || *enforced.AllowForcePushes) {
+		return false
+	}
+
+	if !boolProtectionCovered(enforced.RequireLinearHistory, translated.RequireLinearHistory) ||
+		!boolProtectionCovered(enforced.RequireLastPushApproval, translated.RequireLastPushApproval) {
+		return false
+	}
+
+	if !pullRequestProtectionCovered(&enforced.PullRequestRule, &translated.PullRequestRule) {
+		return false
+	}
+
+	return statusCheckProtectionCovered(&enforced.CheckRules, &translated.CheckRules)
+}
+
+func boolProtectionCovered(enforced, requested *bool) bool {
+	return !valueOrZero(requested) || valueOrZero(enforced)
+}
+
+func pullRequestProtectionCovered(enforced, requested *clients.PullRequestRule) bool {
+	return boolProtectionCovered(enforced.Required, requested.Required) &&
+		boolProtectionCovered(enforced.DismissStaleReviews, requested.DismissStaleReviews) &&
+		boolProtectionCovered(enforced.RequireCodeOwnerReviews, requested.RequireCodeOwnerReviews) &&
+		valueOrZero(enforced.RequiredApprovingReviewCount) >=
+			valueOrZero(requested.RequiredApprovingReviewCount)
+}
+
+func statusCheckProtectionCovered(enforced, requested *clients.StatusChecksRule) bool {
+	if !boolProtectionCovered(enforced.RequiresStatusChecks, requested.RequiresStatusChecks) ||
+		!boolProtectionCovered(enforced.UpToDateBeforeMerge, requested.UpToDateBeforeMerge) {
+		return false
+	}
+	for _, context := range requested.Contexts {
+		if !slices.Contains(enforced.Contexts, context) {
+			return false
+		}
+	}
+	return true
 }
 
 func translatePullRequestRepoRule(base *clients.BranchProtectionRule, rule *repoRule) {
@@ -603,11 +730,6 @@ func mergeBranchProtectionRules(base, translated *clients.BranchProtectionRule) 
 		base.AllowForcePushes = translated.AllowForcePushes
 	}
 	if base.EnforceAdmins == nil || (translated.EnforceAdmins != nil && !*translated.EnforceAdmins) {
-		// this is an over simplification to get preliminary support for repo rules merged.
-		// A more complete approach would process all rules without bypass actors first,
-		// then process those with bypass actors. If no settings improve (due to rule layering),
-		// then we can ignore the bypass actors.
-		// https://github.com/ossf/scorecard/issues/3480
 		base.EnforceAdmins = translated.EnforceAdmins
 	}
 	if base.RequireLastPushApproval == nil || valueOrZero(translated.RequireLastPushApproval) {
@@ -663,4 +785,53 @@ func valueOrZero[T any](ptr *T) T {
 		return zero
 	}
 	return *ptr
+}
+
+func reviewThreadResolutionCovered(rules []*repoRuleSet) bool {
+	for _, r := range rules {
+		for _, rule := range r.Rules.Nodes {
+			if rule.Type == rulePullRequest &&
+				valueOrZero(rule.Parameters.PullRequestParameters.RequiredReviewThreadResolution) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func statusCheckIntegrationCovered(
+	requested statusCheck,
+	rules []*repoRuleSet,
+) bool {
+	if requested.Context == nil || requested.IntegrationID == nil {
+		return false
+	}
+
+	for _, r := range rules {
+		for _, rule := range r.Rules.Nodes {
+			if rule.Type != ruleStatusCheck {
+				continue
+			}
+
+			for _, check := range rule.Parameters.StatusCheckParameters.RequiredStatusChecks {
+				if check.Context != nil && check.IntegrationID != nil &&
+					*check.Context == *requested.Context &&
+					*check.IntegrationID == *requested.IntegrationID {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func parameterlessRuleCovered(ruleType string, rules []*repoRuleSet) bool {
+	for _, r := range rules {
+		for _, rule := range r.Rules.Nodes {
+			if rule.Type == ruleType {
+				return true
+			}
+		}
+	}
+	return false
 }
