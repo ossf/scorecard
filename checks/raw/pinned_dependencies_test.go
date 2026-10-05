@@ -80,7 +80,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 		{
 			name:     "YAML anchor usage doesn't panic",
 			filename: "./testdata/.github/workflows/workflow-anchor.yaml",
-			warns:    1, // anchor definition is unpinned, but alias isn't supported by actionlint
+			warns:    2, // anchor definition and its alias are both unpinned
 		},
 	}
 	for _, tt := range tests {

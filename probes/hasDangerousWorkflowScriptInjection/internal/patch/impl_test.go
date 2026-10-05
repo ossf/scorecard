@@ -24,13 +24,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/rhysd/actionlint"
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/checks/raw"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 const (
@@ -167,13 +167,13 @@ func Test_patchWorkflow(t *testing.T) {
 	}
 }
 
-func readWorkflow(filePath string) ([]byte, *actionlint.Workflow, []*actionlint.Error, error) {
+func readWorkflow(filePath string) ([]byte, *ghworkflow.Workflow, []*ghworkflow.Error, error) {
 	inputContent, err := os.ReadFile(path.Join(testDir, filePath))
 	if err != nil {
 		return nil, nil, nil, err
 	}
 
-	workflow, inputErrs := actionlint.Parse(inputContent)
+	workflow, inputErrs := ghworkflow.Parse(inputContent)
 	if len(inputErrs) > 0 && workflow == nil {
 		return inputContent, nil, inputErrs, inputErrs[0]
 	}

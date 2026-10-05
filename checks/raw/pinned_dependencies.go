@@ -24,7 +24,6 @@ import (
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -32,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
 	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 	"github.com/ossf/scorecard/v5/remediation"
 )
 
@@ -635,7 +635,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		return true, nil
 	}
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
@@ -650,11 +650,11 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		taintedFiles := make(map[string]bool)
 
 		for _, step := range job.Steps {
-			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
+			if !fileparser.IsStepExecKind(step, ghworkflow.ExecKindRun) {
 				continue
 			}
 
-			execRun, ok := step.Exec.(*actionlint.ExecRun)
+			execRun, ok := step.Exec.(*ghworkflow.ExecRun)
 			if !ok {
 				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
@@ -755,7 +755,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
@@ -775,11 +775,11 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		}
 
 		for _, step := range job.Steps {
-			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
+			if !fileparser.IsStepExecKind(step, ghworkflow.ExecKindAction) {
 				continue
 			}
 
-			execAction, ok := step.Exec.(*actionlint.ExecAction)
+			execAction, ok := step.Exec.(*ghworkflow.ExecAction)
 			if !ok {
 				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
