@@ -22,6 +22,7 @@ import (
 	"os"
 	"runtime/debug"
 
+	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
 	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -48,6 +49,27 @@ func NewOSVClient(config *OSVConfig) VulnerabilitiesClient {
 	return cfg
 }
 
+func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanner.ScannerActions {
+	return osvscanner.ScannerActions{
+		DirectoryPaths:    directoryPaths,
+		IncludeGitRoot:    false,
+		Recursive:         true,
+		GitCommits:        gitCommits,
+		CompareOffline:    v.local,
+		DownloadDatabases: v.local,
+		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
+			PluginsEnabled:   []string{"python/requirements"},
+			PluginsDisabled:  []string{transitiverequirements.Name},
+			RequestUserAgent: v.requestUserAgent,
+			// transitive enrichers query deps.dev and package registries,
+			// so keep the local client offline by disabling them
+			TransitiveScanning: osvscanner.TransitiveScanningActions{
+				Disabled: v.local,
+			},
+		},
+	}
+}
+
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
 func (v osvClient) ListUnfixedVulnerabilities(
 	ctx context.Context,
@@ -70,21 +92,8 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		gitCommits = append(gitCommits, commit)
 	}
 
-	exp := osvscanner.ExperimentalScannerActions{
-		PluginsEnabled:   []string{"python/requirements"},
-		PluginsDisabled:  []string{"python/requirementsenhanceable"},
-		RequestUserAgent: v.requestUserAgent,
-	}
-	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
-		DirectoryPaths:    directoryPaths,
-		IncludeGitRoot:    false,
-		Recursive:         true,
-		GitCommits:        gitCommits,
-		CompareOffline:    v.local,
-		DownloadDatabases: v.local,
-		// swap out the transitive requirements scanning for offline extractor
-		ExperimentalScannerActions: exp,
-	}) // TODO: Do logging?
+	actions := v.scannerActions(directoryPaths, gitCommits)
+	res, err := osvscanner.DoScan(actions) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
 
