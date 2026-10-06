@@ -72,3 +72,12 @@ func TestPythonTransitivePluginName(t *testing.T) {
 		t.Fatal("disabling Python transitive resolution must not disable other ecosystems")
 	}
 }
+
+func TestLocalClientDisablesTransitiveScanning(t *testing.T) {
+	t.Parallel()
+
+	actions := (osvClient{local: true}).scannerActions(nil, nil)
+	if !actions.TransitiveScanning.Disabled {
+		t.Fatal("local client must disable transitive scanning to stay offline")
+	}
+}

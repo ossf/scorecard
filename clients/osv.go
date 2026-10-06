@@ -61,6 +61,11 @@ func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanne
 			PluginsEnabled:   []string{"python/requirements"},
 			PluginsDisabled:  []string{transitiverequirements.Name},
 			RequestUserAgent: v.requestUserAgent,
+			// transitive enrichers query deps.dev and package registries,
+			// so keep the local client offline by disabling them
+			TransitiveScanning: osvscanner.TransitiveScanningActions{
+				Disabled: v.local,
+			},
 		},
 	}
 }
