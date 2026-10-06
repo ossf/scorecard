@@ -509,11 +509,12 @@ scorecard --repo=org/repo
 
 ##### Using a Package manager
 
-For projects in the `--npm`, `--pypi`, `--rubygems`, or `--nuget` ecosystems, you have the
+For projects in the `--npm`, `--pypi`, `--rubygems`, `--nuget`, or `--winget` ecosystems, you have the
 option to run Scorecard using a package manager. Provide the package name to
 run the checks on the corresponding GitHub source code.
 
-For example, `--npm=angular`.
+For example, `--npm=angular`, or `--winget=Git.Git` (a winget package identifier in
+`Publisher.PackageName` form).
 
 Note: The package ecosystem flags are to find a GitHub repo only. 
 These flags do not change the final evaluation for the checks. 
