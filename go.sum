@@ -560,8 +560,8 @@ github.com/google/martian v2.1.0+incompatible h1:/CP5g8u/VJHijgedC/Legn3BAbAaWPg
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
 github.com/google/martian/v3 v3.3.3 h1:DIhPTQrbPkgs2yJYdXU/eNACCG5DVQjySNRNlflZ9Fc=
 github.com/google/martian/v3 v3.3.3/go.mod h1:iEPrYcgCF7jA9OtScMFQyAlZZ4YXTKEtJ1E6RWzmBA0=
-github.com/google/osv-scalibr v0.5.3-0.20260814002154-23fa66ca68dd h1:v0d53GDJh4/KlNqVCTH0BPxbxZZdkFZ02k8ZUUsX4R0=
-github.com/google/osv-scalibr v0.5.3-0.20260814002154-23fa66ca68dd/go.mod h1:zwpKksQMgyYI0lwFZ5ImtfPnHSt4BUXw6O+AHgrGC+s=
+github.com/google/osv-scalibr v0.5.3 h1:LcXnN8MLhrQF9O4jrFP2mv3Ae1afO516t+3QdPpbhqM=
+github.com/google/osv-scalibr v0.5.3/go.mod h1:zwpKksQMgyYI0lwFZ5ImtfPnHSt4BUXw6O+AHgrGC+s=
 github.com/google/osv-scanner/v2 v2.5.1 h1:gagd2nRWMouRjRS1oHuhuB8+jHnV/Ifd/rtDu89w/0E=
 github.com/google/osv-scanner/v2 v2.5.1/go.mod h1:dRLmp6nQl9tt1MFnD9uR6EQDWbS/F7PxFKYFWXtGmbw=
 github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
