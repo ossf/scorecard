@@ -30,6 +30,7 @@ func TestOptions_Validate(t *testing.T) {
 		PyPI              string
 		RubyGems          string
 		Nuget             string
+		Winget            string
 		PolicyFile        string
 		ResultsFile       string
 		FileMode          string
@@ -44,6 +45,25 @@ func TestOptions_Validate(t *testing.T) {
 		fields  fields
 		wantErr bool
 	}{
+		{
+			name: "winget package only",
+			fields: fields{
+				Winget: "Git.Git",
+				Commit: "HEAD",
+				Format: "default",
+			},
+			wantErr: false,
+		},
+		{
+			name: "winget and repo both set",
+			fields: fields{
+				Winget: "Git.Git",
+				Repo:   "github.com/ossf/scorecard",
+				Commit: "HEAD",
+				Format: "default",
+			},
+			wantErr: true,
+		},
 		{
 			name:    "No options are turned on",
 			fields:  fields{},
@@ -122,6 +142,7 @@ func TestOptions_Validate(t *testing.T) {
 				PyPI:              tt.fields.PyPI,
 				RubyGems:          tt.fields.RubyGems,
 				Nuget:             tt.fields.Nuget,
+				Winget:            tt.fields.Winget,
 				PolicyFile:        tt.fields.PolicyFile,
 				ResultsFile:       tt.fields.ResultsFile,
 				ChecksToRun:       tt.fields.ChecksToRun,
