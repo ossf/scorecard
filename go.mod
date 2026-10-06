@@ -41,7 +41,7 @@ require (
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v82 v82.0.0
-	github.com/google/osv-scalibr v0.5.3-0.20260814002154-23fa66ca68dd
+	github.com/google/osv-scalibr v0.5.3
 	github.com/google/osv-scanner/v2 v2.5.1
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.2.0
