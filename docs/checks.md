@@ -141,7 +141,7 @@ Risk: `Low` (possible unknown vulnerabilities)
 
 This check tries to determine if the project runs tests before pull requests are
 merged. It is currently limited to repositories hosted on GitHub, and does not
-support other source hosting repositories (i.e., Forges). This check only 
+support other source hosting repositories (i.e., Forges). This check only
 considers tests which run successfully.
 
 Running tests helps developers catch mistakes early on, which can reduce the
@@ -480,6 +480,33 @@ other source hosting repositories (i.e., Forges).
 
 The check works by looking for unpinned dependencies in Dockerfiles, shell scripts, and GitHub workflows
 which are used during the build and release process of a project.
+The check also examines npm `package-lock.json` and `npm-shrinkwrap.json` files.
+When both are present in the same project directory, `npm-shrinkwrap.json` takes precedence.
+For applicable packages, it checks whether an integrity hash has a valid SHA-1 or SHA-512
+SRI format; it does not download packages or verify their contents.
+
+Registry package entries are not required to contain resolved URLs because
+npm supports omitting them with omit-lockfile-registry-resolved.
+
+Git dependencies require a full 40-character commit SHA in the lockfile.
+
+Local directories, workspace links, and bundled packages are excluded from the integrity check.
+
+When a corresponding package.json is available, the check also compares its
+dependencies, devDependencies, and optionalDependencies with the effective
+lockfile. Missing dependencies and declared workspaces absent from the
+lockfile are reported as unpinned. Workspace dependencies may be installed
+locally or hoisted to an ancestor directory.
+
+This comparison checks dependency presence, not version-range compatibility,
+and does not include peerDependencies. Workspace discovery supports positive
+patterns matched by gobwas/glob, with leading ./ prefixes removed; negated
+patterns are reported as processing errors.
+
+Manifest comparison errors are recorded without discarding integrity-check
+results. Projects without an npm lockfile are not reported as unpinned by
+this lockfile check.
+
 Special considerations for Go modules treat full semantic versions as pinned
 due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
 
@@ -511,7 +538,8 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 
 **Remediation steps**
 - If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
-- If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
+- If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well.
+For npm, commit the effective lockfile and keep it synchronized with package.json and declared workspaces. Ensure downloaded non-Git packages contain integrity hashes, and pin Git dependencies to full commit SHAs.
 - For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.

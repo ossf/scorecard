@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"encoding/base64"
 	"io"
 	"os"
 	"path/filepath"
@@ -2772,4 +2773,414 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 
 func newString(s string) *string {
 	return &s
+}
+
+func TestCollectNpmLockfilePinning(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "package-lock.json")
+	integrity := "sha512-" + base64.StdEncoding.EncodeToString(make([]byte, 64))
+	content := `{
+		"lockfileVersion": 3,
+		"packages": {
+			"": {},
+			"node_modules/pinned": {"integrity": "` + integrity + `"},
+			"node_modules/unpinned": {}
+		}
+	}`
+
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			matches, err := predicate(path)
+			if err != nil {
+				return nil, err
+			}
+			if matches {
+				return []string{path}, nil
+			}
+			return nil, nil
+		},
+	).Times(3)
+	repo.EXPECT().GetFileReader(path).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open(file)
+	})
+
+	req := checker.CheckRequest{RepoClient: repo}
+	var results checker.PinningDependenciesData
+	if err := collectNpmLockfilePinning(&req, &results); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results.Dependencies) != 2 {
+		t.Fatalf("got %d dependencies, want 2", len(results.Dependencies))
+	}
+
+	want := map[string]bool{
+		"node_modules/pinned":   true,
+		"node_modules/unpinned": false,
+	}
+	for _, dep := range results.Dependencies {
+		if dep.Name == nil || dep.Pinned == nil || dep.Location == nil {
+			t.Fatalf("incomplete dependency: %+v", dep)
+		}
+
+		if !*dep.Pinned {
+			loc := dep.Location.Location()
+			if loc.LineStart == nil || loc.LineEnd == nil || loc.Snippet == nil {
+				t.Fatalf("unpinned dependency has incomplete finding location: %+v", loc)
+			}
+			if *loc.LineStart != 1 || *loc.LineEnd != 1 ||
+				*loc.Snippet != *dep.Name {
+				t.Errorf("unexpected finding location: %+v", loc)
+			}
+		}
+
+		pinned, ok := want[*dep.Name]
+		if !ok {
+			t.Errorf("unexpected dependency %q", *dep.Name)
+			continue
+		}
+		if *dep.Pinned != pinned {
+			t.Errorf("%s: pinned = %t, want %t", *dep.Name, *dep.Pinned, pinned)
+		}
+		if dep.Type != checker.DependencyUseTypeNpmLockfile || dep.Location.Path != path {
+			t.Errorf("%s: unexpected type or location: %+v", *dep.Name, dep)
+		}
+	}
+}
+
+func TestCollectNpmLockfilePinningMalformed(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "package-lock.json")
+	if err := os.WriteFile(path, []byte(`{"lockfileVersion":3,`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			matches, err := predicate(path)
+			if err != nil {
+				return nil, err
+			}
+			if matches {
+				return []string{path}, nil
+			}
+			return nil, nil
+		},
+	).Times(3)
+	repo.EXPECT().GetFileReader(path).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open(file)
+	})
+
+	req := checker.CheckRequest{RepoClient: repo}
+	var results checker.PinningDependenciesData
+	if err := collectNpmLockfilePinning(&req, &results); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results.Dependencies) != 0 {
+		t.Errorf("got %d dependencies from malformed lockfile, want 0", len(results.Dependencies))
+	}
+	if len(results.ProcessingErrors) != 1 {
+		t.Fatalf("got %d processing errors, want 1", len(results.ProcessingErrors))
+	}
+	if results.ProcessingErrors[0].Location.Path != path {
+		t.Errorf("error path = %q, want %q", results.ProcessingErrors[0].Location.Path, path)
+	}
+}
+
+func TestCollectNpmLockfilePinningPrefersShrinkwrap(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	packageLockPath := filepath.Join(dir, "package-lock.json")
+	shrinkwrapPath := filepath.Join(dir, "npm-shrinkwrap.json")
+
+	packageLock := []byte(`{
+		"lockfileVersion": 3,
+		"packages": {
+			"": {},
+			"node_modules/foo": {}
+		}
+	}`)
+	integrity := "sha512-" + base64.StdEncoding.EncodeToString(make([]byte, 64))
+	shrinkwrap := []byte(`{
+		"lockfileVersion": 3,
+		"packages": {
+			"": {},
+			"node_modules/foo": {"integrity": "` + integrity + `"}
+		}
+	}`)
+
+	if err := os.WriteFile(packageLockPath, packageLock, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(shrinkwrapPath, shrinkwrap, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+	files := []string{packageLockPath, shrinkwrapPath}
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			var matched []string
+			for _, file := range files {
+				ok, err := predicate(file)
+				if err != nil {
+					return nil, err
+				}
+				if ok {
+					matched = append(matched, file)
+				}
+			}
+			return matched, nil
+		},
+	).Times(3)
+	repo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(
+		func(file string) (io.ReadCloser, error) {
+			return os.Open(file)
+		},
+	).Times(2)
+
+	req := checker.CheckRequest{RepoClient: repo}
+	var results checker.PinningDependenciesData
+	if err := collectNpmLockfilePinning(&req, &results); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results.Dependencies) != 1 {
+		t.Fatalf("got %d dependencies, want 1", len(results.Dependencies))
+	}
+	dep := results.Dependencies[0]
+	if dep.Pinned == nil || !*dep.Pinned {
+		t.Errorf("shrinkwrap dependency should be pinned: %+v", dep)
+	}
+	if dep.Location == nil || dep.Location.Path != shrinkwrapPath {
+		t.Errorf("dependency should come from %q: %+v", shrinkwrapPath, dep)
+	}
+}
+
+func TestCollectNpmLockfilePinningMissingDependency(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		manifest       string
+		wantMissing    bool
+		wantProcessing int
+	}{
+		{
+			name: "missing dependency",
+			manifest: `{
+				"dependencies": {
+					"foo": "^1.0.0",
+					"@scope/missing": "^2.0.0"
+				}
+			}`,
+			wantMissing: true,
+		},
+		{
+			name:           "malformed manifest preserves hash results",
+			manifest:       `{"dependencies":`,
+			wantProcessing: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+			manifestPath := filepath.Join(dir, "package.json")
+			lockPath := filepath.Join(dir, "package-lock.json")
+
+			integrity := "sha512-" +
+				base64.StdEncoding.EncodeToString(make([]byte, 64))
+			lock := `{
+				"lockfileVersion": 3,
+				"packages": {
+					"": {},
+					"node_modules/foo": {"integrity": "` + integrity + `"}
+				}
+			}`
+
+			for path, content := range map[string]string{
+				manifestPath: tt.manifest,
+				lockPath:     lock,
+			} {
+				if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			repo := newNpmLockfileTestRepo(t, []string{
+				manifestPath,
+				lockPath,
+			})
+
+			req := checker.CheckRequest{RepoClient: repo}
+			var results checker.PinningDependenciesData
+			if err := collectNpmLockfilePinning(&req, &results); err != nil {
+				t.Fatal(err)
+			}
+
+			if len(results.ProcessingErrors) != tt.wantProcessing {
+				t.Fatalf("got %d processing errors, want %d",
+					len(results.ProcessingErrors), tt.wantProcessing)
+			}
+
+			want := map[string]bool{
+				"node_modules/foo": true,
+			}
+			if tt.wantMissing {
+				want["node_modules/@scope/missing"] = false
+			}
+
+			assertNpmLockfileDependencies(t, &results, want)
+		})
+	}
+}
+
+func newNpmLockfileTestRepo(
+	t *testing.T,
+	files []string,
+) *mockrepo.MockRepoClient {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			var matched []string
+			for _, file := range files {
+				ok, err := predicate(file)
+				if err != nil {
+					return nil, err
+				}
+				if ok {
+					matched = append(matched, file)
+				}
+			}
+			return matched, nil
+		},
+	).Times(3)
+
+	for _, file := range files {
+		repo.EXPECT().GetFileReader(file).DoAndReturn(
+			func(path string) (io.ReadCloser, error) {
+				return os.Open(path)
+			},
+		).Times(1)
+	}
+
+	return repo
+}
+
+func assertNpmLockfileDependencies(
+	t *testing.T,
+	results *checker.PinningDependenciesData,
+	want map[string]bool,
+) {
+	t.Helper()
+
+	if len(results.Dependencies) != len(want) {
+		t.Fatalf("got %d dependencies, want %d",
+			len(results.Dependencies), len(want))
+	}
+
+	for _, dep := range results.Dependencies {
+		if dep.Name == nil || dep.Pinned == nil {
+			t.Fatalf("incomplete dependency: %+v", dep)
+		}
+
+		pinned, ok := want[*dep.Name]
+		if !ok {
+			t.Errorf("unexpected dependency %q", *dep.Name)
+			continue
+		}
+		if *dep.Pinned != pinned {
+			t.Errorf("%s: pinned = %t, want %t",
+				*dep.Name, *dep.Pinned, pinned)
+		}
+	}
+}
+
+func TestCollectNpmLockfilePinningPreservesPartialComparison(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	workspaceDir := filepath.Join(dir, "packages", "lib")
+	if err := os.MkdirAll(workspaceDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	manifestPath := filepath.Join(dir, "package.json")
+	workspaceManifestPath := filepath.Join(workspaceDir, "package.json")
+	lockPath := filepath.Join(dir, "package-lock.json")
+
+	integrity := "sha512-" +
+		base64.StdEncoding.EncodeToString(make([]byte, 64))
+
+	lock := `{
+		"lockfileVersion": 3,
+		"packages": {
+			"": {},
+			"node_modules/foo": {"integrity": "` + integrity + `"},
+			"node_modules/lib": {
+				"link": true,
+				"resolved": "packages/lib"
+			},
+			"packages/lib": {}
+		}
+	}`
+
+	for path, content := range map[string]string{
+		manifestPath: `{
+			"workspaces": ["packages/*"],
+			"dependencies": {
+				"foo": "^1.0.0",
+				"missing": "^1.0.0"
+			}
+		}`,
+		workspaceManifestPath: `{"dependencies":`,
+		lockPath:              lock,
+	} {
+		if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	repo := newNpmLockfileTestRepo(t, []string{
+		manifestPath,
+		workspaceManifestPath,
+		lockPath,
+	})
+
+	req := checker.CheckRequest{RepoClient: repo}
+	var results checker.PinningDependenciesData
+	if err := collectNpmLockfilePinning(&req, &results); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(results.ProcessingErrors) != 1 {
+		t.Fatalf("got %d processing errors, want 1",
+			len(results.ProcessingErrors))
+	}
+
+	assertNpmLockfileDependencies(t, &results, map[string]bool{
+		"node_modules/foo":     true,
+		"node_modules/missing": false,
+	})
 }
