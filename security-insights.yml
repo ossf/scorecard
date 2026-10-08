@@ -1,26 +1,52 @@
 header:
-  schema-version: 2.0.0
-  last-updated: '2025-11-25'
-  last-reviewed: '2025-11-25'
-  url: https://github.com/ossf/scorecard
+  schema-version: 2.2.0
+  last-updated: '2026-10-08'
+  last-reviewed: '2026-10-08'
+  url: https://raw.githubusercontent.com/ossf/scorecard/main/security-insights.yml
   comment: This file contains the security information for the Scorecard project.
 
 project:
   name: Scorecard
+  homepage: https://scorecard.dev
+  roadmap: https://github.com/ossf/scorecard/blob/main/docs/ROADMAP.md
   administrators:
     - name: Stephen Augustus
       affiliation: Bloomberg
+      social: https://github.com/justaugustus
       primary: true
-    - name: Raghav Kaul
-      affiliation: Google
     - name: Spencer Schrock
       affiliation: Google
-  # TODO(security-insights): Extend this to include all Scorecard repos in our next review pass.
+      social: https://github.com/spencerschrock
+      primary: false
   repositories:
     - name: Scorecard
       url: https://github.com/ossf/scorecard
       comment: |
-        ossf/scorecard is the core repo for the Scorecard project.
+        Core repo for the OpenSSF Scorecard project.
+    - name: Scorecard Action
+      url: https://github.com/ossf/scorecard-action
+      comment: |
+        Official GitHub Action for OpenSSF Scorecard.
+    - name: Scorecard Webapp
+      url: https://github.com/ossf/scorecard-webapp
+      comment: |
+        Website for OpenSSF Scorecard.
+    - name: Scorecard Monitor
+      url: https://github.com/ossf/scorecard-monitor
+      comment: |
+        Automated markdown and JSON reports for tracking Scorecard results across an organization.
+    - name: Scorecard Visualizer
+      url: https://github.com/ossf/scorecard-visualizer
+      comment: |
+        Tool for visualizing Scorecard API data.
+    - name: Scorecard Infrastructure
+      url: https://github.com/ossf/scorecard-infra
+      comment: |
+        OpenSSF Scorecard infrastructure, including the API server, batch scanning tooling, and deployment configurations.
+    - name: Allstar
+      url: https://github.com/ossf/allstar
+      comment: |
+        Scorecard GitHub App for setting and enforcing security policies.
   steward:
       uri: https://openssf.org
       comment: |
@@ -28,6 +54,20 @@ project:
   vulnerability-reporting:
     reports-accepted: true
     bug-bounty-available: false
+    policy: https://github.com/ossf/scorecard/blob/main/SECURITY.md
+    contact:
+      name: OpenSSF Security
+      email: security@openssf.org
+      primary: true
+    comment: |
+      Report vulnerabilities through GitHub private vulnerability reporting on the affected repository.
+      Use the OpenSSF security contact email if a report can't be filed on GitHub or receives no response
+      within the window described in the security policy.
+  documentation:
+    detailed-guide: https://github.com/ossf/scorecard/blob/main/README.md
+    code-of-conduct: https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md
+    release-process: https://github.com/ossf/scorecard/blob/main/RELEASE.md
+    signature-verification: https://github.com/ossf/scorecard/blob/main/README.md#verifying-slsa-provenance-for-downloaded-releases
 
 repository:
   status: active
@@ -38,31 +78,90 @@ repository:
   core-team:
     - name: Stephen Augustus
       affiliation: Bloomberg
+      social: https://github.com/justaugustus
       primary: true
-    - name: Raghav Kaul
-      affiliation: Google
-    - name: Adam Korczynski
-      affiliation: ADA Logics
-    - name: Jeff Mendoza
-      affiliation: Microsoft
     - name: Spencer Schrock
       affiliation: Google
+      social: https://github.com/spencerschrock
+      primary: false
+    - name: Jeff Mendoza
+      affiliation: Microsoft
+      social: https://github.com/jeffmendoza
+      primary: false
   license:
     url: https://github.com/ossf/scorecard/blob/main/LICENSE
     expression: Apache-2.0
   security:
     assessments:
-      audit-2025:
-        evidence: https://openssf.org/blog/2025/10/10/openssf-scorecard-audit-is-complete/
+      self:
         comment: |
-          This audit was coordinated by Open Source Technology Improvement Fund (OSTIF) and undertaken by the ADA
-          Logics team during early summer of 2025.
-          Within the scope of review was five repositories: scorecard-webapp, scorecard-action, scorecard-monitor,
-          scorecard, and allstar. These five projects underwent formal threat modeling, which then guided the manual
-          code review that followed. Each repository interacts with different interfaces, handles different
-          (potentially sensitive) data, and therefore has differing attack impacts that affect its security needs.
-          Fuzzing work was also performed during this audit, and resulted in the uncovering of some of the reported
-          findings.
+          A self-assessment has not been completed yet. The 2025 third-party audit listed below included formal
+          threat modeling of this repository.
+      third-party:
+        - name: OpenSSF Scorecard security audit (2025)
+          evidence: https://openssf.org/blog/2025/10/10/openssf-scorecard-audit-is-complete/
+          comment: |
+            This audit was coordinated by Open Source Technology Improvement Fund (OSTIF) and undertaken by the ADA
+            Logics team during early summer of 2025.
+            Within the scope of review was five repositories: scorecard-webapp, scorecard-action, scorecard-monitor,
+            scorecard, and allstar. These five projects underwent formal threat modeling, which then guided the manual
+            code review that followed. Each repository interacts with different interfaces, handles different
+            (potentially sensitive) data, and therefore has differing attack impacts that affect its security needs.
+            Fuzzing work was also performed during this audit, and resulted in the uncovering of some of the reported
+            findings.
+    tools:
+      - name: CodeQL
+        type: SAST
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: CodeQL analysis
+            predicate-uri: https://github.com/github/codeql-action
+            location: https://github.com/ossf/scorecard/actions/workflows/codeql-analysis.yml
+      - name: Dependency Review
+        type: SCA
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: Dependency review
+            predicate-uri: https://github.com/actions/dependency-review-action
+            location: https://github.com/ossf/scorecard/actions/workflows/depsreview.yml
+      - name: OpenSSF Scorecard
+        type: other
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: Scorecard analysis
+            predicate-uri: https://github.com/ossf/scorecard-action
+            location: https://github.com/ossf/scorecard/actions/workflows/scorecard-analysis.yml
+      - name: OSPS Baseline Scanner
+        type: other
+        rulesets:
+          - osps-baseline
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results:
+          ci:
+            name: OSPS Baseline evaluation
+            predicate-uri: https://github.com/revanite-io/osps-baseline-action
+            location: https://github.com/ossf/scorecard/actions/workflows/osps-baseline.yml
   documentation:
     contributing-guide: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md
     governance: https://github.com/ossf/scorecard/blob/main/MAINTAINERS.md
@@ -72,3 +171,12 @@ repository:
     distribution-points:
       - uri:  https://github.com/ossf/scorecard/releases
         comment: GitHub Releases page
+      - uri: https://github.com/ossf/scorecard/pkgs/container/scorecard
+        comment: Container images published to ghcr.io/ossf/scorecard
+    changelog: https://github.com/ossf/scorecard/releases
+    attestations:
+      - name: SLSA provenance
+        location: https://github.com/ossf/scorecard/releases/latest
+        predicate-uri: https://slsa.dev/provenance/v0.2
+        comment: |
+          Each release includes SLSA Build Level 3 provenance generated by slsa-framework/slsa-github-generator.
