@@ -41,6 +41,7 @@ require (
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.2.0
 	github.com/onsi/ginkgo/v2 v2.33.0
+	github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece
 	github.com/otiai10/copy v1.14.1
 	gitlab.com/gitlab-org/api/client-go v1.46.0
 	sigs.k8s.io/release-utils v0.11.1
@@ -155,7 +156,6 @@ require (
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/olekukonko/errors v1.1.0 // indirect
 	github.com/olekukonko/ll v0.0.9 // indirect
-	github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/owenrumney/go-sarif/v3 v3.3.1 // indirect
 	github.com/package-url/packageurl-go v0.1.6 // indirect
