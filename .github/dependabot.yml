@@ -14,9 +14,14 @@ updates:
       patterns:
         - "*"
       exclude-patterns:
+        - "github.com/go-git/go-git/v*" # pinned to a vulnerable patch version by past grouped updates
+        - "github.com/golangci/golangci-lint/v*" # require linter fixes before merge
+        - "github.com/google/ko" # has forced go directive bumps ahead of what CI runners support
+        - "github.com/google/osv-scanner/v*" # influences Vulnerabilities check and may require go directive fixes
+        - "github.com/goreleaser/goreleaser/v*" # has forced go directive bumps ahead of what CI runners support
+        - "github.com/moby/buildkit" # has forced opencontainers/runtime-spec bumps incompatible with pinned containerd
         - "github.com/rhysd/actionlint" # has had breaking changes in the past
-        - "github.com/google/osv-scanner" # influences Vulnerabilities check and may require go directive fixes
-        - "github.com/golangci/golangci-lint" # require linter fixes before merge
+        - "go.yaml.in/yaml/v*" # pre-release API changes have broken actionlint's pinned version when bumped
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:

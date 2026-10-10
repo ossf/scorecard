@@ -20,12 +20,11 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 // Packaging checks for packages.
@@ -50,7 +49,7 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 			return data, fmt.Errorf("reading file: %w", err)
 		}
 
-		workflow, errs := actionlint.Parse(fc)
+		workflow, errs := ghworkflow.Parse(fc)
 		if len(errs) > 0 && workflow == nil {
 			e := fileparser.FormatActionlintError(errs)
 			return data, e

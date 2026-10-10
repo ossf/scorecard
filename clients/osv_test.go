@@ -15,7 +15,10 @@ package clients
 
 import (
 	"reflect"
+	"slices"
 	"testing"
+
+	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
 )
 
 func TestRemoveDuplicate(t *testing.T) {
@@ -54,5 +57,27 @@ func TestEmptyProject(t *testing.T) {
 	_, err := client.ListUnfixedVulnerabilities(t.Context(), commit, emptyDir)
 	if err != nil {
 		t.Fatalf("empty directory shouldn't throw an error: %v", err)
+	}
+}
+
+func TestPythonTransitivePluginName(t *testing.T) {
+	t.Parallel()
+
+	actions := (osvClient{}).scannerActions(nil, nil)
+	disabled := actions.PluginsDisabled
+	if !slices.Contains(disabled, transitiverequirements.Name) {
+		t.Fatal("Python transitive requirements plugin must be disabled by its registered name")
+	}
+	if actions.TransitiveScanning.Disabled {
+		t.Fatal("disabling Python transitive resolution must not disable other ecosystems")
+	}
+}
+
+func TestLocalClientDisablesTransitiveScanning(t *testing.T) {
+	t.Parallel()
+
+	actions := (osvClient{local: true}).scannerActions(nil, nil)
+	if !actions.TransitiveScanning.Disabled {
+		t.Fatal("local client must disable transitive scanning to stay offline")
 	}
 }
