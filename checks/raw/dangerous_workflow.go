@@ -21,7 +21,6 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
-	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
@@ -256,7 +255,11 @@ func checkVariablesInScript(script string, pos *ghworkflow.Pos,
 
 		e := strings.Index(script[s:], "}}")
 		if e == -1 {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+			// No closing delimiter means there's no complete expression left to
+			// inspect. Stop scanning this script instead of failing the whole
+			// check, so one malformed workflow can't suppress script-injection
+			// detection in every other workflow file.
+			break
 		}
 
 		// Check if the variable may be untrustworthy.

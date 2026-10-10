@@ -213,6 +213,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-tojson.yml",
 			expected: ret{nb: 1},
 		},
+		{
+			name:     "unterminated expression does not hide later injection",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-unterminated.yml",
+			expected: ret{nb: 1},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
