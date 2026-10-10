@@ -220,6 +220,11 @@ func (client *Client) IsArchived() (bool, error) {
 	return client.project.isArchived()
 }
 
+// IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
+func (client *Client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("IsPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *Client) GetDefaultBranch() (*clients.BranchRef, error) {
 	return client.branches.getDefaultBranch()
 }
