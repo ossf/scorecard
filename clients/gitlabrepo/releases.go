@@ -71,6 +71,7 @@ func releasesFrom(data []*gitlab.Release) []clients.Release {
 		release := clients.Release{
 			TagName:         r.TagName,
 			TargetCommitish: r.CommitPath,
+			Body:            r.Description,
 		}
 		if len(r.Assets.Links) > 0 {
 			release.URL = r.Assets.Links[0].DirectAssetURL

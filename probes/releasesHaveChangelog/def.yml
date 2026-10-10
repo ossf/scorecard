@@ -1,0 +1,40 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: releasesHaveChangelog
+lifecycle: experimental
+short: Check that the project's releases are documented in the changelog
+motivation: >
+  Releases that are documented in the changelog demonstrate that the project maintains
+  descriptive logs of functional and security modifications per OSPS-BR-04.
+implementation: >
+  The implementation reads the changelog file, extracts version strings, and checks
+  whether the last 5 release tags have corresponding entries in the changelog.
+  Releases with substantive release notes (GitHub/GitLab release body) also count.
+outcome:
+  - If all recent releases have changelog entries, the probe returns OutcomeTrue.
+  - If no releases are found, the probe returns OutcomeNotApplicable.
+  - If some or no releases have changelog entries, the probe returns OutcomeFalse.
+remediation:
+  onOutcome: False
+  effort: Medium
+  text:
+    - Ensure each release version has a corresponding entry in your changelog file.
+    - "Follow the format recommended by [Keep a Changelog](https://keepachangelog.com/)."
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
