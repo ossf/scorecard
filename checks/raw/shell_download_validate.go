@@ -819,6 +819,7 @@ func isNuget(cmd []string) bool {
 	return isDotNetCliAdd(cmd) ||
 		isNugetCliInstall(cmd) ||
 		isDotNetCliRestore(cmd) ||
+		isDotNetCliImplicitRestore(cmd) ||
 		isNugetCliRestore(cmd) ||
 		isMsBuildRestore(cmd)
 }
@@ -832,7 +833,7 @@ func isNugetUnpinned(cmd []string) bool {
 		return true
 	}
 
-	if isDotNetCliRestore(cmd) && isUnpinnedDotNetCliRestore(cmd) {
+	if (isDotNetCliRestore(cmd) || isDotNetCliImplicitRestore(cmd)) && isUnpinnedDotNetCliRestore(cmd) {
 		return true
 	}
 
@@ -867,20 +868,119 @@ func isDotNetCliRestore(cmd []string) bool {
 		strings.EqualFold(cmd[1], "restore")
 }
 
-func isMsBuildRestore(cmd []string) bool {
-	// Search for command of type msbuild /t:restore
-	if len(cmd) < 2 {
+func isDotNetCliImplicitRestore(cmd []string) bool {
+	if len(cmd) < 2 || (!isBinaryName("dotnet", cmd[0]) && !isBinaryName("dotnet.exe", cmd[0])) {
 		return false
 	}
-	// Search for msbuild /t:restore
-	if isBinaryName("msbuild", cmd[0]) || isBinaryName("msbuild.exe", cmd[0]) {
-		for i := 1; i < len(cmd); i++ {
-			// look for /t:restore flag
-			if strings.EqualFold(cmd[i], "/t:restore") {
-				return true
+
+	// These commands perform an implicit restore unless explicitly disabled.
+	// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore#description
+	switch strings.ToLower(cmd[1]) {
+	case "build", "pack", "publish", "test":
+	default:
+		return false
+	}
+
+	options := dotNetCommandOptions(cmd)
+	for i := range options {
+		option := strings.Trim(options[i], `"'`)
+		// --no-build also implies --no-restore for commands that support it.
+		if strings.EqualFold(option, "--no-restore") ||
+			strings.EqualFold(option, "--no-build") ||
+			strings.EqualFold(option, "--help") ||
+			strings.EqualFold(option, "-h") ||
+			strings.EqualFold(option, "-?") {
+			return false
+		}
+	}
+	if strings.EqualFold(cmd[1], "pack") && isDotNetPackNuspec(options) {
+		return false
+	}
+
+	return true
+}
+
+func isDotNetPackNuspec(options []string) bool {
+	// Starting with .NET 10, a positional .nuspec is packed without running MSBuild.
+	// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-pack#description
+	for i := 0; i < len(options); i++ {
+		option := strings.Trim(options[i], `"'`)
+		switch strings.ToLower(option) {
+		case "--artifacts-path", "--configuration", "--output", "--runtime", "--verbosity",
+			"--version", "--version-suffix", "-c", "-o", "-v":
+			i++
+			continue
+		}
+		lowerOption := strings.ToLower(option)
+		if strings.HasPrefix(option, "-") || strings.HasPrefix(lowerOption, "/p:") ||
+			strings.HasPrefix(lowerOption, "/property:") {
+			continue
+		}
+
+		return strings.EqualFold(filepath.Ext(option), ".nuspec")
+	}
+
+	return false
+}
+
+func dotNetCommandOptions(cmd []string) []string {
+	if len(cmd) <= 2 {
+		return nil
+	}
+
+	options := cmd[2:]
+	for i := range options {
+		if strings.Trim(options[i], `"'`) == "--" {
+			return options[:i]
+		}
+	}
+
+	return options
+}
+
+func msBuildCommandArgs(cmd []string) ([]string, bool) {
+	if len(cmd) >= 2 && (isBinaryName("msbuild", cmd[0]) || isBinaryName("msbuild.exe", cmd[0])) {
+		return cmd[1:], true
+	}
+	if len(cmd) >= 3 && (isBinaryName("dotnet", cmd[0]) || isBinaryName("dotnet.exe", cmd[0])) &&
+		strings.EqualFold(cmd[1], "msbuild") {
+		return cmd[2:], true
+	}
+
+	return nil, false
+}
+
+func isMsBuildRestore(cmd []string) bool {
+	args, ok := msBuildCommandArgs(cmd)
+	if !ok {
+		return false
+	}
+
+	// -restore/-r runs Restore before the requested build targets. A Restore target
+	// also performs an explicit restore.
+	// https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference
+	for i := range args {
+		option := strings.ToLower(strings.Trim(args[i], `"'`))
+		switch option {
+		case "-restore", "/restore", "-restore:true", "/restore:true", "-r", "/r", "-r:true", "/r:true":
+			return true
+		}
+
+		for _, prefix := range []string{"-target:", "/target:", "-t:", "/t:"} {
+			if !strings.HasPrefix(option, prefix) {
+				continue
+			}
+			targets := strings.FieldsFunc(strings.Trim(option[len(prefix):], `"'`), func(r rune) bool {
+				return r == ',' || r == ';'
+			})
+			for _, target := range targets {
+				if strings.EqualFold(strings.TrimSpace(target), "restore") {
+					return true
+				}
 			}
 		}
 	}
+
 	return false
 }
 
@@ -899,10 +999,11 @@ func isUnpinnedNugetCliRestore(cmd []string) bool {
 
 func isUnpinnedDotNetCliRestore(cmd []string) bool {
 	unpinnedDependency := true
-	for i := 2; i < len(cmd); i++ {
+	options := dotNetCommandOptions(cmd)
+	for i := range options {
 		// look for locked-mode flag
 		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
-		if strings.EqualFold(cmd[i], "--locked-mode") {
+		if strings.EqualFold(strings.Trim(options[i], `"'`), "--locked-mode") {
 			unpinnedDependency = false
 			break
 		}
@@ -911,16 +1012,34 @@ func isUnpinnedDotNetCliRestore(cmd []string) bool {
 }
 
 func isUnpinnedMsBuildCliRestore(cmd []string) bool {
-	unpinnedDependency := true
-	for i := 2; i < len(cmd); i++ {
-		// look for /p:RestoreLockedMode=true
-		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
-		if strings.EqualFold(cmd[i], "/p:RestoreLockedMode=true") {
-			unpinnedDependency = false
-			break
+	args, ok := msBuildCommandArgs(cmd)
+	if !ok {
+		return true
+	}
+
+	// MSBuild accepts RestoreLockedMode through both project and restore-only properties.
+	// https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-command-line-reference
+	for i := range args {
+		option := strings.ToLower(strings.Trim(args[i], `"'`))
+		for _, prefix := range []string{
+			"-property:", "/property:", "-p:", "/p:",
+			"-restoreproperty:", "/restoreproperty:", "-rp:", "/rp:",
+		} {
+			if !strings.HasPrefix(option, prefix) {
+				continue
+			}
+			properties := strings.FieldsFunc(strings.Trim(option[len(prefix):], `"'`), func(r rune) bool {
+				return r == ',' || r == ';'
+			})
+			for _, property := range properties {
+				if strings.EqualFold(strings.TrimSpace(property), "RestoreLockedMode=true") {
+					return false
+				}
+			}
 		}
 	}
-	return unpinnedDependency
+
+	return true
 }
 
 func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.Node,
@@ -1018,35 +1137,46 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 		return
 	}
 
-	// Nuget install and restore
-	if isNuget(c) {
-		pinned := !isNugetUnpinned(c)
-		var remediation *finding.Remediation
-		if !pinned {
-			remediation = &finding.Remediation{
-				Text: "pin your dependencies by either enabling central package management " +
-					"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
-					"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
-					"package-references-in-project-files#locking-dependencies)",
-			}
-		}
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    startLine,
-					EndOffset: endLine,
-					Snippet:   cmd,
-				},
-				Pinned:      &pinned,
-				Type:        checker.DependencyUseTypeNugetCommand,
-				Remediation: remediation,
-			})
+	// NuGet package operations.
+	if collectNugetDependency(startLine, endLine, c, cmd, pathfn, r) {
 		return
 	}
 
 	// TODO(laurent): add other package managers.
+}
+
+func collectNugetDependency(startLine, endLine uint, command []string,
+	snippet, pathfn string, r *checker.PinningDependenciesData,
+) bool {
+	if !isNuget(command) {
+		return false
+	}
+
+	pinned := !isNugetUnpinned(command)
+	var remediation *finding.Remediation
+	if !pinned {
+		remediation = &finding.Remediation{
+			Text: "pin your dependencies by either enabling central package management " +
+				"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
+				"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
+				"package-references-in-project-files#locking-dependencies)",
+		}
+	}
+	r.Dependencies = append(r.Dependencies,
+		checker.Dependency{
+			Location: &checker.File{
+				Path:      pathfn,
+				Type:      finding.FileTypeSource,
+				Offset:    startLine,
+				EndOffset: endLine,
+				Snippet:   snippet,
+			},
+			Pinned:      &pinned,
+			Type:        checker.DependencyUseTypeNugetCommand,
+			Remediation: remediation,
+		})
+
+	return true
 }
 
 func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err error) {
