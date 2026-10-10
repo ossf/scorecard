@@ -136,43 +136,15 @@ To view scores for projects not included in the webviewer, use the [Scorecard CL
 
 ### Public Data
 
-We run a weekly Scorecard scan of the 1 million most critical open source
-projects judged by their direct dependencies and publish the results in a
-[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
+Scorecard scans more than 1.3 million repositories every week, from
+[`ossf/scorecard-infra`](https://github.com/ossf/scorecard-infra). Results are
+available through the [REST API](#scorecard-rest-api). The BigQuery public
+dataset is no longer available; see
+[Scorecard Infrastructure Changes](https://github.com/ossf/scorecard/issues/5208)
+for details.
 
-This data is available in the public BigQuery dataset
-`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
-BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
-
-You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Star a project by name > 'openssf'.
-For example, you may be interested in how a project's score has changed over time:
-
-```sql
-SELECT date, score FROM `openssf.scorecardcron.scorecard-v2` WHERE repo.name="github.com/ossf/scorecard" ORDER BY date ASC
-```
-
-You can extract the latest results to Google Cloud storage in JSON format using
-the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
-
-```
-# Get the latest PARTITION_ID
-bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
-AND partition_id!="__NULL__" ORDER BY partition_id DESC
-LIMIT 1'
-
-# Extract to GCS
-bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
-
-```
-
-The list of projects that are checked is available in the
-[`cron/internal/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv)
-file in this repository. If you would like us to track more, please feel free to
-send a Pull Request with others. Currently, this list is derived from **projects
-hosted on GitHub ONLY**. We do plan to expand them in near future to account for
-projects hosted on other source control systems.
+To add a project to the weekly scan, follow the instructions in
+[`ossf/scorecard-infra`'s contributing guide](https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md).
 
 ## Using Scorecard
 
