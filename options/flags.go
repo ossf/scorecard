@@ -50,6 +50,9 @@ const (
 	// FlagNuget is the flag name for specifying a Nuget repository.
 	FlagNuget = "nuget"
 
+	// FlagWinget is the flag name for specifying a Winget package.
+	FlagWinget = "winget"
+
 	// FlagMetadata is the flag name for specifying metadata for the project.
 	FlagMetadata = "metadata"
 
@@ -160,6 +163,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagNuget,
 		o.Nuget,
 		"nuget package to check, given that the nuget package has a GitHub repository",
+	)
+
+	cmd.Flags().StringVar(
+		&o.Winget,
+		FlagWinget,
+		o.Winget,
+		"winget package identifier to check (e.g. Publisher.AppName), given that the package has a GitHub repository",
 	)
 
 	cmd.Flags().StringSliceVar(

@@ -103,7 +103,8 @@ generate-mocks: clients/mockclients/repo_client.go \
 	clients/mockclients/cii_client.go \
 	checks/mockclients/vulnerabilities.go \
 	cmd/internal/packagemanager/packagemanager_mockclient.go \
-	cmd/internal/nuget/nuget_mockclient.go
+	cmd/internal/nuget/nuget_mockclient.go \
+	cmd/internal/winget/winget_mockclient.go
 clients/mockclients/repo_client.go: clients/repo_client.go | $(MOCKGEN)
 	# Generating MockRepoClient
 	$(MOCKGEN) -source=clients/repo_client.go -destination=clients/mockclients/repo_client.go -package=mockrepo -copyright_file=clients/mockclients/license.txt
@@ -122,6 +123,9 @@ cmd/internal/packagemanager/packagemanager_mockclient.go: cmd/internal/packagema
 cmd/internal/nuget/nuget_mockclient.go: cmd/internal/nuget/client.go | $(MOCKGEN)
 	# Generating MockNugetClient
 	$(MOCKGEN) -source=cmd/internal/nuget/client.go -destination=cmd/internal/nuget/nuget_mockclient.go -package=nuget -copyright_file=clients/mockclients/license.txt
+cmd/internal/winget/winget_mockclient.go: cmd/internal/winget/client.go | $(MOCKGEN)
+	# Generating MockWingetClient
+	$(MOCKGEN) -source=cmd/internal/winget/client.go -destination=cmd/internal/winget/winget_mockclient.go -package=winget -copyright_file=clients/mockclients/license.txt
 
 PROBE_DEFINITION_FILES = $(shell find ./probes/ -name "def.yml")
 generate-docs: ## Generates docs
