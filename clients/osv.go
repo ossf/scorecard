@@ -21,6 +21,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"strings"
 
 	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
 	"github.com/google/osv-scanner/v2/pkg/osvscanner"
@@ -112,6 +113,11 @@ func (v osvClient) ListUnfixedVulnerabilities(
 			if vulns[i].Package.Ecosystem == "Go" && vulns[i].Package.Name == "stdlib" {
 				continue
 			}
+			// ignore Maven packages whose version is an unresolved build placeholder,
+			// e.g. @project.version@ in template .pom files, which match every range.
+			if vulns[i].Package.Ecosystem == "Maven" && isPlaceholderVersion(vulns[i].Package.Version) {
+				continue
+			}
 			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
 				ID:      vulns[i].Vulnerability.GetId(),
 				Aliases: vulns[i].Vulnerability.GetAliases(),
@@ -129,6 +135,12 @@ func (v osvClient) ListUnfixedVulnerabilities(
 	}
 
 	return VulnerabilitiesResponse{}, fmt.Errorf("osvscanner.DoScan: %w", err)
+}
+
+// isPlaceholderVersion reports whether a version is a resource-filtering or
+// property placeholder (@token@, ${property}) rather than a real version.
+func isPlaceholderVersion(version string) bool {
+	return strings.Contains(version, "@") || strings.Contains(version, "${")
 }
 
 // RemoveDuplicate removes duplicate entries from a slice.

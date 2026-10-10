@@ -81,3 +81,28 @@ func TestLocalClientDisablesTransitiveScanning(t *testing.T) {
 		t.Fatal("local client must disable transitive scanning to stay offline")
 	}
 }
+
+func TestIsPlaceholderVersion(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		version string
+		want    bool
+	}{
+		{version: "@MAVEN.DEPLOY.VERSION@", want: true},
+		{version: "${project.version}", want: true},
+		{version: "1.0-${revision}", want: true},
+		{version: "11.0.0", want: false},
+		{version: "2.17.1", want: false},
+		{version: "1.0.0-SNAPSHOT", want: false},
+		{version: "r09", want: false},
+		{version: "", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.version, func(t *testing.T) {
+			t.Parallel()
+			if got := isPlaceholderVersion(tt.version); got != tt.want {
+				t.Errorf("isPlaceholderVersion(%q) = %v, want %v", tt.version, got, tt.want)
+			}
+		})
+	}
+}
