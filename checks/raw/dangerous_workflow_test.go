@@ -86,6 +86,26 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "head commit committer name",
+			variable: "github.event.head_commit.committer.name",
+			expected: true,
+		},
+		{
+			name:     "head commit committer email",
+			variable: "github.event.head_commit.committer.email",
+			expected: true,
+		},
+		{
+			name:     "commits committer name",
+			variable: "github.event.commits[2].committer.name",
+			expected: true,
+		},
+		{
+			name:     "commits committer email",
+			variable: "github.event.commits[2].committer.email",
+			expected: true,
+		},
+		{
 			name:     "blocked_user name",
 			variable: "github.event.pull_request.organization.blocked_user.name",
 			expected: true,
@@ -206,6 +226,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run wildcard script injection",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-wildcard.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run committer script injection",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-committer.yml",
 			expected: ret{nb: 1},
 		},
 		{
