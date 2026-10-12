@@ -50,7 +50,7 @@ var errChecksFailed = errors.New("one or more checks failed during execution")
 const (
 	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
 	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
-		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
+		`--{npm,pypi,rubygems,nuget,winget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
 	scorecardShort = "OpenSSF Scorecard"
 )
 
@@ -114,7 +114,7 @@ func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 	// Package managers may override --repo
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, o.Winget, p)
 	if err != nil {
 		return nil, fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
 	}
