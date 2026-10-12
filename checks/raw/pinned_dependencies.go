@@ -15,9 +15,11 @@
 package raw
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"path/filepath"
 	"reflect"
 	"regexp"
@@ -284,10 +286,36 @@ func dataAsPinnedDependenciesPointer(data interface{}) *checker.PinningDependenc
 }
 
 func collectShellScriptInsecureDownloads(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
-	return fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	return fileparser.OnMatchingFileReaderDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       "*",
 		CaseSensitive: false,
-	}, validateShellScriptIsFreeOfInsecureDownloads, r)
+	}, validateShellScriptReader, r)
+}
+
+var validateShellScriptReader fileparser.DoWhileTrueOnFileReader = func(
+	pathfn string,
+	reader io.Reader,
+	args ...interface{},
+) (bool, error) {
+	// Classification only needs the first line. Retain any buffered bytes so
+	// supported scripts can still be parsed in full, including their first line.
+	var prefix bytes.Buffer
+	scanner := bufio.NewScanner(io.TeeReader(reader, &prefix))
+	scanner.Scan()
+	// Match the existing classifier's extension fallback for oversized lines.
+	if err := scanner.Err(); err != nil && !errors.Is(err, bufio.ErrTooLong) {
+		return false, fmt.Errorf("reading from file: %w", err)
+	}
+
+	content := prefix.Bytes()
+	if isSupportedShellScriptFile(pathfn, content) {
+		var err error
+		content, err = io.ReadAll(io.MultiReader(&prefix, reader))
+		if err != nil {
+			return false, fmt.Errorf("reading from file: %w", err)
+		}
+	}
+	return validateShellScriptIsFreeOfInsecureDownloads(pathfn, content, args...)
 }
 
 var validateShellScriptIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
