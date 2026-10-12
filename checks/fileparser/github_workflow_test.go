@@ -916,6 +916,11 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "npmjs.org publish with a trailing slash in registry-url",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-trailing-slash.yaml",
+			expected: true,
+		},
+		{
 			name:     "npm github publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-npm-github.yaml",
 			expected: false, // Should this be false?
