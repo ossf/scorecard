@@ -248,3 +248,16 @@ func newOSVQueryRecorder() (*http.Client, func() map[string]bool) {
 	}
 	return client, snapshot
 }
+
+func TestScannerPreservesRepositoryNamedTestData(t *testing.T) {
+	t.Parallel()
+
+	parent := createOSVTestRepository(t, "nested/testData")
+	root := filepath.Join(filepath.Dir(parent), "testdata")
+
+	if err := os.Rename(parent, root); err != nil {
+		t.Fatalf("rename repository: %v", err)
+	}
+
+	checkOSVTestDataExclusion(t, root)
+}
