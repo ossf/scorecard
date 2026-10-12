@@ -2773,3 +2773,74 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 func newString(s string) *string {
 	return &s
 }
+
+func TestShellScriptPinningExcludesTestData(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+
+	files := []string{
+		"testdata/install.sh",
+		"testData/install.sh",
+		"nested/testData/install.sh",
+		"nested/TESTDATA/install.sh",
+		"production/install.sh",
+		"testData-extra/install.sh",
+		"mytestData/install.sh",
+	}
+	want := []string{
+		"production/install.sh",
+		"testData-extra/install.sh",
+		"mytestData/install.sh",
+	}
+
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			var matched []string
+			for _, filename := range files {
+				include, err := predicate(filename)
+				if err != nil {
+					return nil, err
+				}
+				if include {
+					matched = append(matched, filename)
+				}
+			}
+			return matched, nil
+		},
+	)
+
+	const script = "#!/bin/sh\ncurl https://example.com/install.sh | sh\n"
+	for _, filename := range want {
+		repo.EXPECT().GetFileReader(filename).DoAndReturn(
+			func(_ string) (io.ReadCloser, error) {
+				return io.NopCloser(strings.NewReader(script)), nil
+			},
+		)
+	}
+
+	var got checker.PinningDependenciesData
+	err := collectShellScriptInsecureDownloads(
+		&checker.CheckRequest{RepoClient: repo}, &got,
+	)
+	if err != nil {
+		t.Fatalf("collectShellScriptInsecureDownloads failed: %v", err)
+	}
+	if len(got.Dependencies) != len(want) {
+		t.Fatalf("got %d dependencies, want %d", len(got.Dependencies), len(want))
+	}
+	if unpinned := countUnpinned(got.Dependencies); unpinned != len(want) {
+		t.Errorf("got %d unpinned dependencies, want %d", unpinned, len(want))
+	}
+	for i, filename := range want {
+		location := got.Dependencies[i].Location
+		if location == nil {
+			t.Errorf("dependency %d has no location", i)
+			continue
+		}
+		if location.Path != filename {
+			t.Errorf("dependency %d: got %q, want %q", i, location.Path, filename)
+		}
+	}
+}
