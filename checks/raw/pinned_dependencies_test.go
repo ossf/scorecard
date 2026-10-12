@@ -17,6 +17,7 @@ package raw
 import (
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -99,7 +100,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -193,11 +194,99 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
-			p := isActionDependencyPinned(tt.uses)
+			p := isActionDependencyPinned(nil, nil, tt.uses)
 			if p != tt.ispinned {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
 		})
+	}
+}
+
+func TestIsActionDependencyPinnedByImmutableRelease(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		desc            string
+		uses            string
+		immutable       bool
+		immutableErr    error
+		expectQueryCall bool
+		ispinned        bool
+	}{
+		{
+			desc:            "tag backed by an immutable release is pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutable:       true,
+			expectQueryCall: true,
+			ispinned:        true,
+		},
+		{
+			desc:            "tag not backed by an immutable release is not pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutable:       false,
+			expectQueryCall: true,
+			ispinned:        false,
+		},
+		{
+			desc:            "error checking release immutability is treated as not pinned",
+			uses:            "actions/checkout@v4.2.0",
+			immutableErr:    errInvalidArgLength,
+			expectQueryCall: true,
+			ispinned:        false,
+		},
+		{
+			desc:            "already SHA-pinned dependency doesn't call the API",
+			uses:            "actions/checkout@a81bbbf8298c0fa03ea29cdc473d45769f953675",
+			expectQueryCall: false,
+			ispinned:        true,
+		},
+		{
+			desc:            "local action doesn't call the API",
+			uses:            "./.github/uses.yml",
+			expectQueryCall: false,
+			ispinned:        true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			if tt.expectQueryCall {
+				mockRepoClient.EXPECT().
+					IsReleaseImmutable("actions", "checkout", "v4.2.0").
+					Return(tt.immutable, tt.immutableErr)
+			}
+
+			c := &checker.CheckRequest{RepoClient: mockRepoClient}
+			p := isActionDependencyPinned(c, &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}, tt.uses)
+			if p != tt.ispinned {
+				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
+			}
+		})
+	}
+}
+
+func TestIsActionPinnedByImmutableReleaseCachesResults(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	// Only one call is expected even though the lookup is performed twice
+	// below, since the second lookup should be served from cache.
+	mockRepoClient.EXPECT().
+		IsReleaseImmutable("actions", "checkout", "v4.2.0").
+		Return(true, nil).
+		Times(1)
+
+	c := &checker.CheckRequest{RepoClient: mockRepoClient}
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
+
+	for i := 0; i < 2; i++ {
+		pinned := isActionPinnedByImmutableRelease(c, cache, "actions/checkout@v4.2.0")
+		if !pinned {
+			t.Fatalf("call %d: expected pinned=true", i)
+		}
 	}
 }
 
@@ -250,7 +339,8 @@ jobs:
 `)
 	var result checker.PinningDependenciesData
 
-	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result)
+	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result,
+		(*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 	if err != nil {
 		t.Fatalf("validateGitHubActionWorkflow: %v", err)
 	}
@@ -315,7 +405,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -475,7 +565,7 @@ func TestDockerfilePinning(t *testing.T) {
 			}
 
 			var r checker.PinningDependenciesData
-			_, err = validateDockerfilesPinning(filepath.Join("testdata", tt.filename), content, &r)
+			_, err = validateDockerfilesPinning(path.Join("testdata", tt.filename), content, &r)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -1863,7 +1953,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			p = strings.Replace(p, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, (*checker.CheckRequest)(nil), (*immutableReleaseCache)(nil))
 			if err != nil {
 				t.Errorf("validateGitHubActionWorkflow: %v", err)
 			}
@@ -2169,6 +2259,13 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
 				return os.Open(filepath.Join("testdata", file))
 			})
+			// workflow-not-pinned.yaml references github/codeql-action/analyze@v1,
+			// an unpinned tag, which triggers an immutable-release lookup.
+			if tt.filename == ".github/workflows/workflow-not-pinned.yaml" {
+				mockRepoClient.EXPECT().
+					IsReleaseImmutable("github", "codeql-action", "v1").
+					Return(false, nil)
+			}
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,

@@ -349,6 +349,10 @@ func (c *Client) ListReleases() ([]clients.Release, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+func (c *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListContributors() ([]clients.User, error) {
 	// TODO: Implement this
 	return nil, clients.ErrUnsupportedFeature

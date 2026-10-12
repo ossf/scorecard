@@ -49,6 +49,12 @@ type RepoClient interface {
 	ListIssues() ([]Issue, error)
 	ListLicenses() ([]License, error)
 	ListReleases() ([]Release, error)
+	// IsReleaseImmutable reports whether the release tagged tag in owner/repo
+	// is published with GitHub's immutable-release guarantee. owner/repo may
+	// refer to any repository, not just the one the client was initialized
+	// with, since it is used to check releases of external action
+	// dependencies referenced from workflows.
+	IsReleaseImmutable(owner, repo, tag string) (bool, error)
 	ListContributors() ([]User, error)
 	ListSuccessfulWorkflowRuns(filename string) ([]WorkflowRun, error)
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
