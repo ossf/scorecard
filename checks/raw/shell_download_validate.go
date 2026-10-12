@@ -1129,6 +1129,10 @@ func collectFetchProcSubsExecute(startLine, endLine uint, node syntax.Node, cmd,
 		return
 	}
 
+	if !hasUnpinnedURLs(c) {
+		return
+	}
+
 	startLine, endLine = getLine(startLine, endLine, node)
 
 	r.Dependencies = append(r.Dependencies,
