@@ -93,6 +93,7 @@ type graphqlMergeRequestNode struct {
 			ID       GitlabGID `graphql:"id"`
 		} `graphql:"nodes"`
 	} `graphql:"approvedBy"`
+	DiffHeadSHA    string `graphql:"diffHeadSha"`
 	MergeCommitSHA string `graphql:"mergeCommitSha"`
 	// Labels         struct {
 	// 	Nodes []struct {
