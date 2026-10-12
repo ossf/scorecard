@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -337,6 +338,58 @@ func fileIsInVendorDir(pathfn string) bool {
 	return false
 }
 
+var reDockerfileSyntaxDirective = regexp.MustCompile(`(?i)^\s*#\s*syntax(\s*[=:]|\s*$)`)
+
+func sanitizeDockerfileContent(content []byte) []byte {
+	scanner := bufio.NewScanner(bytes.NewReader(content))
+	var buf bytes.Buffer
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+		if reDockerfileSyntaxDirective.MatchString(trimmed) {
+			line = "# syntax-directive: " + strings.TrimLeft(trimmed, "# \t")
+			line = strings.TrimRight(line, "\\ \t")
+		} else {
+			line = stripInlineComment(line)
+		}
+		buf.WriteString(line)
+		buf.WriteByte('\n')
+	}
+	return buf.Bytes()
+}
+
+func stripInlineComment(line string) string {
+	trimmed := strings.TrimSpace(line)
+	upper := strings.ToUpper(trimmed)
+	if !strings.HasPrefix(upper, "ENV ") && !strings.HasPrefix(upper, "LABEL ") {
+		return line
+	}
+
+	inSingleQuote := false
+	inDoubleQuote := false
+	for i := 0; i < len(line); i++ {
+		ch := line[i]
+		if ch == '\\' && i+1 < len(line) {
+			i++
+			continue
+		}
+		if ch == '\'' && !inDoubleQuote {
+			inSingleQuote = !inSingleQuote
+			continue
+		}
+		if ch == '"' && !inSingleQuote {
+			inDoubleQuote = !inDoubleQuote
+			continue
+		}
+		if ch == '#' && !inSingleQuote && !inDoubleQuote {
+			if i > 0 && (line[i-1] == ' ' || line[i-1] == '\t') {
+				return strings.TrimRight(line[:i], " \t")
+			}
+		}
+	}
+	return line
+}
+
 var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = func(
 	pathfn string,
 	content []byte,
@@ -363,7 +416,7 @@ var validateDockerfileInsecureDownloads fileparser.DoWhileTrueOnFileContent = fu
 		return true, nil
 	}
 
-	contentReader := bytes.NewReader(content)
+	contentReader := bytes.NewReader(sanitizeDockerfileContent(content))
 	res, err := parser.Parse(contentReader)
 	if err != nil {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("%v: %v", errInternalInvalidDockerFile, err))
@@ -486,7 +539,7 @@ var validateDockerfilesPinning fileparser.DoWhileTrueOnFileContent = func(
 
 	// We have what looks like a docker file.
 	// Let's interpret the content as utf8-encoded strings.
-	contentReader := bytes.NewReader(content)
+	contentReader := bytes.NewReader(sanitizeDockerfileContent(content))
 	// The dependency must be pinned by sha256 hash, e.g.,
 	// FROM something@sha256:${ARG},
 	// FROM something:@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2
