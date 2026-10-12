@@ -511,7 +511,9 @@ checks:
         If your project is producing an application, declare all your dependencies with specific versions in your package
         format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget).
         For C/C++, check in the code from a trusted source and add a `README` on the
-        specific version used (and the archive SHA hashes).
+        specific version used (and the archive SHA hashes). For shell scripts that
+        download and run artifacts during the build or release, download the artifact
+        first, verify it against a trusted full-length SHA256 checksum, then execute it.
       - >-
         If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for
         npm), make sure to check these in the source code as well. These files
