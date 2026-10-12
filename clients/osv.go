@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"regexp"
 	"runtime/debug"
 
 	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
@@ -49,7 +51,35 @@ func NewOSVClient(config *OSVConfig) VulnerabilitiesClient {
 	return cfg
 }
 
-func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanner.ScannerActions {
+func (v osvClient) scannerActions(
+	directoryPaths, gitCommits []string,
+) (osvscanner.ScannerActions, error) {
+	var excludePatterns []string
+	for _, directory := range directoryPaths {
+		absolute, err := filepath.Abs(directory)
+		if err != nil {
+			return osvscanner.ScannerActions{}, fmt.Errorf("resolve scan directory: %w", err)
+		}
+
+		// SCALIBR matches paths relative to the filesystem root.
+		filesystemRoot := filepath.VolumeName(absolute) + string(filepath.Separator)
+		relative, err := filepath.Rel(filesystemRoot, absolute)
+		if err != nil {
+			return osvscanner.ScannerActions{}, fmt.Errorf("resolve relative scan directory: %w", err)
+		}
+
+		prefix := ""
+		if relative != "." {
+			prefix = filepath.ToSlash(relative) + "/"
+		}
+
+		// Match test-data directories only beneath this repository.
+		// Preserve the repository path's case; ignore case only for testdata.
+		excludePatterns = append(excludePatterns,
+			`r:^/?`+regexp.QuoteMeta(prefix)+`(?:[^/]+/)*(?i:testdata)(/|$)`,
+		)
+	}
+
 	return osvscanner.ScannerActions{
 		DirectoryPaths:    directoryPaths,
 		IncludeGitRoot:    false,
@@ -58,6 +88,7 @@ func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanne
 		CompareOffline:    v.local,
 		DownloadDatabases: v.local,
 		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
+			ExcludePatterns:  excludePatterns,
 			PluginsEnabled:   []string{"python/requirements"},
 			PluginsDisabled:  []string{transitiverequirements.Name},
 			RequestUserAgent: v.requestUserAgent,
@@ -67,7 +98,7 @@ func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanne
 				Disabled: v.local,
 			},
 		},
-	}
+	}, nil
 }
 
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
@@ -92,7 +123,10 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		gitCommits = append(gitCommits, commit)
 	}
 
-	actions := v.scannerActions(directoryPaths, gitCommits)
+	actions, err := v.scannerActions(directoryPaths, gitCommits)
+	if err != nil {
+		return VulnerabilitiesResponse{}, fmt.Errorf("scannerActions: %w", err)
+	}
 	res, err := osvscanner.DoScan(actions) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
