@@ -696,16 +696,45 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 			// We replace the `${{ github.variable }}` to avoid shell parsing failures.
 			script := githubVarRegex.ReplaceAll([]byte(run), []byte("GITHUB_REDACTED_VAR"))
-			if err := validateShellFile(pathfn, uint(execRun.Run.Pos.Line), uint(execRun.Run.Pos.Line),
+			// Shell lines are 1-based. Block scalars begin on the next line; other scalars begin on Pos.Line.
+			startLine := uint(execRun.Run.Pos.Line)
+			if execRun.Run.Pos.Line > 0 && !fileparser.IsWorkflowRunBlockScalar(content, execRun.Run.Pos) {
+				startLine--
+			}
+			// Parse errors store the base line, so shift them back onto the run line.
+			parseErrors := len(pdata.ProcessingErrors)
+			if err := validateShellFile(pathfn, startLine, startLine,
 				script, taintedFiles, pdata); err != nil {
 				pdata.Dependencies = append(pdata.Dependencies, checker.Dependency{
 					Msg: asPointer(err.Error()),
 				})
 			}
+			if execRun.Run.Pos.Line > 0 && startLine != uint(execRun.Run.Pos.Line) {
+				retargetShellParseErrors(
+					pdata.ProcessingErrors[parseErrors:],
+					startLine,
+					uint(execRun.Run.Pos.Line),
+				)
+			}
 		}
 	}
 
 	return true, nil
+}
+
+// retargetShellParseErrors moves parse errors recorded at from onto to.
+func retargetShellParseErrors(errs []checker.ElementError, from, to uint) {
+	for i := range errs {
+		loc := &errs[i].Location
+		if loc.LineStart != nil && *loc.LineStart == from {
+			line := to
+			loc.LineStart = &line
+		}
+		if loc.LineEnd != nil && *loc.LineEnd == from {
+			line := to
+			loc.LineEnd = &line
+		}
+	}
 }
 
 // Check pinning of github actions in workflows.

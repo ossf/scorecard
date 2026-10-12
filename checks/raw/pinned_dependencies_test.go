@@ -1920,6 +1920,29 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 				},
 			},
 		},
+		{
+			// Regression for https://github.com/ossf/scorecard/issues/2490.
+			// The block scalar command is the line after the indicator.
+			// The plain scalar command is on the run line.
+			name:     "block and inline downloadThenRun",
+			filename: "./testdata/.github/workflows/github-workflow-download-run-line-numbers.yaml",
+			expected: []struct {
+				snippet   string
+				startLine uint
+				endLine   uint
+			}{
+				{
+					snippet:   "curl bla | bash",
+					startLine: 7,
+					endLine:   7,
+				},
+				{
+					snippet:   "curl bla | bash",
+					startLine: 8,
+					endLine:   8,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1951,6 +1974,40 @@ func TestGitHubWorkInsecureDownloadsLineNumber(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestGitHubWorkflowRunParseErrorLine(t *testing.T) {
+	t.Parallel()
+
+	// The block script is the line under `|`. The inline script is on the run line.
+	// Parse errors do not add a shell-node offset, so both stay on the run scalar.
+	content := []byte(strings.Join([]string{
+		"on: push",
+		"jobs:",
+		"  jobOne:",
+		"    runs-on: ubuntu-latest",
+		"    steps:",
+		"      - run: |",
+		"          fi",
+		"      - run: fi",
+		"",
+	}, "\n"))
+
+	var r checker.PinningDependenciesData
+	_, err := validateGitHubWorkflowIsFreeOfInsecureDownloads(".github/workflows/parse-error.yaml", content, &r)
+	if err != nil {
+		t.Fatalf("validateGitHubWorkflowIsFreeOfInsecureDownloads: %v", err)
+	}
+	want := []uint{6, 8}
+	if len(r.ProcessingErrors) != len(want) {
+		t.Fatalf("got %d processing errors, want %d", len(r.ProcessingErrors), len(want))
+	}
+	for i, line := range want {
+		loc := r.ProcessingErrors[i].Location
+		if loc.LineStart == nil || loc.LineEnd == nil || *loc.LineStart != line || *loc.LineEnd != line {
+			t.Errorf("processing error %d lines = %v-%v, want %d-%d", i, loc.LineStart, loc.LineEnd, line, line)
+		}
 	}
 }
 
