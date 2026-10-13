@@ -371,6 +371,21 @@ func (mr *MockRepoClientMockRecorder) LocalPath() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LocalPath", reflect.TypeOf((*MockRepoClient)(nil).LocalPath))
 }
 
+// PrivateVulnerabilityReportingEnabled mocks base method.
+func (m *MockRepoClient) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PrivateVulnerabilityReportingEnabled")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PrivateVulnerabilityReportingEnabled indicates an expected call of PrivateVulnerabilityReportingEnabled.
+func (mr *MockRepoClientMockRecorder) PrivateVulnerabilityReportingEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrivateVulnerabilityReportingEnabled", reflect.TypeOf((*MockRepoClient)(nil).PrivateVulnerabilityReportingEnabled))
+}
+
 // Search mocks base method.
 func (m *MockRepoClient) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	m.ctrl.T.Helper()
