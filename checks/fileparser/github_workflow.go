@@ -426,7 +426,7 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *ghworkflow.Step) bool {
 		}
 		for keyToMatch, valToMatch := range stepToMatch.With {
 			input, ok := with[keyToMatch]
-			if !ok || input == nil || input.Value == nil || input.Value.Value != valToMatch {
+			if !ok || input == nil || input.Value == nil || !withValueMatches(input.Value.Value, valToMatch) {
 				return false
 			}
 		}
@@ -446,6 +446,13 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *ghworkflow.Step) bool {
 	}
 
 	return true
+}
+
+// withValueMatches reports whether a step's `with` input equals the expected value.
+// URL inputs are compared without a trailing slash: actions/setup-node accepts
+// both `https://registry.npmjs.org` and `https://registry.npmjs.org/` for `registry-url`.
+func withValueMatches(got, want string) bool {
+	return strings.TrimSuffix(got, "/") == strings.TrimSuffix(want, "/")
 }
 
 // IsPackagingWorkflow checks for a packaging workflow.
