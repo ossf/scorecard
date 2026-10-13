@@ -411,6 +411,21 @@ For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
 If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 
 
+## publishesWithOIDC
+
+**Lifecycle**: experimental
+
+**Description**: Checks whether package publishing uses OpenID Connect rather than a long-lived credential.
+
+**Motivation**: Trusted publishing lets a GitHub Actions workflow authenticate to a package registry with a short-lived OIDC identity. That removes long-lived API tokens from the repository and ties the published artifact to the workflow run.
+
+**Implementation**: For PyPI, npm, RubyGems, crates.io, and pub.dev, the probe reads the packaging workflow. Publishing is OIDC when the effective permissions grant id-token: write and the workflow does not also pass a long-lived token. A job-level permissions block replaces the workflow permissions. Other packaging workflows are not classified.
+
+**Outcomes**: If a classified workflow publishes with OpenID Connect, the outcome is positive.
+If a classified workflow publishes with a long-lived token or password, the outcome is negative.
+If no classified publishing workflow is present, the outcome is not applicable.
+
+
 ## releasesAreSigned
 
 **Lifecycle**: stable

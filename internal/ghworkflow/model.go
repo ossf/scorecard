@@ -156,6 +156,7 @@ type Step struct {
 	If   *String
 	Name *String
 	Exec Exec
+	Env  *Env
 	Pos  *Pos
 }
 
