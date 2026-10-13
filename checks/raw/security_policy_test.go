@@ -23,6 +23,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -137,6 +138,8 @@ func TestSecurityPolicy(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepo(ctrl)
 
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepoClient.EXPECT().PrivateVulnerabilityReportingEnabled().
+				Return(false, clients.ErrUnsupportedFeature).AnyTimes()
 			// the revised Security Policy will immediate go for the
 			// file contents once found. This test will return that
 			// mock file, but this specific unit test is not testing
