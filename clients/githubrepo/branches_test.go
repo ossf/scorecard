@@ -670,3 +670,727 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyRepoRulesRedundantBypass(t *testing.T) {
+	t.Parallel()
+
+	for _, bypassFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+			t.Parallel()
+
+			enforced := ruleSet(withRules(&repoRule{Type: ruleDeletion}))
+			bypass := ruleSet(
+				withRules(&repoRule{Type: ruleDeletion}),
+				withBypass(),
+			)
+
+			rules := []*repoRuleSet{enforced, bypass}
+			if bypassFirst {
+				rules = []*repoRuleSet{bypass, enforced}
+			}
+
+			got := &clients.BranchRef{}
+			applyRepoRules(got, rules)
+
+			want := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(false),
+					AllowForcePushes:     asPtr(true),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(true),
+					PullRequestRule: clients.PullRequestRule{
+						Required: asPtr(false),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("branch protection mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesAdditionalBypassProtection(t *testing.T) {
+	t.Parallel()
+
+	for _, bypassFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+			t.Parallel()
+
+			enforced := ruleSet(withRules(&repoRule{Type: ruleDeletion}))
+			bypass := ruleSet(
+				withRules(&repoRule{Type: ruleForcePush}),
+				withBypass(),
+			)
+
+			rules := []*repoRuleSet{enforced, bypass}
+			if bypassFirst {
+				rules = []*repoRuleSet{bypass, enforced}
+			}
+
+			got := &clients.BranchRef{}
+			applyRepoRules(got, rules)
+
+			want := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(false),
+					AllowForcePushes:     asPtr(false),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(false),
+					PullRequestRule: clients.PullRequestRule{
+						Required: asPtr(false),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("branch protection mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesBypassParameters(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		enforcedRule *repoRule
+		bypassRule   *repoRule
+		name         string
+		wantEnforced bool
+	}{
+		{
+			name:         "fewer required approvals are covered",
+			enforcedRule: reviewCountRule(2),
+			bypassRule:   reviewCountRule(1),
+			wantEnforced: true,
+		},
+		{
+			name:         "equal required approvals are covered",
+			enforcedRule: reviewCountRule(2),
+			bypassRule:   reviewCountRule(2),
+			wantEnforced: true,
+		},
+		{
+			name:         "more required approvals add protection",
+			enforcedRule: reviewCountRule(1),
+			bypassRule:   reviewCountRule(2),
+			wantEnforced: false,
+		},
+		{
+			name:         "existing status check is covered",
+			enforcedRule: statusContextsRule("build", "test"),
+			bypassRule:   statusContextsRule("build"),
+			wantEnforced: true,
+		},
+		{
+			name:         "different status check adds protection",
+			enforcedRule: statusContextsRule("build"),
+			bypassRule:   statusContextsRule("test"),
+			wantEnforced: false,
+		},
+		{
+			name:         "additional status check adds protection",
+			enforcedRule: statusContextsRule("build"),
+			bypassRule:   statusContextsRule("build", "test"),
+			wantEnforced: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, bypassFirst := range []bool{false, true} {
+				t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+					t.Parallel()
+
+					enforced := ruleSet(withRules(tt.enforcedRule))
+					bypass := ruleSet(withRules(tt.bypassRule), withBypass())
+
+					rules := []*repoRuleSet{enforced, bypass}
+					if bypassFirst {
+						rules = []*repoRuleSet{bypass, enforced}
+					}
+
+					got := &clients.BranchRef{}
+					applyRepoRules(got, rules)
+
+					admins := got.BranchProtectionRule.EnforceAdmins
+					if admins == nil {
+						t.Fatal("EnforceAdmins is nil")
+					}
+					if *admins != tt.wantEnforced {
+						t.Errorf("EnforceAdmins = %t, want %t",
+							*admins, tt.wantEnforced)
+					}
+				})
+			}
+		})
+	}
+}
+
+func reviewCountRule(count int32) *repoRule {
+	return &repoRule{
+		Type: rulePullRequest,
+		Parameters: repoRulesParameters{
+			PullRequestParameters: pullRequestRuleParameters{
+				RequiredApprovingReviewCount: asPtr(count),
+			},
+		},
+	}
+}
+
+func statusContextsRule(contexts ...string) *repoRule {
+	rule := &repoRule{Type: ruleStatusCheck}
+	for _, context := range contexts {
+		rule.Parameters.StatusCheckParameters.RequiredStatusChecks = append(
+			rule.Parameters.StatusCheckParameters.RequiredStatusChecks,
+			statusCheck{Context: asPtr(context)},
+		)
+	}
+	return rule
+}
+
+func TestApplyRepoRulesClassicAdminCoverage(t *testing.T) {
+	t.Parallel()
+
+	for _, adminEnforced := range []bool{false, true} {
+		t.Run(fmt.Sprintf("classic_admin_enforced_%t", adminEnforced), func(t *testing.T) {
+			t.Parallel()
+
+			got := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions: asPtr(false),
+					EnforceAdmins:  asPtr(adminEnforced),
+				},
+			}
+			rules := []*repoRuleSet{
+				ruleSet(withRules(&repoRule{Type: ruleDeletion}), withBypass()),
+			}
+
+			applyRepoRules(got, rules)
+
+			admins := got.BranchProtectionRule.EnforceAdmins
+			if admins == nil {
+				t.Fatal("EnforceAdmins is nil")
+			}
+			if *admins != adminEnforced {
+				t.Errorf("EnforceAdmins = %t, want %t", *admins, adminEnforced)
+			}
+			if valueOrZero(got.BranchProtectionRule.AllowDeletions) {
+				t.Error("branch deletion protection was lost")
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesBypassCannotCoverBypass(t *testing.T) {
+	t.Parallel()
+
+	got := &clients.BranchRef{}
+	rules := []*repoRuleSet{
+		ruleSet(withRules(&repoRule{Type: ruleDeletion})),
+		ruleSet(withRules(&repoRule{Type: ruleForcePush}), withBypass()),
+		ruleSet(withRules(&repoRule{Type: ruleForcePush}), withBypass()),
+	}
+
+	applyRepoRules(got, rules)
+
+	admins := got.BranchProtectionRule.EnforceAdmins
+	if admins == nil {
+		t.Fatal("EnforceAdmins is nil")
+	}
+	if *admins {
+		t.Error("bypassable force-push protection must not enforce admins")
+	}
+	if valueOrZero(got.BranchProtectionRule.AllowDeletions) ||
+		valueOrZero(got.BranchProtectionRule.AllowForcePushes) {
+		t.Error("merged branch protections were lost")
+	}
+}
+
+func TestApplyRepoRulesUnrepresentedBypassProtection(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		enforcedRule *repoRule
+		bypassRule   *repoRule
+		name         string
+	}{
+		{
+			enforcedRule: &repoRule{Type: ruleDeletion},
+			bypassRule:   &repoRule{Type: "REQUIRED_SIGNATURES"},
+			name:         "untranslated rule",
+		},
+		{
+			enforcedRule: reviewCountRule(2),
+			bypassRule: &repoRule{
+				Type: rulePullRequest,
+				Parameters: repoRulesParameters{
+					PullRequestParameters: pullRequestRuleParameters{
+						RequiredApprovingReviewCount:   asPtr[int32](2),
+						RequiredReviewThreadResolution: asPtr(true),
+					},
+				},
+			},
+			name: "review thread resolution",
+		},
+		{
+			enforcedRule: statusContextsRule("build"),
+			bypassRule: &repoRule{
+				Type: ruleStatusCheck,
+				Parameters: repoRulesParameters{
+					StatusCheckParameters: requiredStatusCheckParameters{
+						RequiredStatusChecks: []statusCheck{
+							{
+								Context:       asPtr("build"),
+								IntegrationID: asPtr[int64](123),
+							},
+						},
+					},
+				},
+			},
+			name: "status check tied to an integration",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, bypassFirst := range []bool{false, true} {
+				t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+					t.Parallel()
+
+					enforced := ruleSet(withRules(tt.enforcedRule))
+					bypass := ruleSet(withRules(tt.bypassRule), withBypass())
+					rules := []*repoRuleSet{enforced, bypass}
+					if bypassFirst {
+						rules = []*repoRuleSet{bypass, enforced}
+					}
+
+					got := &clients.BranchRef{}
+					applyRepoRules(got, rules)
+
+					admins := got.BranchProtectionRule.EnforceAdmins
+					if admins == nil {
+						t.Fatal("EnforceAdmins is nil")
+					}
+					if *admins {
+						t.Error("unrepresented bypass protection must not enforce admins")
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesBypassBooleanSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		makeRule func(bool) *repoRule
+		name     string
+	}{
+		{
+			makeRule: func(enabled bool) *repoRule {
+				return &repoRule{
+					Type: rulePullRequest,
+					Parameters: repoRulesParameters{
+						PullRequestParameters: pullRequestRuleParameters{
+							DismissStaleReviewsOnPush: asPtr(enabled),
+						},
+					},
+				}
+			},
+			name: "dismiss stale reviews",
+		},
+		{
+			makeRule: func(enabled bool) *repoRule {
+				return &repoRule{
+					Type: rulePullRequest,
+					Parameters: repoRulesParameters{
+						PullRequestParameters: pullRequestRuleParameters{
+							RequireCodeOwnerReview: asPtr(enabled),
+						},
+					},
+				}
+			},
+			name: "code owner reviews",
+		},
+		{
+			makeRule: func(enabled bool) *repoRule {
+				return &repoRule{
+					Type: rulePullRequest,
+					Parameters: repoRulesParameters{
+						PullRequestParameters: pullRequestRuleParameters{
+							RequireLastPushApproval: asPtr(enabled),
+						},
+					},
+				}
+			},
+			name: "last push approval",
+		},
+		{
+			makeRule: func(enabled bool) *repoRule {
+				rule := statusContextsRule("build")
+				rule.Parameters.StatusCheckParameters.StrictRequiredStatusChecksPolicy = asPtr(enabled)
+				return rule
+			},
+			name: "strict status checks",
+		},
+		{
+			makeRule: func(enabled bool) *repoRule {
+				ruleTypes := map[bool]string{
+					false: ruleDeletion,
+					true:  ruleLinear,
+				}
+				return &repoRule{Type: ruleTypes[enabled]}
+			},
+			name: "linear history",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, alreadyEnforced := range []bool{false, true} {
+				t.Run(fmt.Sprintf("already_enforced_%t", alreadyEnforced), func(t *testing.T) {
+					t.Parallel()
+
+					for _, bypassFirst := range []bool{false, true} {
+						t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+							t.Parallel()
+
+							enforced := ruleSet(withRules(tt.makeRule(alreadyEnforced)))
+							bypass := ruleSet(withRules(tt.makeRule(true)), withBypass())
+							rules := []*repoRuleSet{enforced, bypass}
+							if bypassFirst {
+								rules = []*repoRuleSet{bypass, enforced}
+							}
+
+							got := &clients.BranchRef{}
+							applyRepoRules(got, rules)
+
+							admins := got.BranchProtectionRule.EnforceAdmins
+							if admins == nil {
+								t.Fatal("EnforceAdmins is nil")
+							}
+							if *admins != alreadyEnforced {
+								t.Errorf("EnforceAdmins = %t, want %t",
+									*admins, alreadyEnforced)
+							}
+						})
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesCombinedCoverage(t *testing.T) {
+	t.Parallel()
+
+	orders := [][]int{
+		{0, 1, 2},
+		{0, 2, 1},
+		{1, 0, 2},
+		{1, 2, 0},
+		{2, 0, 1},
+		{2, 1, 0},
+	}
+
+	for _, order := range orders {
+		t.Run(fmt.Sprint(order), func(t *testing.T) {
+			t.Parallel()
+
+			input := []*repoRuleSet{
+				ruleSet(withRules(&repoRule{Type: ruleDeletion})),
+				ruleSet(withRules(&repoRule{Type: ruleForcePush})),
+				ruleSet(
+					withRules(
+						&repoRule{Type: ruleDeletion},
+						&repoRule{Type: ruleForcePush},
+					),
+					withBypass(),
+				),
+			}
+
+			rules := make([]*repoRuleSet, 0, len(order))
+			for _, index := range order {
+				rules = append(rules, input[index])
+			}
+
+			got := &clients.BranchRef{}
+			applyRepoRules(got, rules)
+
+			want := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(false),
+					AllowForcePushes:     asPtr(false),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(true),
+					PullRequestRule: clients.PullRequestRule{
+						Required: asPtr(false),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("branch protection mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesCoversClassicAdminBypass(t *testing.T) {
+	t.Parallel()
+
+	for _, bypassFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+			t.Parallel()
+
+			got := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(true),
+					AllowForcePushes:     asPtr(true),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(false),
+					PullRequestRule: clients.PullRequestRule{
+						Required:                     asPtr(true),
+						RequiredApprovingReviewCount: asPtr[int32](1),
+					},
+				},
+			}
+
+			enforced := ruleSet(withRules(reviewCountRule(2)))
+			bypass := ruleSet(withRules(reviewCountRule(1)), withBypass())
+			rules := []*repoRuleSet{enforced, bypass}
+			if bypassFirst {
+				rules = []*repoRuleSet{bypass, enforced}
+			}
+
+			applyRepoRules(got, rules)
+
+			want := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(true),
+					AllowForcePushes:     asPtr(true),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(true),
+					PullRequestRule: clients.PullRequestRule{
+						Required:                     asPtr(true),
+						RequiredApprovingReviewCount: asPtr[int32](2),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("branch protection mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesPartialClassicAdminCoverage(t *testing.T) {
+	t.Parallel()
+
+	for _, bypassFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+			t.Parallel()
+
+			got := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(true),
+					AllowForcePushes:     asPtr(true),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(false),
+					PullRequestRule: clients.PullRequestRule{
+						Required:                     asPtr(true),
+						RequiredApprovingReviewCount: asPtr[int32](1),
+					},
+				},
+			}
+
+			enforced := ruleSet(withRules(&repoRule{Type: ruleDeletion}))
+			bypass := ruleSet(
+				withRules(&repoRule{Type: ruleDeletion}),
+				withBypass(),
+			)
+			rules := []*repoRuleSet{enforced, bypass}
+			if bypassFirst {
+				rules = []*repoRuleSet{bypass, enforced}
+			}
+
+			applyRepoRules(got, rules)
+
+			want := &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       asPtr(false),
+					AllowForcePushes:     asPtr(true),
+					RequireLinearHistory: asPtr(false),
+					EnforceAdmins:        asPtr(false),
+					PullRequestRule: clients.PullRequestRule{
+						Required:                     asPtr(true),
+						RequiredApprovingReviewCount: asPtr[int32](1),
+					},
+				},
+			}
+
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("branch protection mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesCoveredDetailedParameters(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		makeRule func() *repoRule
+		name     string
+	}{
+		{
+			makeRule: func() *repoRule {
+				rule := reviewCountRule(2)
+				rule.Parameters.PullRequestParameters.RequiredReviewThreadResolution = asPtr(true)
+				return rule
+			},
+			name: "review thread resolution",
+		},
+		{
+			makeRule: func() *repoRule {
+				rule := statusContextsRule("build")
+				rule.Parameters.StatusCheckParameters.RequiredStatusChecks[0].IntegrationID = asPtr[int64](123)
+				return rule
+			},
+			name: "same status check integration",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, bypassFirst := range []bool{false, true} {
+				t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+					t.Parallel()
+
+					enforced := ruleSet(withRules(tt.makeRule()))
+					bypass := ruleSet(withRules(tt.makeRule()), withBypass())
+					rules := []*repoRuleSet{enforced, bypass}
+					if bypassFirst {
+						rules = []*repoRuleSet{bypass, enforced}
+					}
+
+					got := &clients.BranchRef{}
+					applyRepoRules(got, rules)
+
+					admins := got.BranchProtectionRule.EnforceAdmins
+					if admins == nil {
+						t.Fatal("EnforceAdmins is nil")
+					}
+					if !*admins {
+						t.Error("covered bypass protection must enforce admins")
+					}
+				})
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesDifferentStatusCheckIntegration(t *testing.T) {
+	t.Parallel()
+
+	for _, bypassFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+			t.Parallel()
+
+			enforcedRule := statusContextsRule("build")
+			enforcedRule.Parameters.StatusCheckParameters.
+				RequiredStatusChecks[0].IntegrationID = asPtr[int64](123)
+
+			bypassRule := statusContextsRule("build")
+			bypassRule.Parameters.StatusCheckParameters.
+				RequiredStatusChecks[0].IntegrationID = asPtr[int64](456)
+
+			enforced := ruleSet(withRules(enforcedRule))
+			bypass := ruleSet(withRules(bypassRule), withBypass())
+			rules := []*repoRuleSet{enforced, bypass}
+			if bypassFirst {
+				rules = []*repoRuleSet{bypass, enforced}
+			}
+
+			got := &clients.BranchRef{}
+			applyRepoRules(got, rules)
+
+			admins := got.BranchProtectionRule.EnforceAdmins
+			if admins == nil {
+				t.Fatal("EnforceAdmins is nil")
+			}
+			if *admins {
+				t.Error("a different integration must not count as covered")
+			}
+		})
+	}
+}
+
+func TestApplyRepoRulesParameterlessCoverage(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		ruleType string
+		covered  bool
+	}{
+		{ruleType: "CREATION", covered: false},
+		{ruleType: "CREATION", covered: true},
+		{ruleType: "REQUIRED_SIGNATURES", covered: false},
+		{ruleType: "REQUIRED_SIGNATURES", covered: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("%s/covered_%t", tt.ruleType, tt.covered), func(t *testing.T) {
+			t.Parallel()
+
+			for _, bypassFirst := range []bool{false, true} {
+				t.Run(fmt.Sprintf("bypass_first_%t", bypassFirst), func(t *testing.T) {
+					t.Parallel()
+
+					enforced := ruleSet(
+						withRules(&repoRule{Type: ruleDeletion}),
+					)
+					if tt.covered {
+						enforced.Rules.Nodes = append(
+							enforced.Rules.Nodes,
+							&repoRule{Type: tt.ruleType},
+						)
+					}
+
+					bypass := ruleSet(
+						withRules(&repoRule{Type: tt.ruleType}),
+						withBypass(),
+					)
+					rules := []*repoRuleSet{enforced, bypass}
+					if bypassFirst {
+						rules = []*repoRuleSet{bypass, enforced}
+					}
+
+					got := &clients.BranchRef{}
+					applyRepoRules(got, rules)
+
+					admins := got.BranchProtectionRule.EnforceAdmins
+					if admins == nil {
+						t.Fatal("EnforceAdmins is nil")
+					}
+					if *admins != tt.covered {
+						t.Errorf("EnforceAdmins = %t, want %t", *admins, tt.covered)
+					}
+				})
+			}
+		})
+	}
+}
