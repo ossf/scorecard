@@ -16,6 +16,12 @@ context: |
   and in-toto formats. Policies (policy/) select checks and drive SARIF
   output; the attestor (attestor/) has its own policy format.
 
+  Current versus target state: openspec/specs/ describes v5 behavior as
+  built, including known defects, so that fixing a defect shows up as an
+  explicit spec delta. The changes/osps-baseline-conformance proposal
+  describes a v6 target (checks and conformance in one run) and is not
+  current behavior; in v5, running probes directly skips checks.
+
   Conventions: see AGENTS.md and CONTRIBUTING.md. Changes to score results
   need strong justification and an issue first. Adding a check follows
   checks/write.md; adding a probe follows probes/README.md. PR titles carry
@@ -28,3 +34,10 @@ rules:
     - Describe observable behavior (inputs, outputs, scores, errors, flags,
       environment variables), not internal Go identifiers
     - Every requirement uses SHALL or MUST and has at least one scenario
+    - Record current behavior, including defects; put intended corrections
+      in a change under openspec/changes/
+    - State each behavior in exactly one capability and refer to it from
+      others; see openspec/README.md for ownership
+  proposal:
+    - Say whether each claim describes current behavior or a target state
+    - Name every affected capability by its path under openspec/specs/
