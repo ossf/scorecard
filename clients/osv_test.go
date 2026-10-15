@@ -19,6 +19,8 @@ import (
 	"testing"
 
 	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
+	"github.com/google/osv-scanner/v2/pkg/models"
+	"github.com/ossf/osv-schema/bindings/go/osvschema"
 )
 
 func TestRemoveDuplicate(t *testing.T) {
@@ -79,5 +81,55 @@ func TestLocalClientDisablesTransitiveScanning(t *testing.T) {
 	actions := (osvClient{local: true}).scannerActions(nil, nil)
 	if !actions.TransitiveScanning.Disabled {
 		t.Fatal("local client must disable transitive scanning to stay offline")
+	}
+}
+
+func TestCollectVulnerabilities(t *testing.T) {
+	t.Parallel()
+	result := func(ecosystem, name, version, id string) models.VulnerabilityFlattened {
+		return models.VulnerabilityFlattened{
+			Package:       models.PackageInfo{Ecosystem: ecosystem, Name: name, Version: version},
+			Vulnerability: &osvschema.Vulnerability{Id: id},
+		}
+	}
+	vulns := []models.VulnerabilityFlattened{
+		result("Go", "stdlib", "1.22.0", "GO-STDLIB"),
+		result("Maven", "org.apache.tomcat:tomcat-juli", "@MAVEN.DEPLOY.VERSION@", "GHSA-PLACEHOLDER"),
+		result("Maven", "org.apache.logging.log4j:log4j-core", "2.14.1", "GHSA-REAL"),
+		result("npm", "tar", "4.4.8", "GHSA-NPM"),
+		result("npm", "tar", "4.4.13", "GHSA-NPM"),
+	}
+	var got []string
+	for _, v := range collectVulnerabilities(vulns) {
+		got = append(got, v.ID)
+	}
+	want := []string{"GHSA-REAL", "GHSA-NPM"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func TestIsPlaceholderVersion(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		version string
+		want    bool
+	}{
+		{version: "@MAVEN.DEPLOY.VERSION@", want: true},
+		{version: "${project.version}", want: true},
+		{version: "1.0-${revision}", want: true},
+		{version: "11.0.0", want: false},
+		{version: "2.17.1", want: false},
+		{version: "1.0.0-SNAPSHOT", want: false},
+		{version: "r09", want: false},
+		{version: "", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.version, func(t *testing.T) {
+			t.Parallel()
+			if got := isPlaceholderVersion(tt.version); got != tt.want {
+				t.Errorf("isPlaceholderVersion(%q) = %v, want %v", tt.version, got, tt.want)
+			}
+		})
 	}
 }
