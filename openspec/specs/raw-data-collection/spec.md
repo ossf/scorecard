@@ -122,6 +122,34 @@ listing for SAST.
 - **WHEN** the SBOM raw data is collected
 - **THEN** release assets are skipped and source files are still searched
 
+### Requirement: Result Repository Metadata
+
+For a repository with at least one commit, the system SHALL record, before
+any check or probe runs, raw metadata with these keys: `repository.host`,
+`repository.name` (the URI without the host prefix), `repository.uri`,
+`repository.sha1` (the SHA of the first commit the client lists, or `unknown`
+when the client cannot list commits, as for local directories),
+`repository.defaultBranch`, and `localPath` (the client's local checkout
+path, which may be empty). When the client reports that default-branch lookup
+is unsupported, `repository.defaultBranch` SHALL be `unknown`; any other
+default-branch lookup error SHALL end the run with an internal error
+beginning `GetDefaultBranchName:`.
+
+#### Scenario: Remote repository metadata
+
+- **GIVEN** `github.com/org/repo` with default branch `main`
+- **WHEN** Scorecard scans it
+- **THEN** the raw metadata has `repository.host` `github.com`,
+  `repository.name` `org/repo`, and `repository.defaultBranch` `main`
+- **AND** `repository.sha1` is the SHA of the first listed commit
+
+#### Scenario: Local directory metadata
+
+- **WHEN** Scorecard scans a local directory
+- **THEN** the raw metadata has `repository.sha1` and
+  `repository.defaultBranch` set to `unknown`
+- **AND** `localPath` is the directory's absolute path
+
 ### Requirement: Binary Artifact Detection
 
 The system SHALL scan every non-excluded file and read up to its first 1024
@@ -586,10 +614,9 @@ When unpinned NuGet commands are found, the system SHALL read
 enabled and every `PackageVersion` uses an exact bracketed version such as
 `[1.2.3]`, or if central package management is off and every project file
 sets `RestoreLockedMode`, the system SHALL mark all NuGet commands as
-pinned. When only some versions are exact or only some project files set
-locked mode, the remediation text SHALL list the offending versions or
-files. Malformed props or project files SHALL be logged as warnings and
-skipped.
+pinned. The remediation for partially locked configurations is defined in
+`remediation` (NuGet Pinning Suggestion). Malformed props or project files
+SHALL be logged as warnings and skipped.
 
 #### Scenario: All projects locked
 
@@ -630,8 +657,8 @@ The system SHALL record SBOM files that match `.cdx.json`, `.cdx.xml`,
 or `.spdx.rdf.xml` (case-insensitive), both as top-level repository files
 that do not start with a dot and as release assets. For releases, the
 system SHALL inspect only the 5 most recent releases and record at most one
-SBOM asset per release. When run as a check, SBOM data SHALL be collected
-only if the `SCORECARD_EXPERIMENTAL` environment variable is set.
+SBOM asset per release. Experimental gating of the SBOM check is defined in
+`check-registry`.
 
 #### Scenario: Top-level SBOM
 
@@ -644,11 +671,6 @@ only if the `SCORECARD_EXPERIMENTAL` environment variable is set.
 - **GIVEN** a repository with only `docs/sbom.cdx.json`
 - **WHEN** the SBOM raw data is collected
 - **THEN** no source SBOM is recorded
-
-#### Scenario: Experimental flag missing
-
-- **WHEN** the SBOM check runs without `SCORECARD_EXPERIMENTAL` set
-- **THEN** the check reports an unsupported-check error and collects no data
 
 ### Requirement: Security Policy File Location
 

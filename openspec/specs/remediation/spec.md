@@ -8,25 +8,41 @@ the remediation section of each probe's `def.yml`, finding-specific
 suggestions generated for unpinned dependencies, and the documented
 remediation list of each check. This spec defines how that guidance is
 attached, which placeholders are substituted, and what happens when
-guidance cannot be produced.
+guidance cannot be produced. How remediation appears in each output format
+is defined in `result-formats`; the check remediation bullets are defined in
+`check-registry`.
 
 ## Requirements
 
 ### Requirement: Probe Remediation Definition
 
 Each probe's `def.yml` SHALL define a `remediation` section with
-`onOutcome`, `effort`, `text`, and `markdown`. `effort` MUST be one of
-`Low`, `Medium`, or `High`, and `onOutcome` MUST be a valid finding outcome
-(`True`, `False`, `NotApplicable`, `NotAvailable`, `NotSupported`, or
+`onOutcome`, `effort`, and `text`, and MAY define `markdown`. `effort` MUST
+be one of `Low`, `Medium`, or `High`, and `onOutcome` MUST be a valid finding
+outcome (`True`, `False`, `NotApplicable`, `NotAvailable`, `NotSupported`, or
 `Error`). A probe definition that violates either rule MUST be rejected as
-invalid. The `text` and `markdown` lists MUST each be joined with newlines
-to form the remediation text and markdown.
+invalid. Only `onOutcome` and `effort` are validated; `markdown` is optional
+and many probes omit it. The `text` and `markdown` lists MUST each be joined
+with newlines to form the remediation text and markdown.
 
 #### Scenario: Invalid effort
 
 - **GIVEN** a probe `def.yml` with `effort: Huge`
 - **WHEN** the probe definition is loaded
 - **THEN** loading fails with an "invalid" error
+
+#### Scenario: Missing effort
+
+- **GIVEN** a probe `def.yml` with no `remediation.effort`
+- **WHEN** the definition is loaded
+- **THEN** loading fails as invalid
+
+#### Scenario: Markdown omitted
+
+- **GIVEN** a probe `def.yml` whose `remediation` has no `markdown`, such as
+  `archived`
+- **WHEN** the definition is loaded
+- **THEN** loading succeeds and the remediation markdown is empty
 
 #### Scenario: Multi-line remediation
 
@@ -37,14 +53,15 @@ to form the remediation text and markdown.
 
 ### Requirement: Remediation Only on the Bad Outcome
 
-The system SHALL attach a probe's remediation to a finding only when the
-finding's outcome equals the probe's `onOutcome`. A finding with any other
-outcome MUST carry no remediation, and the remediation MUST NOT be
-restored if the outcome is later changed.
+The system SHALL create each new finding with outcome `False` and the
+remediation from the probe's definition, and SHALL keep that remediation
+only while the finding's outcome equals the probe's `onOutcome`. Setting
+any other outcome MUST remove the remediation, and the remediation MUST NOT
+be restored if the outcome is later changed back.
 
 #### Scenario: Passing finding
 
-- **GIVEN** a probe with `onOutcome: False`
+- **GIVEN** a probe with `onOutcome: False`, such as `securityPolicyPresent`
 - **WHEN** the probe produces a finding with outcome `True`
 - **THEN** the finding has no `remediation`
 
@@ -54,6 +71,12 @@ restored if the outcome is later changed.
 - **WHEN** the probe produces a finding with outcome `False`
 - **THEN** the finding's `remediation` contains the probe's `text`,
   `markdown`, and `effort`
+
+#### Scenario: Risk probe keeps remediation on True
+
+- **GIVEN** `hasDangerousWorkflowScriptInjection` has `onOutcome: True`
+- **WHEN** it emits a finding with outcome `True`
+- **THEN** the finding carries the remediation from its definition
 
 ### Requirement: Remediation Effort Encoding
 
@@ -66,6 +89,12 @@ set.
 - **GIVEN** a probe with `effort: Medium`
 - **WHEN** a failing finding is written with `--format probe`
 - **THEN** its `remediation.effort` is `2`
+
+#### Scenario: High effort
+
+- **GIVEN** `fuzzed` declares effort `High`
+- **WHEN** a `False` finding from `fuzzed` is written as JSON
+- **THEN** its `remediation.effort` is `3`
 
 ### Requirement: Location Placeholder Substitution
 
@@ -82,14 +111,12 @@ markdown with the location's path.
 ### Requirement: Metadata Placeholder Substitution
 
 The system SHALL replace `${{ metadata.<key> }}` in remediation text and
-markdown with the value supplied for `<key>` by the probe. The repository
-metadata available to probes MUST include `repository.host`,
-`repository.name`, `repository.uri`, `repository.sha1`,
-`repository.defaultBranch` (or `unknown` when the platform cannot report
-it), and `localPath`. Probes additionally supply `workflow` (the workflow
-path with `.github/workflows/` removed) for token-permission findings,
-`osvid` for vulnerability findings, and `patch` for script-injection
-findings. A placeholder whose key is not supplied MUST be left unchanged.
+markdown with the value supplied for `<key>` by the probe. Probes supply the
+repository metadata keys defined in `raw-data-collection` (Result Repository
+Metadata), and additionally `workflow` (the workflow path with
+`.github/workflows/` removed) for token-permission findings, `osvid` for
+vulnerability findings, and `patch` for script-injection findings. A
+placeholder whose key is not supplied MUST be left unchanged.
 
 #### Scenario: Token permissions link
 
@@ -197,7 +224,8 @@ treated as pinned and carry no remediation.
 ### Requirement: Dependency Suggestions Replace Probe Text
 
 The system SHALL use a dependency-specific suggestion, when one exists, as
-the remediation of the corresponding unpinned-dependency finding. An
+the remediation of the corresponding unpinned-dependency finding emitted by
+`pinsDependencies`, replacing the text from the probe's definition. An
 unpinned-dependency finding without a dependency-specific suggestion MUST
 carry no remediation.
 
@@ -206,36 +234,3 @@ carry no remediation.
 - **GIVEN** an unpinned `pip install` command in a shell script
 - **WHEN** the pinsDependencies probe runs
 - **THEN** the finding has outcome `False` and no `remediation`
-
-### Requirement: Remediation in Rendered Output
-
-The system SHALL surface remediation as follows: the `probe` format MUST
-include each finding's `remediation` object; for Pinned-Dependencies
-details in the `default`, `json`, and `intoto` formats, the remediation
-text MUST be appended to the detail line; in SARIF, a location's message
-MUST include `Remediation tip: <remediation markdown>`. Details produced
-directly from other probe findings MUST NOT include remediation text in
-the `default`, `json`, or `intoto` formats.
-
-#### Scenario: Pinned dependency detail
-
-- **GIVEN** an unpinned action with a pinning suggestion
-- **WHEN** results are rendered with `--show-details`
-- **THEN** the Warn detail ends with ": update your workflow using"
-  followed by the StepSecurity `secureworkflow` URL
-
-### Requirement: Check-Level Remediation
-
-The system SHALL take each check's remediation bullets from the check
-documentation and render them in SARIF output as the
-`**Remediation (click "Show more" below)**` section of the rule's
-`help.markdown`, as one Markdown list item per bullet. The `default` format MUST
-instead point to the check's documentation URL in its
-`Documentation/Remediation` column.
-
-#### Scenario: SARIF rule help
-
-- **GIVEN** a check documented with remediation items "a" and "b"
-- **WHEN** results are rendered as SARIF
-- **THEN** the rule's `help.markdown` begins with the remediation heading
-  followed by bullets for "a" and "b"

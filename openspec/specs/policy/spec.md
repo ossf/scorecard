@@ -3,31 +3,12 @@
 ## Purpose
 
 A Scorecard policy is a YAML file that sets, per check, a minimum score and
-whether the check is enforced or disabled. The CLI accepts it with
-`--policy`, uses it to choose which checks run, and uses it to decide
-which checks produce SARIF results. This spec defines the file format,
-its validation, and how it affects check selection and SARIF output.
+whether the check is enforced or disabled. This spec defines the file format,
+its validation, and how a policy affects check selection. The `--policy` flag
+and its `ENABLE_SARIF` gate are defined in `cli`; how SARIF output uses the
+policy is defined in `result-formats`.
 
 ## Requirements
-
-### Requirement: Policy Flag Gating
-
-The system SHALL register the `--policy` flag only when the `ENABLE_SARIF`
-environment variable is set. When a policy file is supplied while
-`ENABLE_SARIF` is not set, option validation MUST fail with "policy file is
-not supported yet".
-
-#### Scenario: Flag unavailable
-
-- **GIVEN** `ENABLE_SARIF` is not set
-- **WHEN** a user passes `--policy policy.yml`
-- **THEN** the command rejects the flag
-
-#### Scenario: Flag available
-
-- **GIVEN** `ENABLE_SARIF=1` is set
-- **WHEN** a user passes `--policy policy.yml`
-- **THEN** the policy file is read before any repository is scanned
 
 ### Requirement: Policy File Format
 
@@ -64,11 +45,14 @@ minimum score and MUST default to 0 when omitted.
 ### Requirement: Policy Validation
 
 The system MUST reject a policy file, and abort the run with a
-`readPolicy` error, when any of the following holds: the file cannot be
-read; the YAML is malformed; `version` is not `1`; a key under `policies`
-is not a known check name (experimental checks included); a `mode` is not
-`enforced` or `disabled`; a `score` is below 0 or above 10; or the same
-check is defined more than once.
+`readPolicy` error and a non-zero exit status before any repository is
+scanned, when any of the following holds: the file cannot be read; the YAML
+is malformed; `version` is not `1`; a key under `policies` is not a known
+check name (experimental checks included); a `mode` is not `enforced` or
+`disabled`; a `score` is below 0 or above 10; or the same check is defined
+more than once. A repeated check name is rejected by the YAML parser as a
+duplicate mapping key, so the error is a YAML parse error rather than a
+repeated-check error.
 
 #### Scenario: Unsupported version
 
@@ -100,6 +84,14 @@ check is defined more than once.
 - **WHEN** it is parsed
 - **THEN** parsing fails
 
+#### Scenario: Invalid policy stops the command
+
+- **GIVEN** `ENABLE_SARIF` is set and the policy file has `version: 2`
+- **WHEN** a user runs with `--policy=policy.yml`
+- **THEN** the command fails with a `readPolicy` error and a non-zero exit
+  status
+- **AND** no repository is scanned
+
 ### Requirement: Case-Sensitive Check Names in the File
 
 The system SHALL require check names under `policies` to match a known
@@ -125,9 +117,10 @@ and every format except `sarif` MUST behave as if no policy exists.
 ### Requirement: Check Selection From a Policy
 
 When a policy is supplied and `--checks` is not, the system SHALL run
-every check named in the policy, regardless of its mode, that supports the
-current request type. When `--checks` is supplied, it MUST take precedence
-over the policy for selecting checks.
+every check named in the policy, regardless of its mode, skipping any check
+that does not support the required request types (for example `--local` or a
+non-HEAD `--commit`) or the repository's type. When `--checks` is supplied,
+it MUST take precedence over the policy for selecting checks.
 
 #### Scenario: Policy selects checks
 
@@ -138,15 +131,19 @@ over the policy for selecting checks.
 
 #### Scenario: Unsupported check skipped
 
-- **GIVEN** a policy that names a check requiring the GitHub API
-- **WHEN** a user scans with `--local`
-- **THEN** that check is skipped
+- **GIVEN** `ENABLE_SARIF` is set and a policy lists License and Maintained
+- **WHEN** a user scans a local directory with `--local`
+- **THEN** License runs
+- **AND** Maintained is skipped because it does not support file-based
+  requests
 
 ### Requirement: Every Selected Check Needs a Policy
 
 When a policy is supplied, the system MUST fail check selection with
 "checks don't have policies" if any selected check has no entry in the
-policy, and MUST log the name of the first such check.
+policy, and MUST log the name of one such check. Selected checks are
+visited in map iteration order, so when several lack an entry, which name is
+logged is arbitrary.
 
 #### Scenario: Extra check requested
 
@@ -154,30 +151,6 @@ policy, and MUST log the name of the first such check.
 - **WHEN** a user runs with `--policy` and `--checks Binary-Artifacts`
 - **THEN** the run fails with "checks don't have policies"
 - **AND** the log says "check Binary-Artifacts has no policy declared"
-
-### Requirement: Policy Drives SARIF Results
-
-The system SHALL use the policy when rendering `--format sarif`: a check
-whose mode is `disabled` MUST produce no SARIF results, and an `enforced`
-check MUST produce results only when its score is below the policy score
-and is not inconclusive. Rendering SARIF for a check with no policy entry,
-including any run without `--policy`, MUST fail with "missing policy for
-check".
-
-#### Scenario: Enforced check meets the threshold
-
-- **GIVEN** a policy enforcing Branch-Protection with score 5
-- **AND** Branch-Protection scored 5
-- **WHEN** results are rendered as SARIF
-- **THEN** the run contains the Branch-Protection rule but no result for
-  it
-
-#### Scenario: Enforced check misses the threshold
-
-- **GIVEN** a policy enforcing Branch-Protection with score 5
-- **AND** Branch-Protection scored 3
-- **WHEN** results are rendered as SARIF
-- **THEN** at least one Branch-Protection result is emitted
 
 ### Requirement: Policy Does Not Change Scores
 

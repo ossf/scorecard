@@ -15,9 +15,8 @@ and shutdown.
 The system SHALL start an HTTP server on `0.0.0.0` at the port given by the
 `PORT` environment variable, defaulting to `8080`, when the user runs
 `scorecard serve`. The server SHALL log `Server starting on port <port>` and
-SHALL time out reading request headers after 10 seconds. The `serve`
-subcommand SHALL accept no flags other than `--help` and SHALL log at `info`
-level.
+SHALL time out reading request headers after 10 seconds. The server SHALL
+log at `info` level. The flags `serve` accepts are defined in `cli`.
 
 #### Scenario: Default port
 
@@ -110,9 +109,14 @@ not valid JSON MUST receive status 400 with the text `invalid request body`.
 The system SHALL default an empty `commit` to `HEAD` and an empty
 `file_mode` to `archive`. An empty or absent check list SHALL select every
 check that applies to the commit and repository type. When the commit is
-not `HEAD`, the system SHALL restrict checks to those supporting
-commit-based analysis. Checks whose documentation excludes the target
-repository's host type SHALL be skipped.
+not `HEAD`, the default set SHALL contain only checks supporting
+commit-based analysis, and an explicitly requested check without
+commit-based support SHALL fail the request with status 500 and a body
+beginning `GetEnabled:` that contains `Unsupported RequestType`. Checks
+whose documentation excludes the target repository's host type SHALL be
+skipped. When the internal GitHub integration check override is active,
+its check list SHALL replace the `checks` given in the request; the
+override is defined in `cli`.
 
 #### Scenario: No checks requested
 
@@ -125,6 +129,26 @@ repository's host type SHALL be skipped.
 - **GIVEN** a requested check does not support GitLab repositories
 - **WHEN** a client requests that check for a GitLab repository
 - **THEN** the check is omitted from the result
+
+#### Scenario: Default set at a non-HEAD commit
+
+- **WHEN** a client posts `{"repo": "owner/repo", "commit": "<sha>"}`
+- **THEN** the server runs only the checks that support commit-based
+  analysis
+
+#### Scenario: Explicit check without commit support at a non-HEAD commit
+
+- **GIVEN** a check that does not support commit-based analysis
+- **WHEN** a client requests that check with a `commit` other than `HEAD`
+- **THEN** the server responds with status 500 and a body beginning
+  `GetEnabled:` that contains `Unsupported RequestType`
+
+#### Scenario: GitHub integration override replaces requested checks
+
+- **GIVEN** the internal GitHub integration check override is active
+- **WHEN** a client posts `{"repo": "owner/repo", "checks": ["License"]}`
+- **THEN** the server selects checks from the override list instead of
+  `License`
 
 ### Requirement: Request Validation
 

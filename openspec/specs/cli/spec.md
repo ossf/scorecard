@@ -4,9 +4,11 @@
 
 The `scorecard` command-line tool runs Scorecard security checks or probes
 against one or more source repositories and writes the results to standard
-output or a file. This spec covers the command tree, input selection, flags,
-feature-flag environment variables, validation errors, check selection,
-progress messages, logging verbosity, and exit status.
+output or a file. This spec covers the command tree, input selection, the
+scan flag list, feature-flag environment variables, validation errors,
+progress messages, result ordering, logging verbosity, and exit status. The
+behavior activated by check, probe, output, and policy flags is defined in
+the capability each flag names.
 
 ## Requirements
 
@@ -164,88 +166,52 @@ package manager resolution spec.
 - **THEN** the system fails with an error naming the package manager
   resolution step and exits with a non-zero status
 
-### Requirement: Default Check Set
+### Requirement: Scan Flags
 
-When neither `--checks` nor `--policy` selects checks, the system SHALL run
-every registered check that supports the scan mode. The experimental checks
-`Webhooks` and `SBOM` SHALL be excluded from the default set unless
-`SCORECARD_EXPERIMENTAL` is set.
+The root command SHALL register the scan flags below. Each flag's behavior
+SHALL be the one defined by the capability named for it:
 
-#### Scenario: Default remote scan
+- `--checks` (comma-separated, default empty): check selection, defined in
+  `check-registry`.
+- `--probes` (comma-separated, default empty): probe execution, defined in
+  `probes`.
+- `--format` (default `default`): format names and gating, defined in
+  `result-formats`.
+- `--output` (shorthand `-o`, default empty): output destination, defined
+  in `result-formats`.
+- `--show-details` (boolean, default false): detail rendering, defined in
+  `result-formats`.
+- `--show-annotations` (boolean, default false): annotation rendering,
+  defined in `result-formats`; annotation discovery is defined in
+  `maintainer-annotations`.
+- `--policy` (default empty): policy file and policy-driven selection,
+  defined in `policy`.
 
-- **GIVEN** `SCORECARD_EXPERIMENTAL` is not set
-- **WHEN** a user scans a remote repository without `--checks`
-- **THEN** the system runs all checks except `Webhooks` and `SBOM`
+The system SHALL register `--policy` only when `ENABLE_SARIF` is set;
+without it, `--policy` MUST be rejected as an unknown flag.
 
-#### Scenario: Experimental checks enabled
+#### Scenario: Output flag shorthand
 
-- **GIVEN** `SCORECARD_EXPERIMENTAL` is set
-- **WHEN** a user scans a remote repository without `--checks`
-- **THEN** the default set also includes `Webhooks` and `SBOM`
+- **WHEN** a user runs `scorecard --repo=owner/repo -o results.json`
+- **THEN** the system treats `-o results.json` as `--output=results.json`
 
-### Requirement: Explicit Check Selection
+#### Scenario: Policy flag without SARIF enabled
 
-The system SHALL run only the checks named in the comma-separated
-`--checks` flag. Check names SHALL match registered checks case-insensitively
-for remote scans at `HEAD`. Experimental checks SHALL be selectable by name
-without `SCORECARD_EXPERIMENTAL`. An unknown check name MUST fail the command
-with `invalid check: <name>` and a non-zero exit status.
-
-#### Scenario: Select two checks
-
-- **WHEN** a user runs `scorecard --repo=owner/repo --checks=License,SAST`
-- **THEN** the system runs only `License` and `SAST`
-
-#### Scenario: Unknown check
-
-- **WHEN** a user runs `scorecard --repo=owner/repo --checks=Nope`
-- **THEN** the system fails with `invalid check: Nope` and a non-zero exit
-  status
-
-### Requirement: Local Mode Check Restrictions
-
-In `--local` mode the system SHALL run only checks that can operate on files
-alone: `Binary-Artifacts`, `Dangerous-Workflow`, `Dependency-Update-Tool`,
-`Fuzzing`, `License`, `Packaging`, `Pinned-Dependencies`, `SAST`,
-`Security-Policy`, `Token-Permissions`, and `Vulnerabilities`. The default
-set SHALL silently omit other checks. Explicitly naming any other check with
-`--checks` MUST fail with `Unsupported RequestType ... by check: <name>`. In
-this mode check names given to `--checks` MUST match the registered name's
-exact case.
-
-#### Scenario: Default local scan
-
-- **WHEN** a user runs `scorecard --local=.`
-- **THEN** the system runs only the file-based checks listed above
-
-#### Scenario: Unsupported check in local mode
-
-- **WHEN** a user runs `scorecard --local=. --checks=Code-Review`
-- **THEN** the system fails with
-  `Unsupported RequestType [0] by check: Code-Review` and a non-zero exit
-  status
-
-#### Scenario: Wrong case in local mode
-
-- **WHEN** a user runs `scorecard --local=. --checks=license`
-- **THEN** the system fails with an `Unsupported RequestType` error for
-  `license`
+- **GIVEN** `ENABLE_SARIF` is not set
+- **WHEN** a user runs `scorecard --repo=owner/repo --policy=policy.yml`
+- **THEN** the command fails with `unknown flag: --policy`
 
 ### Requirement: Commit Selection
 
 The system SHALL analyze the commit given by `--commit`, defaulting to
 `HEAD`. An empty `--commit` value MUST fail validation with
-"commit should be non-empty". When the commit is not `HEAD`
-(case-insensitive), the system SHALL run only checks that support
-commit-based analysis: `Binary-Artifacts`, `CI-Tests`, `Code-Review`,
-`Dangerous-Workflow`, `License`, `Pinned-Dependencies`, `Security-Policy`,
-`Token-Permissions`, and `Vulnerabilities`; explicitly naming any other
-check MUST fail with an `Unsupported RequestType` error.
+"commit should be non-empty". Which checks can run at a commit other than
+`HEAD` is defined in `check-registry`.
 
 #### Scenario: Scan a specific commit
 
 - **WHEN** a user runs `scorecard --repo=owner/repo --commit=<sha>`
-- **THEN** the system runs only commit-capable checks at `<sha>`
+- **THEN** the system analyzes the repository at `<sha>`
 
 #### Scenario: Empty commit
 
@@ -267,116 +233,6 @@ zero or less SHALL use the default depth of 30 commits.
 
 - **WHEN** a user runs with `--commit-depth=100`
 - **THEN** commit-history checks examine up to 100 commits
-
-### Requirement: Probe Execution
-
-When `--probes` names one or more probes, the system SHALL run those probes
-instead of checks, collecting only the raw data the probes require, and
-SHALL report their findings. An unknown probe name SHALL cause that
-repository to be skipped with `getting probe "<name>": ... not found`.
-
-#### Scenario: Run a probe
-
-- **WHEN** a user runs
-  `scorecard --repo=owner/repo --probes=hasLicenseFile --format=probe`
-- **THEN** the system outputs the findings for `hasLicenseFile` and runs no
-  checks
-
-#### Scenario: Unknown probe
-
-- **WHEN** a user runs `scorecard --local=. --probes=nope`
-- **THEN** the system prints `Skipping <path>: run: getting probe "nope": ...`
-
-### Requirement: Output Format Selection
-
-The system SHALL accept `--format` values `default`, `json`, `probe`, and
-`intoto`, with `default` as the default. The value `sarif` SHALL be accepted
-only when `ENABLE_SARIF` is set and the value `raw` only when `SCORECARD_V6`
-is set. Any other value MUST fail validation with "unsupported format";
-`sarif` without `ENABLE_SARIF` MUST fail with
-"SARIF format is not supported yet", and `raw` without `SCORECARD_V6` MUST
-fail with "raw option is not supported yet".
-
-#### Scenario: JSON output
-
-- **WHEN** a user runs `scorecard --repo=owner/repo --format=json`
-- **THEN** the system writes the results as JSON
-
-#### Scenario: SARIF without feature flag
-
-- **GIVEN** `ENABLE_SARIF` is not set
-- **WHEN** a user runs with `--format=sarif`
-- **THEN** validation fails with "SARIF format is not supported yet"
-
-#### Scenario: Unknown format
-
-- **WHEN** a user runs with `--format=xml`
-- **THEN** validation fails with "unsupported format"
-
-### Requirement: Details and Annotations
-
-The system SHALL include per-check detail lines in `default`, `json`,
-`intoto`, and `sarif` output when `--show-details` is set, filtered by the
-log level from `--verbosity`. The system SHALL include maintainer
-annotations from the repository's Scorecard configuration file in
-`default`, `json`, and `intoto` output when `--show-annotations` is set.
-
-#### Scenario: Show details
-
-- **WHEN** a user runs with `--show-details`
-- **THEN** each check result includes its detail lines
-
-#### Scenario: Details hidden by default
-
-- **WHEN** a user omits `--show-details`
-- **THEN** the output contains scores and reasons without detail lines
-
-### Requirement: Output Destination
-
-The system SHALL write results to standard output unless `--output` (short
-form `-o`) names a file. When a file is named, the system SHALL create or
-truncate it, write the results there, and print
-`Writing results to <file>` to standard error. Failure to create or write
-the file SHALL be reported as
-`Failed to format results for <uri>: ...` on standard error.
-
-#### Scenario: Write to a file
-
-- **WHEN** a user runs with `-o results.json --format=json`
-- **THEN** the JSON results are written to `results.json`
-- **AND** `Writing results to results.json` is printed to standard error
-
-### Requirement: Policy File
-
-When `ENABLE_SARIF` is set, the system SHALL register a `--policy` flag that
-reads a YAML policy file with `version: 1` and a `policies` map of check
-name to `mode` (`enforced` or `disabled`) and `score` (0 to 10). The policy
-SHALL select the checks to run when `--checks` is not given, skipping checks
-the scan mode cannot run. Every check to run MUST have a policy entry. A
-policy file that cannot be read or fails validation MUST stop the command
-with a non-zero exit status. Without `ENABLE_SARIF`, `--policy` SHALL be an
-unknown flag.
-
-#### Scenario: Policy selects checks
-
-- **GIVEN** `ENABLE_SARIF` is set
-- **WHEN** a user runs with `--policy=policy.yml --format=sarif` and no
-  `--checks`
-- **THEN** the system runs only the checks listed in the policy
-
-#### Scenario: Invalid policy
-
-- **GIVEN** a policy file with `version: 2`, an unknown check name, a mode
-  other than `enforced` or `disabled`, a score outside 0 to 10, or a check
-  listed twice
-- **WHEN** the command runs
-- **THEN** it fails with a `readPolicy` error and a non-zero exit status
-
-#### Scenario: Selected check lacks a policy
-
-- **GIVEN** `ENABLE_SARIF` is set and the policy omits `SAST`
-- **WHEN** a user runs with `--policy=policy.yml --checks=SAST`
-- **THEN** the command fails with "checks don't have policies"
 
 ### Requirement: File Fetch Mode
 
@@ -412,7 +268,9 @@ In `default` format only, the system SHALL print
 `Finished (<uri>) [<check>]` after it, followed by a `RESULTS` banner, all
 to standard error. When probes are selected, the messages SHALL read
 `Starting (<uri>) probe [<probe>]` and `Finished (<uri>) probe <probe>`
-without the banner. Results SHALL be sorted by check name.
+without the banner. The check messages SHALL name the checks enabled before
+the repository-type filter is applied, so they can name a check that the
+scan does not run, and SHALL appear in no defined order.
 
 #### Scenario: Default format banners
 
@@ -420,10 +278,35 @@ without the banner. Results SHALL be sorted by check name.
 - **THEN** standard error shows `Starting (.) [License]`,
   `Finished (.) [License]`, and `RESULTS`
 
+#### Scenario: Probe banners
+
+- **WHEN** a user runs `scorecard --local=. --probes=hasLicenseFile`
+- **THEN** standard error shows `Starting (.) probe [hasLicenseFile]` and
+  `Finished (.) probe hasLicenseFile`
+- **AND** no `RESULTS` banner is printed
+
 #### Scenario: Machine-readable format has no banners
 
 - **WHEN** a user runs with `--format=json`
 - **THEN** no `Starting` or `Finished` messages are printed
+
+### Requirement: Result Ordering
+
+The CLI SHALL sort each repository's check results by check name, in
+ascending byte order, before formatting them. Formatters do not sort; see
+`result-formats`.
+
+#### Scenario: Checks complete out of order
+
+- **GIVEN** concurrent checks finish in a non-alphabetic order
+- **WHEN** the CLI formats the repository's results
+- **THEN** the check results appear in ascending order of check name
+
+#### Scenario: Uppercase sorts before lowercase
+
+- **GIVEN** results for checks named `SAST` and `Fuzzing`
+- **WHEN** the CLI formats the results
+- **THEN** `Fuzzing` appears before `SAST`
 
 ### Requirement: Exit Status
 
@@ -432,10 +315,14 @@ The system MUST exit with status 1 and print
 file is invalid, check selection fails, the organization cannot be listed,
 or package resolution fails. When a repository cannot be parsed or scanned,
 the system SHALL print `Skipping <uri>: <error>` to standard error and
-continue without changing the exit status. When any check reports a runtime
-error, the system SHALL print `Check <name> failed for <uri>: <error>` to
-standard error and finish all repositories. It SHALL then exit with status 1
-and "one or more checks failed during execution". Check scores and policy
+continue without changing the exit status. When formatting or writing a
+repository's results fails, the system SHALL print
+`Failed to format results for <uri>: <error>` to standard error, continue
+with the remaining repositories, and leave the exit status unchanged. When
+any check reports a runtime error, the system SHALL print
+`Check <name> failed for <uri>: <error>` to standard error and finish all
+repositories. It SHALL then exit with status 1 and
+"one or more checks failed during execution". Check scores and policy
 thresholds SHALL NOT affect the exit status.
 
 #### Scenario: Check runtime error
@@ -449,6 +336,21 @@ thresholds SHALL NOT affect the exit status.
 
 - **WHEN** a user runs `scorecard --repo=::bad::`
 - **THEN** the system prints a `Skipping` message and exits with status 0
+
+#### Scenario: Unknown probe skips the repository
+
+- **WHEN** a user runs `scorecard --local=. --probes=nope`
+- **THEN** the system prints `Skipping .: run: getting probe "nope": ...`
+  to standard error and exits with status 0
+
+#### Scenario: Formatting error does not stop a multi-repo scan
+
+- **GIVEN** a scan of two repositories with `--repos`
+- **WHEN** formatting the first repository's results fails
+- **THEN** `Failed to format results for <uri>: <error>` is printed on
+  standard error
+- **AND** the second repository is still scanned and formatted
+- **AND** the exit status is not changed by the formatting failure
 
 #### Scenario: Low score
 
@@ -490,9 +392,10 @@ environment-variable equivalents.
 ### Requirement: GitHub Integration Check Override
 
 When `CI` is `true`, `SCORECARD_INTERNAL_GITHUB_INTEGRATION` is `1`, and
-`GITHUB_EVENT_NAME` is `dynamic`, the system SHALL replace the `--checks`
-list with the comma-separated, whitespace-trimmed value of
-`SCORECARD_INTERNAL_GITHUB_CHECKS`.
+`GITHUB_EVENT_NAME` is `dynamic`, the system SHALL replace the selected
+checks with the comma-separated, whitespace-trimmed value of
+`SCORECARD_INTERNAL_GITHUB_CHECKS`. The override SHALL apply to the `--checks`
+list of a CLI scan and to the `checks` list of a `serve` request.
 
 #### Scenario: Integration overrides checks
 
@@ -500,6 +403,14 @@ list with the comma-separated, whitespace-trimmed value of
   `SCORECARD_INTERNAL_GITHUB_CHECKS=License, SAST`
 - **WHEN** the command runs with `--checks=Fuzzing`
 - **THEN** the system runs `License` and `SAST`
+
+#### Scenario: Integration overrides serve requests
+
+- **GIVEN** the three integration variables are set as described for a
+  running `scorecard serve`
+- **WHEN** a request names checks in its `checks` list
+- **THEN** the server runs the checks from
+  `SCORECARD_INTERNAL_GITHUB_CHECKS` instead
 
 ### Requirement: Version Command
 

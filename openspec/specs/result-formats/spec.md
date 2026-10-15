@@ -6,7 +6,8 @@ Scorecard renders the result of a scan in one of several output formats
 selected with `--format`: a human-readable text table, JSON, SARIF, a flat
 probe-findings JSON, raw collected data, and an in-toto attestation
 statement. This spec defines which formats exist, how they are gated, what
-each one contains, and where the output is written.
+each one contains, how scores, details, remediation, and annotations are
+rendered, and where the output is written.
 
 ## Requirements
 
@@ -73,6 +74,10 @@ When `--output` (shorthand `-o`) names a file, the system SHALL create or
 truncate that file, write the results to it, and print
 `Writing results to <file>` on standard error. If the file cannot be
 created, formatting MUST fail with an "unable to create output file" error.
+The file SHALL be created and truncated once per scanned repository, so
+with several repositories it holds only the last repository's result. On
+standard output, each repository's result SHALL be written as a separate,
+independent document with no surrounding array or separator.
 
 #### Scenario: Results written to a file
 
@@ -86,85 +91,46 @@ created, formatting MUST fail with an "unable to create output file" error.
 - **WHEN** `--output` points into a directory that does not exist
 - **THEN** formatting fails with "unable to create output file"
 
-### Requirement: Formatting Failures Are Reported Per Repository
+#### Scenario: Several repositories written to one file
 
-The system SHALL report a failure to format the results of a repository on
-standard error as `Failed to format results for <uri>: <error>` and MUST
-continue processing any remaining repositories.
+- **WHEN** a user passes `--repos=a/one,a/two --output results.json
+  --format json`
+- **THEN** `Writing results to results.json` is printed once per repository
+- **AND** after the run `results.json` contains only the result for
+  `a/two`
 
-#### Scenario: Formatting error does not stop a multi-repo scan
+#### Scenario: Several repositories on standard output
 
-- **GIVEN** a scan of two repositories with `--repos`
-- **WHEN** formatting the first repository's results fails
-- **THEN** the error is printed on standard error
-- **AND** the second repository is still scanned and formatted
+- **WHEN** a user passes `--repos=a/one,a/two --format json` without
+  `--output`
+- **THEN** standard output contains two JSON objects, one per repository,
+  one after the other
 
-### Requirement: Progress Banners in Default Format
+### Requirement: Rendering Order
 
-When the format is `default`, the system SHALL print progress banners on
-standard error: `Starting (<repo>) [<check>]` per enabled check before the
-scan, `Finished (<repo>) [<check>]` per check after it, followed by a
-`RESULTS` heading. When probes are selected with `--probes`, the banners
-MUST name probes (`Starting (<repo>) probe [<probe>]`,
-`Finished (<repo>) probe <probe>`) and the `RESULTS` heading is omitted.
-Other formats MUST NOT print these banners.
+The formatters SHALL render check results in the order they appear in the
+result and SHALL NOT sort them. The `probe` format SHALL list findings in
+the order they were collected. Sorting of check results by the CLI is
+defined in `cli`, and by the HTTP server in `http-server`.
 
-#### Scenario: Banners for checks
+#### Scenario: Library caller passes unsorted results
 
-- **WHEN** a user scans a repository with the default format
-- **THEN** standard error contains one `Starting` and one `Finished` line
-  per enabled check, followed by `RESULTS`
-
-#### Scenario: No banners for machine formats
-
-- **WHEN** a user scans a repository with `--format json`
-- **THEN** no `Starting` or `Finished` banners are printed
-
-### Requirement: Check Ordering
-
-The system SHALL sort check results by check name before rendering them in
-any check-based format.
-
-#### Scenario: Stable check order
-
-- **WHEN** checks finish in arbitrary order
-- **THEN** the rendered checks appear in ascending order of check name
-
-### Requirement: Aggregate Score
-
-The system SHALL compute the aggregate score as the risk-weighted mean of
-the check scores, using weights Critical=10, High=7.5, Medium=5, and
-Low=2.5 taken from each check's documented risk. Checks with an
-inconclusive score (-1) MUST be excluded from both the numerator and the
-weights. When no check has a conclusive score, the aggregate score MUST be
--1 (inconclusive). The aggregate depends on which checks were run.
-
-#### Scenario: Weighted mean
-
-- **GIVEN** a High-risk check scoring 10 and a Low-risk check scoring 0
-- **WHEN** the aggregate score is computed
-- **THEN** the aggregate is (7.5 x 10 + 2.5 x 0) / 10 = 7.5
-
-#### Scenario: All checks inconclusive
-
-- **GIVEN** every check scored -1
-- **WHEN** the aggregate score is computed
-- **THEN** the aggregate is -1
-
-#### Scenario: Unknown risk level
-
-- **GIVEN** a check whose documented risk is not one of the four levels
-- **WHEN** the aggregate score is computed
-- **THEN** formatting fails with an internal error naming the check
+- **GIVEN** a result whose checks are ordered `SAST`, `License`
+- **WHEN** a Go caller renders it with the `json` format
+- **THEN** `checks` lists `SAST` before `License`
 
 ### Requirement: Default Text Format
 
-The `default` format SHALL print `Aggregate score: <score> / 10` (score with
-one decimal place) or `Aggregate score: ?` when inconclusive, then
-`Check scores:` and a table with columns `Score`, `Name`, `Reason`, and
-`Documentation/Remediation`. Each row's score MUST be shown as `<n> / 10`,
-or `?` when the check is inconclusive, and the documentation column MUST
-contain the check's documentation URL.
+The `default` format SHALL print `Aggregate score: <score> / 10`, with the
+aggregate score rounded to one decimal place, or `Aggregate score: ?` when
+the aggregate score is -1, then `Check scores:` and a table with columns
+`Score`, `Name`, `Reason`, and `Documentation/Remediation`. A `Details`
+column SHALL be added before `Documentation/Remediation` when details are
+shown, and an `Annotation` column SHALL be added last when annotations are
+shown. Each row's score MUST be shown as `<n> / 10`, or `?` when the check
+is inconclusive, and the `Documentation/Remediation` column MUST contain the
+check's documentation URL as defined in `check-registry`. The aggregate
+score computation is defined in `aggregate-scoring`.
 
 #### Scenario: Text output
 
@@ -175,24 +141,22 @@ contain the check's documentation URL.
 - **AND** the table row shows `5 / 10`, `Check-Name`, the reason, and the
   documentation URL
 
+#### Scenario: Fractional aggregate is rounded
+
+- **GIVEN** an aggregate score of 6.666...
+- **WHEN** results are rendered in the default format
+- **THEN** the output begins with `Aggregate score: 6.7 / 10`
+
+#### Scenario: Inconclusive aggregate
+
+- **GIVEN** an aggregate score of -1
+- **WHEN** results are rendered in the default format
+- **THEN** the output begins with `Aggregate score: ?`
+
 #### Scenario: Inconclusive check
 
 - **WHEN** a check scored -1
 - **THEN** its Score cell shows `?`
-
-### Requirement: Check Documentation URL
-
-The system SHALL build each check's documentation URL as
-`https://github.com/ossf/scorecard/blob/<ref>/docs/checks.md#<check-name>`,
-where `<check-name>` is the lowercased check name and `<ref>` is the commit
-of the Scorecard build, or `main` when that commit is empty or `unknown`.
-
-#### Scenario: Development build
-
-- **GIVEN** a Scorecard build whose commit is `unknown`
-- **WHEN** the URL for `Check-Name` is rendered
-- **THEN** it is
-  `https://github.com/ossf/scorecard/blob/main/docs/checks.md#check-name`
 
 ### Requirement: Show Details
 
@@ -234,14 +198,24 @@ MUST append `: <remediation text>`.
 - **GIVEN** a detail at `a.yml` lines 3 to 7
 - **THEN** the location renders as `: a.yml:3-7`
 
+#### Scenario: Pinned dependency detail with remediation
+
+- **GIVEN** an unpinned GitHub Action with a pinning suggestion
+- **WHEN** results are rendered with `--show-details`
+- **THEN** the Warn detail ends with `: update your workflow using`
+  followed by the StepSecurity `secureworkflow` URL
+
 ### Requirement: JSON Format
 
 The `json` format SHALL write a single JSON object with the fields `date`
 (RFC 3339 timestamp), `repo` (`name`, `commit`), `scorecard` (`version`,
-`commit`), `score` (aggregate score with one decimal place, -1.0 when
-inconclusive), `checks`, and `metadata`. Each element of `checks` MUST
+`commit`), `score` (aggregate score with exactly one decimal place, -1.0
+when inconclusive), `checks`, and `metadata`. Each element of `checks` MUST
 contain `details`, `score` (integer), `reason`, `name`, and
 `documentation` with `url` and `short` (the check's short description).
+The `date` SHALL be the time recorded when the run starts, after the
+repository client is initialized and before checks run, not the time the
+run completes.
 
 #### Scenario: JSON result
 
@@ -249,6 +223,12 @@ contain `details`, `score` (integer), `reason`, `name`, and
 - **THEN** the output is one JSON object containing `date`, `repo`,
   `scorecard`, `score`, `checks`, and `metadata`
 - **AND** an aggregate score of 6 is serialized as `6.0`
+
+#### Scenario: Inconclusive aggregate in JSON
+
+- **GIVEN** an aggregate score of -1
+- **WHEN** results are rendered as JSON
+- **THEN** the top-level `score` is `-1.0`
 
 ### Requirement: JSON Schema File
 
@@ -276,15 +256,12 @@ formats.
 
 ### Requirement: Maintainer Annotations
 
-The system SHALL read maintainer annotations from the first file found
-among `scorecard.yml`, `scorecard.yaml`, `.scorecard.yml`,
-`.scorecard.yaml`, `.github/scorecard.yml`, and `.github/scorecard.yaml`
-in the scanned repository. When `--show-annotations` is set, the `default`
-format MUST add an `Annotation` column and the `json` and `intoto` formats
-MUST add an `annotations` array to each annotated check, containing the
-human-readable explanation of each annotation reason. Annotations MUST NOT
-be shown for a check with the maximum score of 10, and the `annotations`
-field MUST be omitted when empty.
+When `--show-annotations` is set, the `default` format SHALL add an
+`Annotation` column and the `json` and `intoto` formats SHALL add an
+`annotations` array to each annotated check, containing the human-readable
+explanation of each annotation reason. The `annotations` field MUST be
+omitted when empty. Which annotations apply to a check is defined in
+`maintainer-annotations`.
 
 #### Scenario: Annotated check in JSON
 
@@ -295,11 +272,11 @@ field MUST be omitted when empty.
 - **THEN** the check's `annotations` contains "The files or code snippets
   are only used for test or example purposes."
 
-#### Scenario: Annotation on a perfect score
+#### Scenario: Annotations not requested
 
-- **GIVEN** an annotated check scores 10
-- **WHEN** annotations are shown
-- **THEN** no annotation is listed for that check
+- **GIVEN** an annotated check scoring 5
+- **WHEN** a user runs with `--format json` and no `--show-annotations`
+- **THEN** the check has no `annotations` field
 
 ### Requirement: SARIF Document Structure
 
@@ -311,9 +288,13 @@ otherwise `local` if the check supports local repositories, else
 `online-scm` if it supports GitHub or GitLab. Each run's
 `automationDetails.id` MUST be
 `supply-chain/<category>/<scorecard-commit>-<date in RFC 822 numeric-zone
-form>`, and its tool driver MUST be named `Scorecard` with
-`informationUri` `https://github.com/ossf/scorecard` and
-`semanticVersion` set to the Scorecard version.
+form>`, and its tool driver MUST have `informationUri`
+`https://github.com/ossf/scorecard` and `semanticVersion` set to the
+Scorecard version. The driver name SHALL be `Scorecard`; when the GitHub
+integration is enabled (`CI` is `true`,
+`SCORECARD_INTERNAL_GITHUB_INTEGRATION` is `1`, and `GITHUB_EVENT_NAME` is
+`dynamic`), it SHALL instead be the whitespace-trimmed value of
+`SCORECARD_INTERNAL_GITHUB_SARIF_TOOL_NAME` converted to title case.
 
 #### Scenario: Local check run
 
@@ -322,6 +303,13 @@ form>`, and its tool driver MUST be named `Scorecard` with
 - **THEN** the check appears in a run whose `automationDetails.id` begins
   with `supply-chain/local/`
 
+#### Scenario: Driver name under the GitHub integration
+
+- **GIVEN** the GitHub integration is enabled and
+  `SCORECARD_INTERNAL_GITHUB_SARIF_TOOL_NAME` is `acme scanner`
+- **WHEN** results are rendered as SARIF
+- **THEN** each run's tool driver is named `Acme Scanner`
+
 ### Requirement: SARIF Rules
 
 The system SHALL add one rule per check run to its run's tool driver,
@@ -329,8 +317,10 @@ whether or not the check produced results. Each rule MUST have `id`
 `<check name without dashes>ID`, `name` equal to the check name,
 `helpUri` equal to the documentation URL, `shortDescription` equal to the
 check name, `fullDescription` and `help.text` equal to the check's short
-description, and `help.markdown` containing the check's documented
-remediation bullets, severity, and long description. The rule's
+description, and `help.markdown` containing, in order, a
+`**Remediation (click "Show more" below)**:` section with one Markdown list
+item per documented remediation bullet, the severity, and the long
+description. The rule's
 `defaultConfiguration.level` MUST be `error`, `precision` MUST be `high`,
 and `problem.severity` and `security-severity` MUST map from the check's
 risk as Critical to error/9.0, High to error/7.0, Medium to warning/4.0,
@@ -344,13 +334,21 @@ documented tags.
 - **THEN** a rule for the check is still present in its run
 - **AND** the run has no result for that check
 
+#### Scenario: Rule help lists remediation
+
+- **GIVEN** a check documented with remediation items "a" and "b"
+- **WHEN** results are rendered as SARIF
+- **THEN** the rule's `help.markdown` begins with the remediation heading
+  followed by list items for "a" and "b"
+
 ### Requirement: SARIF Results Depend on Policy
 
 The system SHALL emit SARIF results for a check only when the policy
 enforces that check and the check's score is below the policy's minimum
 score. Checks whose policy mode is disabled, checks with an inconclusive
 score, and checks that have maintainer annotations MUST NOT produce
-results. If a rendered check has no entry in the policy, SARIF formatting
+results; annotated checks are omitted whether or not `--show-annotations`
+is set. If a rendered check has no entry in the policy, SARIF formatting
 MUST fail with a "missing policy for check" error.
 
 #### Scenario: Score below threshold
@@ -360,6 +358,21 @@ MUST fail with a "missing policy for check" error.
 - **WHEN** results are rendered as SARIF
 - **THEN** at least one result with `ruleId` `TokenPermissionsID` is
   emitted
+
+#### Scenario: Score meets the threshold
+
+- **GIVEN** a policy enforcing `Branch-Protection` with score 5
+- **AND** `Branch-Protection` scored 5
+- **WHEN** results are rendered as SARIF
+- **THEN** the run contains the `Branch-Protection` rule but no result for
+  it
+
+#### Scenario: Annotated check without show-annotations
+
+- **GIVEN** a policy enforcing a check with score 8
+- **AND** the check scored 5 and has a maintainer annotation
+- **WHEN** results are rendered as SARIF without `--show-annotations`
+- **THEN** no result is emitted for that check
 
 #### Scenario: Disabled check
 
@@ -419,7 +432,8 @@ instead end with
 
 ### Requirement: Probe Format
 
-The `probe` format SHALL write a single compact JSON object with `date`
+The `probe` format SHALL write one compact JSON object per repository with
+`date`
 (`YYYY-MM-DD`), `repo` (`name`, `commit`), `scorecard` (`version`,
 `commit`), and `findings`. Each finding MUST contain `probe`, `message`,
 and `outcome`, and MAY contain `location` (`path`, `type`, `lineStart`,
@@ -434,6 +448,13 @@ findings produced by the checks that ran.
 - **THEN** the output contains `findings` with entries such as
   `{"probe": "...", "message": "...", "outcome": "True"}`
 - **AND** the `date` has no time component
+
+#### Scenario: Selected probe output
+
+- **WHEN** a user runs `scorecard --repo=github.com/owner/repo
+  --probes=fuzzed --format probe`
+- **THEN** the output has `date`, `repo`, `scorecard`, and `findings` keys
+- **AND** every finding has `probe` set to `fuzzed`
 
 ### Requirement: Raw Format
 

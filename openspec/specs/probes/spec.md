@@ -7,7 +7,9 @@ question about a repository by turning collected raw data into a list of
 findings with outcomes, messages, locations, and remediation. This spec
 covers the probe contract, the finding model, probe definition metadata,
 how probes are registered and grouped under checks, how to run selected
-probes directly, and the current probe catalog.
+probes directly, and the current probe catalog. Remediation attachment and
+substitution are defined in `remediation`, and the JSON encoding of findings
+in `result-formats`.
 
 ## Requirements
 
@@ -57,18 +59,15 @@ any other outcome name from a definition file SHALL fail.
 A finding SHALL contain the probe name, a human-readable message, and an
 outcome. It MAY contain a location (path, file type, start line, end line,
 snippet), a remediation (text, Markdown, effort, and optional patch), and a
-map of string values. In JSON, these SHALL be the `probe`, `message`,
-`outcome`, `location`, `remediation`, and `values` keys. Location and
-remediation SHALL be omitted when absent, and the file type SHALL be
-written as a number (0 none, 1 source, 2 binary, 3 text, 4 URL, 5 verified
-binary).
+map of string values. The file type SHALL be one of none, source, binary,
+text, URL, or verified binary.
 
 #### Scenario: Finding with a location
 
-- **GIVEN** a probe finding for a source file at line 12
-- **WHEN** the finding is written as JSON
-- **THEN** it contains `location.path`, `location.type` set to `1`, and
-  `location.lineStart` set to `12`
+- **GIVEN** a probe that flags a source file at line 12
+- **WHEN** the probe emits its finding
+- **THEN** the finding's location has that path, file type source, and start
+  line 12
 
 ### Requirement: Finding Values
 
@@ -99,56 +98,17 @@ probes; `releaseName` and `assetName` for release probes; `assetName` and
 - **THEN** the `True` finding has `commitsWithinThreshold` set to `12` and
   `lookBackDays` set to `90`
 
-### Requirement: Remediation Attachment
-
-A new finding SHALL start with outcome `False` and the remediation from the
-probe's definition file. When the outcome is set, the remediation SHALL be
-kept only if the outcome equals the definition's `onOutcome` value and
-SHALL be removed otherwise. A probe MAY replace the remediation with a more
-specific one, as `pinsDependencies` does for unpinned GitHub Actions and
-container images.
-
-#### Scenario: Good outcome drops remediation
-
-- **GIVEN** `securityPolicyPresent` has `onOutcome: False`
-- **WHEN** it emits a finding with outcome `True`
-- **THEN** the finding has no remediation
-
-#### Scenario: Bad outcome keeps remediation
-
-- **GIVEN** `hasDangerousWorkflowScriptInjection` has `onOutcome: True`
-- **WHEN** it emits a finding with outcome `True`
-- **THEN** the finding carries the remediation from its definition
-
-### Requirement: Remediation Templating
-
-The system SHALL replace `${{ finding.location.path }}` in remediation text
-and Markdown with the finding's location path when a location is set, and
-SHALL replace `${{ metadata.<key> }}` with values the probe supplies. Scan
-metadata available for this SHALL include `repository.host`,
-`repository.name`, `repository.uri`, `repository.sha1`,
-`repository.defaultBranch`, and `localPath`. A probe MAY attach a
-machine-applicable patch, as `hasDangerousWorkflowScriptInjection` does.
-
-#### Scenario: OSV identifier in remediation
-
-- **GIVEN** a vulnerability with OSV id `GHSA-xxxx-xxxx-xxxx`
-- **WHEN** the `hasOSVVulnerabilities` probe emits its finding
-- **THEN** the message links to `https://osv.dev/GHSA-xxxx-xxxx-xxxx`
-- **AND** the remediation text has the id substituted for its placeholder
-
 ### Requirement: Probe Definition File
 
 Each probe SHALL have a `def.yml` with these fields: `id`, `lifecycle`,
 `short`, `motivation`, `implementation`, `outcome` (a list of sentences
-describing possible outcomes), `remediation` (with `onOutcome`, `effort`,
-and `text`, and optionally `markdown`), and optionally `ecosystem` (with
-`languages` and `clients`). Loading a definition SHALL fail when `id` does
-not match the probe's name, `onOutcome` is not a valid outcome, `effort`
-is not `Low`, `Medium`, or `High`, `lifecycle` is not `experimental`,
-`stable`, or `deprecated`, or an ecosystem language or client is not
-supported. Because every finding is built from the definition, an invalid
-definition SHALL make the probe fail when it runs.
+describing possible outcomes), `remediation` (defined in `remediation`), and
+optionally `ecosystem` (with `languages` and `clients`). Loading a definition
+SHALL fail when `id` does not match the probe's name, `lifecycle` is not
+`experimental`, `stable`, or `deprecated`, an ecosystem language or client is
+not supported, or the remediation section is invalid. Because every finding is
+built from the definition, an invalid definition SHALL make the probe fail
+when it runs.
 
 #### Scenario: Mismatched identifier
 
@@ -156,9 +116,9 @@ definition SHALL make the probe fail when it runs.
 - **WHEN** the probe tries to create a finding
 - **THEN** the probe returns an invalid-definition error
 
-#### Scenario: Missing effort
+#### Scenario: Invalid lifecycle
 
-- **GIVEN** a `def.yml` with no `remediation.effort`
+- **GIVEN** a `def.yml` with `lifecycle: beta`
 - **WHEN** the definition is loaded
 - **THEN** loading fails as invalid
 
@@ -178,18 +138,6 @@ The system SHALL mark each probe as `experimental` (semantics may change),
 - **WHEN** the probe documentation is generated
 - **THEN** `unsafeblock` is listed with lifecycle `experimental`
 
-### Requirement: Remediation Effort
-
-Each probe SHALL declare a remediation effort of `Low`, `Medium`, or
-`High`. In JSON output the effort SHALL be written as a number: 1 for low,
-2 for medium, and 3 for high.
-
-#### Scenario: Effort in output
-
-- **GIVEN** `fuzzed` declares effort `High`
-- **WHEN** a `False` finding from `fuzzed` is written as JSON
-- **THEN** its `remediation.effort` is `3`
-
 ### Requirement: Ecosystem Metadata
 
 A probe's `ecosystem.languages` SHALL use only supported language names:
@@ -207,12 +155,16 @@ optional; nine probes currently omit it.
 
 ### Requirement: Probe Registration
 
-Each probe SHALL register itself by name when its package loads, either with
-an implementation and the checks whose raw data it needs, or as an
-independent probe with an implementation that takes the scan request.
-Registration SHALL fail if the name is empty, no implementation is given,
-or a raw-data probe lists no required checks. Looking up a name that is not
-registered SHALL fail with a "probe not found" error.
+A probe SHALL be directly selectable by name only when it is registered. A
+probe registers itself by name when its package loads, either with an
+implementation and the checks whose raw data it needs, or as an independent
+probe with an implementation that takes the scan request. Registration SHALL
+fail if the name is empty, no implementation is given, or a raw-data probe
+lists no required checks. Looking up a name that is not registered SHALL fail
+with a "probe not found" error. Exactly three probes,
+`hasNoGitHubWorkflowPermissionUnknown`, `jobLevelPermissions`, and
+`topLevelPermissions`, SHALL NOT be registered; they run only inside the
+Token-Permissions check.
 
 #### Scenario: Probe declares its raw data
 
@@ -223,6 +175,12 @@ registered SHALL fail with a "probe not found" error.
 
 - **WHEN** a lookup is made for probe `noSuchProbe`
 - **THEN** the system fails with `probe "noSuchProbe" not found`
+
+#### Scenario: Unregistered token-permission probe
+
+- **WHEN** a user runs `scorecard --repo=github.com/owner/repo
+  --probes=topLevelPermissions`
+- **THEN** the run fails with `probe "topLevelPermissions" not found`
 
 ### Requirement: Check Probe Groups
 
@@ -270,17 +228,17 @@ results, it SHALL add one `False` finding.
 
 ### Requirement: Running Selected Probes
 
-When the user names probes with `--probes`, the system SHALL run only those
-probes and no checks. It SHALL first collect the raw data each named probe
-requires, once per check, then run the probes in the order given and return
-their findings without check scores. An unknown probe name SHALL fail the
-run. A probe error SHALL end the run with an internal error.
-
-Probes that are not registered, including
-`hasNoGitHubWorkflowPermissionUnknown`, `jobLevelPermissions`, and
-`topLevelPermissions`, SHALL NOT be runnable this way. Raw data collected
-this way SHALL not require `SCORECARD_EXPERIMENTAL`, and Packaging raw data
-SHALL only be available for GitHub and GitLab repositories.
+When probes are named (for example, with `--probes`), the system SHALL run only
+those probes and no checks. It SHALL first collect, in the order the probes are
+named, the raw data each named probe requires, once per check, then run the
+probes in the order given and return their findings without check results. Only
+registered probes (see Probe Registration) can be run this way. An unknown probe
+name SHALL fail the run with
+`getting probe "<name>": internal error: probe "<name>" not found`. When a
+probe implementation returns an error, the system SHALL end the run with
+`internal error: ending run`, without reporting the probe name or the cause.
+Raw data collected this way SHALL not require `SCORECARD_EXPERIMENTAL`, and
+Packaging raw data SHALL only be available for GitHub and GitLab repositories.
 
 #### Scenario: Two probes sharing raw data
 
@@ -289,31 +247,24 @@ SHALL only be available for GitHub and GitLab repositories.
 - **THEN** License raw data is collected once
 - **AND** the result contains findings from both probes and no check results
 
-#### Scenario: Token permission probe requested
+#### Scenario: Unknown probe
 
-- **WHEN** a user runs `scorecard --repo=github.com/owner/repo
-  --probes=topLevelPermissions`
-- **THEN** the run fails with `probe "topLevelPermissions" not found`
+- **WHEN** a user runs `scorecard --local=. --probes=nope`
+- **THEN** the run fails with
+  `getting probe "nope": internal error: probe "nope" not found`
+
+#### Scenario: Probe implementation error
+
+- **GIVEN** a named probe whose implementation returns an error
+- **WHEN** the probes run
+- **THEN** the run fails with `internal error: ending run`
+- **AND** the error names neither the probe nor the cause
 
 #### Scenario: Packaging probe on a local directory
 
 - **WHEN** a user runs `scorecard --local=.
   --probes=packagedWithAutomatedWorkflow`
 - **THEN** the run fails because only GitHub and GitLab are supported
-
-### Requirement: Probe Output Format
-
-With `--format probe`, the system SHALL write one JSON object per
-repository containing `date` (YYYY-MM-DD), `repo` with `name` and `commit`,
-`scorecard` with `version` and `commit`, and `findings`, the list of all
-findings from the run.
-
-#### Scenario: Probe JSON output
-
-- **WHEN** a user runs `scorecard --repo=github.com/owner/repo
-  --probes=fuzzed --format probe`
-- **THEN** the output has `date`, `repo`, `scorecard`, and `findings` keys
-- **AND** every finding has `probe` set to `fuzzed`
 
 ### Requirement: Outcome Conventions
 

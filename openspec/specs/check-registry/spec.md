@@ -4,9 +4,10 @@
 
 The check registry defines which Scorecard checks exist, how each is
 documented, which repositories and request modes each supports, and how the
-set of checks to run is selected and executed. It covers experimental-check
-gating, the `--checks` flag, concurrent execution, and validation of the check
-documentation.
+set of checks to run is selected from requested check names and executed. It
+covers experimental-check gating, check-name matching, concurrent execution,
+and validation of the check documentation. Flag definitions are in `cli`, and
+policy-driven selection is in `policy`.
 
 ## Requirements
 
@@ -57,8 +58,9 @@ Medium, or Low, as follows:
 
 The system SHALL treat SBOM and Webhooks as experimental. They SHALL be
 excluded from the default set of checks unless the `SCORECARD_EXPERIMENTAL`
-environment variable is set (to any value). When either is run without that
-variable set, the check SHALL return a runtime error result stating that
+environment variable is set (to any value), and SHALL remain selectable by
+name without it. When either is run without that variable set, the check
+SHALL collect no raw data and SHALL return a runtime error result stating that
 `SCORECARD_EXPERIMENTAL` is not set.
 
 #### Scenario: Default run without the variable
@@ -79,19 +81,16 @@ variable set, the check SHALL return a runtime error result stating that
 - **WHEN** the user runs `--checks=SBOM`
 - **THEN** the SBOM result is a runtime error result with score -1
 - **AND** a Warn detail says the variable is not set
-
-#### Scenario: Azure DevOps URIs require the variable
-
-- **GIVEN** `SCORECARD_EXPERIMENTAL` is not set
-- **WHEN** the CLI is given an Azure DevOps repository URI
-- **THEN** the URI is not parsed as an Azure DevOps repository
+- **AND** no SBOM raw data is collected
 
 ### Requirement: Request Type Support
 
 The system SHALL declare, for each check, which request modes it supports:
 file-based (analysis of file contents only, required for local directories)
-and commit-based (analysis at a commit other than HEAD). Checks SHALL support
-the modes as follows:
+and commit-based (analysis at a commit other than HEAD). A run SHALL require
+file-based support when it scans a local directory, and commit-based support
+when the requested commit is not `HEAD` (compared case-insensitively). Checks
+SHALL support the modes as follows:
 
 - Both modes: Binary-Artifacts, Dangerous-Workflow, License,
   Pinned-Dependencies, Security-Policy, Token-Permissions, Vulnerabilities.
@@ -100,14 +99,18 @@ the modes as follows:
 - Neither: Branch-Protection, CII-Best-Practices, Contributors, Maintained,
   SBOM, Signed-Releases, Webhooks.
 
-When the checks are not chosen explicitly, the system SHALL skip checks that do
-not support every required mode.
+When the checks are not chosen explicitly, the system SHALL silently skip
+checks that do not support every required mode. When a named check does not
+support every required mode, the run MUST fail with
+`Unsupported RequestType <modes> by check: <name>`, where file-based is `0`
+and commit-based is `1`.
 
 #### Scenario: Local directory
 
 - **WHEN** Scorecard runs against a local directory with default checks
-- **THEN** checks lacking file-based support, such as Maintained and
-  Code-Review, are not run
+- **THEN** only Binary-Artifacts, Dangerous-Workflow, Dependency-Update-Tool,
+  Fuzzing, License, Packaging, Pinned-Dependencies, SAST, Security-Policy,
+  Token-Permissions, and Vulnerabilities are run
 
 #### Scenario: Non-HEAD commit
 
@@ -117,9 +120,9 @@ not support every required mode.
 
 #### Scenario: Explicit selection of an unsupported check
 
-- **WHEN** the user runs `--local` with `--checks=Maintained`
-- **THEN** Scorecard fails with an error naming the unsupported request type
-  and the check
+- **WHEN** the user runs `--local=.` with `--checks=Code-Review`
+- **THEN** Scorecard fails with
+  `Unsupported RequestType [0] by check: Code-Review`
 
 #### Scenario: Runner sanity check
 
@@ -159,75 +162,56 @@ SHALL be treated as supporting every type. The documented support SHALL be:
 
 ### Requirement: Check Selection
 
-The system SHALL run all supported default checks when no checks are selected,
-and SHALL run only the checks named by the `--checks` flag (a comma-separated
-list, matched case-insensitively) when it is given. An unknown check name SHALL
-fail the run with an "invalid check" error. When probes are selected with
-`--probes`, the system SHALL run those probes instead of checks.
+The system SHALL run every default check that supports the run's request modes
+and repository type when no check names are requested, and SHALL run only the
+named checks when check names are requested (for example, the comma-separated
+`--checks` list). A requested name SHALL match a registered check
+case-insensitively, except that the request-mode lookup uses the exact name:
+when a request mode is required (a local directory or a non-HEAD commit), a
+name whose case differs from the registered name, or an unknown name, MUST
+fail with `Unsupported RequestType` instead of matching. Otherwise an unknown
+check name MUST fail the run with `invalid check: <name>`. Policy-driven
+selection is defined in `policy`.
 
 #### Scenario: Selecting checks
 
-- **WHEN** the user runs `--checks=License,code-review`
+- **WHEN** the user runs `--checks=License,code-review` against a remote
+  repository at HEAD
 - **THEN** only License and Code-Review are run
 
 #### Scenario: Unknown check
 
-- **WHEN** the user runs `--checks=Not-A-Check`
+- **WHEN** the user runs `--checks=Not-A-Check` against a remote repository at
+  HEAD
 - **THEN** the run fails with an error containing "invalid check: Not-A-Check"
+
+#### Scenario: Wrong case in local mode
+
+- **WHEN** the user runs `--local=.` with `--checks=license`
+- **THEN** the run fails with `Unsupported RequestType [0] by check: license`
+
+#### Scenario: Wrong case at a non-HEAD commit
+
+- **WHEN** the user runs `--commit=<sha>` with `--checks=license` against a
+  remote repository, where `<sha>` is not HEAD
+- **THEN** the run fails with `Unsupported RequestType [1] by check: license`
 
 #### Scenario: Flag help
 
 - **WHEN** the user views the `--checks` flag help
 - **THEN** it lists the names of the default checks
 
-#### Scenario: Probes instead of checks
-
-- **WHEN** the user passes `--probes`
-- **THEN** no checks are run and only probe findings are produced
-
-### Requirement: Internal GitHub Integration Check List
-
-The system SHALL replace the selected checks with the comma-separated list in
-`SCORECARD_INTERNAL_GITHUB_CHECKS` when `CI` is `true`,
-`SCORECARD_INTERNAL_GITHUB_INTEGRATION` is `1`, and `GITHUB_EVENT_NAME` is
-`dynamic`.
-
-#### Scenario: Integration override
-
-- **GIVEN** all three integration variables are set as described
-- **AND** `SCORECARD_INTERNAL_GITHUB_CHECKS` is `License, SAST`
-- **WHEN** Scorecard runs
-- **THEN** only License and SAST are selected, regardless of `--checks`
-
-### Requirement: Policy-Based Selection
-
-The system SHALL, when a policy file is supplied and no checks are named on the
-command line, select the checks listed in the policy, skipping those that do
-not support the required request modes or repository type.
-
-#### Scenario: Policy lists checks
-
-- **GIVEN** `ENABLE_SARIF` is set and a policy file lists License and
-  Maintained
-- **WHEN** Scorecard runs against a local directory
-- **THEN** License is run and Maintained is skipped
-
 ### Requirement: Concurrent Check Execution
 
 The system SHALL run every selected check concurrently against the same
-repository snapshot and collect all results before producing output. The CLI
-SHALL sort check results by name for output.
+repository snapshot and collect one result per selected check before
+returning. Result ordering is defined by the callers (`cli` and
+`http-server`).
 
 #### Scenario: Results collected
 
 - **WHEN** five checks are selected
 - **THEN** the result contains five check results
-- **AND** the CLI lists them in alphabetical order of name
-
-#### Scenario: Empty repository
-
-- **WHEN** the repository has no commits
-- **THEN** no checks are run and the result contains no check results
 
 ### Requirement: Check Documentation
 

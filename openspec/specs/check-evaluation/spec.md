@@ -50,13 +50,6 @@ the error attached, and a reason equal to the error message.
 - **AND** the result carries the error
 - **AND** the result reason is the error message
 
-#### Scenario: Runtime errors fail the CLI run
-
-- **GIVEN** the CLI scans one or more repositories
-- **WHEN** any check result for any scanned repository carries an error
-- **THEN** the CLI finishes processing all repositories
-- **AND** exits with a non-zero status
-
 ### Requirement: Probe Set Validation
 
 The system SHALL return a runtime error result with the reason "invalid probe
@@ -126,21 +119,8 @@ SHALL return an error when any group has more successes than its total.
 ### Requirement: Detail Levels
 
 The system SHALL attach to each check result an ordered list of details, each
-tagged Info, Warn, or Debug, and SHALL include Debug details in rendered output
-only when the log level is debug.
-
-#### Scenario: Debug details hidden by default
-
-- **GIVEN** a check result containing Info, Warn, and Debug details
-- **WHEN** the result is rendered with details enabled at the default log level
-- **THEN** the Info and Warn details are shown
-- **AND** the Debug details are omitted
-
-#### Scenario: Debug details shown at debug level
-
-- **WHEN** the same result is rendered with details enabled at the debug log
-  level
-- **THEN** all three details are shown, each prefixed with its level name
+tagged Info, Warn, or Debug. Which details are rendered is defined in
+`result-formats`.
 
 #### Scenario: Default detail levels for findings
 
@@ -166,23 +146,26 @@ attempt, and SHALL report the last attempt's result.
 - **AND** the result details include a Warn detail describing the first
   failure
 
-### Requirement: Maintainer Annotations
+#### Scenario: Other error is not retried
 
-The system SHALL attach to a check result the reasons of every maintainer
-annotation that names the check (matched case-insensitively), and SHALL attach
-no annotations to a check whose score is 10.
+- **GIVEN** a check whose first attempt returns a runtime error other than
+  repository unreachable
+- **WHEN** the check runs
+- **THEN** the check is attempted only once
+- **AND** the reported result carries that error
 
-#### Scenario: Annotation on a non-perfect check
+### Requirement: Finding Aggregation
 
-- **GIVEN** a repository configuration annotating Binary-Artifacts with a
-  reason
-- **WHEN** Binary-Artifacts scores 9 and annotations are requested
-- **THEN** the reason's description is listed for Binary-Artifacts
+The system SHALL attach to each check result the findings its probes produced
+and SHALL also append those findings, in the order check results are
+collected, to the run's overall list of findings. A runtime error result
+SHALL contribute no findings.
 
-#### Scenario: Annotation on a perfect check
+#### Scenario: Check findings in the overall result
 
-- **WHEN** an annotated check scores 10
-- **THEN** no annotations are listed for that check
+- **WHEN** the License check runs and its probes produce two findings
+- **THEN** the License check result carries those two findings
+- **AND** the run's overall findings include the same two findings
 
 ### Requirement: Binary-Artifacts Scoring
 

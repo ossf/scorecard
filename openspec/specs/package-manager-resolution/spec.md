@@ -5,27 +5,10 @@
 Package manager resolution lets a user name a published package instead of a
 repository. Scorecard looks the package up in its registry, extracts the
 source repository URL from the package metadata, and scans that repository.
-The supported registries are npm, PyPI, RubyGems, and NuGet.
+The supported registries are npm, PyPI, RubyGems, and NuGet. The package
+flags and their exclusivity with the other input flags are defined in `cli`.
 
 ## Requirements
-
-### Requirement: Package Flags
-
-The CLI SHALL accept `--npm`, `--pypi`, `--rubygems`, and `--nuget`, each
-taking a package name. Exactly one of `--repo`, `--repos`, `--org`, `--npm`,
-`--pypi`, `--rubygems`, `--nuget`, or `--local` MUST be set; otherwise option
-validation MUST fail before any registry is queried.
-
-#### Scenario: Package flag alone
-
-- **WHEN** the user runs `scorecard --npm=left-pad`
-- **THEN** option validation passes and the npm registry is queried
-
-#### Scenario: Package flag combined with a repository
-
-- **WHEN** the user runs `scorecard --npm=left-pad --repo=github.com/a/b`
-- **THEN** validation fails stating exactly one of `repo`, `repos`, `org`,
-  `npm`, `pypi`, `rubygems`, `nuget` or `local` must be set
 
 ### Requirement: Resolved Repository Replaces the Repo Option
 
@@ -104,7 +87,9 @@ normalized to lowercase `https://github.com/<owner>/<repo>` or
 `https://gitlab.com/<owner>/<repo>`. GitHub repository names MUST have a
 trailing `.git` removed, and GitHub URLs whose owner is `sponsors` MUST be
 ignored. The lookup MUST fail when no candidate is accepted or when accepted
-candidates normalize to more than one distinct repository.
+candidates normalize to more than one distinct repository. As built, a
+response whose `info.project_urls` is absent or `null` makes the lookup panic
+instead of fail, because `info.project_url` is added to a nil map.
 
 #### Scenario: Repository in project_url
 
@@ -134,6 +119,15 @@ candidates normalize to more than one distinct repository.
 - **WHEN** the package is resolved
 - **THEN** the lookup fails stating it found too many possible source repos
   for the pypi package
+
+#### Scenario: Response without project_urls
+
+- **GIVEN** the PyPI response has no `info.project_urls` field, or the field
+  is `null` (for example the `{"message": "Not Found"}` body returned for an
+  unknown package)
+- **WHEN** the package is resolved
+- **THEN** the lookup panics with an assignment to an entry in a nil map
+  instead of returning an error
 
 #### Scenario: No recognizable repository
 
@@ -261,19 +255,10 @@ fail the lookup with an error naming the request and the returned status.
 ### Requirement: Resolution Failure Behavior
 
 A failed package lookup MUST stop the run before any repository is scanned.
-The CLI SHALL return an error prefixed with
-`fetchGitRepositoryFromPackageManagers`. The `serve` HTTP endpoint SHALL
-accept the same package names as `npm`, `pypi`, `rubygems`, and `nuget`
-query parameters or JSON body fields, and MUST respond with HTTP 500 when the
-lookup fails.
+How the CLI and the `serve` endpoint report the failure is defined in `cli`
+and `http-server`.
 
-#### Scenario: CLI lookup failure
+#### Scenario: Lookup failure
 
 - **WHEN** `scorecard --pypi=<name>` cannot resolve a source repository
 - **THEN** the command exits with an error and no checks run
-
-#### Scenario: Serve endpoint lookup failure
-
-- **WHEN** a request to the serve endpoint sets `npm=<name>` and the lookup
-  fails
-- **THEN** the response status is HTTP 500

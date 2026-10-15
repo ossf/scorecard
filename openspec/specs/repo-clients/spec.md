@@ -167,7 +167,9 @@ returned unchanged.
 Each remote client SHALL verify the repository exists during initialization
 and MUST fail with a repository-unreachable error when the platform API cannot
 return it. After initialization the client SHALL use the canonical owner,
-name, and default branch reported by the platform.
+name, and default branch reported by the platform. When initialization fails,
+the scan of that repository SHALL stop before any check or probe runs and the
+initialization error SHALL be returned in place of a result.
 
 #### Scenario: Missing GitHub repository
 
@@ -184,6 +186,13 @@ name, and default branch reported by the platform.
 
 - **WHEN** the Azure DevOps repository cannot be fetched
 - **THEN** initialization fails with a "could not get repository" error
+
+#### Scenario: Initialization failure ends the scan
+
+- **GIVEN** a repository whose client initialization fails
+- **WHEN** Scorecard scans it
+- **THEN** no check or probe runs for that repository
+- **AND** the initialization error is returned instead of a result
 
 ### Requirement: Commit Depth
 
@@ -265,10 +274,11 @@ remain available for any commit.
 Remote clients SHALL fetch repository contents once, on first file access, as
 an archive extracted to a temporary directory: a gzipped tarball for GitHub
 and GitLab, and a zip for Azure DevOps. The GitHub client SHALL instead
-perform a shallow, single-branch, tagless git clone of depth 1 when file mode
-`git` is selected (`--file-mode=git`); the default mode is `archive` and any
-other value MUST be rejected during option validation. Closing the GitHub and
-Azure DevOps clients SHALL remove the temporary directory.
+perform a shallow, single-branch, tagless git clone of depth 1 when git file
+mode is selected (`--file-mode=git` in the CLI, `WithFileModeGit` in the Go
+API); otherwise it SHALL use the archive. Other clients ignore the file mode.
+Closing the GitHub and Azure DevOps clients SHALL remove the temporary
+directory. Validation of the `--file-mode` value is defined in `cli`.
 
 #### Scenario: Default archive mode
 
@@ -279,11 +289,6 @@ Azure DevOps clients SHALL remove the temporary directory.
 
 - **WHEN** a GitHub repository is scanned with `--file-mode=git`
 - **THEN** files are read from a depth-1 clone of the repository
-
-#### Scenario: Invalid file mode
-
-- **WHEN** the user passes `--file-mode=svn`
-- **THEN** option validation fails with an unsupported file mode error
 
 ### Requirement: Archive Extraction Safety
 
