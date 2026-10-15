@@ -113,7 +113,7 @@ Tier 1 Requirements (3/10 points):
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
   - For administrators: Require PRs prior to make any code changes
-  - For administrators: Require branch to be up to date before merging
+  - For administrators: Require branch to be up to date before merging (or require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) via repository rulesets)
   - For administrators: Require approval of the most recent reviewable push
 
 Tier 3 Requirements (8/10 points):
