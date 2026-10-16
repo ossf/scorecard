@@ -24,6 +24,7 @@ project. This document describes the contribution guidelines for the project.
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
 * [Changing Score Results](#changing-score-results)
+* [Dependencies](#dependencies)
 * [Linting](#linting)
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
 * [Adding New Probes](#adding-new-probes)
@@ -156,6 +157,9 @@ must put them in one PR, you should mark the whole PR as breaking.
 > This includes [synchronizing your PR](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch)
 > with `main`. The GitHub review experience is much nicer with traditional merge commits.
 
+A PR can merge once a maintainer has approved it, every review thread is
+resolved, and the required CI checks pass.
+
 ## What to do before submitting a pull request
 
 Following the targets that can be used to test your changes locally.
@@ -177,6 +181,22 @@ While they are included in `make all`, running them individually is faster.
 
 As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged.
 It is a good idea to discuss such changes in a GitHub issue before implementing them.
+
+## Dependencies
+
+A PR that adds a direct dependency must explain why it's needed, and a
+maintainer approves the addition in review.
+
+Dependencies are pinned:
+
+- Go modules in `go.mod` and `go.sum`
+- GitHub Actions by commit SHA, except the SLSA generator, which must be
+  referenced by tag
+- Container base images by digest
+
+Dependabot opens weekly update PRs for Go modules, GitHub Actions, and Docker
+images. The [dependency review](.github/workflows/depsreview.yml) workflow
+checks the dependencies each PR changes.
 
 ## Linting
 
