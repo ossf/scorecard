@@ -54,6 +54,11 @@ following steps:
 - auditing code to find any potential similar problems
 - preparing fixes for all releases under maintenance
 
+Fixed vulnerabilities are published as
+[GitHub Security Advisories](https://github.com/ossf/scorecard/security/advisories)
+on the affected repository, which feed the GitHub Advisory Database and OSV.
+The release notes of the release that contains the fix also mention it.
+
 ## Suggesting changes
 
 If you have suggestions on how this process could be improved please submit an

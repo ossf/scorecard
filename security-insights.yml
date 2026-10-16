@@ -14,7 +14,7 @@
 
 header:
   schema-version: 2.2.0
-  last-updated: '2026-10-08'
+  last-updated: '2026-10-16'
   last-reviewed: '2026-10-08'
   url: https://raw.githubusercontent.com/ossf/scorecard/main/security-insights.yml
   comment: This file contains the security information for the Scorecard project.
@@ -178,7 +178,9 @@ repository:
             location: https://github.com/ossf/scorecard/actions/workflows/osps-baseline.yml
   documentation:
     contributing-guide: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md
+    dependency-management-policy: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#dependencies
     governance: https://github.com/ossf/scorecard/blob/main/MAINTAINERS.md
+    review-policy: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#pr-process
     security-policy: https://github.com/ossf/scorecard/blob/main/SECURITY.md
   release:
     automated-pipeline: true
