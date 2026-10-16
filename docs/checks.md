@@ -532,8 +532,7 @@ codebase.
 The checks currently looks for known GitHub apps such as
 [CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+of "github/codeql-action" in a GitHub workflow.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is
