@@ -106,6 +106,71 @@ func TestUntrustedContextVariables(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "issue_comment body",
+			variable: "github.event.issue_comment.comment.body",
+			expected: true,
+		},
+		{
+			name:     "commit_comment body",
+			variable: "github.event.commit_comment.comment.body",
+			expected: true,
+		},
+		{
+			name:     "fork forkee name",
+			variable: "github.event.fork.forkee.name",
+			expected: true,
+		},
+		{
+			name:     "fork forkee full_name",
+			variable: "github.event.fork.forkee.full_name",
+			expected: true,
+		},
+		{
+			name:     "fork forkee description",
+			variable: "github.event.fork.forkee.description",
+			expected: true,
+		},
+		{
+			name:     "fork forkee homepage",
+			variable: "github.event.fork.forkee.homepage",
+			expected: true,
+		},
+		{
+			name:     "fork forkee default_branch",
+			variable: "github.event.fork.forkee.default_branch",
+			expected: true,
+		},
+		{
+			name:     "trusted fork forkee id",
+			variable: "github.event.fork.forkee.id",
+			expected: false,
+		},
+		{
+			name:     "workflow_run head_branch",
+			variable: "github.event.workflow_run.head_branch",
+			expected: true,
+		},
+		{
+			name:     "workflow_run display_title",
+			variable: "github.event.workflow_run.display_title",
+			expected: true,
+		},
+		{
+			name:     "workflow_run head_repository description",
+			variable: "github.event.workflow_run.head_repository.description",
+			expected: true,
+		},
+		{
+			name:     "workflow_run pull_requests head ref",
+			variable: "github.event.workflow_run.pull_requests[0].head.ref",
+			expected: true,
+		},
+		{
+			name:     "trusted workflow_run id",
+			variable: "github.event.workflow_run.id",
+			expected: false,
+		},
+		{
 			name:     "toJSON github.event",
 			variable: "toJSON(github.event)",
 			expected: true,
