@@ -19,7 +19,12 @@ import (
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/packagedWithAutomatedWorkflow"
+	"github.com/ossf/scorecard/v5/probes/publishesWithOIDC"
 )
+
+// credentialPublishingScore leaves room above a long-lived token so a project
+// can still get credit for publishing from CI, and a higher score for trusted publishing.
+const credentialPublishingScore = 8
 
 // Packaging applies the score policy for the Packaging check.
 func Packaging(name string,
@@ -28,6 +33,7 @@ func Packaging(name string,
 ) checker.CheckResult {
 	expectedProbes := []string{
 		packagedWithAutomatedWorkflow.Probe,
+		publishesWithOIDC.Probe,
 	}
 
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
@@ -35,27 +41,49 @@ func Packaging(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// Currently there is only a single packaging probe that returns
-	// a single true or false outcome. As such, in this evaluation,
-	// we return max score if the outcome is true and lowest score if
-	// the outcome is false.
-	maxScore := false
+	packaged := false
+	credential := false
+	trusted := false
 	for i := range findings {
 		f := &findings[i]
 		var logLevel checker.DetailType
-		switch f.Outcome {
-		case finding.OutcomeFalse:
-			logLevel = checker.DetailWarn
-		case finding.OutcomeTrue:
-			maxScore = true
-			logLevel = checker.DetailInfo
+		switch f.Probe {
+		case packagedWithAutomatedWorkflow.Probe:
+			switch f.Outcome {
+			case finding.OutcomeTrue:
+				packaged = true
+				logLevel = checker.DetailInfo
+			case finding.OutcomeFalse:
+				logLevel = checker.DetailWarn
+			default:
+				logLevel = checker.DetailDebug
+			}
+		case publishesWithOIDC.Probe:
+			switch f.Outcome {
+			case finding.OutcomeTrue:
+				trusted = true
+				logLevel = checker.DetailInfo
+			case finding.OutcomeFalse:
+				credential = true
+				logLevel = checker.DetailWarn
+			default:
+				logLevel = checker.DetailDebug
+			}
 		default:
-			logLevel = checker.DetailDebug
+			e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
+			return checker.CreateRuntimeErrorResult(name, e)
 		}
 		checker.LogFinding(dl, f, logLevel)
 	}
-	if maxScore {
-		return checker.CreateMaxScoreResult(name, "packaging workflow detected")
+
+	if !packaged {
+		return checker.CreateInconclusiveResult(name, "packaging workflow not detected")
 	}
-	return checker.CreateInconclusiveResult(name, "packaging workflow not detected")
+	if credential {
+		return checker.CreateResultWithScore(name, "publishing workflow uses a long-lived credential", credentialPublishingScore)
+	}
+	if trusted {
+		return checker.CreateMaxScoreResult(name, "trusted publishing workflow detected")
+	}
+	return checker.CreateMaxScoreResult(name, "packaging workflow detected")
 }
