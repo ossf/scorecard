@@ -440,6 +440,98 @@ func TestSignedRelease(t *testing.T) {
 		},
 
 		{
+			name: "Releases with immutable release",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					IsImmutable:     true,
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.txt",
+							URL:  "http://foo.com/v1.0.0/foo.txt",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
+			name: "Releases with immutable release and signed artifact",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					IsImmutable:     true,
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.sig",
+							URL:  "http://foo.com/v1.0.0/foo.sig",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 8,
+			},
+		},
+		{
+			name: "Releases with immutable release and provenance",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					IsImmutable:     true,
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.intoto.jsonl",
+							URL:  "http://foo.com/v1.0.0/foo.intoto.jsonl",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 10,
+			},
+		},
+		{
+			name: "Multiple releases - some immutable, some not",
+			releases: []clients.Release{
+				{
+					TagName:         "v1.0.0",
+					URL:             "http://foo.com/v1.0.0",
+					TargetCommitish: "master",
+					IsImmutable:     true,
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.txt",
+							URL:  "http://foo.com/v1.0.0/foo.txt",
+						},
+					},
+				},
+				{
+					TagName:         "v2.0.0",
+					URL:             "http://foo.com/v2.0.0",
+					TargetCommitish: "master",
+					IsImmutable:     false,
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "foo.txt",
+							URL:  "http://foo.com/v2.0.0/foo.txt",
+						},
+					},
+				},
+			},
+			expected: checker.CheckResult{
+				Score: 4,
+			},
+		},
+		{
 			name: "Error getting releases",
 			err:  errors.New("Error getting releases"),
 			expected: checker.CheckResult{
