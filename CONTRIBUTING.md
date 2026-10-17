@@ -202,8 +202,11 @@ maintainer approves the addition in review.
 Dependencies are pinned:
 
 - Go modules in `go.mod` and `go.sum`
-- GitHub Actions by commit SHA, except the SLSA generator, which
-  [must be referenced by tag](https://github.com/slsa-framework/slsa-github-generator#referencing-slsa-builders-and-generators)
+- GitHub Actions by commit SHA, except two reusable workflows that must be
+  referenced by tag: the SLSA generator
+  ([why](https://github.com/slsa-framework/slsa-github-generator#referencing-slsa-builders-and-generators))
+  and the grc.store publish workflow
+  ([why](https://github.com/revanite-io/pvtr-publish-results#calling-it))
 - Container base images by digest
 
 Dependabot opens weekly update PRs for Go modules, GitHub Actions, and Docker
