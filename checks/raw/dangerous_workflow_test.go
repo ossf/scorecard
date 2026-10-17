@@ -135,6 +135,51 @@ func TestUntrustedContextVariables(t *testing.T) {
 			variable: "toJSON(github.repository)",
 			expected: false,
 		},
+		{
+			name:     "untrusted event with index leaf",
+			variable: "github.event.issue['title']",
+			expected: true,
+		},
+		{
+			name:     "untrusted event with double-quoted index leaf",
+			variable: "github.event.pull_request[\"body\"]",
+			expected: true,
+		},
+		{
+			name:     "untrusted event fully indexed",
+			variable: "github['event']['issue']['title']",
+			expected: true,
+		},
+		{
+			name:     "untrusted head_ref indexed",
+			variable: "github['head_ref']",
+			expected: true,
+		},
+		{
+			name:     "toJSON github event indexed",
+			variable: "toJSON(github['event'])",
+			expected: true,
+		},
+		{
+			name:     "trusted event with index leaf",
+			variable: "github.event.pull_request['number']",
+			expected: false,
+		},
+		{
+			name:     "untrusted event upper-cased property",
+			variable: "github.event.issue.TITLE",
+			expected: true,
+		},
+		{
+			name:     "untrusted context re-cased",
+			variable: "GitHub.Event.Issue.Title",
+			expected: true,
+		},
+		{
+			name:     "untrusted head_ref re-cased",
+			variable: "github.HEAD_REF",
+			expected: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -174,6 +219,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			expected: ret{nb: 1},
 		},
 		{
+			name:     "run untrusted code checkout test with index syntax",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-index.yml",
+			expected: ret{nb: 1},
+		},
+		{
 			name:     "run trusted code checkout test",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-checkout.yml",
 			expected: ret{nb: 0},
@@ -186,6 +236,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run script injection",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run script injection with index syntax",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection-index.yml",
 			expected: ret{nb: 1},
 		},
 		{
