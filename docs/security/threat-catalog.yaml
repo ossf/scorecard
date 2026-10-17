@@ -237,7 +237,8 @@ threats:
       has no authentication or rate limiting, because it is intended for
       trusted networks. If it is reachable by untrusted clients, they can
       spend the operator's API rate limit, and can read results for private
-      repositories the operator's token can access.
+      repositories the operator's token can access. `scorecard serve --help`
+      states this trust model.
     group: information-disclosure
     capabilities:
       - reference-id: CCC
