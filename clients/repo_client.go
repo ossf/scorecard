@@ -25,6 +25,12 @@ import (
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
 var ErrUnsupportedFeature = errors.New("unsupported feature")
 
+// ErrCommitSearchUnprocessable indicates the commit search API rejected an otherwise
+// valid query with a 422 Unprocessable Entity response, e.g. because the repo isn't
+// indexed by GitHub search yet. Callers can choose to treat this like missing data
+// rather than a hard failure.
+var ErrCommitSearchUnprocessable = errors.New("commit search unprocessable")
+
 // HeadSHA is default commitSHA value used to denote git HEAD.
 const HeadSHA = "HEAD"
 
