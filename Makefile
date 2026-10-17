@@ -80,6 +80,10 @@ check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
+check-shell: ## Run shellcheck on shell scripts
+	# Find shell scripts by their shebang line
+	shellcheck $$(git grep -lE '^#!/(usr/)?bin/(env )?(ba)?sh' -- ':!*.md' ':!**/testdata/**')
+
 fix-linter: ## Install and run golang linter, with fixes
 fix-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
