@@ -16,7 +16,7 @@ metadata:
   id: OSSF.SCORECARD.ENGINE.THREATS
   type: ThreatCatalog
   gemara-version: "1.6.0"
-  version: "0.1.0"
+  version: "1.0.0"
   description: |
     Threats to the Scorecard scan engine and CLI, and to the people who run
     it or rely on its results. Grouped by STRIDE. Capabilities are defined in
@@ -24,7 +24,7 @@ metadata:
   author:
     id: ossf-scorecard
     name: OpenSSF Scorecard maintainers
-    type: Software Assisted
+    type: Human
   mapping-references:
     - id: CCC
       title: Common Cloud Controls Core
@@ -32,7 +32,7 @@ metadata:
       url: https://github.com/finos/common-cloud-controls/releases
     - id: OSSF.SCORECARD.ENGINE.CAPS
       title: Scorecard Scan Engine Capabilities
-      version: "0.1.0"
+      version: "1.0.0"
 
 title: Scorecard Scan Engine Threats
 

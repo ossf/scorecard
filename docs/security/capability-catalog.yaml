@@ -16,7 +16,7 @@ metadata:
   id: OSSF.SCORECARD.ENGINE.CAPS
   type: CapabilityCatalog
   gemara-version: "1.6.0"
-  version: "0.1.0"
+  version: "1.0.0"
   description: |
     Capabilities of the Scorecard scan engine and CLI: the scorecard binary,
     its container image, the pkg/scorecard Go API, `scorecard serve`, and
@@ -27,7 +27,7 @@ metadata:
   author:
     id: ossf-scorecard
     name: OpenSSF Scorecard maintainers
-    type: Software Assisted
+    type: Human
   mapping-references:
     - id: CCC
       title: Common Cloud Controls Core
