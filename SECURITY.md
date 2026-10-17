@@ -74,8 +74,8 @@ reviewed both:
   the PR's code to compare Scorecard results before and after the change,
   using the repository's GitHub and GitLab tokens. It runs only when the
   commenter has write access to this repository, and only when the PR hasn't
-  changed since the comment. Maintainers review the PR before asking for a
-  run.
+  changed since the comment. The comparison script comes from `main`, not from
+  the PR. Maintainers review the PR before asking for a run.
 
 No other workflow uses `pull_request_target`, `issue_comment`, or
 `workflow_run`.
