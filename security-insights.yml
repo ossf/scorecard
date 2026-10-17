@@ -82,6 +82,7 @@ project:
       Use the OpenSSF security contact email if a report can't be filed on GitHub or receives no response
       within the window described in the security policy.
   documentation:
+    design: https://github.com/ossf/scorecard/blob/main/ARCHITECTURE.md
     detailed-guide: https://github.com/ossf/scorecard/blob/main/README.md
     code-of-conduct: https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md
     release-process: https://github.com/ossf/scorecard/blob/main/RELEASE.md
