@@ -1,0 +1,303 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+metadata:
+  id: OSSF.SCORECARD.ENGINE.THREATS
+  type: ThreatCatalog
+  gemara-version: "1.6.0"
+  version: "0.1.0"
+  description: |
+    Threats to the Scorecard scan engine and CLI, and to the people who run
+    it or rely on its results. Grouped by STRIDE. Capabilities are defined in
+    capability-catalog.yaml.
+  author:
+    id: ossf-scorecard
+    name: OpenSSF Scorecard maintainers
+    type: Software Assisted
+  mapping-references:
+    - id: CCC
+      title: Common Cloud Controls Core
+      version: v2025.10
+      url: https://github.com/finos/common-cloud-controls/releases
+    - id: OSSF.SCORECARD.ENGINE.CAPS
+      title: Scorecard Scan Engine Capabilities
+      version: "0.1.0"
+
+title: Scorecard Scan Engine Threats
+
+groups:
+  - id: spoofing
+    title: Spoofing
+    description: Pretending to be something or someone else
+  - id: tampering
+    title: Tampering
+    description: Modifying data, files, or results without authorization
+  - id: information-disclosure
+    title: Information Disclosure
+    description: Exposing data to someone who shouldn't see it
+  - id: denial-of-service
+    title: Denial of Service
+    description: Preventing scans from completing or exhausting resources
+  - id: elevation-of-privilege
+    title: Elevation of Privilege
+    description: Gaining capabilities beyond those intended
+
+imports:
+  - reference-id: CCC
+    entries:
+      - reference-id: CCC.Core.TH02
+        remarks: Data is Intercepted in Transit. Applies to host and service API calls.
+      - reference-id: CCC.Core.TH14
+        remarks: Older Resource Versions are Used. Applies to results read after the repository changed.
+      - reference-id: CCC.Core.TH17
+        remarks: Responses are Generated for Unauthorized Requests. Applies to `scorecard serve`.
+
+threats:
+  - id: OSSF.SCORECARD.ENGINE.THR01
+    title: Scanned Repository Shapes Its Own Score
+    description: |
+      Checks infer practices from what is visible in the repository and host
+      metadata. A repository owner can add files, workflows, or settings that
+      satisfy a check's heuristics without following the practice the check
+      measures, so consumers overestimate the project's security posture.
+    group: tampering
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP01
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP05
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP07
+    actors:
+      - id: repository-owner
+        name: Owner of the scanned repository
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR02
+    title: Self-Asserted Annotations Explain Away Findings
+    description: |
+      Maintainer annotations are statements by the scanned repository's
+      owners that Scorecard displays without verifying. They don't change
+      scores, but they can persuade a reader to discount a low score, and
+      SARIF output omits annotated checks entirely.
+    group: tampering
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP06
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP07
+    actors:
+      - id: repository-owner
+        name: Owner of the scanned repository
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR03
+    title: Package Metadata Points at Another Repository
+    description: |
+      When a user scans a package by name, Scorecard scans whatever source
+      repository the package's registry metadata names. A package publisher
+      can name an unrelated, well-maintained repository, so the package
+      borrows that repository's score.
+    group: spoofing
+    capabilities:
+      - reference-id: CCC
+        entries:
+          - reference-id: CCC.Core.CP29
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP03
+    actors:
+      - id: package-publisher
+        name: Package publisher
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR04
+    title: Repository Host Returns Misleading Data
+    description: |
+      Results depend on the host's API responses and archives. A compromised
+      or attacker-run host, such as a self-managed GitLab instance, can return
+      data that misrepresents the repository and produces a misleading result.
+    group: spoofing
+    capabilities:
+      - reference-id: CCC
+        entries:
+          - reference-id: CCC.Core.CP14
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP01
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP02
+    actors:
+      - id: host-operator
+        name: Operator of a repository host
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR05
+    title: Archive Entries Write Outside the Scan Directory
+    description: |
+      A crafted archive could use relative paths or links to write files
+      outside the temporary directory during extraction. Extraction rejects
+      entries whose cleaned path leaves the destination and skips symbolic
+      links.
+    group: elevation-of-privilege
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP01
+    actors:
+      - id: repository-owner
+        name: Owner of the scanned repository
+        type: Human
+      - id: host-operator
+        name: Operator of a repository host
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR06
+    title: Crafted Files Disrupt Parsing
+    description: |
+      Malformed or adversarial workflows, Dockerfiles, shell scripts,
+      manifests, or lockfiles can make a parser fail, hang, or crash, which
+      makes checks inconclusive or stops the scan. The 2025 third-party audit
+      fuzzed several of these parsers.
+    group: denial-of-service
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP04
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP05
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP06
+    actors:
+      - id: repository-owner
+        name: Owner of the scanned repository
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR07
+    title: Large Repositories Exhaust Scanner Resources
+    description: |
+      Scanning downloads and extracts the whole repository and may analyze
+      every file. A very large repository, or an archive served by a hostile
+      host, can exhaust the scanner's disk, memory, or time, or the host's
+      API rate limit for the token in use.
+    group: denial-of-service
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP01
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP02
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP04
+    actors:
+      - id: repository-owner
+        name: Owner of the scanned repository
+        type: Human
+      - id: host-operator
+        name: Operator of a repository host
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR08
+    title: Host Tokens Are Exposed
+    description: |
+      Scorecard holds the user's host tokens for the whole run. A defect that
+      writes request headers or environment values to logs or output would
+      expose them to anyone who can read the logs, such as viewers of a
+      public CI run.
+    group: information-disclosure
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP07
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP08
+
+  - id: OSSF.SCORECARD.ENGINE.THR09
+    title: Over-Scoped Tokens Widen the Blast Radius
+    description: |
+      Scorecard only reads, but users often supply tokens with write or
+      private-repository scopes, and some checks need broader scopes to see
+      settings such as branch protection. If the token leaks, or the process
+      running Scorecard is compromised, the token's extra scopes are exposed
+      with it.
+    group: elevation-of-privilege
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP08
+
+  - id: OSSF.SCORECARD.ENGINE.THR10
+    title: Exposed Scan Service Acts on the Operator's Behalf
+    description: |
+      `scorecard serve` runs every request with the operator's credentials and
+      has no authentication or rate limiting, because it is intended for
+      trusted networks. If it is reachable by untrusted clients, they can
+      spend the operator's API rate limit, and can read results for private
+      repositories the operator's token can access.
+    group: information-disclosure
+    capabilities:
+      - reference-id: CCC
+        entries:
+          - reference-id: CCC.Core.CP27
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP08
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP09
+    actors:
+      - id: network-client
+        name: Client that can reach the service
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR11
+    title: Results Are Read as Describing a Different Commit
+    description: |
+      A result describes the repository at the commit that was scanned,
+      usually HEAD at scan time. Consumers who read cached or weekly results
+      after the repository changed act on a posture that no longer holds.
+    group: tampering
+    capabilities:
+      - reference-id: CCC
+        entries:
+          - reference-id: CCC.Core.CP18
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP07
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP10
+
+  - id: OSSF.SCORECARD.ENGINE.THR12
+    title: Attestation Vouches for Source the Image Wasn't Built From
+    description: |
+      scorecard-attestor evaluates the repository and commit its caller names,
+      falling back to HEAD when no commit is given. It doesn't verify that the
+      image was built from that commit, so a misconfigured or compromised
+      pipeline can obtain a signed attestation for an image whose actual
+      source was never evaluated.
+    group: spoofing
+    capabilities:
+      - reference-id: CCC
+        entries:
+          - reference-id: CCC.Core.CP18
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP11
+    actors:
+      - id: pipeline-author
+        name: Author of the build pipeline
+        type: Human
+
+  - id: OSSF.SCORECARD.ENGINE.THR13
+    title: Attestation Signing Key Is Exposed
+    description: |
+      PGP and PKIX signing keys are read from files, and a PGP passphrase can
+      be passed as a command-line flag, where process listings or build logs
+      can capture it. Anyone holding the key can sign attestations for any
+      image. Cloud KMS keys keep the key material out of the process.
+    group: information-disclosure
+    capabilities:
+      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
+        entries:
+          - reference-id: OSSF.SCORECARD.ENGINE.CAP11
