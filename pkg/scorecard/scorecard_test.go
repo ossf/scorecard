@@ -14,6 +14,7 @@
 package scorecard
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -33,6 +34,9 @@ import (
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/probes/fuzzed"
 )
+
+// errTest is used to force a raw-data collection failure in tests.
+var errTest = errors.New("forced test error")
 
 func Test_getRepoCommitHash(t *testing.T) {
 	t.Parallel()
@@ -329,6 +333,134 @@ func TestRun_WithProbes(t *testing.T) {
 				WithOSSFuzzClient(mockOSSFuzzClient),
 				WithCommitSHA(tt.args.commitSHA),
 				WithProbes(tt.args.probes),
+			)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			ignoreRemediationText := cmpopts.IgnoreFields(finding.Remediation{}, "Text", "Markdown")
+			ignoreDate := cmpopts.IgnoreFields(Result{}, "Date")
+			ignoreUnexported := cmpopts.IgnoreUnexported(finding.Finding{})
+			if !cmp.Equal(got, tt.want, ignoreDate, ignoreRemediationText, ignoreUnexported) {
+				t.Errorf("expected %v, got %v", got, cmp.Diff(tt.want, got, ignoreDate,
+					ignoreRemediationText, ignoreUnexported))
+			}
+		})
+	}
+}
+
+func TestRun_WithProbes_SkipErrors(t *testing.T) {
+	t.Parallel()
+	versionInfo := version.GetVersionInfo()
+	type args struct {
+		uri        string
+		commitSHA  string
+		probes     []string
+		skipErrors bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    Result
+		wantErr bool
+	}{
+		{
+			// Without --skip-errors, a raw-data collection failure aborts the run.
+			name: "raw data error aborts run without skip-errors",
+			args: args{
+				uri:        "github.com/ossf/scorecard",
+				commitSHA:  "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:     []string{fuzzed.Probe},
+				skipErrors: false,
+			},
+			want:    Result{},
+			wantErr: true,
+		},
+		{
+			// With --skip-errors, the failing raw data is skipped and the probe
+			// still runs (against empty data), so we get a result and no error.
+			name: "raw data error is skipped with skip-errors",
+			args: args{
+				uri:        "github.com/ossf/scorecard",
+				commitSHA:  "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				probes:     []string{fuzzed.Probe},
+				skipErrors: true,
+			},
+			want: Result{
+				Repo: RepoInfo{
+					Name:      "github.com/ossf/scorecard",
+					CommitSHA: "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+				},
+				RawResults: checker.RawResults{
+					Metadata: checker.MetadataData{
+						Metadata: map[string]string{
+							"repository.defaultBranch": "main",
+							"repository.host":          "github.com",
+							"repository.name":          "ossf/scorecard",
+							"repository.sha1":          "1a17bb812fb2ac23e9d09e86e122f8b67563aed7",
+							"repository.uri":           "github.com/ossf/scorecard",
+							"localPath":                "test_path",
+						},
+					},
+				},
+				Scorecard: ScorecardInfo{
+					Version:   versionInfo.GitVersion,
+					CommitSHA: versionInfo.GitCommit,
+				},
+				Findings: []finding.Finding{
+					{
+						Probe:   fuzzed.Probe,
+						Outcome: finding.OutcomeFalse,
+						Message: "no fuzzer integrations found",
+						Remediation: &finding.Remediation{
+							Effort: finding.RemediationEffortHigh,
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().LocalPath().DoAndReturn(func() (string, error) {
+				return "test_path", nil
+			}).AnyTimes()
+			repo := mockrepo.NewMockRepo(ctrl)
+
+			repo.EXPECT().URI().Return(tt.args.uri).AnyTimes()
+			repo.EXPECT().Host().Return("github.com").AnyTimes()
+			repo.EXPECT().Type().Return(clients.RepoTypeGitHub).AnyTimes()
+
+			mockRepoClient.EXPECT().InitRepo(repo, tt.args.commitSHA, 0).Return(nil)
+			mockRepoClient.EXPECT().URI().Return(repo.URI()).AnyTimes()
+			mockRepoClient.EXPECT().Close().DoAndReturn(func() error {
+				return nil
+			})
+
+			mockRepoClient.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
+				return []clients.Commit{{SHA: tt.args.commitSHA}}, nil
+			})
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(nil, nil).AnyTimes()
+
+			// Force the fuzzed probe's raw data collection (raw.Fuzzing) to fail
+			// by returning an error from ListProgrammingLanguages.
+			mockRepoClient.EXPECT().ListProgrammingLanguages().
+				Return(nil, errTest).AnyTimes()
+
+			mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			mockOSSFuzzClient := mockrepo.NewMockRepoClient(ctrl)
+			mockOSSFuzzClient.EXPECT().Search(gomock.Any()).Return(clients.SearchResponse{}, nil).AnyTimes()
+
+			got, err := Run(t.Context(), repo,
+				WithRepoClient(mockRepoClient),
+				WithOSSFuzzClient(mockOSSFuzzClient),
+				WithCommitSHA(tt.args.commitSHA),
+				WithProbes(tt.args.probes),
+				WithSkipErrors(tt.args.skipErrors),
 			)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Run() error = %v, wantErr %v", err, tt.wantErr)

@@ -188,6 +188,9 @@ func rootCmd(o *options.Options) error {
 	if strings.EqualFold(o.FileMode, options.FileModeGit) {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
+	if o.SkipErrors {
+		opts = append(opts, scorecard.WithSkipErrors(true))
+	}
 
 	// Track whether any check produced a runtime error during scans. We want to
 	// continue scanning all repos but return a non-nil error at the end so the
@@ -212,7 +215,9 @@ func rootCmd(o *options.Options) error {
 		}
 	}
 
-	if sawRuntimeErr {
+	// When --skip-errors is set, per-check runtime errors are surfaced in the
+	// reports but must not fail the overall command, so we keep the exit code 0.
+	if sawRuntimeErr && !o.SkipErrors {
 		return errChecksFailed
 	}
 
