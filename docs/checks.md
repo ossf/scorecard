@@ -204,19 +204,21 @@ malicious code (either as a malicious contributor or as an attacker who has
 subverted a contributor's account), because a reviewer might detect the
 subversion.
 
-The check determines whether the most recent changes (over the last ~30 commits) have 
+The check determines whether the most recent changes (over the last ~30 commits) have
 an approval on GitHub/GitLab
-or if the merger is different from the committer (implicit review). It also
+or if the merger is different from the pull request author (implicit review). It also
 performs a similar check for reviews using
 [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
-"lgtm" or "approved") and [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on" and "Reviewed-by").
+"lgtm" or "approved"), [Gerrit](https://www.gerritcodereview.com/) ("Reviewed-on:"
+and "Reviewed-by:" in the commit message), Phabricator ("Differential Revision:"
+in the commit message) and Piper ("PiperOrigin-RevId:" in the commit message).
 If recent changes are solely bot activity (e.g. Dependabot, Renovate bot, or custom bots),
 the check returns inconclusively.
 
-Scoring is leveled instead of proportional to make the check more predictable.
-If any bot-originated changes are unreviewed, 3 points are deducted. If any human
-changes are unreviewed, 7 points are deducted if a single change is unreviewed, and
-another 3 are deducted if multiple changes are unreviewed.
+The score is proportional: `10 × (approved changesets ÷ total changesets)`, using
+integer arithmetic (rounded down), over the changesets examined. Bot-authored
+changesets that were approved are excluded from both counts. Unreviewed
+bot-authored changesets are included and lower the score.
 
 Review by bots, including bots powered by
 artificial intelligence / machine learning (AI/ML),
