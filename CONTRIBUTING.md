@@ -15,6 +15,7 @@ project. This document describes the contribution guidelines for the project.
 
 <!-- vim-markdown-toc GFM -->
 
+* [Reporting bugs](#reporting-bugs)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -36,6 +37,17 @@ project. This document describes the contribution guidelines for the project.
 
 <!-- vim-markdown-toc -->
 
+## Reporting bugs
+
+Open an issue with the
+[bug report template](https://github.com/ossf/scorecard/issues/new?template=bug_report.md).
+Include the Scorecard version (`scorecard version`), how you ran it (CLI,
+GitHub Action, or the REST API), the repository you scanned if it's public,
+the steps to reproduce, and what you expected to happen.
+
+Don't report security vulnerabilities in public issues. Follow
+[SECURITY.md](SECURITY.md) instead.
+
 ## Contributing code
 
 ### Getting started
@@ -51,8 +63,8 @@ You must install these tools:
 
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
-1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.26.0](https://golang.org/dl/) or higher.
+1.  [`go`](https://golang.org/doc/install): You need the Go version in
+    [`go.mod`](go.mod) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
