@@ -14,7 +14,7 @@
 
 header:
   schema-version: 2.2.0
-  last-updated: '2026-10-08'
+  last-updated: '2026-10-16'
   last-reviewed: '2026-10-08'
   url: https://raw.githubusercontent.com/ossf/scorecard/main/security-insights.yml
   comment: This file contains the security information for the Scorecard project.
@@ -31,6 +31,10 @@ project:
     - name: Spencer Schrock
       affiliation: Google
       social: https://github.com/spencerschrock
+      primary: false
+    - name: Jeff Mendoza
+      affiliation: Microsoft
+      social: https://github.com/jeffmendoza
       primary: false
   repositories:
     - name: Scorecard
@@ -78,6 +82,7 @@ project:
       Use the OpenSSF security contact email if a report can't be filed on GitHub or receives no response
       within the window described in the security policy.
   documentation:
+    design: https://github.com/ossf/scorecard/blob/main/ARCHITECTURE.md
     detailed-guide: https://github.com/ossf/scorecard/blob/main/README.md
     code-of-conduct: https://github.com/ossf/scorecard/blob/main/CODE_OF_CONDUCT.md
     release-process: https://github.com/ossf/scorecard/blob/main/RELEASE.md
@@ -108,9 +113,12 @@ repository:
   security:
     assessments:
       self:
+        evidence: https://github.com/ossf/scorecard/blob/main/docs/security/README.md
+        date: '2026-10-16'
         comment: |
-          A self-assessment has not been completed yet. The 2025 third-party audit listed below included formal
-          threat modeling of this repository.
+          Gemara threat model of the Scorecard scan engine, CLI, `scorecard serve`, and scorecard-attestor: a
+          capability catalog and a threat catalog, reviewed by the maintainers. The 2025 third-party audit
+          listed below also included formal threat modeling of this repository.
       third-party:
         - name: OpenSSF Scorecard security audit (2025)
           evidence: https://openssf.org/blog/2025/10/10/openssf-scorecard-audit-is-complete/
@@ -178,7 +186,9 @@ repository:
             location: https://github.com/ossf/scorecard/actions/workflows/osps-baseline.yml
   documentation:
     contributing-guide: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md
+    dependency-management-policy: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#dependencies
     governance: https://github.com/ossf/scorecard/blob/main/MAINTAINERS.md
+    review-policy: https://github.com/ossf/scorecard/blob/main/CONTRIBUTING.md#pr-process
     security-policy: https://github.com/ossf/scorecard/blob/main/SECURITY.md
   release:
     automated-pipeline: true
