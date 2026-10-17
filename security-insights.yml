@@ -32,6 +32,10 @@ project:
       affiliation: Google
       social: https://github.com/spencerschrock
       primary: false
+    - name: Jeff Mendoza
+      affiliation: Microsoft
+      social: https://github.com/jeffmendoza
+      primary: false
   repositories:
     - name: Scorecard
       url: https://github.com/ossf/scorecard
