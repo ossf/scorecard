@@ -18,12 +18,60 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
+
+func TestLatestCommittedDate(t *testing.T) {
+	t.Parallel()
+
+	oldest := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
+	newest := time.Date(2026, time.March, 1, 0, 0, 0, 0, time.UTC)
+	middle := time.Date(2026, time.February, 1, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name    string
+		commits []*gitlab.Commit
+		want    *time.Time
+	}{
+		{
+			name: "finds newest commit in unordered response",
+			commits: []*gitlab.Commit{
+				{CommittedDate: &oldest},
+				{CommittedDate: &newest},
+				{CommittedDate: &middle},
+			},
+			want: &newest,
+		},
+		{
+			name: "ignores missing commit dates",
+			commits: []*gitlab.Commit{
+				{},
+				{CommittedDate: &middle},
+			},
+			want: &middle,
+		},
+		{
+			name:    "returns nil without a commit date",
+			commits: []*gitlab.Commit{{}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := latestCommittedDate(tt.commits)
+			if !cmp.Equal(got, tt.want) {
+				t.Errorf("latestCommittedDate() mismatch (-got +want):\n%s", cmp.Diff(got, tt.want))
+			}
+		})
+	}
+}
 
 func TestCheckRepoInaccessible(t *testing.T) {
 	t.Parallel()
