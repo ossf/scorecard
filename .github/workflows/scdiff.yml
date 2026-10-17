@@ -56,9 +56,13 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const allowedAssociations = ["COLLABORATOR", "MEMBER", "OWNER"];
-            authorAssociation = '${{ github.event.comment.author_association }}'
-            if (!allowedAssociations.includes(authorAssociation)) {
+            // Only users who can push to this repository may run scdiff.
+            const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login,
+            })
+            if (!["admin", "write"].includes(access.permission)) {
               core.setFailed("You don't have access to run scdiff");
               return
             }
