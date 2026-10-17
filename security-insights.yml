@@ -113,9 +113,12 @@ repository:
   security:
     assessments:
       self:
+        evidence: https://github.com/ossf/scorecard/blob/main/docs/security/README.md
+        date: '2026-10-16'
         comment: |
-          A self-assessment has not been completed yet. The 2025 third-party audit listed below included formal
-          threat modeling of this repository.
+          Gemara threat model of the Scorecard scan engine, CLI, `scorecard serve`, and scorecard-attestor: a
+          capability catalog and a threat catalog, reviewed by the maintainers. The 2025 third-party audit
+          listed below also included formal threat modeling of this repository.
       third-party:
         - name: OpenSSF Scorecard security audit (2025)
           evidence: https://openssf.org/blog/2025/10/10/openssf-scorecard-audit-is-complete/
