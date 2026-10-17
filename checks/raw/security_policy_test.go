@@ -174,6 +174,54 @@ func TestSecurityPolicy(t *testing.T) {
 	}
 }
 
+func TestSecurityPolicyReadsOnlySelectedPolicyPath(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepo := mockrepo.NewMockRepo(ctrl)
+	files := []string{
+		"SECURITY.md",
+		".review-pro/node/security.md",
+	}
+
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			matched := make([]string, 0, len(files))
+			for _, file := range files {
+				matches, err := predicate(file)
+				if err != nil {
+					return nil, err
+				}
+				if matches {
+					matched = append(matched, file)
+				}
+			}
+			return matched, nil
+		},
+	).Times(2)
+	// The root policy is selected first but intentionally has no content. A
+	// basename fallback would then incorrectly read the nested file instead.
+	mockRepoClient.EXPECT().GetFileReader("SECURITY.md").Return(
+		io.NopCloser(strings.NewReader("")), nil,
+	)
+
+	dl := scut.TestDetailLogger{}
+	result, err := SecurityPolicy(&checker.CheckRequest{
+		RepoClient: mockRepoClient,
+		Repo:       mockRepo,
+		Dlogger:    &dl,
+	})
+	if err != nil {
+		t.Fatalf("SecurityPolicy() error = %v", err)
+	}
+	if len(result.PolicyFiles) != 1 || result.PolicyFiles[0].File.Path != "SECURITY.md" {
+		t.Fatalf("SecurityPolicy() PolicyFiles = %+v, want only SECURITY.md", result.PolicyFiles)
+	}
+	if len(result.PolicyFiles[0].Information) != 0 {
+		t.Errorf("SecurityPolicy() unexpectedly read information from another file: %+v", result.PolicyFiles[0].Information)
+	}
+}
+
 // Test_collectPolicyHits tests the regexes in collectPolicyHits for positive and negative cases.
 func Test_collectPolicyHits(t *testing.T) {
 	t.Parallel()
