@@ -15,6 +15,7 @@ project. This document describes the contribution guidelines for the project.
 
 <!-- vim-markdown-toc GFM -->
 
+* [Reporting bugs](#reporting-bugs)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -24,18 +25,28 @@ project. This document describes the contribution guidelines for the project.
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
 * [Changing Score Results](#changing-score-results)
+* [Dependencies](#dependencies)
 * [Linting](#linting)
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
 * [Adding New Probes](#adding-new-probes)
 * [Where the CI Tests are configured](#where-the-ci-tests-are-configured)
-* [dailyscore-cronjob](#dailyscore-cronjob)
-  * [Deploying the cron job](#deploying-the-cron-job)
-* [How do I add additional GitHub repositories to be scanned by scorecard dailyscore?](#how-do-i-add-additional-github-repositories-to-be-scanned-by-scorecard-dailyscore)
+* [Adding new projects to the batch scan](#adding-new-projects-to-the-batch-scan)
 * [Adding New Checks](#adding-new-checks)
 * [Updating Docs](#updating-docs)
 * [Choosing checks to run](#choosing-checks-to-run)
 
 <!-- vim-markdown-toc -->
+
+## Reporting bugs
+
+Open an issue with the
+[bug report template](https://github.com/ossf/scorecard/issues/new?template=bug_report.md).
+Include the Scorecard version (`scorecard version`), how you ran it (CLI,
+GitHub Action, or the REST API), the repository you scanned if it's public,
+the steps to reproduce, and what you expected to happen.
+
+Don't report security vulnerabilities in public issues. Follow
+[SECURITY.md](SECURITY.md) instead.
 
 ## Contributing code
 
@@ -52,8 +63,8 @@ You must install these tools:
 
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
-1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.26.0](https://golang.org/dl/) or higher.
+1.  [`go`](https://golang.org/doc/install): You need the Go version in
+    [`go.mod`](go.mod) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
@@ -158,6 +169,9 @@ must put them in one PR, you should mark the whole PR as breaking.
 > This includes [synchronizing your PR](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch)
 > with `main`. The GitHub review experience is much nicer with traditional merge commits.
 
+A PR can merge once a maintainer has approved it, every review thread is
+resolved, and the required CI checks pass.
+
 ## What to do before submitting a pull request
 
 Following the targets that can be used to test your changes locally.
@@ -180,6 +194,25 @@ While they are included in `make all`, running them individually is faster.
 As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged.
 It is a good idea to discuss such changes in a GitHub issue before implementing them.
 
+## Dependencies
+
+A PR that adds a direct dependency must explain why it's needed, and a
+maintainer approves the addition in review.
+
+Dependencies are pinned:
+
+- Go modules in `go.mod` and `go.sum`
+- GitHub Actions by commit SHA, except two reusable workflows that must be
+  referenced by tag: the SLSA generator
+  ([why](https://github.com/slsa-framework/slsa-github-generator#referencing-slsa-builders-and-generators))
+  and the grc.store publish workflow
+  ([why](https://github.com/revanite-io/pvtr-publish-results#calling-it))
+- Container base images by digest
+
+Dependabot opens weekly update PRs for Go modules, GitHub Actions, and Docker
+images. The [dependency review](.github/workflows/depsreview.yml) workflow
+checks the dependencies each PR changes.
+
 ## Linting
 
 Most linter issues can be fixed with `golangci-lint` with the following command:
@@ -199,16 +232,19 @@ For public repos, classic personal access tokens need the following scopes:
 1.  See the [action files](.github/workflows) to check its tests and the
     scripts used on it.
 
-## How do I add additional GitHub repositories to be scanned by Scorecard weekly?
+## Adding new projects to the batch scan
 
-Scorecard maintains the list of GitHub repositories in a file
-https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv
+The weekly batch scanning pipeline, including the scan inventories, moved to
+[`ossf/scorecard-infra`](https://github.com/ossf/scorecard-infra). Scorecard
+maintains the list of GitHub repositories in a file
+https://github.com/ossf/scorecard-infra/blob/main/cron/internal/data/projects.csv
 
 GitLab repositories are listed in:
-https://github.com/ossf/scorecard/blob/main/cron/internal/data/gitlab-projects.csv
+https://github.com/ossf/scorecard-infra/blob/main/cron/internal/data/gitlab-projects.csv
 
-Append your desired repositories to the end of these files, then run `make add-projects`.
-Commit the changes and submit a PR and scorecard would start scanning in subsequent runs.
+Append your desired repositories to the end of these files, then run `make add-projects`
+in `ossf/scorecard-infra`. Commit the changes and submit a PR there and scorecard would
+start scanning in subsequent runs.
 
 ## Adding new checks
 

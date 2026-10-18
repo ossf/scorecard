@@ -20,11 +20,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 const (
@@ -38,7 +37,7 @@ const (
 )
 
 // GetJobName returns Name.Value if non-nil, else returns "".
-func GetJobName(job *actionlint.Job) string {
+func GetJobName(job *ghworkflow.Job) string {
 	if job != nil && job.Name != nil {
 		return job.Name.Value
 	}
@@ -46,7 +45,7 @@ func GetJobName(job *actionlint.Job) string {
 }
 
 // GetStepName returns Name.Value if non-nil, else returns "".
-func GetStepName(step *actionlint.Step) string {
+func GetStepName(step *ghworkflow.Step) string {
 	if step != nil && step.Name != nil {
 		return step.Name.Value
 	}
@@ -54,7 +53,7 @@ func GetStepName(step *actionlint.Step) string {
 }
 
 // IsStepExecKind compares input `step` ExecKind with `kind` and returns true on a match.
-func IsStepExecKind(step *actionlint.Step, kind actionlint.ExecKind) bool {
+func IsStepExecKind(step *ghworkflow.Step, kind ghworkflow.ExecKind) bool {
 	if step == nil || step.Exec == nil {
 		return false
 	}
@@ -62,7 +61,7 @@ func IsStepExecKind(step *actionlint.Step, kind actionlint.ExecKind) bool {
 }
 
 // GetLineNumber returns the line number for this position.
-func GetLineNumber(pos *actionlint.Pos) uint {
+func GetLineNumber(pos *ghworkflow.Pos) uint {
 	if pos == nil {
 		return checker.OffsetDefault
 	}
@@ -70,14 +69,14 @@ func GetLineNumber(pos *actionlint.Pos) uint {
 }
 
 // GetUses returns the 'uses' statement in this step or nil if this step does not have one.
-func GetUses(step *actionlint.Step) *actionlint.String {
+func GetUses(step *ghworkflow.Step) *ghworkflow.String {
 	if step == nil {
 		return nil
 	}
-	if !IsStepExecKind(step, actionlint.ExecKindAction) {
+	if !IsStepExecKind(step, ghworkflow.ExecKindAction) {
 		return nil
 	}
-	execAction, ok := step.Exec.(*actionlint.ExecAction)
+	execAction, ok := step.Exec.(*ghworkflow.ExecAction)
 	if !ok || execAction == nil {
 		return nil
 	}
@@ -85,14 +84,14 @@ func GetUses(step *actionlint.Step) *actionlint.String {
 }
 
 // getWith returns the 'with' statement in this step or nil if this step does not have one.
-func getWith(step *actionlint.Step) map[string]*actionlint.Input {
+func getWith(step *ghworkflow.Step) map[string]*ghworkflow.Input {
 	if step == nil {
 		return nil
 	}
-	if !IsStepExecKind(step, actionlint.ExecKindAction) {
+	if !IsStepExecKind(step, ghworkflow.ExecKindAction) {
 		return nil
 	}
-	execAction, ok := step.Exec.(*actionlint.ExecAction)
+	execAction, ok := step.Exec.(*ghworkflow.ExecAction)
 	if !ok || execAction == nil {
 		return nil
 	}
@@ -100,54 +99,54 @@ func getWith(step *actionlint.Step) map[string]*actionlint.Input {
 }
 
 // getRun returns the 'run' statement in this step or nil if this step does not have one.
-func getRun(step *actionlint.Step) *actionlint.String {
+func getRun(step *ghworkflow.Step) *ghworkflow.String {
 	if step == nil {
 		return nil
 	}
-	if !IsStepExecKind(step, actionlint.ExecKindRun) {
+	if !IsStepExecKind(step, ghworkflow.ExecKindRun) {
 		return nil
 	}
-	execAction, ok := step.Exec.(*actionlint.ExecRun)
+	execAction, ok := step.Exec.(*ghworkflow.ExecRun)
 	if !ok || execAction == nil {
 		return nil
 	}
 	return execAction.Run
 }
 
-func getExecRunShell(execRun *actionlint.ExecRun) string {
+func getExecRunShell(execRun *ghworkflow.ExecRun) string {
 	if execRun != nil && execRun.Shell != nil {
 		return execRun.Shell.Value
 	}
 	return ""
 }
 
-func getJobDefaultRunShell(job *actionlint.Job) string {
+func getJobDefaultRunShell(job *ghworkflow.Job) string {
 	if job != nil && job.Defaults != nil && job.Defaults.Run != nil && job.Defaults.Run.Shell != nil {
 		return job.Defaults.Run.Shell.Value
 	}
 	return ""
 }
 
-func getJobRunsOnLabels(job *actionlint.Job) []*actionlint.String {
+func getJobRunsOnLabels(job *ghworkflow.Job) []*ghworkflow.String {
 	if job != nil && job.RunsOn != nil {
 		// Starting at v1.6.16, either field may be set
 		// https://github.com/rhysd/actionlint/issues/164
 		if job.RunsOn.LabelsExpr != nil {
-			return []*actionlint.String{job.RunsOn.LabelsExpr}
+			return []*ghworkflow.String{job.RunsOn.LabelsExpr}
 		}
 		return job.RunsOn.Labels
 	}
 	return nil
 }
 
-func getJobStrategyMatrixRows(job *actionlint.Job) map[string]*actionlint.MatrixRow {
+func getJobStrategyMatrixRows(job *ghworkflow.Job) map[string]*ghworkflow.MatrixRow {
 	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil {
 		return job.Strategy.Matrix.Rows
 	}
 	return nil
 }
 
-func getJobStrategyMatrixIncludeCombinations(job *actionlint.Job) []*actionlint.MatrixCombination {
+func getJobStrategyMatrixIncludeCombinations(job *ghworkflow.Job) []*ghworkflow.MatrixCombination {
 	if job != nil && job.Strategy != nil && job.Strategy.Matrix != nil && job.Strategy.Matrix.Include != nil &&
 		job.Strategy.Matrix.Include.Combinations != nil {
 		return job.Strategy.Matrix.Include.Combinations
@@ -156,7 +155,7 @@ func getJobStrategyMatrixIncludeCombinations(job *actionlint.Job) []*actionlint.
 }
 
 // FormatActionlintError combines the errors into a single one.
-func FormatActionlintError(errs []*actionlint.Error) error {
+func FormatActionlintError(errs []*ghworkflow.Error) error {
 	if len(errs) == 0 {
 		return nil
 	}
@@ -169,7 +168,7 @@ func FormatActionlintError(errs []*actionlint.Error) error {
 }
 
 // GetOSesForJob returns the OSes this job runs on.
-func GetOSesForJob(job *actionlint.Job) ([]string, error) {
+func GetOSesForJob(job *ghworkflow.Job) ([]string, error) {
 	// The 'runs-on' field either lists the OS'es directly, or it can have an expression '${{ matrix.os }}' which
 	// is where the OS'es are actually listed.
 	jobOSes := make([]string, 0)
@@ -189,7 +188,7 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 			continue
 		}
 		for _, os := range rowValue.Values {
-			jobOSes = append(jobOSes, strings.Trim(os.String(), "'\""))
+			jobOSes = append(jobOSes, strings.Trim(os, "'\""))
 		}
 	}
 
@@ -199,10 +198,10 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 			continue
 		}
 		for _, assign := range combination.Assigns {
-			if assign.Key == nil || assign.Key.Value != os || assign.Value == nil {
+			if assign.Key == nil || assign.Key.Value != os || assign.Value == "" {
 				continue
 			}
-			jobOSes = append(jobOSes, strings.Trim(assign.Value.String(), "'\""))
+			jobOSes = append(jobOSes, strings.Trim(assign.Value, "'\""))
 		}
 	}
 
@@ -221,7 +220,7 @@ func GetOSesForJob(job *actionlint.Job) ([]string, error) {
 }
 
 // JobAlwaysRunsOnWindows returns true if the only OS that this job runs on is Windows.
-func JobAlwaysRunsOnWindows(job *actionlint.Job) (bool, error) {
+func JobAlwaysRunsOnWindows(job *ghworkflow.Job) (bool, error) {
 	jobOSes, err := GetOSesForJob(job)
 	if err != nil {
 		return false, err
@@ -235,9 +234,9 @@ func JobAlwaysRunsOnWindows(job *actionlint.Job) (bool, error) {
 }
 
 // GetShellForStep returns the shell that is used to run the given step.
-func GetShellForStep(step *actionlint.Step, job *actionlint.Job) (string, error) {
+func GetShellForStep(step *ghworkflow.Step, job *ghworkflow.Job) (string, error) {
 	// https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#using-a-specific-shell.
-	execRun, ok := step.Exec.(*actionlint.ExecRun)
+	execRun, ok := step.Exec.(*ghworkflow.ExecRun)
 	if !ok {
 		jobName := GetJobName(job)
 		stepName := GetStepName(step)
@@ -273,7 +272,7 @@ func GetShellForStep(step *actionlint.Step, job *actionlint.Job) (string, error)
 }
 
 // IsStepWindows returns true if the step will be run on Windows.
-func IsStepWindows(step *actionlint.Step) (bool, error) {
+func IsStepWindows(step *ghworkflow.Step) (bool, error) {
 	if step.If == nil {
 		return false, nil
 	}
@@ -351,7 +350,7 @@ type JobMatchResult struct {
 }
 
 // AnyJobsMatch returns true if any of the jobs have a match in the given workflow.
-func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp string,
+func AnyJobsMatch(workflow *ghworkflow.Workflow, jobMatchers []JobMatcher, fp string,
 	logMsgNoMatch string,
 ) (JobMatchResult, bool) {
 	for _, job := range workflow.Jobs {
@@ -382,7 +381,7 @@ func AnyJobsMatch(workflow *actionlint.Workflow, jobMatchers []JobMatcher, fp st
 }
 
 // matches returns true if the job matches the job matcher.
-func (m *JobMatcher) matches(job *actionlint.Job) bool {
+func (m *JobMatcher) matches(job *ghworkflow.Job) bool {
 	for _, stepToMatch := range m.Steps {
 		hasMatch := false
 
@@ -408,7 +407,7 @@ func (m *JobMatcher) matches(job *actionlint.Job) bool {
 }
 
 // stepsMatch returns true if the fields on 'stepToMatch' match what's in 'step'.
-func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
+func stepsMatch(stepToMatch *JobMatcherStep, step *ghworkflow.Step) bool {
 	// Make sure 'uses' matches if present.
 	if stepToMatch.Uses != "" {
 		uses := GetUses(step)
@@ -451,7 +450,7 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *actionlint.Step) bool {
 }
 
 // IsPackagingWorkflow checks for a packaging workflow.
-func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResult, bool) {
+func IsPackagingWorkflow(workflow *ghworkflow.Workflow, fp string) (JobMatchResult, bool) {
 	jobMatchers := []JobMatcher{
 		{
 			Steps: []*JobMatcherStep{
@@ -573,11 +572,17 @@ func IsPackagingWorkflow(workflow *actionlint.Workflow, fp string) (JobMatchResu
 			LogText: "candidate rust publishing workflow using cargo",
 		},
 		{
-			// Ko container action. https://github.com/google/ko
+			// Ko container action (original spelling). https://github.com/ko-build/ko
 			Steps: []*JobMatcherStep{
 				{
 					Uses: "imjasonh/setup-ko",
 				},
+			},
+			LogText: "candidate container publishing workflow using ko",
+		},
+		{
+			// Ko container action (current spelling). https://github.com/ko-build/setup-ko
+			Steps: []*JobMatcherStep{
 				{
 					Uses: "ko-build/setup-ko",
 				},
