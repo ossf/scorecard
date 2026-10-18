@@ -783,13 +783,20 @@ func parseActionsLockfile(content []byte) (*lockfile.File, string) {
 	}
 
 	var minimal struct {
-		Workflows map[string][]string `yaml:"workflows"`
-		Version   string              `yaml:"version"`
+		Workflows    map[string][]string `yaml:"workflows"`
+		Dependencies map[string]struct {
+			Commit string `yaml:"commit"`
+		} `yaml:"dependencies"`
+		Version string `yaml:"version"`
 	}
 	if yamlErr := yaml.Unmarshal(content, &minimal); yamlErr != nil {
 		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", yamlErr)
 	}
-	return &lockfile.File{Version: minimal.Version, Workflows: minimal.Workflows},
+	deps := make(map[string]lockfile.Action, len(minimal.Dependencies))
+	for key, dep := range minimal.Dependencies {
+		deps[key] = lockfile.Action{Commit: dep.Commit}
+	}
+	return &lockfile.File{Version: minimal.Version, Workflows: minimal.Workflows, Dependencies: deps},
 		fmt.Sprintf("actions lockfile version %q is newer than the supported %q, "+
 			"assuming it is backwards compatible and reading pins only; consider updating Scorecard",
 			minimal.Version, lockfile.Version)
@@ -950,11 +957,14 @@ func isActionPinnedByLockfile(actionUses, pathfn string, lf *lockfile.File) bool
 
 	for _, pin := range pins {
 		if pin == key {
-			return true
+			// The pin only counts if the lockfile resolves it to a concrete commit.
+			return lockfileCommitRegex.MatchString(lf.Dependencies[key].Commit)
 		}
 	}
 	return false
 }
+
+var lockfileCommitRegex = regexp.MustCompile(`^(sha1-[a-fA-F0-9]{40}|sha256-[a-fA-F0-9]{64})$`)
 
 // actionLockfileKey normalizes a workflow `uses:` value down to the
 // repo-scoped pin key (`OWNER/REPO@REF`) used by the lockfile. A `uses:` value

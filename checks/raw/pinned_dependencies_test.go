@@ -346,11 +346,19 @@ dependencies:
     owner_id: 44036562
     repo_id: 197814629
 `
-	const future = `version: v9.9.9
+	const noDependency = `version: v9.9.9
 workflows:
   .github/workflows/ci.yaml:
     - actions/checkout@v4.1.1
 dependencies: {}
+`
+	const future = `version: v9.9.9
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies:
+  actions/checkout@v4.1.1:
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
 `
 
 	tests := []struct {
@@ -365,6 +373,7 @@ dependencies: {}
 		{name: "v0.0.3 unrecorded ref", content: v3, uses: "tenant-org/internal-action@v2", ispinned: false},
 		{name: "v0.0.2 still supported", content: v2, uses: "actions/checkout@v4.1.1", ispinned: true},
 		{name: "newer version is read best-effort with a warning", content: future, uses: "actions/checkout@v4.1.1", ispinned: true, warns: true},
+		{name: "newer version, pin without a dependency entry", content: noDependency, uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
 		{name: "newer version, unrecorded ref", content: future, uses: "actions/checkout@v3", ispinned: false, warns: true},
 		{name: "malformed lockfile is ignored with a warning", content: "version: [", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
 	}
