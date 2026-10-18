@@ -83,6 +83,30 @@ jobs:
        with:
          files: "*e2e-coverage.out"
          verbose: true
+  unit-test-windows:
+    # Repo paths are slash-separated and Windows cannot delete open files, so this catches bugs that
+    # are invisible on Linux. `make` is not guaranteed on the Windows image, so run go test directly.
+    name: unit-test (windows)
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+       with:
+         egress-policy: audit # Windows runners support audit mode only
+     - name: Clone the code
+       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+     - name: Setup Go
+       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+       with:
+         go-version: ${{ env.GO_VERSION }}
+         check-latest: true
+     - name: Run unit-tests
+       shell: bash
+       env:
+         SKIP_GINKGO: 1
+       run: go test -race -covermode=atomic $(go list ./...)
   generate-mocks:
     name: generate-mocks
     runs-on: ubuntu-latest
