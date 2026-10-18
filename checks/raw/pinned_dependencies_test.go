@@ -27,6 +27,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
@@ -287,6 +288,134 @@ func TestIsActionPinnedByImmutableReleaseCachesResults(t *testing.T) {
 		if !pinned {
 			t.Fatalf("call %d: expected pinned=true", i)
 		}
+	}
+}
+
+func TestIsActionPinnedByImmutableReleaseEdgeCases(t *testing.T) {
+	t.Parallel()
+
+	t.Run("unparseable uses values never call the API", func(t *testing.T) {
+		t.Parallel()
+		c := &checker.CheckRequest{RepoClient: mockrepo.NewMockRepoClient(gomock.NewController(t))}
+		for _, uses := range []string{
+			"docker://alpine@v3", "actions/checkout", "actions/checkout@", "@v1", "checkout@v1", "/repo@v1",
+		} {
+			if isActionPinnedByImmutableRelease(c, nil, uses) {
+				t.Errorf("%q: expected not pinned", uses)
+			}
+		}
+	})
+
+	t.Run("nil request or client is not pinned", func(t *testing.T) {
+		t.Parallel()
+		if isActionPinnedByImmutableRelease(nil, nil, "actions/checkout@v4") {
+			t.Error("nil request: expected not pinned")
+		}
+		if isActionPinnedByImmutableRelease(&checker.CheckRequest{}, nil, "actions/checkout@v4") {
+			t.Error("nil client: expected not pinned")
+		}
+	})
+
+	t.Run("sub-path action looks up the repo", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(true, nil)
+		if !isActionPinnedByImmutableRelease(&checker.CheckRequest{RepoClient: m}, nil, "actions/cache/save@v4") {
+			t.Error("expected pinned")
+		}
+	})
+
+	t.Run("nil cache still works and does not cache", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(true, nil).Times(2)
+		c := &checker.CheckRequest{RepoClient: m}
+		for i := 0; i < 2; i++ {
+			if !isActionPinnedByImmutableRelease(c, nil, "actions/cache@v4") {
+				t.Fatal("expected pinned")
+			}
+		}
+	})
+
+	t.Run("negative results are cached", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(false, nil).Times(1)
+		c := &checker.CheckRequest{RepoClient: m}
+		cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
+		for i := 0; i < 2; i++ {
+			if isActionPinnedByImmutableRelease(c, cache, "actions/cache@v4") {
+				t.Fatal("expected not pinned")
+			}
+		}
+	})
+
+	t.Run("errors are not cached", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(false, errInvalidArgLength).Times(2)
+		c := &checker.CheckRequest{RepoClient: m, Dlogger: &scut.TestDetailLogger{}}
+		cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
+		for i := 0; i < 2; i++ {
+			if isActionPinnedByImmutableRelease(c, cache, "actions/cache@v4") {
+				t.Fatal("expected not pinned")
+			}
+		}
+	})
+
+	t.Run("unsupported feature is silent, other errors are logged", func(t *testing.T) {
+		t.Parallel()
+		for _, tt := range []struct {
+			err  error
+			logs int
+		}{
+			{err: clients.ErrUnsupportedFeature, logs: 0},
+			{err: errInvalidArgLength, logs: 1},
+		} {
+			m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+			m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(false, tt.err)
+			dl := &scut.TestDetailLogger{}
+			c := &checker.CheckRequest{RepoClient: m, Dlogger: dl}
+			if isActionPinnedByImmutableRelease(c, nil, "actions/cache@v4") {
+				t.Fatal("expected not pinned")
+			}
+			if n := len(dl.Flush()); n != tt.logs {
+				t.Errorf("%v: got %d log messages, want %d", tt.err, n, tt.logs)
+			}
+		}
+	})
+
+	t.Run("error without a logger does not panic", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().IsReleaseImmutable("actions", "cache", "v4").Return(false, errInvalidArgLength)
+		if isActionPinnedByImmutableRelease(&checker.CheckRequest{RepoClient: m}, nil, "actions/cache@v4") {
+			t.Fatal("expected not pinned")
+		}
+	})
+}
+
+func TestValidateGitHubActionWorkflowArgTypes(t *testing.T) {
+	t.Parallel()
+
+	var r checker.PinningDependenciesData
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
+	const wf = ".github/workflows/ci.yaml"
+	tests := []struct {
+		name string
+		args []interface{}
+	}{
+		{name: "wrong argument count", args: []interface{}{&r}},
+		{name: "wrong request type", args: []interface{}{&r, "nope", cache}},
+		{name: "wrong cache type", args: []interface{}{&r, &checker.CheckRequest{}, "nope"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if _, err := validateGitHubActionWorkflow(wf, []byte("on: push\n"), tt.args...); err == nil {
+				t.Fatal("expected an error")
+			}
+		})
 	}
 }
 

@@ -32,6 +32,8 @@ type hostRoundTripper struct {
 	// responses maps a host (req.URL.Host) to a status code and body to
 	// return for any request to that host.
 	responses map[string]hostResponse
+	// pathResponses maps host+path to a response, taking precedence over responses.
+	pathResponses map[string]hostResponse
 	// calls counts the number of requests made per host.
 	calls map[string]int
 }
@@ -47,7 +49,10 @@ func (h *hostRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	}
 	h.calls[req.URL.Host]++
 
-	resp, ok := h.responses[req.URL.Host]
+	resp, ok := h.pathResponses[req.URL.Host+req.URL.Path]
+	if !ok {
+		resp, ok = h.responses[req.URL.Host]
+	}
 	if !ok {
 		return &http.Response{
 			StatusCode: http.StatusNotFound,
@@ -163,5 +168,108 @@ func TestIsReleaseImmutable_NoDotcomFallbackConfigured(t *testing.T) {
 	}
 	if immutable {
 		t.Error("expected immutable=false when release isn't found and no fallback is configured")
+	}
+}
+
+func TestIsReleaseImmutable_FallbackDecisions(t *testing.T) {
+	t.Parallel()
+
+	const (
+		ghesHost   = "ghes.example.com"
+		dotcomHost = "api.github.com"
+		releasePth = "/repos/owner/repo/releases/tags/v1.0.0"
+		repoPath   = "/repos/owner/repo"
+	)
+	ok := func(body string) hostResponse { return hostResponse{status: http.StatusOK, body: body} }
+	status := func(code int) hostResponse { return hostResponse{status: code, body: `{"message":"x"}`} }
+	immutableBody := `{"tag_name":"v1.0.0","immutable":true}`
+
+	tests := []struct {
+		name          string
+		ghesRelease   hostResponse
+		ghesRepo      hostResponse
+		dotcomRelease hostResponse
+		wantImmutable bool
+		wantErr       bool
+		wantDotcomHit bool
+	}{
+		{
+			name:        "enterprise release lookup failure is an error without fallback",
+			ghesRelease: status(http.StatusInternalServerError),
+			ghesRepo:    ok(`{}`),
+			wantErr:     true,
+		},
+		{
+			name:          "release missing on an existing enterprise repo never falls back to dotcom",
+			ghesRelease:   status(http.StatusNotFound),
+			ghesRepo:      ok(`{"name":"repo"}`),
+			dotcomRelease: ok(immutableBody),
+			wantImmutable: false,
+			wantDotcomHit: false,
+		},
+		{
+			name:          "enterprise repo lookup failure is an error without fallback",
+			ghesRelease:   status(http.StatusNotFound),
+			ghesRepo:      status(http.StatusInternalServerError),
+			dotcomRelease: ok(immutableBody),
+			wantErr:       true,
+		},
+		{
+			name:          "dotcom failure is an error",
+			ghesRelease:   status(http.StatusNotFound),
+			ghesRepo:      status(http.StatusNotFound),
+			dotcomRelease: status(http.StatusInternalServerError),
+			wantErr:       true,
+			wantDotcomHit: true,
+		},
+		{
+			name:          "missing on both hosts is not immutable",
+			ghesRelease:   status(http.StatusNotFound),
+			ghesRepo:      status(http.StatusNotFound),
+			dotcomRelease: status(http.StatusNotFound),
+			wantDotcomHit: true,
+		},
+		{
+			name:          "repo absent on enterprise and release immutable on dotcom",
+			ghesRelease:   status(http.StatusNotFound),
+			ghesRepo:      status(http.StatusNotFound),
+			dotcomRelease: ok(immutableBody),
+			wantImmutable: true,
+			wantDotcomHit: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			rt := &hostRoundTripper{
+				pathResponses: map[string]hostResponse{
+					ghesHost + "/api/v3" + releasePth: tt.ghesRelease,
+					ghesHost + "/api/v3" + repoPath:   tt.ghesRepo,
+					dotcomHost + releasePth:           tt.dotcomRelease,
+				},
+			}
+			httpClient := &http.Client{Transport: rt}
+			enterpriseClient, err := github.NewClient(httpClient).WithEnterpriseURLs(
+				"https://"+ghesHost+"/api/v3", "https://"+ghesHost+"/api/v3")
+			if err != nil {
+				t.Fatalf("WithEnterpriseURLs: %v", err)
+			}
+			client := &Client{
+				ctx:          t.Context(),
+				repoClient:   enterpriseClient,
+				dotcomClient: github.NewClient(httpClient),
+			}
+
+			got, err := client.IsReleaseImmutable("owner", "repo", "v1.0.0")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != tt.wantImmutable {
+				t.Errorf("immutable = %v, want %v", got, tt.wantImmutable)
+			}
+			if hit := rt.calls[dotcomHost] > 0; hit != tt.wantDotcomHit {
+				t.Errorf("dotcom hit = %v, want %v", hit, tt.wantDotcomHit)
+			}
+		})
 	}
 }
