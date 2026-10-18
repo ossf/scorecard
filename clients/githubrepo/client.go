@@ -96,6 +96,18 @@ type repoClientConfig struct {
 
 const defaultGhHost = "github.com"
 
+// bearerTransport adds a bearer token to outgoing requests.
+type bearerTransport struct {
+	base  http.RoundTripper
+	token string
+}
+
+func (t bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer "+t.token)
+	return t.base.RoundTrip(req)
+}
+
 // InitRepo sets up the GitHub repo in local storage for improving performance and GitHub token usage efficiency.
 func (client *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth int) error {
 	ghRepo, ok := inputRepo.(*Repo)
@@ -389,8 +401,13 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		// references to repositories hosted on github.com. Keep a
 		// dotcom-targeted REST client as a fallback for lookups whose data
 		// may only exist there (e.g. IsReleaseImmutable). It is anonymous so
-		// the enterprise credentials are never sent to github.com.
-		dotcomClient = github.NewClient(&http.Client{})
+		// the enterprise credentials are never sent to github.com. Set
+		// GITHUB_DOTCOM_TOKEN to authenticate against github.com instead.
+		dotcomHTTP := &http.Client{}
+		if token := strings.TrimSpace(os.Getenv("GITHUB_DOTCOM_TOKEN")); token != "" {
+			dotcomHTTP.Transport = bearerTransport{token: token, base: http.DefaultTransport}
+		}
+		dotcomClient = github.NewClient(dotcomHTTP)
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)
