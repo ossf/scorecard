@@ -17,7 +17,6 @@ package fileparser
 import (
 	"fmt"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -305,7 +304,7 @@ func IsWorkflowFile(pathfn string) bool {
 	// "Workflow files use YAML syntax, and must have either a .yml or .yaml file extension."
 	switch path.Ext(pathfn) {
 	case ".yml", ".yaml":
-		return filepath.Dir(strings.ToLower(pathfn)) == ".github/workflows"
+		return path.Dir(strings.ToLower(pathfn)) == ".github/workflows"
 	default:
 		return false
 	}
