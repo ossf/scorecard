@@ -89,9 +89,20 @@ func WithRoundTripper(rt http.RoundTripper) Option {
 	}
 }
 
+// WithDotcomRoundTripper configures the http.RoundTripper used for the github.com fallback client,
+// which is only created when GH_HOST targets a GitHub Enterprise Server. It must not carry the
+// enterprise credentials; the default is an anonymous http.DefaultTransport.
+func WithDotcomRoundTripper(rt http.RoundTripper) Option {
+	return func(c *repoClientConfig) error {
+		c.dotcomRT = rt
+		return nil
+	}
+}
+
 type repoClientConfig struct {
-	rt      http.RoundTripper
-	gitMode bool
+	rt       http.RoundTripper
+	dotcomRT http.RoundTripper
+	gitMode  bool
 }
 
 const defaultGhHost = "github.com"
@@ -348,6 +359,15 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	return rc
 }
 
+// newDotcomFallbackClient returns a github.com-targeted REST client for lookups whose data may only
+// exist there even though scorecard is configured against a GitHub Enterprise Server: GitHub Connect
+// lets Actions on a GHES instance resolve `uses:` references to repositories hosted on github.com.
+// It deliberately does not reuse the configured round tripper, so the enterprise credentials are
+// never sent to github.com. A nil rt selects http.DefaultTransport.
+func newDotcomFallbackClient(rt http.RoundTripper) *github.Client {
+	return github.NewClient(&http.Client{Transport: rt})
+}
+
 // NewRepoClient returns a Client which implements RepoClient interface.
 // It can be configured with various [Option]s.
 func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, error) {
@@ -385,12 +405,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 
 		graphClient = githubv4.NewEnterpriseClient(githubGraphqlURL, httpClient)
 
-		// GitHub Connect lets Actions on a GHES instance resolve `uses:`
-		// references to repositories hosted on github.com. Keep a
-		// dotcom-targeted REST client as a fallback for lookups whose data
-		// may only exist there (e.g. IsReleaseImmutable). It is anonymous so
-		// the enterprise credentials are never sent to github.com.
-		dotcomClient = github.NewClient(&http.Client{})
+		dotcomClient = newDotcomFallbackClient(config.dotcomRT)
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)

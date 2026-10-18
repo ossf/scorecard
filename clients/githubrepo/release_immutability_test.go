@@ -273,3 +273,77 @@ func TestIsReleaseImmutable_FallbackDecisions(t *testing.T) {
 		})
 	}
 }
+
+// authHeaderRecorder records the Authorization header of each request per host, and answers 404.
+type authHeaderRecorder struct {
+	auth map[string][]string
+}
+
+func (r *authHeaderRecorder) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.auth[req.URL.Host] = append(r.auth[req.URL.Host], req.Header.Get("Authorization"))
+	return &http.Response{
+		StatusCode: http.StatusNotFound,
+		Status:     "404 Not Found",
+		Body:       io.NopCloser(strings.NewReader(`{"message":"Not Found"}`)),
+		Header:     http.Header{},
+		Request:    req,
+	}, nil
+}
+
+// authInjector mimics the configured transport by adding credentials to every request.
+type authInjector struct{ next http.RoundTripper }
+
+func (a authInjector) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	req.Header.Set("Authorization", "Bearer enterprise-secret")
+	return a.next.RoundTrip(req)
+}
+
+//nolint:paralleltest // uses t.Setenv
+func TestIsReleaseImmutable_DotcomFallbackNeverSendsEnterpriseCredentials(t *testing.T) {
+	t.Setenv("GH_HOST", "ghes.example.com")
+
+	enterprise := &authHeaderRecorder{auth: map[string][]string{}}
+	dotcom := &authHeaderRecorder{auth: map[string][]string{}}
+	rc, err := NewRepoClient(t.Context(),
+		WithRoundTripper(authInjector{next: enterprise}),
+		WithDotcomRoundTripper(dotcom),
+	)
+	if err != nil {
+		t.Fatalf("NewRepoClient: %v", err)
+	}
+
+	// 404 on both hosts forces the lookup through the fallback path.
+	if immutable, err := rc.IsReleaseImmutable("owner", "repo", "v1"); err != nil || immutable {
+		t.Fatalf("IsReleaseImmutable = %v, %v; want false, nil", immutable, err)
+	}
+
+	if got := enterprise.auth["ghes.example.com"]; len(got) == 0 || got[0] != "Bearer enterprise-secret" {
+		t.Errorf("enterprise requests should carry credentials, got %v", got)
+	}
+	if len(dotcom.auth["api.github.com"]) == 0 {
+		t.Fatal("expected the lookup to fall back to github.com")
+	}
+	for host, headers := range dotcom.auth {
+		for _, h := range headers {
+			if h != "" {
+				t.Errorf("request to %s carried credentials: %q", host, h)
+			}
+		}
+	}
+	if len(enterprise.auth["api.github.com"]) != 0 {
+		t.Error("github.com requests must not go through the enterprise transport")
+	}
+}
+
+//nolint:paralleltest // uses t.Setenv
+func TestNewRepoClient_NoDotcomFallbackOnGithubCom(t *testing.T) {
+	t.Setenv("GH_HOST", "github.com")
+	rc, err := NewRepoClient(t.Context())
+	if err != nil {
+		t.Fatalf("NewRepoClient: %v", err)
+	}
+	if c, ok := rc.(*Client); !ok || c.dotcomClient != nil {
+		t.Fatalf("expected no dotcom fallback client, got %+v", rc)
+	}
+}
