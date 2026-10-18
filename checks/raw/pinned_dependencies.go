@@ -789,8 +789,9 @@ func parseActionsLockfile(content []byte) (*lockfile.File, string) {
 		} `yaml:"dependencies"`
 		Version string `yaml:"version"`
 	}
-	// lockfile.Parse already decoded this content, so a structural failure is not possible here.
-	_ = yaml.Unmarshal(content, &minimal)
+	if yamlErr := yaml.Unmarshal(content, &minimal); yamlErr != nil {
+		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", yamlErr)
+	}
 	deps := make(map[string]lockfile.Action, len(minimal.Dependencies))
 	for key, dep := range minimal.Dependencies {
 		deps[key] = lockfile.Action{Commit: dep.Commit}
