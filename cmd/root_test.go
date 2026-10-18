@@ -15,10 +15,27 @@
 package cmd
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/options"
 )
+
+func TestBashCompletionUsesInstalledCommandName(t *testing.T) {
+	cmd := New(&options.Options{})
+	var completion bytes.Buffer
+	if err := cmd.GenBashCompletionV2(&completion, true); err != nil {
+		t.Fatalf("GenBashCompletionV2() error = %v", err)
+	}
+	if !strings.Contains(completion.String(), "__start_scorecard scorecard") {
+		t.Error("bash completion does not register the scorecard command")
+	}
+	if strings.Contains(completion.String(), "__start_scorecard ./scorecard") {
+		t.Error("bash completion registers only the local ./scorecard path")
+	}
+}
 
 func TestMakeRepoLegacyAzureDevOpsURL(t *testing.T) {
 	t.Setenv("SCORECARD_EXPERIMENTAL", "1")
