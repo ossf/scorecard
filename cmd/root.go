@@ -206,9 +206,9 @@ func processRepos(
 	for _, uri := range repoURLs {
 		res, err := process(uri)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
 			errs = append(errs, fmt.Errorf("processing %s: %w", uri, err))
 			if res == nil {
+				fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
 				continue
 			}
 		}
@@ -360,6 +360,7 @@ func processRepo(
 	}
 
 	if formatErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, formatErr)
 		return &result, fmt.Errorf("format results: %w", formatErr)
 	}
 
