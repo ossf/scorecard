@@ -388,8 +388,9 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		// GitHub Connect lets Actions on a GHES instance resolve `uses:`
 		// references to repositories hosted on github.com. Keep a
 		// dotcom-targeted REST client as a fallback for lookups whose data
-		// may only exist there (e.g. IsReleaseImmutable).
-		dotcomClient = github.NewClient(httpClient)
+		// may only exist there (e.g. IsReleaseImmutable). It is anonymous so
+		// the enterprise credentials are never sent to github.com.
+		dotcomClient = github.NewClient(&http.Client{})
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)

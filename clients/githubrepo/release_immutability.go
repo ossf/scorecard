@@ -55,6 +55,16 @@ func (client *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) 
 		return false, nil
 	}
 
+	// A missing release on an existing enterprise repository must not fall
+	// back to a same-named public repository.
+	_, resp, err := client.repoClient.Repositories.Get(client.ctx, owner, repo)
+	switch {
+	case err == nil:
+		return false, nil
+	case resp == nil || resp.StatusCode != http.StatusNotFound:
+		return false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("Repositories.Get: %v", err))
+	}
+
 	immutable, _, err = queryReleaseImmutable(client.ctx, client.dotcomClient, owner, repo, tag)
 	if err != nil {
 		return false, err

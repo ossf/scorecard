@@ -28,6 +28,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
@@ -911,6 +912,9 @@ func isActionPinnedByImmutableRelease(c *checker.CheckRequest, cache *immutableR
 
 	immutable, err := c.RepoClient.IsReleaseImmutable(owner, repo, tag)
 	if err != nil {
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return false
+		}
 		if c.Dlogger != nil {
 			c.Dlogger.Debug(&checker.LogMessage{
 				Text: fmt.Sprintf("unable to check release immutability for %v: %v", actionUses, err),
