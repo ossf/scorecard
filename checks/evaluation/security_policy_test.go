@@ -343,3 +343,10 @@ func TestSecurityPolicy(t *testing.T) {
 		})
 	}
 }
+
+func TestApplyPrivateReportingKeepsHigherScore(t *testing.T) {
+	t.Parallel()
+	if got := applyPrivateReporting(9, true, false); got != 9 {
+		t.Fatalf("applyPrivateReporting() = %d, want 9", got)
+	}
+}
