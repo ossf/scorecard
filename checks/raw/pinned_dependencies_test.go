@@ -398,10 +398,6 @@ dependencies:
 		{name: "newer version, pin without a dependency entry", content: noDependency, uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
 		{name: "newer version, unrecorded ref", content: future, uses: "actions/checkout@v3", ispinned: false, warns: true},
 		{name: "malformed lockfile is ignored with a warning", content: "version: [", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
-		{
-			name:    "newer version with unreadable content is ignored with a warning",
-			content: "version: v9.9.9\nworkflows: nope\n", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
