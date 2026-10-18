@@ -1,0 +1,2 @@
+# Test fixtures are compared byte-for-byte; keep LF line endings on every platform.
+**/testdata/** text=auto eol=lf
