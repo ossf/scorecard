@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -397,6 +398,10 @@ dependencies:
 		{name: "newer version, pin without a dependency entry", content: noDependency, uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
 		{name: "newer version, unrecorded ref", content: future, uses: "actions/checkout@v3", ispinned: false, warns: true},
 		{name: "malformed lockfile is ignored with a warning", content: "version: [", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
+		{
+			name:    "newer version with unreadable content is ignored with a warning",
+			content: "version: v9.9.9\nworkflows: nope\n", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -410,6 +415,64 @@ dependencies:
 			}
 		})
 	}
+}
+
+func TestLoadActionsLockfile(t *testing.T) {
+	t.Parallel()
+
+	newClient := func(t *testing.T, content string, listErr error) *mockrepo.MockRepoClient {
+		t.Helper()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+			func(predicate func(string) (bool, error)) ([]string, error) {
+				if listErr != nil {
+					return nil, listErr
+				}
+				ok, err := predicate(".github/workflows/actions.lock")
+				if err != nil || !ok {
+					return nil, err
+				}
+				return []string{".github/workflows/actions.lock"}, nil
+			}).AnyTimes()
+		m.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(string) (io.ReadCloser, error) {
+			return io.NopCloser(strings.NewReader(content)), nil
+		}).AnyTimes()
+		return m
+	}
+
+	t.Run("listing error is returned", func(t *testing.T) {
+		t.Parallel()
+		req := &checker.CheckRequest{RepoClient: newClient(t, "", errors.New("boom"))}
+		if lf, err := loadActionsLockfile(req); err == nil || lf != nil {
+			t.Fatalf("expected an error and no lockfile, got %v, %v", lf, err)
+		}
+	})
+
+	t.Run("warning is logged for a newer version", func(t *testing.T) {
+		t.Parallel()
+		dl := &scut.TestDetailLogger{}
+		req := &checker.CheckRequest{
+			RepoClient: newClient(t, "version: v9.9.9\nworkflows: {}\ndependencies: {}\n", nil),
+			Dlogger:    dl,
+		}
+		lf, err := loadActionsLockfile(req)
+		if err != nil || lf == nil {
+			t.Fatalf("expected a lockfile, got %v, %v", lf, err)
+		}
+		if n := len(dl.Flush()); n != 1 {
+			t.Fatalf("expected 1 logged warning, got %d", n)
+		}
+	})
+
+	t.Run("no lockfile in the repo", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().ListFiles(gomock.Any()).Return(nil, nil).AnyTimes()
+		lf, err := loadActionsLockfile(&checker.CheckRequest{RepoClient: m})
+		if err != nil || lf != nil {
+			t.Fatalf("expected no lockfile and no error, got %v, %v", lf, err)
+		}
+	})
 }
 
 func TestGithubWorkflowSelfRepositoryReferences(t *testing.T) {
