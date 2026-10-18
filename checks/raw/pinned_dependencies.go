@@ -746,12 +746,7 @@ func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
 	var collect fileparser.DoWhileTrueOnFileContent = func(
 		pathfn string, content []byte, args ...interface{},
 	) (bool, error) {
-		parsed, err := lockfile.Parse(content)
-		if err != nil {
-			//nolint:nilerr // intentional: fall back to standard pin detection on a malformed lockfile.
-			return false, nil
-		}
-		lf = &parsed
+		lf = parseActionsLockfile(content)
 		return false, nil
 	}
 
@@ -763,6 +758,16 @@ func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
 		return nil, err
 	}
 	return lf, nil
+}
+
+// parseActionsLockfile parses lockfile content (schema v0.0.1 through v0.0.3) and returns nil
+// when it is malformed or uses a schema version newer than this build understands.
+func parseActionsLockfile(content []byte) *lockfile.File {
+	parsed, err := lockfile.Parse(content)
+	if err != nil {
+		return nil
+	}
+	return &parsed
 }
 
 func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []checker.Dependency) {

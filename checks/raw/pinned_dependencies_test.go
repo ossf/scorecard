@@ -308,6 +308,74 @@ func TestActionPinnedByLockfile(t *testing.T) {
 	}
 }
 
+// TestActionPinnedByLockfileSchemaVersions verifies that lockfiles are honored across schema versions.
+// Schema v0.0.3 adds a per-dependency "hostname": empty means the home host (the GHE.com tenant on
+// a data-residency instance), "github.com" marks a public github.com-bound pin. Pins are authoritative
+// whatever the host, so no lookup (and thus no credential use) against any host is needed to treat
+// them as pinned.
+func TestActionPinnedByLockfileSchemaVersions(t *testing.T) {
+	t.Parallel()
+
+	const wf = ".github/workflows/ci.yaml"
+	const v3 = `version: v0.0.3
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+    - tenant-org/internal-action@v1
+dependencies:
+  actions/checkout@v4.1.1:
+    hostname: github.com
+    ref: v4.1.1
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
+    owner_id: 44036562
+    repo_id: 197814629
+  tenant-org/internal-action@v1:
+    ref: v1
+    commit: sha1-0123456789abcdef0123456789abcdef01234567
+    owner_id: 1001
+    repo_id: 2002
+`
+	const v2 = `version: v0.0.2
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies:
+  actions/checkout@v4.1.1:
+    ref: v4.1.1
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
+    owner_id: 44036562
+    repo_id: 197814629
+`
+	const future = `version: v9.9.9
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies: {}
+`
+
+	tests := []struct {
+		name     string
+		content  string
+		uses     string
+		ispinned bool
+	}{
+		{name: "v0.0.3 github.com-bound pin", content: v3, uses: "actions/checkout@v4.1.1", ispinned: true},
+		{name: "v0.0.3 home-host (tenant) pin", content: v3, uses: "tenant-org/internal-action@v1", ispinned: true},
+		{name: "v0.0.3 unrecorded ref", content: v3, uses: "tenant-org/internal-action@v2", ispinned: false},
+		{name: "v0.0.2 still supported", content: v2, uses: "actions/checkout@v4.1.1", ispinned: true},
+		{name: "unsupported future version is ignored", content: future, uses: "actions/checkout@v4.1.1", ispinned: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			captured := parseActionsLockfile([]byte(tt.content))
+			if got := isActionDependencyPinned(tt.uses, wf, captured); got != tt.ispinned {
+				t.Fatalf("%s: ispinned = %v, expected %v", tt.uses, got, tt.ispinned)
+			}
+		})
+	}
+}
+
 func TestGithubWorkflowSelfRepositoryReferences(t *testing.T) {
 	t.Parallel()
 
