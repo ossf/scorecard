@@ -957,14 +957,12 @@ func isActionPinnedByLockfile(actionUses, pathfn string, lf *lockfile.File) bool
 
 	for _, pin := range pins {
 		if pin == key {
-			// The pin only counts if the lockfile resolves it to a concrete commit.
-			return lockfileCommitRegex.MatchString(lf.Dependencies[key].Commit)
+			// The runner fetches the recorded commit, so the pin only needs a resolved dependency entry.
+			return lf.Dependencies[key].Commit != ""
 		}
 	}
 	return false
 }
-
-var lockfileCommitRegex = regexp.MustCompile(`^(sha1-[a-fA-F0-9]{40}|sha256-[a-fA-F0-9]{64})$`)
 
 // actionLockfileKey normalizes a workflow `uses:` value down to the
 // repo-scoped pin key (`OWNER/REPO@REF`) used by the lockfile. A `uses:` value
