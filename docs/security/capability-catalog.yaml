@@ -1,0 +1,159 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+metadata:
+  id: OSSF.SCORECARD.ENGINE.CAPS
+  type: CapabilityCatalog
+  gemara-version: "1.6.0"
+  version: "1.0.0"
+  description: |
+    Capabilities of the Scorecard scan engine and CLI: the scorecard binary,
+    its container image, the pkg/scorecard Go API, `scorecard serve`, and
+    scorecard-attestor. The release pipeline and the hosted services in
+    other repositories are out of scope. See ARCHITECTURE.md for the actors
+    and the scan pipeline. Each capability's "Specs" line names the
+    OpenSpec specs in openspec/specs/ that define its behavior.
+  author:
+    id: ossf-scorecard
+    name: OpenSSF Scorecard maintainers
+    type: Human
+  mapping-references:
+    - id: CCC
+      title: Common Cloud Controls Core
+      version: v2025.10
+      url: https://github.com/finos/common-cloud-controls/releases
+      description: Reusable security controls, capabilities, and threats maintained by FINOS.
+
+title: Scorecard Scan Engine Capabilities
+
+groups:
+  - id: ingestion
+    title: Ingestion
+    description: Fetching repository content and metadata from outside sources
+  - id: analysis
+    title: Analysis
+    description: Turning collected data into findings, scores, and output
+  - id: access
+    title: Access
+    description: Credentials and interfaces Scorecard uses or exposes
+
+imports:
+  - reference-id: CCC
+    entries:
+      - reference-id: CCC.Core.CP14
+        remarks: API Access. Scorecard calls repository host and auxiliary service APIs.
+      - reference-id: CCC.Core.CP18
+        remarks: Resource Versioning. A scan targets HEAD or a specific commit.
+      - reference-id: CCC.Core.CP27
+        remarks: Configurable Network Ports. `scorecard serve` listens on PORT.
+      - reference-id: CCC.Core.CP28
+        remarks: Command-line Interface. The scorecard CLI.
+      - reference-id: CCC.Core.CP29
+        remarks: Active Ingestion. Scorecard downloads repositories and fetches metadata.
+
+capabilities:
+  - id: OSSF.SCORECARD.ENGINE.CAP01
+    title: Repository Content Retrieval
+    description: |
+      Downloads the scanned repository at a commit as a tarball (GitHub,
+      GitLab) or zip (Azure DevOps) and extracts it to a temporary directory,
+      or reads a local directory. The content is controlled by whoever can
+      write to the scanned repository.
+      Specs: repo-clients.
+    group: ingestion
+  - id: OSSF.SCORECARD.ENGINE.CAP02
+    title: Repository Host Metadata Collection
+    description: |
+      Queries the repository host's REST and GraphQL APIs for branch
+      protection, releases, commits, pull requests, check runs, contributors,
+      and similar metadata. Hosts include GitHub Enterprise and self-managed
+      GitLab instances chosen by the user.
+      Specs: repo-clients, raw-data-collection.
+    group: ingestion
+  - id: OSSF.SCORECARD.ENGINE.CAP03
+    title: Package Name Resolution
+    description: |
+      Looks up a package on npm, PyPI, RubyGems, or NuGet and scans the source
+      repository named in the package's metadata. The metadata is controlled
+      by whoever publishes the package.
+      Specs: package-manager-resolution.
+    group: ingestion
+  - id: OSSF.SCORECARD.ENGINE.CAP04
+    title: Auxiliary Signal Lookup
+    description: |
+      Fetches signals that live outside the repository: known vulnerabilities
+      through OSV-Scanner and OSV, OSS-Fuzz enrollment, and the OpenSSF Best
+      Practices badge level.
+      Specs: repo-clients.
+    group: ingestion
+  - id: OSSF.SCORECARD.ENGINE.CAP05
+    title: Repository File Analysis
+    description: |
+      Parses files from the scanned repository, including GitHub and GitLab
+      workflows, Dockerfiles, shell scripts, dependency manifests, and
+      lockfiles, to collect raw data for checks. Scorecard parses these files;
+      it doesn't build or run the scanned repository's code.
+      Specs: raw-data-collection.
+    group: analysis
+  - id: OSSF.SCORECARD.ENGINE.CAP06
+    title: Maintainer Annotation Loading
+    description: |
+      Reads a Scorecard configuration file from the scanned repository and
+      attaches the maintainers' explanations to check results. Annotations
+      don't change scores.
+      Specs: maintainer-annotations.
+    group: analysis
+  - id: OSSF.SCORECARD.ENGINE.CAP07
+    title: Scoring and Result Rendering
+    description: |
+      Turns raw data into probe findings, scores each check from 0 to 10 (or
+      -1 when inconclusive), and renders the result as text, JSON, SARIF,
+      probe findings, raw data, or an in-toto statement. An optional policy
+      file selects checks and sets SARIF thresholds.
+      Specs: probes, check-evaluation, aggregate-scoring, result-formats,
+      policy, remediation.
+    group: analysis
+  - id: OSSF.SCORECARD.ENGINE.CAP08
+    title: Host Authentication
+    description: |
+      Authenticates to repository hosts with tokens from the environment
+      (GITHUB_AUTH_TOKEN and alternatives, GITLAB_AUTH_TOKEN,
+      AZURE_DEVOPS_AUTH_TOKEN) or a GitHub App key. The tokens' scope is
+      whatever the user granted.
+      Specs: repo-clients.
+    group: access
+  - id: OSSF.SCORECARD.ENGINE.CAP09
+    title: HTTP Scan Service
+    description: |
+      `scorecard serve` accepts scan requests over HTTP and returns results as
+      JSON, running each scan with the operator's credentials. It has no
+      authentication or rate limiting and is intended for trusted networks.
+      Specs: http-server.
+    group: access
+  - id: OSSF.SCORECARD.ENGINE.CAP10
+    title: Scan Invocation
+    description: |
+      Accepts a scan request from CLI flags and environment variables or from
+      Go API options, and selects which checks or probes to run.
+      Specs: cli, public-go-api, check-registry.
+    group: access
+  - id: OSSF.SCORECARD.ENGINE.CAP11
+    title: Image Attestation
+    description: |
+      `scorecard-attestor` runs checks on the source repository and commit a
+      container image's pipeline names, evaluates the raw results against an
+      attestation policy, and when the policy passes, signs a Google Cloud
+      Binary Authorization attestation with a Cloud KMS, PGP, or PKIX key.
+      Specs: attestor.
+    group: access
