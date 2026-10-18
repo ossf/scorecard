@@ -296,6 +296,27 @@ func TestActionPinnedByLockfile(t *testing.T) {
 			lf:       nil,
 			ispinned: false,
 		},
+		{
+			desc:     "uses value without a ref",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "uses value with an empty ref",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout@",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "uses value without a repo",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "checkout@v4.1.1",
+			lf:       &lf,
+			ispinned: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
