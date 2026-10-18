@@ -358,17 +358,23 @@ dependencies: {}
 		content  string
 		uses     string
 		ispinned bool
+		warns    bool
 	}{
 		{name: "v0.0.3 github.com-bound pin", content: v3, uses: "actions/checkout@v4.1.1", ispinned: true},
 		{name: "v0.0.3 home-host (tenant) pin", content: v3, uses: "tenant-org/internal-action@v1", ispinned: true},
 		{name: "v0.0.3 unrecorded ref", content: v3, uses: "tenant-org/internal-action@v2", ispinned: false},
 		{name: "v0.0.2 still supported", content: v2, uses: "actions/checkout@v4.1.1", ispinned: true},
-		{name: "unsupported future version is ignored", content: future, uses: "actions/checkout@v4.1.1", ispinned: false},
+		{name: "newer version is read best-effort with a warning", content: future, uses: "actions/checkout@v4.1.1", ispinned: true, warns: true},
+		{name: "newer version, unrecorded ref", content: future, uses: "actions/checkout@v3", ispinned: false, warns: true},
+		{name: "malformed lockfile is ignored with a warning", content: "version: [", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			captured := parseActionsLockfile([]byte(tt.content))
+			captured, warning := parseActionsLockfile([]byte(tt.content))
+			if (warning != "") != tt.warns {
+				t.Fatalf("warning = %q, expected a warning: %v", warning, tt.warns)
+			}
 			if got := isActionDependencyPinned(tt.uses, wf, captured); got != tt.ispinned {
 				t.Fatalf("%s: ispinned = %v, expected %v", tt.uses, got, tt.ispinned)
 			}

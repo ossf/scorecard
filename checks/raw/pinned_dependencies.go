@@ -25,6 +25,7 @@ import (
 
 	"github.com/github/actions-lockfile/go/pkg/lockfile"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -746,7 +747,15 @@ func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
 	var collect fileparser.DoWhileTrueOnFileContent = func(
 		pathfn string, content []byte, args ...interface{},
 	) (bool, error) {
-		lf = parseActionsLockfile(content)
+		var warning string
+		lf, warning = parseActionsLockfile(content)
+		if warning != "" && c.Dlogger != nil {
+			c.Dlogger.Warn(&checker.LogMessage{
+				Path: pathfn,
+				Type: finding.FileTypeSource,
+				Text: warning,
+			})
+		}
 		return false, nil
 	}
 
@@ -760,14 +769,30 @@ func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
 	return lf, nil
 }
 
-// parseActionsLockfile parses lockfile content (schema v0.0.1 through v0.0.3) and returns nil
-// when it is malformed or uses a schema version newer than this build understands.
-func parseActionsLockfile(content []byte) *lockfile.File {
+// parseActionsLockfile parses lockfile content. Schema versions newer than this build knows are
+// assumed to stay backwards compatible: only the per-workflow pin keys are read and a warning
+// is returned. A malformed lockfile yields a nil file and a warning, so standard SHA-based
+// detection applies.
+func parseActionsLockfile(content []byte) (*lockfile.File, string) {
 	parsed, err := lockfile.Parse(content)
-	if err != nil {
-		return nil
+	if err == nil {
+		return &parsed, ""
 	}
-	return &parsed
+	if !errors.Is(err, lockfile.ErrFutureVersion) {
+		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", err)
+	}
+
+	var minimal struct {
+		Workflows map[string][]string `yaml:"workflows"`
+		Version   string              `yaml:"version"`
+	}
+	if yamlErr := yaml.Unmarshal(content, &minimal); yamlErr != nil {
+		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", yamlErr)
+	}
+	return &lockfile.File{Version: minimal.Version, Workflows: minimal.Workflows},
+		fmt.Sprintf("actions lockfile version %q is newer than the supported %q, "+
+			"assuming it is backwards compatible and reading pins only; consider updating Scorecard",
+			minimal.Version, lockfile.Version)
 }
 
 func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []checker.Dependency) {
