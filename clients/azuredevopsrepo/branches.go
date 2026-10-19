@@ -40,8 +40,8 @@ const (
 	commentResolutionPolicy = "c6a1889d-b943-4856-b76f-9e46bb6b0df2"
 	mergeStrategyPolicy     = "fa4e907d-c16b-4a4c-9dfa-4916e5d171ab"
 
-	secretsScanningPolicy          = "90f9629b-664b-4804-a560-dd79b0c628f8"
-	alternateSecretsScanningPolicy = "ec003f37-8db0-4e10-992a-a2895045752c"
+	secretsScanningPolicy          = "90f9629b-664b-4804-a560-dd79b0c628f8" // #nosec G101 -- Public policy type UUID.
+	alternateSecretsScanningPolicy = "ec003f37-8db0-4e10-992a-a2895045752c" // #nosec G101 -- Public policy type UUID.
 	repositorySettingsPolicy       = "0517f88d-4ec5-4343-9d26-9930ebd53069"
 	commitAuthorEmailPolicy        = "77ed4bd3-b063-4689-934a-175e4d0a78d7"
 	fileNameRestrictionPolicy      = "51c78909-e838-41a2-9496-c647091e3c61"
