@@ -263,3 +263,21 @@ jobs:
           go install github.com/google/addlicense@2fe3ee94479d08be985a84861de4e6b06a1c7208
           addlicense -ignore "**/script-empty.sh" -ignore "testdata/**" -ignore "**/testdata/**" -l apache -c 'OpenSSF Scorecard Authors' -v *
           git diff --exit-code
+  shellcheck:
+    name: check-shell
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Run shellcheck
+        run: |
+          shellcheck --version
+          make check-shell

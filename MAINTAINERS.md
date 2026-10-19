@@ -11,20 +11,36 @@ The current standing Steering Committee members are as follows:
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
 - Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Microsoft
 
+## Repository access
+
+Access to this repository is granted through the teams below in the `ossf`
+GitHub organization.
+
+## `scorecard-admins`
+
+Admin access. Admins manage repository settings, rulesets, secrets, and team
+access, and hold all maintainer responsibilities.
+
+- Stephen Augustus ([@justaugustus](https://github.com/justaugustus)), Bloomberg
+- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Microsoft
+- Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
+
 ## `scorecard-maintainers`
+
+Maintain access. Maintainers review and merge pull requests, triage issues,
+and cut releases following [RELEASE.md](RELEASE.md).
 
 - Stephen Augustus ([@justaugustus](https://github.com/justaugustus)), Bloomberg
 - Raghav Kaul ([@raghavkaul](https://github.com/raghavkaul)), Google
 - Adam Korczynski ([@AdamKorcz](https://github.com/AdamKorcz)), ADA Logics
+- Jeff Mendoza ([@jeffmendoza](https://github.com/jeffmendoza)), Microsoft
 - Spencer Schrock ([@spencerschrock](https://github.com/spencerschrock)), Google
 
 ## `scorecard-azure-maintainers`
 
+Approves changes to the Azure DevOps client (`clients/azuredevopsrepo`).
+
 - Jamie Magee ([@JamieMagee](https://github.com/JamieMagee)), Microsoft
-
-## `scorecard-doc-maintainers`
-
--
 
 ## Emeritus
 

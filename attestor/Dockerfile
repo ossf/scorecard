@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.26.8@sha256:2dbae744204892730b7032501f5973360ce57cfe118a194b338a97b5aa2d40cc AS base
+FROM golang:1.27.2@sha256:5bc7f572bbaa98885a3a1fd9c0aa76b59e3e14e8628bfc316bbfd0c701e4818c AS base
 WORKDIR /src/scorecard
 COPY . ./
 

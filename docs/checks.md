@@ -113,7 +113,7 @@ Tier 1 Requirements (3/10 points):
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
   - For administrators: Require PRs prior to make any code changes
-  - For administrators: Require branch to be up to date before merging
+  - For administrators: Require branch to be up to date before merging (or require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) via repository rulesets)
   - For administrators: Require approval of the most recent reviewable push
 
 Tier 3 Requirements (8/10 points):
@@ -129,6 +129,15 @@ Tier 5 Requirements (10/10 points):
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
+
+Azure DevOps Integration Status:
+  - Default and named branches use the same applicable PR policies, including inherited policies and later result pages.
+  - Only enabled, required, non-deleted PR policies establish protection. Repository push restrictions, such as secrets scanning, do not establish PR protection.
+  - Reviewer counts are conservative independent-approval floors. Self-votes and path filters do not receive unconditional review credit.
+  - Required build contexts use `azure-pipelines/<definition-id>`. These identify policy requirements, not successful test runs.
+  - Permission evaluations describe the caller. A proven caller exception can show that forced updates are allowed, but a caller denial does not prove protection for everyone.
+  - Unreadable or unsupported permission controls remain unknown. Administrator enforcement and CODEOWNERS enforcement are not inferred.
+  - Unknown deletion or force-push protection receives no Tier 1 credit, so the score can remain zero despite mapped PR policies.
  
 
 **Remediation steps**
