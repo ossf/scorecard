@@ -58,6 +58,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: |
+            set -e
             go env -w GOFLAGS=-mod=mod
             make install
             make scorecard-ko
