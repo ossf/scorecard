@@ -475,7 +475,7 @@ func TestDockerfilePinning(t *testing.T) {
 			}
 
 			var r checker.PinningDependenciesData
-			_, err = validateDockerfilesPinning(filepath.Join("testdata", tt.filename), content, &r)
+			_, err = validateDockerfilesPinning(filepath.ToSlash(filepath.Join("testdata", tt.filename)), content, &r)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}

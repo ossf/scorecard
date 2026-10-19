@@ -58,6 +58,8 @@ func setup(inputFile string) (zipHandler, error) {
 	if err != nil {
 		return zipHandler{}, fmt.Errorf("unable to open testfile: %w", err)
 	}
+	defer tempFile.Close()
+	defer testFile.Close()
 	if _, err := io.Copy(tempFile, testFile); err != nil {
 		return zipHandler{}, fmt.Errorf("unable to do io.Copy: %w", err)
 	}
@@ -203,6 +205,7 @@ func TestExtractZip(t *testing.T) {
 				}
 				if getcontenttest.err == nil {
 					content, err := io.ReadAll(f)
+					f.Close()
 					if err != nil {
 						t.Fatalf("unexpected error: %v", err)
 					}
