@@ -14,9 +14,12 @@
 package roundtripper
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/ossf/scorecard/v5/log"
 )
@@ -96,4 +99,45 @@ func TestRoundTrip(t *testing.T) {
 			t.Errorf("Expected 2 requests, got %d", requestCount)
 		}
 	})
+}
+
+func TestRoundTripFailsEarlyBeyondDeadline(t *testing.T) {
+	t.Parallel()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-RateLimit-Remaining", "0")
+		w.Header().Set("X-RateLimit-Reset", strconv.FormatInt(time.Now().Add(time.Hour).Unix(), 10))
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	t.Cleanup(ts.Close)
+
+	transport := &rateLimitTransport{
+		innerTransport: ts.Client().Transport,
+		logger:         log.NewLogger(log.DefaultLevel),
+	}
+
+	ctx, cancel := context.WithTimeout(t.Context(), time.Minute)
+	t.Cleanup(cancel)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, ts.URL, nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	start := time.Now()
+	resp, err := transport.RoundTrip(req)
+	if err == nil {
+		resp.Body.Close()
+		t.Fatal("expected an error when the rate limit resets after the deadline")
+	}
+	if elapsed := time.Since(start); elapsed > 10*time.Second {
+		t.Errorf("expected to fail early, took %s", elapsed)
+	}
+}
+
+func TestWaitForRateLimitCancelled(t *testing.T) {
+	t.Parallel()
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	if err := waitForRateLimit(ctx, time.Hour); err == nil {
+		t.Error("expected an error for a cancelled context")
+	}
 }
