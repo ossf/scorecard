@@ -21,21 +21,30 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyEnablesPrivateReporting"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 )
 
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
-	// We have 4 unique probes, each should have a finding.
+	// We have 5 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
 		securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
 		securityPolicyPresent.Probe,
+		securityPolicyEnablesPrivateReporting.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
+	}
+
+	pvrOutcome := finding.OutcomeNotApplicable
+	for i := range findings {
+		if findings[i].Probe == securityPolicyEnablesPrivateReporting.Probe {
+			pvrOutcome = findings[i].Outcome
+		}
 	}
 
 	score := 0
@@ -51,17 +60,29 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 			case securityPolicyContainsVulnerabilityDisclosure.Probe:
 				score += scoreProbeOnce(f.Probe, m, 1)
 			case securityPolicyContainsLinks.Probe:
-				score += scoreProbeOnce(f.Probe, m, 6)
+				if pvrOutcome == finding.OutcomeNotApplicable {
+					score += scoreProbeOnce(f.Probe, m, 6)
+				} else {
+					score += scoreProbeOnce(f.Probe, m, 5)
+				}
 			case securityPolicyContainsText.Probe:
-				score += scoreProbeOnce(f.Probe, m, 3)
+				if pvrOutcome == finding.OutcomeNotApplicable {
+					score += scoreProbeOnce(f.Probe, m, 3)
+				} else {
+					score += scoreProbeOnce(f.Probe, m, 2)
+				}
 			case securityPolicyPresent.Probe:
 				m[f.Probe] = true
+			case securityPolicyEnablesPrivateReporting.Probe:
+				score += scoreProbeOnce(f.Probe, m, 2)
 			default:
 				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
 				return checker.CreateRuntimeErrorResult(name, e)
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
+		case finding.OutcomeNotApplicable:
+			logLevel = checker.DetailInfo
 		default:
 			logLevel = checker.DetailDebug
 		}
