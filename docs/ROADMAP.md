@@ -25,7 +25,7 @@ OpenSSF goal, and Scorecard interoperates through published output formats.)
 
 **Target Baseline version:** [v2026.02.19](https://baseline.openssf.org/versions/2026-02-19)
 
-**Current coverage:** See [docs/osps-baseline-coverage.md](osps-baseline-coverage.md)
+**Current coverage:** See [docs/v6/osps-baseline-coverage.md](v6/osps-baseline-coverage.md)
 for a control-by-control analysis.
 
 ### Phased delivery
@@ -145,6 +145,6 @@ The following design questions are under active discussion among maintainers:
 
 ### How to contribute
 
-See the [proposal](../openspec/changes/osps-baseline-conformance/proposal.md)
+See the [proposal](v6/proposal.md)
 for detailed requirements and open questions. Discussion and feedback are
 welcome via GitHub issues and the Scorecard community meetings.
