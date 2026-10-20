@@ -49,6 +49,9 @@ type checkRunsGraphqlData struct {
 													Conclusion githubv4.CheckConclusionState
 													Status     githubv4.CheckStatusState
 												}
+												PageInfo struct {
+													HasNextPage githubv4.Boolean
+												}
 											} `graphql:"checkSuites(first: $checksToAnalyze)"`
 										}
 									}
@@ -134,13 +137,22 @@ func (handler *checkrunsHandler) listCheckRunsForRef(ref string) ([]clients.Chec
 	msg := fmt.Sprintf("listCheckRunsForRef cache miss: %s/%s:%s", handler.repourl.owner, handler.repourl.repo, ref)
 	handler.logger.Info(msg)
 
-	checkRuns, _, err := handler.client.Checks.ListCheckRunsForRef(
-		handler.ctx, handler.repourl.owner, handler.repourl.repo, ref, &github.ListCheckRunsOptions{})
-	if err != nil {
-		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCheckRunsForRef: %v", err))
+	opts := &github.ListCheckRunsOptions{ListOptions: github.ListOptions{PerPage: 100}}
+	var runs []clients.CheckRun
+	for {
+		page, resp, err := handler.client.Checks.ListCheckRunsForRef(
+			handler.ctx, handler.repourl.owner, handler.repourl.repo, ref, opts)
+		if err != nil {
+			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("ListCheckRunsForRef: %v", err))
+		}
+		runs = append(runs, checkRunsFrom(page)...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
-	handler.checkRunsByRef[ref] = checkRunsFrom(checkRuns)
-	return handler.checkRunsByRef[ref], nil
+	handler.checkRunsByRef[ref] = runs
+	return runs, nil
 }
 
 func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
@@ -148,7 +160,14 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		for _, pr := range commit.AssociatedPullRequests.Nodes {
 			var crs []clients.CheckRun
+			complete := true
 			for _, c := range pr.Commits.Nodes {
+				// Do not cache a partial GraphQL page; the caller can fetch
+				// all check runs via the paginated REST API instead.
+				if bool(c.Commit.CheckSuites.PageInfo.HasNextPage) {
+					complete = false
+					break
+				}
 				for _, checkRun := range c.Commit.CheckSuites.Nodes {
 					crs = append(crs, clients.CheckRun{
 						// the REST API returns lowercase. the graphQL API returns upper
@@ -160,8 +179,10 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 					})
 				}
 			}
-			headRef := string(pr.HeadRefOid)
-			checkCache[headRef] = crs
+			if complete {
+				headRef := string(pr.HeadRefOid)
+				checkCache[headRef] = crs
+			}
 		}
 	}
 	return checkCache
