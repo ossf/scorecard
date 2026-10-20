@@ -116,6 +116,8 @@ const (
 	DependencyUseTypeChocoCommand DependencyUseType = "chocoCommand"
 	// DependencyUseTypeNpmCommand is an npm command.
 	DependencyUseTypeNpmCommand DependencyUseType = "npmCommand"
+	// DependencyUseTypeNpmLockfile is a package listed in an npm lockfile.
+	DependencyUseTypeNpmLockfile DependencyUseType = "npmLockfile"
 	// DependencyUseTypePipCommand is a pip command.
 	DependencyUseTypePipCommand DependencyUseType = "pipCommand"
 	// DependencyUseTypeNugetCommand is a nuget command.
