@@ -23,6 +23,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -171,6 +172,33 @@ func TestSecurityPolicy(t *testing.T) {
 				t.Errorf("test failed: the file returned is not correct: %+v", res)
 			}
 		})
+	}
+}
+
+func TestSecurityPolicy_NoMatchingFileDoesNotPanic(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepoClient.EXPECT().
+		ListFiles(gomock.Any()).
+		Return([]string{"notASecurityPolicyFile.go"}, nil)
+	mockRepoClient.EXPECT().
+		GetOrgRepoClient(gomock.Any()).
+		Return(nil, clients.ErrUnsupportedFeature)
+
+	dl := scut.TestDetailLogger{}
+	c := checker.CheckRequest{
+		RepoClient: mockRepoClient,
+		Dlogger:    &dl,
+	}
+
+	result, err := SecurityPolicy(&c)
+	if err != nil {
+		t.Fatalf("SecurityPolicy() returned an unexpected error: %v", err)
+	}
+	if len(result.PolicyFiles) != 0 {
+		t.Fatalf("SecurityPolicy() returned policy files for a non-policy input: %+v", result.PolicyFiles)
 	}
 }
 
