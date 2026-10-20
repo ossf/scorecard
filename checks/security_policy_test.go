@@ -22,6 +22,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -42,9 +43,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"security.md",
 			},
 			want: scut.TestReturn{
-				Score:        10,
-				NumberOfInfo: 4,
-				NumberOfWarn: 0,
+				Score:         10,
+				NumberOfInfo:  4,
+				NumberOfWarn:  0,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -54,9 +56,10 @@ func TestSecurityPolicy(t *testing.T) {
 				".github/security.md",
 			},
 			want: scut.TestReturn{
-				Score:        10,
-				NumberOfInfo: 4,
-				NumberOfWarn: 0,
+				Score:         10,
+				NumberOfInfo:  4,
+				NumberOfWarn:  0,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -66,9 +69,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"docs/security.md",
 			},
 			want: scut.TestReturn{
-				Score:        4,
-				NumberOfInfo: 3,
-				NumberOfWarn: 1,
+				Score:         4,
+				NumberOfInfo:  3,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -78,9 +82,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        3,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         3,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -90,9 +95,10 @@ func TestSecurityPolicy(t *testing.T) {
 				".github/security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         6,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -102,9 +108,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"docs/security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         6,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -114,9 +121,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"doc/security.rst",
 			},
 			want: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         6,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -126,9 +134,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"security.adoc",
 			},
 			want: scut.TestReturn{
-				Score:        9,
-				NumberOfInfo: 3,
-				NumberOfWarn: 1,
+				Score:         9,
+				NumberOfInfo:  3,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -138,9 +147,10 @@ func TestSecurityPolicy(t *testing.T) {
 				".github/security.adoc",
 			},
 			want: scut.TestReturn{
-				Score:        10,
-				NumberOfInfo: 4,
-				NumberOfWarn: 0,
+				Score:         10,
+				NumberOfInfo:  4,
+				NumberOfWarn:  0,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -150,9 +160,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"docs/security.adoc",
 			},
 			want: scut.TestReturn{
-				Score:        0,
-				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				Score:         0,
+				NumberOfInfo:  1,
+				NumberOfWarn:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -162,9 +173,10 @@ func TestSecurityPolicy(t *testing.T) {
 				"dOCs/SeCuRIty.rsT",
 			},
 			want: scut.TestReturn{
-				Score:        0,
-				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				Score:         0,
+				NumberOfInfo:  1,
+				NumberOfWarn:  3,
+				NumberOfDebug: 1,
 			},
 		},
 	}
@@ -176,6 +188,8 @@ func TestSecurityPolicy(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 
 			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().PrivateVulnerabilityReportingEnabled().
+				Return(false, clients.ErrUnsupportedFeature).AnyTimes()
 
 			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {

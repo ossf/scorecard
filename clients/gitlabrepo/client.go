@@ -244,6 +244,10 @@ func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
 }
 
+func (client *Client) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("PrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 func (client *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.WorkflowRun, error) {
 	return client.workflows.listSuccessfulWorkflowRuns(filename)
 }

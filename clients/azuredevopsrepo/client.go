@@ -223,6 +223,10 @@ func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return c.servicehooks.listWebhooks()
 }
 
+func (c *Client) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("PrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return c.languages.listProgrammingLanguages()
 }
