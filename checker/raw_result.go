@@ -77,6 +77,18 @@ type PackagingData struct {
 	Packages []Package
 }
 
+// PublishAuth is how a packaging workflow authenticates to a registry
+// that supports trusted publishing. The empty value means the workflow
+// is not one of those ecosystems, or it was not classified.
+type PublishAuth string
+
+const (
+	// PublishAuthOIDC means the workflow uses GitHub Actions OIDC trusted publishing.
+	PublishAuthOIDC PublishAuth = "oidc"
+	// PublishAuthCredential means the workflow uses a long-lived token or password.
+	PublishAuthCredential PublishAuth = "credential"
+)
+
 // Package represents a package.
 type Package struct {
 	// TODO: not supported yet. This needs to be unique across
@@ -87,6 +99,11 @@ type Package struct {
 	// Note: Msg is populated only for debug messages.
 	Msg  *string
 	Runs []Run
+	// PublishAuth is set when the workflow publishes to an ecosystem
+	// whose trusted-publishing signal Scorecard understands.
+	PublishAuth PublishAuth
+	// PublishEcosystem is the registry family, such as "pypi" or "npm".
+	PublishEcosystem string
 }
 
 type PackageProvenance struct {

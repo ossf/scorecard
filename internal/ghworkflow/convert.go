@@ -251,6 +251,7 @@ func convertStep(s *actionlint.Step) *Step {
 		ID:   convertString(s.ID),
 		If:   convertString(s.If),
 		Name: convertString(s.Name),
+		Env:  convertEnv(s.Env),
 		Pos:  convertPos(s.Pos),
 	}
 	switch e := s.Exec.(type) {
