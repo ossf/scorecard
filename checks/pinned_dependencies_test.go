@@ -55,7 +55,20 @@ func TestPinningDependencies(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+				func(predicate func(string) (bool, error)) ([]string, error) {
+					var matched []string
+					for _, f := range tt.files {
+						ok, err := predicate(f)
+						if err != nil {
+							return nil, err
+						}
+						if ok {
+							matched = append(matched, f)
+						}
+					}
+					return matched, nil
+				}).AnyTimes()
 
 			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {

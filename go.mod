@@ -34,6 +34,7 @@ require (
 require (
 	actionlint.kjanat.dev v1.17.0
 	github.com/caarlos0/env/v6 v6.10.1
+	github.com/github/actions-lockfile/go v0.0.6
 	github.com/gobwas/glob v0.2.3
 	github.com/google/go-github/v82 v82.0.0
 	github.com/google/osv-scalibr v0.5.3

@@ -15,12 +15,15 @@
 package raw
 
 import (
+	"errors"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/github/actions-lockfile/go/pkg/lockfile"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"go.uber.org/mock/gomock"
@@ -99,7 +102,7 @@ func TestGithubWorkflowPinning(t *testing.T) {
 
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, nil)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -193,7 +196,7 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
-			p := isActionDependencyPinned(tt.uses)
+			p := isActionDependencyPinned(tt.uses, "", nil)
 			if p != tt.ispinned {
 				t.Fatalf("dependency %s ispinned?: %v expected?: %v", tt.uses, p, tt.ispinned)
 			}
@@ -235,6 +238,239 @@ func TestIsSameRepositoryReference(t *testing.T) {
 	}
 }
 
+// TestActionPinnedByLockfile verifies that a `uses:` reference pinned to a
+// mutable tag is nonetheless treated as pinned when it is recorded for the
+// current workflow in a github/gh-actions-lock lockfile
+// (`.github/workflows/actions.lock`), and that references not covered by the
+// lockfile are unaffected.
+func TestActionPinnedByLockfile(t *testing.T) {
+	t.Parallel()
+
+	lockContent, err := os.ReadFile("./testdata/.github/workflows/actions.lock")
+	if err != nil {
+		t.Fatalf("cannot read lockfile fixture: %v", err)
+	}
+	lf, err := lockfile.Parse(lockContent)
+	if err != nil {
+		t.Fatalf("cannot parse lockfile fixture: %v", err)
+	}
+
+	tests := []struct {
+		lf       *lockfile.File
+		desc     string
+		pathfn   string
+		uses     string
+		ispinned bool
+	}{
+		{
+			desc:     "tag covered by the lockfile for this workflow",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout@v4.1.1",
+			lf:       &lf,
+			ispinned: true,
+		},
+		{
+			desc:     "tag not recorded in the lockfile",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout@v3",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "tag recorded in the lockfile, but for a different workflow",
+			pathfn:   ".github/workflows/some-other-workflow.yaml",
+			uses:     "actions/checkout@v4.1.1",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "sub-path uses value normalizes to the repo-scoped pin key",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout/some/subaction@v4.1.1",
+			lf:       &lf,
+			ispinned: true,
+		},
+		{
+			desc:     "no lockfile present",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout@v4.1.1",
+			lf:       nil,
+			ispinned: false,
+		},
+		{
+			desc:     "uses value without a ref",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "uses value with an empty ref",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "actions/checkout@",
+			lf:       &lf,
+			ispinned: false,
+		},
+		{
+			desc:     "uses value without a repo",
+			pathfn:   ".github/workflows/workflow-pinned-by-lockfile.yaml",
+			uses:     "checkout@v4.1.1",
+			lf:       &lf,
+			ispinned: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			p := isActionDependencyPinned(tt.uses, tt.pathfn, tt.lf)
+			if p != tt.ispinned {
+				t.Fatalf("dependency %s in %s ispinned?: %v expected?: %v", tt.uses, tt.pathfn, p, tt.ispinned)
+			}
+		})
+	}
+}
+
+// TestActionPinnedByLockfileSchemaVersions verifies that lockfiles are honored across schema versions.
+// Schema v0.0.3 adds a per-dependency "hostname": empty means the home host (the GHE.com tenant on
+// a data-residency instance), "github.com" marks a public github.com-bound pin. Pins are authoritative
+// whatever the host, so no lookup (and thus no credential use) against any host is needed to treat
+// them as pinned.
+func TestActionPinnedByLockfileSchemaVersions(t *testing.T) {
+	t.Parallel()
+
+	const wf = ".github/workflows/ci.yaml"
+	const v3 = `version: v0.0.3
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+    - tenant-org/internal-action@v1
+dependencies:
+  actions/checkout@v4.1.1:
+    hostname: github.com
+    ref: v4.1.1
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
+    owner_id: 44036562
+    repo_id: 197814629
+  tenant-org/internal-action@v1:
+    ref: v1
+    commit: sha1-0123456789abcdef0123456789abcdef01234567
+    owner_id: 1001
+    repo_id: 2002
+`
+	const v2 = `version: v0.0.2
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies:
+  actions/checkout@v4.1.1:
+    ref: v4.1.1
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
+    owner_id: 44036562
+    repo_id: 197814629
+`
+	const noDependency = `version: v9.9.9
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies: {}
+`
+	const future = `version: v9.9.9
+workflows:
+  .github/workflows/ci.yaml:
+    - actions/checkout@v4.1.1
+dependencies:
+  actions/checkout@v4.1.1:
+    commit: sha1-b4ffde65f46336ab88eb53be808477a3936bae11
+`
+
+	tests := []struct {
+		name     string
+		content  string
+		uses     string
+		ispinned bool
+		warns    bool
+	}{
+		{name: "v0.0.3 github.com-bound pin", content: v3, uses: "actions/checkout@v4.1.1", ispinned: true},
+		{name: "v0.0.3 home-host (tenant) pin", content: v3, uses: "tenant-org/internal-action@v1", ispinned: true},
+		{name: "v0.0.3 unrecorded ref", content: v3, uses: "tenant-org/internal-action@v2", ispinned: false},
+		{name: "v0.0.2 still supported", content: v2, uses: "actions/checkout@v4.1.1", ispinned: true},
+		{name: "newer version is read best-effort with a warning", content: future, uses: "actions/checkout@v4.1.1", ispinned: true, warns: true},
+		{name: "newer version, pin without a dependency entry", content: noDependency, uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
+		{name: "newer version, unrecorded ref", content: future, uses: "actions/checkout@v3", ispinned: false, warns: true},
+		{name: "malformed lockfile is ignored with a warning", content: "version: [", uses: "actions/checkout@v4.1.1", ispinned: false, warns: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			captured, warning := parseActionsLockfile([]byte(tt.content))
+			if (warning != "") != tt.warns {
+				t.Fatalf("warning = %q, expected a warning: %v", warning, tt.warns)
+			}
+			if got := isActionDependencyPinned(tt.uses, wf, captured); got != tt.ispinned {
+				t.Fatalf("%s: ispinned = %v, expected %v", tt.uses, got, tt.ispinned)
+			}
+		})
+	}
+}
+
+func TestLoadActionsLockfile(t *testing.T) {
+	t.Parallel()
+
+	newClient := func(t *testing.T, content string, listErr error) *mockrepo.MockRepoClient {
+		t.Helper()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+			func(predicate func(string) (bool, error)) ([]string, error) {
+				if listErr != nil {
+					return nil, listErr
+				}
+				ok, err := predicate(".github/workflows/actions.lock")
+				if err != nil || !ok {
+					return nil, err
+				}
+				return []string{".github/workflows/actions.lock"}, nil
+			}).AnyTimes()
+		m.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(string) (io.ReadCloser, error) {
+			return io.NopCloser(strings.NewReader(content)), nil
+		}).AnyTimes()
+		return m
+	}
+
+	t.Run("listing error is returned", func(t *testing.T) {
+		t.Parallel()
+		req := &checker.CheckRequest{RepoClient: newClient(t, "", errors.New("boom"))}
+		if lf, err := loadActionsLockfile(req); err == nil || lf != nil {
+			t.Fatalf("expected an error and no lockfile, got %v, %v", lf, err)
+		}
+	})
+
+	t.Run("warning is logged for a newer version", func(t *testing.T) {
+		t.Parallel()
+		dl := &scut.TestDetailLogger{}
+		req := &checker.CheckRequest{
+			RepoClient: newClient(t, "version: v9.9.9\nworkflows: {}\ndependencies: {}\n", nil),
+			Dlogger:    dl,
+		}
+		lf, err := loadActionsLockfile(req)
+		if err != nil || lf == nil {
+			t.Fatalf("expected a lockfile, got %v, %v", lf, err)
+		}
+		if n := len(dl.Flush()); n != 1 {
+			t.Fatalf("expected 1 logged warning, got %d", n)
+		}
+	})
+
+	t.Run("no lockfile in the repo", func(t *testing.T) {
+		t.Parallel()
+		m := mockrepo.NewMockRepoClient(gomock.NewController(t))
+		m.EXPECT().ListFiles(gomock.Any()).Return(nil, nil).AnyTimes()
+		lf, err := loadActionsLockfile(&checker.CheckRequest{RepoClient: m})
+		if err != nil || lf != nil {
+			t.Fatalf("expected no lockfile and no error, got %v, %v", lf, err)
+		}
+	})
+}
+
 func TestGithubWorkflowSelfRepositoryReferences(t *testing.T) {
 	t.Parallel()
 
@@ -250,12 +486,68 @@ jobs:
 `)
 	var result checker.PinningDependenciesData
 
-	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result)
+	_, err := validateGitHubActionWorkflow(".github/workflows/example.yml", content, &result, nil)
 	if err != nil {
 		t.Fatalf("validateGitHubActionWorkflow: %v", err)
 	}
 	if len(result.Dependencies) != 0 {
 		t.Errorf("expected no dependencies, got %v", result.Dependencies)
+	}
+}
+
+// TestCollectGitHubActionsWorkflowPinningWithLockfile verifies that the full
+// collection pipeline picks up `.github/workflows/actions.lock` from the repo
+// and marks a workflow's lockfile-covered tag reference as pinned.
+func TestCollectGitHubActionsWorkflowPinningWithLockfile(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			all := []string{
+				".github/workflows/workflow-pinned-by-lockfile.yaml",
+				".github/workflows/actions.lock",
+			}
+			var out []string
+			for _, f := range all {
+				ok, err := predicate(f)
+				if err != nil {
+					return nil, err
+				}
+				if ok {
+					out = append(out, f)
+				}
+			}
+			return out, nil
+		}).AnyTimes()
+	mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+	mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+	mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open(filepath.Join("testdata", file))
+	}).AnyTimes()
+
+	req := checker.CheckRequest{
+		RepoClient: mockRepoClient,
+	}
+	var r checker.PinningDependenciesData
+	if err := collectGitHubActionsWorkflowPinning(&req, &r); err != nil {
+		t.Fatalf("collectGitHubActionsWorkflowPinning: %v", err)
+	}
+
+	var found bool
+	for i := range r.Dependencies {
+		dep := &r.Dependencies[i]
+		if dep.Name == nil || *dep.Name != "actions/checkout" {
+			continue
+		}
+		found = true
+		if dep.Pinned == nil || !*dep.Pinned {
+			t.Errorf("expected actions/checkout@v4.1.1 to be pinned via lockfile, got Pinned=%v", dep.Pinned)
+		}
+	}
+	if !found {
+		t.Fatalf("expected to find an actions/checkout dependency, got %v", r.Dependencies)
 	}
 }
 
@@ -315,7 +607,7 @@ func TestNonGithubWorkflowPinning(t *testing.T) {
 			p := strings.Replace(tt.filename, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, nil)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -475,7 +767,9 @@ func TestDockerfilePinning(t *testing.T) {
 			}
 
 			var r checker.PinningDependenciesData
-			_, err = validateDockerfilesPinning(filepath.Join("testdata", tt.filename), content, &r)
+			// pathfn passed to the check is always a repo-relative,
+			// forward-slash path, regardless of the host OS.
+			_, err = validateDockerfilesPinning(path.Join("testdata", tt.filename), content, &r)
 			if !errCmp(err, tt.err) {
 				t.Error(cmp.Diff(err, tt.err, cmpopts.EquateErrors()))
 			}
@@ -1863,7 +2157,7 @@ func TestGitHubWorkflowUsesLineNumber(t *testing.T) {
 			p = strings.Replace(p, "./testdata/", "", 1)
 			var r checker.PinningDependenciesData
 
-			_, err = validateGitHubActionWorkflow(p, content, &r)
+			_, err = validateGitHubActionWorkflow(p, content, &r, nil)
 			if err != nil {
 				t.Errorf("validateGitHubActionWorkflow: %v", err)
 			}
@@ -2168,7 +2462,7 @@ func TestCollectGitHubActionsWorkflowPinning(t *testing.T) {
 			mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
 			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
 				return os.Open(filepath.Join("testdata", file))
-			})
+			}).AnyTimes()
 
 			req := checker.CheckRequest{
 				RepoClient: mockRepoClient,
