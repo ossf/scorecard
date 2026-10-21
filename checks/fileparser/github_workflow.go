@@ -722,22 +722,6 @@ func hasRegistryOverride(command string) bool {
 	return registryOverridePattern.MatchString(command)
 }
 
-func isPackagingStep(step *ghworkflow.Step) bool {
-	if uses := GetUses(step); uses != nil {
-		name := strings.Split(uses.Value, "@")[0]
-		switch name {
-		case "docker/build-push-action", "erlef/setup-elixir", "goreleaser/goreleaser-action",
-			"imjasonh/setup-ko", "ko-build/setup-ko", "pypa/gh-action-pypi-publish",
-			"relekang/python-semantic-release":
-			return true
-		}
-	}
-	if run := getRun(step); run != nil {
-		return regexp.MustCompile(`(?i)\b(npm|mvnw?|gradle|sbt|gem|nuget|docker|cargo)\b.*\b(publish|push|deploy|ci-release)\b|npx\s+.*semantic-release`).MatchString(run.Value)
-	}
-	return false
-}
-
 func dockerPushEnabled(step *ghworkflow.Step) bool {
 	for key, input := range getWith(step) {
 		if input != nil && input.Value != nil && strings.EqualFold(key, "push") {
