@@ -43,7 +43,14 @@ func (transport *expBackoffTransport) RoundTrip(req *http.Request) (*http.Respon
 			//nolint:wrapcheck
 			return resp, err
 		}
-		time.Sleep(time.Duration(math.Pow(2, float64(i))) * time.Second)
+		resp.Body.Close()
+		timer := time.NewTimer(time.Duration(math.Pow(2, float64(i))) * time.Second)
+		select {
+		case <-req.Context().Done():
+			timer.Stop()
+			return nil, fmt.Errorf("waiting for CII Best Practices retry: %w", req.Context().Err())
+		case <-timer.C:
+		}
 	}
 	return nil, errTooManyRequests
 }
