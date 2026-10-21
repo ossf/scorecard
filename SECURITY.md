@@ -8,6 +8,8 @@ for Linux Foundation projects.
 
 - [Disclosing a security issue](#disclosing-a-security-issue)
 - [Vulnerability management](#vulnerability-management)
+- [Privileged workflows](#privileged-workflows)
+- [Binary files in the repository](#binary-files-in-the-repository)
 - [Suggesting changes](#suggesting-changes)
 
 ## Disclosing a security issue
@@ -53,6 +55,46 @@ following steps:
 - determining affected versions of the project
 - auditing code to find any potential similar problems
 - preparing fixes for all releases under maintenance
+
+Fixed vulnerabilities are published as
+[GitHub Security Advisories](https://github.com/ossf/scorecard/security/advisories)
+on the affected repository, which feed the GitHub Advisory Database and OSV.
+The release notes of the release that contains the fix also mention it.
+
+## Privileged workflows
+
+Two workflows run in a privileged context on pull requests. The maintainers
+reviewed both:
+
+- [`verify.yml`](.github/workflows/verify.yml) runs on `pull_request_target`
+  to check the PR title. It checks out the base branch, never the PR, passes
+  the title through an environment variable, and its token can only write
+  check results.
+- [`scdiff.yml`](.github/workflows/scdiff.yml) runs on PR comments. It runs
+  the PR's code to compare Scorecard results before and after the change,
+  using the repository's GitHub and GitLab tokens. It runs only when the
+  commenter has write access to this repository, and only when the PR hasn't
+  changed since the comment. The comparison script comes from `main`, not from
+  the PR. Maintainers review the PR before asking for a run.
+
+No other workflow uses `pull_request_target`, `issue_comment`, or
+`workflow_run`.
+
+## Binary files in the repository
+
+The repository contains no release binaries. The binary files it does
+contain are test fixtures:
+
+- [`checks/testdata/binaryartifacts/`](checks/testdata/binaryartifacts/):
+  a Mach-O executable, a WebAssembly module, and two jars. They test the
+  Binary-Artifacts check, which has to detect files like these.
+- `basic.tar.gz` in [`clients/githubrepo/testdata/`](clients/githubrepo/testdata/)
+  and [`clients/gitlabrepo/testdata/`](clients/gitlabrepo/testdata/), and
+  `basic.zip` in [`clients/azuredevopsrepo/testdata/`](clients/azuredevopsrepo/testdata/):
+  repository archives for the tests of each client's archive handling.
+
+Images under [`artwork/`](artwork/) and [`docs/`](docs/), and
+[`CHARTER.pdf`](CHARTER.pdf), are documentation.
 
 ## Suggesting changes
 

@@ -21,6 +21,9 @@ import (
 	"testing"
 	"time"
 
+	intoto "github.com/in-toto/attestation/go/v1"
+	"google.golang.org/protobuf/encoding/protojson"
+
 	"github.com/ossf/scorecard/v5/finding"
 )
 
@@ -61,39 +64,78 @@ func TestInToto(t *testing.T) {
 		t.Error("unexpected error: ", err)
 	}
 
-	// Unmarshal the written json to a generic map
-	stmt := statement{}
-	if err := json.Unmarshal(w.Bytes(), &stmt); err != nil {
-		t.Error("error unmarshaling statement", err)
-		return
+	// The output must be stable across runs.
+	var w2 bytes.Buffer
+	if err := result.AsInToto(&w2, jsonMockDocRead(), nil); err != nil {
+		t.Error("unexpected error: ", err)
+	}
+	if !bytes.Equal(w.Bytes(), w2.Bytes()) {
+		t.Error("statement output is not deterministic")
+	}
+
+	// The statement must use the field names defined by the in-toto spec,
+	// not the names encoding/json derives from the generated protobuf types.
+	raw := map[string]json.RawMessage{}
+	if err := json.Unmarshal(w.Bytes(), &raw); err != nil {
+		t.Fatal("error unmarshaling statement to map", err)
+	}
+	for _, key := range []string{"_type", "subject", "predicateType", "predicate"} {
+		if _, ok := raw[key]; !ok {
+			t.Errorf("statement is missing the %q field", key)
+		}
+	}
+	for _, key := range []string{"type", "predicate_type"} {
+		if _, ok := raw[key]; ok {
+			t.Errorf("statement has unexpected field %q", key)
+		}
+	}
+
+	// Unmarshal the written json to an in-toto statement
+	stmt := &intoto.Statement{}
+	if err := protojson.Unmarshal(w.Bytes(), stmt); err != nil {
+		t.Fatal("error unmarshaling statement", err)
+	}
+	if err := stmt.Validate(); err != nil {
+		t.Error("statement failed validation", err)
 	}
 
 	// Check the data
-	if len(stmt.Subject) != 1 {
-		t.Error("unexpected statement subject length")
+	if stmt.GetType() != intoto.StatementTypeUri {
+		t.Error("incorrect statement type", stmt.GetType())
 	}
-	if stmt.Subject[0].GetDigest()["gitCommit"] != result.Repo.CommitSHA {
+	if len(stmt.GetSubject()) != 1 {
+		t.Fatal("unexpected statement subject length")
+	}
+	if stmt.GetSubject()[0].GetDigest()["gitCommit"] != result.Repo.CommitSHA {
 		t.Error("mismatched statement subject digest")
 	}
-	if stmt.Subject[0].GetName() != result.Repo.Name {
+	if stmt.GetSubject()[0].GetName() != result.Repo.Name {
 		t.Error("mismatched statement subject name")
 	}
 
-	if stmt.PredicateType != InTotoPredicateType {
-		t.Error("incorrect predicate type", stmt.PredicateType)
+	if stmt.GetPredicateType() != InTotoPredicateType {
+		t.Error("incorrect predicate type", stmt.GetPredicateType())
 	}
 
 	// Check the predicate
-	if stmt.Predicate.Scorecard.Commit != result.Scorecard.CommitSHA {
+	predicateJSON, err := protojson.Marshal(stmt.GetPredicate())
+	if err != nil {
+		t.Fatal("error marshaling predicate", err)
+	}
+	predicate := InTotoPredicate{}
+	if err := json.Unmarshal(predicateJSON, &predicate); err != nil {
+		t.Fatal("error unmarshaling predicate", err)
+	}
+	if predicate.Scorecard.Commit != result.Scorecard.CommitSHA {
 		t.Error("mismatch in scorecard commit")
 	}
-	if stmt.Predicate.Scorecard.Version != result.Scorecard.Version {
+	if predicate.Scorecard.Version != result.Scorecard.Version {
 		t.Error("mismatch in scorecard version")
 	}
-	if stmt.Predicate.Repo != nil {
+	if predicate.Repo != nil {
 		t.Error("repo should be null")
 	}
-	if !slices.Equal(stmt.Predicate.Metadata, result.Metadata) {
+	if !slices.Equal(predicate.Metadata, result.Metadata) {
 		t.Error("mismatched metadata")
 	}
 }

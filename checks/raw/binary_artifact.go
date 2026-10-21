@@ -24,13 +24,13 @@ import (
 
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
-	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 // how many bytes are considered when determining if a file is text or binary.
@@ -235,7 +235,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 		return false, fmt.Errorf("checkWorkflowValidatesGradleWrapper expects arg[0] of type *string: %w", errInvalidArgType)
 	}
 
-	action, errs := actionlint.Parse(content)
+	action, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 || action == nil {
 		// Parse fail, so not this file.
 		return true, nil
@@ -243,7 +243,7 @@ func checkWorkflowValidatesGradleWrapper(path string, content []byte, args ...in
 
 	for _, j := range action.Jobs {
 		for _, s := range j.Steps {
-			ea, ok := s.Exec.(*actionlint.ExecAction)
+			ea, ok := s.Exec.(*ghworkflow.ExecAction)
 			if !ok {
 				continue
 			}
