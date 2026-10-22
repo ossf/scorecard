@@ -129,6 +129,15 @@ Tier 5 Requirements (10/10 points):
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
+
+Azure DevOps Integration Status:
+  - Default and named branches use the same applicable PR policies, including inherited policies and later result pages.
+  - Only enabled, required, non-deleted PR policies establish protection. Repository push restrictions, such as secrets scanning, do not establish PR protection.
+  - Reviewer counts are conservative independent-approval floors. Self-votes and path filters do not receive unconditional review credit.
+  - Required build contexts use `azure-pipelines/<definition-id>`. These identify policy requirements, not successful test runs.
+  - Permission evaluations describe the caller. A proven caller exception can show that forced updates are allowed, but a caller denial does not prove protection for everyone.
+  - Unreadable or unsupported permission controls remain unknown. Administrator enforcement and CODEOWNERS enforcement are not inferred.
+  - Unknown deletion or force-push protection receives no Tier 1 credit, so the score can remain zero despite mapped PR policies.
  
 
 **Remediation steps**
