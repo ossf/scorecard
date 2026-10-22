@@ -45,23 +45,26 @@ var (
 	errZipSlip          = errors.New("ZipSlip path detected")
 )
 
+// extractAndValidateArchivePath returns the path of a tarball entry relative to
+// dest, or "." for the tarball's top-level directory.
 func extractAndValidateArchivePath(path, dest string) (string, error) {
 	const splitLength = 2
 	// The tarball will have a top-level directory which contains all the repository files.
 	// Discard the directory and only keep the actual files.
 	names := strings.SplitN(path, "/", splitLength)
 	if len(names) < splitLength {
-		return dest, nil
+		return ".", nil
 	}
 	if names[1] == "" {
-		return dest, nil
+		return ".", nil
 	}
 	// Check for ZipSlip: https://snyk.io/research/zip-slip-vulnerability
 	cleanpath := filepath.Join(dest, names[1])
-	if !strings.HasPrefix(cleanpath, filepath.Clean(dest)+string(os.PathSeparator)) {
+	prefix := filepath.Clean(dest) + string(os.PathSeparator)
+	if !strings.HasPrefix(cleanpath, prefix) {
 		return "", fmt.Errorf("%w: %s", errZipSlip, names[1])
 	}
-	return cleanpath, nil
+	return strings.TrimPrefix(cleanpath, prefix), nil
 }
 
 type tarballHandler struct {
@@ -214,6 +217,13 @@ func (handler *tarballHandler) extractTarball() error {
 	if err != nil {
 		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
+	// Create entries through a root, so nothing is written outside tempDir
+	// even if a path inside it is a symlink.
+	root, err := os.OpenRoot(handler.tempDir)
+	if err != nil {
+		return fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
 	tr := tar.NewReader(gz)
 	for {
 		header, err := tr.Next()
@@ -226,32 +236,32 @@ func (handler *tarballHandler) extractTarball() error {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			dirpath, err := extractAndValidateArchivePath(header.Name, handler.tempDir)
+			dirname, err := extractAndValidateArchivePath(header.Name, handler.tempDir)
 			if err != nil {
 				return err
 			}
-			if dirpath == filepath.Clean(handler.tempDir) {
+			if dirname == "." {
 				continue
 			}
 
-			if err := os.Mkdir(dirpath, 0o755); err != nil {
+			if err := root.Mkdir(dirname, 0o755); err != nil {
 				return fmt.Errorf("error during os.Mkdir: %w", err)
 			}
 		case tar.TypeReg:
 			if header.Size <= 0 {
 				continue
 			}
-			filenamepath, err := extractAndValidateArchivePath(header.Name, handler.tempDir)
+			filename, err := extractAndValidateArchivePath(header.Name, handler.tempDir)
 			if err != nil {
 				return err
 			}
 
-			if _, err := os.Stat(filepath.Dir(filenamepath)); os.IsNotExist(err) {
-				if err := os.Mkdir(filepath.Dir(filenamepath), 0o755); err != nil {
+			if _, err := root.Stat(filepath.Dir(filename)); os.IsNotExist(err) {
+				if err := root.Mkdir(filepath.Dir(filename), 0o755); err != nil {
 					return fmt.Errorf("os.Mkdir: %w", err)
 				}
 			}
-			outFile, err := os.Create(filenamepath)
+			outFile, err := root.Create(filename)
 			if err != nil {
 				return fmt.Errorf("os.Create: %w", err)
 			}
@@ -263,7 +273,6 @@ func (handler *tarballHandler) extractTarball() error {
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
-			filename := strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator))
 			handler.files = append(handler.files, filepath.ToSlash(filename))
 		case tar.TypeXGlobalHeader, tar.TypeSymlink:
 			continue
@@ -296,7 +305,7 @@ func (handler *tarballHandler) getFile(filename string) (*os.File, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
 	}
-	f, err := os.Open(filepath.Join(handler.tempDir, filename))
+	f, err := os.OpenInRoot(handler.tempDir, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
