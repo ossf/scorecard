@@ -21,7 +21,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/rhysd/actionlint"
+
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 func TestGitHubWorkflowShell(t *testing.T) {
@@ -125,7 +126,7 @@ func TestGitHubWorkflowShell(t *testing.T) {
 				t.Errorf("cannot read file: %v", err)
 			}
 
-			workflow, errs := actionlint.Parse(content)
+			workflow, errs := ghworkflow.Parse(content)
 			if len(errs) > 0 && workflow == nil {
 				t.Errorf("cannot unmarshal file: %v", errs[0])
 			}
@@ -257,9 +258,9 @@ func TestIsGitHubOwnedAction(t *testing.T) {
 func TestGetJobName(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		job *actionlint.Job
+		job *ghworkflow.Job
 	}
-	var name actionlint.String
+	var name ghworkflow.String
 	name.Value = "foo"
 	tests := []struct {
 		name string
@@ -269,7 +270,7 @@ func TestGetJobName(t *testing.T) {
 		{
 			name: "job name",
 			args: args{
-				job: &actionlint.Job{
+				job: &ghworkflow.Job{
 					Name: &name,
 				},
 			},
@@ -278,7 +279,7 @@ func TestGetJobName(t *testing.T) {
 		{
 			name: "job name is empty",
 			args: args{
-				job: &actionlint.Job{},
+				job: &ghworkflow.Job{},
 			},
 			want: "",
 		},
@@ -301,9 +302,9 @@ func TestGetJobName(t *testing.T) {
 func TestGetStepName(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		step *actionlint.Step
+		step *ghworkflow.Step
 	}
-	var name actionlint.String
+	var name ghworkflow.String
 	name.Value = "foo"
 	tests := []struct {
 		name string
@@ -313,7 +314,7 @@ func TestGetStepName(t *testing.T) {
 		{
 			name: "step name",
 			args: args{
-				step: &actionlint.Step{
+				step: &ghworkflow.Step{
 					Name: &name,
 				},
 			},
@@ -322,7 +323,7 @@ func TestGetStepName(t *testing.T) {
 		{
 			name: "step name is empty",
 			args: args{
-				step: &actionlint.Step{},
+				step: &ghworkflow.Step{},
 			},
 			want: "",
 		},
@@ -345,8 +346,8 @@ func TestGetStepName(t *testing.T) {
 func TestIsStepExecKind(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		step *actionlint.Step
-		kind actionlint.ExecKind
+		step *ghworkflow.Step
+		kind ghworkflow.ExecKind
 	}
 	tests := []struct {
 		name string
@@ -361,8 +362,8 @@ func TestIsStepExecKind(t *testing.T) {
 		{
 			name: "step is not nil",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{},
 				},
 			},
 			want: true,
@@ -370,8 +371,8 @@ func TestIsStepExecKind(t *testing.T) {
 		{
 			name: "step is not nil, but kind is not equal",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecRun{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{},
 				},
 			},
 			want: false,
@@ -391,7 +392,7 @@ func TestIsStepExecKind(t *testing.T) {
 func TestGetLineNumber(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		pos *actionlint.Pos
+		pos *ghworkflow.Pos
 	}
 	//nolint:govet
 	tests := []struct {
@@ -402,7 +403,7 @@ func TestGetLineNumber(t *testing.T) {
 		{
 			name: "line number",
 			args: args{
-				pos: &actionlint.Pos{
+				pos: &ghworkflow.Pos{
 					Line: 1,
 				},
 			},
@@ -411,7 +412,7 @@ func TestGetLineNumber(t *testing.T) {
 		{
 			name: "line number is empty",
 			args: args{
-				pos: &actionlint.Pos{
+				pos: &ghworkflow.Pos{
 					Line: 1,
 				},
 			},
@@ -437,7 +438,7 @@ func TestGetLineNumber(t *testing.T) {
 func TestFormatActionlintError(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		errs []*actionlint.Error
+		errs []*ghworkflow.Error
 	}
 	tests := []struct {
 		name    string
@@ -447,14 +448,14 @@ func TestFormatActionlintError(t *testing.T) {
 		{
 			name: "no errors",
 			args: args{
-				errs: []*actionlint.Error{},
+				errs: []*ghworkflow.Error{},
 			},
 			wantErr: false,
 		},
 		{
 			name: "one error",
 			args: args{
-				errs: []*actionlint.Error{
+				errs: []*ghworkflow.Error{
 					{
 						Message: "foo",
 					},
@@ -492,10 +493,9 @@ func TestFormatActionlintError_IncludesFilePath(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			_, errs := actionlint.Parse([]byte(tt.content))
+			_, errs := ghworkflow.Parse([]byte(tt.content))
 			if len(errs) == 0 {
 				t.Fatalf("test fixture did not produce a parse error, fix the fixture")
 			}
@@ -516,41 +516,41 @@ func TestFormatActionlintError_IncludesFilePath(t *testing.T) {
 func TestGetUses(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		step *actionlint.Step
+		step *ghworkflow.Step
 	}
 	//nolint:govet
 	tests := []struct {
 		name string
 		args args
-		want *actionlint.String
+		want *ghworkflow.String
 	}{
 		{
 			name: "uses",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo",
 						},
 					},
 				},
 			},
-			want: &actionlint.String{
+			want: &ghworkflow.String{
 				Value: "foo",
 			},
 		},
 		{
 			name: "uses is empty",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "",
 						},
 					},
 				},
 			},
-			want: &actionlint.String{
+			want: &ghworkflow.String{
 				Value: "",
 			},
 		},
@@ -562,8 +562,8 @@ func TestGetUses(t *testing.T) {
 		{
 			name: "step is not nil, but uses is nil",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{},
 				},
 			},
 			want: nil,
@@ -571,7 +571,7 @@ func TestGetUses(t *testing.T) {
 		{
 			name: "step is not nil, but uses is not nil",
 			args: args{
-				step: &actionlint.Step{},
+				step: &ghworkflow.Step{},
 			},
 			want: nil,
 		},
@@ -589,53 +589,53 @@ func TestGetUses(t *testing.T) {
 func Test_getWith(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		step *actionlint.Step
+		step *ghworkflow.Step
 	}
 	//nolint:govet
 	tests := []struct {
 		name string
 		args args
-		want map[string]*actionlint.Input
+		want map[string]*ghworkflow.Input
 	}{
 		{
 			name: "with",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Inputs: map[string]*actionlint.Input{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: "bar"},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: "bar"},
 							},
 						},
 					},
 				},
 			},
-			want: map[string]*actionlint.Input{
+			want: map[string]*ghworkflow.Input{
 				"foo": {
-					Name:  &actionlint.String{Value: "foo"},
-					Value: &actionlint.String{Value: "bar"},
+					Name:  &ghworkflow.String{Value: "foo"},
+					Value: &ghworkflow.String{Value: "bar"},
 				},
 			},
 		},
 		{
 			name: "with is empty",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Inputs: map[string]*actionlint.Input{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: ""},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: ""},
 							},
 						},
 					},
 				},
 			},
-			want: map[string]*actionlint.Input{
+			want: map[string]*ghworkflow.Input{
 				"foo": {
-					Name:  &actionlint.String{Value: "foo"},
-					Value: &actionlint.String{Value: ""},
+					Name:  &ghworkflow.String{Value: "foo"},
+					Value: &ghworkflow.String{Value: ""},
 				},
 			},
 		},
@@ -647,8 +647,8 @@ func Test_getWith(t *testing.T) {
 		{
 			name: "step is not nil, but with is nil",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{},
 				},
 			},
 			want: nil,
@@ -656,7 +656,7 @@ func Test_getWith(t *testing.T) {
 		{
 			name: "step is not nil, but with is not nil",
 			args: args{
-				step: &actionlint.Step{},
+				step: &ghworkflow.Step{},
 			},
 			want: nil,
 		},
@@ -674,23 +674,23 @@ func Test_getWith(t *testing.T) {
 func Test_getRun(t *testing.T) {
 	t.Parallel()
 	type args struct {
-		step *actionlint.Step
+		step *ghworkflow.Step
 	}
 	//nolint:govet
 	tests := []struct {
 		name string
 		args args
-		want *actionlint.String
+		want *ghworkflow.String
 	}{
 		{
 			name: "run",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Inputs: map[string]*actionlint.Input{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: "bar"},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: "bar"},
 							},
 						},
 					},
@@ -701,12 +701,12 @@ func Test_getRun(t *testing.T) {
 		{
 			name: "run is empty",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Inputs: map[string]*actionlint.Input{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: ""},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: ""},
 							},
 						},
 					},
@@ -722,8 +722,8 @@ func Test_getRun(t *testing.T) {
 		{
 			name: "step is not nil, but run is nil",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{},
 				},
 			},
 			want: nil,
@@ -731,26 +731,26 @@ func Test_getRun(t *testing.T) {
 		{
 			name: "step is not nil, but run is not nil",
 			args: args{
-				step: &actionlint.Step{},
+				step: &ghworkflow.Step{},
 			},
 			want: nil,
 		},
 		{
 			name: "run is not empty",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecRun{
-						Run: &actionlint.String{Value: "foo"},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{
+						Run: &ghworkflow.String{Value: "foo"},
 					},
 				},
 			},
-			want: &actionlint.String{Value: "foo"},
+			want: &ghworkflow.String{Value: "foo"},
 		},
 		{
 			name: "run is not empty",
 			args: args{
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecRun{},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{},
 				},
 			},
 			want: nil,
@@ -771,7 +771,7 @@ func Test_stepsMatch(t *testing.T) {
 	t.Parallel()
 	type args struct {
 		stepToMatch *JobMatcherStep
-		step        *actionlint.Step
+		step        *ghworkflow.Step
 	}
 	//nolint:govet
 	tests := []struct {
@@ -788,15 +788,15 @@ func Test_stepsMatch(t *testing.T) {
 						"foo": "bar",
 					},
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo@",
 						},
-						Inputs: map[string]*actionlint.Input{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: "bar"},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: "bar"},
 							},
 						},
 					},
@@ -813,15 +813,15 @@ func Test_stepsMatch(t *testing.T) {
 						"foo": "bar",
 					},
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo@",
 						},
-						Inputs: map[string]*actionlint.Input{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: ""},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: ""},
 							},
 						},
 					},
@@ -838,15 +838,15 @@ func Test_stepsMatch(t *testing.T) {
 						"foo": "bar",
 					},
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo@",
 						},
-						Inputs: map[string]*actionlint.Input{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: ""},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: ""},
 							},
 						},
 					},
@@ -863,9 +863,9 @@ func Test_stepsMatch(t *testing.T) {
 						"foo": "bar",
 					},
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo@",
 						},
 					},
@@ -882,9 +882,9 @@ func Test_stepsMatch(t *testing.T) {
 						"foo": "bar",
 					},
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo",
 						},
 					},
@@ -914,15 +914,15 @@ func Test_stepsMatch(t *testing.T) {
 					},
 					Run: "foo",
 				},
-				step: &actionlint.Step{
-					Exec: &actionlint.ExecAction{
-						Uses: &actionlint.String{
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecAction{
+						Uses: &ghworkflow.String{
 							Value: "foo@",
 						},
-						Inputs: map[string]*actionlint.Input{
+						Inputs: map[string]*ghworkflow.Input{
 							"foo": {
-								Name:  &actionlint.String{Value: "foo"},
-								Value: &actionlint.String{Value: "bar"},
+								Name:  &ghworkflow.String{Value: "foo"},
+								Value: &ghworkflow.String{Value: "bar"},
 							},
 						},
 					},
@@ -1030,6 +1030,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "ko publish using ko-build/setup-ko",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-build.yaml",
+			expected: true,
+		},
+		{
+			name:     "ko publish using imjasonh/setup-ko",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-ko-imjasonh.yaml",
+			expected: true,
+		},
+		{
 			name:     "semantic-release publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-semantic-release.yaml",
 			expected: true,
@@ -1052,7 +1062,7 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			if err != nil {
 				t.Errorf("cannot read file: %v", err)
 			}
-			workflow, errs := actionlint.Parse(content)
+			workflow, errs := ghworkflow.Parse(content)
 			if len(errs) > 0 && workflow == nil {
 				t.Errorf("cannot parse file: %v", errs)
 			}
