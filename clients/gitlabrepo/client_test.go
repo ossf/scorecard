@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/shurcooL/graphql"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -141,6 +142,15 @@ func TestListCommits(t *testing.T) {
 			commits:      []clients.Commit{},
 			wantErr:      false,
 		},
+		{
+			name:         "Commit without committed date",
+			responsePath: "./testdata/commit-without-date",
+			commits: []clients.Commit{{
+				Message: "missing date",
+				SHA:     "missing-date",
+			}},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -149,6 +159,7 @@ func TestListCommits(t *testing.T) {
 				Transport: suffixStubTripper{
 					responsePaths: map[string]string{
 						"commits": tt.responsePath, // corresponds to projects/<id>/repository/commits
+						"graphql": "./testdata/empty-graphql-response",
 					},
 				},
 			}
@@ -162,6 +173,7 @@ func TestListCommits(t *testing.T) {
 
 			repoURL := Repo{
 				owner:     "ossf-tests",
+				host:      "gitlab.example.com",
 				commitSHA: clients.HeadSHA,
 			}
 
@@ -171,6 +183,7 @@ func TestListCommits(t *testing.T) {
 				client: httpClient,
 			}
 			gqlhandler.init(t.Context(), &repoURL)
+			gqlhandler.graphClient = graphql.NewClient("https://gitlab.example.com/api/graphql", httpClient)
 
 			client := &Client{glClient: glclient, commits: commitshandler, graphql: &gqlhandler}
 

@@ -1,0 +1,13 @@
+{
+  "data": {
+    "project": {
+      "mergeRequests": {
+        "nodes": []
+      }
+    },
+    "queryComplexity": {
+      "limit": 0,
+      "score": 0
+    }
+  }
+}
