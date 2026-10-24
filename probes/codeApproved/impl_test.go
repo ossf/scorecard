@@ -349,3 +349,36 @@ func TestProbeCodeApproved(t *testing.T) {
 		})
 	}
 }
+
+func TestProbeCodeApprovedIdentities(t *testing.T) {
+	t.Parallel()
+	for _, tt := range []struct {
+		reviewer *clients.User
+		name     string
+		author   string
+		outcome  finding.Outcome
+	}{
+		{name: "missing reviewer", author: "author-id", reviewer: &clients.User{}, outcome: finding.OutcomeFalse},
+		{name: "nil reviewer", author: "author-id", outcome: finding.OutcomeFalse},
+		{name: "missing author", reviewer: &clients.User{Login: "reviewer-id"}, outcome: finding.OutcomeFalse},
+		{name: "self review", author: "author-id", reviewer: &clients.User{Login: "author-id"}, outcome: finding.OutcomeFalse},
+		{name: "distinct reviewer", author: "author-id", reviewer: &clients.User{Login: "reviewer-id"}, outcome: finding.OutcomeTrue},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			findings, _, err := Run(&checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{{
+						ReviewPlatform: checker.ReviewPlatformGitHub,
+						Author:         clients.User{Login: tt.author},
+						Reviews:        []clients.Review{{Author: tt.reviewer, State: "APPROVED"}},
+					}},
+				},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			test.AssertOutcomes(t, findings, []finding.Outcome{tt.outcome})
+		})
+	}
+}

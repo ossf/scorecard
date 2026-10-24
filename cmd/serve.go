@@ -243,7 +243,12 @@ func serveCmd(o *options.Options) *cobra.Command {
 	return &cobra.Command{
 		Use:   "serve",
 		Short: "Serve the scorecard program over http",
-		Long:  `Start an HTTP server to run scorecard checks on repositories with REST API support.`,
+		Long: `Start an HTTP server to run scorecard checks on repositories with REST API support.
+
+The server has no authentication or rate limiting, runs every scan with the
+server's own credentials, and listens on all interfaces by default. Run it
+only on a trusted network, with a token limited to the repositories you
+intend to scan.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			logger := log.NewLogger(log.ParseLevel(o.LogLevel))
 			srv := newServer(logger)
