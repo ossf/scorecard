@@ -170,10 +170,12 @@ func (handler *tarballHandler) extractTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
+	defer in.Close()
 	gz, err := gzip.NewReader(in)
 	if err != nil {
 		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
+	defer gz.Close()
 	// Create entries through a root, so nothing is written outside tempDir
 	// even if a path inside it is a symlink.
 	root, err := os.OpenRoot(handler.tempDir)
@@ -227,6 +229,7 @@ func (handler *tarballHandler) extractTarball() error {
 			// Potential for DoS vulnerability via decompression bomb.
 			// Since such an attack will only impact a single shard, ignoring this for now.
 			if _, err := io.Copy(outFile, tr); err != nil {
+				outFile.Close()
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
