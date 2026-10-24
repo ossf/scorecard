@@ -30,25 +30,6 @@ jobs:
     if: ${{ (github.event.issue.pull_request) && (contains(github.event.comment.body, '/scdiff generate')) }}
     runs-on: [ubuntu-latest]
     steps:
-      - name: create file of repos to analyze
-        run: |
-          cat <<EOF > $HOME/repos.txt
-          https://github.com/airbnb/lottie-web
-          https://github.com/apache/tomcat
-          https://github.com/Azure/azure-functions-dotnet-worker
-          https://github.com/cncf/xds
-          https://github.com/google/go-cmp
-          https://github.com/google/highwayhash
-          https://github.com/googleapis/google-api-php-client
-          https://github.com/jacoco/jacoco
-          https://github.com/ossf/scorecard
-          https://github.com/pallets/jinja
-          https://github.com/polymer/polymer
-          https://github.com/rust-random/getrandom
-          https://github.com/yaml/libyaml
-          https://gitlab.com/baserow/baserow
-          https://gitlab.com/cryptsetup/cryptsetup
-          EOF
       - name: configure scdiff
         id: config
         env:
@@ -56,9 +37,13 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const allowedAssociations = ["COLLABORATOR", "MEMBER", "OWNER"];
-            authorAssociation = '${{ github.event.comment.author_association }}'
-            if (!allowedAssociations.includes(authorAssociation)) {
+            // Only users who can push to this repository may run scdiff.
+            const { data: access } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: context.payload.comment.user.login,
+            })
+            if (!["admin", "write"].includes(access.permission)) {
               core.setFailed("You don't have access to run scdiff");
               return
             }
@@ -81,7 +66,7 @@ jobs:
             core.setOutput('base', response.data.base.sha)
             core.setOutput('head', response.data.head.sha)
 
-            checks = '""'
+            let checks = ''
             const commentBody = process.env.COMMENT_BODY
             const regex = /\/scdiff generate ([^ ]+)/;
             const found = commentBody.match(regex);
@@ -89,33 +74,23 @@ jobs:
               checks = found[1]
             }
             core.exportVariable('SCORECARD_CHECKS', checks)
+      # Check out the base commit so the script that runs is the reviewed one
+      # on main, not the PR's copy.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.config.outputs.base }}
+          persist-credentials: false
       - name: Setup Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
-      - name: generate before results
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        run: |
-          go run cmd/internal/scdiff/main.go generate \
-            --repos $HOME/repos.txt \
-            --checks $SCORECARD_CHECKS > $HOME/before.json
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ steps.config.outputs.head }}
-      - name: generate after results
-        env:
-          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
-          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
-        run: |
-          go run cmd/internal/scdiff/main.go generate \
-            --repos $HOME/repos.txt \
-            --checks $SCORECARD_CHECKS > $HOME/after.json
       - name: compare results
+        env:
+          BASE_SHA: ${{ steps.config.outputs.base }}
+          HEAD_SHA: ${{ steps.config.outputs.head }}
+          GITHUB_AUTH_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+          GITLAB_AUTH_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          go run cmd/internal/scdiff/main.go compare $HOME/before.json $HOME/after.json
+          git fetch --no-tags --depth=1 origin "$HEAD_SHA"
+          ./scripts/scdiff.sh "$BASE_SHA" "$HEAD_SHA" "$SCORECARD_CHECKS"
