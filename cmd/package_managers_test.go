@@ -27,6 +27,7 @@ import (
 
 	ngt "github.com/ossf/scorecard/v5/cmd/internal/nuget"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
+	wgt "github.com/ossf/scorecard/v5/cmd/internal/winget"
 )
 
 func Test_fetchGitRepositoryFromNPM(t *testing.T) {
@@ -776,6 +777,40 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("fetchGitRepositoryFromNuget() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_fetchGitRepositoryFromWinget(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		result  string
+		wantErr bool
+	}{
+		{name: "Return repository from winget client", result: "https://github.com/git-for-windows/git"},
+		{name: "Error from winget client", wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			w := wgt.NewMockClient(ctrl)
+			w.EXPECT().GitRepositoryByPackageName("Git.Git").
+				DoAndReturn(func(string) (string, error) {
+					if tt.wantErr {
+						return "", errors.New("error")
+					}
+					return tt.result, nil
+				})
+			got, err := fetchGitRepositoryFromWinget("Git.Git", w)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("fetchGitRepositoryFromWinget() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.result {
+				t.Errorf("fetchGitRepositoryFromWinget() = %v, want %v", got, tt.result)
 			}
 		})
 	}

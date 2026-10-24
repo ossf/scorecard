@@ -18,8 +18,14 @@ package packagemanager
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
+
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens"
 )
+
+// githubTokens reads the GitHub tokens Scorecard is configured with (e.g. GITHUB_AUTH_TOKEN) once.
+var githubTokens = sync.OnceValue(tokens.MakeTokenAccessor)
 
 type Client interface {
 	Get(URI string, packagename string) (*http.Response, error)
@@ -43,6 +49,18 @@ func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) 
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 	}
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("http.NewRequest: %w", err)
+	}
+	// Authenticate GitHub API requests (e.g. for winget) to avoid the low unauthenticated rate limit.
+	if u := req.URL; u.Scheme == "https" && u.Hostname() == "api.github.com" {
+		if accessor := githubTokens(); accessor != nil {
+			id, token := accessor.Next()
+			defer accessor.Release(id)
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
+	}
 	//nolint:wrapcheck
-	return client.Get(url)
+	return client.Do(req)
 }
