@@ -27,7 +27,6 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/audit"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
@@ -54,7 +53,6 @@ type Client struct {
 	commits       *commitsHandler
 	contributors  *contributorsHandler
 	languages     *languagesHandler
-	policy        *policyHandler
 	releases      *releasesHandler
 	search        *searchHandler
 	searchCommits *searchCommitsHandler
@@ -111,8 +109,6 @@ func (c *Client) InitRepo(inputRepo clients.Repo, commitSHA string, commitDepth 
 	c.contributors.init(c.ctx, c.repourl)
 
 	c.languages.init(c.ctx, c.repourl)
-
-	c.policy.init(c.ctx, c.repourl)
 
 	c.releases.init(c.ctx, c.repourl)
 
@@ -212,7 +208,14 @@ func (c *Client) ListSuccessfulWorkflowRuns(filename string) ([]clients.Workflow
 }
 
 func (c *Client) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
-	return c.policy.listCheckRunsForRef(ref)
+	pr, err := c.commits.pullRequestForHead(ref)
+	if err != nil {
+		return nil, err
+	}
+	if pr == nil {
+		return []clients.CheckRun{}, nil
+	}
+	return c.builds.listCheckRunsForPullRequest(pr, c.azdoClient)
 }
 
 func (c *Client) ListStatuses(ref string) ([]clients.Status, error) {
@@ -266,11 +269,6 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		return nil, fmt.Errorf("could not create azure devops git client with error: %w", err)
 	}
 
-	policyClient, err := policy.NewClient(ctx, connection)
-	if err != nil {
-		return nil, fmt.Errorf("could not create azure devops policy client with error: %w", err)
-	}
-
 	projectAnalysisClient, err := projectanalysis.NewClient(ctx, connection)
 	if err != nil {
 		return nil, fmt.Errorf("could not create azure devops project analysis client with error: %w", err)
@@ -309,10 +307,6 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 		},
 		languages: &languagesHandler{
 			projectAnalysisClient: projectAnalysisClient,
-		},
-		policy: &policyHandler{
-			gitClient:    gitClient,
-			policyClient: policyClient,
 		},
 		releases: &releasesHandler{
 			gitClient: gitClient,
