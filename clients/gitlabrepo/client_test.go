@@ -35,9 +35,9 @@ func TestLatestCommittedDate(t *testing.T) {
 	middle := time.Date(2026, time.February, 1, 0, 0, 0, 0, time.UTC)
 
 	tests := []struct {
+		want    *time.Time
 		name    string
 		commits []*gitlab.Commit
-		want    *time.Time
 	}{
 		{
 			name: "finds newest commit in unordered response",
