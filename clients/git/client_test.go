@@ -75,15 +75,41 @@ func createTestRepo(t *testing.T) (path string) {
 
 func TestInitRepo(t *testing.T) {
 	t.Parallel()
+	repoPath := createTestRepo(t)
+	r, err := gitV5.PlainOpen(repoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstCommit, err := r.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	latestCommit, err := w.Commit("Second commit", &gitV5.CommitOptions{
+		AllowEmptyCommits: true,
+		Author: &object.Signature{
+			Name: "Test Author", Email: "author@example.com", When: time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	validSHA := firstCommit.Hash().String()
+
 	tests := []struct {
 		name        string
 		commitSHA   string
 		expectedErr string
+		expectedSHA string
 		commitDepth int
 	}{
 		{
 			name:        "Success",
 			commitSHA:   "HEAD",
+			expectedSHA: latestCommit.String(),
 			commitDepth: 1,
 		},
 		{
@@ -91,9 +117,17 @@ func TestInitRepo(t *testing.T) {
 			commitSHA:   "HEAD",
 			commitDepth: -1,
 		},
+		{name: "ExplicitCommit", commitSHA: validSHA, expectedSHA: validSHA, commitDepth: 1},
+		{name: "UppercaseCommit", commitSHA: strings.ToUpper(validSHA), expectedSHA: validSHA, commitDepth: 1},
+		{name: "EmptyCommit", commitSHA: "", expectedErr: "invalid commit SHA"},
+		{name: "NonHexCommit", commitSHA: strings.Repeat("z", 40), expectedErr: "invalid commit SHA"},
+		{name: "ShortCommit", commitSHA: validSHA[:8], expectedErr: "invalid commit SHA"},
+		{name: "OddLengthCommit", commitSHA: validSHA[:39], expectedErr: "invalid commit SHA"},
+		{name: "LongCommit", commitSHA: validSHA + "00", expectedErr: "invalid commit SHA"},
+		{name: "InvalidSuffix", commitSHA: validSHA + "zz", expectedErr: "invalid commit SHA"},
+		{name: "ZeroCommit", commitSHA: strings.Repeat("0", 40), expectedErr: "invalid commit SHA"},
+		{name: "UnknownCommit", commitSHA: strings.Repeat("1", 40), expectedErr: "object not found"},
 	}
-
-	repoPath := createTestRepo(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -101,13 +135,33 @@ func TestInitRepo(t *testing.T) {
 			uri := repoPath
 
 			client := &Client{}
+			t.Cleanup(func() {
+				if err := client.Close(); err != nil {
+					t.Errorf("Close() failed: %v", err)
+				}
+			})
 			repo, err := localdir.MakeLocalDirRepo(uri)
 			if err != nil {
 				t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
 			}
 			err = client.InitRepo(repo, test.commitSHA, test.commitDepth)
 			if (test.expectedErr != "") != (err != nil) {
-				t.Errorf("Unexpected error during InitRepo: %v", err)
+				t.Fatalf("InitRepo() error = %v, want error containing %q", err, test.expectedErr)
+			}
+			if err != nil {
+				if !strings.Contains(err.Error(), test.expectedErr) {
+					t.Errorf("InitRepo() error = %v, want error containing %q", err, test.expectedErr)
+				}
+				return
+			}
+			if test.expectedSHA != "" {
+				head, err := client.gitRepo.Head()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if got := head.Hash().String(); got != test.expectedSHA {
+					t.Errorf("checked out commit = %q, want %q", got, test.expectedSHA)
+				}
 			}
 		})
 	}

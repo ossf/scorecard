@@ -40,9 +40,10 @@ import (
 const repoDir = "repo*"
 
 var (
-	errNilCommitFound = errors.New("nil commit found")
-	errEmptyQuery     = errors.New("query is empty")
-	errDefaultBranch  = errors.New("default branch name could not be determined")
+	errNilCommitFound   = errors.New("nil commit found")
+	errEmptyQuery       = errors.New("query is empty")
+	errDefaultBranch    = errors.New("default branch name could not be determined")
+	errInvalidCommitSHA = errors.New("invalid commit SHA")
 
 	// ensure Client implements clients.RepoClient.
 	_ clients.RepoClient = (*Client)(nil)
@@ -64,6 +65,10 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 	c.Close()
 	c.listCommits = new(sync.Once)
 	c.commits = nil
+
+	if commitSHA != clients.HeadSHA && (!plumbing.IsHash(commitSHA) || plumbing.NewHash(commitSHA).IsZero()) {
+		return fmt.Errorf("%w: %q", errInvalidCommitSHA, commitSHA)
+	}
 
 	// init
 	c.commitDepth = commitDepth
