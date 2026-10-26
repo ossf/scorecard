@@ -29,10 +29,10 @@ import (
 )
 
 // from checks.md
-//   - files must be at the top-level directory (hence the '^' in the regex).
+//   - files must be at the top-level directory or in .github/.
 //   - files must be of the name like COPY[ING|RIGHT] or LICEN[SC]E(plural)
 //     no preceding names or the like (again, hence the '^').
-//   - a folder is also acceptable as in COPYRIGHT/ or LICENSES/.
+//   - a folder is also acceptable as in COPYRIGHT/ or LICENSES/, including under .github/.
 //
 // TODO: although the contents of the folder are totally ignored at this time.
 // TODO: file or folder the contents are not (yet) examined.
@@ -44,7 +44,7 @@ var reLicenseFile = regexp.MustCompile(
 	// LICENSEs
 	// where
 	//   the detected file:
-	//   - must be at the top-level directory
+	//   - must be at the top-level directory or in .github/
 	//   - may be preceded or suffixed by a SPDX Identifier
 	//   - may be preceded or suffixed by a pre- or -suf separator
 	//   - may have a file extension denoted by a leading dot/period
@@ -64,7 +64,7 @@ var reLicenseFile = regexp.MustCompile(
 	//      that cannot be cleanly (or regularly) discerned by regex,
 	//      that is why this is a generalized regex pattern.
 	`(?i)` + // case insensitive
-		`^(?P<lp>` + // must be at the top level (i.e., no leading dot/period or path separator)
+		`^(?P<lp>(\.github/)?` + // allow only the repository root or .github/ as the parent directory
 		// (opt) preceded SPDX ID (e.g., 'GPL-2.0' as in GPL-2.0-LICENCE)
 		`(?P<preSpdx>([0-9A-Za-z]+)((([-_.])[[:digit:]]{1,2}[A-Za-z]{0,1}){0,5})(?P<preSpdxExt>(([_-])?[0-9A-Za-z.])*))?` +
 		// (opt) separator before the detected file (e.g., '-' as in GPL-2.0-LICENCE)
