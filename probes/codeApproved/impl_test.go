@@ -329,6 +329,28 @@ func TestProbeCodeApproved(t *testing.T) {
 			},
 		},
 		{
+			name: "prow: label with no pull request author stays approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
 			name: "prow: self-merged changeset is not approved",
 			rawResults: &checker.RawResults{
 				CodeReviewResults: checker.CodeReviewData{
