@@ -243,6 +243,14 @@ func TestListCheckRunsBuildEvidence(t *testing.T) {
 			parents: []string{target, source}, want: true,
 		},
 		{
+			name: "tested merge matches completed merge", branch: "refs/pull/7/merge",
+			version: "dddddddddddddddddddddddddddddddddddddddd", want: true,
+		},
+		{
+			name: "tested commit is not a merge", branch: "refs/pull/7/merge", version: tested,
+			parents: []string{source},
+		},
+		{
 			name: "stale merge target", branch: "refs/pull/7/merge", version: tested,
 			parents: []string{source, "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
 		},
