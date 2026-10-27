@@ -28,7 +28,7 @@ import (
 // published with GitHub's immutable-release guarantee. This lets workflows
 // that reference an action via a tag (e.g. `owner/repo@vX.Y.Z`) be treated as
 // pinned when the referenced release is immutable, per GitHub's guidance:
-// https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases
+// See "Using immutable releases and tags to manage your action's releases" in the GitHub Actions docs.
 //
 // If the repository or tag doesn't exist, or the release is not immutable
 // (e.g. immutable releases aren't enabled, the ref isn't a release tag, or

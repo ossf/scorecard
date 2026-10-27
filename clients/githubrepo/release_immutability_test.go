@@ -39,8 +39,8 @@ type hostRoundTripper struct {
 }
 
 type hostResponse struct {
-	status int
 	body   string
+	status int
 }
 
 func (h *hostRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -299,7 +299,6 @@ func (a authInjector) RoundTrip(req *http.Request) (*http.Response, error) {
 	return a.next.RoundTrip(req)
 }
 
-//nolint:paralleltest // uses t.Setenv
 func TestIsReleaseImmutable_DotcomFallbackNeverSendsEnterpriseCredentials(t *testing.T) {
 	t.Setenv("GH_HOST", "ghes.example.com")
 
@@ -336,7 +335,6 @@ func TestIsReleaseImmutable_DotcomFallbackNeverSendsEnterpriseCredentials(t *tes
 	}
 }
 
-//nolint:paralleltest // uses t.Setenv
 func TestNewRepoClient_NoDotcomFallbackOnGithubCom(t *testing.T) {
 	t.Setenv("GH_HOST", "github.com")
 	rc, err := NewRepoClient(t.Context())

@@ -892,7 +892,7 @@ func isActionDependencyPinned(c *checker.CheckRequest, cache *immutableReleaseCa
 // `immutable: true` flag set. GitHub guarantees that the tag, and therefore
 // the code delivered to consumers, cannot change once such a release is
 // published, so referencing it is equivalent to pinning by full commit SHA.
-// https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases
+// See "Using immutable releases and tags to manage your action's releases" in the GitHub Actions docs.
 //
 // Successful lookups are memoized in cache by (owner, repo, tag), since the
 // same release is frequently referenced from many workflow files in a scan.

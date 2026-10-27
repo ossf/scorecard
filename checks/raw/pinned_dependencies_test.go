@@ -206,10 +206,10 @@ func TestGithubWorkflowPinningPattern(t *testing.T) {
 func TestIsActionDependencyPinnedByImmutableRelease(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
+		immutableErr    error
 		desc            string
 		uses            string
 		immutable       bool
-		immutableErr    error
 		expectQueryCall bool
 		ispinned        bool
 	}{
@@ -324,6 +324,10 @@ func TestIsActionPinnedByImmutableReleaseEdgeCases(t *testing.T) {
 			t.Error("expected pinned")
 		}
 	})
+}
+
+func TestIsActionPinnedByImmutableReleaseCaching(t *testing.T) {
+	t.Parallel()
 
 	t.Run("nil cache still works and does not cache", func(t *testing.T) {
 		t.Parallel()
