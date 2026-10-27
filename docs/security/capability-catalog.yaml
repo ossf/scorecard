@@ -19,9 +19,9 @@ metadata:
   version: "1.0.0"
   description: |
     Capabilities of the Scorecard scan engine and CLI: the scorecard binary,
-    its container image, the pkg/scorecard Go API, `scorecard serve`, and
-    scorecard-attestor. The release pipeline and the hosted services in
-    other repositories are out of scope. See ARCHITECTURE.md for the actors
+    its container image, the pkg/scorecard Go API, and `scorecard serve`.
+    The release pipeline and the hosted services in other repositories are
+    out of scope. See ARCHITECTURE.md for the actors
     and the scan pipeline. Each capability's "Specs" line names the
     OpenSpec specs in openspec/specs/ that define its behavior.
   author:
@@ -147,13 +147,4 @@ capabilities:
       Accepts a scan request from CLI flags and environment variables or from
       Go API options, and selects which checks or probes to run.
       Specs: cli, public-go-api, check-registry.
-    group: access
-  - id: OSSF.SCORECARD.ENGINE.CAP11
-    title: Image Attestation
-    description: |
-      `scorecard-attestor` runs checks on the source repository and commit a
-      container image's pipeline names, evaluates the raw results against an
-      attestation policy, and when the policy passes, signs a Google Cloud
-      Binary Authorization attestation with a Cloud KMS, PGP, or PKIX key.
-      Specs: attestor.
     group: access
