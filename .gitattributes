@@ -1,0 +1,3 @@
+# Keep LF line endings on every platform so Windows checkouts (core.autocrlf=true) don't rewrite files;
+# test fixtures are compared byte-for-byte.
+* text=auto eol=lf

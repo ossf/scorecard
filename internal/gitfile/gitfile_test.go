@@ -52,9 +52,8 @@ func TestHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	t.Cleanup(func() { r.Close() })
-
 	contents, err := io.ReadAll(r)
+	r.Close()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
