@@ -24,13 +24,12 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 const CheckSAST = "SAST"
@@ -214,14 +213,14 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 			"searchGitHubActionWorkflowUseRegex expects arg[1] of type string: %w", errInvalid)
 	}
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		return false, fileparser.FormatActionlintError(errs)
 	}
 
 	for _, job := range workflow.Jobs {
 		for _, step := range job.Steps {
-			e, ok := step.Exec.(*actionlint.ExecAction)
+			e, ok := step.Exec.(*ghworkflow.ExecAction)
 			if !ok || e == nil || e.Uses == nil {
 				continue
 			}

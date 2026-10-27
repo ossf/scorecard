@@ -36,7 +36,7 @@ jobs:
       COSIGN_EXPERIMENTAL: "true"
     steps:
      - name: Harden Runner
-       uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+       uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
 
@@ -49,6 +49,7 @@ jobs:
        with:
          go-version: ${{ env.GO_VERSION }}
          check-latest: true
+         cache: false # build images from a clean cache
      - name: install ko
        uses: ko-build/setup-ko@61b4d1d396f5b2e7d6bb6fefdce3dc38d1a13445 # v0.10
      - name: publishimage
