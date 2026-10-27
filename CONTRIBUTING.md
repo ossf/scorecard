@@ -16,6 +16,7 @@ project. This document describes the contribution guidelines for the project.
 <!-- vim-markdown-toc GFM -->
 
 * [Reporting bugs](#reporting-bugs)
+* [Escalating to the CRA steward](#escalating-to-the-cra-steward)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -47,6 +48,20 @@ the steps to reproduce, and what you expected to happen.
 
 Don't report security vulnerabilities in public issues. Follow
 [SECURITY.md](SECURITY.md) instead.
+
+## Escalating to the CRA steward
+
+Scorecard is supported under the Linux Foundation CRA stewardship framework
+(see [SECURITY.md](SECURITY.md)). Maintainers escalate two kinds of event to
+the LF steward at <steward@linuxfoundation.org>:
+
+* **Actively exploited vulnerabilities:** a vulnerability where the project
+  has reliable evidence that a malicious actor has exploited it.
+* **Severe incidents:** a security compromise of the project's own IT
+  infrastructure.
+
+Ordinary vulnerabilities with no evidence of exploitation aren't escalation
+events. Remediation never waits on the escalation decision.
 
 ## Contributing code
 

@@ -6,6 +6,13 @@ OpenSSF Scorecard project.
 This policy adheres to the [vulnerability management guidance](https://www.linuxfoundation.org/security)
 for Linux Foundation projects.
 
+CRA stewardship: This project is supported under the Linux Foundation CRA
+stewardship framework, as described at https://www.linuxfoundation.org/security.
+Security vulnerabilities should be reported through the mechanisms described
+below, which we will coordinate with our CRA steward. For actively exploited
+vulnerabilities and severe incidents that may require CRA escalation, please
+use the project's emergency security reporting mechanisms as appropriate.
+
 - [Disclosing a security issue](#disclosing-a-security-issue)
 - [Vulnerability management](#vulnerability-management)
 - [Privileged workflows](#privileged-workflows)
