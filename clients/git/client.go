@@ -34,6 +34,7 @@ import (
 	cp "github.com/otiai10/copy"
 
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/internal/gitfile"
 )
 
 const repoDir = "repo*"
@@ -219,8 +220,17 @@ func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, erro
 		return nil, fmt.Errorf("git.Commit.Tree: %w", err)
 	}
 
+	root, err := os.OpenRoot(c.tempDir)
+	if err != nil {
+		return nil, fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
+
 	var files []string
 	err = tree.Files().ForEach(func(f *object.File) error {
+		if !gitfile.ShouldList(root, f) {
+			return nil
+		}
 		shouldInclude, err := predicate(f.Name)
 		if err != nil {
 			return fmt.Errorf("error applying predicate to file %s: %w", f.Name, err)
