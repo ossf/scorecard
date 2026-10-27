@@ -85,6 +85,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false # don't save caches that other workflows restore
       - name: compare results
         env:
           BASE_SHA: ${{ steps.config.outputs.base }}

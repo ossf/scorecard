@@ -16,6 +16,7 @@ project. This document describes the contribution guidelines for the project.
 <!-- vim-markdown-toc GFM -->
 
 * [Reporting bugs](#reporting-bugs)
+* [Escalating to the CRA steward](#escalating-to-the-cra-steward)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -47,6 +48,12 @@ the steps to reproduce, and what you expected to happen.
 
 Don't report security vulnerabilities in public issues. Follow
 [SECURITY.md](SECURITY.md) instead.
+
+## Escalating to the CRA steward
+
+Maintainers escalate actively exploited vulnerabilities and severe incidents
+to the LF steward at <steward@linuxfoundation.org>, as
+[SECURITY.md](SECURITY.md#escalating-to-the-cra-steward) describes.
 
 ## Contributing code
 
