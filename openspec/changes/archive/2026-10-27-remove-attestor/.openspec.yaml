@@ -1,4 +1,4 @@
-# Copyright 2022 OpenSSF Scorecard Authors
+# Copyright 2026 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,16 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.27.2@sha256:5bc7f572bbaa98885a3a1fd9c0aa76b59e3e14e8628bfc316bbfd0c701e4818c AS base
-WORKDIR /src/scorecard
-COPY . ./
-
-FROM base AS build
-ARG TARGETOS
-ARG TARGETARCH
-RUN make build-attestor
-
-FROM gcr.io/google-appengine/debian11@sha256:97dc4fbf18419ef928bcddb865ccf0536d4cc39ae3ace5a2b4273c11aedbea82
-COPY --from=build /src/scorecard/attestor /
-ENTRYPOINT [ "/scorecard-attestor" ]
-
+schema: spec-driven
+created: 2026-10-27
+retire_capabilities: true
