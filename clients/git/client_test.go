@@ -15,8 +15,10 @@
 package git
 
 import (
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -229,5 +231,90 @@ func TestSearch(t *testing.T) {
 				t.Errorf("Search() returned diff (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestFileAccessSymlinks(t *testing.T) {
+	t.Parallel()
+	const errEscapes = "path escapes from parent"
+
+	secret := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(secret, []byte("host secret"), 0o600); err != nil {
+		t.Fatalf("Failed to write a file: %v", err)
+	}
+	// A run of "../" longer than any temp path reaches the filesystem root.
+	relSecret := strings.Repeat("../", 64) + strings.TrimPrefix(filepath.ToSlash(secret), "/")
+
+	dir := createTestRepo(t)
+	r, err := gitV5.PlainOpen(dir)
+	if err != nil {
+		t.Fatalf("Failed to open git repo: %v", err)
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatalf("Failed to get worktree: %v", err)
+	}
+	links := map[string]string{
+		"in-repo":         "file",
+		"escape-absolute": secret,
+		"escape-relative": relSecret,
+		"dangling":        "missing",
+	}
+	for name, target := range links {
+		if err := os.Symlink(target, filepath.Join(dir, name)); err != nil {
+			t.Fatalf("Failed to create symlink: %v", err)
+		}
+		if _, err := w.Add(name); err != nil {
+			t.Fatalf("Failed to add a file to staging area: %v", err)
+		}
+	}
+	_, err = w.Commit("Add symlinks", &gitV5.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test Author",
+			Email: "author@example.com",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to commit: %v", err)
+	}
+
+	repo, err := localdir.MakeLocalDirRepo(dir)
+	if err != nil {
+		t.Fatalf("MakeLocalDirRepo(%s) failed: %v", dir, err)
+	}
+	client := &Client{}
+	if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
+		t.Fatalf("InitRepo: %v", err)
+	}
+	t.Cleanup(func() { client.Close() })
+
+	files, err := client.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		t.Fatalf("ListFiles: %v", err)
+	}
+	if d := cmp.Diff([]string{"file", "in-repo"}, files, cmpopts.SortSlices(func(a, b string) bool { return a < b })); d != "" {
+		t.Errorf("ListFiles: -want,+got: %s", d)
+	}
+
+	rc, err := client.GetFileReader("in-repo")
+	if err != nil {
+		t.Fatalf("GetFileReader(in-repo): %v", err)
+	}
+	t.Cleanup(func() { rc.Close() })
+	contents, err := io.ReadAll(rc)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if got := string(contents); got != "Hello, World!" {
+		t.Errorf("GetFileReader(in-repo) = %q, want %q", got, "Hello, World!")
+	}
+
+	// Escaping names aren't listed, and reading one is still refused.
+	for _, name := range []string{"escape-absolute", "escape-relative", "../file"} {
+		_, err := client.GetFileReader(name)
+		if err == nil || !strings.Contains(err.Error(), errEscapes) {
+			t.Errorf("GetFileReader(%s): got %v, want error containing %q", name, err, errEscapes)
+		}
 	}
 }
