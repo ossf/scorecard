@@ -189,7 +189,7 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 		return []clients.Commit{}, nil
 	}
 
-	before := commitsRaw[0].CommittedDate
+	before := latestCommittedDate(commitsRaw)
 	// Get merge request details from GraphQL
 	// GitLab REST API doesn't provide a way to link Merge Requests and Commits that
 	// are within them without making a REST call for each commit (~30 by default)
@@ -202,6 +202,17 @@ func (client *Client) ListCommits() ([]clients.Commit, error) {
 	}
 
 	return client.commits.zip(commitsRaw, mrDetails), nil
+}
+
+func latestCommittedDate(commits []*gitlab.Commit) *time.Time {
+	var latest *time.Time
+	for _, commit := range commits {
+		if commit.CommittedDate != nil && (latest == nil || commit.CommittedDate.After(*latest)) {
+			latest = commit.CommittedDate
+		}
+	}
+
+	return latest
 }
 
 func (client *Client) ListIssues() ([]clients.Issue, error) {
