@@ -60,13 +60,21 @@ type Client struct {
 }
 
 func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
+	if err := clients.ValidateCommitSHA(commitSHA); err != nil {
+		return fmt.Errorf("clients.ValidateCommitSHA: %w", err)
+	}
+
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)
 	c.commits = nil
 
 	// init
+	if commitDepth <= 0 {
+		commitDepth = 30 // default
+	}
 	c.commitDepth = commitDepth
+	c.repo = repo
 	tempDir, err := os.MkdirTemp("", repoDir)
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
@@ -109,7 +117,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			Hash:  plumbing.NewHash(commitSHA),
 			Force: true, // throw away any unsaved changes.
 		}); err != nil {
-			return fmt.Errorf("git.Worktree: %w", err)
+			return fmt.Errorf("git.Worktree.Checkout: %w", err)
 		}
 	}
 
