@@ -116,32 +116,6 @@ func Test_SAST(t *testing.T) {
 			},
 		},
 		{
-			name: "Successful SAST checker should return success status for lgtm",
-			commits: []clients.Commit{
-				{
-					AssociatedMergeRequest: clients.PullRequest{
-						MergedAt: time.Now().Add(time.Hour - 1),
-					},
-				},
-			},
-			searchresult: clients.SearchResponse{},
-			checkRuns: []clients.CheckRun{
-				{
-					Status:     "completed",
-					Conclusion: "success",
-					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
-					},
-				},
-			},
-			path: "",
-			expected: scut.TestReturn{
-				Score:         checker.MaxResultScore,
-				NumberOfInfo:  1,
-				NumberOfDebug: 1,
-			},
-		},
-		{
 			name: "Successful SAST checker should return success status for sonarcloud",
 			commits: []clients.Commit{
 				{
@@ -200,14 +174,14 @@ func Test_SAST(t *testing.T) {
 					Status:     "completed",
 					Conclusion: "success",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 				{
 					Status:     "completed",
 					Conclusion: "success",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 			},
@@ -235,14 +209,14 @@ func Test_SAST(t *testing.T) {
 					Status:     "completed",
 					Conclusion: "wrongConclusionValue",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 				{
 					Status:     "completed",
 					Conclusion: "success",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 			},
@@ -275,14 +249,14 @@ func Test_SAST(t *testing.T) {
 					Status:     "notCompletedForTestingOnly",
 					Conclusion: "notSuccessForTestingOnly",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 				{
 					Status:     "notCompletedForTestingOnly",
 					Conclusion: "notSuccessForTestingOnly",
 					App: clients.CheckRunApp{
-						Slug: "lgtm-com",
+						Slug: "github-code-scanning",
 					},
 				},
 			},

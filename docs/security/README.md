@@ -15,8 +15,8 @@ Core instead of redefining them.
 ## Scope
 
 The catalogs cover the software this repository releases: the `scorecard`
-CLI and container image, the `pkg/scorecard` Go API, `scorecard serve`, and
-`scorecard-attestor`. The release pipeline and the hosted services in other
+CLI and container image, the `pkg/scorecard` Go API, and `scorecard serve`.
+The release pipeline and the hosted services in other
 repositories are out of scope. [ARCHITECTURE.md](../../ARCHITECTURE.md)
 describes the actors and the scan pipeline.
 

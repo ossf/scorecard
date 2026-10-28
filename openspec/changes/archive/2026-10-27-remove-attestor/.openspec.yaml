@@ -1,4 +1,4 @@
-# Copyright 2023 OpenSSF Scorecard Authors
+# Copyright 2026 OpenSSF Scorecard Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-steps:
-- id: 'Get Git history'
-  name: 'gcr.io/cloud-builders/git'
-  args: ['fetch', '--unshallow', '--tags', 'origin', '$COMMIT_SHA']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '.',
-    '-t', 'gcr.io/openssf/scorecard-attestor:latest',
-    '-t', 'gcr.io/openssf/scorecard-attestor:$COMMIT_SHA',
-    '-f', 'attestor/Dockerfile']
-images: ['gcr.io/openssf/scorecard-attestor']
+schema: spec-driven
+created: 2026-10-27
+retire_capabilities: true
