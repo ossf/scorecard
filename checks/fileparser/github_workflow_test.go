@@ -956,6 +956,26 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "docker bake action publish with push: true",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-bake-action.yaml",
+			expected: true,
+		},
+		{
+			name:     "docker bake action publish with quoted push: \"true\"",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-bake-action-quoted.yaml",
+			expected: true,
+		},
+		{
+			name:     "docker bake action build with push: false",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-bake-action-false.yaml",
+			expected: false,
+		},
+		{
+			name:     "docker bake action build with absent push",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-bake-action-nopush.yaml",
+			expected: false,
+		},
+		{
 			name:     "docker push publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-docker-push.yaml",
 			expected: true,
