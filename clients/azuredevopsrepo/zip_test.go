@@ -116,6 +116,108 @@ func (zeroReader) Read(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// writeZip writes a zip holding one file to dir and returns its path.
+func writeZip(t *testing.T, dir, name, content string) string {
+	t.Helper()
+	f, err := os.CreateTemp(dir, repoFilename)
+	if err != nil {
+		t.Fatalf("creating zip: %v", err)
+	}
+	defer f.Close()
+	zw := zip.NewWriter(f)
+	w, err := zw.Create(name)
+	if err != nil {
+		t.Fatalf("zip.Create: %v", err)
+	}
+	if _, err := io.WriteString(w, content); err != nil {
+		t.Fatalf("writing zip entry: %v", err)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatalf("zip.Close: %v", err)
+	}
+	return f.Name()
+}
+
+func TestExtractZip_outsideTempDir(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		wantErr error
+		name    string
+		entry   string
+		symlink bool
+	}{
+		{
+			name:    "entry with parent directory",
+			entry:   "../outside/file",
+			wantErr: errInvalidFilePath,
+		},
+		{
+			name:    "entry under a symlink to outside",
+			entry:   "link/file",
+			symlink: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			parent := t.TempDir()
+			tempDir := filepath.Join(parent, "temp")
+			outside := filepath.Join(parent, "outside")
+			for _, dir := range []string{tempDir, outside} {
+				if err := os.Mkdir(dir, 0o755); err != nil {
+					t.Fatalf("creating dir: %v", err)
+				}
+			}
+			if tt.symlink {
+				if err := os.Symlink(filepath.Join("..", "outside"), filepath.Join(tempDir, "link")); err != nil {
+					t.Skipf("creating symlink: %v", err)
+				}
+			}
+			handler := zipHandler{
+				tempDir:     tempDir,
+				tempZipFile: writeZip(t, parent, tt.entry, "content"),
+			}
+
+			err := handler.extractZip()
+			if err == nil {
+				t.Error("extractZip() succeeded, want an error")
+			} else if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("extractZip() error = %v, want %v", err, tt.wantErr)
+			}
+			if _, err := os.Stat(filepath.Join(outside, "file")); !errors.Is(err, os.ErrNotExist) {
+				t.Errorf("file written outside the temp dir: %v", err)
+			}
+		})
+	}
+}
+
+func TestGetFile_outsideTempDir(t *testing.T) {
+	t.Parallel()
+	parent := t.TempDir()
+	tempDir := filepath.Join(parent, "temp")
+	if err := os.Mkdir(tempDir, 0o755); err != nil {
+		t.Fatalf("creating dir: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(parent, "outside"), []byte("outside"), 0o600); err != nil {
+		t.Fatalf("writing file: %v", err)
+	}
+	names := []string{"../outside"}
+	if err := os.Symlink(filepath.Join("..", "outside"), filepath.Join(tempDir, "link")); err != nil {
+		t.Logf("skipping symlink case: %v", err)
+	} else {
+		names = append(names, "link")
+	}
+	handler := zipHandler{tempDir: tempDir, once: new(sync.Once)}
+	handler.once.Do(func() {}) // skip setup()
+
+	for _, name := range names {
+		if f, err := handler.getFile(name); err == nil {
+			f.Close()
+			t.Errorf("getFile(%q) opened a file outside the temp dir", name)
+		}
+	}
+}
+
 //nolint:gocognit
 func TestExtractZip(t *testing.T) {
 	t.Parallel()

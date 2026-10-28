@@ -147,7 +147,9 @@ threats:
       A crafted archive could use relative paths or links to write files
       outside the temporary directory during extraction. Extraction rejects
       entries whose cleaned path leaves the destination and skips symbolic
-      links.
+      links. Extraction creates entries, and GetFileReader opens them,
+      through an os.Root opened on the temporary directory, so a path that
+      resolves outside it fails, even through a symbolic link.
     group: elevation-of-privilege
     capabilities:
       - reference-id: OSSF.SCORECARD.ENGINE.CAPS
