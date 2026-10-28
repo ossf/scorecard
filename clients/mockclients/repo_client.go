@@ -191,6 +191,21 @@ func (mr *MockRepoClientMockRecorder) IsArchived() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArchived", reflect.TypeOf((*MockRepoClient)(nil).IsArchived))
 }
 
+// IsPrivateVulnerabilityReportingEnabled mocks base method.
+func (m *MockRepoClient) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsPrivateVulnerabilityReportingEnabled")
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsPrivateVulnerabilityReportingEnabled indicates an expected call of IsPrivateVulnerabilityReportingEnabled.
+func (mr *MockRepoClientMockRecorder) IsPrivateVulnerabilityReportingEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPrivateVulnerabilityReportingEnabled", reflect.TypeOf((*MockRepoClient)(nil).IsPrivateVulnerabilityReportingEnabled))
+}
+
 // ListCheckRunsForRef mocks base method.
 func (m *MockRepoClient) ListCheckRunsForRef(ref string) ([]clients.CheckRun, error) {
 	m.ctrl.T.Helper()

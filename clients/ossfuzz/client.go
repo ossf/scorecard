@@ -172,6 +172,11 @@ func (c *client) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
 }
 
+// IsPrivateVulnerabilityReportingEnabled implements RepoClient.IsPrivateVulnerabilityReportingEnabled.
+func (c *client) IsPrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("IsPrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 // LocalPath implements RepoClient.LocalPath.
 func (c *client) LocalPath() (string, error) {
 	return "", fmt.Errorf("LocalPath: %w", clients.ErrUnsupportedFeature)

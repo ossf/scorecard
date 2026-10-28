@@ -79,5 +79,6 @@ type RepoClient interface {
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)
+	IsPrivateVulnerabilityReportingEnabled() (bool, error)
 	Close() error
 }
