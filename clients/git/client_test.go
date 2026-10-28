@@ -194,6 +194,33 @@ func TestInitRepoInvalidSHAKeepsState(t *testing.T) {
 	}
 }
 
+func TestInitRepoSetsRepoAndDefaultDepth(t *testing.T) {
+	t.Parallel()
+	repo, err := localdir.MakeLocalDirRepo(createTestRepo(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, depth := range []int{0, -1} {
+		client := &Client{}
+		if err := client.InitRepo(repo, clients.HeadSHA, depth); err != nil {
+			t.Fatalf("InitRepo(depth %d) unexpected error: %v", depth, err)
+		}
+		if got, want := client.URI(), repo.URI(); got != want {
+			t.Errorf("URI() = %q, want %q", got, want)
+		}
+		commits, err := client.ListCommits()
+		if err != nil {
+			t.Errorf("ListCommits(depth %d) unexpected error: %v", depth, err)
+		}
+		if len(commits) != 1 {
+			t.Errorf("ListCommits(depth %d) returned %d commits, want 1", depth, len(commits))
+		}
+		if err := client.Close(); err != nil {
+			t.Errorf("Close() failed: %v", err)
+		}
+	}
+}
+
 func TestListCommits(t *testing.T) {
 	t.Parallel()
 	repoPath := createTestRepo(t)

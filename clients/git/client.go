@@ -70,7 +70,11 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 	c.commits = nil
 
 	// init
+	if commitDepth <= 0 {
+		commitDepth = 30 // default
+	}
 	c.commitDepth = commitDepth
+	c.repo = repo
 	tempDir, err := os.MkdirTemp("", repoDir)
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
