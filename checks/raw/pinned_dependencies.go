@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"path/filepath"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
@@ -323,7 +323,7 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 }
 
 func fileIsInVendorDir(pathfn string) bool {
-	cleanedPath := filepath.Clean(pathfn)
+	cleanedPath := path.Clean(pathfn)
 	splitCleanedPath := strings.Split(cleanedPath, "/")
 
 	for _, d := range splitCleanedPath {

@@ -23,7 +23,6 @@ import (
 	"io"
 	"io/fs"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -85,9 +84,11 @@ func isDir(p string) (bool, error) {
 }
 
 func trimPrefix(pathfn, clientPath string) string {
-	cleanPath := path.Clean(pathfn)
-	prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
-	return strings.TrimPrefix(cleanPath, prefix)
+	rel, err := filepath.Rel(clientPath, pathfn)
+	if err != nil {
+		return filepath.ToSlash(filepath.Clean(pathfn))
+	}
+	return filepath.ToSlash(rel)
 }
 
 func listFiles(clientPath string, logger *log.Logger) ([]string, error) {
