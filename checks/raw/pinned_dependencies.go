@@ -16,6 +16,7 @@ package raw
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -43,6 +44,13 @@ type dotnetCsprojLockedData struct {
 type nugetPostProcessData struct {
 	CsprojConfigs []dotnetCsprojLockedData
 	CpmConfig     properties.CentralPackageManagementConfig
+}
+
+type npmManifest struct {
+	Dependencies         map[string]string `json:"dependencies"`
+	DevDependencies      map[string]string `json:"devDependencies"`
+	OptionalDependencies map[string]string `json:"optionalDependencies"`
+	Workspaces           json.RawMessage   `json:"workspaces"`
 }
 
 // PinningDependencies checks for (un)pinned dependencies.
@@ -79,7 +87,123 @@ func PinningDependencies(c *checker.CheckRequest) (checker.PinningDependenciesDa
 		return checker.PinningDependenciesData{}, err
 	}
 
+	if err := collectNpmLockfilePinning(c, &results); err != nil {
+		return checker.PinningDependenciesData{}, err
+	}
+
 	return results, nil
+}
+
+func collectNpmLockfilePinning(
+	c *checker.CheckRequest,
+	results *checker.PinningDependenciesData,
+) error {
+	shrinkwrapDirs := make(map[string]bool)
+	manifests := make(map[string][]byte)
+
+	if err := fileparser.OnMatchingFileContentDo(
+		c.RepoClient,
+		fileparser.PathMatcher{
+			Pattern:       "package.json",
+			CaseSensitive: true,
+		},
+		func(path string, content []byte, args ...interface{}) (bool, error) {
+			manifests[filepath.Dir(path)] = content
+			return true, nil
+		},
+	); err != nil {
+		return err
+	}
+
+	processLockfile := func(path string, content []byte, args ...interface{}) (bool, error) {
+		recordError := func(err error) {
+			line := uint(1)
+			snippet := path
+			results.ProcessingErrors = append(results.ProcessingErrors, checker.ElementError{
+				Err: err,
+				Location: finding.Location{
+					Path:      path,
+					LineStart: &line,
+					LineEnd:   &line,
+					Snippet:   &snippet,
+					Type:      finding.FileTypeSource,
+				},
+			})
+		}
+
+		verification, err := verifyNpmLockFile(content)
+		if err != nil {
+			recordError(err)
+			return true, nil // Error is recorded; continue with other lockfiles.
+		}
+
+		// Preserve hash results even if manifest comparison fails.
+		appendNpmLockfileDependencies(path, verification, results)
+
+		missing, err := missingNpmProjectDependencies(
+			content, filepath.Dir(path), manifests,
+		)
+
+		appendNpmLockfileDependencies(path, npmLockVerification{
+			Packages: missing,
+		}, results)
+
+		if err != nil {
+			recordError(err)
+			return true, nil // Error is recorded; hash results are preserved.
+		}
+
+		return true, nil
+	}
+
+	if err := fileparser.OnMatchingFileContentDo(
+		c.RepoClient,
+		fileparser.PathMatcher{
+			Pattern:       "npm-shrinkwrap.json",
+			CaseSensitive: true,
+		},
+		func(path string, content []byte, args ...interface{}) (bool, error) {
+			shrinkwrapDirs[filepath.Dir(path)] = true
+			return processLockfile(path, content)
+		},
+	); err != nil {
+		return err
+	}
+
+	return fileparser.OnMatchingFileContentDo(
+		c.RepoClient,
+		fileparser.PathMatcher{
+			Pattern:       "package-lock.json",
+			CaseSensitive: true,
+		},
+		func(path string, content []byte, args ...interface{}) (bool, error) {
+			if shrinkwrapDirs[filepath.Dir(path)] {
+				return true, nil
+			}
+			return processLockfile(path, content)
+		},
+	)
+}
+
+func appendNpmLockfileDependencies(
+	path string,
+	verification npmLockVerification,
+	results *checker.PinningDependenciesData,
+) {
+	for _, pkg := range verification.Packages {
+		results.Dependencies = append(results.Dependencies, checker.Dependency{
+			Name:   asPointer(pkg.Path),
+			Pinned: asBoolPointer(pkg.Pinned),
+			Type:   checker.DependencyUseTypeNpmLockfile,
+			Location: &checker.File{
+				Path:      path,
+				Type:      finding.FileTypeSource,
+				Offset:    1,
+				EndOffset: 1,
+				Snippet:   pkg.Path,
+			},
+		})
+	}
 }
 
 func postProcessNugetDependencies(c *checker.CheckRequest,
