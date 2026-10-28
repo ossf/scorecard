@@ -235,8 +235,9 @@ threats:
     description: |
       `scorecard serve` runs every request with the operator's credentials and
       has no authentication or rate limiting, because it is intended for
-      trusted networks. If it is reachable by untrusted clients, they can
-      spend the operator's API rate limit, and can read results for private
+      trusted networks. It listens on 127.0.0.1 unless the operator passes
+      `--listen`. If it is reachable by untrusted clients, they can spend the
+      operator's API rate limit, and can read results for private
       repositories the operator's token can access. `scorecard serve --help`
       states this trust model.
     group: information-disclosure
