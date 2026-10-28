@@ -40,10 +40,9 @@ import (
 const repoDir = "repo*"
 
 var (
-	errNilCommitFound   = errors.New("nil commit found")
-	errEmptyQuery       = errors.New("query is empty")
-	errDefaultBranch    = errors.New("default branch name could not be determined")
-	errInvalidCommitSHA = errors.New("invalid commit SHA")
+	errNilCommitFound = errors.New("nil commit found")
+	errEmptyQuery     = errors.New("query is empty")
+	errDefaultBranch  = errors.New("default branch name could not be determined")
 
 	// ensure Client implements clients.RepoClient.
 	_ clients.RepoClient = (*Client)(nil)
@@ -61,14 +60,14 @@ type Client struct {
 }
 
 func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
+	if err := clients.ValidateCommitSHA(commitSHA); err != nil {
+		return fmt.Errorf("clients.ValidateCommitSHA: %w", err)
+	}
+
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)
 	c.commits = nil
-
-	if commitSHA != clients.HeadSHA && (!plumbing.IsHash(commitSHA) || plumbing.NewHash(commitSHA).IsZero()) {
-		return fmt.Errorf("%w: %q", errInvalidCommitSHA, commitSHA)
-	}
 
 	// init
 	c.commitDepth = commitDepth
@@ -114,7 +113,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			Hash:  plumbing.NewHash(commitSHA),
 			Force: true, // throw away any unsaved changes.
 		}); err != nil {
-			return fmt.Errorf("git.Worktree: %w", err)
+			return fmt.Errorf("git.Worktree.Checkout: %w", err)
 		}
 	}
 

@@ -15,6 +15,8 @@
 package gitfile
 
 import (
+	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,6 +27,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func TestHandler(t *testing.T) {
@@ -72,6 +76,58 @@ func TestHandler(t *testing.T) {
 
 // errEscapes is the text os.Root uses when a name resolves outside the root.
 const errEscapes = "path escapes from parent"
+
+func TestHandlerCommitSHA(t *testing.T) {
+	t.Parallel()
+
+	dir := setupGitRepo(t)
+	r, err := git.PlainOpen(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	head, err := r.Head()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	headSHA := head.Hash().String()
+
+	tests := []struct {
+		wantErr   error
+		name      string
+		commitSHA string
+	}{
+		{name: "Head", commitSHA: clients.HeadSHA},
+		{name: "FullSHA", commitSHA: headSHA},
+		{name: "UppercaseSHA", commitSHA: strings.ToUpper(headSHA)},
+		{name: "Empty", commitSHA: "", wantErr: clients.ErrInvalidCommitSHA},
+		{name: "NonHex", commitSHA: strings.Repeat("z", 40), wantErr: clients.ErrInvalidCommitSHA},
+		{name: "Short", commitSHA: headSHA[:8], wantErr: clients.ErrInvalidCommitSHA},
+		{name: "InvalidSuffix", commitSHA: headSHA + "zz", wantErr: clients.ErrInvalidCommitSHA},
+		{name: "Zero", commitSHA: strings.Repeat("0", 40), wantErr: clients.ErrInvalidCommitSHA},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var h Handler
+			h.Init(context.Background(), dir, tt.commitSHA)
+			t.Cleanup(func() {
+				if err := h.Cleanup(); err != nil {
+					t.Errorf("Cleanup() failed: %v", err)
+				}
+			})
+			_, err := h.ListFiles(func(string) (bool, error) { return true, nil })
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("ListFiles() error = %v, want %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("ListFiles() unexpected error: %v", err)
+			}
+		})
+	}
+}
 
 func TestHandlerPathTraversal(t *testing.T) {
 	t.Parallel()

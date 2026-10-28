@@ -53,6 +53,11 @@ func (h *Handler) Init(ctx context.Context, cloneURL, commitSHA string) {
 
 func (h *Handler) setup() error {
 	h.once.Do(func() {
+		if err := clients.ValidateCommitSHA(h.commitSHA); err != nil {
+			h.errSetup = err
+			return
+		}
+
 		tempDir, err := os.MkdirTemp("", repoDir)
 		if err != nil {
 			h.errSetup = err

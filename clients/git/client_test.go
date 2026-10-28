@@ -15,6 +15,7 @@
 package git
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 	"time"
 
 	gitV5 "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -102,7 +104,7 @@ func TestInitRepo(t *testing.T) {
 	tests := []struct {
 		name        string
 		commitSHA   string
-		expectedErr string
+		expectedErr error
 		expectedSHA string
 		commitDepth int
 	}{
@@ -119,14 +121,14 @@ func TestInitRepo(t *testing.T) {
 		},
 		{name: "ExplicitCommit", commitSHA: validSHA, expectedSHA: validSHA, commitDepth: 1},
 		{name: "UppercaseCommit", commitSHA: strings.ToUpper(validSHA), expectedSHA: validSHA, commitDepth: 1},
-		{name: "EmptyCommit", commitSHA: "", expectedErr: "invalid commit SHA"},
-		{name: "NonHexCommit", commitSHA: strings.Repeat("z", 40), expectedErr: "invalid commit SHA"},
-		{name: "ShortCommit", commitSHA: validSHA[:8], expectedErr: "invalid commit SHA"},
-		{name: "OddLengthCommit", commitSHA: validSHA[:39], expectedErr: "invalid commit SHA"},
-		{name: "LongCommit", commitSHA: validSHA + "00", expectedErr: "invalid commit SHA"},
-		{name: "InvalidSuffix", commitSHA: validSHA + "zz", expectedErr: "invalid commit SHA"},
-		{name: "ZeroCommit", commitSHA: strings.Repeat("0", 40), expectedErr: "invalid commit SHA"},
-		{name: "UnknownCommit", commitSHA: strings.Repeat("1", 40), expectedErr: "object not found"},
+		{name: "EmptyCommit", commitSHA: "", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "NonHexCommit", commitSHA: strings.Repeat("z", 40), expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "ShortCommit", commitSHA: validSHA[:8], expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "OddLengthCommit", commitSHA: validSHA[:39], expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "LongCommit", commitSHA: validSHA + "00", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "InvalidSuffix", commitSHA: validSHA + "zz", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "ZeroCommit", commitSHA: strings.Repeat("0", 40), expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "UnknownCommit", commitSHA: strings.Repeat("1", 40), expectedErr: plumbing.ErrObjectNotFound},
 	}
 
 	for _, test := range tests {
@@ -145,25 +147,50 @@ func TestInitRepo(t *testing.T) {
 				t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
 			}
 			err = client.InitRepo(repo, test.commitSHA, test.commitDepth)
-			if (test.expectedErr != "") != (err != nil) {
-				t.Fatalf("InitRepo() error = %v, want error containing %q", err, test.expectedErr)
-			}
-			if err != nil {
-				if !strings.Contains(err.Error(), test.expectedErr) {
-					t.Errorf("InitRepo() error = %v, want error containing %q", err, test.expectedErr)
+			if test.expectedErr != nil {
+				if !errors.Is(err, test.expectedErr) {
+					t.Fatalf("InitRepo() error = %v, want %v", err, test.expectedErr)
 				}
 				return
 			}
+			if err != nil {
+				t.Fatalf("InitRepo() unexpected error: %v", err)
+			}
 			if test.expectedSHA != "" {
-				head, err := client.gitRepo.Head()
-				if err != nil {
-					t.Fatal(err)
-				}
-				if got := head.Hash().String(); got != test.expectedSHA {
-					t.Errorf("checked out commit = %q, want %q", got, test.expectedSHA)
-				}
+				assertHead(t, client, test.expectedSHA)
 			}
 		})
+	}
+}
+
+func assertHead(t *testing.T, client *Client, want string) {
+	t.Helper()
+	head, err := client.gitRepo.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := head.Hash().String(); got != want {
+		t.Errorf("checked out commit = %q, want %q", got, want)
+	}
+}
+
+func TestInitRepoInvalidSHAKeepsState(t *testing.T) {
+	t.Parallel()
+	repo, err := localdir.MakeLocalDirRepo(createTestRepo(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &Client{}
+	t.Cleanup(func() { client.Close() })
+	if err := client.InitRepo(repo, clients.HeadSHA, 1); err != nil {
+		t.Fatalf("InitRepo(HEAD) unexpected error: %v", err)
+	}
+	if err := client.InitRepo(repo, "bad", 1); !errors.Is(err, clients.ErrInvalidCommitSHA) {
+		t.Fatalf("InitRepo(bad) error = %v, want %v", err, clients.ErrInvalidCommitSHA)
+	}
+	// The rejected call must not tear down the existing clone.
+	if _, err := client.ListFiles(func(string) (bool, error) { return true, nil }); err != nil {
+		t.Errorf("ListFiles() after rejected InitRepo: %v", err)
 	}
 }
 
