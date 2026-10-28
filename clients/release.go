@@ -19,6 +19,7 @@ type Release struct {
 	TagName         string
 	URL             string
 	TargetCommitish string
+	Body            string
 	Assets          []ReleaseAsset
 }
 

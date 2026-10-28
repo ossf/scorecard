@@ -1,0 +1,41 @@
+# Copyright 2024 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: hasChangelogFile
+lifecycle: experimental
+short: Check that the project has a changelog file
+motivation: >
+  A changelog provides a human-readable log of notable changes for each release.
+  It shows project maturity and helps users understand what has changed between versions.
+  This aligns with OSPS-BR-04 which requires releases to provide a descriptive log of modifications.
+implementation: >
+  The implementation checks whether a changelog file (e.g. CHANGELOG.md, CHANGES, NEWS, HISTORY, RELEASE-NOTES)
+  is present at the top level of the repository.
+outcome:
+  - If a changelog file is found, the probe returns OutcomeTrue for each file.
+  - If no changelog file is found, the probe returns a single OutcomeFalse.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Add a CHANGELOG.md file to the root of your repository.
+    - "Follow the format recommended by [Keep a Changelog](https://keepachangelog.com/)."
+    - Ensure the changelog is updated with each release to document notable changes.
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - gitlab
+    - localdir
