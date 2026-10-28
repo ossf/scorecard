@@ -17,21 +17,17 @@ package gitfile
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/filemode"
 	"github.com/go-git/go-git/v5/plumbing/object"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
-
-var errPathTraversal = errors.New("requested file outside repo")
 
 const repoDir = "repo*"
 
@@ -92,7 +88,7 @@ func (h *Handler) setup() error {
 
 		// go-git is not thread-safe so list the files inside this sync.Once and save them
 		// https://github.com/go-git/go-git/issues/773
-		files, err := enumerateFiles(h.gitRepo)
+		files, err := enumerateFiles(h.gitRepo, h.tempDir)
 		if err != nil {
 			h.errSetup = err
 			return
@@ -127,7 +123,20 @@ func (h *Handler) ListFiles(predicate func(string) (bool, error)) ([]string, err
 	return files, nil
 }
 
-func enumerateFiles(repo *git.Repository) ([]string, error) {
+// ShouldList reports whether a tree entry belongs in a file listing. A
+// symlink is listed only when its target, resolved inside root, is a regular
+// file. Links that escape the checkout, dangle, or point at a directory are
+// left out, so no check fails on a file it can't read. Archive mode skips
+// every symlink.
+func ShouldList(root *os.Root, f *object.File) bool {
+	if f.Mode != filemode.Symlink {
+		return true
+	}
+	info, err := root.Stat(f.Name)
+	return err == nil && info.Mode().IsRegular()
+}
+
+func enumerateFiles(repo *git.Repository, rootDir string) ([]string, error) {
 	ref, err := repo.Head()
 	if err != nil {
 		return nil, fmt.Errorf("git.Head: %w", err)
@@ -143,9 +152,17 @@ func enumerateFiles(repo *git.Repository) ([]string, error) {
 		return nil, fmt.Errorf("git.Commit.Tree: %w", err)
 	}
 
+	root, err := os.OpenRoot(rootDir)
+	if err != nil {
+		return nil, fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
+
 	var files []string
 	err = tree.Files().ForEach(func(f *object.File) error {
-		files = append(files, f.Name)
+		if ShouldList(root, f) {
+			files = append(files, f.Name)
+		}
 		return nil
 	})
 	if err != nil {
@@ -160,13 +177,10 @@ func (h *Handler) GetFile(filename string) (*os.File, error) {
 		return nil, fmt.Errorf("setup: %w", err)
 	}
 
-	// check for path traversal
-	path := filepath.Join(h.tempDir, filename)
-	if !strings.HasPrefix(path, filepath.Clean(h.tempDir)+string(os.PathSeparator)) {
-		return nil, errPathTraversal
-	}
-
-	f, err := os.Open(path)
+	// Open the file within the checkout root. os.OpenInRoot keeps the read
+	// contained even when the requested name resolves through a symlink that
+	// the clone materialized on disk pointing outside the repo.
+	f, err := os.OpenInRoot(h.tempDir, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
