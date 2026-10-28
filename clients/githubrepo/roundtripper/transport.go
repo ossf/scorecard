@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.opencensus.io/tag"
-
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens"
 	githubstats "github.com/ossf/scorecard/v5/clients/githubrepo/stats"
 )
@@ -42,10 +40,7 @@ func (gt *githubTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	id, token := gt.tokens.Next()
 	defer gt.tokens.Release(id)
 
-	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.TokenIndex, fmt.Sprint(id)))
-	if err != nil {
-		return nil, fmt.Errorf("error updating context: %w", err)
-	}
+	ctx := githubstats.NewContext(r.Context(), githubstats.TokenIndex.String(fmt.Sprint(id)))
 	*r = *r.WithContext(ctx)
 
 	r.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))

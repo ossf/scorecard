@@ -12,54 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package stats defines opencensus monitoring stats exposed by Scorecard.
+// Package stats defines monitoring metrics and views exposed by Scorecard.
 package stats
 
 import (
-	"go.opencensus.io/stats/view"
-	"go.opencensus.io/tag"
+	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 )
 
-var (
-	// CheckRuntime tracks CPU runtime stats for checks.
-	CheckRuntime = view.View{
-		Name:        "CheckRuntime",
-		Description: "CPU runtime stats per check",
-		Measure:     CheckRuntimeInSec,
-		TagKeys:     []tag.Key{CheckName, RepoHost},
-		Aggregation: view.Distribution(
-			0,
-			1<<2,
-			1<<3,
-			1<<4,
-			1<<5,
-			1<<6,
-			1<<7,
-			1<<8,
-			1<<9,
-			1<<10,
-			1<<11,
-			1<<12,
-			1<<13,
-			1<<14,
-			1<<15),
-	}
+// CheckRuntimeView returns the recommended OpenTelemetry View for check runtime histogram buckets.
+func CheckRuntimeView() sdkmetric.View {
+	return sdkmetric.NewView(
+		sdkmetric.Instrument{Name: "scorecard.check.runtime"},
+		sdkmetric.Stream{
+			Aggregation: sdkmetric.AggregationExplicitBucketHistogram{
+				Boundaries: []float64{
+					0,
+					1 << 2,
+					1 << 3,
+					1 << 4,
+					1 << 5,
+					1 << 6,
+					1 << 7,
+					1 << 8,
+					1 << 9,
+					1 << 10,
+					1 << 11,
+					1 << 12,
+					1 << 13,
+					1 << 14,
+					1 << 15,
+				},
+			},
+		},
+	)
+}
 
-	// CheckErrorCount tracks error count stats for checks.
-	CheckErrorCount = view.View{
-		Name:        "CheckErrorCount",
-		Description: "Error count by type per check",
-		Measure:     CheckErrors,
-		TagKeys:     []tag.Key{CheckName, RepoHost, ErrorName},
-		Aggregation: view.Count(),
+// RecommendedViews returns all recommended OpenTelemetry SDK Views for Scorecard.
+func RecommendedViews() []sdkmetric.View {
+	return []sdkmetric.View{
+		CheckRuntimeView(),
 	}
-
-	// OutgoingHTTPRequests tracks HTTPRequests made.
-	OutgoingHTTPRequests = view.View{
-		Name:        "OutgoingHTTPRequests",
-		Description: "HTTPRequests made per check",
-		Measure:     HTTPRequests,
-		TagKeys:     []tag.Key{CheckName, RepoHost, RequestTag},
-		Aggregation: view.Count(),
-	}
-)
+}

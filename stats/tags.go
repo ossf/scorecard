@@ -14,15 +14,15 @@
 
 package stats
 
-import "go.opencensus.io/tag"
+import "go.opentelemetry.io/otel/attribute"
 
-var (
-	// CheckName is the tag key for the check name.
-	CheckName = tag.MustNewKey("checkName")
-	// ErrorName is the tag key for errors.
-	ErrorName = tag.MustNewKey("errorName")
-	// RequestTag is the tag key for the request type.
-	RequestTag = tag.MustNewKey("requestTag")
-	// RepoHost is the tag key for the host of the repository being scanned.
-	RepoHost = tag.MustNewKey("repoHost")
+const (
+	// CheckName is the attribute key for the check name.
+	CheckName = attribute.Key("checkName")
+	// ErrorName is the attribute key for errors.
+	ErrorName = attribute.Key("errorName")
+	// RequestTag is the attribute key for the request type.
+	RequestTag = attribute.Key("requestTag")
+	// RepoHost is the attribute key for the host of the repository being scanned.
+	RepoHost = attribute.Key("repoHost")
 )

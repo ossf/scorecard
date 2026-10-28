@@ -20,9 +20,6 @@ import (
 	"strconv"
 	"time"
 
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
-
 	githubstats "github.com/ossf/scorecard/v5/clients/githubrepo/stats"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/log"
@@ -51,7 +48,7 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 
 	retryValue := resp.Header.Get("Retry-After")
 	if retryAfter, err := strconv.Atoi(retryValue); err == nil { // if NO error
-		stats.Record(r.Context(), githubstats.RetryAfter.M(int64(retryAfter)))
+		githubstats.RecordRetryAfter(r.Context(), int64(retryAfter))
 		duration := time.Duration(retryAfter) * time.Second
 		gh.logger.Info(fmt.Sprintf("Retry-After header set. Waiting %s to retry...", duration))
 		time.Sleep(duration)
@@ -65,11 +62,8 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		//nolint:nilerr // just an error in metadata, response may still be useful?
 		return resp, nil
 	}
-	ctx, err := tag.New(r.Context(), tag.Upsert(githubstats.ResourceType, resp.Header.Get("X-RateLimit-Resource")))
-	if err != nil {
-		return nil, fmt.Errorf("error updating context: %w", err)
-	}
-	stats.Record(ctx, githubstats.RemainingTokens.M(int64(remaining)))
+	resourceType := resp.Header.Get("X-RateLimit-Resource")
+	githubstats.RecordRemainingTokens(r.Context(), int64(remaining), githubstats.ResourceType.String(resourceType))
 
 	if remaining <= 0 {
 		reset, err := strconv.Atoi(resp.Header.Get("X-RateLimit-Reset"))

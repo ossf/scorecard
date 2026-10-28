@@ -66,5 +66,5 @@ func NewTransport(ctx context.Context, logger *log.Logger) http.RoundTripper {
 		logger.Error(errGithubCredentials, "GitHub token env var is not set. Please read https://github.com/ossf/scorecard#authentication")
 	}
 
-	return MakeCensusTransport(MakeRateLimitedTransport(transport, logger))
+	return MakeOTelTransport(MakeRateLimitedTransport(transport, logger))
 }
