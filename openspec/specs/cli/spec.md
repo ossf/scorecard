@@ -17,7 +17,8 @@ the capability each flag names.
 The system SHALL provide a root `scorecard` command that runs a scan, a
 `serve` subcommand that starts the HTTP server, and a `version` subcommand
 that prints build information. The scan flags SHALL be accepted only by the
-root command; subcommands SHALL reject them as unknown flags.
+root command; subcommands SHALL reject them as unknown flags. `serve` SHALL
+accept `--listen`, whose behavior is defined in `http-server`.
 
 #### Scenario: Root command runs a scan
 
@@ -28,6 +29,11 @@ root command; subcommands SHALL reject them as unknown flags.
 
 - **WHEN** a user runs `scorecard serve --verbosity=debug`
 - **THEN** the system fails with `unknown flag: --verbosity`
+
+#### Scenario: Serve accepts listen
+
+- **WHEN** a user runs `scorecard serve --listen 0.0.0.0`
+- **THEN** the system starts the HTTP server on all interfaces
 
 ### Requirement: Exactly One Input Source
 

@@ -34,6 +34,7 @@ import (
 	cp "github.com/otiai10/copy"
 
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/internal/gitfile"
 )
 
 const repoDir = "repo*"
@@ -59,13 +60,21 @@ type Client struct {
 }
 
 func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) error {
+	if err := clients.ValidateCommitSHA(commitSHA); err != nil {
+		return fmt.Errorf("clients.ValidateCommitSHA: %w", err)
+	}
+
 	// cleanup previous state, if any.
 	c.Close()
 	c.listCommits = new(sync.Once)
 	c.commits = nil
 
 	// init
+	if commitDepth <= 0 {
+		commitDepth = 30 // default
+	}
 	c.commitDepth = commitDepth
+	c.repo = repo
 	tempDir, err := os.MkdirTemp("", repoDir)
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
@@ -108,7 +117,7 @@ func (c *Client) InitRepo(repo clients.Repo, commitSHA string, commitDepth int) 
 			Hash:  plumbing.NewHash(commitSHA),
 			Force: true, // throw away any unsaved changes.
 		}); err != nil {
-			return fmt.Errorf("git.Worktree: %w", err)
+			return fmt.Errorf("git.Worktree.Checkout: %w", err)
 		}
 	}
 
@@ -219,8 +228,17 @@ func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, erro
 		return nil, fmt.Errorf("git.Commit.Tree: %w", err)
 	}
 
+	root, err := os.OpenRoot(c.tempDir)
+	if err != nil {
+		return nil, fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
+
 	var files []string
 	err = tree.Files().ForEach(func(f *object.File) error {
+		if !gitfile.ShouldList(root, f) {
+			return nil
+		}
 		shouldInclude, err := predicate(f.Name)
 		if err != nil {
 			return fmt.Errorf("error applying predicate to file %s: %w", f.Name, err)
@@ -239,13 +257,12 @@ func (c *Client) ListFiles(predicate func(string) (bool, error)) ([]string, erro
 }
 
 func (c *Client) GetFileReader(filename string) (io.ReadCloser, error) {
-	// Create the full path of the file
-	fullPath := filepath.Join(c.tempDir, filename)
-
-	// Read the file
-	f, err := os.Open(fullPath)
+	// Read the file while staying inside the checkout root. os.OpenInRoot
+	// refuses names that escape via "../" or a symlink materialized by the
+	// clone that points outside the worktree.
+	f, err := os.OpenInRoot(c.tempDir, filename)
 	if err != nil {
-		return nil, fmt.Errorf("os.Open: %w", err)
+		return nil, fmt.Errorf("os.OpenInRoot: %w", err)
 	}
 
 	return f, nil

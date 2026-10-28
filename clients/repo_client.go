@@ -17,16 +17,38 @@ package clients
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
+	"strings"
 	"time"
 )
 
 // ErrUnsupportedFeature indicates an API that is not supported by the client.
 var ErrUnsupportedFeature = errors.New("unsupported feature")
 
+// ErrInvalidCommitSHA indicates a commitSHA that is neither HeadSHA nor a
+// full, non-zero commit hash.
+var ErrInvalidCommitSHA = errors.New("invalid commit SHA")
+
 // HeadSHA is default commitSHA value used to denote git HEAD.
 const HeadSHA = "HEAD"
+
+// ValidateCommitSHA returns an error wrapping ErrInvalidCommitSHA unless
+// commitSHA is HeadSHA or a full, non-zero SHA-1 hash. Clients that resolve
+// the commit locally need this, since go-git silently maps malformed input to
+// a different hash.
+func ValidateCommitSHA(commitSHA string) error {
+	if commitSHA == HeadSHA {
+		return nil
+	}
+	b, err := hex.DecodeString(commitSHA)
+	if err != nil || len(b) != 20 || strings.Trim(commitSHA, "0") == "" {
+		return fmt.Errorf("%w: %q", ErrInvalidCommitSHA, commitSHA)
+	}
+	return nil
+}
 
 // RepoClient interface is used by Scorecard checks to access a repo.
 type RepoClient interface {
