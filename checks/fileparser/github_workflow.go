@@ -611,6 +611,26 @@ func IsPackagingWorkflow(workflow *ghworkflow.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate publishing workflow using elixir",
 		},
+		{
+			// RubyGems trusted publishing.
+			// https://guides.rubygems.org/trusted-publishing/
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "rubygems/release-gem",
+				},
+			},
+			LogText: "candidate ruby publishing workflow using release-gem",
+		},
+		{
+			// pub.dev automated publishing.
+			// https://dart.dev/tools/pub/automated-publishing
+			Steps: []*JobMatcherStep{
+				{
+					Run: "(dart|flutter).*pub.*publish",
+				},
+			},
+			LogText: "candidate dart publishing workflow",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
