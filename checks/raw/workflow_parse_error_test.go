@@ -48,7 +48,11 @@ func TestWorkflowParseErrorsIncludeFilePath(t *testing.T) {
 		{
 			name:  "action pinning",
 			check: validateGitHubActionWorkflow,
-			args:  []interface{}{new(checker.PinningDependenciesData)},
+			args: []interface{}{
+				new(checker.PinningDependenciesData),
+				(*checker.CheckRequest)(nil),
+				(*immutableReleaseCache)(nil),
+			},
 		},
 		{
 			name:  "SAST workflows",

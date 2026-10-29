@@ -19,7 +19,6 @@ rather than restating it.
 | Capability | Owns |
 | --- | --- |
 | `aggregate-scoring` | Aggregate formula, weights, inconclusive exclusion |
-| `attestor` | Attestor commands, attestor policy, signing |
 | `check-evaluation` | Per-check score rules and shared evaluation behavior |
 | `check-registry` | Check inventory, metadata, selection, experimental gating |
 | `cli` | Command tree, flags, progress output, result ordering, exit status |
