@@ -14,6 +14,7 @@
 package scorecard
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"slices"
@@ -30,6 +31,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	"github.com/ossf/scorecard/v5/finding"
+	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/probes/fuzzed"
 )
@@ -425,5 +427,29 @@ func Test_findConfigFile(t *testing.T) {
 				t.Errorf("wantFound: %+v got %+v", tt.wantFound, r)
 			}
 		})
+	}
+}
+
+//nolint:paralleltest // registration is not safe for parallel test use
+func Test_runEnabledProbes_errorPreservesCause(t *testing.T) {
+	probeName := "testFailingProbeForErrorPreservation"
+	simulatedErr := errors.New("simulated internal failure")
+	proberegistration.MustRegisterIndependent(probeName, func(c *checker.CheckRequest) ([]finding.Finding, string, error) {
+		return nil, probeName, simulatedErr
+	})
+
+	req := &checker.CheckRequest{
+		RawResults: &checker.RawResults{},
+	}
+	var res Result
+	err := runEnabledProbes(req, []string{probeName}, &res)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), probeName) {
+		t.Errorf("expected error to contain probe name %q, got %q", probeName, err.Error())
+	}
+	if !strings.Contains(err.Error(), "simulated internal failure") {
+		t.Errorf("expected error to contain probe cause, got %q", err.Error())
 	}
 }
