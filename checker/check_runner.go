@@ -20,9 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
-
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/stats"
 )
@@ -72,18 +69,13 @@ type Check struct {
 // CheckNameToFnMap defined here for convenience.
 type CheckNameToFnMap map[string]Check
 
-func logStats(ctx context.Context, startTime time.Time, result *CheckResult) error {
+func logStats(ctx context.Context, startTime time.Time, result *CheckResult) {
 	runTimeInSecs := time.Now().Unix() - startTime.Unix()
-	opencensusstats.Record(ctx, stats.CheckRuntimeInSec.M(runTimeInSecs))
+	stats.RecordCheckRuntime(ctx, runTimeInSecs)
 
 	if result.Error != nil {
-		ctx, err := tag.New(ctx, tag.Upsert(stats.ErrorName, sce.GetName(result.Error)))
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
-		}
-		opencensusstats.Record(ctx, stats.CheckErrors.M(1))
+		stats.RecordCheckError(ctx, stats.ErrorName.String(sce.GetName(result.Error)))
 	}
-	return nil
 }
 
 // Run runs a given check.
@@ -96,21 +88,15 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 				fmt.Sprintf("requiredType: %s not supported by check %s", fmt.Sprint(unsupported), r.CheckName)))
 	}
 
-	l := NewLogger()
-	ctx, err := tag.New(ctx, tag.Upsert(stats.CheckName, r.CheckName))
-	if err != nil {
-		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
-	}
-
-	ctx, err = tag.New(ctx, tag.Upsert(stats.RepoHost, r.CheckRequest.Repo.Host()))
-	if err != nil {
-		l.Warn(&LogMessage{Text: fmt.Sprintf("tag.New: %v", err)})
-	}
+	ctx = stats.NewContext(ctx,
+		stats.CheckName.String(r.CheckName),
+		stats.RepoHost.String(r.CheckRequest.Repo.Host()),
+	)
 
 	startTime := time.Now()
 
 	var res CheckResult
-	l = NewLogger()
+	l := NewLogger()
 	for retriesRemaining := checkRetries; retriesRemaining > 0; retriesRemaining-- {
 		checkRequest := r.CheckRequest
 		checkRequest.Ctx = ctx
@@ -129,8 +115,6 @@ func (r *Runner) Run(ctx context.Context, c Check) CheckResult {
 	// TODO(#1393): Remove.
 	res.Details = l.Flush()
 
-	if err := logStats(ctx, startTime, &res); err != nil {
-		panic(err)
-	}
+	logStats(ctx, startTime, &res)
 	return res
 }

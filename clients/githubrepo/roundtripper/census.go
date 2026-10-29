@@ -18,9 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"go.opencensus.io/plugin/ochttp"
-	opencensusstats "go.opencensus.io/stats"
-	"go.opencensus.io/tag"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/stats"
@@ -28,38 +26,35 @@ import (
 
 const fromCacheHeader = "X-From-Cache"
 
-// MakeCensusTransport wraps input Roundtripper with monitoring logic.
-func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
-	return &ochttp.Transport{
-		Base: &censusTransport{
-			innerTransport: innerTransport,
-		},
-	}
+// MakeOTelTransport wraps input RoundTripper with OpenTelemetry monitoring logic.
+func MakeOTelTransport(innerTransport http.RoundTripper) http.RoundTripper {
+	return otelhttp.NewTransport(&otelTransport{
+		innerTransport: innerTransport,
+	})
 }
 
-// censusTransport is a monitoring aware http.Transport.
-type censusTransport struct {
+// MakeCensusTransport wraps input RoundTripper with monitoring logic.
+//
+// Deprecated: Use MakeOTelTransport instead.
+func MakeCensusTransport(innerTransport http.RoundTripper) http.RoundTripper {
+	return MakeOTelTransport(innerTransport)
+}
+
+// otelTransport is a monitoring-aware http.Transport.
+type otelTransport struct {
 	innerTransport http.RoundTripper
 }
 
-// Roundtrip handles context update and measurement recording.
-func (ct *censusTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	ctx, err := tag.New(r.Context(), tag.Upsert(stats.RequestTag, "requested"))
-	if err != nil {
-		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
-	}
-
-	r = r.WithContext(ctx)
-	resp, err := ct.innerTransport.RoundTrip(r)
+// RoundTrip handles context update and measurement recording.
+func (ot *otelTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+	tagVal := "requested"
+	resp, err := ot.innerTransport.RoundTrip(r)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("innerTransport.RoundTrip: %v", err))
 	}
 	if resp.Header.Get(fromCacheHeader) != "" {
-		ctx, err = tag.New(ctx, tag.Upsert(stats.RequestTag, fromCacheHeader))
-		if err != nil {
-			return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("tag.New: %v", err))
-		}
+		tagVal = fromCacheHeader
 	}
-	opencensusstats.Record(ctx, stats.HTTPRequests.M(1))
+	stats.RecordHTTPRequests(r.Context(), 1, stats.RequestTag.String(tagVal))
 	return resp, nil
 }
