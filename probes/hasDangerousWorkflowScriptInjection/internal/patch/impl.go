@@ -51,7 +51,7 @@ func GeneratePatch(
 	}
 	errs := validatePatchedWorkflow(patchedWorkflow, workflowErrs)
 	if len(errs) > 0 {
-		return "", fileparser.FormatActionlintError(errs)
+		return "", fileparser.FormatActionlintError(f.Path, errs)
 	}
 	return getDiff(f.Path, content, patchedWorkflow)
 }
