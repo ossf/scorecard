@@ -18,6 +18,51 @@ import (
 	"testing"
 )
 
+func TestLicenseFileLocations(t *testing.T) {
+	t.Parallel()
+	setCiMap()
+	setGroupIdxsMap()
+
+	tests := []struct {
+		path   string
+		spdxID string
+		want   bool
+	}{
+		{path: "LICENSE", want: true},
+		{path: ".github/LICENSE", want: true},
+		{path: ".github/LICENSE.md", want: true},
+		{path: ".github/licence.txt", want: true},
+		{path: ".github/COPYING", want: true},
+		{path: ".github/COPYRIGHT", want: true},
+		{path: ".github/MIT-LICENSE.md", spdxID: "MIT", want: true},
+		{path: ".github/LICENSES/Apache-2.0.txt", spdxID: "Apache-2.0", want: true},
+		{path: ".github/LICENSE.yaml"},
+		{path: ".github/workflows/LICENSE"},
+		{path: "vendor/LICENSE"},
+		{path: "vendor/.github/LICENSE"},
+		{path: "docs/LICENSE.md"},
+		{path: ".github-other/LICENSE"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.path, func(t *testing.T) {
+			t.Parallel()
+			got, ok := checkLicense(tt.path)
+			if ok != tt.want {
+				t.Fatalf("checkLicense(%q) matched = %v, want %v", tt.path, ok, tt.want)
+			}
+			if !ok {
+				return
+			}
+			if got.File.Path != tt.path {
+				t.Errorf("license path = %q, want %q", got.File.Path, tt.path)
+			}
+			if got.LicenseInformation.SpdxID != tt.spdxID {
+				t.Errorf("SPDX ID = %q, want %q", got.LicenseInformation.SpdxID, tt.spdxID)
+			}
+		})
+	}
+}
+
 func TestLicenseFileCheck(t *testing.T) {
 	t.Parallel()
 

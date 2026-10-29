@@ -386,24 +386,23 @@ Scorecard uses the
 for GitHub hosted projects. Otherwise, Scorecard uses its own heuristics to
 detect a published license file.
 
-On its own, this check will detect files in the top-level directory with
+On its own, this check will detect files in the top-level directory or `.github/` with
 any combination of the following names and extensions:`LICENSE`, `LICENCE`,
 `COPYING`, `COPYRIGHT` and having common extensions such as `.html`, `.txt`,
-or `.md`. It will also detect these files in a directory named `LICENSES`.
+or `.md`. It will also detect these files in a directory named `LICENSES`
+at the top level or under `.github/`.
 (Files in a `LICENSES` directory are typically named as their
 [SPDX](https://spdx.org/licenses/) license identifier followed by an
 appropriate file extension, as described in the [REUSE Specification](https://reuse.software/spec/).)
 
 License Requirements:
-  - A detected `LICENSE`, `COPYRIGHT`, or `COPYING` filename, or license
-    files in a `LICENSES` directory (6/10 points)
-  - The detected file is at the top-level directory (3/10 points)
+  - A detected license file in one of the supported locations (9/10 points)
   - A [FSF or OSI](https://spdx.org/licenses/) license is specified (1/10 points)
  
 
 **Remediation steps**
 - Determine [which license](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository) to apply to your project. For GitHub hosted projects, follow those instructions to establish a license for your project.
-- For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
+- For other hosting environments, create the license in a `.adoc`, `.asc`, `.docx`, `.doc`, `.ext`, `.html`, `.markdown`, `.md`, `.rst`, `.txt`, or `.xml`, named `LICENSE`, `COPYRIGHT`, or `COPYING`, and place it in the top-level directory or `.github/`. To identify a specific license, use an [SPDX license identifier](https://spdx.org/licenses/) in the filename. Examples include `LICENSE.md`, `Apache-2.0-LICENSE.md` or `LICENSE-Apache-2.0`.
 - Alternately, create a `LICENSES` directory and add a license file(s) with a name that matches your [SPDX license identifier](https://spdx.org/licenses/). such as `LICENSES/Apache-2.0.txt`.
 
 ## Maintained 
