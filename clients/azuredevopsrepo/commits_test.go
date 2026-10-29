@@ -156,6 +156,9 @@ func TestListCommitsPullRequestDetails(t *testing.T) {
 		LastMergeCommit: &git.GitCommitRef{
 			CommitId: toPtr("merge-sha"),
 		},
+		LastMergeSourceCommit: &git.GitCommitRef{
+			CommitId: toPtr("source-sha"),
+		},
 		Reviewers: &[]git.IdentityRefWithVote{
 			{Id: toPtr("REVIEWER-10"), Vote: toPtr(10)},
 			{Id: toPtr("reviewer-5"), Vote: toPtr(5)},
@@ -174,7 +177,7 @@ func TestListCommitsPullRequestDetails(t *testing.T) {
 		Author:   clients.User{Login: "author-id"},
 		MergedBy: clients.User{Login: "merger-id"},
 		MergedAt: date.Time,
-		HeadSHA:  "merge-sha",
+		HeadSHA:  "source-sha",
 		Reviews: []clients.Review{
 			{Author: &clients.User{Login: "reviewer-10"}, State: "APPROVED"},
 			{Author: &clients.User{Login: "reviewer-5"}, State: "APPROVED"},
@@ -259,6 +262,11 @@ func TestListCommitsPullRequestFailures(t *testing.T) {
 		{name: "missing status", details: &git.GitPullRequest{PullRequestId: toPtr(7)}},
 		{name: "missing merge metadata", details: &git.GitPullRequest{
 			PullRequestId: toPtr(7), Status: toPtr(git.PullRequestStatusValues.Completed),
+		}},
+		{name: "missing source commit", details: &git.GitPullRequest{
+			PullRequestId: toPtr(7), Status: toPtr(git.PullRequestStatusValues.Completed),
+			ClosedDate:      &azuredevops.Time{Time: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)},
+			LastMergeCommit: &git.GitCommitRef{CommitId: toPtr("merge-sha")},
 		}},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
