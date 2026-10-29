@@ -405,3 +405,23 @@ func TestGetEnabled(t *testing.T) {
 		})
 	}
 }
+
+func TestGetCanonicalCheckName(t *testing.T) {
+	t.Parallel()
+
+	canonical, exists := getCanonicalCheckName("license")
+	if !exists || canonical != "License" {
+		t.Errorf("expected License, true; got %s, %v", canonical, exists)
+	}
+
+	canonical, exists = getCanonicalCheckName("BINARY-ARTIFACTS")
+	if !exists || canonical != "Binary-Artifacts" {
+		t.Errorf("expected Binary-Artifacts, true; got %s, %v", canonical, exists)
+	}
+
+	_, exists = getCanonicalCheckName("non-existent-check-xyz")
+	if exists {
+		t.Error("expected non-existent check to not exist")
+	}
+}
+
