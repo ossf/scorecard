@@ -23,7 +23,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/actions-lockfile/go/pkg/lockfile"
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
+	"go.yaml.in/yaml/v3"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
@@ -324,6 +326,8 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 }
 
 func fileIsInVendorDir(pathfn string) bool {
+	// pathfn is a repo-relative path and always uses "/" as a separator,
+	// regardless of the host OS, so use "path" (not "path/filepath") here.
 	cleanedPath := path.Clean(pathfn)
 	splitCleanedPath := strings.Split(cleanedPath, "/")
 
@@ -711,11 +715,16 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
+	lf, err := loadActionsLockfile(c)
+	if err != nil {
+		return err
+	}
+
 	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
-	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+	err = fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r, c, cache)
+	}, validateGitHubActionWorkflow, r, c, cache, lf)
 	if err != nil {
 		return err
 	}
@@ -724,6 +733,75 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 
 	applyWorkflowPinningRemediations(remediationMetadata, r.Dependencies)
 	return nil
+}
+
+// loadActionsLockfile loads and parses the github/gh-actions-lock lockfile
+// (`.github/workflows/actions.lock`), if present. The lockfile records, per
+// workflow, the exact set of action pins (`OWNER/REPO@REF`) that gh-actions-lock
+// has resolved and verifies at runtime, so a `uses:` reference that matches an
+// entry recorded for its workflow is effectively pinned even when it uses a
+// mutable tag or branch name.
+//
+// A missing, malformed, or unsupported-version lockfile is not an error: we
+// simply fall back to the standard SHA-based pin detection.
+func loadActionsLockfile(c *checker.CheckRequest) (*lockfile.File, error) {
+	var lf *lockfile.File
+	var collect fileparser.DoWhileTrueOnFileContent = func(
+		pathfn string, content []byte, args ...interface{},
+	) (bool, error) {
+		var warning string
+		lf, warning = parseActionsLockfile(content)
+		if warning != "" && c.Dlogger != nil {
+			c.Dlogger.Warn(&checker.LogMessage{
+				Path: pathfn,
+				Type: finding.FileTypeSource,
+				Text: warning,
+			})
+		}
+		return false, nil
+	}
+
+	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
+		Pattern:       lockfile.Path,
+		CaseSensitive: true,
+	}, collect)
+	if err != nil {
+		return nil, err
+	}
+	return lf, nil
+}
+
+// parseActionsLockfile parses lockfile content. Schema versions newer than this build knows are
+// assumed to stay backwards compatible: only the per-workflow pin keys are read and a warning
+// is returned. A malformed lockfile yields a nil file and a warning, so standard SHA-based
+// detection applies.
+func parseActionsLockfile(content []byte) (*lockfile.File, string) {
+	parsed, err := lockfile.Parse(content)
+	if err == nil {
+		return &parsed, ""
+	}
+	if !errors.Is(err, lockfile.ErrFutureVersion) {
+		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", err)
+	}
+
+	var minimal struct {
+		Workflows    map[string][]string `yaml:"workflows"`
+		Dependencies map[string]struct {
+			Commit string `yaml:"commit"`
+		} `yaml:"dependencies"`
+		Version string `yaml:"version"`
+	}
+	if yamlErr := yaml.Unmarshal(content, &minimal); yamlErr != nil {
+		return nil, fmt.Sprintf("ignoring malformed actions lockfile: %v", yamlErr)
+	}
+	deps := make(map[string]lockfile.Action, len(minimal.Dependencies))
+	for key, dep := range minimal.Dependencies {
+		deps[key] = lockfile.Action{Commit: dep.Commit}
+	}
+	return &lockfile.File{Version: minimal.Version, Workflows: minimal.Workflows, Dependencies: deps},
+		fmt.Sprintf("actions lockfile version %q is newer than the supported %q, "+
+			"assuming it is backwards compatible and reading pins only; consider updating Scorecard",
+			minimal.Version, lockfile.Version)
 }
 
 func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []checker.Dependency) {
@@ -776,9 +854,9 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 3 {
+	if len(args) != 4 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflow requires exactly 3 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateGitHubActionWorkflow requires exactly 4 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
 	c, ok := args[1].(*checker.CheckRequest)
@@ -788,6 +866,10 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	cache, ok := args[2].(*immutableReleaseCache)
 	if !ok {
 		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *immutableReleaseCache for arg 2")
+	}
+	lf, ok := args[3].(*lockfile.File)
+	if !ok {
+		lf = nil
 	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
@@ -808,7 +890,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 
 		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
 			if !isSameRepositoryReference(job.WorkflowCall.Uses.Value) {
-				dep := newGHActionDependency(c, cache, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+				dep := newGHActionDependency(c, cache, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line, lf)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
@@ -833,7 +915,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if isSameRepositoryReference(execAction.Uses.Value) {
 				continue
 			}
-			dep := newGHActionDependency(c, cache, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
+			dep := newGHActionDependency(c, cache, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line, lf)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -846,7 +928,7 @@ func isSameRepositoryReference(uses string) bool {
 }
 
 func newGHActionDependency(
-	c *checker.CheckRequest, cache *immutableReleaseCache, uses, pathfn string, line int,
+	c *checker.CheckRequest, cache *immutableReleaseCache, uses, pathfn string, line int, lf *lockfile.File,
 ) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
@@ -856,7 +938,7 @@ func newGHActionDependency(
 			EndOffset: uint(line), // `Uses` always span a single line.
 			Snippet:   uses,
 		},
-		Pinned: asBoolPointer(isActionDependencyPinned(c, cache, uses)),
+		Pinned: asBoolPointer(isActionDependencyPinned(c, cache, uses, pathfn, lf)),
 		Type:   checker.DependencyUseTypeGHAction,
 	}
 	parts := strings.SplitN(uses, "@", 2)
@@ -869,7 +951,9 @@ func newGHActionDependency(
 	return dep
 }
 
-func isActionDependencyPinned(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
+func isActionDependencyPinned(
+	c *checker.CheckRequest, cache *immutableReleaseCache, actionUses, pathfn string, lf *lockfile.File,
+) bool {
 	if isSameRepositoryReference(actionUses) {
 		return true
 	}
@@ -884,7 +968,64 @@ func isActionDependencyPinned(c *checker.CheckRequest, cache *immutableReleaseCa
 		return true
 	}
 
+	if isActionPinnedByLockfile(actionUses, pathfn, lf) {
+		return true
+	}
+
 	return isActionPinnedByImmutableRelease(c, cache, actionUses)
+}
+
+// isActionPinnedByLockfile reports whether actionUses is recorded as a pin for
+// pathfn in a github/gh-actions-lock lockfile (`.github/workflows/actions.lock`).
+// gh-actions-lock verifies, at runtime, that the resolved commit for every
+// onboarded workflow dependency matches the lockfile entry, so a `uses:` value
+// that matches its workflow's recorded pin key is effectively pinned even
+// though the reference itself is a mutable tag or branch.
+// https://github.com/github/gh-actions-lock
+func isActionPinnedByLockfile(actionUses, pathfn string, lf *lockfile.File) bool {
+	if lf == nil {
+		return false
+	}
+
+	pins, ok := lf.LookupWorkflow(pathfn)
+	if !ok {
+		return false
+	}
+
+	key, ok := actionLockfileKey(actionUses)
+	if !ok {
+		return false
+	}
+
+	for _, pin := range pins {
+		if pin == key {
+			// The runner fetches the recorded commit, so the pin only needs a resolved dependency entry.
+			return lf.Dependencies[key].Commit != ""
+		}
+	}
+	return false
+}
+
+// actionLockfileKey normalizes a workflow `uses:` value down to the
+// repo-scoped pin key (`OWNER/REPO@REF`) used by the lockfile. A `uses:` value
+// may reference a sub-path within an action's repo (e.g. `actions/cache/save@v4`),
+// but gh-actions-lock pins are recorded at repo+ref granularity, matching the
+// runner, which downloads `owner/repo@ref` once and reuses the tree for any
+// sub-action path.
+func actionLockfileKey(actionUses string) (string, bool) {
+	atIdx := strings.IndexByte(actionUses, '@')
+	if atIdx <= 0 || atIdx == len(actionUses)-1 {
+		return "", false
+	}
+	repoPath := actionUses[:atIdx]
+	ref := actionUses[atIdx+1:]
+
+	parts := strings.SplitN(repoPath, "/", 3)
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", false
+	}
+
+	return lockfile.IndexKey(parts[0], parts[1], ref), true
 }
 
 // isActionPinnedByImmutableRelease reports whether actionUses references a

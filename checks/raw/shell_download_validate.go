@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"net/url"
 	"path"
-	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -68,7 +67,7 @@ func isExecuteFile(cmd []string, fn string) bool {
 		return false
 	}
 
-	return strings.EqualFold(filepath.Clean(cmd[0]), filepath.Clean(fn))
+	return strings.EqualFold(path.Clean(cmd[0]), path.Clean(fn))
 }
 
 // see https://serverfault.com/questions/226386/wget-a-script-and-run-it/890417.
@@ -127,13 +126,13 @@ func getGsutilOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 				continue
 			}
 			pathfn := cmd[i+1]
-			if filepath.Clean(filepath.Dir(pathfn)) == filepath.Clean(pathfn) {
+			if path.Clean(path.Dir(pathfn)) == path.Clean(pathfn) {
 				// Directory.
 				u, err := url.Parse(cmd[i])
 				if err != nil {
 					return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 				}
-				return filepath.Join(filepath.Dir(pathfn), path.Base(u.Path)), true, nil
+				return path.Join(path.Dir(pathfn), path.Base(u.Path)), true, nil
 			}
 
 			// File provided.
@@ -153,12 +152,12 @@ func getAWSOutputFile(cmd []string) (pathfn string, ok bool, err error) {
 		// Just take the last 2 arguments.
 		ifile := cmd[len(cmd)-2]
 		ofile := cmd[len(cmd)-1]
-		if filepath.Clean(filepath.Dir(ofile)) == filepath.Clean(ofile) {
+		if path.Clean(path.Dir(ofile)) == path.Clean(ofile) {
 			u, err := url.Parse(ifile)
 			if err != nil {
 				return "", false, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("url.Parse: %v", err))
 			}
-			return filepath.Join(filepath.Dir(ofile), path.Base(u.Path)), true, nil
+			return path.Join(path.Dir(ofile), path.Base(u.Path)), true, nil
 		}
 
 		// File provided.
@@ -247,7 +246,7 @@ func isInterpreterWithFile(cmd []string, fn string) bool {
 			continue
 		}
 		for _, arg := range cmd[1:] {
-			if strings.EqualFold(filepath.Clean(arg), filepath.Clean(fn)) {
+			if strings.EqualFold(path.Clean(arg), path.Clean(fn)) {
 				return true
 			}
 		}
