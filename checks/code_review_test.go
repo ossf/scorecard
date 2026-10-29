@@ -62,6 +62,7 @@ func TestCodereview(t *testing.T) {
 					AssociatedMergeRequest: clients.PullRequest{
 						Number:   1,
 						MergedAt: time.Now(),
+						Author:   clients.User{Login: "bob"},
 						Reviews: []clients.Review{
 							{
 								Author: &clients.User{Login: "alice"},
@@ -154,6 +155,7 @@ func TestCodereview(t *testing.T) {
 					AssociatedMergeRequest: clients.PullRequest{
 						Number:   1,
 						MergedAt: time.Now(),
+						Author:   clients.User{Login: "bob"},
 						Reviews: []clients.Review{
 							{
 								Author: &clients.User{Login: "alice"},
@@ -184,6 +186,7 @@ func TestCodereview(t *testing.T) {
 					AssociatedMergeRequest: clients.PullRequest{
 						Number:   1,
 						MergedAt: time.Now(),
+						Author:   clients.User{Login: "bob"},
 						MergedBy: clients.User{Login: "alice"},
 					},
 				},

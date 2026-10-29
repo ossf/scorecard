@@ -55,13 +55,6 @@ jobs:
       matrix:
         target:
           - 'scorecard-docker'
-          - 'cron-controller-docker'
-          - 'cron-worker-docker'
-          - 'cron-cii-worker-docker'
-          - 'cron-bq-transfer-docker'
-          - 'cron-webhook-docker'
-          - 'cron-github-server-docker'
-          - 'build-attestor-docker'
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
     permissions:
@@ -72,7 +65,7 @@ jobs:
     steps:
      - name: Harden Runner
        if: (needs.docs_only_check.outputs.docs_only != 'true')
-       uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+       uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
        with:
          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
      - name: Clone the code

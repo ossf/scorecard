@@ -136,43 +136,15 @@ To view scores for projects not included in the webviewer, use the [Scorecard CL
 
 ### Public Data
 
-We run a weekly Scorecard scan of the 1 million most critical open source
-projects judged by their direct dependencies and publish the results in a
-[BigQuery public dataset](https://cloud.google.com/bigquery/public-data).
+Scorecard scans more than 1.3 million repositories every week, from
+[`ossf/scorecard-infra`](https://github.com/ossf/scorecard-infra). Results are
+available through the [REST API](#scorecard-rest-api). The BigQuery public
+dataset is no longer available; see
+[Scorecard Infrastructure Changes](https://github.com/ossf/scorecard/issues/5208)
+for details.
 
-This data is available in the public BigQuery dataset
-`openssf:scorecardcron.scorecard-v2`. The latest results are available in the
-BigQuery view `openssf:scorecardcron.scorecard-v2_latest`.
-
-You can query the data using [BigQuery Explorer](http://console.cloud.google.com/bigquery) by navigating to Add Data > Star a project by name > 'openssf'.
-For example, you may be interested in how a project's score has changed over time:
-
-```sql
-SELECT date, score FROM `openssf.scorecardcron.scorecard-v2` WHERE repo.name="github.com/ossf/scorecard" ORDER BY date ASC
-```
-
-You can extract the latest results to Google Cloud storage in JSON format using
-the [`bq`](https://cloud.google.com/bigquery/docs/bq-command-line-tool) tool:
-
-```
-# Get the latest PARTITION_ID
-bq query --nouse_legacy_sql 'SELECT partition_id FROM
-openssf.scorecardcron.INFORMATION_SCHEMA.PARTITIONS WHERE table_name="scorecard-v2"
-AND partition_id!="__NULL__" ORDER BY partition_id DESC
-LIMIT 1'
-
-# Extract to GCS
-bq extract --destination_format=NEWLINE_DELIMITED_JSON
-'openssf:scorecardcron.scorecard-v2$<partition_id>' gs://bucket-name/filename-*.json
-
-```
-
-The list of projects that are checked is available in the
-[`cron/internal/data/projects.csv`](https://github.com/ossf/scorecard/blob/main/cron/internal/data/projects.csv)
-file in this repository. If you would like us to track more, please feel free to
-send a Pull Request with others. Currently, this list is derived from **projects
-hosted on GitHub ONLY**. We do plan to expand them in near future to account for
-projects hosted on other source control systems.
+To add a project to the weekly scan, follow the instructions in
+[`ossf/scorecard-infra`'s contributing guide](https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md).
 
 ## Using Scorecard
 
@@ -255,11 +227,11 @@ Add the binary to your `GOPATH/bin` directory (use `go env GOPATH` to identify y
 
 We generate [SLSA3 signatures](https://slsa.dev) using the OpenSSF's [slsa-framework/slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) during the release process. To verify a release binary:
 1. Install the verification tool from [slsa-framework/slsa-verifier#installation](https://github.com/slsa-framework/slsa-verifier#installation).
-2. Download the signature file `attestation.intoto.jsonl` from the [GitHub releases page](https://github.com/GoogleContainerTools/jib/releases/latest).
+2. Download the provenance file `multiple.intoto.jsonl` from the same [GitHub release](https://github.com/ossf/scorecard/releases/latest) as your archive.
 3. Run the verifier:
 
 ```shell
-slsa-verifier -artifact-path <the-zip> -provenance attestation.intoto.jsonl -source github.com/ossf/scorecard -tag <the-tag>
+slsa-verifier verify-artifact --provenance-path multiple.intoto.jsonl --source-uri github.com/ossf/scorecard --source-tag <the-tag> <the-archive>
 ```
 
 ##### Using package managers
@@ -543,25 +515,25 @@ The following checks are all run against the target project by default:
 
 Name        | Description                               | Risk Level | Token Required  | GitLab Support | Note
 ----------- | ----------------------------------------- | ---------- | --------------- | -------------- | --- |
-[Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?     | High               | PAT, GITHUB_TOKEN   | Supported |
-[Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                                                       | High | PAT (`repo` or `repo> public_repo`), GITHUB_TOKEN    | Supported (see notes) | certain settings are only supported with a maintainer PAT
-[CI-Tests](docs/checks.md#ci-tests)                             | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?                                                                                                                                         | Low | PAT, GITHUB_TOKEN   | Supported
-[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Has the project earned an [OpenSSF (formerly CII) Best Practices Badge](https://www.bestpractices.dev) at the passing, silver, or gold level?                                                                                                                                                                 | Low  | PAT, GITHUB_TOKEN   | Validating |
-[Code-Review](docs/checks.md#code-review)                       | Does the project practice code review before code is merged?                                                                                                                                                                                                                                                                 | High | PAT, GITHUB_TOKEN   | Supported |
-[Contributors](docs/checks.md#contributors)                     | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   | Validating |
-[Dangerous-Workflow](docs/checks.md#dangerous-workflow)         | Does the project avoid dangerous coding patterns in GitHub Action workflows?                                                                                                                                                                                                                                                 | Critical | PAT, GITHUB_TOKEN   | Unsupported |
-[Dependency-Update-Tool](docs/checks.md#dependency-update-tool) | Does the project use tools to help update its dependencies?                                                                                                                                                                                                                                                                  | High | PAT, GITHUB_TOKEN   | Supported |
-[Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz), [QuickCheck](https://hackage.haskell.org/package/QuickCheck) or [fast-check](https://fast-check.dev/)?                                                                                                                                                                                                                                     | Medium | PAT, GITHUB_TOKEN   | Validating
-[License](docs/checks.md#license)                               | Does the project declare a license?                                                                                                                                                                                                                                                                                          | Low | PAT, GITHUB_TOKEN   | Validating |
-[Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   | Validating |
-[Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                                                     | Medium | PAT, GITHUB_TOKEN   | Validating |
-[Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                                            | Medium | PAT, GITHUB_TOKEN   | Validating |
-[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [LGTM (deprecated)](https://lgtm.com), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   | Unsupported |
-[Security-Policy](docs/checks.md#security-policy)               | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?                                                                                                                                          | Medium | PAT, GITHUB_TOKEN   | Validating |
-[Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                                           | High | PAT, GITHUB_TOKEN   | Validating |
-[Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                                                   | High | PAT, GITHUB_TOKEN   | Unsupported |
-[Vulnerabilities](docs/checks.md#vulnerabilities)               | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).                                                                                                                                                                                                                                      | High | PAT, GITHUB_TOKEN   | Validating |
-[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                                                                      | Critical | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
+[Binary-Artifacts](docs/checks.md#binary-artifacts)             | Is the project free of checked-in binaries?                                                                                                                                                                                                                                                        | High               | PAT, GITHUB_TOKEN   | Supported |
+[Branch-Protection](docs/checks.md#branch-protection)           | Does the project use [Branch Protection](https://docs.github.com/en/free-pro-team@latest/github/administering-a-repository/about-protected-branches) ?                                                                                                                                             | High | PAT (`repo` or `repo> public_repo`), GITHUB_TOKEN    | Supported (see notes) | certain settings are only supported with a maintainer PAT
+[CI-Tests](docs/checks.md#ci-tests)                             | Does the project run tests in CI, e.g. [GitHub Actions](https://docs.github.com/en/free-pro-team@latest/actions), [Prow](https://github.com/kubernetes/test-infra/tree/master/prow)?                                                                                                               | Low | PAT, GITHUB_TOKEN   | Supported
+[CII-Best-Practices](docs/checks.md#cii-best-practices)         | Has the project earned an [OpenSSF (formerly CII) Best Practices Badge](https://www.bestpractices.dev) at the passing, silver, or gold level?                                                                                                                                                      | Low  | PAT, GITHUB_TOKEN   | Validating |
+[Code-Review](docs/checks.md#code-review)                       | Does the project practice code review before code is merged?                                                                                                                                                                                                                                       | High | PAT, GITHUB_TOKEN   | Supported |
+[Contributors](docs/checks.md#contributors)                     | Does the project have contributors from at least two different organizations?                                                                                                                                                                                                                      | Low | PAT, GITHUB_TOKEN   | Validating |
+[Dangerous-Workflow](docs/checks.md#dangerous-workflow)         | Does the project avoid dangerous coding patterns in GitHub Action workflows?                                                                                                                                                                                                                       | Critical | PAT, GITHUB_TOKEN   | Unsupported |
+[Dependency-Update-Tool](docs/checks.md#dependency-update-tool) | Does the project use tools to help update its dependencies?                                                                                                                                                                                                                                        | High | PAT, GITHUB_TOKEN   | Supported |
+[Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz), [QuickCheck](https://hackage.haskell.org/package/QuickCheck) or [fast-check](https://fast-check.dev/)?                                                                                                    | Medium | PAT, GITHUB_TOKEN   | Validating
+[License](docs/checks.md#license)                               | Does the project declare a license?                                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   | Validating |
+[Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                               | High | PAT, GITHUB_TOKEN   | Validating |
+[Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                           | Medium | PAT, GITHUB_TOKEN   | Validating |
+[Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                  | Medium | PAT, GITHUB_TOKEN   | Validating |
+[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   | Unsupported |
+[Security-Policy](docs/checks.md#security-policy)               | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?                                                                                                                | Medium | PAT, GITHUB_TOKEN   | Validating |
+[Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                 | High | PAT, GITHUB_TOKEN   | Validating |
+[Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                         | High | PAT, GITHUB_TOKEN   | Unsupported |
+[Vulnerabilities](docs/checks.md#vulnerabilities)               | Does the project have unfixed vulnerabilities? Uses the [OSV service](https://osv.dev).                                                                                                                                                                                                            | High | PAT, GITHUB_TOKEN   | Validating |
+[Webhooks](docs/checks.md#webhooks)                             | Does the webhook defined in the repository have a token configured to authenticate the origins of requests?                                                                                                                                                                                        | Critical | maintainer PAT (`admin: repo_hook` or `admin> read:repo_hook` [doc](https://docs.github.com/en/rest/webhooks/repo-config#get-a-webhook-configuration-for-a-repository)  |  | EXPERIMENTAL
 
 ### Detailed Checks Documentation
 

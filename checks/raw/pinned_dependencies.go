@@ -20,20 +20,21 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
+	"path"
 	"reflect"
 	"regexp"
 	"strings"
 
 	"github.com/moby/buildkit/frontend/dockerfile/parser"
-	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
 	"github.com/ossf/scorecard/v5/internal/dotnet/properties"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 	"github.com/ossf/scorecard/v5/remediation"
 )
 
@@ -351,7 +352,7 @@ func collectDockerfileInsecureDownloads(c *checker.CheckRequest, r *checker.Pinn
 }
 
 func fileIsInVendorDir(pathfn string) bool {
-	cleanedPath := filepath.Clean(pathfn)
+	cleanedPath := path.Clean(pathfn)
 	splitCleanedPath := strings.Split(cleanedPath, "/")
 
 	for _, d := range splitCleanedPath {
@@ -663,7 +664,7 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		return true, nil
 	}
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
@@ -678,11 +679,11 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 		taintedFiles := make(map[string]bool)
 
 		for _, step := range job.Steps {
-			if !fileparser.IsStepExecKind(step, actionlint.ExecKindRun) {
+			if !fileparser.IsStepExecKind(step, ghworkflow.ExecKindRun) {
 				continue
 			}
 
-			execRun, ok := step.Exec.(*actionlint.ExecRun)
+			execRun, ok := step.Exec.(*ghworkflow.ExecRun)
 			if !ok {
 				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
@@ -738,10 +739,11 @@ var validateGitHubWorkflowIsFreeOfInsecureDownloads fileparser.DoWhileTrueOnFile
 
 // Check pinning of github actions in workflows.
 func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.PinningDependenciesData) error {
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r)
+	}, validateGitHubActionWorkflow, r, c, cache)
 	if err != nil {
 		return err
 	}
@@ -762,6 +764,35 @@ func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []c
 	}
 }
 
+// immutableReleaseCacheKey identifies a single owner/repo/tag release lookup.
+type immutableReleaseCacheKey struct {
+	owner, repo, tag string
+}
+
+// immutableReleaseCache memoizes IsReleaseImmutable results for the duration
+// of a single PinningDependencies scan, so that repeated `uses:` references
+// to the same release (common across many workflow files) only trigger one
+// API call. It's only safe for sequential use, which matches how
+// fileparser.OnMatchingFileContentDo iterates over files.
+type immutableReleaseCache struct {
+	results map[immutableReleaseCacheKey]bool
+}
+
+func (cache *immutableReleaseCache) get(owner, repo, tag string) (immutable, ok bool) {
+	if cache == nil {
+		return false, false
+	}
+	immutable, ok = cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}]
+	return immutable, ok
+}
+
+func (cache *immutableReleaseCache) set(owner, repo, tag string, immutable bool) {
+	if cache == nil {
+		return
+	}
+	cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}] = immutable
+}
+
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
 var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
@@ -773,17 +804,25 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 3 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflow requires exactly 1 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateGitHubActionWorkflow requires exactly 3 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
+	c, ok := args[1].(*checker.CheckRequest)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *checker.CheckRequest for arg 1")
+	}
+	cache, ok := args[2].(*immutableReleaseCache)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *immutableReleaseCache for arg 2")
+	}
 
 	if !fileparser.CheckFileContainsCommands(content, "#") {
 		return true, nil
 	}
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		// actionlint is a linter, so it will return errors when the yaml file does not meet its linting standards.
 		// Often we don't care about these errors.
@@ -796,21 +835,18 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		}
 
 		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if !strings.HasPrefix(job.WorkflowCall.Uses.Value, "./") {
-				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
+			if !isSameRepositoryReference(job.WorkflowCall.Uses.Value) {
+				dep := newGHActionDependency(c, cache, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
 
 		for _, step := range job.Steps {
-			if !fileparser.IsStepExecKind(step, actionlint.ExecKindAction) {
+			if !fileparser.IsStepExecKind(step, ghworkflow.ExecKindAction) {
 				continue
 			}
 
-			execAction, ok := step.Exec.(*actionlint.ExecAction)
+			execAction, ok := step.Exec.(*ghworkflow.ExecAction)
 			if !ok {
 				stepName := fileparser.GetStepName(step)
 				return false, sce.WithMessage(sce.ErrScorecardInternal,
@@ -822,13 +858,10 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 				continue
 			}
 
-			//nolint:lll
-			// Check whether this is an action defined in the same repo,
-			// https://docs.github.com/en/actions/learn-github-actions/finding-and-customizing-actions#referencing-an-action-in-the-same-repository-where-a-workflow-file-uses-the-action.
-			if strings.HasPrefix(execAction.Uses.Value, "./") {
+			if isSameRepositoryReference(execAction.Uses.Value) {
 				continue
 			}
-			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
+			dep := newGHActionDependency(c, cache, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -836,7 +869,13 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 	return true, nil
 }
 
-func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
+func isSameRepositoryReference(uses string) bool {
+	return strings.HasPrefix(uses, "./") || strings.HasPrefix(uses, "$/")
+}
+
+func newGHActionDependency(
+	c *checker.CheckRequest, cache *immutableReleaseCache, uses, pathfn string, line int,
+) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
 			Path:      pathfn,
@@ -845,7 +884,7 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 			EndOffset: uint(line), // `Uses` always span a single line.
 			Snippet:   uses,
 		},
-		Pinned: asBoolPointer(isActionDependencyPinned(uses)),
+		Pinned: asBoolPointer(isActionDependencyPinned(c, cache, uses)),
 		Type:   checker.DependencyUseTypeGHAction,
 	}
 	parts := strings.SplitN(uses, "@", 2)
@@ -858,9 +897,8 @@ func newGHActionDependency(uses, pathfn string, line int) checker.Dependency {
 	return dep
 }
 
-func isActionDependencyPinned(actionUses string) bool {
-	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
-	if localActionRegex.MatchString(actionUses) {
+func isActionDependencyPinned(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
+	if isSameRepositoryReference(actionUses) {
 		return true
 	}
 
@@ -870,5 +908,73 @@ func isActionDependencyPinned(actionUses string) bool {
 	}
 
 	dockerhubActionRegex := regexp.MustCompile(`docker://.*@sha256:[a-fA-F\d]{64}`)
-	return dockerhubActionRegex.MatchString(actionUses)
+	if dockerhubActionRegex.MatchString(actionUses) {
+		return true
+	}
+
+	return isActionPinnedByImmutableRelease(c, cache, actionUses)
+}
+
+// isActionPinnedByImmutableRelease reports whether actionUses references a
+// tag that corresponds to a published GitHub release with the
+// `immutable: true` flag set. GitHub guarantees that the tag, and therefore
+// the code delivered to consumers, cannot change once such a release is
+// published, so referencing it is equivalent to pinning by full commit SHA.
+// See "Using immutable releases and tags to manage your action's releases" in the GitHub Actions docs.
+//
+// Successful lookups are memoized in cache by (owner, repo, tag), since the
+// same release is frequently referenced from many workflow files in a scan.
+func isActionPinnedByImmutableRelease(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
+	if c == nil || c.RepoClient == nil {
+		return false
+	}
+
+	owner, repo, tag, ok := parseActionOwnerRepoTag(actionUses)
+	if !ok {
+		return false
+	}
+
+	if immutable, ok := cache.get(owner, repo, tag); ok {
+		return immutable
+	}
+
+	immutable, err := c.RepoClient.IsReleaseImmutable(owner, repo, tag)
+	if err != nil {
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return false
+		}
+		if c.Dlogger != nil {
+			c.Dlogger.Debug(&checker.LogMessage{
+				Text: fmt.Sprintf("unable to check release immutability for %v: %v", actionUses, err),
+			})
+		}
+		return false
+	}
+	cache.set(owner, repo, tag, immutable)
+	return immutable
+}
+
+// parseActionOwnerRepoTag extracts the owner, repo, and ref (tag) from a
+// workflow `uses:` value of the form `owner/repo[/subpath]@ref`. It returns
+// ok=false for values that aren't of this shape (e.g. local/self-repo
+// actions, or Docker references), or where ref looks like a commit SHA
+// rather than a tag.
+func parseActionOwnerRepoTag(actionUses string) (owner, repo, tag string, ok bool) {
+	atIdx := strings.IndexByte(actionUses, '@')
+	if atIdx <= 0 || atIdx == len(actionUses)-1 {
+		return "", "", "", false
+	}
+	repoPath := actionUses[:atIdx]
+	ref := actionUses[atIdx+1:]
+
+	if strings.HasPrefix(repoPath, "docker://") {
+		return "", "", "", false
+	}
+
+	parts := strings.SplitN(repoPath, "/", 3)
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", "", false
+	}
+
+	return parts[0], parts[1], ref, true
 }

@@ -113,7 +113,7 @@ Tier 1 Requirements (3/10 points):
 Tier 2 Requirements (6/10 points):
   - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
   - For administrators: Require PRs prior to make any code changes
-  - For administrators: Require branch to be up to date before merging
+  - For administrators: Require branch to be up to date before merging (or require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) via repository rulesets)
   - For administrators: Require approval of the most recent reviewable push
 
 Tier 3 Requirements (8/10 points):
@@ -129,6 +129,15 @@ Tier 5 Requirements (10/10 points):
 
 GitLab Integration Status:
   - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
+
+Azure DevOps Integration Status:
+  - Default and named branches use the same applicable PR policies, including inherited policies and later result pages.
+  - Only enabled, required, non-deleted PR policies establish protection. Repository push restrictions, such as secrets scanning, do not establish PR protection.
+  - Reviewer counts are conservative independent-approval floors. Self-votes and path filters do not receive unconditional review credit.
+  - Required build contexts use `azure-pipelines/<definition-id>`. These identify policy requirements, not successful test runs.
+  - Permission evaluations describe the caller. A proven caller exception can show that forced updates are allowed, but a caller denial does not prove protection for everyone.
+  - Unreadable or unsupported permission controls remain unknown. Administrator enforcement and CODEOWNERS enforcement are not inferred.
+  - Unknown deletion or force-push protection receives no Tier 1 credit, so the score can remain zero despite mapped PR policies.
  
 
 **Remediation steps**
@@ -482,6 +491,9 @@ The check works by looking for unpinned dependencies in Dockerfiles, shell scrip
 which are used during the build and release process of a project.
 Special considerations for Go modules treat full semantic versions as pinned
 due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
+For GitHub Actions, a `uses:` reference to a tag is also treated as pinned when that tag is backed by a
+published [immutable release](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases),
+since GitHub guarantees the tag and its content cannot change once such a release is published.
 
 Pinned dependencies reduce several security risks:
 
@@ -512,7 +524,7 @@ dependencies using the [GitHub dependency graph](https://docs.github.com/en/code
 **Remediation steps**
 - If your project is producing an application, declare all your dependencies with specific versions in your package format file (e.g. `package.json` for npm, `requirements.txt` for python, `packages.config` for nuget). For C/C++, check in the code from a trusted source and add a `README` on the specific version used (and the archive SHA hashes).
 - If your project is producing an application and the package manager supports lock files (e.g. `package-lock.json` for npm), make sure to check these in the source code as well. These files maintain signatures for the entire dependency tree and saves from future exploitation in case the package is compromised.
-- For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
+- For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/Dockerfile) for example. If you are using a manifest list to support builds across multiple architectures, you can pin to the manifest list hash instead of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md) to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
 - For GitHub workflows used in building and releasing your project, pin dependencies by hash. See [main.yaml](https://github.com/ossf/scorecard/blob/f55b86d6627cc3717e3a0395e03305e81b9a09be/.github/workflows/main.yml#L27) for example. To determine the permissions needed for your workflows, you may use [StepSecurity's online tool](https://app.stepsecurity.io/secureworkflow/) by ticking the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found by the Token-Permissions check.
 - To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
 
@@ -532,8 +544,7 @@ codebase.
 The checks currently looks for known GitHub apps such as
 [CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+of "github/codeql-action" in a GitHub workflow.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is

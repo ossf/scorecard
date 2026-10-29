@@ -122,8 +122,14 @@ func approved(c *checker.Changeset) (bool, error) {
 		checker.ReviewPlatformPiper:
 		return true, nil
 	}
+	if c.Author.Login == "" {
+		return false, nil
+	}
 	for _, review := range c.Reviews {
-		if review.State == "APPROVED" && review.Author.Login != c.Author.Login {
+		if review.State == "APPROVED" &&
+			review.Author != nil &&
+			review.Author.Login != "" &&
+			review.Author.Login != c.Author.Login {
 			return true, nil
 		}
 	}
