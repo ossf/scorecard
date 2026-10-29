@@ -3,8 +3,12 @@
 This document outlines security procedures and general policies for the
 OpenSSF Scorecard project.
 
-This policy adheres to the [vulnerability management guidance](https://www.linuxfoundation.org/security)
-for Linux Foundation projects.
+CRA stewardship: This project is supported under the Linux Foundation CRA
+stewardship framework, as described at https://www.linuxfoundation.org/security.
+Security vulnerabilities should be reported through the mechanisms described
+below, which we will coordinate with our CRA steward. For actively exploited
+vulnerabilities and severe incidents that may require CRA escalation, please
+use the project's emergency security reporting mechanisms as appropriate.
 
 - [Disclosing a security issue](#disclosing-a-security-issue)
 - [Vulnerability management](#vulnerability-management)
@@ -30,6 +34,10 @@ Here are some helpful details to include in your report:
 - the steps required to reproduce the issue
 - versions of the project that may be affected by the issue
 - if known, any mitigations for the issue
+
+If you believe the issue is being actively exploited, say so at the top of
+your report. The maintainers prioritize it and escalate it to the CRA steward
+(see [Escalating to the CRA steward](#escalating-to-the-cra-steward)).
 
 A maintainer will acknowledge the report within three (3) business days, and
 will send a more detailed response within an additional three (3) business days
@@ -60,6 +68,19 @@ Fixed vulnerabilities are published as
 [GitHub Security Advisories](https://github.com/ossf/scorecard/security/advisories)
 on the affected repository, which feed the GitHub Advisory Database and OSV.
 The release notes of the release that contains the fix also mention it.
+
+### Escalating to the CRA steward
+
+The maintainers escalate two kinds of event to the LF steward at
+<steward@linuxfoundation.org>:
+
+- **Actively exploited vulnerabilities:** a vulnerability where the project
+  has reliable evidence that a malicious actor has exploited it.
+- **Severe incidents:** a security compromise of the project's own IT
+  infrastructure.
+
+Ordinary vulnerabilities with no evidence of exploitation aren't escalation
+events. Remediation never waits on the escalation decision.
 
 ## Privileged workflows
 

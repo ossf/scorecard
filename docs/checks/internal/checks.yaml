@@ -217,6 +217,15 @@ checks:
       GitLab Integration Status:
         - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
 
+      Azure DevOps Integration Status:
+        - Default and named branches use the same applicable PR policies, including inherited policies and later result pages.
+        - Only enabled, required, non-deleted PR policies establish protection. Repository push restrictions, such as secrets scanning, do not establish PR protection.
+        - Reviewer counts are conservative independent-approval floors. Self-votes and path filters do not receive unconditional review credit.
+        - Required build contexts use `azure-pipelines/<definition-id>`. These identify policy requirements, not successful test runs.
+        - Permission evaluations describe the caller. A proven caller exception can show that forced updates are allowed, but a caller denial does not prove protection for everyone.
+        - Unreadable or unsupported permission controls remain unknown. Administrator enforcement and CODEOWNERS enforcement are not inferred.
+        - Unknown deletion or force-push protection receives no Tier 1 credit, so the score can remain zero despite mapped PR policies.
+
     remediation:
       - >-
         Enable branch protection settings in your source hosting provider to
@@ -481,6 +490,9 @@ checks:
       which are used during the build and release process of a project.
       Special considerations for Go modules treat full semantic versions as pinned
       due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
+      For GitHub Actions, a `uses:` reference to a tag is also treated as pinned when that tag is backed by a
+      published [immutable release](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases),
+      since GitHub guarantees the tag and its content cannot change once such a release is published.
 
       Pinned dependencies reduce several security risks:
 
@@ -549,8 +561,7 @@ checks:
       The checks currently looks for known GitHub apps such as
       [CodeQL](https://codeql.github.com/) (github-code-scanning) or
       [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-      of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-      [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+      of "github/codeql-action" in a GitHub workflow.
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement SAST, and it is

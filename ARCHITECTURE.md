@@ -46,11 +46,6 @@ behavior of each component is specified in more detail under
    scores; SARIF output reports only enforced checks that score below the
    policy's minimum.
 
-`scorecard-attestor` ([`attestor/`](attestor/)) runs steps 3 and 4 for the
-repository a container image was built from, then checks the raw data against
-an attestation policy. When the policy passes, it signs a Google Cloud Binary
-Authorization attestation for the image.
-
 ## Related systems in other repositories
 
 - [`ossf/scorecard-action`](https://github.com/ossf/scorecard-action) runs
@@ -93,8 +88,6 @@ Outputs:
 - **Release artifacts:** binaries and archives on
   [GitHub Releases](https://github.com/ossf/scorecard/releases) with SLSA
   provenance, and the `ghcr.io/ossf/scorecard` container image.
-- **Attestations:** Binary Authorization attestations from
-  `scorecard-attestor` ([spec](openspec/specs/attestor/spec.md)).
 
 Outbound calls: the repository host APIs and auxiliary services listed under
 [Actors](#actors).

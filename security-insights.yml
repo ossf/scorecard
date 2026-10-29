@@ -116,7 +116,7 @@ repository:
         evidence: https://github.com/ossf/scorecard/blob/main/docs/security/README.md
         date: '2026-10-16'
         comment: |
-          Gemara threat model of the Scorecard scan engine, CLI, `scorecard serve`, and scorecard-attestor: a
+          Gemara threat model of the Scorecard scan engine, CLI, and `scorecard serve`: a
           capability catalog and a threat catalog, reviewed by the maintainers. The 2025 third-party audit
           listed below also included formal threat modeling of this repository.
       third-party:

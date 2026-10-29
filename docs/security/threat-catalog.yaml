@@ -235,8 +235,9 @@ threats:
     description: |
       `scorecard serve` runs every request with the operator's credentials and
       has no authentication or rate limiting, because it is intended for
-      trusted networks. If it is reachable by untrusted clients, they can
-      spend the operator's API rate limit, and can read results for private
+      trusted networks. It listens on 127.0.0.1 unless the operator passes
+      `--listen`. If it is reachable by untrusted clients, they can spend the
+      operator's API rate limit, and can read results for private
       repositories the operator's token can access. `scorecard serve --help`
       states this trust model.
     group: information-disclosure
@@ -268,37 +269,3 @@ threats:
         entries:
           - reference-id: OSSF.SCORECARD.ENGINE.CAP07
           - reference-id: OSSF.SCORECARD.ENGINE.CAP10
-
-  - id: OSSF.SCORECARD.ENGINE.THR12
-    title: Attestation Vouches for Source the Image Wasn't Built From
-    description: |
-      scorecard-attestor evaluates the repository and commit its caller names,
-      falling back to HEAD when no commit is given. It doesn't verify that the
-      image was built from that commit, so a misconfigured or compromised
-      pipeline can obtain a signed attestation for an image whose actual
-      source was never evaluated.
-    group: spoofing
-    capabilities:
-      - reference-id: CCC
-        entries:
-          - reference-id: CCC.Core.CP18
-      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
-        entries:
-          - reference-id: OSSF.SCORECARD.ENGINE.CAP11
-    actors:
-      - id: pipeline-author
-        name: Author of the build pipeline
-        type: Human
-
-  - id: OSSF.SCORECARD.ENGINE.THR13
-    title: Attestation Signing Key Is Exposed
-    description: |
-      PGP and PKIX signing keys are read from files, and a PGP passphrase can
-      be passed as a command-line flag, where process listings or build logs
-      can capture it. Anyone holding the key can sign attestations for any
-      image. Cloud KMS keys keep the key material out of the process.
-    group: information-disclosure
-    capabilities:
-      - reference-id: OSSF.SCORECARD.ENGINE.CAPS
-        entries:
-          - reference-id: OSSF.SCORECARD.ENGINE.CAP11

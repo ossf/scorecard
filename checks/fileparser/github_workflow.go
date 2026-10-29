@@ -305,7 +305,8 @@ func IsWorkflowFile(pathfn string) bool {
 	switch path.Ext(pathfn) {
 	case ".yml", ".yaml":
 		// pathfn is a repo-relative path and always uses "/" as a separator,
-		// regardless of the host OS, so use "path" (not "path/filepath") here.
+		// regardless of the host OS, so path.Dir (not filepath.Dir, which is
+		// OS-specific and would use "\" on Windows) must be used here.
 		return path.Dir(strings.ToLower(pathfn)) == ".github/workflows"
 	default:
 		return false

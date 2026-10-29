@@ -29,6 +29,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
+	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/dotnet/csproj"
@@ -719,10 +720,11 @@ func collectGitHubActionsWorkflowPinning(c *checker.CheckRequest, r *checker.Pin
 		return err
 	}
 
+	cache := &immutableReleaseCache{results: map[immutableReleaseCacheKey]bool{}}
 	err = fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: true,
-	}, validateGitHubActionWorkflow, r, lf)
+	}, validateGitHubActionWorkflow, r, c, cache, lf)
 	if err != nil {
 		return err
 	}
@@ -812,6 +814,35 @@ func applyWorkflowPinningRemediations(rm *remediation.RemediationMetadata, d []c
 	}
 }
 
+// immutableReleaseCacheKey identifies a single owner/repo/tag release lookup.
+type immutableReleaseCacheKey struct {
+	owner, repo, tag string
+}
+
+// immutableReleaseCache memoizes IsReleaseImmutable results for the duration
+// of a single PinningDependencies scan, so that repeated `uses:` references
+// to the same release (common across many workflow files) only trigger one
+// API call. It's only safe for sequential use, which matches how
+// fileparser.OnMatchingFileContentDo iterates over files.
+type immutableReleaseCache struct {
+	results map[immutableReleaseCacheKey]bool
+}
+
+func (cache *immutableReleaseCache) get(owner, repo, tag string) (immutable, ok bool) {
+	if cache == nil {
+		return false, false
+	}
+	immutable, ok = cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}]
+	return immutable, ok
+}
+
+func (cache *immutableReleaseCache) set(owner, repo, tag string, immutable bool) {
+	if cache == nil {
+		return
+	}
+	cache.results[immutableReleaseCacheKey{owner: owner, repo: repo, tag: tag}] = immutable
+}
+
 // validateGitHubActionWorkflow checks if the workflow file contains unpinned actions. Returns true if the check
 // should continue executing after this file.
 var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
@@ -823,12 +854,20 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 		return true, nil
 	}
 
-	if len(args) != 2 {
+	if len(args) != 4 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflow requires exactly 2 arguments: got %v: %w", len(args), errInvalidArgLength)
+			"validateGitHubActionWorkflow requires exactly 4 arguments: got %v: %w", len(args), errInvalidArgLength)
 	}
 	pdata := dataAsPinnedDependenciesPointer(args[0])
-	lf, ok := args[1].(*lockfile.File)
+	c, ok := args[1].(*checker.CheckRequest)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *checker.CheckRequest for arg 1")
+	}
+	cache, ok := args[2].(*immutableReleaseCache)
+	if !ok {
+		return false, sce.WithMessage(sce.ErrScorecardInternal, "expected *immutableReleaseCache for arg 2")
+	}
+	lf, ok := args[3].(*lockfile.File)
 	if !ok {
 		lf = nil
 	}
@@ -851,7 +890,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 
 		if job.WorkflowCall != nil && job.WorkflowCall.Uses != nil {
 			if !isSameRepositoryReference(job.WorkflowCall.Uses.Value) {
-				dep := newGHActionDependency(job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line, lf)
+				dep := newGHActionDependency(c, cache, job.WorkflowCall.Uses.Value, pathfn, job.WorkflowCall.Uses.Pos.Line, lf)
 				pdata.Dependencies = append(pdata.Dependencies, dep)
 			}
 		}
@@ -876,7 +915,7 @@ var validateGitHubActionWorkflow fileparser.DoWhileTrueOnFileContent = func(
 			if isSameRepositoryReference(execAction.Uses.Value) {
 				continue
 			}
-			dep := newGHActionDependency(execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line, lf)
+			dep := newGHActionDependency(c, cache, execAction.Uses.Value, pathfn, execAction.Uses.Pos.Line, lf)
 			pdata.Dependencies = append(pdata.Dependencies, dep)
 		}
 	}
@@ -888,7 +927,9 @@ func isSameRepositoryReference(uses string) bool {
 	return strings.HasPrefix(uses, "./") || strings.HasPrefix(uses, "$/")
 }
 
-func newGHActionDependency(uses, pathfn string, line int, lf *lockfile.File) checker.Dependency {
+func newGHActionDependency(
+	c *checker.CheckRequest, cache *immutableReleaseCache, uses, pathfn string, line int, lf *lockfile.File,
+) checker.Dependency {
 	dep := checker.Dependency{
 		Location: &checker.File{
 			Path:      pathfn,
@@ -897,7 +938,7 @@ func newGHActionDependency(uses, pathfn string, line int, lf *lockfile.File) che
 			EndOffset: uint(line), // `Uses` always span a single line.
 			Snippet:   uses,
 		},
-		Pinned: asBoolPointer(isActionDependencyPinned(uses, pathfn, lf)),
+		Pinned: asBoolPointer(isActionDependencyPinned(c, cache, uses, pathfn, lf)),
 		Type:   checker.DependencyUseTypeGHAction,
 	}
 	parts := strings.SplitN(uses, "@", 2)
@@ -910,13 +951,10 @@ func newGHActionDependency(uses, pathfn string, line int, lf *lockfile.File) che
 	return dep
 }
 
-func isActionDependencyPinned(actionUses, pathfn string, lf *lockfile.File) bool {
+func isActionDependencyPinned(
+	c *checker.CheckRequest, cache *immutableReleaseCache, actionUses, pathfn string, lf *lockfile.File,
+) bool {
 	if isSameRepositoryReference(actionUses) {
-		return true
-	}
-
-	localActionRegex := regexp.MustCompile(`^\..+[^/]`)
-	if localActionRegex.MatchString(actionUses) {
 		return true
 	}
 
@@ -930,7 +968,11 @@ func isActionDependencyPinned(actionUses, pathfn string, lf *lockfile.File) bool
 		return true
 	}
 
-	return isActionPinnedByLockfile(actionUses, pathfn, lf)
+	if isActionPinnedByLockfile(actionUses, pathfn, lf) {
+		return true
+	}
+
+	return isActionPinnedByImmutableRelease(c, cache, actionUses)
 }
 
 // isActionPinnedByLockfile reports whether actionUses is recorded as a pin for
@@ -984,4 +1026,68 @@ func actionLockfileKey(actionUses string) (string, bool) {
 	}
 
 	return lockfile.IndexKey(parts[0], parts[1], ref), true
+}
+
+// isActionPinnedByImmutableRelease reports whether actionUses references a
+// tag that corresponds to a published GitHub release with the
+// `immutable: true` flag set. GitHub guarantees that the tag, and therefore
+// the code delivered to consumers, cannot change once such a release is
+// published, so referencing it is equivalent to pinning by full commit SHA.
+// See "Using immutable releases and tags to manage your action's releases" in the GitHub Actions docs.
+//
+// Successful lookups are memoized in cache by (owner, repo, tag), since the
+// same release is frequently referenced from many workflow files in a scan.
+func isActionPinnedByImmutableRelease(c *checker.CheckRequest, cache *immutableReleaseCache, actionUses string) bool {
+	if c == nil || c.RepoClient == nil {
+		return false
+	}
+
+	owner, repo, tag, ok := parseActionOwnerRepoTag(actionUses)
+	if !ok {
+		return false
+	}
+
+	if immutable, ok := cache.get(owner, repo, tag); ok {
+		return immutable
+	}
+
+	immutable, err := c.RepoClient.IsReleaseImmutable(owner, repo, tag)
+	if err != nil {
+		if errors.Is(err, clients.ErrUnsupportedFeature) {
+			return false
+		}
+		if c.Dlogger != nil {
+			c.Dlogger.Debug(&checker.LogMessage{
+				Text: fmt.Sprintf("unable to check release immutability for %v: %v", actionUses, err),
+			})
+		}
+		return false
+	}
+	cache.set(owner, repo, tag, immutable)
+	return immutable
+}
+
+// parseActionOwnerRepoTag extracts the owner, repo, and ref (tag) from a
+// workflow `uses:` value of the form `owner/repo[/subpath]@ref`. It returns
+// ok=false for values that aren't of this shape (e.g. local/self-repo
+// actions, or Docker references), or where ref looks like a commit SHA
+// rather than a tag.
+func parseActionOwnerRepoTag(actionUses string) (owner, repo, tag string, ok bool) {
+	atIdx := strings.IndexByte(actionUses, '@')
+	if atIdx <= 0 || atIdx == len(actionUses)-1 {
+		return "", "", "", false
+	}
+	repoPath := actionUses[:atIdx]
+	ref := actionUses[atIdx+1:]
+
+	if strings.HasPrefix(repoPath, "docker://") {
+		return "", "", "", false
+	}
+
+	parts := strings.SplitN(repoPath, "/", 3)
+	if len(parts) < 2 || parts[0] == "" || parts[1] == "" {
+		return "", "", "", false
+	}
+
+	return parts[0], parts[1], ref, true
 }
