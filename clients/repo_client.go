@@ -32,6 +32,12 @@ var ErrUnsupportedFeature = errors.New("unsupported feature")
 // full, non-zero commit hash.
 var ErrInvalidCommitSHA = errors.New("invalid commit SHA")
 
+// ErrCommitSearchUnprocessable indicates the commit search API rejected an otherwise
+// valid query with a 422 Unprocessable Entity response, e.g. because the repo isn't
+// indexed by GitHub search yet. Callers can choose to treat this like missing data
+// rather than a hard failure.
+var ErrCommitSearchUnprocessable = errors.New("commit search unprocessable")
+
 // HeadSHA is default commitSHA value used to denote git HEAD.
 const HeadSHA = "HEAD"
 
