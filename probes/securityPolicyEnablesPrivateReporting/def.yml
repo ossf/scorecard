@@ -1,0 +1,42 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: securityPolicyEnablesPrivateReporting
+lifecycle: experimental
+short: Check whether the repository accepts private vulnerability reports.
+motivation: >
+  Private vulnerability reporting lets a researcher disclose a bug without opening a public issue.
+  On GitHub this is a repository setting, separate from the text of SECURITY.md.
+implementation: >
+  The implementation calls the host API for private vulnerability reporting.
+  GitHub is GET /repos/{owner}/{repo}/private-vulnerability-reporting.
+  Other hosts, and a failed lookup, produce OutcomeNotApplicable and do not change the score.
+outcome:
+  - If private vulnerability reporting is enabled, one finding with OutcomeTrue is returned.
+  - If it is disabled, one finding with OutcomeFalse is returned.
+  - If the host does not expose the setting, or the lookup fails, one finding with OutcomeNotApplicable is returned.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Enable private vulnerability reporting in the repository settings.
+    - GitHub documents the setting at https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository
+  markdown:
+    - Enable private vulnerability reporting in the repository settings.
+    - 'GitHub: [configuring private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository).'
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github

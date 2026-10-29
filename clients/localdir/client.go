@@ -243,6 +243,11 @@ func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, fmt.Errorf("ListWebhooks: %w", clients.ErrUnsupportedFeature)
 }
 
+// PrivateVulnerabilityReportingEnabled implements RepoClient.PrivateVulnerabilityReportingEnabled.
+func (client *Client) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, fmt.Errorf("PrivateVulnerabilityReportingEnabled: %w", clients.ErrUnsupportedFeature)
+}
+
 // Search implements RepoClient.Search.
 func (client *Client) Search(request clients.SearchRequest) (clients.SearchResponse, error) {
 	return clients.SearchResponse{}, fmt.Errorf("Search: %w", clients.ErrUnsupportedFeature)

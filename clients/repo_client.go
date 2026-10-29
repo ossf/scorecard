@@ -82,6 +82,10 @@ type RepoClient interface {
 	ListCheckRunsForRef(ref string) ([]CheckRun, error)
 	ListStatuses(ref string) ([]Status, error)
 	ListWebhooks() ([]Webhook, error)
+	// PrivateVulnerabilityReportingEnabled reports whether the host accepts
+	// private vulnerability reports for this repository.
+	// Hosts without the feature return ErrUnsupportedFeature.
+	PrivateVulnerabilityReportingEnabled() (bool, error)
 	ListProgrammingLanguages() ([]Language, error)
 	Search(request SearchRequest) (SearchResponse, error)
 	SearchCommits(request SearchCommitsOptions) ([]Commit, error)

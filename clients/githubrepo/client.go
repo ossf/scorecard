@@ -39,6 +39,7 @@ var (
 	_                     clients.RepoClient = &Client{}
 	errInputRepoType                         = errors.New("input repo should be of type repoURL")
 	errDefaultBranchEmpty                    = errors.New("default branch name is empty")
+	errRepoNotInitialized                    = errors.New("repository is not initialized")
 )
 
 type Option func(*repoClientConfig) error
@@ -304,6 +305,19 @@ func (client *Client) GetOrgRepoClient(ctx context.Context) (clients.RepoClient,
 // ListWebhooks implements RepoClient.ListWebhooks.
 func (client *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return client.webhook.listWebhooks()
+}
+
+// PrivateVulnerabilityReportingEnabled implements RepoClient.PrivateVulnerabilityReportingEnabled.
+func (client *Client) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	if client.repourl == nil {
+		return false, fmt.Errorf("%w", errRepoNotInitialized)
+	}
+	enabled, _, err := client.repoClient.Repositories.IsPrivateReportingEnabled(
+		client.ctx, client.repourl.owner, client.repourl.repo)
+	if err != nil {
+		return false, fmt.Errorf("private vulnerability reporting: %w", err)
+	}
+	return enabled, nil
 }
 
 // ListSuccessfulWorkflowRuns implements RepoClient.WorkflowRunsByFilename.

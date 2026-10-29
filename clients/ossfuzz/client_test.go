@@ -334,6 +334,17 @@ func TestAllClientMethods(t *testing.T) {
 		}
 	}
 
+	// Test PrivateVulnerabilityReportingEnabled
+	{
+		enabled, err := c.PrivateVulnerabilityReportingEnabled()
+		if enabled {
+			t.Errorf("PrivateVulnerabilityReportingEnabled: expected false")
+		}
+		if !errors.Is(err, clients.ErrUnsupportedFeature) {
+			t.Errorf("PrivateVulnerabilityReportingEnabled: Expected %v, but got %v", clients.ErrUnsupportedFeature, err)
+		}
+	}
+
 	// Test SearchCommits
 	{
 		_, err := c.SearchCommits(clients.SearchCommitsOptions{})

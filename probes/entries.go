@@ -60,6 +60,7 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyEnablesPrivateReporting"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 	"github.com/ossf/scorecard/v5/probes/testsRunInCI"
 	"github.com/ossf/scorecard/v5/probes/topLevelPermissions"
@@ -83,6 +84,7 @@ var (
 		securityPolicyContainsLinks.Run,
 		securityPolicyContainsVulnerabilityDisclosure.Run,
 		securityPolicyContainsText.Run,
+		securityPolicyEnablesPrivateReporting.Run,
 	}
 	// DependencyToolUpdates is all the probes for the
 	// DependencyUpdateTool check.
