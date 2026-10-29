@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
 func Test_Run(t *testing.T) {
@@ -59,6 +60,22 @@ func Test_Run(t *testing.T) {
 			outcomes: []finding.Outcome{
 				finding.OutcomeFalse,
 			},
+		},
+		{
+			name: "nil raw results",
+			raw:  nil,
+			err:  uerror.ErrNil,
+		},
+		{
+			name: "missing vulnerability ID",
+			raw: &checker.RawResults{
+				VulnerabilitiesResults: checker.VulnerabilitiesData{
+					Vulnerabilities: []clients.Vulnerability{
+						{Aliases: []string{"CVE-2025-0001"}},
+					},
+				},
+			},
+			err: errNoVulnID,
 		},
 	}
 	for _, tt := range tests {
