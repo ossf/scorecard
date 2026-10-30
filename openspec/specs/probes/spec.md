@@ -161,10 +161,9 @@ implementation and the checks whose raw data it needs, or as an independent
 probe with an implementation that takes the scan request. Registration SHALL
 fail if the name is empty, no implementation is given, or a raw-data probe
 lists no required checks. Looking up a name that is not registered SHALL fail
-with a "probe not found" error. Exactly three probes,
+with a "probe not found" error. All probes declared for checks, including
 `hasNoGitHubWorkflowPermissionUnknown`, `jobLevelPermissions`, and
-`topLevelPermissions`, SHALL NOT be registered; they run only inside the
-Token-Permissions check.
+`topLevelPermissions`, SHALL be registered.
 
 #### Scenario: Probe declares its raw data
 
@@ -236,7 +235,7 @@ registered probes (see Probe Registration) can be run this way. An unknown probe
 name SHALL fail the run with
 `getting probe "<name>": internal error: probe "<name>" not found`. When a
 probe implementation returns an error, the system SHALL end the run with
-`internal error: ending run`, without reporting the probe name or the cause.
+an internal error naming the probe and the underlying cause.
 Raw data collected this way SHALL not require `SCORECARD_EXPERIMENTAL`, and
 Packaging raw data SHALL only be available for GitHub and GitLab repositories.
 
@@ -257,8 +256,7 @@ Packaging raw data SHALL only be available for GitHub and GitLab repositories.
 
 - **GIVEN** a named probe whose implementation returns an error
 - **WHEN** the probes run
-- **THEN** the run fails with `internal error: ending run`
-- **AND** the error names neither the probe nor the cause
+- **THEN** the run fails with an internal error naming the probe and the cause
 
 #### Scenario: Packaging probe on a local directory
 
