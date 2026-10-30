@@ -125,3 +125,21 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 		})
 	}
 }
+
+func TestGetRemoteURLTokenOnlyForGitHubAPI(t *testing.T) {
+	t.Setenv("GITHUB_AUTH_TOKEN", "secret")
+	var got string
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		got = r.Header.Get("Authorization")
+	}))
+	defer srv.Close()
+	// URL contains the string "api.github.com" but the host is not GitHub.
+	resp, err := (&PackageManagerClient{}).getRemoteURL(srv.URL + "/?x=api.github.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if got != "" {
+		t.Errorf("token leaked to non-GitHub host: %q", got)
+	}
+}
