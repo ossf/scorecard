@@ -15,11 +15,14 @@
 package gitlabrepo
 
 import (
+	"errors"
 	"net/http"
 	"sync"
 	"testing"
 
 	gitlab "gitlab.com/gitlab-org/api/client-go"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func TestGetBranches(t *testing.T) {
@@ -126,6 +129,158 @@ func TestGetBranches(t *testing.T) {
 
 			if actualBool != expectedBool {
 				t.Errorf("Branch Protection didn't match expectation")
+			}
+		})
+	}
+}
+
+func Test_branchesHandler_setup_nil_response(t *testing.T) {
+	t.Parallel()
+
+	errNetwork := errors.New("network timeout")
+
+	//nolint:govet
+	tests := []struct {
+		name               string
+		getProtectedBranch fnProtectedBranch
+		getProjectChecks   fnListProjectStatusChecks
+		getApprovalConfig  fnGetApprovalConfiguration
+		expectErr          bool
+	}{
+		{
+			name:      "nil response on getProtectedBranch",
+			expectErr: true,
+			getProtectedBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error) {
+				return nil, nil, errNetwork
+			},
+		},
+		{
+			name:      "forbidden response on getProtectedBranch",
+			expectErr: true,
+			getProtectedBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusForbidden}}, errors.New("forbidden")
+			},
+		},
+		{
+			name:      "nil response on getProjectChecks",
+			expectErr: true,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, nil, errNetwork
+			},
+		},
+		{
+			name:      "nil response on getApprovalConfiguration",
+			expectErr: true,
+			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
+				return nil, nil, errNetwork
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := branchesHandler{
+				once: new(sync.Once),
+				repourl: &Repo{
+					projectID: "5000",
+					commitSHA: clients.HeadSHA,
+				},
+				queryProject: func(pid interface{}, opt *gitlab.GetProjectOptions, options ...gitlab.RequestOptionFunc) (*gitlab.Project, *gitlab.Response, error) {
+					return &gitlab.Project{DefaultBranch: "main"}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				queryBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.Branch, *gitlab.Response, error) {
+					return &gitlab.Branch{Name: "main", Protected: true}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getProtectedBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error) {
+					if tt.getProtectedBranch != nil {
+						return tt.getProtectedBranch(pid, branch, options...)
+					}
+					return &gitlab.ProtectedBranch{Name: "main"}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+					if tt.getProjectChecks != nil {
+						return tt.getProjectChecks(pid, opt, options...)
+					}
+					return []*gitlab.ProjectStatusCheck{}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getApprovalConfiguration: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
+					if tt.getApprovalConfig != nil {
+						return tt.getApprovalConfig(pid, options...)
+					}
+					return &gitlab.ProjectApprovals{}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+			}
+
+			// Should not panic on nil response and should match expected error status
+			err := handler.setup()
+			if (err != nil) != tt.expectErr {
+				t.Errorf("handler.setup() error = %v, expectErr = %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
+	t.Parallel()
+
+	errNetwork := errors.New("network timeout")
+
+	//nolint:govet
+	tests := []struct {
+		name              string
+		getProjectChecks  fnListProjectStatusChecks
+		getApprovalConfig fnGetApprovalConfiguration
+	}{
+		{
+			name: "nil response on getProjectChecks in getBranch",
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, nil, errNetwork
+			},
+		},
+		{
+			name: "nil response on getApprovalConfiguration in getBranch",
+			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
+				return nil, nil, errNetwork
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := branchesHandler{
+				once: new(sync.Once),
+				repourl: &Repo{
+					projectID: "5000",
+					commitSHA: clients.HeadSHA,
+				},
+				queryBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.Branch, *gitlab.Response, error) {
+					return &gitlab.Branch{Name: "main", Protected: true}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getProtectedBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error) {
+					return &gitlab.ProtectedBranch{Name: "main"}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+					if tt.getProjectChecks != nil {
+						return tt.getProjectChecks(pid, opt, options...)
+					}
+					return []*gitlab.ProjectStatusCheck{}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+				getApprovalConfiguration: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
+					if tt.getApprovalConfig != nil {
+						return tt.getApprovalConfig(pid, options...)
+					}
+					return &gitlab.ProjectApprovals{}, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusOK}}, nil
+				},
+			}
+			handler.once.Do(func() {})
+
+			// Should not panic on nil response and should return an error
+			if _, err := handler.getBranch("main"); err == nil {
+				t.Errorf("expected error on nil response in getBranch, got nil")
 			}
 		})
 	}

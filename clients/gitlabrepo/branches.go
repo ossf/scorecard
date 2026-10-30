@@ -85,22 +85,24 @@ func (handler *branchesHandler) setup() error {
 		if branch.Protected {
 			protectedBranch, resp, err := handler.getProtectedBranch(
 				handler.repourl.projectID, branch.Name)
-			if err != nil && resp.StatusCode != http.StatusForbidden {
-				handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
-				return
-			} else if resp.StatusCode == http.StatusForbidden {
-				handler.errSetup = fmt.Errorf("incorrect permissions to fully check branch protection %w", err)
+			if err != nil {
+				if resp != nil && resp.StatusCode == http.StatusForbidden {
+					handler.errSetup = fmt.Errorf("incorrect permissions to fully check branch protection %w", err)
+				} else {
+					handler.errSetup = fmt.Errorf("request for protected branch failed with error %w", err)
+				}
 				return
 			}
 
 			projectStatusChecks, resp, err := handler.getProjectChecks(handler.repourl.projectID, &gitlab.ListOptions{})
 
-			if resp.StatusCode != http.StatusOK || err != nil {
+			if err != nil || (resp != nil && resp.StatusCode != http.StatusOK) {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
+				return
 			}
 
 			projectApprovalRule, resp, err := handler.getApprovalConfiguration(handler.repourl.projectID)
-			if err != nil && resp.StatusCode != http.StatusNotFound {
+			if err != nil && (resp == nil || resp.StatusCode != http.StatusNotFound) {
 				handler.errSetup = fmt.Errorf("request for project approval rule failed with %w", err)
 				return
 			}
@@ -151,12 +153,12 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 		projectStatusChecks, resp, err := handler.getProjectChecks(
 			handler.repourl.projectID, &gitlab.ListOptions{})
-		if err != nil && resp.StatusCode != http.StatusNotFound {
+		if err != nil && (resp == nil || resp.StatusCode != http.StatusNotFound) {
 			return nil, fmt.Errorf("request for external status checks failed with error %w", err)
 		}
 
 		projectApprovalRule, resp, err := handler.getApprovalConfiguration(handler.repourl.projectID)
-		if err != nil && resp.StatusCode != http.StatusNotFound {
+		if err != nil && (resp == nil || resp.StatusCode != http.StatusNotFound) {
 			return nil, fmt.Errorf("request for project approval rule failed with %w", err)
 		}
 
