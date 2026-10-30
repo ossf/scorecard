@@ -146,6 +146,41 @@ func TestUntrustedContextVariables(t *testing.T) {
 	}
 }
 
+func TestUntrustedCheckoutExpressions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		ref      string
+		repo     string
+		expected bool
+	}{
+		{name: "head sha", ref: "${{ github.event.pull_request.head.sha }}", expected: true},
+		{name: "head ref", ref: "${{ github.event.pull_request.head.ref }}", expected: true},
+		{name: "head ref shorthand", ref: "${{ github.head_ref }}", expected: true},
+		{name: "refs pull merge", ref: "refs/pull/${{ github.event.number }}/merge", expected: true},
+		{name: "workflow run", ref: "${{ github.event.workflow_run }}", expected: true},
+		{name: "base sha", ref: "${{ github.event.pull_request.base.sha }}", expected: false},
+		{name: "base branch", ref: "refs/heads/main", expected: false},
+		{name: "fork repository input", repo: "${{ github.event.pull_request.head.repo.full_name }}", expected: true},
+		{name: "base repository input", repo: "${{ github.repository }}", expected: false},
+		{
+			name:     "base repository input long form",
+			repo:     "${{ github.event.pull_request.base.repo.full_name }}",
+			expected: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := isUntrustedCheckoutRef(tt.ref) || isUntrustedCheckoutRepository(tt.repo)
+			if got != tt.expected {
+				t.Errorf("expected %t, got %t", tt.expected, got)
+			}
+		})
+	}
+}
+
 func TestGithubDangerousWorkflow(t *testing.T) {
 	t.Parallel()
 
@@ -176,6 +211,21 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run trusted code checkout test",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-checkout.yml",
+			expected: ret{nb: 0},
+		},
+		{
+			name:     "run untrusted code checkout through the repository input",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-repository.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run untrusted code checkout through refs/pull",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-pull-ref.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run trusted base checkout with base sha and github.repository",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-checkout-base.yml",
 			expected: ret{nb: 0},
 		},
 		{
