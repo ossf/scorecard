@@ -37,6 +37,8 @@ var (
 	ErrJobOSParsing = errors.New("error parsing job operating system")
 	// ErrUnsupportedCheck indicates check cannot be run for given request.
 	ErrUnsupportedCheck = errors.New("check is not supported for this request")
+	// ErrInvalidCheck indicates the requested check name is unknown or misspelled.
+	ErrInvalidCheck = errors.New("invalid check name")
 	// ErrCheckRuntime indicates an individual check had a runtime error.
 	ErrCheckRuntime = errors.New("check runtime error")
 )

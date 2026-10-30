@@ -162,7 +162,7 @@ func rootCmd(o *options.Options) error {
 	// more concerned with the supported request types
 	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes, "")
 	if err != nil {
-		return fmt.Errorf("GetEnabled: %w", err)
+		return err
 	}
 	checks := make([]string, 0, len(enabledChecks))
 	for c := range enabledChecks {
