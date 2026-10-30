@@ -41,15 +41,16 @@ type Options struct {
 	PyPI            string
 	RubyGems        string
 	Nuget           string
-	PolicyFile      string
-	ResultsFile     string
-	FileMode        string
-	ChecksToRun     []string
-	ProbesToRun     []string
-	Metadata        []string
-	CommitDepth     int
-	ShowDetails     bool
-	ShowAnnotations bool
+	PolicyFile        string
+	ResultsFile       string
+	FileMode          string
+	ChecksToRun       []string
+	ProbesToRun       []string
+	Metadata          []string
+	CommitDepth       int
+	ShowDetails       bool
+	ShowAnnotations   bool
+	ResultsFileAppend bool
 	// Feature flags.
 	EnableSarif                 bool `env:"ENABLE_SARIF"`
 	EnableScorecardV6           bool `env:"SCORECARD_V6"`
