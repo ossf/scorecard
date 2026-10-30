@@ -45,9 +45,15 @@ type Option func(*repoClientConfig) error
 
 // Client is GitHub-specific implementation of RepoClient.
 type Client struct {
-	repourl       *Repo
-	repo          *github.Repository
-	repoClient    *github.Client
+	repourl    *Repo
+	repo       *github.Repository
+	repoClient *github.Client
+	// dotcomClient is a github.com-targeted REST client, only set when the
+	// primary client targets a GitHub Enterprise Server (GH_HOST). It's used
+	// as a fallback for lookups (e.g. IsReleaseImmutable) whose data may
+	// live on github.com via GitHub Connect even though scorecard itself is
+	// configured against the enterprise server.
+	dotcomClient  *github.Client
 	graphClient   *graphqlHandler
 	contributors  *contributorsHandler
 	branches      *branchesHandler
@@ -83,9 +89,20 @@ func WithRoundTripper(rt http.RoundTripper) Option {
 	}
 }
 
+// WithDotcomRoundTripper configures the http.RoundTripper used for the github.com fallback client,
+// which is only created when GH_HOST targets a GitHub Enterprise Server. It must not carry the
+// enterprise credentials; the default is an anonymous http.DefaultTransport.
+func WithDotcomRoundTripper(rt http.RoundTripper) Option {
+	return func(c *repoClientConfig) error {
+		c.dotcomRT = rt
+		return nil
+	}
+}
+
 type repoClientConfig struct {
-	rt      http.RoundTripper
-	gitMode bool
+	rt       http.RoundTripper
+	dotcomRT http.RoundTripper
+	gitMode  bool
 }
 
 const defaultGhHost = "github.com"
@@ -342,6 +359,15 @@ func CreateGithubRepoClientWithTransport(ctx context.Context, rt http.RoundTripp
 	return rc
 }
 
+// newDotcomFallbackClient returns a github.com-targeted REST client for lookups whose data may only
+// exist there even though scorecard is configured against a GitHub Enterprise Server: GitHub Connect
+// lets Actions on a GHES instance resolve `uses:` references to repositories hosted on github.com.
+// It deliberately does not reuse the configured round tripper, so the enterprise credentials are
+// never sent to github.com. A nil rt selects http.DefaultTransport.
+func newDotcomFallbackClient(rt http.RoundTripper) *github.Client {
+	return github.NewClient(&http.Client{Transport: rt})
+}
+
 // NewRepoClient returns a Client which implements RepoClient interface.
 // It can be configured with various [Option]s.
 func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, error) {
@@ -364,6 +390,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 
 	var client *github.Client
 	var graphClient *githubv4.Client
+	var dotcomClient *github.Client
 	githubHost, isGhHost := os.LookupEnv("GH_HOST")
 
 	if isGhHost && githubHost != defaultGhHost {
@@ -377,14 +404,17 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 		}
 
 		graphClient = githubv4.NewEnterpriseClient(githubGraphqlURL, httpClient)
+
+		dotcomClient = newDotcomFallbackClient(config.dotcomRT)
 	} else {
 		client = github.NewClient(httpClient)
 		graphClient = githubv4.NewClient(httpClient)
 	}
 
 	return &Client{
-		ctx:        ctx,
-		repoClient: client,
+		ctx:          ctx,
+		repoClient:   client,
+		dotcomClient: dotcomClient,
 		graphClient: &graphqlHandler{
 			client: graphClient,
 		},
