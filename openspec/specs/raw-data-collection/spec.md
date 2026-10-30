@@ -308,10 +308,20 @@ only when the analyzed commit is HEAD.
 ### Requirement: Untrusted Checkout Detection
 
 The system SHALL report an untrusted checkout for each `actions/checkout`
-step whose `ref` input contains `github.event.pull_request` or
-`github.event.workflow_run`, but only in workflows triggered by
-`pull_request_target` or `workflow_run`. Each report SHALL include the
-file, the step's line, the `ref` value, and the job.
+step that reads code the pull request or the triggering workflow run
+controls, but only in workflows triggered by `pull_request_target` or
+`workflow_run`. A step is untrusted when either:
+
+- its `ref` input contains `github.event.pull_request.head`,
+  `github.event.pull_request.merge_commit_sha`,
+  `github.event.workflow_run`, or `refs/pull/`; or
+- its `repository` input contains `github.event.pull_request.head.repo` or
+  `github.event.workflow_run.head_repository`.
+
+`github.event.pull_request.base.sha`, `github.event.pull_request.base.repo`,
+`github.repository`, and `github.head_ref` on its own all resolve to the base
+repository and SHALL NOT be reported. Each report SHALL include the file, the
+step's line, the value of the input that matched, and the job.
 
 #### Scenario: Checkout of pull request head on pull_request_target
 
@@ -320,6 +330,46 @@ file, the step's line, the `ref` value, and the job.
   `ref: ${{ github.event.pull_request.head.sha }}`
 - **WHEN** the Dangerous-Workflow raw data is collected
 - **THEN** an untrusted checkout is reported at that step
+
+#### Scenario: Checkout of the test merge commit
+
+- **GIVEN** a workflow triggered by `pull_request_target`
+- **AND** a step using `actions/checkout` with
+  `ref: ${{ github.event.pull_request.merge_commit_sha }}`
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** an untrusted checkout is reported at that step
+
+#### Scenario: Checkout of a fork through the repository input
+
+- **GIVEN** a workflow triggered by `pull_request_target`
+- **AND** a step using `actions/checkout` with
+  `repository: ${{ github.event.pull_request.head.repo.full_name }}`
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** an untrusted checkout is reported at that step
+
+#### Scenario: Checkout of a pull request ref
+
+- **GIVEN** a workflow triggered by `pull_request_target`
+- **AND** a step using `actions/checkout` with
+  `ref: refs/pull/${{ github.event.number }}/merge`
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** an untrusted checkout is reported at that step
+
+#### Scenario: Checkout of the base commit
+
+- **GIVEN** a workflow triggered by `pull_request_target`
+- **AND** a step using `actions/checkout` with
+  `ref: ${{ github.event.pull_request.base.sha }}`
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** no untrusted checkout is reported
+
+#### Scenario: Head ref without a fork repository
+
+- **GIVEN** a workflow triggered by `pull_request_target`
+- **AND** a step using `actions/checkout` with `ref: ${{ github.head_ref }}`
+  and no `repository` input
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** no untrusted checkout is reported
 
 #### Scenario: Same checkout on pull_request
 

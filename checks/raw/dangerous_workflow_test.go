@@ -157,12 +157,24 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 	}{
 		{name: "head sha", ref: "${{ github.event.pull_request.head.sha }}", expected: true},
 		{name: "head ref", ref: "${{ github.event.pull_request.head.ref }}", expected: true},
-		{name: "head ref shorthand", ref: "${{ github.head_ref }}", expected: true},
+		{name: "merge commit sha", ref: "${{ github.event.pull_request.merge_commit_sha }}", expected: true},
 		{name: "refs pull merge", ref: "refs/pull/${{ github.event.number }}/merge", expected: true},
 		{name: "workflow run", ref: "${{ github.event.workflow_run }}", expected: true},
+		{name: "head ref shorthand alone is a base branch name", ref: "${{ github.head_ref }}", expected: false},
 		{name: "base sha", ref: "${{ github.event.pull_request.base.sha }}", expected: false},
 		{name: "base branch", ref: "refs/heads/main", expected: false},
 		{name: "fork repository input", repo: "${{ github.event.pull_request.head.repo.full_name }}", expected: true},
+		{
+			name:     "fork repository input with head ref",
+			repo:     "${{ github.event.pull_request.head.repo.full_name }}",
+			ref:      "${{ github.head_ref }}",
+			expected: true,
+		},
+		{
+			name:     "workflow run head repository input",
+			repo:     "${{ github.event.workflow_run.head_repository.full_name }}",
+			expected: true,
+		},
 		{name: "base repository input", repo: "${{ github.repository }}", expected: false},
 		{
 			name:     "base repository input long form",
@@ -221,6 +233,11 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 		{
 			name:     "run untrusted code checkout through refs/pull",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-pull-ref.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run untrusted code checkout of the test merge commit",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-merge-commit.yml",
 			expected: ret{nb: 1},
 		},
 		{
