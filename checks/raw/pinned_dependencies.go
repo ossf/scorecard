@@ -155,6 +155,17 @@ func processDirectoryPropsFile(path string, content []byte, args ...interface{})
 		})
 		return true, nil
 	}
+
+	// Keep iterating when this file does not turn central package management on.
+	// The layout NuGet recommends puts Directory.Build.props, which holds shared
+	// build settings only, next to Directory.Packages.props. Both match
+	// Directory.*.props, and the first one wins the lexical order used by the
+	// tarball handler and by filepath.Walk, so stopping here would never read the
+	// file that actually declares ManagePackageVersionsCentrally.
+	if !cpmConfig.IsCPMEnabled {
+		return true, nil
+	}
+
 	pdata.CpmConfig = cpmConfig
 	return false, nil
 }
