@@ -430,6 +430,25 @@ RESULTS
 |---------|------------------------|--------------------------------|--------------------------------|---------------------------------------------------------------------------|
 ```
 
+##### Using a local repository
+
+Scorecard supports scanning repositories that have been cloned locally using the `--local` flag:
+
+```shell
+scorecard --local .
+```
+
+**Understanding local scores**
+
+The score produced by `--local` may differ from the score produced by `--repo`. This is expected because the two modes do not necessarily run the same set of checks.
+
+- `--local` runs only file-based checks that can be evaluated using the local repository.
+- `--repo` can run additional checks that require repository information available through GitHub.
+
+The aggregate score is calculated using the checks that were actually run. Therefore, scores from the two modes may differ and are not directly comparable.
+
+To compare results, use the `--checks` flag to select the same checks supported by both modes.
+
 ##### Showing Maintainers Annotations
 
 **Maintainer Annotations** let maintainers add context to display alongside Scorecard check results. Annotations can provide users additional information when Scorecard has an incomplete assessment of a project's security practices. To see the maintainers annotations for each check, use the `--show-annotations` option.
