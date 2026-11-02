@@ -1,9 +1,11 @@
 package catalog
 
 import (
+	"maps"
 	"os"
-	"regexp"
 	"testing"
+
+	"github.com/ossf/scorecard/v5/checks"
 )
 
 func TestCatalogList(t *testing.T) {
@@ -53,40 +55,24 @@ func TestCatalogExplain(t *testing.T) {
 	}
 }
 
-// TestExperimentalChecksVersionPin fails on a scorecard dependency bump, as a
-// reminder to manually re-verify the hand-maintained experimentalChecks map
-// (catalog.go) against checks/all_checks.go's getAll(). A test that diffs
-// checks.GetAllWithExperimental() against checks.GetAll() directly would
-// catch drift automatically, but importing the checks package pulls in
-// Scorecard's full client/raw-check dependency graph (git, GitHub/GitLab/
-// Azure clients, cloud storage) just for a test — not worth that cost for a
-// two-entry, rarely-changing list.
-//
-// This reads the pin straight from go.mod rather than using
-// scorecardModuleVersion() / debug.ReadBuildInfo(): build info dependency
-// lists are only populated for real `go build` binaries, not `go test`
-// binaries, so that function reliably returns "" under `go test`.
-func TestExperimentalChecksVersionPin(t *testing.T) {
-	t.Parallel()
-	const verifiedVersion = "v5.5.1-0.20260715062425-64febf8c5229"
-	if v := scorecardGoModVersion(t); v != verifiedVersion {
-		t.Fatalf("scorecard dependency is %s, last verified against %s; manually check "+
-			"experimentalChecks in catalog.go against checks/all_checks.go's getAll(), "+
-			"then update verifiedVersion here", v, verifiedVersion)
+// TestExperimentalChecksMatch diffs the hand-maintained experimentalChecks map
+// (catalog.go) against the checks package: experimental checks are those in
+// GetAllWithExperimental() but not in GetAll() when SCORECARD_EXPERIMENTAL is
+// unset.
+func TestExperimentalChecksMatch(t *testing.T) {
+	t.Setenv("SCORECARD_EXPERIMENTAL", "") // restores the original value on cleanup
+	if err := os.Unsetenv("SCORECARD_EXPERIMENTAL"); err != nil {
+		t.Fatalf("unsetting SCORECARD_EXPERIMENTAL: %v", err)
 	}
-}
 
-// scorecardGoModVersion reads the github.com/ossf/scorecard/v5 requirement
-// straight out of the repo's go.mod.
-func scorecardGoModVersion(t *testing.T) string {
-	t.Helper()
-	data, err := os.ReadFile("../../go.mod")
-	if err != nil {
-		t.Fatalf("reading go.mod: %v", err)
+	want := map[string]bool{}
+	defaults := checks.GetAll()
+	for name := range checks.GetAllWithExperimental() {
+		if _, ok := defaults[name]; !ok {
+			want[name] = true
+		}
 	}
-	m := regexp.MustCompile(`(?m)^\tgithub\.com/ossf/scorecard/v5 (\S+)`).FindSubmatch(data)
-	if m == nil {
-		t.Fatal("github.com/ossf/scorecard/v5 requirement not found in go.mod")
+	if !maps.Equal(experimentalChecks, want) {
+		t.Errorf("experimentalChecks = %v, want %v (from checks/all_checks.go)", experimentalChecks, want)
 	}
-	return string(m[1])
 }

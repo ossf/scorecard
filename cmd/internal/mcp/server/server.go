@@ -6,13 +6,15 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"sigs.k8s.io/release-utils/version"
 
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/catalog"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/provider"
 )
 
-// Version is the server version, overridable at build time via -ldflags.
-var Version = "dev"
+// Version is the server version reported to clients: the scorecard build
+// version, as printed by `scorecard version`.
+var Version = version.GetVersionInfo().GitVersion
 
 // Sentinel errors returned by tool handlers.
 var (

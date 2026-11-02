@@ -6,9 +6,10 @@ package catalog
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"sort"
 	"strings"
+
+	"sigs.k8s.io/release-utils/version"
 
 	scdocs "github.com/ossf/scorecard/v5/docs/checks"
 )
@@ -17,14 +18,9 @@ import (
 var errUnknownCheck = errors.New("unknown check")
 
 // experimentalChecks lists checks excluded from Scorecard's default set unless
-// SCORECARD_EXPERIMENTAL is set. Source of truth: ossf/scorecard
-// checks/all_checks.go (getAll deletes these). This is version-sensitive;
-// catalog_test.go's TestExperimentalChecksVersionPin fails on a scorecard
-// version bump as a reminder to re-verify this list by hand. A test that
-// diffs checks.GetAllWithExperimental() against checks.GetAll() directly
-// would catch drift automatically, but importing the checks package pulls in
-// Scorecard's full client/raw-check dependency graph just for a test — not
-// worth that cost for a two-entry, rarely-changing list.
+// SCORECARD_EXPERIMENTAL is set. Source of truth: checks/all_checks.go
+// (getAll deletes these). catalog_test.go's TestExperimentalChecksMatch diffs
+// this list against the checks package, so drift fails the build.
 var experimentalChecks = map[string]bool{
 	"Webhooks": true,
 	"SBOM":     true,
@@ -72,12 +68,12 @@ func New() (*Catalog, error) {
 	return &Catalog{
 		doc:              doc,
 		commitish:        "main",
-		scorecardVersion: scorecardModuleVersion(),
+		scorecardVersion: version.GetVersionInfo().GitVersion,
 	}, nil
 }
 
-// ScorecardVersion returns the scorecard module version the catalog was built
-// against, or "" if unavailable.
+// ScorecardVersion returns the version of the scorecard build the catalog is
+// part of, as printed by `scorecard version`.
 func (c *Catalog) ScorecardVersion() string { return c.scorecardVersion }
 
 // List returns all documented checks, sorted by name.
@@ -153,17 +149,4 @@ func normalizeTags(tags []string) []string {
 		}
 	}
 	return out
-}
-
-func scorecardModuleVersion() string {
-	bi, ok := debug.ReadBuildInfo()
-	if !ok {
-		return ""
-	}
-	for _, d := range bi.Deps {
-		if d.Path == "github.com/ossf/scorecard/v5" {
-			return d.Version
-		}
-	}
-	return ""
 }
