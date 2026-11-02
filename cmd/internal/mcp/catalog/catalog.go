@@ -35,9 +35,9 @@ type CheckInfo struct {
 	Name               string   `json:"name"`
 	Short              string   `json:"short,omitempty"`
 	Risk               string   `json:"risk,omitempty" jsonschema:"risk level: Critical, High, Medium, or Low"`
+	DocumentationURL   string   `json:"documentation_url,omitempty"`
 	Tags               []string `json:"tags,omitempty"`
 	SupportedPlatforms []string `json:"supported_platforms,omitempty"`
-	DocumentationURL   string   `json:"documentation_url,omitempty"`
 	Experimental       bool     `json:"experimental" jsonschema:"experimental (off by default in Scorecard)"`
 }
 
@@ -48,12 +48,12 @@ type CheckDetail struct {
 	Name               string   `json:"name"`
 	Short              string   `json:"short,omitempty"`
 	Risk               string   `json:"risk,omitempty" jsonschema:"risk level: Critical, High, Medium, or Low"`
+	DocumentationURL   string   `json:"documentation_url,omitempty"`
+	Description        string   `json:"description,omitempty"`
 	Tags               []string `json:"tags,omitempty"`
 	SupportedPlatforms []string `json:"supported_platforms,omitempty"`
-	DocumentationURL   string   `json:"documentation_url,omitempty"`
-	Experimental       bool     `json:"experimental"`
-	Description        string   `json:"description,omitempty"`
 	Remediation        []string `json:"remediation,omitempty"`
+	Experimental       bool     `json:"experimental"`
 }
 
 // Catalog provides offline access to Scorecard check documentation.

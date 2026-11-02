@@ -30,8 +30,8 @@ var cachedCaveats = []string{
 
 // CachedRESTProvider reads pre-computed results from the public Scorecard REST API.
 type CachedRESTProvider struct {
-	BaseURL string
 	Client  *http.Client
+	BaseURL string
 }
 
 // Compile-time check that CachedRESTProvider implements Provider.
@@ -60,7 +60,6 @@ func (p *CachedRESTProvider) Capabilities() Capabilities {
 
 // restResult mirrors the api.scorecard.dev getResult response body.
 type restResult struct {
-	Date string `json:"date"`
 	Repo struct {
 		Name   string `json:"name"`
 		Commit string `json:"commit"`
@@ -69,17 +68,18 @@ type restResult struct {
 		Version string `json:"version"`
 		Commit  string `json:"commit"`
 	} `json:"scorecard"`
-	Score  float64 `json:"score"`
+	Date   string `json:"date"`
 	Checks []struct {
-		Name          string   `json:"name"`
-		Score         int      `json:"score"`
-		Reason        string   `json:"reason"`
-		Details       []string `json:"details"`
 		Documentation *struct {
 			Short string `json:"short"`
 			URL   string `json:"url"`
 		} `json:"documentation"`
+		Name    string   `json:"name"`
+		Reason  string   `json:"reason"`
+		Details []string `json:"details"`
+		Score   int      `json:"score"`
 	} `json:"checks"`
+	Score float64 `json:"score"`
 }
 
 // GetResult implements Provider by querying the cached REST API.

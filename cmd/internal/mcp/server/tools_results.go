@@ -65,20 +65,20 @@ type getRepoScoreInput struct {
 
 type checkSummary struct {
 	Name   string `json:"name"`
-	Score  int    `json:"score" jsonschema:"score 0-10, or -1 for inconclusive"`
 	Reason string `json:"reason,omitempty"`
+	Score  int    `json:"score" jsonschema:"score 0-10, or -1 for inconclusive"`
 }
 
 type repoScoreOutput struct {
+	Attribution *model.Attribution  `json:"attribution,omitempty"`
 	Repo        model.RepoRef       `json:"repo"`
+	Scorecard   model.ScorecardInfo `json:"scorecard"`
 	Commit      string              `json:"commit,omitempty" jsonschema:"resolved commit SHA of the results"`
 	Date        string              `json:"date,omitempty" jsonschema:"when the scan was generated (RFC3339)"`
-	Scorecard   model.ScorecardInfo `json:"scorecard"`
 	Source      model.Source        `json:"source" jsonschema:"which provider produced the result"`
-	Score       float64             `json:"score" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
 	Checks      []checkSummary      `json:"checks"`
 	Caveats     []string            `json:"caveats,omitempty"`
-	Attribution *model.Attribution  `json:"attribution,omitempty"`
+	Score       float64             `json:"score" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
 	Complete    bool                `json:"complete" jsonschema:"whether all checks are present (false for cached)"`
 }
 
@@ -98,24 +98,24 @@ type getCheckResultInput struct {
 // keeps returning the fullest result it can (preserving darnit's full-JSON
 // contract).
 type checkDetail struct {
+	Documentation    *model.Documentation `json:"documentation,omitempty"`
 	Name             string               `json:"name"`
-	Score            int                  `json:"score" jsonschema:"score from 0-10, or -1 for inconclusive"`
 	Reason           string               `json:"reason,omitempty"`
 	Details          []string             `json:"details,omitempty"`
+	Score            int                  `json:"score" jsonschema:"score from 0-10, or -1 for inconclusive"`
 	DetailsTotal     int                  `json:"details_total" jsonschema:"number of detail lines before truncation"`
 	DetailsTruncated bool                 `json:"details_truncated" jsonschema:"true if details was capped by max_details"`
-	Documentation    *model.Documentation `json:"documentation,omitempty"`
 }
 
 type getCheckResultOutput struct {
+	Attribution *model.Attribution  `json:"attribution,omitempty"`
 	Repo        model.RepoRef       `json:"repo"`
+	Scorecard   model.ScorecardInfo `json:"scorecard"`
 	Commit      string              `json:"commit,omitempty"`
 	Date        string              `json:"date,omitempty"`
-	Scorecard   model.ScorecardInfo `json:"scorecard"`
 	Source      model.Source        `json:"source"`
-	Check       checkDetail         `json:"check"`
 	Caveats     []string            `json:"caveats,omitempty"`
-	Attribution *model.Attribution  `json:"attribution,omitempty"`
+	Check       checkDetail         `json:"check"`
 }
 
 // --- compare_repos ---
@@ -134,9 +134,9 @@ type repoComparison struct {
 }
 
 type compareReposOutput struct {
+	Note      string           `json:"note,omitempty"`
 	Results   []repoComparison `json:"results"`
 	Truncated bool             `json:"truncated" jsonschema:"true if the input list was truncated to the maximum"`
-	Note      string           `json:"note,omitempty"`
 }
 
 // registerResultTools registers the scorecard-results capability tools.
@@ -159,14 +159,14 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 	) (*mcp.CallToolResult, repoScoreOutput, error) {
 		ref, err := scorecardref.Parse(in.Repo)
 		if err != nil {
-			return nil, repoScoreOutput{}, err
+			return nil, repoScoreOutput{}, fmt.Errorf("repo: %w", err)
 		}
 		if err := scorecardref.ValidateCommit(in.Commit); err != nil {
-			return nil, repoScoreOutput{}, err
+			return nil, repoScoreOutput{}, fmt.Errorf("commit: %w", err)
 		}
 		res, err := p.GetResult(ctx, ref, in.Commit)
 		if err != nil {
-			return nil, repoScoreOutput{}, err
+			return nil, repoScoreOutput{}, fmt.Errorf("fetching results: %w", err)
 		}
 		return nil, toRepoScore(res), nil
 	})
@@ -189,17 +189,17 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 	) (*mcp.CallToolResult, getCheckResultOutput, error) {
 		ref, err := scorecardref.Parse(in.Repo)
 		if err != nil {
-			return nil, getCheckResultOutput{}, err
+			return nil, getCheckResultOutput{}, fmt.Errorf("repo: %w", err)
 		}
 		if err := scorecardref.ValidateCommit(in.Commit); err != nil {
-			return nil, getCheckResultOutput{}, err
+			return nil, getCheckResultOutput{}, fmt.Errorf("commit: %w", err)
 		}
 		if in.Check == "" {
 			return nil, getCheckResultOutput{}, errCheckRequired
 		}
 		res, err := p.GetResult(ctx, ref, in.Commit)
 		if err != nil {
-			return nil, getCheckResultOutput{}, err
+			return nil, getCheckResultOutput{}, fmt.Errorf("fetching results: %w", err)
 		}
 		c, ok := res.FindCheck(in.Check)
 		if !ok {

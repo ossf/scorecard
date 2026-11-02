@@ -37,11 +37,11 @@ type Documentation struct {
 // Check is a single Scorecard check result. A Score of -1
 // (InconclusiveScore) means the check could not be evaluated.
 type Check struct {
+	Documentation *Documentation `json:"documentation,omitempty"`
 	Name          string         `json:"name"`
-	Score         int            `json:"score" jsonschema:"score from 0-10, or -1 for inconclusive"`
 	Reason        string         `json:"reason,omitempty"`
 	Details       []string       `json:"details,omitempty"`
-	Documentation *Documentation `json:"documentation,omitempty"`
+	Score         int            `json:"score" jsonschema:"score from 0-10, or -1 for inconclusive"`
 }
 
 // ScorecardInfo records the Scorecard tool version that produced a Result.
@@ -59,16 +59,16 @@ type Attribution struct {
 // Result is a Scorecard result with provenance and caveats attached. A Score of
 // -1 (InconclusiveScore) means the aggregate could not be evaluated.
 type Result struct {
+	Attribution *Attribution  `json:"attribution,omitempty"`
 	Repo        RepoRef       `json:"repo"`
+	Scorecard   ScorecardInfo `json:"scorecard"`
 	Commit      string        `json:"commit,omitempty"`
 	Date        string        `json:"date,omitempty"`
-	Scorecard   ScorecardInfo `json:"scorecard"`
 	Source      Source        `json:"source"`
-	Score       float64       `json:"score"`
 	Checks      []Check       `json:"checks"`
 	Caveats     []string      `json:"caveats,omitempty"`
-	Attribution *Attribution  `json:"attribution,omitempty"`
 	Annotations []string      `json:"annotations,omitempty"`
+	Score       float64       `json:"score"`
 	Complete    bool          `json:"complete"`
 }
 
