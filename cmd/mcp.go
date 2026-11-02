@@ -46,18 +46,23 @@ API and runs no scans. MCP clients start it as a subprocess.`,
 			cmd.SilenceUsage = true
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
-
-			s, err := mcpserver.New(provider.NewCachedREST(baseURL))
-			if err != nil {
-				return fmt.Errorf("creating MCP server: %w", err)
-			}
-			if err := s.Run(ctx, &mcp.StdioTransport{}); err != nil && !errors.Is(err, context.Canceled) {
-				return fmt.Errorf("running MCP server: %w", err)
-			}
-			return nil
+			return runMCP(ctx, baseURL, &mcp.StdioTransport{})
 		},
 	}
 	cmd.Flags().StringVar(&baseURL, "base-url", os.Getenv(mcpBaseURLEnv),
 		"base URL of the Scorecard REST API (env "+mcpBaseURLEnv+"; default "+provider.DefaultRESTBaseURL+")")
 	return cmd
+}
+
+// runMCP serves the MCP server on t until the client disconnects or ctx is
+// canceled.
+func runMCP(ctx context.Context, baseURL string, t mcp.Transport) error {
+	s, err := mcpserver.New(provider.NewCachedREST(baseURL))
+	if err != nil {
+		return fmt.Errorf("creating MCP server: %w", err)
+	}
+	if err := s.Run(ctx, t); err != nil && !errors.Is(err, context.Canceled) {
+		return fmt.Errorf("running MCP server: %w", err)
+	}
+	return nil
 }

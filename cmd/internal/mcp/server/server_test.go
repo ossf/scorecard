@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -449,5 +450,120 @@ func TestReadCheckResource(t *testing.T) {
 	}
 	if d["name"] != "Fuzzing" {
 		t.Errorf("resource name = %v, want Fuzzing", d["name"])
+	}
+}
+
+func TestExplainCheckTool(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "explain_check",
+		Arguments: map[string]any{"check": "fuzzing"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+	out := decodeStructured[explainCheckOutput](t, res)
+	if out.Check.Name != "Fuzzing" || out.Check.Description == "" {
+		t.Errorf("check = %+v, want Fuzzing with a description", out.Check)
+	}
+}
+
+func TestToolErrors(t *testing.T) {
+	t.Parallel()
+	ok := &fakeProvider{result: fakeResult()}
+	failing := &fakeProvider{err: errors.New("upstream unavailable")}
+	tests := []struct {
+		p    provider.Provider
+		args map[string]any
+		name string
+		tool string
+		want string
+	}{
+		{name: "explain empty check", p: ok, tool: "explain_check", args: map[string]any{"check": ""}, want: "check is required"},
+		{name: "explain unknown check", p: ok, tool: "explain_check", args: map[string]any{"check": "No-Such-Check"}, want: "list_checks"},
+		{name: "repo score invalid repo", p: ok, tool: "get_repo_score", args: map[string]any{"repo": "bad-ref"}, want: "repo:"},
+		{name: "repo score provider error", p: failing, tool: "get_repo_score", args: map[string]any{"repo": "ossf/scorecard"}, want: "fetching results: upstream unavailable"},
+		{name: "check result invalid repo", p: ok, tool: "get_check_result", args: map[string]any{"repo": "bad-ref", "check": "License"}, want: "repo:"},
+		{name: "check result empty check", p: ok, tool: "get_check_result", args: map[string]any{"repo": "ossf/scorecard", "check": ""}, want: "check is required"},
+		{name: "check result provider error", p: failing, tool: "get_check_result", args: map[string]any{"repo": "ossf/scorecard", "check": "License"}, want: "fetching results: upstream unavailable"},
+		{name: "compare no repos", p: ok, tool: "compare_repos", args: map[string]any{"repos": []string{}}, want: "repos is required"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cs, done := newTestSession(t, tt.p)
+			defer done()
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: tt.tool, Arguments: tt.args})
+			if err != nil {
+				t.Fatalf("CallTool transport error: %v", err)
+			}
+			if text := toolErrorText(t, res); !strings.Contains(text, tt.want) {
+				t.Errorf("tool error = %q, want it to contain %q", text, tt.want)
+			}
+		})
+	}
+}
+
+func TestCompareReposProviderError(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{err: errors.New("upstream unavailable")})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": []string{"ossf/scorecard"}},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if len(out.Results) != 1 || !strings.Contains(out.Results[0].Error, "upstream unavailable") {
+		t.Errorf("results = %+v, want one entry carrying the provider error", out.Results)
+	}
+}
+
+func TestReadChecksIndexResource(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	rr, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: "scorecard://checks"})
+	if err != nil {
+		t.Fatalf("ReadResource: %v", err)
+	}
+	if len(rr.Contents) == 0 {
+		t.Fatal("expected resource content")
+	}
+	var out listChecksOutput
+	if err := json.Unmarshal([]byte(rr.Contents[0].Text), &out); err != nil {
+		t.Fatalf("unmarshal resource: %v", err)
+	}
+	if len(out.Checks) < 10 {
+		t.Errorf("index lists %d checks, want many", len(out.Checks))
+	}
+}
+
+func TestReadCheckResourceUnknown(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	if _, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: "scorecard://checks/No-Such-Check"}); err == nil {
+		t.Error("expected an error for an unknown check resource")
+	}
+}
+
+func TestClampMaxDetails(t *testing.T) {
+	t.Parallel()
+	for in, want := range map[int]int{0: defaultMaxDetails, -5: minMaxDetails, maxMaxDetails + 1: maxMaxDetails, 7: 7} {
+		if got := clampMaxDetails(in); got != want {
+			t.Errorf("clampMaxDetails(%d) = %d, want %d", in, got, want)
+		}
 	}
 }

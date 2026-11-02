@@ -19,6 +19,8 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
@@ -139,5 +141,116 @@ func TestCachedRESTProviderBadRequest(t *testing.T) {
 	p := NewCachedREST(ts.URL)
 	if _, err := p.GetResult(context.Background(), model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}, ""); err == nil {
 		t.Fatal("expected an error on HTTP 400")
+	}
+}
+
+func TestNewCachedRESTDefaultBaseURL(t *testing.T) {
+	t.Parallel()
+	if got := NewCachedREST("").BaseURL; got != DefaultRESTBaseURL {
+		t.Errorf("BaseURL = %q, want %q", got, DefaultRESTBaseURL)
+	}
+}
+
+func TestCachedRESTProviderCapabilities(t *testing.T) {
+	t.Parallel()
+	c := NewCachedREST("").Capabilities()
+	if c.Source != model.SourceCachedREST || c.Complete {
+		t.Errorf("Capabilities = %+v, want an incomplete cached-rest source", c)
+	}
+	want := []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"}
+	if !slices.Equal(c.OmittedChecks, want) {
+		t.Errorf("OmittedChecks = %v, want %v", c.OmittedChecks, want)
+	}
+}
+
+func TestNotFoundErrorMessage(t *testing.T) {
+	t.Parallel()
+	err := &NotFoundError{Ref: model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}}
+	msg := err.Error()
+	for _, want := range []string{"github.com/o/r", "publish_results: true"} {
+		if !strings.Contains(msg, want) {
+			t.Errorf("Error() = %q, want it to contain %q", msg, want)
+		}
+	}
+}
+
+func TestCachedRESTProviderErrors(t *testing.T) {
+	t.Parallel()
+	closed := httptest.NewServer(http.NotFoundHandler())
+	closed.Close()
+
+	tests := []struct {
+		handler http.HandlerFunc
+		wantErr error
+		name    string
+		baseURL string
+		want    string
+	}{
+		{
+			name: "unexpected status",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+			},
+			wantErr: errUnexpectedStatus,
+			want:    "500",
+		},
+		{
+			name: "invalid JSON",
+			handler: func(w http.ResponseWriter, _ *http.Request) {
+				if _, err := w.Write([]byte("{")); err != nil {
+					t.Errorf("writing response: %v", err)
+				}
+			},
+			want: "decoding Scorecard results",
+		},
+		{
+			name:    "unreachable server",
+			baseURL: closed.URL,
+			want:    "requesting Scorecard results",
+		},
+		{
+			name:    "invalid base URL",
+			baseURL: "http://invalid\x7f",
+			want:    "building request",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			baseURL := tt.baseURL
+			if tt.handler != nil {
+				ts := httptest.NewServer(tt.handler)
+				defer ts.Close()
+				baseURL = ts.URL
+			}
+			_, err := NewCachedREST(baseURL).GetResult(context.Background(),
+				model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}, "")
+			if err == nil || !strings.Contains(err.Error(), tt.want) {
+				t.Fatalf("GetResult error = %v, want one containing %q", err, tt.want)
+			}
+			if tt.wantErr != nil && !errors.Is(err, tt.wantErr) {
+				t.Errorf("GetResult error = %v, want errors.Is %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestCachedRESTProviderFallsBackToRequestedCommit(t *testing.T) {
+	t.Parallel()
+	const commit = "0123456789abcdef0123456789abcdef01234567"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if _, err := w.Write([]byte(`{"repo":{"name":"github.com/o/r"},"score":5,"checks":[]}`)); err != nil {
+			t.Errorf("writing response: %v", err)
+		}
+	}))
+	defer ts.Close()
+
+	res, err := NewCachedREST(ts.URL).GetResult(context.Background(),
+		model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}, commit)
+	if err != nil {
+		t.Fatalf("GetResult: %v", err)
+	}
+	if res.Commit != commit {
+		t.Errorf("Commit = %q, want the requested %q when the API omits it", res.Commit, commit)
 	}
 }
