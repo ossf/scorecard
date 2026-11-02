@@ -1,17 +1,13 @@
-# `scorecard-mcp`
+# `scorecard mcp`
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/uwu-tools/scorecard-mcp/badge)](https://scorecard.dev/viewer/?uri=github.com/uwu-tools/scorecard-mcp)
-
-An [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server for
-[OpenSSF Scorecard](https://github.com/ossf/scorecard). It exposes Scorecard's
+`scorecard mcp` runs an [MCP](https://modelcontextprotocol.io) (Model Context
+Protocol) server for Scorecard. It exposes Scorecard's
 security-posture data to MCP clients (Claude Desktop/Code, VS Code, and others)
 as well-typed, read-only tools and resources.
 
-> **Status: experimental.** This server currently reads pre-computed results from
-> the public Scorecard REST API (`api.scorecard.dev`). On-demand, in-process
-> scanning (via the Scorecard library) is designed for but not yet implemented —
-> see [Roadmap](#roadmap). The intended endgame is to contribute this as an
-> in-tree `scorecard mcp` subcommand in `ossf/scorecard`.
+> **Status: experimental.** This server reads pre-computed results from the
+> public Scorecard REST API (`api.scorecard.dev`). On-demand, in-process
+> scanning is designed for but not yet implemented — see [Roadmap](#roadmap).
 
 Results are **heuristic signals to inform a human decision, not a verdict.** The
 server never asserts that a repository "is secure" or "is insecure."
@@ -39,43 +35,22 @@ CDLA Permissive 2.0 data-license attribution.
 
 ## Install
 
-Requires Go 1.25+.
-
-```sh
-go install github.com/uwu-tools/scorecard-mcp/cmd/scorecard-mcp@latest
-```
-
-Or build from source:
-
-```sh
-git clone https://github.com/uwu-tools/scorecard-mcp
-cd scorecard-mcp
-go build -o bin/scorecard-mcp ./cmd/scorecard-mcp
-```
-
-> **Troubleshooting:** if `go install` or `go build` fails with
-> `compile: version "X" does not match go tool version "Y"` across many
-> stdlib packages, you have a stray `GOROOT` environment variable pointing at
-> a different Go toolchain than the one on `PATH` (common with multiple Go
-> version managers, e.g. gimme). Run `env -u GOROOT go install ...` (or
-> `env -u GOROOT go build ...`) instead, or unset `GOROOT` in your shell
-> profile.
+`scorecard mcp` is part of the `scorecard` binary. Install `scorecard` as
+described in the [README](../README.md#installation).
 
 The server speaks MCP over **stdio**; no credentials are required for the cached
 REST provider.
 
 ## Configure your MCP client
 
-> `go install` places the binary in `$(go env GOPATH)/bin` (or `$GOBIN` if
-> set), which is **not on `PATH` by default** on most systems. Either add
-> that directory to `PATH`, or use its absolute path
-> (`$(go env GOPATH)/bin/scorecard-mcp`) in the configs below.
+> If `scorecard` is not on your `PATH`, use its absolute path in the configs
+> below.
 
 **Claude Code** — register globally with the CLI instead of hand-editing
 JSON:
 
 ```sh
-claude mcp add scorecard --scope user -- "$(go env GOPATH)/bin/scorecard-mcp"
+claude mcp add scorecard --scope user -- scorecard mcp
 ```
 
 **Claude Desktop / Claude Code** (`.mcp.json` or the app's MCP config):
@@ -84,7 +59,8 @@ claude mcp add scorecard --scope user -- "$(go env GOPATH)/bin/scorecard-mcp"
 {
   "mcpServers": {
     "scorecard": {
-      "command": "scorecard-mcp"
+      "command": "scorecard",
+      "args": ["mcp"]
     }
   }
 }
@@ -97,7 +73,8 @@ claude mcp add scorecard --scope user -- "$(go env GOPATH)/bin/scorecard-mcp"
   "servers": {
     "scorecard": {
       "type": "stdio",
-      "command": "scorecard-mcp"
+      "command": "scorecard",
+      "args": ["mcp"]
     }
   }
 }
@@ -112,14 +89,13 @@ quickest way to exercise the server directly, without wiring it into a client.
 It needs [Node.js](https://nodejs.org/) (for `npx`); nothing to install ahead of
 time.
 
-Point it at the binary you installed or built — `scorecard-mcp` if it is on your
-`PATH`, otherwise an absolute path such as `./bin/scorecard-mcp` or
-`$(go env GOPATH)/bin/scorecard-mcp`.
+Point it at `scorecard mcp`, using an absolute path to `scorecard` if it is
+not on your `PATH`.
 
 ### Interactive UI
 
 ```sh
-npx @modelcontextprotocol/inspector scorecard-mcp
+npx @modelcontextprotocol/inspector scorecard mcp
 ```
 
 This launches a local web UI and prints a URL with a session token. Open it,
@@ -134,22 +110,22 @@ quick smoke test or CI:
 
 ```sh
 # List the registered tools, resources, and resource templates
-npx @modelcontextprotocol/inspector --cli scorecard-mcp --method tools/list
-npx @modelcontextprotocol/inspector --cli scorecard-mcp --method resources/list
-npx @modelcontextprotocol/inspector --cli scorecard-mcp --method resources/templates/list
+npx @modelcontextprotocol/inspector --cli scorecard mcp --method tools/list
+npx @modelcontextprotocol/inspector --cli scorecard mcp --method resources/list
+npx @modelcontextprotocol/inspector --cli scorecard mcp --method resources/templates/list
 
 # Offline tools (no network)
-npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+npx @modelcontextprotocol/inspector --cli scorecard mcp \
   --method tools/call --tool-name list_checks
-npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+npx @modelcontextprotocol/inspector --cli scorecard mcp \
   --method tools/call --tool-name explain_check --tool-arg check=Branch-Protection
 
 # Read a documentation resource
-npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+npx @modelcontextprotocol/inspector --cli scorecard mcp \
   --method resources/read --uri scorecard://checks
 
 # Live query against api.scorecard.dev
-npx @modelcontextprotocol/inspector --cli scorecard-mcp \
+npx @modelcontextprotocol/inspector --cli scorecard mcp \
   --method tools/call --tool-name get_repo_score --tool-arg repo=github.com/ossf/scorecard
 ```
 
@@ -212,18 +188,13 @@ The cached REST provider:
 
 ## Development
 
-This project is built spec-first with [OpenSpec](https://openspec.dev)
-(`openspec/`) and with the MCP dev Agent Skills.
+The server lives in [`cmd/mcp.go`](../cmd/mcp.go) and
+[`cmd/internal/mcp/`](../cmd/internal/mcp/). Its specs are the `mcp-server`,
+`scorecard-results`, and `check-catalog` capabilities in
+[`openspec/specs/`](../openspec/specs/).
 
-See [`AGENTS.md`](AGENTS.md) for the workflow and conventions.
-
-```sh
-go test ./...
-golangci-lint run ./...
-```
-
-(See the [Install](#install) troubleshooting note if these fail with a Go
-toolchain version mismatch.)
+Point the server at another Scorecard REST API with `--base-url` or the
+`SCORECARD_MCP_BASE_URL` environment variable.
 
 ## Roadmap
 
@@ -231,25 +202,16 @@ toolchain version mismatch.)
   repository a token can access (private repos, all checks, fresh results),
   behind the same `ResultProvider` seam.
 - **Streamable HTTP transport** for hosted/mixed environments.
-- **Upstreaming** as an in-tree `scorecard mcp` subcommand in `ossf/scorecard`.
 
 ## References
 
-- [Initial implementation and design decisions](docs/init-impl.md)
-- [MCP design audit and resolutions](docs/mcp-design-audit.md)
-
-## Community
-
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security Policy](SECURITY.md)
-- [Support](SUPPORT.md)
-- [Maintainers](MAINTAINERS.md)
-- [Changelog](CHANGELOG.md)
+- [MCP design audit and resolutions](design/mcp-design-audit.md)
+- [ossf/scorecard#4635](https://github.com/ossf/scorecard/issues/4635), the
+  request for MCP support
 
 ## License
 
-Apache 2.0 — see [`LICENSE`](LICENSE).
+Apache 2.0 — see [`LICENSE`](../LICENSE).
 
 Data from the REST API is licensed under
 [CDLA Permissive 2.0](https://github.com/ossf/scorecard#scorecard-rest-api).

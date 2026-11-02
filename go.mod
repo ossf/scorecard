@@ -34,10 +34,12 @@ require (
 	actionlint.kjanat.dev v1.17.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-github/v82 v82.0.0
+	github.com/google/jsonschema-go v0.4.3
 	github.com/google/osv-scalibr v0.5.3
 	github.com/google/osv-scanner/v2 v2.5.1
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.2.0
+	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/onsi/ginkgo/v2 v2.33.1
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece
 	github.com/otiai10/copy v1.14.1
@@ -140,6 +142,8 @@ require (
 	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c // indirect
 	github.com/saferwall/pe v1.6.5 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
+	github.com/segmentio/asm v1.2.1 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/skeema/knownhosts v1.3.2 // indirect
 	github.com/spdx/gordf v0.0.0-20250128162952-000978ccd6fb // indirect
@@ -156,6 +160,7 @@ require (
 	github.com/tonistiigi/go-csvvalue v0.0.0-20240814133006-030d3b2625d0 // indirect
 	github.com/ulikunitz/xz v0.5.16 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.etcd.io/bbolt v1.5.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
@@ -229,7 +234,7 @@ require (
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
 	golang.org/x/oauth2 v0.37.0
-	golang.org/x/sync v0.24.0 // indirect
+	golang.org/x/sync v0.24.0
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.307.0 // indirect

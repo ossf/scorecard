@@ -10,15 +10,21 @@
 
 ## 2. Subcommand
 
-- [ ] 2.1 Add `cmd/mcp.go` and register it on the root command.
-- [ ] 2.2 Remove the standalone `main` package and move its integration
+- [x] 2.1 Add `cmd/mcp.go` and register it on the root command.
+- [x] 2.2 Remove the standalone `main` package and move its integration
   test to drive `scorecard mcp`.
-- [ ] 2.3 Replace the test that read the Scorecard version from `go.mod`.
-- [ ] 2.4 Add the MCP dependencies to `go.mod` and `go.sum`.
-- [ ] 2.5 Update `docs/mcp.md` for the `scorecard` binary.
+- [x] 2.3 Replace the test that read the Scorecard version from `go.mod`.
+- [x] 2.4 Add the MCP dependencies to `go.mod` and `go.sum`.
+- [x] 2.5 Update `docs/mcp.md` for the `scorecard` binary.
 
 ## 3. Validation
 
-- [ ] 3.1 Build, unit tests, and lint.
-- [ ] 3.2 Validate the change and the imported specs with OpenSpec.
-- [ ] 3.3 Smoke-test `scorecard mcp` with an MCP client.
+- [x] 3.1 Build, unit tests, and lint.
+- [x] 3.2 Validate the change and the imported specs with OpenSpec.
+- [x] 3.3 Smoke-test `scorecard mcp` with an MCP client.
+
+`scorecard mcp` passed a stdio smoke test: initialize, `tools/list`, and a
+live `get_repo_score` call against `api.scorecard.dev`. The change and the
+three imported specs pass strict validation with OpenSpec 1.16.0. The
+`cli` baseline spec still fails strict validation on existing
+requirement-length warnings; this change does not alter that file.
