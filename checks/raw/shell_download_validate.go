@@ -723,6 +723,40 @@ func isPipUnpinnedDownload(cmd []string) bool {
 	return false
 }
 
+const (
+	pipRequireHashesRemediation = "pin your pip dependencies by hash: install from a requirements file " +
+		"that lists every package with an exact version and its hash, using " +
+		"`pip install --require-hashes -r requirements.txt` " +
+		"(hashes can be generated with e.g. `pip-compile --generate-hashes`), " +
+		"see https://pip.pypa.io/en/stable/topics/secure-installs/#hash-checking-mode"
+	pipEditableRemediation = "for editable installs, use `--no-deps` and install either from a local path " +
+		"or from a VCS URL pinned to a full commit hash " +
+		"(e.g. `pip install --no-deps -e git+https://github.com/org/repo.git@<commit-sha>#egg=pkg`), " +
+		"see https://pip.pypa.io/en/stable/topics/secure-installs/"
+)
+
+// pipPinningRemediation returns a remediation tip for an unpinned pip install command.
+// cmd may be either a `pip install ...` or a `python -m pip install ...` command.
+func pipPinningRemediation(cmd []string) *finding.Remediation {
+	pipCommand := cmd
+	if isPythonPipInstall(cmd) {
+		pipCommand, _ = extractPipCommand(cmd)
+	}
+
+	text := pipRequireHashesRemediation
+	for i := 2; i < len(pipCommand); i++ {
+		if slices.Contains([]string{"-e", "--editable"}, pipCommand[i]) {
+			text = pipEditableRemediation
+			break
+		}
+	}
+
+	return &finding.Remediation{
+		Text:     text,
+		Markdown: text,
+	}
+}
+
 func isChocoDownload(cmd []string) bool {
 	// Install command is in the form 'choco install ...'
 	if len(cmd) < 2 {
@@ -963,6 +997,11 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 
 	// Pip install.
 	if isPipDownload(c) {
+		pinned := !isPipUnpinnedDownload(c)
+		var remediation *finding.Remediation
+		if !pinned {
+			remediation = pipPinningRemediation(c)
+		}
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
 				Location: &checker.File{
@@ -972,8 +1011,9 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					EndOffset: endLine,
 					Snippet:   cmd,
 				},
-				Pinned: asBoolPointer(!isPipUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypePipCommand,
+				Pinned:      &pinned,
+				Type:        checker.DependencyUseTypePipCommand,
+				Remediation: remediation,
 			},
 		)
 
