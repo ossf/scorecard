@@ -29,7 +29,9 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPath, gotQuery = r.URL.Path, r.URL.RawQuery
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(sampleResult))
+		if _, err := w.Write([]byte(sampleResult)); err != nil {
+			t.Errorf("writing response: %v", err)
+		}
 	}))
 	defer ts.Close()
 
@@ -78,7 +80,9 @@ func TestCachedRESTProviderTrimsTrailingSlash(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPath = r.URL.Path
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(sampleResult))
+		if _, err := w.Write([]byte(sampleResult)); err != nil {
+			t.Errorf("writing response: %v", err)
+		}
 	}))
 	defer ts.Close()
 

@@ -16,6 +16,7 @@ const (
 	checksResourceURI     = "scorecard://checks"
 	checkResourceTemplate = "scorecard://checks/{name}"
 	checkResourcePrefix   = "scorecard://checks/"
+	mimeJSON              = "application/json"
 )
 
 // --- list_checks ---
@@ -73,7 +74,7 @@ func registerCatalogTools(s *mcp.Server, c *catalog.Catalog) {
 		}
 		detail, err := c.Explain(in.Check)
 		if err != nil {
-			return nil, explainCheckOutput{}, err
+			return nil, explainCheckOutput{}, fmt.Errorf("explaining check: %w", err)
 		}
 		return nil, explainCheckOutput{ScorecardVersion: c.ScorecardVersion(), Check: detail}, nil
 	})
@@ -87,7 +88,7 @@ func registerCatalogResources(s *mcp.Server, c *catalog.Catalog) {
 		Name:        "scorecard-checks",
 		Title:       "OpenSSF Scorecard checks",
 		Description: "Index of all OpenSSF Scorecard checks with summary documentation.",
-		MIMEType:    "application/json",
+		MIMEType:    mimeJSON,
 	}, func(_ context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
 		payload := listChecksOutput{ScorecardVersion: c.ScorecardVersion(), Checks: c.List()}
 		return jsonResource(req.Params.URI, payload)
@@ -98,7 +99,7 @@ func registerCatalogResources(s *mcp.Server, c *catalog.Catalog) {
 		Name:        "scorecard-check",
 		Title:       "OpenSSF Scorecard check",
 		Description: "Full documentation for a single OpenSSF Scorecard check, addressed by name.",
-		MIMEType:    "application/json",
+		MIMEType:    mimeJSON,
 	}, func(_ context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
 		uri := req.Params.URI
 		name := strings.TrimPrefix(uri, checkResourcePrefix)
@@ -124,7 +125,7 @@ func jsonResource(uri string, v any) (*mcp.ReadResourceResult, error) {
 	return &mcp.ReadResourceResult{
 		Contents: []*mcp.ResourceContents{{
 			URI:      uri,
-			MIMEType: "application/json",
+			MIMEType: mimeJSON,
 			Text:     string(b),
 		}},
 	}, nil

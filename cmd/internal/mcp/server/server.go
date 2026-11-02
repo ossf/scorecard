@@ -3,6 +3,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -51,7 +52,7 @@ func New(p provider.Provider) (*mcp.Server, error) {
 
 	cat, err := catalog.New()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loading check catalog: %w", err)
 	}
 	registerResultTools(s, p, cat)
 	registerCatalogTools(s, cat)

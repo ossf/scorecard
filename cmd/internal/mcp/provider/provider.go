@@ -22,8 +22,8 @@ type Provider interface {
 // Capabilities describes what a provider can supply, for caveat reporting.
 type Capabilities struct {
 	Source        model.Source
-	Complete      bool
 	OmittedChecks []string
+	Complete      bool
 }
 
 // NotFoundError indicates the provider has no results for the repository.
