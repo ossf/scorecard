@@ -17,6 +17,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -119,5 +120,53 @@ func TestMCPRejectsScanFlags(t *testing.T) {
 	err := cmd.ExecuteContext(t.Context())
 	if want := "unknown flag: --repo"; err == nil || !strings.Contains(err.Error(), want) {
 		t.Errorf("Execute() error = %v, want one containing %q", err, want)
+	}
+}
+
+func TestRunMCP(t *testing.T) {
+	t.Parallel()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write([]byte(sampleRESTResult)); err != nil {
+			t.Errorf("writing response: %v", err)
+		}
+	}))
+	defer ts.Close()
+
+	ct, st := mcp.NewInMemoryTransports()
+	errc := make(chan error, 1)
+	go func() { errc <- runMCP(t.Context(), ts.URL, st) }()
+
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "0"}, nil)
+	cs, err := client.Connect(t.Context(), ct, nil)
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	res, err := cs.CallTool(t.Context(), &mcp.CallToolParams{
+		Name:      "get_repo_score",
+		Arguments: map[string]any{"repo": "ossf/scorecard"},
+	})
+	if err != nil || res.IsError {
+		t.Fatalf("CallTool = %v, %v; want a result", res, err)
+	}
+	if err := cs.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+	if err := <-errc; err != nil {
+		t.Errorf("runMCP() error = %v, want nil after the client disconnects", err)
+	}
+}
+
+var errConnect = errors.New("connect failed")
+
+type failingTransport struct{}
+
+func (failingTransport) Connect(context.Context) (mcp.Connection, error) { return nil, errConnect }
+
+func TestRunMCPTransportError(t *testing.T) {
+	t.Parallel()
+	err := runMCP(t.Context(), "", failingTransport{})
+	if !errors.Is(err, errConnect) || !strings.Contains(err.Error(), "running MCP server") {
+		t.Errorf("runMCP() error = %v, want a wrapped %v", err, errConnect)
 	}
 }
