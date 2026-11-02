@@ -19,11 +19,13 @@ rather than restating it.
 | Capability | Owns |
 | --- | --- |
 | `aggregate-scoring` | Aggregate formula, weights, inconclusive exclusion |
+| `check-catalog` | MCP check listing, explanations, and documentation resources |
 | `check-evaluation` | Per-check score rules and shared evaluation behavior |
 | `check-registry` | Check inventory, metadata, selection, experimental gating |
 | `cli` | Command tree, flags, progress output, result ordering, exit status |
 | `http-server` | `scorecard serve` requests, statuses, CORS, lifecycle |
 | `maintainer-annotations` | Annotation discovery, parsing, applicability |
+| `mcp-server` | `scorecard mcp` runtime, tool contracts, framing, and inputs |
 | `package-manager-resolution` | npm, PyPI, RubyGems, and NuGet lookup |
 | `policy` | Policy file parsing, policy-driven selection, policy errors |
 | `probes` | Probe registration, direct probe runs, findings and outcomes |
@@ -32,6 +34,7 @@ rather than restating it.
 | `remediation` | Remediation definitions and generated suggestions |
 | `repo-clients` | Remote and local repository access and host support |
 | `result-formats` | Output formats, schemas, destinations, score presentation |
+| `scorecard-results` | MCP result retrieval, provider, provenance, and caveats |
 
 A flag is defined in `cli`; what it turns on is defined by the capability
 that owns that behavior. A computed value is defined where it is computed;

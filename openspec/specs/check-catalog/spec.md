@@ -2,7 +2,9 @@
 
 ## Purpose
 
-TBD - created by archiving change add-scorecard-mcp-server. Update Purpose after archive.
+The MCP server's catalog tools and resources describe the checks built into
+the `scorecard` binary, using the check documentation in `docs/checks`. The
+check inventory itself is defined in `check-registry`.
 
 ## Requirements
 

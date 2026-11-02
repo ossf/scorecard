@@ -2,7 +2,11 @@
 
 ## Purpose
 
-TBD - created by archiving change add-scorecard-mcp-server. Update Purpose after archive.
+`scorecard mcp` runs a Model Context Protocol (MCP) server over stdio that
+exposes Scorecard data to MCP clients as read-only tools and resources. This
+spec covers the server runtime, repository reference parsing, tool output,
+error handling, framing, annotations, and tool inputs. Result retrieval is
+defined in `scorecard-results`; the check catalog in `check-catalog`.
 
 ## Requirements
 

@@ -2,7 +2,10 @@
 
 ## Purpose
 
-TBD - created by archiving change add-scorecard-mcp-server. Update Purpose after archive.
+The MCP server's result tools retrieve published Scorecard results and
+present them with provenance, caveats, and attribution. This spec covers
+repository, single-check, and comparison retrieval, the result-provider
+abstraction, the REST API base URL, commit pinning, and score semantics.
 
 ## Requirements
 
