@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model defines the provider-agnostic data types that the scorecard-mcp
-// server exposes to MCP clients.
+// Package model defines the provider-agnostic data types that the MCP server
+// exposes to clients.
 package model
 
 import "strings"
