@@ -81,16 +81,24 @@ type Catalog struct {
 	scorecardVersion string
 }
 
-// New loads the embedded Scorecard check documentation.
+// New loads the embedded Scorecard check documentation. Its documentation
+// URLs reference the commit the scorecard binary was built from.
 func New() (*Catalog, error) {
+	info := version.GetVersionInfo()
+	return newCatalog(info.GitVersion, info.GitCommit)
+}
+
+// newCatalog loads the check documentation with URLs at commit. An empty or
+// "unknown" commit falls back to main, as in Scorecard's JSON results.
+func newCatalog(scorecardVersion, commit string) (*Catalog, error) {
 	doc, err := scdocs.Read()
 	if err != nil {
 		return nil, fmt.Errorf("reading Scorecard check documentation: %w", err)
 	}
 	return &Catalog{
 		doc:              doc,
-		commitish:        "main",
-		scorecardVersion: version.GetVersionInfo().GitVersion,
+		commitish:        commit,
+		scorecardVersion: scorecardVersion,
 	}, nil
 }
 

@@ -18,6 +18,7 @@ import (
 	"maps"
 	"os"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checks"
@@ -85,6 +86,33 @@ func TestExpectedChecks(t *testing.T) {
 			for _, name := range tt.exclude {
 				if slices.Contains(got, name) {
 					t.Errorf("ExpectedChecks(%q) = %v, want it to exclude %q", tt.platform, got, name)
+				}
+			}
+		})
+	}
+}
+
+func TestDocumentationURLCommit(t *testing.T) {
+	t.Parallel()
+	const commit = "61e84743356275f6ffca23b1b2f2cb945e19eb96"
+	tests := []struct {
+		commit string
+		want   string
+	}{
+		{commit: commit, want: "/blob/" + commit + "/docs/checks.md"},
+		{commit: "unknown", want: "/blob/main/docs/checks.md"},
+		{commit: "", want: "/blob/main/docs/checks.md"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.commit, func(t *testing.T) {
+			t.Parallel()
+			c, err := newCatalog("v0.0.0", tt.commit)
+			if err != nil {
+				t.Fatalf("newCatalog: %v", err)
+			}
+			for _, ci := range c.List() {
+				if !strings.Contains(ci.DocumentationURL, tt.want) {
+					t.Errorf("%s DocumentationURL = %q, want it to contain %q", ci.Name, ci.DocumentationURL, tt.want)
 				}
 			}
 		})
