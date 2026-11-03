@@ -31,12 +31,12 @@ requirement-length warnings; this change does not alter that file.
 
 ## 4. Review fixes
 
-- [ ] 4.1 Describe both REST API sources in the caveats and compute each
+- [x] 4.1 Describe both REST API sources in the caveats and compute each
   result's missing checks from the catalog.
-- [ ] 4.2 Point missing-result and missing-check errors to
+- [x] 4.2 Point missing-result and missing-check errors to
   `scorecard --repo`.
-- [ ] 4.3 Return provenance, caveats, completeness, and attribution from
+- [x] 4.3 Return provenance, caveats, completeness, and attribution from
   `compare_repos`.
-- [ ] 4.4 Reference the build commit in catalog documentation URLs.
-- [ ] 4.5 Send a `scorecard/<version>` User-Agent to the REST API.
-- [ ] 4.6 Mention `scorecard mcp` in the README.
+- [x] 4.4 Reference the build commit in catalog documentation URLs.
+- [x] 4.5 Send a `scorecard/<version>` User-Agent to the REST API.
+- [x] 4.6 Mention `scorecard mcp` in the README.
