@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package server builds the transport-agnostic scorecard-mcp MCP server.
+// Package server builds the transport-agnostic MCP server behind scorecard mcp.
 package server
 
 import (
@@ -58,7 +58,7 @@ const instructions = "This server surfaces OpenSSF Scorecard security-posture si
 // and resources registered here.
 func New(p provider.Provider) (*mcp.Server, error) {
 	s := mcp.NewServer(&mcp.Implementation{
-		Name:        "scorecard-mcp",
+		Name:        "scorecard",
 		Title:       "OpenSSF Scorecard",
 		Version:     Version,
 		Description: "Read-only access to OpenSSF Scorecard security-posture data.",
