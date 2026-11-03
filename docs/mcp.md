@@ -212,10 +212,3 @@ Point the server at another Scorecard REST API with `--base-url` or the
 - [MCP design audit and resolutions](design/mcp-design-audit.md)
 - [ossf/scorecard#4635](https://github.com/ossf/scorecard/issues/4635), the
   request for MCP support
-
-## License
-
-Apache 2.0 — see [`LICENSE`](../LICENSE).
-
-Data from the REST API is licensed under
-[CDLA Permissive 2.0](https://github.com/ossf/scorecard#scorecard-rest-api).
