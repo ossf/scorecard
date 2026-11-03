@@ -47,6 +47,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
+          cache: false # build releases from a clean cache
       - name: Configure ldflags
         id: ldflags
         run: echo "version_flags=$(./scripts/version-ldflags)" >> "$GITHUB_OUTPUT"

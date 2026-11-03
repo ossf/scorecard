@@ -55,7 +55,6 @@ jobs:
       matrix:
         target:
           - 'scorecard-docker'
-          - 'build-attestor-docker'
     name: ${{ matrix.target }}
     runs-on: ubuntu-latest
     permissions:

@@ -28,7 +28,7 @@ context: |
   - Evaluation (checks/evaluation/) turns probe findings into check scores.
   Results are rendered by pkg/scorecard in default, json, sarif, probe, raw,
   and in-toto formats. Policies (policy/) select checks and drive SARIF
-  output; the attestor (attestor/) has its own policy format.
+  output.
 
   Current versus target state: openspec/specs/ describes v5 behavior as
   built, including known defects, so that fixing a defect shows up as an
