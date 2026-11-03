@@ -347,6 +347,47 @@ func TestCompareReposInlineError(t *testing.T) {
 	}
 }
 
+func TestCompareReposMetadata(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": []string{"ossf/scorecard", "bad-ref"}},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if len(out.Results) != 2 {
+		t.Fatalf("results = %d, want 2", len(out.Results))
+	}
+	want := fakeResult()
+	got := out.Results[0]
+	if got.Commit != want.Commit {
+		t.Errorf("Commit = %q, want %q", got.Commit, want.Commit)
+	}
+	if got.Scorecard == nil || *got.Scorecard != want.Scorecard {
+		t.Errorf("Scorecard = %+v, want %+v", got.Scorecard, want.Scorecard)
+	}
+	if got.Attribution == nil || *got.Attribution != *want.Attribution {
+		t.Errorf("Attribution = %+v, want %+v", got.Attribution, want.Attribution)
+	}
+	if !slices.Contains(got.Caveats, "cached") {
+		t.Errorf("Caveats = %v, want the provider's caveats", got.Caveats)
+	}
+	if got.Complete == nil || *got.Complete || len(got.MissingChecks) == 0 {
+		t.Errorf("Complete = %v, MissingChecks = %v, want an incomplete result with missing checks",
+			got.Complete, got.MissingChecks)
+	}
+
+	failed := out.Results[1]
+	if failed.Scorecard != nil || failed.Attribution != nil || failed.Complete != nil {
+		t.Errorf("failed entry = %+v, want no result metadata", failed)
+	}
+}
+
 // resultWithDetails returns a result whose single check carries n detail lines.
 func resultWithDetails(n int) *model.Result {
 	details := make([]string, n)

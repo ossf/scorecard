@@ -141,12 +141,18 @@ type compareReposInput struct {
 }
 
 type repoComparison struct {
-	Input  string         `json:"input"`
-	Repo   *model.RepoRef `json:"repo,omitempty"`
-	Score  *float64       `json:"score,omitempty" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
-	Date   string         `json:"date,omitempty"`
-	Source model.Source   `json:"source,omitempty"`
-	Error  string         `json:"error,omitempty" jsonschema:"set when this repo could not be retrieved"`
+	Repo          *model.RepoRef       `json:"repo,omitempty"`
+	Score         *float64             `json:"score,omitempty" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
+	Scorecard     *model.ScorecardInfo `json:"scorecard,omitempty"`
+	Attribution   *model.Attribution   `json:"attribution,omitempty"`
+	Complete      *bool                `json:"complete,omitempty" jsonschema:"whether the result has every expected check"`
+	Input         string               `json:"input"`
+	Commit        string               `json:"commit,omitempty" jsonschema:"resolved commit SHA of the results"`
+	Date          string               `json:"date,omitempty"`
+	Source        model.Source         `json:"source,omitempty"`
+	Error         string               `json:"error,omitempty" jsonschema:"set when this repo could not be retrieved"`
+	Caveats       []string             `json:"caveats,omitempty"`
+	MissingChecks []string             `json:"missing_checks,omitempty" jsonschema:"expected checks the result lacks"`
 }
 
 type compareReposOutput struct {
@@ -275,7 +281,7 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 		g.SetLimit(compareConcurrency)
 		for i, r := range repos {
 			g.Go(func() error {
-				results[i] = compareOne(gctx, p, r)
+				results[i] = compareOne(gctx, p, cat, r)
 				return nil
 			})
 		}
@@ -350,7 +356,7 @@ func checkAbsenceError(name string, ref model.RepoRef, cat *catalog.Catalog) err
 
 // compareOne fetches one repository's aggregate score for compare_repos,
 // reporting any per-repository failure inline.
-func compareOne(ctx context.Context, p provider.Provider, r string) repoComparison {
+func compareOne(ctx context.Context, p provider.Provider, cat *catalog.Catalog, r string) repoComparison {
 	entry := repoComparison{Input: r}
 	ref, err := scorecardref.Parse(r)
 	if err != nil {
@@ -363,10 +369,16 @@ func compareOne(ctx context.Context, p provider.Provider, r string) repoComparis
 		entry.Error = err.Error()
 		return entry
 	}
-	score := res.Score
-	entry.Score = &score
+	annotateCoverage(res, cat)
+	entry.Score = &res.Score
+	entry.Commit = res.Commit
 	entry.Date = res.Date
+	entry.Scorecard = &res.Scorecard
 	entry.Source = res.Source
+	entry.Caveats = res.Caveats
+	entry.Attribution = res.Attribution
+	entry.MissingChecks = res.MissingChecks
+	entry.Complete = &res.Complete
 	return entry
 }
 
