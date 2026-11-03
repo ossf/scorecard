@@ -24,6 +24,8 @@ import (
 	"strings"
 	"time"
 
+	"sigs.k8s.io/release-utils/version"
+
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
 )
 
@@ -35,6 +37,9 @@ var (
 	errBadRequest       = errors.New("invalid Scorecard REST API request")
 	errUnexpectedStatus = errors.New("unexpected Scorecard REST API status")
 )
+
+// userAgent identifies requests from this server to the REST API operators.
+var userAgent = "scorecard/" + version.GetVersionInfo().GitVersion
 
 var cachedCaveats = []string{
 	"The Scorecard REST API serves results that projects publish with publish_results: true " +
@@ -104,6 +109,7 @@ func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, c
 		return nil, fmt.Errorf("building request: %w", err)
 	}
 	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := p.Client.Do(req)
 	if err != nil {
