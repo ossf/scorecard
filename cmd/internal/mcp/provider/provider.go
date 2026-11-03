@@ -41,8 +41,8 @@ func (e *NotFoundError) Error() string {
 	return fmt.Sprintf(
 		"no published OpenSSF Scorecard results for %s. The repository may not have "+
 			"opted into publishing results (publish_results: true), or it may not be "+
-			"covered by the weekly public scan. On-demand live scanning will be "+
-			"available in a future version.",
-		e.Ref.String(),
+			"covered by the weekly public scan. `scorecard --repo=%s` computes results "+
+			"locally.",
+		e.Ref.String(), e.Ref.String(),
 	)
 }

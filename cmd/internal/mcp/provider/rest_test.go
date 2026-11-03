@@ -151,10 +151,13 @@ func TestNotFoundErrorMessage(t *testing.T) {
 	t.Parallel()
 	err := &NotFoundError{Ref: model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}}
 	msg := err.Error()
-	for _, want := range []string{"github.com/o/r", "publish_results: true"} {
+	for _, want := range []string{"github.com/o/r", "publish_results: true", "`scorecard --repo=github.com/o/r`"} {
 		if !strings.Contains(msg, want) {
 			t.Errorf("Error() = %q, want it to contain %q", msg, want)
 		}
+	}
+	if strings.Contains(msg, "future") {
+		t.Errorf("Error() = %q, want no promise of future features", msg)
 	}
 }
 
