@@ -28,3 +28,15 @@ live `get_repo_score` call against `api.scorecard.dev`. The change and the
 three imported specs pass strict validation with OpenSpec 1.16.0. The
 `cli` baseline spec still fails strict validation on existing
 requirement-length warnings; this change does not alter that file.
+
+## 4. Review fixes
+
+- [ ] 4.1 Describe both REST API sources in the caveats and compute each
+  result's missing checks from the catalog.
+- [ ] 4.2 Point missing-result and missing-check errors to
+  `scorecard --repo`.
+- [ ] 4.3 Return provenance, caveats, completeness, and attribution from
+  `compare_repos`.
+- [ ] 4.4 Reference the build commit in catalog documentation URLs.
+- [ ] 4.5 Send a `scorecard/<version>` User-Agent to the REST API.
+- [ ] 4.6 Mention `scorecard mcp` in the README.

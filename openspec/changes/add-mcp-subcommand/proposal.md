@@ -24,6 +24,15 @@ and reads the check documentation from the same module.
 - The check catalog is built from the same module's `docs/checks`, so it
   always matches the binary.
 - The server advertises the `scorecard` build version.
+- Each result reports which catalog checks it lacks, instead of a fixed
+  list, and its caveats describe both sources the REST API serves:
+  results projects publish and results from the weekly public scan.
+- Errors for missing results and missing checks point to
+  `scorecard --repo`, which computes results locally.
+- `compare_repos` returns the same provenance, caveats, and attribution
+  as the other result tools.
+- Catalog documentation URLs reference the build commit, and REST API
+  requests carry a `scorecard/<version>` User-Agent.
 
 ## Capabilities
 
@@ -39,9 +48,12 @@ the imported history, as archived by
   `--base-url` flag.
 - `openspec/specs/mcp-server`: the server is started by `scorecard mcp`.
 - `openspec/specs/scorecard-results`: adds the REST API base URL
-  selection.
+  selection and client identification; computes each result's coverage
+  from the catalog; points missing-result errors to `scorecard --repo`;
+  adds full metadata to comparisons.
 - `openspec/specs/check-catalog`: the catalog comes from the module the
-  binary is built from, not a vendored dependency.
+  binary is built from, not a vendored dependency, and its documentation
+  URLs reference the build commit.
 
 ## Impact
 
