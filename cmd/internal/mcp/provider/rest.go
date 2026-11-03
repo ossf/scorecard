@@ -37,8 +37,8 @@ var (
 )
 
 var cachedCaveats = []string{
-	"Cached results cover only projects that have opted in via publish_results: true.",
-	"The weekly public scan omits the CI-Tests, Contributors, and Dependency-Update-Tool checks.",
+	"The Scorecard REST API serves results that projects publish with publish_results: true " +
+		"and results from Scorecard's weekly scan of public repositories.",
 	"Scorecard results are heuristic signals, not a guarantee of security; there are false positives and false negatives.",
 }
 
@@ -60,15 +60,6 @@ func NewCachedREST(baseURL string) *CachedRESTProvider {
 	return &CachedRESTProvider{
 		BaseURL: strings.TrimSuffix(baseURL, "/"),
 		Client:  &http.Client{Timeout: 30 * time.Second},
-	}
-}
-
-// Capabilities implements Provider.
-func (p *CachedRESTProvider) Capabilities() Capabilities {
-	return Capabilities{
-		Source:        model.SourceCachedREST,
-		Complete:      false,
-		OmittedChecks: []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"},
 	}
 }
 
@@ -171,6 +162,5 @@ func (p *CachedRESTProvider) toResult(ref model.RepoRef, commit string, rr *rest
 			DataLicense: "CDLA-Permissive-2.0",
 			SourceURL:   p.BaseURL,
 		},
-		Complete: false,
 	}
 }

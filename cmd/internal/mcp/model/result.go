@@ -82,8 +82,11 @@ type Result struct {
 	Checks      []Check       `json:"checks"`
 	Caveats     []string      `json:"caveats,omitempty"`
 	Annotations []string      `json:"annotations,omitempty"`
-	Score       float64       `json:"score"`
-	Complete    bool          `json:"complete"`
+	// MissingChecks and Complete are computed by the server from the check
+	// catalog, not by the provider.
+	MissingChecks []string `json:"missing_checks,omitempty"`
+	Score         float64  `json:"score"`
+	Complete      bool     `json:"complete"`
 }
 
 // FindCheck returns the check with the given name (case-insensitive).

@@ -35,7 +35,8 @@ var (
 	errCheckRequired     = errors.New("check is required; use list_checks to discover valid check names")
 	errCheckUnknown      = errors.New("not a Scorecard check")
 	errCheckExperimental = errors.New("check is experimental")
-	errCheckOmitted      = errors.New("check omitted from this provider's scan")
+	errCheckUnsupported  = errors.New("check does not support this platform")
+	errCheckMissing      = errors.New("check missing from the result")
 	errReposRequired     = errors.New("repos is required; provide one or more repository references")
 )
 
@@ -48,9 +49,10 @@ const instructions = "This server surfaces OpenSSF Scorecard security-posture si
 	"that a repository \"is secure\" or \"is insecure\"; report the signals and their caveats instead. " +
 	"Aggregate scores say nothing about which individual behaviors a repository does or does not " +
 	"follow, and Scorecard is not a guarantee of security or of regulatory compliance.\n\n" +
-	"Results from the cached provider cover only projects that opted in via publish_results, and the " +
-	"weekly public scan omits the CI-Tests, Contributors, and Dependency-Update-Tool checks. A check " +
-	"or aggregate score of -1 means inconclusive, not a failing score."
+	"Results come from the Scorecard REST API, which serves results that projects publish with " +
+	"publish_results and results from Scorecard's weekly scan of public repositories. A result may " +
+	"not include every check; missing_checks lists any it lacks. A check or aggregate score of -1 " +
+	"means inconclusive, not a failing score."
 
 // New builds the MCP server with all tools and resources registered. It is
 // transport-agnostic: the caller connects the returned server to a transport

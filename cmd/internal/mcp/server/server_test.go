@@ -19,20 +19,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/catalog"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/provider"
 )
 
 // fakeProvider implements provider.Provider with canned data (no network).
 type fakeProvider struct {
-	result        *model.Result
-	err           error
-	omittedChecks []string
+	result *model.Result
+	err    error
 }
 
 func (f *fakeProvider) GetResult(_ context.Context, ref model.RepoRef, _ string) (*model.Result, error) {
@@ -42,10 +43,6 @@ func (f *fakeProvider) GetResult(_ context.Context, ref model.RepoRef, _ string)
 	r := *f.result
 	r.Repo = ref
 	return &r, nil
-}
-
-func (f *fakeProvider) Capabilities() provider.Capabilities {
-	return provider.Capabilities{Source: model.SourceCachedREST, OmittedChecks: f.omittedChecks}
 }
 
 func fakeResult() *model.Result {
@@ -222,44 +219,104 @@ func TestGetCheckResultExperimental(t *testing.T) {
 	}
 }
 
-func TestGetCheckResultOmitted(t *testing.T) {
-	t.Parallel()
-	cs, done := newTestSession(t, &fakeProvider{
-		result:        fakeResult(),
-		omittedChecks: []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"},
-	})
-	defer done()
-
-	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
-		Name:      "get_check_result",
-		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "CI-Tests"},
-	})
-	if err != nil {
-		t.Fatalf("CallTool: %v", err)
-	}
-	text := toolErrorText(t, res)
-	if !strings.Contains(text, "omits") {
-		t.Errorf("error = %q, want mention that this provider omits the check", text)
-	}
-}
-
-func TestGetCheckResultAbsentGeneric(t *testing.T) {
+func TestGetCheckResultMissing(t *testing.T) {
 	t.Parallel()
 	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
 	defer done()
 
-	// License is a real, non-experimental check, not in fakeResult()'s
-	// checks and not in this fake provider's (empty) OmittedChecks.
+	// CI-Tests is a real, non-experimental GitHub check that fakeResult()
+	// does not include.
 	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
 		Name:      "get_check_result",
-		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "License"},
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "ci-tests"},
 	})
 	if err != nil {
 		t.Fatalf("CallTool: %v", err)
 	}
 	text := toolErrorText(t, res)
-	if !strings.Contains(text, "no result for") {
-		t.Errorf("error = %q, want a generic no-result message", text)
+	want := "`scorecard --repo=github.com/ossf/scorecard --checks=CI-Tests` computes it locally"
+	if !strings.Contains(text, want) {
+		t.Errorf("error = %q, want it to contain %q", text, want)
+	}
+	if strings.Contains(text, "future") {
+		t.Errorf("error = %q, want no promise of future features", text)
+	}
+}
+
+func TestGetCheckResultUnsupportedPlatform(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	// Signed-Releases does not run on GitLab.
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "gitlab.com/gitlab-org/gitlab", "check": "Signed-Releases"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, `"Signed-Releases" does not run on gitlab.com`) {
+		t.Errorf("error = %q, want an unsupported-platform message", text)
+	}
+}
+
+func TestGetRepoScoreCoverage(t *testing.T) {
+	t.Parallel()
+	cat, err := catalog.New()
+	if err != nil {
+		t.Fatalf("catalog.New: %v", err)
+	}
+	expected := cat.ExpectedChecks("github.com")
+	full := fakeResult()
+	full.Checks = nil
+	for _, name := range expected {
+		full.Checks = append(full.Checks, model.Check{Name: name, Score: 10})
+	}
+
+	tests := []struct {
+		result       *model.Result
+		name         string
+		wantMissing  []string
+		wantComplete bool
+	}{
+		{
+			name:   "partial result",
+			result: fakeResult(),
+			wantMissing: slices.DeleteFunc(slices.Clone(expected), func(n string) bool {
+				return n == "Code-Review" || n == "Fuzzing"
+			}),
+		},
+		{name: "every check", result: full, wantComplete: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cs, done := newTestSession(t, &fakeProvider{result: tt.result})
+			defer done()
+
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+				Name:      "get_repo_score",
+				Arguments: map[string]any{"repo": "ossf/scorecard"},
+			})
+			if err != nil {
+				t.Fatalf("CallTool: %v", err)
+			}
+			out := decodeStructured[repoScoreOutput](t, res)
+			if !slices.Equal(out.MissingChecks, tt.wantMissing) {
+				t.Errorf("MissingChecks = %v, want %v", out.MissingChecks, tt.wantMissing)
+			}
+			if out.Complete != tt.wantComplete {
+				t.Errorf("Complete = %v, want %v", out.Complete, tt.wantComplete)
+			}
+			named := slices.ContainsFunc(out.Caveats, func(c string) bool {
+				return strings.Contains(c, "does not include")
+			})
+			if named == tt.wantComplete {
+				t.Errorf("Caveats = %v, want a missing-checks caveat only when incomplete", out.Caveats)
+			}
+		})
 	}
 }
 
