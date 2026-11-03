@@ -22,6 +22,8 @@ import (
 	"strings"
 	"testing"
 
+	"sigs.k8s.io/release-utils/version"
+
 	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
 )
 
@@ -40,9 +42,9 @@ const sampleResult = `{
 func TestCachedRESTProviderGetResult(t *testing.T) {
 	t.Parallel()
 	const commit = "64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1"
-	var gotPath, gotQuery string
+	var gotPath, gotQuery, gotUserAgent string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		gotPath, gotQuery = r.URL.Path, r.URL.RawQuery
+		gotPath, gotQuery, gotUserAgent = r.URL.Path, r.URL.RawQuery, r.UserAgent()
 		w.Header().Set("Content-Type", "application/json")
 		if _, err := w.Write([]byte(sampleResult)); err != nil {
 			t.Errorf("writing response: %v", err)
@@ -62,6 +64,9 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 	}
 	if gotQuery != "commit="+commit {
 		t.Errorf("query = %q", gotQuery)
+	}
+	if want := "scorecard/" + version.GetVersionInfo().GitVersion; gotUserAgent != want {
+		t.Errorf("User-Agent = %q, want %q", gotUserAgent, want)
 	}
 	if res.Source != model.SourceCachedREST {
 		t.Errorf("source = %q, want cached-rest", res.Source)
