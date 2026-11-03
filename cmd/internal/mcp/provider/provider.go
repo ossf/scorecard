@@ -30,14 +30,6 @@ import (
 // the latest available results.
 type Provider interface {
 	GetResult(ctx context.Context, ref model.RepoRef, commit string) (*model.Result, error)
-	Capabilities() Capabilities
-}
-
-// Capabilities describes what a provider can supply, for caveat reporting.
-type Capabilities struct {
-	Source        model.Source
-	OmittedChecks []string
-	Complete      bool
 }
 
 // NotFoundError indicates the provider has no results for the repository.

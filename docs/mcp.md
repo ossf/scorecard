@@ -136,47 +136,51 @@ confirm error handling works.
 
 ## Example
 
-Asking a client "What's the OpenSSF Scorecard for ossf/scorecard?" calls
+Asking a client "What's the OpenSSF Scorecard for golang/go?" calls
 `get_repo_score` and returns structured content like:
 
 ```json
 {
-  "repo": { "platform": "github.com", "org": "ossf", "name": "scorecard" },
-  "commit": "64febf8c5229...",
-  "date": "2026-08-01T02:19:41Z",
-  "scorecard": { "version": "v5.3.0", "commit": "c22063e786c1..." },
+  "repo": { "platform": "github.com", "org": "golang", "name": "go" },
+  "commit": "fac60caabcaa...",
+  "date": "2026-10-26",
+  "scorecard": { "version": "v5.6.0", "commit": "61e847433562..." },
   "source": "cached-rest",
-  "score": 8.7,
+  "score": 6.2,
   "checks": [
     { "name": "Code-Review", "score": 10, "reason": "..." },
     { "name": "Fuzzing", "score": 10, "reason": "..." }
   ],
   "caveats": [
-    "Cached results cover only projects that have opted in via publish_results: true.",
-    "The weekly public scan omits the CI-Tests, Contributors, and Dependency-Update-Tool checks."
+    "The Scorecard REST API serves results that projects publish with publish_results: true and results from Scorecard's weekly scan of public repositories.",
+    "Scorecard results are heuristic signals, not a guarantee of security; there are false positives and false negatives.",
+    "This result does not include the CI-Tests, Contributors, Dependency-Update-Tool, Vulnerabilities checks; `scorecard --repo=github.com/golang/go` computes every check locally."
   ],
   "attribution": {
     "data_license": "CDLA-Permissive-2.0",
     "source_url": "https://api.scorecard.dev"
   },
+  "missing_checks": ["CI-Tests", "Contributors", "Dependency-Update-Tool", "Vulnerabilities"],
   "complete": false
 }
 ```
 
 `commit` is the _target repository's_ resolved commit; `scorecard.commit` and
 `scorecard.version` identify the build of the Scorecard tool that produced the
-result — the two are unrelated and easy to confuse. `complete` reports whether
-the provider ran the full check set (the cached REST provider always reports
-`false`, since it omits three checks — see [Caveats](#caveats)).
+result — the two are unrelated and easy to confuse. `missing_checks` lists the
+non-experimental checks for the repository's platform that the result does not
+include, and `complete` is `true` only when that list is empty.
 
 ## Caveats
 
 The cached REST provider:
 
-- covers only public repositories that have opted in via
-  [`publish_results: true`](https://github.com/ossf/scorecard-action);
-- omits the `CI-Tests`, `Contributors`, and `Dependency-Update-Tool` checks
-  (excluded from the weekly public scan);
+- serves results that projects publish with
+  [`publish_results: true`](https://github.com/ossf/scorecard-action) and
+  results from Scorecard's [weekly scan](../README.md#public-data);
+- returns whichever checks the published result has. Results from the weekly
+  scan lack some checks; each result lists them in `missing_checks`, and
+  `scorecard --repo` computes every check locally;
 - reports a check or aggregate score of `-1` as **inconclusive** — not a
   failing score. `reason` on an inconclusive check is passed through verbatim
   from the upstream API and can be a raw internal-error string (e.g. a

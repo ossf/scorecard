@@ -17,6 +17,7 @@ package catalog
 import (
 	"maps"
 	"os"
+	"slices"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checks"
@@ -39,6 +40,54 @@ func TestCatalogList(t *testing.T) {
 		if i > 0 && list[i-1].Name > ci.Name {
 			t.Errorf("checks not sorted: %q before %q", list[i-1].Name, ci.Name)
 		}
+	}
+}
+
+func TestExpectedChecks(t *testing.T) {
+	t.Parallel()
+	c, err := New()
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	tests := []struct {
+		platform string
+		include  []string
+		exclude  []string
+	}{
+		{
+			platform: "github.com",
+			include:  []string{"CI-Tests", "Signed-Releases", "Vulnerabilities"},
+			exclude:  []string{"SBOM", "Webhooks"},
+		},
+		{
+			platform: "gitlab.com",
+			include:  []string{"CI-Tests", "Vulnerabilities"},
+			exclude:  []string{"SBOM", "Signed-Releases", "Webhooks"},
+		},
+		{
+			platform: "example.com",
+			include:  []string{"Signed-Releases", "Vulnerabilities"},
+			exclude:  []string{"SBOM", "Webhooks"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.platform, func(t *testing.T) {
+			t.Parallel()
+			got := c.ExpectedChecks(tt.platform)
+			if !slices.IsSorted(got) {
+				t.Errorf("ExpectedChecks(%q) = %v, want sorted", tt.platform, got)
+			}
+			for _, name := range tt.include {
+				if !slices.Contains(got, name) {
+					t.Errorf("ExpectedChecks(%q) = %v, want it to include %q", tt.platform, got, name)
+				}
+			}
+			for _, name := range tt.exclude {
+				if slices.Contains(got, name) {
+					t.Errorf("ExpectedChecks(%q) = %v, want it to exclude %q", tt.platform, got, name)
+				}
+			}
+		})
 	}
 }
 

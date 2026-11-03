@@ -17,6 +17,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/google/jsonschema-go/jsonschema"
@@ -84,16 +85,17 @@ type checkSummary struct {
 }
 
 type repoScoreOutput struct {
-	Attribution *model.Attribution  `json:"attribution,omitempty"`
-	Repo        model.RepoRef       `json:"repo"`
-	Scorecard   model.ScorecardInfo `json:"scorecard"`
-	Commit      string              `json:"commit,omitempty" jsonschema:"resolved commit SHA of the results"`
-	Date        string              `json:"date,omitempty" jsonschema:"when the scan was generated (RFC3339)"`
-	Source      model.Source        `json:"source" jsonschema:"which provider produced the result"`
-	Checks      []checkSummary      `json:"checks"`
-	Caveats     []string            `json:"caveats,omitempty"`
-	Score       float64             `json:"score" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
-	Complete    bool                `json:"complete" jsonschema:"whether all checks are present (false for cached)"`
+	Attribution   *model.Attribution  `json:"attribution,omitempty"`
+	Repo          model.RepoRef       `json:"repo"`
+	Scorecard     model.ScorecardInfo `json:"scorecard"`
+	Commit        string              `json:"commit,omitempty" jsonschema:"resolved commit SHA of the results"`
+	Date          string              `json:"date,omitempty" jsonschema:"when the scan was generated (RFC3339)"`
+	Source        model.Source        `json:"source" jsonschema:"which provider produced the result"`
+	Checks        []checkSummary      `json:"checks"`
+	Caveats       []string            `json:"caveats,omitempty"`
+	MissingChecks []string            `json:"missing_checks,omitempty" jsonschema:"expected checks the result lacks"`
+	Score         float64             `json:"score" jsonschema:"aggregate score 0-10, or -1 for inconclusive"`
+	Complete      bool                `json:"complete" jsonschema:"whether the result has every check for its platform"`
 }
 
 // --- get_check_result ---
@@ -178,9 +180,9 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 		if err := scorecardref.ValidateCommit(in.Commit); err != nil {
 			return nil, repoScoreOutput{}, fmt.Errorf("commit: %w", err)
 		}
-		res, err := p.GetResult(ctx, ref, in.Commit)
+		res, err := fetchResult(ctx, p, cat, ref, in.Commit)
 		if err != nil {
-			return nil, repoScoreOutput{}, fmt.Errorf("fetching results: %w", err)
+			return nil, repoScoreOutput{}, err
 		}
 		return nil, toRepoScore(res), nil
 	})
@@ -211,13 +213,13 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 		if in.Check == "" {
 			return nil, getCheckResultOutput{}, errCheckRequired
 		}
-		res, err := p.GetResult(ctx, ref, in.Commit)
+		res, err := fetchResult(ctx, p, cat, ref, in.Commit)
 		if err != nil {
-			return nil, getCheckResultOutput{}, fmt.Errorf("fetching results: %w", err)
+			return nil, getCheckResultOutput{}, err
 		}
 		c, ok := res.FindCheck(in.Check)
 		if !ok {
-			return nil, getCheckResultOutput{}, checkAbsenceError(in.Check, ref.String(), cat, p)
+			return nil, getCheckResultOutput{}, checkAbsenceError(in.Check, ref, cat)
 		}
 		return nil, getCheckResultOutput{
 			Repo:        res.Repo,
@@ -288,10 +290,47 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 	})
 }
 
+// fetchResult retrieves a repository's result and records which expected
+// checks it lacks.
+func fetchResult(
+	ctx context.Context,
+	p provider.Provider,
+	cat *catalog.Catalog,
+	ref model.RepoRef,
+	commit string,
+) (*model.Result, error) {
+	res, err := p.GetResult(ctx, ref, commit)
+	if err != nil {
+		return nil, fmt.Errorf("fetching results: %w", err)
+	}
+	annotateCoverage(res, cat)
+	return res, nil
+}
+
+// annotateCoverage lists the non-experimental checks for the result's
+// platform that the result does not include, marks the result complete only
+// when there are none, and adds a caveat naming them.
+func annotateCoverage(res *model.Result, cat *catalog.Catalog) {
+	var missing []string
+	for _, name := range cat.ExpectedChecks(res.Repo.Platform) {
+		if _, ok := res.FindCheck(name); !ok {
+			missing = append(missing, name)
+		}
+	}
+	res.MissingChecks = missing
+	res.Complete = len(missing) == 0
+	if !res.Complete {
+		res.Caveats = append(slices.Clip(res.Caveats), fmt.Sprintf(
+			"This result does not include the %s checks; `scorecard --repo=%s` computes every check locally.",
+			strings.Join(missing, ", "), res.Repo.String()))
+	}
+}
+
 // checkAbsenceError explains why a requested check is missing from a
-// repository's results, distinguishing an unknown check name, a known but
-// experimental check, and a known check this provider's scan omits.
-func checkAbsenceError(name, repo string, cat *catalog.Catalog, p provider.Provider) error {
+// repository's result, distinguishing an unknown check name, a known but
+// experimental check, a check that does not run on the repository's
+// platform, and a check the result does not include.
+func checkAbsenceError(name string, ref model.RepoRef, cat *catalog.Catalog) error {
 	detail, err := cat.Explain(name)
 	if err != nil {
 		return fmt.Errorf("%w: %q; use list_checks to see valid check names", errCheckUnknown, name)
@@ -301,14 +340,12 @@ func checkAbsenceError(name, repo string, cat *catalog.Catalog, p provider.Provi
 			"%w: %q is only included when a scan runs with SCORECARD_EXPERIMENTAL set",
 			errCheckExperimental, name)
 	}
-	for _, oc := range p.Capabilities().OmittedChecks {
-		if strings.EqualFold(oc, name) {
-			return fmt.Errorf(
-				"%w: %s omits %q from its results; live scanning will cover it in a future version",
-				errCheckOmitted, p.Capabilities().Source, name)
-		}
+	if !slices.Contains(cat.ExpectedChecks(ref.Platform), detail.Name) {
+		return fmt.Errorf("%w: %q does not run on %s", errCheckUnsupported, detail.Name, ref.Platform)
 	}
-	return fmt.Errorf("%w: no result for %q on %s with this provider", errCheckOmitted, name, repo)
+	return fmt.Errorf(
+		"%w: the result for %s does not include %q; `scorecard --repo=%s --checks=%s` computes it locally",
+		errCheckMissing, ref.String(), detail.Name, ref.String(), detail.Name)
 }
 
 // compareOne fetches one repository's aggregate score for compare_repos,
@@ -375,15 +412,16 @@ func toRepoScore(res *model.Result) repoScoreOutput {
 		summaries = append(summaries, checkSummary{Name: c.Name, Score: c.Score, Reason: c.Reason})
 	}
 	return repoScoreOutput{
-		Repo:        res.Repo,
-		Commit:      res.Commit,
-		Date:        res.Date,
-		Scorecard:   res.Scorecard,
-		Source:      res.Source,
-		Score:       res.Score,
-		Checks:      summaries,
-		Caveats:     res.Caveats,
-		Attribution: res.Attribution,
-		Complete:    res.Complete,
+		Repo:          res.Repo,
+		Commit:        res.Commit,
+		Date:          res.Date,
+		Scorecard:     res.Scorecard,
+		Source:        res.Source,
+		Score:         res.Score,
+		Checks:        summaries,
+		Caveats:       res.Caveats,
+		Attribution:   res.Attribution,
+		MissingChecks: res.MissingChecks,
+		Complete:      res.Complete,
 	}
 }

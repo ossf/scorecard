@@ -20,6 +20,7 @@ package catalog
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 
@@ -38,6 +39,13 @@ var errUnknownCheck = errors.New("unknown check")
 var experimentalChecks = map[string]bool{
 	"Webhooks": true,
 	"SBOM":     true,
+}
+
+// repoTypes maps a repository platform to the repository type the check
+// documentation lists in each check's supported repos.
+var repoTypes = map[string]string{
+	"github.com": "GitHub",
+	"gitlab.com": "GitLab",
 }
 
 // CheckInfo summarizes a check (used by list_checks and the index resource).
@@ -124,6 +132,26 @@ func (c *Catalog) Explain(name string) (CheckDetail, error) {
 		Description:        cd.GetDescription(),
 		Remediation:        cd.GetRemediation(),
 	}, nil
+}
+
+// ExpectedChecks returns the names of the non-experimental checks that run on
+// platform (for example github.com), sorted by name. For a platform the
+// documentation does not list, it returns every non-experimental check.
+func (c *Catalog) ExpectedChecks(platform string) []string {
+	repoType, known := repoTypes[platform]
+	var out []string
+	for _, info := range c.List() {
+		if info.Experimental {
+			continue
+		}
+		if known && !slices.ContainsFunc(info.SupportedPlatforms, func(t string) bool {
+			return strings.EqualFold(t, repoType)
+		}) {
+			continue
+		}
+		out = append(out, info.Name)
+	}
+	return out
 }
 
 // resolve returns the canonical check name for a case-insensitive input.

@@ -19,7 +19,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"strings"
 	"testing"
 
@@ -85,9 +84,6 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 	if res.Attribution == nil || res.Attribution.DataLicense != "CDLA-Permissive-2.0" {
 		t.Errorf("attribution = %+v, want CDLA-Permissive-2.0", res.Attribution)
 	}
-	if res.Complete {
-		t.Error("cached result should be marked incomplete")
-	}
 }
 
 func TestCachedRESTProviderTrimsTrailingSlash(t *testing.T) {
@@ -148,18 +144,6 @@ func TestNewCachedRESTDefaultBaseURL(t *testing.T) {
 	t.Parallel()
 	if got := NewCachedREST("").BaseURL; got != DefaultRESTBaseURL {
 		t.Errorf("BaseURL = %q, want %q", got, DefaultRESTBaseURL)
-	}
-}
-
-func TestCachedRESTProviderCapabilities(t *testing.T) {
-	t.Parallel()
-	c := NewCachedREST("").Capabilities()
-	if c.Source != model.SourceCachedREST || c.Complete {
-		t.Errorf("Capabilities = %+v, want an incomplete cached-rest source", c)
-	}
-	want := []string{"CI-Tests", "Contributors", "Dependency-Update-Tool"}
-	if !slices.Equal(c.OmittedChecks, want) {
-		t.Errorf("OmittedChecks = %v, want %v", c.OmittedChecks, want)
 	}
 }
 
