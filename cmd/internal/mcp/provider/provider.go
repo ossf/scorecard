@@ -32,12 +32,20 @@ type Provider interface {
 	GetResult(ctx context.Context, ref model.RepoRef, commit string) (*model.Result, error)
 }
 
-// NotFoundError indicates the provider has no results for the repository.
+// NotFoundError indicates the provider has no results for the repository or
+// requested commit.
 type NotFoundError struct {
-	Ref model.RepoRef
+	Ref    model.RepoRef
+	Commit string
 }
 
 func (e *NotFoundError) Error() string {
+	if e.Commit != "" {
+		return fmt.Sprintf(
+			"no published OpenSSF Scorecard results for %s at commit %s. The commit may not have a published result.",
+			e.Ref.String(), e.Commit,
+		)
+	}
 	return fmt.Sprintf(
 		"no published OpenSSF Scorecard results for %s. The repository may not have "+
 			"opted into publishing results (publish_results: true), or it may not be "+
