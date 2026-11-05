@@ -1,5 +1,5 @@
 name: Proposal
-description: A new check, a scoring change, or something a check should detect.
+description: A scoring change, something a check should detect, or a new check.
 title: "Proposal: "
 labels: ["kind/design", "needs discussion"]
 body:
@@ -13,10 +13,11 @@ body:
     attributes:
       label: Kind
       options:
-        - New check
         - Scoring change
         - Detection
         - New probe
+        - New check
+        - Other
     validations:
       required: true
   - type: textarea
