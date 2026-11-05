@@ -34,8 +34,10 @@ const DefaultRESTBaseURL = "https://api.scorecard.dev"
 
 // Sentinel errors returned for non-200 responses.
 var (
-	errBadRequest       = errors.New("invalid Scorecard REST API request")
-	errUnexpectedStatus = errors.New("unexpected Scorecard REST API status")
+	errBadRequest               = errors.New("invalid Scorecard REST API request")
+	errUnexpectedStatus         = errors.New("unexpected Scorecard REST API status")
+	errMissingCommitProvenance  = errors.New("Scorecard REST API response omitted the resolved commit")
+	errCommitProvenanceMismatch = errors.New("Scorecard REST API returned a different commit")
 )
 
 // userAgent identifies requests from this server to the REST API operators.
@@ -135,10 +137,10 @@ func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, c
 	}
 	if commit != "" {
 		if rr.Repo.Commit == "" {
-			return nil, fmt.Errorf("Scorecard REST API response omitted the resolved commit for requested commit %s", commit)
+			return nil, fmt.Errorf("%w for requested commit %s", errMissingCommitProvenance, commit)
 		}
 		if !strings.EqualFold(rr.Repo.Commit, commit) {
-			return nil, fmt.Errorf("Scorecard REST API returned commit %s for requested commit %s", rr.Repo.Commit, commit)
+			return nil, fmt.Errorf("%w: got %s, requested %s", errCommitProvenanceMismatch, rr.Repo.Commit, commit)
 		}
 	}
 	return p.toResult(ref, &rr), nil

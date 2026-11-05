@@ -279,7 +279,7 @@ func TestCachedRESTProviderRejectsMismatchedCommit(t *testing.T) {
 
 	_, err := NewCachedREST(ts.URL).GetResult(context.Background(),
 		model.RepoRef{Platform: "github.com", Org: "ossf", Name: "scorecard"}, requested)
-	if err == nil || !strings.Contains(err.Error(), "returned commit "+returned) {
+	if err == nil || !errors.Is(err, errCommitProvenanceMismatch) || !strings.Contains(err.Error(), returned) {
 		t.Fatalf("GetResult error = %v, want a commit mismatch error", err)
 	}
 }
