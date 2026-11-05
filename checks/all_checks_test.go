@@ -16,10 +16,44 @@
 package checks
 
 import (
+	"os"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
 )
+
+func TestExperimentalChecks(t *testing.T) {
+	for _, name := range []string{CheckBinaryArtifacts, "Not-A-Real-Check"} {
+		if IsExperimental(name) {
+			t.Errorf("IsExperimental(%q) = true, want false", name)
+		}
+	}
+	for _, state := range []string{"unset", "empty", "enabled"} {
+		t.Run(state, func(t *testing.T) {
+			t.Setenv("SCORECARD_EXPERIMENTAL", "")
+			if state == "unset" {
+				if err := os.Unsetenv("SCORECARD_EXPERIMENTAL"); err != nil {
+					t.Fatal(err)
+				}
+			} else if state == "enabled" {
+				t.Setenv("SCORECARD_EXPERIMENTAL", "1")
+			}
+			defaults := GetAll()
+			all := GetAllWithExperimental()
+			for _, name := range []string{CheckWebHooks, CheckSBOM} {
+				if !IsExperimental(name) {
+					t.Errorf("IsExperimental(%q) = false, want true", name)
+				}
+				if _, ok := all[name]; !ok {
+					t.Errorf("GetAllWithExperimental() is missing %q", name)
+				}
+				if _, ok := defaults[name]; ok != (state != "unset") {
+					t.Errorf("GetAll() contains %q = %v with environment %s", name, ok, state)
+				}
+			}
+		})
+	}
+}
 
 func Test_registerCheck(t *testing.T) {
 	t.Parallel()

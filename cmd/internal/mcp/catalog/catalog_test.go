@@ -146,8 +146,8 @@ func TestCatalogExplain(t *testing.T) {
 	}
 }
 
-// TestExperimentalChecksMatch diffs the hand-maintained experimentalChecks map
-// (catalog.go) against the checks package: experimental checks are those in
+// TestExperimentalChecksMatch compares the catalog against the checks package:
+// experimental checks are those in
 // GetAllWithExperimental() but not in GetAll() when SCORECARD_EXPERIMENTAL is
 // unset.
 func TestExperimentalChecksMatch(t *testing.T) {
@@ -163,7 +163,17 @@ func TestExperimentalChecksMatch(t *testing.T) {
 			want[name] = true
 		}
 	}
-	if !maps.Equal(experimentalChecks, want) {
-		t.Errorf("experimentalChecks = %v, want %v (from checks/all_checks.go)", experimentalChecks, want)
+	c, err := New()
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	got := map[string]bool{}
+	for _, check := range c.List() {
+		if check.Experimental {
+			got[check.Name] = true
+		}
+	}
+	if !maps.Equal(got, want) {
+		t.Errorf("catalog experimental checks = %v, want %v (from checks/all_checks.go)", got, want)
 	}
 }
