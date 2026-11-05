@@ -30,16 +30,56 @@ func TestPackaging(t *testing.T) {
 		result   scut.TestReturn
 	}{
 		{
-			name: "test true outcome",
+			name: "packaging workflow without a trusted-publishing signal",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "publishesWithOIDC",
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
+			result: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "trusted publishing",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithAutomatedWorkflow",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "publishesWithOIDC",
+					Outcome: finding.OutcomeTrue,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
+				NumberOfInfo: 2,
+			},
+		},
+		{
+			name: "long-lived publishing credential",
+			findings: []finding.Finding{
+				{
+					Probe:   "packagedWithAutomatedWorkflow",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "publishesWithOIDC",
+					Outcome: finding.OutcomeFalse,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        credentialPublishingScore,
 				NumberOfInfo: 1,
+				NumberOfWarn: 1,
 			},
 		},
 		{
@@ -56,16 +96,21 @@ func TestPackaging(t *testing.T) {
 			},
 		},
 		{
-			name: "test inconclusive outcome",
+			name: "no packaging workflow",
 			findings: []finding.Finding{
 				{
 					Probe:   "packagedWithAutomatedWorkflow",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "publishesWithOIDC",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.InconclusiveResultScore,
-				NumberOfWarn: 1,
+				Score:         checker.InconclusiveResultScore,
+				NumberOfWarn:  1,
+				NumberOfDebug: 1,
 			},
 		},
 		{

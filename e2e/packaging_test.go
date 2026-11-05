@@ -47,7 +47,7 @@ var _ = Describe("E2E TEST:"+checks.CheckPackaging, func() {
 				Score:         checker.InconclusiveResultScore,
 				NumberOfWarn:  1,
 				NumberOfInfo:  0,
-				NumberOfDebug: 0,
+				NumberOfDebug: 1,
 			}
 			result := checks.Packaging(&req)
 			scut.ValidateTestReturn(GinkgoTB(), "use packaging", &expected, &result, &dl)

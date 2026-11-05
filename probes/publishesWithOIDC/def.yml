@@ -1,0 +1,48 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+id: publishesWithOIDC
+lifecycle: experimental
+short: Checks whether package publishing uses OpenID Connect rather than a long-lived credential.
+motivation: >
+  Trusted publishing lets a GitHub Actions workflow authenticate to a package registry with a short-lived OIDC identity.
+  That removes long-lived API tokens from the repository and ties the published artifact to the workflow run.
+implementation: >
+  For PyPI, npm, RubyGems, crates.io, and pub.dev, the probe reads the packaging workflow.
+  Publishing is OIDC when the effective permissions grant id-token: write and the workflow does not also pass a long-lived token.
+  A job-level permissions block replaces the workflow permissions.
+  Other packaging workflows are not classified.
+outcome:
+  - If a classified workflow publishes with OpenID Connect, the outcome is positive.
+  - If a classified workflow publishes with a long-lived token or password, the outcome is negative.
+  - If no classified publishing workflow is present, the outcome is not applicable.
+remediation:
+  onOutcome: False
+  effort: Low
+  text:
+    - Publish with the registry's trusted publisher instead of an API token.
+    - 'PyPI: https://docs.pypi.org/trusted-publishers/'
+    - 'npm: https://docs.npmjs.com/trusted-publishers'
+    - 'RubyGems: https://guides.rubygems.org/trusted-publishing/'
+    - 'crates.io: https://crates.io/docs/trusted-publishing'
+    - 'pub.dev: https://dart.dev/tools/pub/automated-publishing'
+  markdown:
+    - Publish with the registry's trusted publisher instead of an API token.
+    - '[PyPI](https://docs.pypi.org/trusted-publishers/), [npm](https://docs.npmjs.com/trusted-publishers), [RubyGems](https://guides.rubygems.org/trusted-publishing/), [crates.io](https://crates.io/docs/trusted-publishing), [pub.dev](https://dart.dev/tools/pub/automated-publishing).'
+ecosystem:
+  languages:
+    - all
+  clients:
+    - github
+    - localdir

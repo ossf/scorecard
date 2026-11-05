@@ -469,9 +469,15 @@ checks:
       Scorecard fails to detect the way you publish a package and you think we should
       support your use case, please let us know by [opening an
       issue](https://github.com/ossf/scorecard/issues/new/choose).
+
+      For PyPI, npm, RubyGems, crates.io, and pub.dev, a workflow that publishes
+      with a long-lived token scores 8/10. The same workflow scores 10/10 when it
+      uses the registry's trusted publisher (GitHub Actions OIDC, `id-token: write`,
+      and no long-lived token). Other detected packaging workflows are unchanged.
     remediation:
       - Publish your project as a downloadable package, e.g., if hosted on GitHub, use [GitHub's mechanisms for publishing a package](https://docs.github.com/en/packages/learn-github-packages/publishing-a-package).
       - If hosted on GitHub, use a GitHub action to release your package to language-specific hubs.
+      - Where the registry supports it, publish with a trusted publisher instead of a long-lived API token.
   Pinned-Dependencies:
     risk: Medium
     tags: supply-chain, security, dependencies

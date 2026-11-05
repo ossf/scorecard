@@ -134,6 +134,7 @@ The following probes exist in Scorecard but do not directly map to any OSPS Base
 | `fuzzed` | Fuzzing | Testing best practice, not a Baseline control |
 | `hasOpenSSFBadge` | CII-Best-Practices | Meta-badge, not a Baseline control |
 | `packagedWithAutomatedWorkflow` | Packaging | Distribution best practice |
+| `publishesWithOIDC` | Packaging | Trusted publishing for registries that support it |
 | `webhooksUseSecrets` | Webhook | Security practice, not a Baseline control |
 | `hasPermissiveLicense` | (uncategorized) | License type classification |
 | `unsafeblock` | (independent) | Language-specific safety |

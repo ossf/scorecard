@@ -104,6 +104,9 @@ func Packaging(c *checker.CheckRequest) (checker.PackagingData, error) {
 					},
 				)
 			}
+			auth, ecosystem := fileparser.ClassifyPublishAuth(workflow)
+			pkg.PublishAuth = auth
+			pkg.PublishEcosystem = ecosystem
 			data.Packages = append(data.Packages, pkg)
 
 			return data, nil
