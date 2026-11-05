@@ -42,6 +42,7 @@ const sampleResult = `{
 func TestCachedRESTProviderGetResult(t *testing.T) {
 	t.Parallel()
 	const commit = "64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1"
+	const upperCommit = "64FEBF8C5229F0A5F0A6D2A0F0D4B6A7C8D9E0F1"
 	var gotPath, gotQuery, gotUserAgent string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gotPath, gotQuery, gotUserAgent = r.URL.Path, r.URL.RawQuery, r.UserAgent()
@@ -54,7 +55,7 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 
 	p := NewCachedREST(ts.URL)
 	ref := model.RepoRef{Platform: "github.com", Org: "ossf", Name: "scorecard"}
-	res, err := p.GetResult(context.Background(), ref, commit)
+	res, err := p.GetResult(context.Background(), ref, upperCommit)
 	if err != nil {
 		t.Fatalf("GetResult: %v", err)
 	}
@@ -63,7 +64,7 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 		t.Errorf("path = %q", gotPath)
 	}
 	if gotQuery != "commit="+commit {
-		t.Errorf("query = %q", gotQuery)
+		t.Errorf("query = %q, want lowercase commit SHA", gotQuery)
 	}
 	if want := "scorecard/" + version.GetVersionInfo().GitVersion; gotUserAgent != want {
 		t.Errorf("User-Agent = %q, want %q", gotUserAgent, want)
@@ -75,7 +76,7 @@ func TestCachedRESTProviderGetResult(t *testing.T) {
 		t.Errorf("score = %v, want 8.7", res.Score)
 	}
 	if res.Commit != commit {
-		t.Errorf("commit = %q, want %q", res.Commit, commit)
+		t.Errorf("commit = %q, want resolved lowercase SHA %q", res.Commit, commit)
 	}
 	if len(res.Checks) != 2 {
 		t.Fatalf("checks = %d, want 2", len(res.Checks))
@@ -129,6 +130,25 @@ func TestCachedRESTProviderNotFound(t *testing.T) {
 	var nf *NotFoundError
 	if !errors.As(err, &nf) {
 		t.Fatalf("expected *NotFoundError, got %v", err)
+	}
+}
+
+func TestCachedRESTProviderCommitNotFound(t *testing.T) {
+	t.Parallel()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer ts.Close()
+
+	const commit = "0123456789abcdef0123456789abcdef01234567"
+	ref := model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}
+	_, err := NewCachedREST(ts.URL).GetResult(context.Background(), ref, commit)
+	var nf *NotFoundError
+	if !errors.As(err, &nf) {
+		t.Fatalf("expected *NotFoundError, got %v", err)
+	}
+	if nf.Commit != commit || !strings.Contains(err.Error(), "at commit "+commit) {
+		t.Errorf("NotFoundError = %q (commit %q), want commit-specific error", err, nf.Commit)
 	}
 }
 
@@ -227,7 +247,7 @@ func TestCachedRESTProviderErrors(t *testing.T) {
 	}
 }
 
-func TestCachedRESTProviderFallsBackToRequestedCommit(t *testing.T) {
+func TestCachedRESTProviderRejectsMissingCommitProvenance(t *testing.T) {
 	t.Parallel()
 	const commit = "0123456789abcdef0123456789abcdef01234567"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -237,12 +257,29 @@ func TestCachedRESTProviderFallsBackToRequestedCommit(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	res, err := NewCachedREST(ts.URL).GetResult(context.Background(),
+	_, err := NewCachedREST(ts.URL).GetResult(context.Background(),
 		model.RepoRef{Platform: "github.com", Org: "o", Name: "r"}, commit)
-	if err != nil {
-		t.Fatalf("GetResult: %v", err)
+	if err == nil || !strings.Contains(err.Error(), "omitted the resolved commit") {
+		t.Fatalf("GetResult error = %v, want missing-commit provenance error", err)
 	}
-	if res.Commit != commit {
-		t.Errorf("Commit = %q, want the requested %q when the API omits it", res.Commit, commit)
+}
+
+func TestCachedRESTProviderRejectsMismatchedCommit(t *testing.T) {
+	t.Parallel()
+	const requested = "0123456789abcdef0123456789abcdef01234567"
+	const returned = "1123456789abcdef0123456789abcdef01234567"
+	body := strings.Replace(sampleResult,
+		"64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1", returned, 1)
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		if _, err := w.Write([]byte(body)); err != nil {
+			t.Errorf("writing response: %v", err)
+		}
+	}))
+	defer ts.Close()
+
+	_, err := NewCachedREST(ts.URL).GetResult(context.Background(),
+		model.RepoRef{Platform: "github.com", Org: "ossf", Name: "scorecard"}, requested)
+	if err == nil || !strings.Contains(err.Error(), "returned commit "+returned) {
+		t.Fatalf("GetResult error = %v, want a commit mismatch error", err)
 	}
 }

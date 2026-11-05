@@ -101,6 +101,7 @@ func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, c
 		url.PathEscape(ref.Name),
 	)
 	if commit != "" {
+		commit = strings.ToLower(commit)
 		endpoint += "?commit=" + url.QueryEscape(commit)
 	}
 
@@ -121,7 +122,7 @@ func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, c
 	case http.StatusOK:
 		// proceed
 	case http.StatusNotFound:
-		return nil, &NotFoundError{Ref: ref}
+		return nil, &NotFoundError{Ref: ref, Commit: commit}
 	case http.StatusBadRequest:
 		return nil, fmt.Errorf("%w for %s (HTTP 400); check the repository reference and commit", errBadRequest, ref.String())
 	default:
@@ -132,10 +133,18 @@ func (p *CachedRESTProvider) GetResult(ctx context.Context, ref model.RepoRef, c
 	if err := json.NewDecoder(resp.Body).Decode(&rr); err != nil {
 		return nil, fmt.Errorf("decoding Scorecard results for %s: %w", ref.String(), err)
 	}
-	return p.toResult(ref, commit, &rr), nil
+	if commit != "" {
+		if rr.Repo.Commit == "" {
+			return nil, fmt.Errorf("Scorecard REST API response omitted the resolved commit for requested commit %s", commit)
+		}
+		if !strings.EqualFold(rr.Repo.Commit, commit) {
+			return nil, fmt.Errorf("Scorecard REST API returned commit %s for requested commit %s", rr.Repo.Commit, commit)
+		}
+	}
+	return p.toResult(ref, &rr), nil
 }
 
-func (p *CachedRESTProvider) toResult(ref model.RepoRef, commit string, rr *restResult) *model.Result {
+func (p *CachedRESTProvider) toResult(ref model.RepoRef, rr *restResult) *model.Result {
 	checks := make([]model.Check, 0, len(rr.Checks))
 	for _, c := range rr.Checks {
 		mc := model.Check{
@@ -150,14 +159,9 @@ func (p *CachedRESTProvider) toResult(ref model.RepoRef, commit string, rr *rest
 		checks = append(checks, mc)
 	}
 
-	resolvedCommit := rr.Repo.Commit
-	if resolvedCommit == "" {
-		resolvedCommit = commit
-	}
-
 	return &model.Result{
 		Repo:      ref,
-		Commit:    resolvedCommit,
+		Commit:    rr.Repo.Commit,
 		Date:      rr.Date,
 		Scorecard: model.ScorecardInfo{Version: rr.Scorecard.Version, Commit: rr.Scorecard.Commit},
 		Source:    model.SourceCachedREST,
