@@ -26,20 +26,12 @@ import (
 
 	"sigs.k8s.io/release-utils/version"
 
+	"github.com/ossf/scorecard/v5/checks"
 	scdocs "github.com/ossf/scorecard/v5/docs/checks"
 )
 
 // errUnknownCheck is returned when a check name is not recognized.
 var errUnknownCheck = errors.New("unknown check")
-
-// experimentalChecks lists checks excluded from Scorecard's default set unless
-// SCORECARD_EXPERIMENTAL is set. Source of truth: checks/all_checks.go
-// (getAll deletes these). catalog_test.go's TestExperimentalChecksMatch diffs
-// this list against the checks package, so drift fails the build.
-var experimentalChecks = map[string]bool{
-	"Webhooks": true,
-	"SBOM":     true,
-}
 
 // repoTypes maps a repository platform to the repository type the check
 // documentation lists in each check's supported repos.
@@ -184,7 +176,7 @@ func (c *Catalog) toInfo(cd scdocs.CheckDoc) CheckInfo {
 		Tags:               normalizeTags(cd.GetTags()),
 		SupportedPlatforms: cd.GetSupportedRepoTypes(),
 		DocumentationURL:   cd.GetDocumentationURL(c.commitish),
-		Experimental:       experimentalChecks[name],
+		Experimental:       checks.IsExperimental(name),
 	}
 }
 

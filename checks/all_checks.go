@@ -62,6 +62,17 @@ var allChecks = func() checker.CheckNameToFnMap {
 	return m
 }()
 
+var experimentalCheckSet = map[string]bool{
+	CheckWebHooks: true,
+	CheckSBOM:     true,
+}
+
+// IsExperimental reports whether the named check is experimental, regardless of
+// whether SCORECARD_EXPERIMENTAL is set.
+func IsExperimental(name string) bool {
+	return experimentalCheckSet[name]
+}
+
 func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 	// need to make a copy or caller could mutate original map
 	possibleChecks := checker.CheckNameToFnMap{}
