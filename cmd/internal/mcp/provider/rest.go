@@ -36,8 +36,8 @@ const DefaultRESTBaseURL = "https://api.scorecard.dev"
 var (
 	errBadRequest               = errors.New("invalid Scorecard REST API request")
 	errUnexpectedStatus         = errors.New("unexpected Scorecard REST API status")
-	errMissingCommitProvenance  = errors.New("Scorecard REST API response omitted the resolved commit")
-	errCommitProvenanceMismatch = errors.New("Scorecard REST API returned a different commit")
+	errMissingCommitProvenance  = errors.New("scorecard REST API response omitted the resolved commit")
+	errCommitProvenanceMismatch = errors.New("scorecard REST API returned a different commit")
 )
 
 // userAgent identifies requests from this server to the REST API operators.
