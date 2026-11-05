@@ -1,22 +1,21 @@
 name: Proposal
-description: Propose a new check, a change to how a check scores, or a tool, action, or file a check should detect. Start with the problem.
+description: A new check, a scoring change, or something a check should detect.
 title: "Proposal: "
 labels: ["kind/design", "needs discussion"]
 body:
   - type: markdown
     attributes:
       value: |
-        Scoring changes affect every repository Scorecard scores, so proposals start with the problem, not the solution.
-        Proposals without maintainer agreement are declined by default.
-        If you used AI to write this proposal, you are responsible for its accuracy.
+        Start with the problem, not the solution. Scoring changes affect every repository, so proposals without maintainer agreement are declined.
+        If AI helped write this, you're responsible for its accuracy.
   - type: dropdown
     id: kind
     attributes:
-      label: Kind of proposal
+      label: Kind
       options:
         - New check
-        - Change to how a check scores
-        - Detect a tool, action, or file
+        - Scoring change
+        - Detection
         - New probe
     validations:
       required: true
@@ -24,37 +23,37 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What goes wrong today, and who it affects. Link public repositories that score wrong today, at the exact file or line.
+      description: What's wrong today, and who does it affect? Link repositories that score wrong.
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposed change
-      description: For a detection request, the exact `uses:` line, `run:` command, or filename, and whether it changes how the check scores.
+      description: For detection, give the exact `uses:` line, command, or filename.
     validations:
       required: true
   - type: textarea
     id: existing
     attributes:
       label: Existing issues
-      description: Links to related open or closed issues and how this differs, or the search terms you used if nothing matched.
+      description: Link related issues and say how this differs, or list what you searched for.
     validations:
       required: true
   - type: textarea
     id: data
     attributes:
       label: Data and cost (optional)
-      description: What data the check would read, from which API, and roughly how many calls per repository.
+      description: What data it reads, from which API, and about how many calls per repository.
   - type: textarea
     id: gaming
     attributes:
-      label: How it could be gamed (optional)
+      label: How could it be gamed? (optional)
   - type: textarea
     id: impact
     attributes:
-      label: Effect on existing scores (optional)
-      description: Which repositories would score differently, and in which direction.
+      label: Effect on scores (optional)
+      description: Which repositories would score differently, and which way.
   - type: checkboxes
     id: implement
     attributes:
@@ -66,7 +65,7 @@ body:
     attributes:
       label: Before you submit
       options:
-        - label: I searched open and closed issues before filing.
+        - label: I searched open and closed issues.
           required: true
         - label: I can answer follow-up questions. Issues with unanswered questions may be closed.
           required: true

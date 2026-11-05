@@ -1,38 +1,37 @@
 name: Something is wrong
-description: A wrong check result or score, an error or hang, a problem with scorecard.dev, the API, the weekly scan, or a badge, or a mistake in the docs.
+description: A wrong result, an error, or a problem with the website, API, weekly scan, badges, or docs.
 title: "Issue: "
 labels: ["kind/bug", "needs triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        One problem per issue. Describe what you see before what you think causes it, and check the latest release first.
-        Don't report security vulnerabilities here; use [private vulnerability reporting](https://github.com/ossf/scorecard/security/advisories/new).
-        If you used AI to write this report, you are responsible for its accuracy.
-        To add a repository to the weekly scan, follow [ossf/scorecard-infra](https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md) instead.
+        One problem per issue. Report security vulnerabilities [privately](https://github.com/ossf/scorecard/security/advisories/new), not here.
+        To add a repository to the weekly scan, see [ossf/scorecard-infra](https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md).
+        If AI helped write this, you're responsible for its accuracy.
   - type: dropdown
     id: kind
     attributes:
-      label: What went wrong
+      label: What went wrong?
       options:
-        - Wrong check result or score
-        - Error, crash, or hang
+        - Wrong result or score
+        - Error or hang
         - Website, API, weekly scan, or badge
-        - Documentation
+        - Docs
     validations:
       required: true
   - type: dropdown
     id: where
     attributes:
-      label: How Scorecard was run
+      label: How did you run Scorecard?
       options:
         - CLI
         - GitHub Action
         - REST API
-        - scorecard.dev website
+        - scorecard.dev
         - Weekly scan data
         - Badge
-        - Not run (documentation)
+        - I didn't (docs)
     validations:
       required: true
   - type: textarea
@@ -40,10 +39,8 @@ body:
     attributes:
       label: Command, version, or URL
       description: |
-        CLI: the exact command and the output of `scorecard version`.
-        Action: the workflow step and Action tag, or a link to the run.
-        API, website, scan data, or badge: the URL or query.
-        Documentation: write "n/a".
+        CLI: the command and `scorecard version`. Action: the workflow step and tag, or a link to the run.
+        Otherwise: the URL. Docs: n/a.
     validations:
       required: true
   - type: dropdown
@@ -76,29 +73,29 @@ body:
     id: link
     attributes:
       label: Link
-      description: A public repository that shows the problem, at a commit or at the exact file or line. For docs, the doc line.
+      description: A public repository that shows the problem, linked to a commit or line. For docs, link the line.
       placeholder: https://github.com/owner/repo/blob/<commit>/.github/workflows/ci.yml#L12
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: What you saw
-      description: Paste output and error messages as text in a code block, including the check's details. Don't paraphrase.
+      label: What did you see?
+      description: Paste output as text, not a screenshot.
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: What you expected
-      description: The result you expected, with a link to the check's documentation and the evidence the check missed. For docs, the proposed wording.
+      label: What did you expect?
+      description: Link the check's docs if you can. For docs, suggest the wording.
     validations:
       required: true
   - type: textarea
     id: existing
     attributes:
       label: Existing issues
-      description: Links to related open or closed issues, or the search terms you used if nothing matched.
+      description: Link related issues, or list what you searched for.
     validations:
       required: true
   - type: checkboxes
@@ -106,9 +103,9 @@ body:
     attributes:
       label: Before you submit
       options:
-        - label: I searched open and closed issues before filing.
+        - label: I searched open and closed issues.
           required: true
-        - label: I reproduced this on the latest release, or I saw it on the website, the API, the weekly scan, a badge, or in the docs.
+        - label: I tried the latest release, or this isn't about the CLI or Action.
           required: true
         - label: I can answer follow-up questions. Issues with unanswered questions may be closed.
           required: true

@@ -1,18 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Report a security vulnerability
-    url: https://github.com/ossf/scorecard/security/advisories/new
-    about: Report vulnerabilities privately, per SECURITY.md. Don't open a public issue.
-  - name: Ask a question
-    url: https://slack.openssf.org/#scorecard
-    about: Questions and discussion go to the #scorecard channel on OpenSSF Slack.
-  - name: Problems with the Scorecard GitHub Action
-    url: https://github.com/ossf/scorecard-action/issues
-    about: >-
-      Action setup, permissions, or upload failures. Wrong check results
-      seen through the Action go in this repository.
   - name: Add a repository to the weekly scan
     url: https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md
-    about: >-
-      The weekly batch scan has moved to `ossf/scorecard-infra`. Follow the
-      instructions there to add new projects to the scan inventory.
+    about: The weekly scan lives in ossf/scorecard-infra. Follow its instructions to add a repository.
