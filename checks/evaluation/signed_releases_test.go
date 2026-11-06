@@ -131,9 +131,9 @@ func TestSignedReleases(t *testing.T) {
 				provenanceProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
-				Score:         8,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfWarn:  1,
+				NumberOfWarn:  0,
 				NumberOfDebug: 1,
 			},
 		},
@@ -276,9 +276,9 @@ func TestSignedReleases(t *testing.T) {
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
-				Score:         8,
+				Score:         checker.MaxResultScore,
 				NumberOfInfo:  5,
-				NumberOfWarn:  5,
+				NumberOfWarn:  0,
 				NumberOfDebug: 5,
 			},
 		},
@@ -327,6 +327,70 @@ func TestSignedReleases(t *testing.T) {
 			dl := scut.TestDetailLogger{}
 			got := SignedReleases(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
+		})
+	}
+}
+
+func TestSignedReleasesReason(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		findings []finding.Finding
+		reason   string
+	}{
+		{
+			name: "signed artifacts only",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				signedProbe(0, 1, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+			},
+			reason: "1 out of the last 1 releases have a total of 2 signed artifacts.",
+		},
+		{
+			name: "provenance counts as a signed artifact",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeTrue),
+			},
+			reason: "1 out of the last 1 releases have a total of 2 signed artifacts.",
+		},
+		{
+			name: "immutable releases only",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeFalse),
+				immutableProbe(0, finding.OutcomeTrue),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				signedProbe(1, 0, finding.OutcomeFalse),
+				immutableProbe(1, finding.OutcomeTrue),
+				provenanceProbe(1, 0, finding.OutcomeFalse),
+			},
+			reason: "2 out of the last 2 releases have a total of 0 signed artifacts and 2 immutable releases.",
+		},
+		{
+			name: "signed and immutable releases",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				signedProbe(1, 0, finding.OutcomeFalse),
+				immutableProbe(1, finding.OutcomeTrue),
+				provenanceProbe(1, 0, finding.OutcomeFalse),
+			},
+			reason: "2 out of the last 2 releases have a total of 1 signed artifacts and 1 immutable releases.",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dl := scut.TestDetailLogger{}
+			got := SignedReleases(tt.name, tt.findings, &dl)
+			if got.Reason != tt.reason {
+				t.Errorf("unexpected reason: got %q, want %q", got.Reason, tt.reason)
+			}
 		})
 	}
 }
