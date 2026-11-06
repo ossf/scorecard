@@ -238,6 +238,11 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 	return client.releases.getReleases()
 }
 
+// ListReleasesWithAttestations implements clients.ReleaseAttestationLister.
+func (client *Client) ListReleasesWithAttestations() ([]clients.Release, error) {
+	return client.releases.getReleasesWithAttestations()
+}
+
 // ListContributors implements RepoClient.ListContributors.
 func (client *Client) ListContributors() ([]clients.User, error) {
 	var fileReader io.ReadCloser

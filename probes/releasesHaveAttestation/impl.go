@@ -22,6 +22,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/host"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
@@ -44,6 +45,19 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
+	// Artifact attestations are a GitHub feature, so avoid reporting every release
+	// from other hosts (e.g. GitLab) as not having attestations.
+	if !host.IsGitHub(raw.Metadata.Metadata[host.MetadataKey]) {
+		f, err := finding.NewWith(fs, Probe,
+			"artifact attestations are only supported for GitHub repositories",
+			nil,
+			finding.OutcomeNotSupported)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
 	var findings []finding.Finding
 
 	releases := raw.SignedReleasesResults.Releases
@@ -59,16 +73,22 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 		// A release is considered attested if all assets have a digest and
 		// each digest has a corresponding GitHub artifact attestation.
-		allAttested := true
+		missing := false      // an asset definitely has no attestation
+		lookupFailed := false // the attestations of an asset could not be determined
 		for j := range release.Assets {
 			asset := release.Assets[j]
-			if asset.Digest == "" || !asset.HasAttestation {
-				allAttested = false
-				break
+			switch {
+			case asset.Digest == "":
+				missing = true
+			case asset.AttestationLookupFailed:
+				// A failed lookup does not tell us whether the asset has an attestation.
+				lookupFailed = true
+			case !asset.HasAttestation:
+				missing = true
 			}
 		}
 
-		if allAttested {
+		if !missing && !lookupFailed {
 			// All assets in this release have attestations — report the first one as representative.
 			asset := release.Assets[0]
 			loc := &finding.Location{
@@ -90,13 +110,29 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 			continue
 		}
 
-		// At least one asset is missing a digest or attestation.
 		// Use the first asset URL, which is the release's HTML URL, to match the
 		// success case and avoid the GitHub API URL in findings.
 		loc := &finding.Location{
 			Type: finding.FileTypeURL,
 			Path: release.Assets[0].URL,
 		}
+
+		if !missing {
+			// No asset is known to be missing an attestation, but the attestations of at
+			// least one asset could not be queried, so don't report the release as lacking them.
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("unable to determine if release artifact %s has attestations for all assets", release.TagName),
+				loc,
+				finding.OutcomeNotAvailable)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithValue(ReleaseNameKey, release.TagName)
+			findings = append(findings, *f)
+			continue
+		}
+
+		// At least one asset is missing a digest or attestation.
 		f, err := finding.NewWith(fs, Probe,
 			fmt.Sprintf("release artifact %s does not have attestations for all assets", release.TagName),
 			loc,

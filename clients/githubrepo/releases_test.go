@@ -214,7 +214,11 @@ func TestHasAttestation_Found(t *testing.T) {
 		repourl:             &Repo{owner: "testuser", repo: "repo"},
 		ownerEndpointPrefix: ownerEndpointUser,
 	}
-	if !handler.hasAttestation(digest) {
+	found, err := handler.hasAttestation(digest)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !found {
 		t.Error("expected attestation to be found")
 	}
 }
@@ -228,7 +232,11 @@ func TestHasAttestation_NotFound(t *testing.T) {
 		repourl:             &Repo{owner: "testuser", repo: "repo"},
 		ownerEndpointPrefix: ownerEndpointUser,
 	}
-	if handler.hasAttestation("sha256:notfound") {
+	found, err := handler.hasAttestation("sha256:notfound")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if found {
 		t.Error("expected attestation not to be found")
 	}
 }
@@ -241,7 +249,11 @@ func TestHasAttestation_RequestError(t *testing.T) {
 		repourl:             &Repo{owner: "testuser", repo: "repo"},
 		ownerEndpointPrefix: ownerEndpointUser,
 	}
-	if handler.hasAttestation("sha256:any") {
+	found, err := handler.hasAttestation("sha256:any")
+	if err == nil {
+		t.Error("expected an error on request failure, so it is not mistaken for no attestation")
+	}
+	if found {
 		t.Error("expected false on request error")
 	}
 }
@@ -266,7 +278,7 @@ func TestCheckAttestations(t *testing.T) {
 			},
 		},
 	}
-	handler.checkAttestations()
+	handler.checkAttestations(handler.releases)
 
 	assets := handler.releases[0].Assets
 	if !assets[0].HasAttestation {
@@ -309,7 +321,11 @@ func TestHasAttestation_UnknownOwnerTypeFallsBackToOrg(t *testing.T) {
 		ctx:     t.Context(),
 		repourl: &Repo{owner: "testorg", repo: "repo"},
 	}
-	if !handler.hasAttestation(digest) {
+	found, err := handler.hasAttestation(digest)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !found {
 		t.Error("expected attestation to be found via the orgs endpoint")
 	}
 	if len(rt.paths) != 2 {
@@ -327,7 +343,11 @@ func TestHasAttestation_KnownOwnerTypeDoesNotRetry(t *testing.T) {
 		repourl:             &Repo{owner: "testuser", repo: "repo"},
 		ownerEndpointPrefix: ownerEndpointUser,
 	}
-	if handler.hasAttestation(digest) {
+	found, err := handler.hasAttestation(digest)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if found {
 		t.Error("expected attestation not to be found")
 	}
 	if len(rt.paths) != 1 {
@@ -350,7 +370,7 @@ func TestCheckAttestations_LookBack(t *testing.T) {
 			Assets: []clients.ReleaseAsset{{Digest: digest}},
 		})
 	}
-	handler.checkAttestations()
+	handler.checkAttestations(handler.releases)
 
 	for i := range handler.releases {
 		got := handler.releases[i].Assets[0].HasAttestation
@@ -362,14 +382,82 @@ func TestCheckAttestations_LookBack(t *testing.T) {
 
 func TestHasAttestationCandidates(t *testing.T) {
 	t.Parallel()
-	handler := &releasesHandler{
-		releases: []clients.Release{{Assets: []clients.ReleaseAsset{{Name: "no-digest"}}}},
-	}
-	if handler.hasAttestationCandidates() {
+	releases := []clients.Release{{Assets: []clients.ReleaseAsset{{Name: "no-digest"}}}}
+	if hasAttestationCandidates(releases) {
 		t.Error("expected no candidates when no asset has a digest")
 	}
-	handler.releases[0].Assets[0].Digest = "sha256:abc"
-	if !handler.hasAttestationCandidates() {
+	releases[0].Assets[0].Digest = "sha256:abc"
+	if !hasAttestationCandidates(releases) {
 		t.Error("expected a candidate when an asset has a digest")
 	}
+}
+
+func TestCheckAttestations_LookupFailure(t *testing.T) {
+	t.Parallel()
+	handler := &releasesHandler{
+		client:              github.NewClient(&http.Client{Transport: &errorRoundTripper{}}),
+		ctx:                 t.Context(),
+		repourl:             &Repo{owner: "testuser", repo: "repo"},
+		ownerEndpointPrefix: ownerEndpointUser,
+		releases: []clients.Release{
+			{Assets: []clients.ReleaseAsset{{Name: "a", Digest: "sha256:a"}, {Name: "b"}}},
+		},
+	}
+	handler.checkAttestations(handler.releases)
+
+	assets := handler.releases[0].Assets
+	if assets[0].HasAttestation || !assets[0].AttestationLookupFailed {
+		t.Errorf("expected failed lookup to be reported as unknown, got %+v", assets[0])
+	}
+	if assets[1].AttestationLookupFailed {
+		t.Errorf("expected asset without digest not to have been looked up, got %+v", assets[1])
+	}
+}
+
+func TestSetupAttestations_Lazy(t *testing.T) {
+	t.Parallel()
+	const digest = "sha256:attested"
+	rt := &countingRoundTripper{releasesRoundTripper: releasesRoundTripper{attestedDigests: map[string]bool{digest: true}}}
+	handler := &releasesHandler{
+		client:  github.NewClient(&http.Client{Transport: rt}),
+		repourl: &Repo{owner: "testuser", repo: "repo", commitSHA: clients.HeadSHA},
+	}
+	handler.init(t.Context(), handler.repourl)
+	// Bypass the release listing, which isn't served by the test round tripper.
+	handler.once.Do(func() {
+		handler.releases = []clients.Release{{Assets: []clients.ReleaseAsset{{Name: "a", Digest: digest}}}}
+	})
+
+	listed, err := handler.getReleases()
+	if err != nil {
+		t.Fatalf("getReleases: %v", err)
+	}
+	if rt.requests != 0 {
+		t.Errorf("expected no requests when only listing releases, got %d", rt.requests)
+	}
+	if listed[0].Assets[0].HasAttestation {
+		t.Error("expected listed releases not to have attestation information")
+	}
+
+	attested, err := handler.getReleasesWithAttestations()
+	if err != nil {
+		t.Fatalf("getReleasesWithAttestations: %v", err)
+	}
+	if !attested[0].Assets[0].HasAttestation {
+		t.Error("expected attestation to be found")
+	}
+	if listed[0].Assets[0].HasAttestation {
+		t.Error("expected the listed releases not to be modified")
+	}
+}
+
+// countingRoundTripper counts the requests made.
+type countingRoundTripper struct {
+	releasesRoundTripper
+	requests int
+}
+
+func (c *countingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	c.requests++
+	return c.releasesRoundTripper.RoundTrip(req)
 }

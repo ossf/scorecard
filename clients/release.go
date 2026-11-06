@@ -25,8 +25,21 @@ type Release struct {
 
 // ReleaseAsset is part of the Release bundle.
 type ReleaseAsset struct {
-	Name           string
-	URL            string
-	Digest         string
+	Name   string
+	URL    string
+	Digest string
+	// HasAttestation is only populated by clients implementing ReleaseAttestationLister.
 	HasAttestation bool
+	// AttestationLookupFailed is set when looking up the asset's attestations failed,
+	// meaning HasAttestation is unknown rather than false.
+	AttestationLookupFailed bool
+}
+
+// ReleaseAttestationLister is optionally implemented by a RepoClient which can report
+// whether release assets have GitHub artifact attestations. Looking up attestations
+// requires extra API calls per asset, so it is kept separate from RepoClient.ListReleases.
+type ReleaseAttestationLister interface {
+	// ListReleasesWithAttestations is like RepoClient.ListReleases,
+	// but also populates the attestation fields of the release assets.
+	ListReleasesWithAttestations() ([]Release, error)
 }

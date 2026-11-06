@@ -198,6 +198,83 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "attestation lookup failed for the only asset",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz", Digest: "sha256:abc123", AttestationLookupFailed: true},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotAvailable,
+			},
+		},
+		{
+			name: "attestation lookup failed for one asset, another known to be missing one",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz", Digest: "sha256:abc123", AttestationLookupFailed: true},
+								{Name: "binary.exe", Digest: "sha256:def456", HasAttestation: false},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
+		{
+			name: "attestation lookup failed for one asset, others attested",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz", Digest: "sha256:abc123", HasAttestation: true},
+								{Name: "binary.exe", Digest: "sha256:def456", AttestationLookupFailed: true},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotAvailable,
+			},
+		},
+		{
+			name: "Non-GitHub host returns NotSupported.",
+			raw: &checker.RawResults{
+				Metadata: checker.MetadataData{
+					Metadata: map[string]string{"repository.host": "gitlab.com"},
+				},
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz", Digest: "sha256:abc123"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotSupported,
+			},
+		},
+		{
 			name: "enforce lookback limit of 5 releases",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{

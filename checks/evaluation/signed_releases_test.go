@@ -199,6 +199,36 @@ func TestSignedReleases(t *testing.T) {
 			},
 		},
 		{
+			name: "Attestation probe not supported on host does not affect score",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				{Probe: releasesAreImmutable.Probe, Outcome: finding.OutcomeNotSupported},
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				{Probe: releasesHaveAttestation.Probe, Outcome: finding.OutcomeNotSupported},
+			},
+			result: scut.TestReturn{
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  1,
+				NumberOfDebug: 3,
+			},
+		},
+		{
+			name: "Attestation lookup not available is warned about but not treated as missing",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeNotAvailable),
+			},
+			result: scut.TestReturn{
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  2, // provenance and the unavailable attestation
+				NumberOfDebug: 1,
+			},
+		},
+		{
 			name: "Has one release that is immutable and has provenance",
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeFalse),

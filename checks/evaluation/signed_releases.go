@@ -63,7 +63,7 @@ func SignedReleases(name string,
 	for i := range findings {
 		f := &findings[i]
 
-		if f.Probe == releasesHaveVerifiedProvenance.Probe || isImmutableNotSupported(f) {
+		if f.Probe == releasesHaveVerifiedProvenance.Probe || isHostNotSupported(f) {
 			continue
 		}
 
@@ -114,8 +114,8 @@ func SignedReleases(name string,
 			continue
 		}
 
-		if isImmutableNotSupported(f) {
-			// The probe is not applicable to this repository's host and
+		if isHostNotSupported(f) {
+			// The probe is not supported by this repository's host and
 			// does not relate to a release, so just log it for debugging.
 			checker.LogFinding(dl, f, checker.DetailDebug)
 			continue
@@ -169,6 +169,11 @@ func SignedReleases(name string,
 				// that use other verification methods.
 				continue
 			}
+		case finding.OutcomeNotAvailable:
+			// The probe could not determine the outcome for this release, e.g. because
+			// querying its attestations failed. This is not evidence against the release,
+			// but the user should know the result may be incomplete.
+			logLevel = checker.DetailWarn
 		default:
 			logLevel = checker.DetailDebug
 		}
@@ -208,10 +213,14 @@ func SignedReleases(name string,
 	return checker.CreateResultWithScore(name, reason, score)
 }
 
-// isImmutableNotSupported returns whether the finding is from the immutable
-// releases probe reporting that the repository's host does not support immutable releases.
-func isImmutableNotSupported(f *finding.Finding) bool {
-	return f.Probe == releasesAreImmutable.Probe && f.Outcome == finding.OutcomeNotSupported
+// isHostNotSupported returns whether the finding is from a probe reporting that the
+// repository's host does not support the feature it checks, such as immutable releases
+// or artifact attestations. These findings do not relate to a release.
+func isHostNotSupported(f *finding.Finding) bool {
+	if f.Outcome != finding.OutcomeNotSupported {
+		return false
+	}
+	return f.Probe == releasesAreImmutable.Probe || f.Probe == releasesHaveAttestation.Probe
 }
 
 func getReleaseName(f *finding.Finding) string {

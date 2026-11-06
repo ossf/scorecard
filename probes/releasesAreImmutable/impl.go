@@ -17,12 +17,12 @@ package releasesAreImmutable
 import (
 	"embed"
 	"fmt"
-	"os"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/host"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
 )
 
@@ -37,8 +37,6 @@ const (
 	Probe           = "releasesAreImmutable"
 	ReleaseNameKey  = "releaseName"
 	releaseLookBack = 5
-
-	defaultGitHubHost = "github.com"
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -48,7 +46,7 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	// Immutable releases are a GitHub feature, so avoid reporting every release
 	// from other hosts (e.g. GitLab) as not being immutable.
-	if !isGitHubHost(raw.Metadata.Metadata["repository.host"]) {
+	if !host.IsGitHub(raw.Metadata.Metadata[host.MetadataKey]) {
 		f, err := finding.NewWith(fs, Probe,
 			"immutable releases are only supported for GitHub repositories",
 			nil,
@@ -113,13 +111,4 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
-}
-
-// isGitHubHost returns whether the repository host is GitHub (or the GitHub Enterprise
-// host in GH_HOST). An unknown (empty) host is assumed to be GitHub.
-func isGitHubHost(host string) bool {
-	if host == "" || host == defaultGitHubHost {
-		return true
-	}
-	return host == os.Getenv("GH_HOST")
 }

@@ -454,7 +454,9 @@ If the project has no releases, the probe returns OutcomeNotApplicable.
 
 **Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if all release assets have artifact attestations.
 For each of the last 5 releases, the probe returns OutcomeFalse if one or more release assets do not have artifact attestations.
-If the project has no GitHub releases, the probe returns OutcomeNotApplicable.
+For each of the last 5 releases, the probe returns OutcomeNotAvailable if the attestations of one or more release assets could not be queried and no release asset is known to be missing an attestation.
+If the project has no GitHub releases with assets, the probe returns OutcomeNotApplicable.
+If the project is not hosted on GitHub, the probe returns OutcomeNotSupported.
 
 
 ## releasesHaveProvenance
