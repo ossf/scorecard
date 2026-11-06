@@ -16,9 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	"github.com/ossf/scorecard/v5/probes"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckMaintained is the exported check name for Maintained.
@@ -32,15 +30,7 @@ func init() {
 	}
 }
 
-var maintainedDefinition = define(
-	CheckMaintained,
-	raw.Maintained,
-	func(r *checker.RawResults, data checker.MaintainedData) { r.MaintainedResults = data },
-	probes.Maintained,
-	evaluation.Maintained,
-)
-
 // Maintained runs Maintained check.
 func Maintained(c *checker.CheckRequest) checker.CheckResult {
-	return runDefinition(maintainedDefinition, c)
+	return checkdef.Maintained.Run(c)
 }

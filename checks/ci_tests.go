@@ -16,9 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	"github.com/ossf/scorecard/v5/probes"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 const CheckCITests = "CI-Tests"
@@ -34,14 +32,6 @@ func init() {
 	}
 }
 
-var ciTestsDefinition = define(
-	CheckCITests,
-	func(c *checker.CheckRequest) (checker.CITestData, error) { return raw.CITests(c.RepoClient) },
-	func(r *checker.RawResults, data checker.CITestData) { r.CITestResults = data },
-	probes.CITests,
-	evaluation.CITests,
-)
-
 func CITests(c *checker.CheckRequest) checker.CheckResult {
-	return runDefinition(ciTestsDefinition, c)
+	return checkdef.CITests.Run(c)
 }
