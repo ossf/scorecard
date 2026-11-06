@@ -24,6 +24,17 @@ import (
 // allChecks is the list of all registered security checks.
 var allChecks = checker.CheckNameToFnMap{}
 
+var experimentalChecks = map[string]bool{
+	CheckWebHooks: true,
+	CheckSBOM:     true,
+}
+
+// IsExperimental reports whether the named check is experimental, regardless of
+// whether SCORECARD_EXPERIMENTAL is set.
+func IsExperimental(name string) bool {
+	return experimentalChecks[name]
+}
+
 func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 	// need to make a copy or caller could mutate original map
 	possibleChecks := checker.CheckNameToFnMap{}
@@ -37,8 +48,9 @@ func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 
 	if _, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !experimental {
 		// TODO: remove this check when v6 is released
-		delete(possibleChecks, CheckWebHooks)
-		delete(possibleChecks, CheckSBOM)
+		for name := range experimentalChecks {
+			delete(possibleChecks, name)
+		}
 	}
 
 	return possibleChecks
