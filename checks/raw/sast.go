@@ -214,7 +214,7 @@ var searchGitHubActionWorkflowUseRegex fileparser.DoWhileTrueOnFileContent = fun
 
 	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
-		return false, fileparser.FormatActionlintError(errs)
+		return false, fileparser.FormatActionlintError(path, errs)
 	}
 
 	for _, job := range workflow.Jobs {
