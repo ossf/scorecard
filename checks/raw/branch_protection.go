@@ -27,7 +27,7 @@ import (
 
 const master = "master"
 
-var commit = regexp.MustCompile("^[a-f0-9]{40}$")
+var commit = regexp.MustCompile("(?i)^([a-f0-9]{40}|[a-f0-9]{64})$")
 
 type branchSet struct {
 	exists map[string]bool
