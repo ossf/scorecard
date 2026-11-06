@@ -96,7 +96,7 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 ###############################################################################
 
 ################################## make build #################################
-build-targets = generate-mocks generate-docs build-scorecard build-attestor
+build-targets = generate-mocks generate-docs build-scorecard
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -165,17 +165,6 @@ scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 		--snapshot --clean --skip=publish,sign && \
 		touch scorecard.releaser
 
-build-attestor: ## Runs go build on scorecard attestor
-	# Run go build on scorecard attestor
-	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
-
-
-build-attestor-docker: ## Build scorecard-attestor Docker image
-build-attestor-docker:
-	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \
-		--tag scorecard-attestor:latest \
-		--tag scorecard-attestor:$(GIT_HASH)
-
 docker-targets = scorecard-docker
 .PHONY: dockerbuild $(docker-targets)
 dockerbuild: $(docker-targets)
@@ -192,9 +181,6 @@ unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out -coverpkg=./... `go list ./...`
-
-unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
@@ -232,9 +218,6 @@ e2e-gitlab: build-scorecard | $(GINKGO)
 e2e-azure-devops-token: ## Runs e2e tests that require a AZURE_DEVOPS_AUTH_TOKEN
 e2e-azure-devops-token: build-scorecard check-env-azure-devops | $(GINKGO)
 	SCORECARD_EXPERIMENTAL=1 TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="AZURE_DEVOPS_PAT" $(GINKGO) --race -p -vv --flake-attempts=3 -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus "Azure DevOps" ./...
-
-e2e-attestor: ## Runs e2e tests for scorecard-attestor
-	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
 
 ###############################################################################
 

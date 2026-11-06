@@ -16,6 +16,7 @@ project. This document describes the contribution guidelines for the project.
 <!-- vim-markdown-toc GFM -->
 
 * [Reporting bugs](#reporting-bugs)
+* [Escalating to the CRA steward](#escalating-to-the-cra-steward)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -40,13 +41,18 @@ project. This document describes the contribution guidelines for the project.
 ## Reporting bugs
 
 Open an issue with the
-[bug report template](https://github.com/ossf/scorecard/issues/new?template=bug_report.md).
-Include the Scorecard version (`scorecard version`), how you ran it (CLI,
-GitHub Action, or the REST API), the repository you scanned if it's public,
-the steps to reproduce, and what you expected to happen.
+["Something is wrong" form](https://github.com/ossf/scorecard/issues/new?template=1-bug.yml).
+It asks how you ran Scorecard, the version, a public repository that shows the
+problem, what you saw, and what you expected.
 
 Don't report security vulnerabilities in public issues. Follow
 [SECURITY.md](SECURITY.md) instead.
+
+## Escalating to the CRA steward
+
+Maintainers escalate actively exploited vulnerabilities and severe incidents
+to the LF steward at <steward@linuxfoundation.org>, as
+[SECURITY.md](SECURITY.md#escalating-to-the-cra-steward) describes.
 
 ## Contributing code
 
