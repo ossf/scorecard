@@ -255,6 +255,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.FileMode,
 		FlagFileMode,
 		o.FileMode,
-		"fetch repository files via \"archive\" (download a tarball) or \"git\" (clone)",
+		fmt.Sprintf("fetch repository files via %q (download a tarball) or %q (clone)", FileModeArchive, FileModeGit),
 	)
 }
