@@ -210,7 +210,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.ProbesToRun,
 		FlagProbes,
 		o.ProbesToRun,
-		"individual probes to run, overriding each check's default probe set"+
+		"individual probes to run instead of checks; when set, --checks is ignored"+
 			" (probe names appear in --format=probe output)",
 	)
 
