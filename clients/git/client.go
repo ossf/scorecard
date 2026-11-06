@@ -391,6 +391,10 @@ func (c *Client) ListWebhooks() ([]clients.Webhook, error) {
 	return nil, clients.ErrUnsupportedFeature
 }
 
+func (c *Client) PrivateVulnerabilityReportingEnabled() (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListProgrammingLanguages() ([]clients.Language, error) {
 	return nil, clients.ErrUnsupportedFeature
 }

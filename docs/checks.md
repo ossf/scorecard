@@ -620,12 +620,21 @@ Security Policy Specific Text (1/10 points):
     `vuln` and as in "Vulnerability" or "vulnerabilities";
     `disclos` as "Disclosure" or "disclose";
     and numbers which convey expectations of times, e.g., 30 days or 90 days
+
+On GitHub, private vulnerability reporting is considered as well.
+Turning it on does not lower a complete security policy.
+A repository with no security policy file scores 8 when private
+vulnerability reporting is enabled. A policy that contains a reporting
+link scores 10 when it is enabled. A policy without that link is raised
+to 8 when it would otherwise score lower. Other hosts are unchanged,
+and a failed lookup does not change the score.
  
 
 **Remediation steps**
 - Place a security policy file `SECURITY.md` in the root directory of your repository. This makes it easily discoverable by a vulnerability reporter.
 - The file should contain information on what constitutes a vulnerability and a way to report it securely (e.g. issue tracker with private issue support, encrypted email with a published public key). Follow the [coordinated vulnerability disclosure guidelines](https://github.com/ossf/oss-vulnerability-guide/blob/main/maintainer-guide.md) to respond to vulnerability disclosures.
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/getting-started/adding-a-security-policy-to-your-repository).
+- On GitHub, enable [private vulnerability reporting](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository) so vulnerability reports are not filed as public issues.
 
 ## Signed-Releases 
 

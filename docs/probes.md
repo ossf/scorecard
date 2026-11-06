@@ -607,6 +607,21 @@ If no information about the disclosure process is found, the probe returns one f
 If no security policy is found, the probe returns one finding with OutcomeFalse.
 
 
+## securityPolicyEnablesPrivateReporting
+
+**Lifecycle**: experimental
+
+**Description**: Check whether the repository accepts private vulnerability reports.
+
+**Motivation**: Private vulnerability reporting lets a researcher disclose a bug without opening a public issue. On GitHub this is a repository setting, separate from the text of SECURITY.md.
+
+**Implementation**: The implementation calls the host API for private vulnerability reporting. GitHub is GET /repos/{owner}/{repo}/private-vulnerability-reporting. Other hosts, and a failed lookup, produce OutcomeNotApplicable and do not change the score.
+
+**Outcomes**: If private vulnerability reporting is enabled, one finding with OutcomeTrue is returned.
+If it is disabled, one finding with OutcomeFalse is returned.
+If the host does not expose the setting, or the lookup fails, one finding with OutcomeNotApplicable is returned.
+
+
 ## securityPolicyPresent
 
 **Lifecycle**: stable
