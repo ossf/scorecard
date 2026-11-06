@@ -17,8 +17,11 @@ package scorecard
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -202,5 +205,125 @@ func Test_formatResults_outputToFile(t *testing.T) {
 				t.Errorf("%v\nGOT\n-------\n%s\nWANT\n-------\n%s", tt.name, string(output), string(wantOutput))
 			}
 		})
+	}
+}
+
+func setupMultipleRepoResults(t *testing.T) (*Result, *Result, *mockDoc) {
+	t.Helper()
+	checkDocs := jsonMockDocRead()
+	res1 := mockScorecardResultCheck1(t)
+	res1.Repo.Name = "org/first"
+	res1.Checks[0].Name = "Check-Name"
+	res1.Checks[0].Reason = "reason for first repo"
+
+	res2 := mockScorecardResultCheck1(t)
+	res2.Repo.Name = "org/second"
+	res2.Checks[0].Name = "Check-Name2"
+	res2.Checks[0].Reason = "reason for second repo"
+	return res1, res2, checkDocs
+}
+
+func Test_formatResults_multipleRepositoriesJSONAppend(t *testing.T) {
+	t.Parallel()
+	res1, res2, checkDocs := setupMultipleRepoResults(t)
+	outPath := filepath.Join(t.TempDir(), "results.json")
+	opts := &options.Options{
+		Format:      options.FormatJSON,
+		ResultsFile: outPath,
+	}
+
+	if err := FormatResults(opts, res1, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res1): %v", err)
+	}
+	if err := FormatResults(opts, res2, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res2): %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile: %v", err)
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(data))
+	var parsed1, parsed2 JSONScorecardResultV2
+	if err := dec.Decode(&parsed1); err != nil {
+		t.Fatalf("decode first json: %v", err)
+	}
+	if got, want := parsed1.Repo.Name, "org/first"; got != want {
+		t.Errorf("first repo name = %q, want %q", got, want)
+	}
+
+	if err := dec.Decode(&parsed2); err != nil {
+		t.Fatalf("decode second json: %v", err)
+	}
+	if got, want := parsed2.Repo.Name, "org/second"; got != want {
+		t.Errorf("second repo name = %q, want %q", got, want)
+	}
+
+	var extra any
+	if err := dec.Decode(&extra); !errors.Is(err, io.EOF) {
+		t.Errorf("expected EOF after 2 objects, got err = %v, obj = %v", err, extra)
+	}
+}
+
+func Test_formatResults_multipleRepositoriesDefaultFormatAppend(t *testing.T) {
+	t.Parallel()
+	res1, res2, checkDocs := setupMultipleRepoResults(t)
+	outPath := filepath.Join(t.TempDir(), "results.log")
+	opts := &options.Options{
+		Format:      options.FormatDefault,
+		ResultsFile: outPath,
+	}
+
+	if err := FormatResults(opts, res1, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res1): %v", err)
+	}
+	if err := FormatResults(opts, res2, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res2): %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile: %v", err)
+	}
+	content := string(data)
+	if !strings.Contains(content, "reason for first repo") {
+		t.Errorf("expected output to contain reason for first repo")
+	}
+	if !strings.Contains(content, "reason for second repo") {
+		t.Errorf("expected output to contain reason for second repo")
+	}
+}
+
+func Test_formatResults_initialCallTruncatesExistingFile(t *testing.T) {
+	t.Parallel()
+	res1, res2, checkDocs := setupMultipleRepoResults(t)
+	outPath := filepath.Join(t.TempDir(), "results.log")
+	if err := os.WriteFile(outPath, []byte("stale-data-from-prior-run\n"), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+
+	opts := &options.Options{
+		Format:      options.FormatDefault,
+		ResultsFile: outPath,
+	}
+
+	if err := FormatResults(opts, res1, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res1): %v", err)
+	}
+	if err := FormatResults(opts, res2, checkDocs, nil); err != nil {
+		t.Fatalf("FormatResults(res2): %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile: %v", err)
+	}
+	content := string(data)
+	if strings.Contains(content, "stale-data-from-prior-run") {
+		t.Errorf("stale data was not truncated on first run")
+	}
+	if !strings.Contains(content, "reason for first repo") || !strings.Contains(content, "reason for second repo") {
+		t.Errorf("expected output to contain both first and second repo reasons")
 	}
 }

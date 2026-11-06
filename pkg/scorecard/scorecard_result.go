@@ -131,10 +131,17 @@ func FormatResults(
 	// Define output to console or file
 	output := os.Stdout
 	if opts.ResultsFile != "" {
-		output, err = os.Create(opts.ResultsFile)
+		flag := os.O_CREATE | os.O_WRONLY
+		if opts.ResultsFileAppend {
+			flag |= os.O_APPEND
+		} else {
+			flag |= os.O_TRUNC
+		}
+		output, err = os.OpenFile(opts.ResultsFile, flag, 0o600)
 		if err != nil {
 			return fmt.Errorf("unable to create output file: %w", err)
 		}
+		opts.ResultsFileAppend = true
 		fmt.Fprintln(os.Stderr, "Writing results to", opts.ResultsFile)
 		defer output.Close()
 	}
