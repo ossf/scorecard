@@ -102,8 +102,9 @@ SHALL support the modes as follows:
 When the checks are not chosen explicitly, the system SHALL silently skip
 checks that do not support every required mode. When a named check does not
 support every required mode, the run MUST fail with
-`Unsupported RequestType <modes> by check: <name>`, where file-based is `0`
-and commit-based is `1`.
+`check is not supported for this request: "<name>" does not support <modes>
+data, which this scan requires`, where the modes are rendered as `file-based`
+and `commit-based` rather than as their internal numeric values.
 
 #### Scenario: Local directory
 
@@ -122,7 +123,7 @@ and commit-based is `1`.
 
 - **WHEN** the user runs `--local=.` with `--checks=Code-Review`
 - **THEN** Scorecard fails with
-  `Unsupported RequestType [0] by check: Code-Review`
+  `check is not supported for this request: "Code-Review" does not support file-based data, which this scan requires`
 
 #### Scenario: Runner sanity check
 
@@ -168,10 +169,12 @@ named checks when check names are requested (for example, the comma-separated
 `--checks` list). A requested name SHALL match a registered check
 case-insensitively, except that the request-mode lookup uses the exact name:
 when a request mode is required (a local directory or a non-HEAD commit), a
-name whose case differs from the registered name, or an unknown name, MUST
-fail with `Unsupported RequestType` instead of matching. Otherwise an unknown
-check name MUST fail the run with `invalid check: <name>`. Policy-driven
-selection is defined in `policy`.
+name whose case differs from the registered name MUST fail with
+`invalid check name: "<name>" must be written "<registered>" when a request
+type is required`. A name that matches no registered check in any casing MUST
+fail the run with `invalid check name: "<name>" is not a known check`, and the
+message SHALL point the user at `scorecard --help`. Neither failure is reported
+as an internal error. Policy-driven selection is defined in `policy`.
 
 #### Scenario: Selecting checks
 
@@ -183,18 +186,21 @@ selection is defined in `policy`.
 
 - **WHEN** the user runs `--checks=Not-A-Check` against a remote repository at
   HEAD
-- **THEN** the run fails with an error containing "invalid check: Not-A-Check"
+- **THEN** the run fails with an error containing
+  `"Not-A-Check" is not a known check`
 
 #### Scenario: Wrong case in local mode
 
 - **WHEN** the user runs `--local=.` with `--checks=license`
-- **THEN** the run fails with `Unsupported RequestType [0] by check: license`
+- **THEN** the run fails with
+  `invalid check name: "license" must be written "License" when a request type is required`
 
 #### Scenario: Wrong case at a non-HEAD commit
 
 - **WHEN** the user runs `--commit=<sha>` with `--checks=license` against a
   remote repository, where `<sha>` is not HEAD
-- **THEN** the run fails with `Unsupported RequestType [1] by check: license`
+- **THEN** the run fails with
+  `invalid check name: "license" must be written "License" when a request type is required`
 
 #### Scenario: Flag help
 

@@ -131,7 +131,7 @@ check that applies to the commit and repository type. When the commit is
 not `HEAD`, the default set SHALL contain only checks supporting
 commit-based analysis, and an explicitly requested check without
 commit-based support SHALL fail the request with status 500 and a body
-beginning `GetEnabled:` that contains `Unsupported RequestType`. Checks
+beginning `GetEnabled:` that contains `does not support commit-based data`. Checks
 whose documentation excludes the target repository's host type SHALL be
 skipped. When the internal GitHub integration check override is active,
 its check list SHALL replace the `checks` given in the request; the
@@ -160,7 +160,7 @@ override is defined in `cli`.
 - **GIVEN** a check that does not support commit-based analysis
 - **WHEN** a client requests that check with a `commit` other than `HEAD`
 - **THEN** the server responds with status 500 and a body beginning
-  `GetEnabled:` that contains `Unsupported RequestType`
+  `GetEnabled:` that contains `does not support commit-based data`
 
 #### Scenario: GitHub integration override replaces requested checks
 
@@ -238,7 +238,7 @@ with a prefix naming the failed step:
 
 - **WHEN** a client posts `{"repo": "owner/repo", "checks": ["Nope"]}`
 - **THEN** the server responds with status 500 and a body beginning
-  `GetEnabled:` that contains `invalid check: Nope`
+  `GetEnabled:` that contains `"Nope" is not a known check`
 
 #### Scenario: Unparseable repository
 
