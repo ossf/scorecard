@@ -705,3 +705,84 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 		})
 	}
 }
+
+func TestPipInstallRemediation(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name            string
+		script          string
+		wantRemediation string
+		wantPinned      bool
+	}{
+		{
+			name:            "unpinned pip install",
+			script:          "pip install requests",
+			wantRemediation: pipRequireHashesRemediation,
+		},
+		{
+			name:            "unpinned pip3 install from requirements",
+			script:          "pip3 install -r requirements.txt",
+			wantRemediation: pipRequireHashesRemediation,
+		},
+		{
+			name:            "unpinned python -m pip install",
+			script:          "python3 -m pip install --upgrade pip",
+			wantRemediation: pipRequireHashesRemediation,
+		},
+		{
+			name:            "unpinned editable install",
+			script:          "pip install -e git+https://github.com/username/repo.git#egg=package",
+			wantRemediation: pipEditableRemediation,
+		},
+		{
+			name:            "unpinned python -m pip editable install",
+			script:          "python -m pip install --no-deps --editable git+https://github.com/username/repo.git",
+			wantRemediation: pipEditableRemediation,
+		},
+		{
+			name:       "pinned with require-hashes",
+			script:     "pip install --require-hashes -r requirements.txt",
+			wantPinned: true,
+		},
+		{
+			name:       "pinned wheel install",
+			script:     "pip install package.whl",
+			wantPinned: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var r checker.PinningDependenciesData
+			err := validateShellFile("script.sh", 0, 0, []byte(tt.script+"\n"), map[string]bool{}, &r)
+			if err != nil {
+				t.Fatalf("validateShellFile: %v", err)
+			}
+			if len(r.Dependencies) != 1 {
+				t.Fatalf("expected 1 dependency, got %d", len(r.Dependencies))
+			}
+			dep := r.Dependencies[0]
+			if dep.Type != checker.DependencyUseTypePipCommand {
+				t.Fatalf("expected %s, got %s", checker.DependencyUseTypePipCommand, dep.Type)
+			}
+			if dep.Pinned == nil || *dep.Pinned != tt.wantPinned {
+				t.Fatalf("expected pinned=%v, got %v", tt.wantPinned, dep.Pinned)
+			}
+			if tt.wantPinned {
+				if dep.Remediation != nil {
+					t.Errorf("expected no remediation for pinned install, got %q", dep.Remediation.Text)
+				}
+				return
+			}
+			if dep.Remediation == nil {
+				t.Fatal("expected a remediation for unpinned pip install, got nil")
+			}
+			if dep.Remediation.Text != tt.wantRemediation {
+				t.Errorf("unexpected remediation text: got %q, want %q", dep.Remediation.Text, tt.wantRemediation)
+			}
+			if dep.Remediation.Markdown != tt.wantRemediation {
+				t.Errorf("unexpected remediation markdown: got %q, want %q", dep.Remediation.Markdown, tt.wantRemediation)
+			}
+		})
+	}
+}

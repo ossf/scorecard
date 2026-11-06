@@ -540,6 +540,13 @@ checks:
         the "Pin actions to a full length commit SHA". You may also tick the "Restrict permissions for GITHUB_TOKEN" to fix issues found
         by the Token-Permissions check.
       - >-
+        For `pip install` commands used in building and releasing your project (e.g. in Dockerfiles, shell scripts or
+        GitHub workflows), pin dependencies by hash: install from a requirements file that lists every package with an
+        exact version and its hash and pass `--require-hashes` (e.g. `pip install --require-hashes -r requirements.txt`).
+        Tools such as [pip-tools](https://github.com/jazzband/pip-tools) (`pip-compile --generate-hashes`) can generate
+        such a file. For editable installs, use `--no-deps` together with a local path or a VCS URL pinned to a full commit
+        hash. See pip's [secure installs](https://pip.pypa.io/en/stable/topics/secure-installs/) documentation.
+      - >-
         To help update your dependencies after pinning them, use tools such as those listed for the dependency update tool check.
   SAST:
     risk: Medium
