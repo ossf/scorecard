@@ -16,6 +16,7 @@ package raw
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -252,7 +253,46 @@ func TestBranchProtection(t *testing.T) {
 				CodeownersFiles: []string{},
 			},
 		},
-		// TODO: Add tests for commitSHA regex matching.
+		{
+			name: "release-target-is-lowercase-sha1",
+			releases: []clients.Release{
+				{TargetCommitish: strings.Repeat("a", 40)},
+			},
+			branches: branchesArg{
+				{name: strings.Repeat("a", 40), err: errBPTest},
+			},
+			want: checker.BranchProtectionsData{CodeownersFiles: []string{}},
+		},
+		{
+			name: "release-target-is-uppercase-sha1",
+			releases: []clients.Release{
+				{TargetCommitish: strings.Repeat("A", 40)},
+			},
+			branches: branchesArg{
+				{name: strings.Repeat("A", 40), err: errBPTest},
+			},
+			want: checker.BranchProtectionsData{CodeownersFiles: []string{}},
+		},
+		{
+			name: "release-target-is-lowercase-sha256",
+			releases: []clients.Release{
+				{TargetCommitish: strings.Repeat("b", 64)},
+			},
+			branches: branchesArg{
+				{name: strings.Repeat("b", 64), err: errBPTest},
+			},
+			want: checker.BranchProtectionsData{CodeownersFiles: []string{}},
+		},
+		{
+			name: "release-target-is-uppercase-sha256",
+			releases: []clients.Release{
+				{TargetCommitish: strings.Repeat("B", 64)},
+			},
+			branches: branchesArg{
+				{name: strings.Repeat("B", 64), err: errBPTest},
+			},
+			want: checker.BranchProtectionsData{CodeownersFiles: []string{}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
