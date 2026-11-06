@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+// Package checkdef holds each check's wiring: its raw data collector, the
+// RawResults field it fills, its probes, and its evaluation.
+package checkdef
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
@@ -58,9 +60,9 @@ func define[T any](
 	}
 }
 
-// runDefinition runs a check: collect raw data, run the probes on it, and
-// evaluate the findings.
-func runDefinition(d definition, c *checker.CheckRequest) checker.CheckResult {
+// Run runs the check: collect raw data, run the probes on it, and evaluate
+// the findings.
+func (d definition) Run(c *checker.CheckRequest) checker.CheckResult {
 	pRawResults := getRawResults(c)
 	if err := d.collectInto(c, pRawResults); err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
@@ -76,4 +78,13 @@ func runDefinition(d definition, c *checker.CheckRequest) checker.CheckResult {
 	ret := d.evaluate(d.name, findings, c.Dlogger)
 	ret.Findings = findings
 	return ret
+}
+
+// getRawResults returns the request's RawResults, or a new one when the
+// request has none.
+func getRawResults(c *checker.CheckRequest) *checker.RawResults {
+	if c.RawResults != nil {
+		return c.RawResults
+	}
+	return &checker.RawResults{}
 }
