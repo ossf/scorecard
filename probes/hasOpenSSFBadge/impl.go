@@ -40,7 +40,8 @@ const (
 	SilverLevel     = "Silver"
 	PassingLevel    = "Passing"
 	InProgressLevel = "InProgress"
-	UnknownLevel    = "Unknown"
+	UnknownLevel     = "Unknown"
+	InheritedFromKey = "inheritedFrom"
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -80,5 +81,8 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	}
 
 	f = f.WithValue(LevelKey, badgeLevel)
+	if r.InheritedFrom != "" {
+		f = f.WithValue(InheritedFromKey, r.InheritedFrom)
+	}
 	return []finding.Finding{*f}, Probe, nil
 }
