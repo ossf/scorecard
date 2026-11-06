@@ -424,6 +424,7 @@ If the project has no supported dependencies, the probe returns OutcomeNotApplic
 **Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if the release is marked as immutable.
 For each of the last 5 releases, the probe returns OutcomeFalse if the release is not marked as immutable.
 If the project has no releases, the probe returns OutcomeNotApplicable.
+If the project is not hosted on GitHub, the probe returns OutcomeNotSupported.
 
 
 ## releasesAreSigned

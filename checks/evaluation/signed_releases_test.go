@@ -138,6 +138,20 @@ func TestSignedReleases(t *testing.T) {
 			},
 		},
 		{
+			name: "Immutable probe not supported on host does not affect score",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				{Probe: releasesAreImmutable.Probe, Outcome: finding.OutcomeNotSupported},
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+			},
+			result: scut.TestReturn{
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  1,
+				NumberOfDebug: 2,
+			},
+		},
+		{
 			name: "Has one release that is immutable and has provenance",
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeFalse),
