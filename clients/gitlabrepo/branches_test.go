@@ -169,6 +169,34 @@ func Test_branchesHandler_setup_nil_response(t *testing.T) {
 			},
 		},
 		{
+			name:      "unauthorized response on getProjectChecks",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusUnauthorized}}, errors.New("unauthorized")
+			},
+		},
+		{
+			name:      "forbidden response on getProjectChecks",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusForbidden}}, errors.New("forbidden")
+			},
+		},
+		{
+			name:      "not found response on getProjectChecks",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusNotFound}}, errors.New("not found")
+			},
+		},
+		{
+			name:      "server error response on getProjectChecks",
+			expectErr: true,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusInternalServerError}}, errors.New("server error")
+			},
+		},
+		{
 			name:      "nil response on getApprovalConfiguration",
 			expectErr: true,
 			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
@@ -232,15 +260,46 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 		name              string
 		getProjectChecks  fnListProjectStatusChecks
 		getApprovalConfig fnGetApprovalConfiguration
+		expectErr         bool
 	}{
 		{
-			name: "nil response on getProjectChecks in getBranch",
+			name:      "nil response on getProjectChecks in getBranch",
+			expectErr: true,
 			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
 		},
 		{
-			name: "nil response on getApprovalConfiguration in getBranch",
+			name:      "unauthorized response on getProjectChecks in getBranch",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusUnauthorized}}, errors.New("unauthorized")
+			},
+		},
+		{
+			name:      "forbidden response on getProjectChecks in getBranch",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusForbidden}}, errors.New("forbidden")
+			},
+		},
+		{
+			name:      "not found response on getProjectChecks in getBranch",
+			expectErr: false,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusNotFound}}, errors.New("not found")
+			},
+		},
+		{
+			name:      "server error response on getProjectChecks in getBranch",
+			expectErr: true,
+			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
+				return nil, &gitlab.Response{Response: &http.Response{StatusCode: http.StatusInternalServerError}}, errors.New("server error")
+			},
+		},
+		{
+			name:      "nil response on getApprovalConfiguration in getBranch",
+			expectErr: true,
 			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -278,9 +337,12 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 			}
 			handler.once.Do(func() {})
 
-			// Should not panic on nil response and should return an error
-			if _, err := handler.getBranch("main"); err == nil {
-				t.Errorf("expected error on nil response in getBranch, got nil")
+			branch, err := handler.getBranch("main")
+			if (err != nil) != tt.expectErr {
+				t.Errorf("getBranch() error = %v, expectErr = %v", err, tt.expectErr)
+			}
+			if !tt.expectErr && branch == nil {
+				t.Errorf("expected non-nil branch when expectErr is false")
 			}
 		})
 	}

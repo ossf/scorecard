@@ -95,8 +95,10 @@ func (handler *branchesHandler) setup() error {
 			}
 
 			projectStatusChecks, resp, err := handler.getProjectChecks(handler.repourl.projectID, &gitlab.ListOptions{})
-
-			if err != nil || (resp != nil && resp.StatusCode != http.StatusOK) {
+			if err != nil && (resp == nil ||
+				(resp.StatusCode != http.StatusUnauthorized &&
+					resp.StatusCode != http.StatusForbidden &&
+					resp.StatusCode != http.StatusNotFound)) {
 				handler.errSetup = fmt.Errorf("request for external status checks failed with error %w", err)
 				return
 			}
@@ -153,7 +155,10 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 
 		projectStatusChecks, resp, err := handler.getProjectChecks(
 			handler.repourl.projectID, &gitlab.ListOptions{})
-		if err != nil && (resp == nil || resp.StatusCode != http.StatusNotFound) {
+		if err != nil && (resp == nil ||
+			(resp.StatusCode != http.StatusUnauthorized &&
+				resp.StatusCode != http.StatusForbidden &&
+				resp.StatusCode != http.StatusNotFound)) {
 			return nil, fmt.Errorf("request for external status checks failed with error %w", err)
 		}
 
