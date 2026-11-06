@@ -184,6 +184,20 @@ If no fuzzing tool is found, or the project uses a tool we don't detect, one fin
 If the probe finds no binary files, it returns a single OutcomeFalse.
 
 
+## hasChangelogFile
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project has a changelog file
+
+**Motivation**: A changelog provides a human-readable log of notable changes for each release. It shows project maturity and helps users understand what has changed between versions. This aligns with OSPS-BR-04 which requires releases to provide a descriptive log of modifications.
+
+**Implementation**: The implementation checks whether a changelog file (e.g. CHANGELOG.md, CHANGES, NEWS, HISTORY, RELEASE-NOTES) is present at the top level of the repository.
+
+**Outcomes**: If a changelog file is found, the probe returns OutcomeTrue for each file.
+If no changelog file is found, the probe returns a single OutcomeFalse.
+
+
 ## hasDangerousWorkflowScriptInjection
 
 **Lifecycle**: stable
@@ -424,6 +438,21 @@ If the project has no supported dependencies, the probe returns OutcomeNotApplic
 **Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue, if the release has a signature file in the release assets.
 For each of the last 5 releases, the probe returns OutcomeFalse, if the release does not have a signature file in the release assets.
 If the project has no releases, the probe returns OutcomeNotApplicable.
+
+
+## releasesHaveChangelog
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project's releases are documented in the changelog
+
+**Motivation**: Releases that are documented in the changelog demonstrate that the project maintains descriptive logs of functional and security modifications per OSPS-BR-04.
+
+**Implementation**: The implementation reads the changelog file, extracts version strings, and checks whether the last 5 release tags have corresponding entries in the changelog. Releases with substantive release notes (GitHub/GitLab release body) also count.
+
+**Outcomes**: If all recent releases have changelog entries, the probe returns OutcomeTrue.
+If no releases are found, the probe returns OutcomeNotApplicable.
+If some or no releases have changelog entries, the probe returns OutcomeFalse.
 
 
 ## releasesHaveProvenance

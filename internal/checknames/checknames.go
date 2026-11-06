@@ -20,6 +20,7 @@ type CheckName = string
 const (
 	BinaryArtifacts      CheckName = "Binary-Artifacts"
 	BranchProtection     CheckName = "Branch-Protection"
+	Changelog            CheckName = "Changelog"
 	CIIBestPractices     CheckName = "CII-Best-Practices"
 	CITests              CheckName = "CI-Tests"
 	CodeReview           CheckName = "Code-Review"
@@ -43,6 +44,7 @@ const (
 var AllValidChecks []string = []string{
 	BinaryArtifacts,
 	BranchProtection,
+	Changelog,
 	CIIBestPractices,
 	CITests,
 	CodeReview,
