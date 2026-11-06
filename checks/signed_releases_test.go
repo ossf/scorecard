@@ -456,7 +456,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 8,
+				Score: 10,
 			},
 		},
 		{
@@ -476,7 +476,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 8,
+				Score: 10,
 			},
 		},
 		{
@@ -528,7 +528,7 @@ func TestSignedRelease(t *testing.T) {
 				},
 			},
 			expected: checker.CheckResult{
-				Score: 4,
+				Score: 5,
 			},
 		},
 		{
