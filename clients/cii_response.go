@@ -64,6 +64,11 @@ func (resp BadgeResponse) AsJSON() ([]byte, error) {
 	return jsonData, nil
 }
 
+// Level returns the BadgeLevel enum for this response.
+func (resp BadgeResponse) Level() (BadgeLevel, error) {
+	return resp.getBadgeLevel()
+}
+
 // ParseBadgeResponseFromJSON parses input []byte value into []BadgeResponse.
 func ParseBadgeResponseFromJSON(data []byte) ([]BadgeResponse, error) {
 	parsedResponse := []BadgeResponse{}
