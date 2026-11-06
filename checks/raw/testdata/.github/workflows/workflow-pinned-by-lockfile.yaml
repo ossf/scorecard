@@ -1,0 +1,10 @@
+on: push
+name: workflow-pinned-by-lockfile
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4.1.1
+      - name: same-repo action
+        uses: $/actions/my-action
