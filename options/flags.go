@@ -96,7 +96,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRepo,
 		o.Repo,
 		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", "+
-			"\"https://github.com/repo\", \"gitlab.com/owner/repo\")",
+			"\"https://github.com/owner/repo\", \"gitlab.com/owner/repo\" or a self-hosted GitLab URL)",
 	)
 
 	cmd.Flags().StringSliceVar(
