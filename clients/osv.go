@@ -72,6 +72,35 @@ func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanne
 	}
 }
 
+// scanTargets builds the directories and commits to hand to osv-scanner.
+//
+// osv-scanner defaults to scanning the filesystem root when a commit is given but
+// no directory is (e.g. the GitLab client, which has no on-disk checkout), which
+// can fail on restricted paths. In that case give it a harmless empty directory
+// instead so the commit-based lookup still runs without walking the whole filesystem.
+// The returned cleanup function removes that directory and is always safe to call.
+func scanTargets(commit, localPath string) (directoryPaths, gitCommits []string, cleanup func(), err error) {
+	cleanup = func() {}
+	directoryPaths = []string{}
+	if localPath != "" {
+		directoryPaths = append(directoryPaths, localPath)
+	}
+	gitCommits = []string{}
+	if commit != "" {
+		gitCommits = append(gitCommits, commit)
+	}
+
+	if len(directoryPaths) == 0 && len(gitCommits) > 0 {
+		emptyDir, mkdirErr := os.MkdirTemp("", "scorecard-osv-scan")
+		if mkdirErr != nil {
+			return nil, nil, cleanup, fmt.Errorf("os.MkdirTemp: %w", mkdirErr)
+		}
+		cleanup = func() { os.RemoveAll(emptyDir) }
+		directoryPaths = append(directoryPaths, emptyDir)
+	}
+	return directoryPaths, gitCommits, cleanup, nil
+}
+
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
 func (v osvClient) ListUnfixedVulnerabilities(
 	ctx context.Context,
@@ -85,27 +114,11 @@ func (v osvClient) ListUnfixedVulnerabilities(
 			fmt.Fprintf(os.Stderr, "osv-scanner panic: %v\n%s\n", r, string(debug.Stack()))
 		}
 	}()
-	directoryPaths := []string{}
-	if localPath != "" {
-		directoryPaths = append(directoryPaths, localPath)
+	directoryPaths, gitCommits, cleanup, err := scanTargets(commit, localPath)
+	if err != nil {
+		return VulnerabilitiesResponse{}, err
 	}
-	gitCommits := []string{}
-	if commit != "" {
-		gitCommits = append(gitCommits, commit)
-	}
-
-	// osv-scanner defaults to scanning the filesystem root when a commit is given but
-	// no directory is (e.g. the GitLab client, which has no on-disk checkout), which
-	// can fail on restricted paths. Give it a harmless empty directory instead so the
-	// commit-based lookup still runs without walking the whole filesystem.
-	if len(directoryPaths) == 0 && len(gitCommits) > 0 {
-		emptyDir, mkdirErr := os.MkdirTemp("", "scorecard-osv-scan")
-		if mkdirErr != nil {
-			return VulnerabilitiesResponse{}, fmt.Errorf("os.MkdirTemp: %w", mkdirErr)
-		}
-		defer os.RemoveAll(emptyDir)
-		directoryPaths = append(directoryPaths, emptyDir)
-	}
+	defer cleanup()
 
 	actions := v.scannerActions(directoryPaths, gitCommits)
 	res, err := osvscanner.DoScan(actions) // TODO: Do logging?
