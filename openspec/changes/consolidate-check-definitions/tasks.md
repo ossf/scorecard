@@ -2,9 +2,9 @@
 
 ## 1. Move the definition code
 
-- [ ] 1.1 Move the definition type, `define`, the run body, and the
+- [x] 1.1 Move the definition type, `define`, the run body, and the
   Maintained and CI-Tests definitions to `internal/checkdef`.
-- [ ] 1.2 Keep the exported `checks.Maintained` and `checks.CITests` as
+- [x] 1.2 Keep the exported `checks.Maintained` and `checks.CITests` as
   wrappers; differential tests still pass.
 
 ## 2. Characterize probe mode
