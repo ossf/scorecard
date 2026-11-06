@@ -97,7 +97,7 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 
 ################################## make build #################################
 build-targets = generate-mocks generate-docs build-scorecard
-.PHONY: build $(build-targets)
+.PHONY: build $(build-targets) check-fuzz-build
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
 
@@ -135,6 +135,9 @@ generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml doc
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
 	# Generating probes.md
 	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
+
+check-fuzz-build: ## Compile the code that is only built for OSS-Fuzz
+	go build -tags gofuzz ./finding/... ./probes/...
 
 validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml

@@ -99,9 +99,9 @@ func probeFromBytes(content []byte, probeID string) (*probe, error) {
 
 // New create a new probe.
 func newProbe(loc embed.FS, probeID string) (*probe, error) {
-	content, err := loc.ReadFile("def.yml")
+	content, err := readProbeDefinition(loc, probeID)
 	if err != nil {
-		return nil, fmt.Errorf("%w", err)
+		return nil, err
 	}
 	return probeFromBytes(content, probeID)
 }
