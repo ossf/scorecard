@@ -142,6 +142,43 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "Non-GitHub host returns NotSupported.",
+			raw: &checker.RawResults{
+				Metadata: checker.MetadataData{
+					Metadata: map[string]string{"repository.host": "gitlab.com"},
+				},
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeNotSupported,
+			},
+		},
+		{
+			name: "GitHub host is supported.",
+			raw: &checker.RawResults{
+				Metadata: checker.MetadataData{
+					Metadata: map[string]string{"repository.host": "github.com"},
+				},
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						immutableRelease("v1.0"),
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
 			name: "Release with no assets is skipped.",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{

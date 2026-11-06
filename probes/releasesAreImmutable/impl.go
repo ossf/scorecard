@@ -17,6 +17,7 @@ package releasesAreImmutable
 import (
 	"embed"
 	"fmt"
+	"os"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
@@ -36,6 +37,8 @@ const (
 	Probe           = "releasesAreImmutable"
 	ReleaseNameKey  = "releaseName"
 	releaseLookBack = 5
+
+	defaultGitHubHost = "github.com"
 )
 
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
@@ -43,11 +46,23 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
 	}
 
+	// Immutable releases are a GitHub feature, so avoid reporting every release
+	// from other hosts (e.g. GitLab) as not being immutable.
+	if !isGitHubHost(raw.Metadata.Metadata["repository.host"]) {
+		f, err := finding.NewWith(fs, Probe,
+			"immutable releases are only supported for GitHub repositories",
+			nil,
+			finding.OutcomeNotSupported)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
 	var findings []finding.Finding
 
 	releases := raw.SignedReleasesResults.Releases
 
-	totalReleases := 0
 	for releaseIndex, release := range releases {
 		if releaseIndex >= releaseLookBack {
 			break
@@ -56,8 +71,6 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		if len(release.Assets) == 0 {
 			continue
 		}
-
-		totalReleases++
 
 		loc := &finding.Location{
 			Type: finding.FileTypeURL,
@@ -100,4 +113,13 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 		findings = append(findings, *f)
 	}
 	return findings, Probe, nil
+}
+
+// isGitHubHost returns whether the repository host is GitHub (or the GitHub Enterprise
+// host in GH_HOST). An unknown (empty) host is assumed to be GitHub.
+func isGitHubHost(host string) bool {
+	if host == "" || host == defaultGitHubHost {
+		return true
+	}
+	return host == os.Getenv("GH_HOST")
 }
