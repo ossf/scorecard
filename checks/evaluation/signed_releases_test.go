@@ -149,7 +149,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  1,
-				NumberOfWarn:  1, // provenance warning still fires
+				NumberOfWarn:  0, // provenance warning is suppressed by the attestation
 				NumberOfDebug: 1,
 			},
 		},
@@ -164,7 +164,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
 				NumberOfInfo:  2, // signed + attestation
-				NumberOfWarn:  1, // provenance warning still fires
+				NumberOfWarn:  0, // provenance warning is suppressed by the attestation
 				NumberOfDebug: 1,
 			},
 		},
@@ -423,7 +423,7 @@ func TestSignedReleases(t *testing.T) {
 			result: scut.TestReturn{
 				Score:         10,
 				NumberOfInfo:  5, // 1 attestation per release
-				NumberOfWarn:  5, // provenance warnings still fire
+				NumberOfWarn:  0, // provenance warnings are suppressed by the attestations
 				NumberOfDebug: 5,
 			},
 		},

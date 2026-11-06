@@ -199,8 +199,8 @@ func TestResolveOwnerEndpointPrefix_Error(t *testing.T) {
 		ctx:     t.Context(),
 		repourl: &Repo{owner: "anyowner", repo: "repo"},
 	}
-	if got := handler.resolveOwnerEndpointPrefix(); got != ownerEndpointUser {
-		t.Errorf("expected fallback to %q, got %q", ownerEndpointUser, got)
+	if got := handler.resolveOwnerEndpointPrefix(); got != "" {
+		t.Errorf("expected empty prefix when owner type is unknown, got %q", got)
 	}
 }
 
@@ -277,5 +277,99 @@ func TestCheckAttestations(t *testing.T) {
 	}
 	if assets[2].HasAttestation {
 		t.Errorf("expected asset %q NOT to have attestation", assets[2].Name)
+	}
+}
+
+// orgOnlyRoundTripper only serves attestations from the orgs endpoint,
+// and records the paths requested.
+type orgOnlyRoundTripper struct {
+	digest string
+	paths  []string
+}
+
+func (r *orgOnlyRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.paths = append(r.paths, req.URL.Path)
+	if strings.HasPrefix(req.URL.Path, "/orgs/") && strings.HasSuffix(req.URL.Path, "/attestations/"+r.digest) {
+		return jsonRespOK(map[string]interface{}{"attestations": []interface{}{map[string]string{"id": "1"}}})
+	}
+	return &http.Response{
+		StatusCode: http.StatusNotFound,
+		Body:       io.NopCloser(strings.NewReader("{}")),
+		Header:     http.Header{},
+		Request:    req,
+	}, nil
+}
+
+func TestHasAttestation_UnknownOwnerTypeFallsBackToOrg(t *testing.T) {
+	t.Parallel()
+	const digest = "sha256:abc123"
+	rt := &orgOnlyRoundTripper{digest: digest}
+	handler := &releasesHandler{
+		client:  github.NewClient(&http.Client{Transport: rt}),
+		ctx:     t.Context(),
+		repourl: &Repo{owner: "testorg", repo: "repo"},
+	}
+	if !handler.hasAttestation(digest) {
+		t.Error("expected attestation to be found via the orgs endpoint")
+	}
+	if len(rt.paths) != 2 {
+		t.Errorf("expected users then orgs to be tried, got requests %v", rt.paths)
+	}
+}
+
+func TestHasAttestation_KnownOwnerTypeDoesNotRetry(t *testing.T) {
+	t.Parallel()
+	const digest = "sha256:abc123"
+	rt := &orgOnlyRoundTripper{digest: digest}
+	handler := &releasesHandler{
+		client:              github.NewClient(&http.Client{Transport: rt}),
+		ctx:                 t.Context(),
+		repourl:             &Repo{owner: "testuser", repo: "repo"},
+		ownerEndpointPrefix: ownerEndpointUser,
+	}
+	if handler.hasAttestation(digest) {
+		t.Error("expected attestation not to be found")
+	}
+	if len(rt.paths) != 1 {
+		t.Errorf("expected a single request, got %v", rt.paths)
+	}
+}
+
+func TestCheckAttestations_LookBack(t *testing.T) {
+	t.Parallel()
+	const digest = "sha256:attested"
+	rt := &releasesRoundTripper{attestedDigests: map[string]bool{digest: true}}
+	handler := &releasesHandler{
+		client:              github.NewClient(&http.Client{Transport: rt}),
+		ctx:                 t.Context(),
+		repourl:             &Repo{owner: "testuser", repo: "repo"},
+		ownerEndpointPrefix: ownerEndpointUser,
+	}
+	for range attestationLookBack + 1 {
+		handler.releases = append(handler.releases, clients.Release{
+			Assets: []clients.ReleaseAsset{{Digest: digest}},
+		})
+	}
+	handler.checkAttestations()
+
+	for i := range handler.releases {
+		got := handler.releases[i].Assets[0].HasAttestation
+		if want := i < attestationLookBack; got != want {
+			t.Errorf("release %d: HasAttestation = %v, want %v", i, got, want)
+		}
+	}
+}
+
+func TestHasAttestationCandidates(t *testing.T) {
+	t.Parallel()
+	handler := &releasesHandler{
+		releases: []clients.Release{{Assets: []clients.ReleaseAsset{{Name: "no-digest"}}}},
+	}
+	if handler.hasAttestationCandidates() {
+		t.Error("expected no candidates when no asset has a digest")
+	}
+	handler.releases[0].Assets[0].Digest = "sha256:abc"
+	if !handler.hasAttestationCandidates() {
+		t.Error("expected a candidate when an asset has a digest")
 	}
 }

@@ -17,6 +17,7 @@ package githubrepo
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -29,6 +30,12 @@ import (
 const (
 	ownerEndpointUser = "users"
 	ownerEndpointOrg  = "orgs"
+
+	// attestationLookBack is the number of most recent releases for which
+	// attestations are looked up. It mirrors the look back window used by the
+	// releasesHaveAttestation probe, so that no API calls are made for releases
+	// that are never evaluated.
+	attestationLookBack = 5
 )
 
 type releasesHandler struct {
@@ -59,10 +66,14 @@ func (handler *releasesHandler) setup() error {
 			handler.ctx, handler.repourl.owner, handler.repourl.repo, &github.ListOptions{})
 		if err != nil {
 			handler.errSetup = sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("githubv4.Query: %v", err))
+			return
 		}
 		handler.releases = releasesFrom(releases)
-		handler.ownerEndpointPrefix = handler.resolveOwnerEndpointPrefix()
-		handler.checkAttestations()
+		// Only incur the extra API calls if there is something to look up.
+		if handler.hasAttestationCandidates() {
+			handler.ownerEndpointPrefix = handler.resolveOwnerEndpointPrefix()
+			handler.checkAttestations()
+		}
 	})
 	return handler.errSetup
 }
@@ -71,11 +82,12 @@ func (handler *releasesHandler) setup() error {
 // user or organization and returns the corresponding API path prefix.
 // It calls the GitHub Users API once so that hasAttestation can use a single
 // endpoint per asset instead of trying both.
+// If the owner type cannot be determined, an empty prefix is returned and
+// hasAttestation will try both endpoints.
 func (handler *releasesHandler) resolveOwnerEndpointPrefix() string {
 	user, _, err := handler.client.Users.Get(handler.ctx, handler.repourl.owner)
 	if err != nil {
-		// Fall back to users; hasAttestation will skip on 404.
-		return ownerEndpointUser
+		return ""
 	}
 	if strings.EqualFold(user.GetType(), "Organization") {
 		return ownerEndpointOrg
@@ -83,8 +95,26 @@ func (handler *releasesHandler) resolveOwnerEndpointPrefix() string {
 	return ownerEndpointUser
 }
 
+// attestationReleases returns the number of releases to look up attestations for.
+func (handler *releasesHandler) attestationReleases() int {
+	return min(len(handler.releases), attestationLookBack)
+}
+
+// hasAttestationCandidates returns whether any release within the look back
+// window has an asset with a digest that could have an attestation.
+func (handler *releasesHandler) hasAttestationCandidates() bool {
+	for i := range handler.attestationReleases() {
+		for j := range handler.releases[i].Assets {
+			if handler.releases[i].Assets[j].Digest != "" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (handler *releasesHandler) checkAttestations() {
-	for i := range handler.releases {
+	for i := range handler.attestationReleases() {
 		for j := range handler.releases[i].Assets {
 			asset := &handler.releases[i].Assets[j]
 			if asset.Digest == "" {
@@ -100,17 +130,35 @@ type attestationResponse struct {
 }
 
 func (handler *releasesHandler) hasAttestation(digest string) bool {
-	endpoint := fmt.Sprintf("%s/%s/attestations/%s", handler.ownerEndpointPrefix, handler.repourl.owner, digest)
+	prefixes := []string{handler.ownerEndpointPrefix}
+	if handler.ownerEndpointPrefix == "" {
+		// The owner type is unknown, so try both endpoints.
+		prefixes = []string{ownerEndpointUser, ownerEndpointOrg}
+	}
+	for _, prefix := range prefixes {
+		found, notFound := handler.queryAttestation(prefix, digest)
+		if !notFound {
+			return found
+		}
+	}
+	return false
+}
+
+// queryAttestation looks up attestations for the digest using the given owner
+// endpoint prefix. notFound is true if the endpoint responded with a 404, which
+// indicates the owner may be of the other type.
+func (handler *releasesHandler) queryAttestation(prefix, digest string) (found, notFound bool) {
+	endpoint := fmt.Sprintf("%s/%s/attestations/%s", prefix, handler.repourl.owner, digest)
 	req, err := handler.client.NewRequest("GET", endpoint, nil)
 	if err != nil {
-		return false
+		return false, false
 	}
 	var body attestationResponse
-	_, err = handler.client.Do(handler.ctx, req, &body)
+	resp, err := handler.client.Do(handler.ctx, req, &body)
 	if err != nil {
-		return false
+		return false, resp != nil && resp.StatusCode == http.StatusNotFound
 	}
-	return len(body.Attestations) > 0
+	return len(body.Attestations) > 0, false
 }
 
 func (handler *releasesHandler) getReleases() ([]clients.Release, error) {

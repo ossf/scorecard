@@ -52,6 +52,7 @@ func SignedReleases(name string,
 	// keep track of releases which have provenance, attestation or signatures so we don't log
 	// redundant false findings on our second pass through below
 	hasProvenanceOrAttestation := make(map[string]bool)
+	hasAttestation := make(map[string]bool)
 	hasSignature := make(map[string]bool)
 	hasImmutable := make(map[string]bool)
 
@@ -86,8 +87,11 @@ func SignedReleases(name string,
 
 		if f.Outcome == finding.OutcomeTrue {
 			switch f.Probe {
-			case releasesHaveProvenance.Probe, releasesHaveAttestation.Probe:
+			case releasesHaveProvenance.Probe:
 				hasProvenanceOrAttestation[releaseName] = true
+			case releasesHaveAttestation.Probe:
+				hasProvenanceOrAttestation[releaseName] = true
+				hasAttestation[releaseName] = true
 			case releasesAreSigned.Probe:
 				hasSignature[releaseName] = true
 			case releasesAreImmutable.Probe:
@@ -152,7 +156,7 @@ func SignedReleases(name string,
 					continue
 				}
 			case releasesHaveProvenance.Probe:
-				if hasImmutable[releaseName] {
+				if hasImmutable[releaseName] || hasAttestation[releaseName] {
 					continue
 				}
 			case releasesAreImmutable.Probe:
