@@ -411,6 +411,22 @@ For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
 If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 
 
+## releasesAreImmutable
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project's GitHub releases are marked as immutable.
+
+**Motivation**: Immutable releases prevent release artifacts from being modified or deleted after publication, ensuring consumers always receive the same artifacts that were originally published.
+
+**Implementation**: The probe checks whether the last 5 releases on GitHub are marked as immutable.
+
+**Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if the release is marked as immutable.
+For each of the last 5 releases, the probe returns OutcomeFalse if the release is not marked as immutable.
+If the project has no releases, the probe returns OutcomeNotApplicable.
+If the project is not hosted on GitHub, the probe returns OutcomeNotSupported.
+
+
 ## releasesAreSigned
 
 **Lifecycle**: stable
@@ -530,7 +546,7 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 **Motivation**: Requiring PRs to be in sync with the base branch is good practice.
 
-**Implementation**: The probe checks the branch protection rules of default and release branches in the repository.
+**Implementation**: The probe checks the branch protection rules of default and release branches in the repository. For GitHub-hosted projects, an active repository ruleset that requires a merge queue also satisfies this probe, since a merge queue tests each change against the latest version of the base branch before merging.
 
 **Outcomes**: The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
 
@@ -672,7 +688,7 @@ The probe returns 1 true outcome if the project has no workflows "write" permiss
 
 **Motivation**: Memory safety in software should be considered a continuum, rather than being binary.  While some languages and tools are memory safe by default, it may still be possible, and sometimes unavoidable, to write unsafe code in them. Unsafe code allow developers to bypass normal safety checks and directly manipulate memory.
 
-**Implementation**: The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks. Unsafe code blocks are supported in rust, go, c#, and swift, but only go and c# are supported by this probe at this time: - for go the probe will look for the use of the `unsafe` include directive. - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property.
+**Implementation**: The probe is ecosystem-specific and will surface non memory safe practices in the project by identifying unsafe code blocks. Unsafe code blocks are supported in rust, go, c#, Java, and swift, but only go, c# and Java are supported by this probe at this time: - for go the probe will look for the use of the `unsafe` include directive. - for c# the probe will look at the csproj and identify the use of the `AllowUnsafeBlocks` property. - for Java the probe will look at references to either the `sun.misc.Unsafe` class or the `jdk.internal.misc.Unsafe` class.
 
 **Outcomes**: For supported ecosystem, the probe returns OutcomeTrue per unsafe block.
 If the project has no unsafe blocks, the probe returns OutcomeFalse.

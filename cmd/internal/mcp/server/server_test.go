@@ -1,0 +1,667 @@
+// Copyright 2026 OpenSSF Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package server
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"slices"
+	"strings"
+	"testing"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/catalog"
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/model"
+	"github.com/ossf/scorecard/v5/cmd/internal/mcp/provider"
+)
+
+// fakeProvider implements provider.Provider with canned data (no network).
+type fakeProvider struct {
+	result *model.Result
+	err    error
+}
+
+func (f *fakeProvider) GetResult(_ context.Context, ref model.RepoRef, _ string) (*model.Result, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	r := *f.result
+	r.Repo = ref
+	return &r, nil
+}
+
+func fakeResult() *model.Result {
+	return &model.Result{
+		Date:        "2024-01-02T03:04:05Z",
+		Commit:      "64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1",
+		Scorecard:   model.ScorecardInfo{Version: "v5.5.0"},
+		Source:      model.SourceCachedREST,
+		Score:       8.7,
+		Checks:      []model.Check{{Name: "Code-Review", Score: 10, Reason: "ok"}, {Name: "Fuzzing", Score: -1, Reason: "inconclusive"}},
+		Caveats:     []string{"cached"},
+		Attribution: &model.Attribution{DataLicense: "CDLA-Permissive-2.0", SourceURL: "http://x"},
+	}
+}
+
+func newTestSession(t *testing.T, p provider.Provider) (*mcp.ClientSession, func()) {
+	t.Helper()
+	srv, err := New(p)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	ct, st := mcp.NewInMemoryTransports()
+	ctx := context.Background()
+	ss, err := srv.Connect(ctx, st, nil)
+	if err != nil {
+		t.Fatalf("server connect: %v", err)
+	}
+	client := mcp.NewClient(&mcp.Implementation{Name: "test", Version: "0"}, nil)
+	cs, err := client.Connect(ctx, ct, nil)
+	if err != nil {
+		t.Fatalf("client connect: %v", err)
+	}
+	return cs, func() { _ = cs.Close(); _ = ss.Close() }
+}
+
+func decodeStructured[T any](t *testing.T, res *mcp.CallToolResult) T {
+	t.Helper()
+	var out T
+	b, err := json.Marshal(res.StructuredContent)
+	if err != nil {
+		t.Fatalf("marshal structured content: %v", err)
+	}
+	if err := json.Unmarshal(b, &out); err != nil {
+		t.Fatalf("unmarshal structured content: %v", err)
+	}
+	return out
+}
+
+func TestListToolsAnnotations(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("ListTools: %v", err)
+	}
+	names := map[string]bool{}
+	for _, tl := range res.Tools {
+		names[tl.Name] = true
+		if tl.Annotations == nil || !tl.Annotations.ReadOnlyHint {
+			t.Errorf("tool %q missing readOnlyHint", tl.Name)
+		}
+		if len(tl.Name) > 64 {
+			t.Errorf("tool name %q exceeds 64 chars", tl.Name)
+		}
+	}
+	for _, want := range []string{"get_repo_score", "get_check_result", "compare_repos", "list_checks", "explain_check"} {
+		if !names[want] {
+			t.Errorf("missing tool %q", want)
+		}
+	}
+}
+
+func TestGetRepoScoreTool(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_repo_score",
+		Arguments: map[string]any{"repo": "ossf/scorecard"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+	out := decodeStructured[repoScoreOutput](t, res)
+	if out.Score != 8.7 {
+		t.Errorf("score = %v, want 8.7", out.Score)
+	}
+	if out.Repo.Org != "ossf" || out.Repo.Name != "scorecard" {
+		t.Errorf("repo = %+v", out.Repo)
+	}
+	if len(out.Checks) != 2 {
+		t.Errorf("checks = %d, want 2", len(out.Checks))
+	}
+	if out.Source != model.SourceCachedREST {
+		t.Errorf("source = %q", out.Source)
+	}
+	if len(out.Caveats) == 0 || out.Attribution == nil {
+		t.Error("expected caveats and attribution on output")
+	}
+}
+
+func TestGetRepoScoreInvalidCommit(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_repo_score",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "commit": "not-a-sha"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool transport error: %v", err)
+	}
+	if !res.IsError {
+		t.Error("expected a tool error for an invalid commit")
+	}
+}
+
+// toolErrorText returns the text of a failed tool call's first content item.
+func toolErrorText(t *testing.T, res *mcp.CallToolResult) string {
+	t.Helper()
+	if !res.IsError {
+		t.Fatal("expected a tool error")
+	}
+	if len(res.Content) == 0 {
+		t.Fatal("expected error content")
+	}
+	tc, ok := res.Content[0].(*mcp.TextContent)
+	if !ok {
+		t.Fatalf("expected text content, got %T", res.Content[0])
+	}
+	return tc.Text
+}
+
+func TestGetCheckResultUnknown(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "No-Such-Check"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "not a Scorecard check") {
+		t.Errorf("error = %q, want mention of an unknown check", text)
+	}
+}
+
+func TestGetCheckResultExperimental(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "SBOM"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, "experimental") {
+		t.Errorf("error = %q, want mention that SBOM is experimental", text)
+	}
+}
+
+func TestGetCheckResultMissing(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	// CI-Tests is a real, non-experimental GitHub check that fakeResult()
+	// does not include.
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "check": "ci-tests"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	want := "`scorecard --repo=github.com/ossf/scorecard --checks=CI-Tests` computes it locally"
+	if !strings.Contains(text, want) {
+		t.Errorf("error = %q, want it to contain %q", text, want)
+	}
+	if strings.Contains(text, "future") {
+		t.Errorf("error = %q, want no promise of future features", text)
+	}
+}
+
+func TestGetCheckResultUnsupportedPlatform(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	// Signed-Releases does not run on GitLab.
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_check_result",
+		Arguments: map[string]any{"repo": "gitlab.com/gitlab-org/gitlab", "check": "Signed-Releases"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	text := toolErrorText(t, res)
+	if !strings.Contains(text, `"Signed-Releases" does not run on gitlab.com`) {
+		t.Errorf("error = %q, want an unsupported-platform message", text)
+	}
+}
+
+func TestGetRepoScoreCoverage(t *testing.T) {
+	t.Parallel()
+	cat, err := catalog.New()
+	if err != nil {
+		t.Fatalf("catalog.New: %v", err)
+	}
+	expected := cat.ExpectedChecks("github.com")
+	full := fakeResult()
+	full.Checks = nil
+	for _, name := range expected {
+		full.Checks = append(full.Checks, model.Check{Name: name, Score: 10})
+	}
+
+	tests := []struct {
+		result       *model.Result
+		name         string
+		wantMissing  []string
+		wantComplete bool
+	}{
+		{
+			name:   "partial result",
+			result: fakeResult(),
+			wantMissing: slices.DeleteFunc(slices.Clone(expected), func(n string) bool {
+				return n == "Code-Review" || n == "Fuzzing"
+			}),
+		},
+		{name: "every check", result: full, wantComplete: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cs, done := newTestSession(t, &fakeProvider{result: tt.result})
+			defer done()
+
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+				Name:      "get_repo_score",
+				Arguments: map[string]any{"repo": "ossf/scorecard"},
+			})
+			if err != nil {
+				t.Fatalf("CallTool: %v", err)
+			}
+			out := decodeStructured[repoScoreOutput](t, res)
+			if !slices.Equal(out.MissingChecks, tt.wantMissing) {
+				t.Errorf("MissingChecks = %v, want %v", out.MissingChecks, tt.wantMissing)
+			}
+			if out.Complete != tt.wantComplete {
+				t.Errorf("Complete = %v, want %v", out.Complete, tt.wantComplete)
+			}
+			named := slices.ContainsFunc(out.Caveats, func(c string) bool {
+				return strings.Contains(c, "does not include")
+			})
+			if named == tt.wantComplete {
+				t.Errorf("Caveats = %v, want a missing-checks caveat only when incomplete", out.Caveats)
+			}
+		})
+	}
+}
+
+func TestCompareReposInlineError(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": []string{"ossf/scorecard", "bad-ref"}},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("compare_repos should not fail wholesale: %v", res.Content)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if len(out.Results) != 2 {
+		t.Fatalf("results = %d, want 2", len(out.Results))
+	}
+	if out.Results[0].Error != "" || out.Results[0].Score == nil {
+		t.Errorf("first entry should succeed: %+v", out.Results[0])
+	}
+	if out.Results[1].Error == "" {
+		t.Error("second entry should carry an inline parse error")
+	}
+}
+
+func TestCompareReposMetadata(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": []string{"ossf/scorecard", "bad-ref"}},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if len(out.Results) != 2 {
+		t.Fatalf("results = %d, want 2", len(out.Results))
+	}
+	want := fakeResult()
+	got := out.Results[0]
+	if got.Commit != want.Commit {
+		t.Errorf("Commit = %q, want %q", got.Commit, want.Commit)
+	}
+	if got.Scorecard == nil || *got.Scorecard != want.Scorecard {
+		t.Errorf("Scorecard = %+v, want %+v", got.Scorecard, want.Scorecard)
+	}
+	if got.Attribution == nil || *got.Attribution != *want.Attribution {
+		t.Errorf("Attribution = %+v, want %+v", got.Attribution, want.Attribution)
+	}
+	if !slices.Contains(got.Caveats, "cached") {
+		t.Errorf("Caveats = %v, want the provider's caveats", got.Caveats)
+	}
+	if got.Complete == nil || *got.Complete || len(got.MissingChecks) == 0 {
+		t.Errorf("Complete = %v, MissingChecks = %v, want an incomplete result with missing checks",
+			got.Complete, got.MissingChecks)
+	}
+
+	failed := out.Results[1]
+	if failed.Scorecard != nil || failed.Attribution != nil || failed.Complete != nil {
+		t.Errorf("failed entry = %+v, want no result metadata", failed)
+	}
+}
+
+// resultWithDetails returns a result whose single check carries n detail lines.
+func resultWithDetails(n int) *model.Result {
+	details := make([]string, n)
+	for i := range details {
+		details[i] = fmt.Sprintf("detail line %d", i)
+	}
+	return &model.Result{
+		Date:      "2024-01-02T03:04:05Z",
+		Scorecard: model.ScorecardInfo{Version: "v5.5.0"},
+		Source:    model.SourceCachedREST,
+		Score:     7.0,
+		Checks:    []model.Check{{Name: "Pinned-Dependencies", Score: 5, Reason: "some pinned", Details: details}},
+	}
+}
+
+func getCheckDetail(t *testing.T, p provider.Provider, args map[string]any) checkDetail {
+	t.Helper()
+	cs, done := newTestSession(t, p)
+	defer done()
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "get_check_result", Arguments: args})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+	return decodeStructured[getCheckResultOutput](t, res).Check
+}
+
+func TestGetCheckResultDetailsTruncatedByDefault(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies"})
+	if c.DetailsTotal != 60 {
+		t.Errorf("details_total = %d, want 60", c.DetailsTotal)
+	}
+	if !c.DetailsTruncated {
+		t.Error("details_truncated = false, want true")
+	}
+	if len(c.Details) != defaultMaxDetails {
+		t.Errorf("details len = %d, want %d (default)", len(c.Details), defaultMaxDetails)
+	}
+}
+
+func TestGetCheckResultMaxDetailsRespected(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies", "max_details": 5})
+	if len(c.Details) != 5 || !c.DetailsTruncated || c.DetailsTotal != 60 {
+		t.Errorf("details=%d truncated=%v total=%d, want 5/true/60", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetCheckResultMaxDetailsClampedHigh(t *testing.T) {
+	t.Parallel()
+	// A value above the cap is clamped to maxMaxDetails; with fewer details than
+	// the cap, nothing is truncated.
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(60)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies", "max_details": 100000})
+	if len(c.Details) != 60 || c.DetailsTruncated || c.DetailsTotal != 60 {
+		t.Errorf("details=%d truncated=%v total=%d, want 60/false/60", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetCheckResultNoDetailsNotTruncated(t *testing.T) {
+	t.Parallel()
+	c := getCheckDetail(t, &fakeProvider{result: resultWithDetails(3)},
+		map[string]any{"repo": "ossf/scorecard", "check": "Pinned-Dependencies"})
+	if len(c.Details) != 3 || c.DetailsTruncated || c.DetailsTotal != 3 {
+		t.Errorf("details=%d truncated=%v total=%d, want 3/false/3", len(c.Details), c.DetailsTruncated, c.DetailsTotal)
+	}
+}
+
+func TestGetRepoScoreValidCommitAccepted(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_repo_score",
+		Arguments: map[string]any{"repo": "ossf/scorecard", "commit": "64febf8c5229f0a5f0a6d2a0f0d4b6a7c8d9e0f1"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("valid 40-hex commit should be accepted: %v", res.Content)
+	}
+}
+
+func TestCompareReposTruncatesNotRejects(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	repos := make([]string, maxCompareRepos+2)
+	for i := range repos {
+		repos[i] = fmt.Sprintf("ossf/repo-%d", i)
+	}
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": repos},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("more than the max should truncate, not reject: %v", res.Content)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if !out.Truncated {
+		t.Error("truncated = false, want true")
+	}
+	if len(out.Results) != maxCompareRepos {
+		t.Errorf("results = %d, want %d", len(out.Results), maxCompareRepos)
+	}
+	// Order is preserved despite concurrent fetch.
+	for i, r := range out.Results {
+		if want := fmt.Sprintf("ossf/repo-%d", i); r.Input != want {
+			t.Errorf("results[%d].Input = %q, want %q", i, r.Input, want)
+		}
+	}
+}
+
+func TestListChecksTool(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: "list_checks", Arguments: map[string]any{}})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("list_checks error: %v", res.Content)
+	}
+	out := decodeStructured[listChecksOutput](t, res)
+	if len(out.Checks) < 10 {
+		t.Errorf("checks = %d, want many", len(out.Checks))
+	}
+}
+
+func TestReadCheckResource(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	rr, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: "scorecard://checks/Fuzzing"})
+	if err != nil {
+		t.Fatalf("ReadResource: %v", err)
+	}
+	if len(rr.Contents) == 0 || rr.Contents[0].Text == "" {
+		t.Fatal("expected resource content")
+	}
+	var d map[string]any
+	if err := json.Unmarshal([]byte(rr.Contents[0].Text), &d); err != nil {
+		t.Fatalf("unmarshal resource: %v", err)
+	}
+	if d["name"] != "Fuzzing" {
+		t.Errorf("resource name = %v, want Fuzzing", d["name"])
+	}
+}
+
+func TestExplainCheckTool(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "explain_check",
+		Arguments: map[string]any{"check": "fuzzing"},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+	out := decodeStructured[explainCheckOutput](t, res)
+	if out.Check.Name != "Fuzzing" || out.Check.Description == "" {
+		t.Errorf("check = %+v, want Fuzzing with a description", out.Check)
+	}
+}
+
+func TestToolErrors(t *testing.T) {
+	t.Parallel()
+	ok := &fakeProvider{result: fakeResult()}
+	failing := &fakeProvider{err: errors.New("upstream unavailable")}
+	tests := []struct {
+		p    provider.Provider
+		args map[string]any
+		name string
+		tool string
+		want string
+	}{
+		{name: "explain empty check", p: ok, tool: "explain_check", args: map[string]any{"check": ""}, want: "check is required"},
+		{name: "explain unknown check", p: ok, tool: "explain_check", args: map[string]any{"check": "No-Such-Check"}, want: "list_checks"},
+		{name: "repo score invalid repo", p: ok, tool: "get_repo_score", args: map[string]any{"repo": "bad-ref"}, want: "repo:"},
+		{name: "repo score provider error", p: failing, tool: "get_repo_score", args: map[string]any{"repo": "ossf/scorecard"}, want: "fetching results: upstream unavailable"},
+		{name: "check result invalid repo", p: ok, tool: "get_check_result", args: map[string]any{"repo": "bad-ref", "check": "License"}, want: "repo:"},
+		{name: "check result empty check", p: ok, tool: "get_check_result", args: map[string]any{"repo": "ossf/scorecard", "check": ""}, want: "check is required"},
+		{name: "check result provider error", p: failing, tool: "get_check_result", args: map[string]any{"repo": "ossf/scorecard", "check": "License"}, want: "fetching results: upstream unavailable"},
+		{name: "compare no repos", p: ok, tool: "compare_repos", args: map[string]any{"repos": []string{}}, want: "repos is required"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cs, done := newTestSession(t, tt.p)
+			defer done()
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{Name: tt.tool, Arguments: tt.args})
+			if err != nil {
+				t.Fatalf("CallTool transport error: %v", err)
+			}
+			if text := toolErrorText(t, res); !strings.Contains(text, tt.want) {
+				t.Errorf("tool error = %q, want it to contain %q", text, tt.want)
+			}
+		})
+	}
+}
+
+func TestCompareReposProviderError(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{err: errors.New("upstream unavailable")})
+	defer done()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "compare_repos",
+		Arguments: map[string]any{"repos": []string{"ossf/scorecard"}},
+	})
+	if err != nil {
+		t.Fatalf("CallTool: %v", err)
+	}
+	out := decodeStructured[compareReposOutput](t, res)
+	if len(out.Results) != 1 || !strings.Contains(out.Results[0].Error, "upstream unavailable") {
+		t.Errorf("results = %+v, want one entry carrying the provider error", out.Results)
+	}
+}
+
+func TestReadChecksIndexResource(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	rr, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: "scorecard://checks"})
+	if err != nil {
+		t.Fatalf("ReadResource: %v", err)
+	}
+	if len(rr.Contents) == 0 {
+		t.Fatal("expected resource content")
+	}
+	var out listChecksOutput
+	if err := json.Unmarshal([]byte(rr.Contents[0].Text), &out); err != nil {
+		t.Fatalf("unmarshal resource: %v", err)
+	}
+	if len(out.Checks) < 10 {
+		t.Errorf("index lists %d checks, want many", len(out.Checks))
+	}
+}
+
+func TestReadCheckResourceUnknown(t *testing.T) {
+	t.Parallel()
+	cs, done := newTestSession(t, &fakeProvider{result: fakeResult()})
+	defer done()
+
+	if _, err := cs.ReadResource(context.Background(), &mcp.ReadResourceParams{URI: "scorecard://checks/No-Such-Check"}); err == nil {
+		t.Error("expected an error for an unknown check resource")
+	}
+}
+
+func TestClampMaxDetails(t *testing.T) {
+	t.Parallel()
+	for in, want := range map[int]int{0: defaultMaxDetails, -5: minMaxDetails, maxMaxDetails + 1: maxMaxDetails, 7: 7} {
+		if got := clampMaxDetails(in); got != want {
+			t.Errorf("clampMaxDetails(%d) = %d, want %d", in, got, want)
+		}
+	}
+}

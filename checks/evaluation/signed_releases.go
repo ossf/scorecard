@@ -22,6 +22,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/probes/releasesAreImmutable"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveAttestation"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
@@ -39,6 +40,7 @@ func SignedReleases(name string,
 	expectedProbes := []string{
 		releasesAreSigned.Probe,
 		releasesHaveAttestation.Probe,
+		releasesAreImmutable.Probe,
 		releasesHaveProvenance.Probe,
 	}
 
@@ -47,9 +49,11 @@ func SignedReleases(name string,
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	// keep track of releases which have provenance or attestation so we don't log about signatures
-	// on our second pass through below
+	// keep track of releases which have provenance, attestation or signatures so we don't log
+	// redundant false findings on our second pass through below
 	hasProvenanceOrAttestation := make(map[string]bool)
+	hasSignature := make(map[string]bool)
+	hasImmutable := make(map[string]bool)
 
 	// Debug all releases and check for OutcomeNotApplicable
 	// All probes have OutcomeNotApplicable in case the project has no
@@ -58,7 +62,7 @@ func SignedReleases(name string,
 	for i := range findings {
 		f := &findings[i]
 
-		if f.Probe == releasesHaveVerifiedProvenance.Probe {
+		if f.Probe == releasesHaveVerifiedProvenance.Probe || isImmutableNotSupported(f) {
 			continue
 		}
 
@@ -84,11 +88,17 @@ func SignedReleases(name string,
 			switch f.Probe {
 			case releasesHaveProvenance.Probe, releasesHaveAttestation.Probe:
 				hasProvenanceOrAttestation[releaseName] = true
+			case releasesAreSigned.Probe:
+				hasSignature[releaseName] = true
+			case releasesAreImmutable.Probe:
+				hasImmutable[releaseName] = true
 			}
 		}
 	}
 
 	totalTrue := 0
+	totalSigned := 0
+	totalImmutable := 0
 	releaseMap := make(map[string]int)
 	uniqueReleaseTags := make([]string, 0)
 
@@ -97,6 +107,13 @@ func SignedReleases(name string,
 		f := &findings[i]
 
 		if f.Probe == releasesHaveVerifiedProvenance.Probe {
+			continue
+		}
+
+		if isImmutableNotSupported(f) {
+			// The probe is not applicable to this repository's host and
+			// does not relate to a release, so just log it for debugging.
+			checker.LogFinding(dl, f, checker.DetailDebug)
 			continue
 		}
 
@@ -114,21 +131,38 @@ func SignedReleases(name string,
 			totalTrue++
 			switch f.Probe {
 			case releasesAreSigned.Probe:
+				totalSigned++
 				if _, ok := releaseMap[releaseName]; !ok {
 					releaseMap[releaseName] = 8
 				}
+			case releasesAreImmutable.Probe:
+				// GitHub immutable releases include an attestation for the
+				// release, so they are treated the same as provenance.
+				totalImmutable++
+				releaseMap[releaseName] = 10
 			case releasesHaveProvenance.Probe, releasesHaveAttestation.Probe:
+				totalSigned++
 				releaseMap[releaseName] = 10
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
-			if f.Probe == releasesAreSigned.Probe && hasProvenanceOrAttestation[releaseName] {
-				continue
-			}
-			// Attestation is an optional alternative to signing or provenance.
-			// Suppress warnings when attestation is absent to avoid noise for projects
-			// that use other verification methods.
-			if f.Probe == releasesHaveAttestation.Probe {
+			switch f.Probe {
+			case releasesAreSigned.Probe:
+				if hasProvenanceOrAttestation[releaseName] || hasImmutable[releaseName] {
+					continue
+				}
+			case releasesHaveProvenance.Probe:
+				if hasImmutable[releaseName] {
+					continue
+				}
+			case releasesAreImmutable.Probe:
+				if hasProvenanceOrAttestation[releaseName] || hasSignature[releaseName] {
+					continue
+				}
+			case releasesHaveAttestation.Probe:
+				// Attestation is an optional alternative to signing or provenance.
+				// Suppress warnings when attestation is absent to avoid noise for projects
+				// that use other verification methods.
 				continue
 			}
 		default:
@@ -161,9 +195,19 @@ func SignedReleases(name string,
 	}
 
 	score = int(math.Floor(float64(score) / float64(totalReleases)))
-	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts.",
-		len(releaseMap), totalReleases, totalTrue)
+	reason := fmt.Sprintf("%d out of the last %d releases have a total of %d signed artifacts",
+		len(releaseMap), totalReleases, totalSigned)
+	if totalImmutable > 0 {
+		reason += fmt.Sprintf(" and %d immutable releases", totalImmutable)
+	}
+	reason += "."
 	return checker.CreateResultWithScore(name, reason, score)
+}
+
+// isImmutableNotSupported returns whether the finding is from the immutable
+// releases probe reporting that the repository's host does not support immutable releases.
+func isImmutableNotSupported(f *finding.Finding) bool {
+	return f.Probe == releasesAreImmutable.Probe && f.Outcome == finding.OutcomeNotSupported
 }
 
 func getReleaseName(f *finding.Finding) string {
@@ -172,6 +216,8 @@ func getReleaseName(f *finding.Finding) string {
 	switch f.Probe {
 	case releasesAreSigned.Probe:
 		key = releasesAreSigned.ReleaseNameKey
+	case releasesAreImmutable.Probe:
+		key = releasesAreImmutable.ReleaseNameKey
 	case releasesHaveProvenance.Probe:
 		key = releasesHaveProvenance.ReleaseNameKey
 	case releasesHaveAttestation.Probe:

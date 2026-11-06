@@ -28,6 +28,8 @@ import (
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
+
+	clients "github.com/ossf/scorecard/v5/clients"
 )
 
 // MockRepo is a mock of Repo interface.
@@ -152,4 +154,18 @@ func (m *MockRepo) URI() string {
 func (mr *MockRepoMockRecorder) URI() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "URI", reflect.TypeOf((*MockRepo)(nil).URI))
+}
+
+// Type mocks base method.
+func (m *MockRepo) Type() clients.RepoType {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Type")
+	ret0, _ := ret[0].(clients.RepoType)
+	return ret0
+}
+
+// Type indicates an expected call of Type.
+func (mr *MockRepoMockRecorder) Type() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Type", reflect.TypeOf((*MockRepo)(nil).Type))
 }

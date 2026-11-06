@@ -112,6 +112,11 @@ func (r *Repo) Metadata() []string {
 	return r.metadata
 }
 
+// Type implements Repo.Type.
+func (r *Repo) Type() clients.RepoType {
+	return clients.RepoTypeGitHub
+}
+
 func (r *Repo) commitExpression() string {
 	if strings.EqualFold(r.commitSHA, clients.HeadSHA) {
 		// TODO(#575): Confirm that this works as expected.

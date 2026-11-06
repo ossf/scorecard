@@ -479,6 +479,122 @@ func Test_applyRepoRules(t *testing.T) {
 			},
 		},
 		{
+			name: "merge queue no bypass",
+			base: &clients.BranchRef{},
+			ruleSets: []*repoRuleSet{
+				ruleSet(withRules(&repoRule{Type: ruleMergeQueue})),
+			},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
+					EnforceAdmins:        &trueVal,
+					RequireLinearHistory: &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge: &trueVal,
+					},
+					PullRequestRule: clients.PullRequestRule{
+						Required: &falseVal,
+					},
+				},
+			},
+		},
+		{
+			name: "merge queue with bypass",
+			base: &clients.BranchRef{},
+			ruleSets: []*repoRuleSet{
+				ruleSet(withRules(&repoRule{Type: ruleMergeQueue}), withBypass()),
+			},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
+					EnforceAdmins:        &falseVal,
+					RequireLinearHistory: &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge: &trueVal,
+					},
+					PullRequestRule: clients.PullRequestRule{
+						Required: &falseVal,
+					},
+				},
+			},
+		},
+		{
+			name: "merge queue overrides non-strict status checks in the same rule set",
+			base: &clients.BranchRef{},
+			ruleSets: []*repoRuleSet{
+				ruleSet(withRules(
+					&repoRule{Type: ruleMergeQueue},
+					&repoRule{
+						Type: ruleStatusCheck,
+						Parameters: repoRulesParameters{
+							StatusCheckParameters: requiredStatusCheckParameters{
+								StrictRequiredStatusChecksPolicy: &falseVal,
+								RequiredStatusChecks: []statusCheck{
+									{
+										Context: asPtr("foo"),
+									},
+								},
+							},
+						},
+					},
+				)),
+			},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
+					EnforceAdmins:        &trueVal,
+					RequireLinearHistory: &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge:  &trueVal,
+						RequiresStatusChecks: &trueVal,
+						Contexts:             []string{"foo"},
+					},
+					PullRequestRule: clients.PullRequestRule{
+						Required: &falseVal,
+					},
+				},
+			},
+		},
+		{
+			name: "merge queue rule set and separate non-strict status checks rule set",
+			base: &clients.BranchRef{},
+			ruleSets: []*repoRuleSet{
+				ruleSet(withRules(&repoRule{Type: ruleMergeQueue})),
+				ruleSet(withRules(&repoRule{
+					Type: ruleStatusCheck,
+					Parameters: repoRulesParameters{
+						StatusCheckParameters: requiredStatusCheckParameters{
+							StrictRequiredStatusChecksPolicy: &falseVal,
+							RequiredStatusChecks: []statusCheck{
+								{
+									Context: asPtr("foo"),
+								},
+							},
+						},
+					},
+				})),
+			},
+			expected: &clients.BranchRef{
+				BranchProtectionRule: clients.BranchProtectionRule{
+					AllowDeletions:       &trueVal,
+					AllowForcePushes:     &trueVal,
+					EnforceAdmins:        &trueVal,
+					RequireLinearHistory: &falseVal,
+					CheckRules: clients.StatusChecksRule{
+						UpToDateBeforeMerge:  &trueVal,
+						RequiresStatusChecks: &trueVal,
+						Contexts:             []string{"foo"},
+					},
+					PullRequestRule: clients.PullRequestRule{
+						Required: &falseVal,
+					},
+				},
+			},
+		},
+		{
 			name: "Multiple rules sets impacting a branch",
 			base: &clients.BranchRef{},
 			ruleSets: []*repoRuleSet{

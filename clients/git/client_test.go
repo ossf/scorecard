@@ -15,12 +15,16 @@
 package git
 
 import (
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
 	gitV5 "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -73,15 +77,41 @@ func createTestRepo(t *testing.T) (path string) {
 
 func TestInitRepo(t *testing.T) {
 	t.Parallel()
+	repoPath := createTestRepo(t)
+	r, err := gitV5.PlainOpen(repoPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstCommit, err := r.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	latestCommit, err := w.Commit("Second commit", &gitV5.CommitOptions{
+		AllowEmptyCommits: true,
+		Author: &object.Signature{
+			Name: "Test Author", Email: "author@example.com", When: time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	validSHA := firstCommit.Hash().String()
+
 	tests := []struct {
 		name        string
 		commitSHA   string
-		expectedErr string
+		expectedErr error
+		expectedSHA string
 		commitDepth int
 	}{
 		{
 			name:        "Success",
 			commitSHA:   "HEAD",
+			expectedSHA: latestCommit.String(),
 			commitDepth: 1,
 		},
 		{
@@ -89,9 +119,17 @@ func TestInitRepo(t *testing.T) {
 			commitSHA:   "HEAD",
 			commitDepth: -1,
 		},
+		{name: "ExplicitCommit", commitSHA: validSHA, expectedSHA: validSHA, commitDepth: 1},
+		{name: "UppercaseCommit", commitSHA: strings.ToUpper(validSHA), expectedSHA: validSHA, commitDepth: 1},
+		{name: "EmptyCommit", commitSHA: "", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "NonHexCommit", commitSHA: strings.Repeat("z", 40), expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "ShortCommit", commitSHA: validSHA[:8], expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "OddLengthCommit", commitSHA: validSHA[:39], expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "LongCommit", commitSHA: validSHA + "00", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "InvalidSuffix", commitSHA: validSHA + "zz", expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "ZeroCommit", commitSHA: strings.Repeat("0", 40), expectedErr: clients.ErrInvalidCommitSHA},
+		{name: "UnknownCommit", commitSHA: strings.Repeat("1", 40), expectedErr: plumbing.ErrObjectNotFound},
 	}
-
-	repoPath := createTestRepo(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -99,15 +137,87 @@ func TestInitRepo(t *testing.T) {
 			uri := repoPath
 
 			client := &Client{}
+			t.Cleanup(func() {
+				if err := client.Close(); err != nil {
+					t.Errorf("Close() failed: %v", err)
+				}
+			})
 			repo, err := localdir.MakeLocalDirRepo(uri)
 			if err != nil {
 				t.Fatalf("MakeLocalDirRepo(%s) failed: %v", uri, err)
 			}
 			err = client.InitRepo(repo, test.commitSHA, test.commitDepth)
-			if (test.expectedErr != "") != (err != nil) {
-				t.Errorf("Unexpected error during InitRepo: %v", err)
+			if test.expectedErr != nil {
+				if !errors.Is(err, test.expectedErr) {
+					t.Fatalf("InitRepo() error = %v, want %v", err, test.expectedErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("InitRepo() unexpected error: %v", err)
+			}
+			if test.expectedSHA != "" {
+				assertHead(t, client, test.expectedSHA)
 			}
 		})
+	}
+}
+
+func assertHead(t *testing.T, client *Client, want string) {
+	t.Helper()
+	head, err := client.gitRepo.Head()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := head.Hash().String(); got != want {
+		t.Errorf("checked out commit = %q, want %q", got, want)
+	}
+}
+
+func TestInitRepoInvalidSHAKeepsState(t *testing.T) {
+	t.Parallel()
+	repo, err := localdir.MakeLocalDirRepo(createTestRepo(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := &Client{}
+	t.Cleanup(func() { client.Close() })
+	if err := client.InitRepo(repo, clients.HeadSHA, 1); err != nil {
+		t.Fatalf("InitRepo(HEAD) unexpected error: %v", err)
+	}
+	if err := client.InitRepo(repo, "bad", 1); !errors.Is(err, clients.ErrInvalidCommitSHA) {
+		t.Fatalf("InitRepo(bad) error = %v, want %v", err, clients.ErrInvalidCommitSHA)
+	}
+	// The rejected call must not tear down the existing clone.
+	if _, err := client.ListFiles(func(string) (bool, error) { return true, nil }); err != nil {
+		t.Errorf("ListFiles() after rejected InitRepo: %v", err)
+	}
+}
+
+func TestInitRepoSetsRepoAndDefaultDepth(t *testing.T) {
+	t.Parallel()
+	repo, err := localdir.MakeLocalDirRepo(createTestRepo(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, depth := range []int{0, -1} {
+		client := &Client{}
+		if err := client.InitRepo(repo, clients.HeadSHA, depth); err != nil {
+			t.Fatalf("InitRepo(depth %d) unexpected error: %v", depth, err)
+		}
+		if got, want := client.URI(), repo.URI(); got != want {
+			t.Errorf("URI() = %q, want %q", got, want)
+		}
+		commits, err := client.ListCommits()
+		if err != nil {
+			t.Errorf("ListCommits(depth %d) unexpected error: %v", depth, err)
+		}
+		if len(commits) != 1 {
+			t.Errorf("ListCommits(depth %d) returned %d commits, want 1", depth, len(commits))
+		}
+		if err := client.Close(); err != nil {
+			t.Errorf("Close() failed: %v", err)
+		}
 	}
 }
 
@@ -229,5 +339,90 @@ func TestSearch(t *testing.T) {
 				t.Errorf("Search() returned diff (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestFileAccessSymlinks(t *testing.T) {
+	t.Parallel()
+	const errEscapes = "path escapes from parent"
+
+	secret := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(secret, []byte("host secret"), 0o600); err != nil {
+		t.Fatalf("Failed to write a file: %v", err)
+	}
+	// A run of "../" longer than any temp path reaches the filesystem root.
+	relSecret := strings.Repeat("../", 64) + strings.TrimPrefix(filepath.ToSlash(secret), "/")
+
+	dir := createTestRepo(t)
+	r, err := gitV5.PlainOpen(dir)
+	if err != nil {
+		t.Fatalf("Failed to open git repo: %v", err)
+	}
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatalf("Failed to get worktree: %v", err)
+	}
+	links := map[string]string{
+		"in-repo":         "file",
+		"escape-absolute": secret,
+		"escape-relative": relSecret,
+		"dangling":        "missing",
+	}
+	for name, target := range links {
+		if err := os.Symlink(target, filepath.Join(dir, name)); err != nil {
+			t.Fatalf("Failed to create symlink: %v", err)
+		}
+		if _, err := w.Add(name); err != nil {
+			t.Fatalf("Failed to add a file to staging area: %v", err)
+		}
+	}
+	_, err = w.Commit("Add symlinks", &gitV5.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Test Author",
+			Email: "author@example.com",
+			When:  time.Now(),
+		},
+	})
+	if err != nil {
+		t.Fatalf("Failed to commit: %v", err)
+	}
+
+	repo, err := localdir.MakeLocalDirRepo(dir)
+	if err != nil {
+		t.Fatalf("MakeLocalDirRepo(%s) failed: %v", dir, err)
+	}
+	client := &Client{}
+	if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
+		t.Fatalf("InitRepo: %v", err)
+	}
+	t.Cleanup(func() { client.Close() })
+
+	files, err := client.ListFiles(func(string) (bool, error) { return true, nil })
+	if err != nil {
+		t.Fatalf("ListFiles: %v", err)
+	}
+	if d := cmp.Diff([]string{"file", "in-repo"}, files, cmpopts.SortSlices(func(a, b string) bool { return a < b })); d != "" {
+		t.Errorf("ListFiles: -want,+got: %s", d)
+	}
+
+	rc, err := client.GetFileReader("in-repo")
+	if err != nil {
+		t.Fatalf("GetFileReader(in-repo): %v", err)
+	}
+	t.Cleanup(func() { rc.Close() })
+	contents, err := io.ReadAll(rc)
+	if err != nil {
+		t.Fatalf("ReadAll: %v", err)
+	}
+	if got := string(contents); got != "Hello, World!" {
+		t.Errorf("GetFileReader(in-repo) = %q, want %q", got, "Hello, World!")
+	}
+
+	// Escaping names aren't listed, and reading one is still refused.
+	for _, name := range []string{"escape-absolute", "escape-relative", "../file"} {
+		_, err := client.GetFileReader(name)
+		if err == nil || !strings.Contains(err.Error(), errEscapes) {
+			t.Errorf("GetFileReader(%s): got %v, want error containing %q", name, err, errEscapes)
+		}
 	}
 }
