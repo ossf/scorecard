@@ -20,11 +20,10 @@ import (
 	"os"
 	"path"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/checknames"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 	"github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/probes/hasDangerousWorkflowScriptInjection/internal/patch"
 	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
@@ -58,9 +57,9 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 
 	var findings []finding.Finding
 	var currWorkflow string
-	var workflow *actionlint.Workflow
+	var workflow *ghworkflow.Workflow
 	var content []byte
-	var errs []*actionlint.Error
+	var errs []*ghworkflow.Error
 	localPath := raw.Metadata.Metadata["localPath"]
 	for _, w := range r.Workflows {
 		if w.Type != checker.DangerousWorkflowScriptInjection {
@@ -101,8 +100,8 @@ func parseWorkflow(
 	e *checker.DangerousWorkflow,
 	currWorkflow *string,
 	content *[]byte,
-	workflow **actionlint.Workflow,
-	errs *[]*actionlint.Error,
+	workflow **ghworkflow.Workflow,
+	errs *[]*ghworkflow.Error,
 ) error {
 	var err error
 	wp := path.Join(localPath, e.File.Path)
@@ -114,7 +113,7 @@ func parseWorkflow(
 			return err //nolint:wrapcheck // we only care about the error's existence
 		}
 
-		*workflow, *errs = actionlint.Parse(*content)
+		*workflow, *errs = ghworkflow.Parse(*content)
 		if len(*errs) > 0 && *workflow == nil {
 			// the workflow contains unrecoverable parsing errors, skip.
 			return err //nolint:wrapcheck // we only care about the error's existence
@@ -126,8 +125,8 @@ func parseWorkflow(
 func generatePatch(
 	e *checker.DangerousWorkflow,
 	content []byte,
-	workflow *actionlint.Workflow,
-	errs []*actionlint.Error,
+	workflow *ghworkflow.Workflow,
+	errs []*ghworkflow.Error,
 	f *finding.Finding,
 ) {
 	findingPatch, err := patch.GeneratePatch(e.File, content, workflow, errs)

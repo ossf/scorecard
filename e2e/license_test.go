@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/azuredevopsrepo"
 	"github.com/ossf/scorecard/v5/clients/githubrepo"
 	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/clients/localdir"
@@ -192,6 +193,35 @@ var _ = Describe("E2E TEST:"+checks.CheckLicense, func() {
 			result := checks.License(&req)
 
 			scut.ValidateTestReturn(GinkgoTB(), "license found", &expected, &result, &dl)
+		})
+		It("Should return license check works - Azure DevOps", func() {
+			skipIfTokenIsNot(azureDevOpsPATTokenType, "Azure DevOps only")
+
+			dl := scut.TestDetailLogger{}
+			repo, err := azuredevopsrepo.MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
+			Expect(err).Should(BeNil())
+			repoClient, err := azuredevopsrepo.CreateAzureDevOpsClient(context.Background(), repo)
+			Expect(err).Should(BeNil())
+			err = repoClient.InitRepo(repo, clients.HeadSHA, 0)
+			Expect(err).Should(BeNil())
+			req := checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: repoClient,
+				Repo:       repo,
+				Dlogger:    &dl,
+			}
+			// ADO lacks a license API, so falls back to file-based detection.
+			// License file is present but can't be identified via API, so expect
+			// file-based detection score.
+			expected := scut.TestReturn{
+				Error: nil,
+				Score: checker.MaxResultScore - 1,
+			}
+			result := checks.License(&req)
+
+			Expect(result.Error).Should(BeNil())
+			Expect(result.Score).Should(BeNumerically(">=", expected.Score))
+			Expect(repoClient.Close()).Should(BeNil())
 		})
 	})
 })

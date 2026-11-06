@@ -19,6 +19,8 @@ motivation: >
   Requiring PRs to be in sync with the base branch is good practice.
 implementation: >
   The probe checks the branch protection rules of default and release branches in the repository.
+  For GitHub-hosted projects, an active repository ruleset that requires a merge queue also satisfies this probe,
+  since a merge queue tests each change against the latest version of the base branch before merging.
 outcome:
   - The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
 remediation:
@@ -27,10 +29,12 @@ remediation:
   text:
     - Configure the repository such that it requires PRs to be in sync with the base branch.
     - For GitHub-hosted projects, followed [these instructions](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging)
+    - Alternatively, for GitHub-hosted projects, require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) using a repository ruleset.
     - For GitLab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).
   markdown:
     - Configure the repository such that it requires PRs to be in sync with the base branch.
     - For GitHub-hosted projects, followed [these instructions](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#require-status-checks-before-merging)
+    - Alternatively, for GitHub-hosted projects, require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) using a repository ruleset.
     - For GitLab-hosted projects, use [semi-linear merge methods](https://docs.gitlab.com/ee/user/project/merge_requests/methods/#rebasing-in-semi-linear-merge-methods).
 ecosystem:
   languages:

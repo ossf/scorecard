@@ -69,6 +69,11 @@ func (r *Repo) AppendMetadata(m ...string) {
 	r.metadata = append(r.metadata, m...)
 }
 
+// Type implements Repo.Type.
+func (r *Repo) Type() clients.RepoType {
+	return clients.RepoTypeLocal
+}
+
 // Path() implements RepoClient.Path.
 func (r *Repo) Path() string {
 	return r.path

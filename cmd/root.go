@@ -79,6 +79,7 @@ func New(o *options.Options) *cobra.Command {
 
 	// Add sub-commands.
 	cmd.AddCommand(serveCmd(o))
+	cmd.AddCommand(mcpCmd())
 	cmd.AddCommand(version.Version())
 	return cmd
 }
@@ -160,7 +161,7 @@ func rootCmd(o *options.Options) error {
 	// this call to policy is different from the one in scorecard.Run
 	// this one is concerned with a policy file, while the scorecard.Run call is
 	// more concerned with the supported request types
-	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes)
+	enabledChecks, err := policy.GetEnabled(pol, o.Checks(), requiredRequestTypes, "")
 	if err != nil {
 		return fmt.Errorf("GetEnabled: %w", err)
 	}
@@ -189,17 +190,28 @@ func rootCmd(o *options.Options) error {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
+	return processRepos(repoURLs, func(uri string) (*scorecard.Result, error) {
+		return processRepo(ctx, uri, o, enabledProbes, enabledChecks, opts, checkDocs, pol)
+	})
+}
+
+func processRepos(
+	repoURLs []string,
+	process func(string) (*scorecard.Result, error),
+) error {
 	// Track whether any check produced a runtime error during scans. We want to
 	// continue scanning all repos but return a non-nil error at the end so the
 	// process exit code reflects that something went wrong.
 	var sawRuntimeErr bool
-	// Iterate and scan each repo using a helper to keep rootCmd small.
+	var errs []error
 	for _, uri := range repoURLs {
-		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, opts, checkDocs, pol)
+		res, err := process(uri)
 		if err != nil {
-			// processRepo already logged details; skip this URI.
-			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
-			continue
+			errs = append(errs, fmt.Errorf("processing %s: %w", uri, err))
+			if res == nil {
+				fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
+				continue
+			}
 		}
 
 		// If any checks had runtime errors, remember that fact so we can return
@@ -213,10 +225,13 @@ func rootCmd(o *options.Options) error {
 	}
 
 	if sawRuntimeErr {
-		return errChecksFailed
+		if len(errs) == 0 {
+			return errChecksFailed
+		}
+		errs = append(errs, errChecksFailed)
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func printProbeStart(repo string, enabledProbes []string) {
@@ -257,12 +272,6 @@ func makeRepo(uri string) (clients.Repo, error) {
 	}
 	compositeErr = errors.Join(compositeErr, errGitHub)
 
-	repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
-	if errGitLab == nil {
-		return repo, nil
-	}
-	compositeErr = errors.Join(compositeErr, errGitLab)
-
 	_, experimental := os.LookupEnv("SCORECARD_EXPERIMENTAL")
 	if experimental {
 		repo, errAzureDevOps = azuredevopsrepo.MakeAzureDevOpsRepo(uri)
@@ -270,14 +279,22 @@ func makeRepo(uri string) (clients.Repo, error) {
 			return repo, nil
 		}
 		compositeErr = errors.Join(compositeErr, errAzureDevOps)
+		if azuredevopsrepo.HasAzureDevOpsHost(uri) {
+			return nil, fmt.Errorf("unable to parse Azure DevOps repository URI: %w", errAzureDevOps)
+		}
 	}
+
+	repo, errGitLab = gitlabrepo.MakeGitlabRepo(uri)
+	if errGitLab == nil {
+		return repo, nil
+	}
+	compositeErr = errors.Join(compositeErr, errGitLab)
 
 	return nil, fmt.Errorf("unable to parse as github, gitlab, or azuredevops: %w", compositeErr)
 }
 
 // processRepo performs the scanning and formatting for a single repo URI.
-// It returns the Result when successful or an error describing why the URI
-// should be skipped.
+// It returns the scanned Result and any scan or formatting error.
 func processRepo(
 	ctx context.Context,
 	uri string,
@@ -334,15 +351,18 @@ func processRepo(
 		}
 	}
 
-	if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
-	}
+	formatErr := scorecard.FormatResults(o, &result, checkDocs, pol)
 
 	// Surface per-check runtime errors (non-fatal)
 	for _, r := range result.Checks {
 		if r.Error != nil {
 			fmt.Fprintf(os.Stderr, "Check %s failed for %s: %v\n", r.Name, uri, r.Error)
 		}
+	}
+
+	if formatErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, formatErr)
+		return &result, fmt.Errorf("format results: %w", formatErr)
 	}
 
 	return &result, nil

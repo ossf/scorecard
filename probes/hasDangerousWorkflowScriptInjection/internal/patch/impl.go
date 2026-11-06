@@ -24,11 +24,11 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/storage/memory"
-	"github.com/rhysd/actionlint"
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 type unsafePattern struct {
@@ -42,8 +42,8 @@ type unsafePattern struct {
 func GeneratePatch(
 	f checker.File,
 	content []byte,
-	workflow *actionlint.Workflow,
-	workflowErrs []*actionlint.Error,
+	workflow *ghworkflow.Workflow,
+	workflowErrs []*ghworkflow.Error,
 ) (string, error) {
 	patchedWorkflow, err := patchWorkflow(f, content, workflow)
 	if err != nil {
@@ -57,7 +57,7 @@ func GeneratePatch(
 }
 
 // Returns a patched version of the workflow without the script injection finding.
-func patchWorkflow(f checker.File, content []byte, workflow *actionlint.Workflow) ([]byte, error) {
+func patchWorkflow(f checker.File, content []byte, workflow *ghworkflow.Workflow) ([]byte, error) {
 	unsafeVar := strings.TrimSpace(f.Snippet)
 
 	lines := bytes.Split(content, []byte("\n"))
@@ -150,7 +150,7 @@ func newUnsafePattern(e, p string) unsafePattern {
 
 // Parses the envvars from the existing global `env:` block.
 // Returns a map from the GitHub variable name to the envvar name (i.e. "github.event.issue.body": "ISSUE_BODY").
-func parseExistingEnvvars(workflow *actionlint.Workflow) map[string]string {
+func parseExistingEnvvars(workflow *ghworkflow.Workflow) map[string]string {
 	envvars := make(map[string]string)
 
 	if workflow.Env == nil {
@@ -452,10 +452,10 @@ func getDefaultIndentStep(lines [][]byte) int {
 // errors, then the patched version also might. As long as all the patch's errors match the original's, it is validated.
 //
 // Returns the array of new parsing errors caused by the patch.
-func validatePatchedWorkflow(content []byte, originalErrs []*actionlint.Error) []*actionlint.Error {
-	_, patchedErrs := actionlint.Parse(content)
+func validatePatchedWorkflow(content []byte, originalErrs []*ghworkflow.Error) []*ghworkflow.Error {
+	_, patchedErrs := ghworkflow.Parse(content)
 	if len(patchedErrs) == 0 {
-		return []*actionlint.Error{}
+		return []*ghworkflow.Error{}
 	}
 	if len(originalErrs) == 0 {
 		return patchedErrs
@@ -467,7 +467,7 @@ func validatePatchedWorkflow(content []byte, originalErrs []*actionlint.Error) [
 		return strings.Split(msg, ".")[0]
 	}
 
-	var newErrs []*actionlint.Error
+	var newErrs []*ghworkflow.Error
 
 	o := 0
 	orig := originalErrs[o]

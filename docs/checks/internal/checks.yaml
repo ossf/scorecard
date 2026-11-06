@@ -18,7 +18,7 @@ checks:
   Maintained:
     risk: High
     tags: supply-chain, security
-    repos: GitHub
+    repos: GitHub, GitLab
     short: Determines if the project is "actively maintained".
     description: |
       Risk: `High` (possibly unpatched vulnerabilities)
@@ -51,7 +51,7 @@ checks:
   Dependency-Update-Tool:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project uses a dependency update tool.
     description: |
       Risk: `High` (possibly vulnerable to attacks on known flaws)
@@ -89,7 +89,7 @@ checks:
   Binary-Artifacts:
     risk: High
     tags: supply-chain, security, dependencies
-    repos: GitHub, GitLab, local
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project has generated executable (binary) artifacts in the source repository.
     description: |
       Risk: `High` (non-reviewable code)
@@ -140,7 +140,7 @@ checks:
   Branch-Protection:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub, GitLab
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the default and release branches are protected with GitHub's branch protection settings.
     description: |
       Risk: `High` (vulnerable to intentional malicious code injection)
@@ -189,7 +189,7 @@ checks:
       necessary to use a force push to rewrite the history rather than simply hide the
       commit.
 
-      This test has tiered scoring. Each tier must be fully satisfied to achieve points at the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
+      This test has tiered scoring. You receive partial credit for requirements met within your current tier. However, a tier must be fully satisfied before you can earn points from the next tier. For example, if you fulfill the Tier 3 checks but do not fulfill all the Tier 2 checks, you will not receive any points for Tier 3.
 
       Note: If Scorecard is run without an administrative access token, the requirements that specify “For administrators” can be safely ignored, and scores will be determined as if all such requirements have been met.
 
@@ -200,7 +200,7 @@ checks:
       Tier 2 Requirements (6/10 points):
         - Require at least 1 reviewer for approval before merging (for administrators, this requirement weights twice than the others in this tier)
         - For administrators: Require PRs prior to make any code changes
-        - For administrators: Require branch to be up to date before merging
+        - For administrators: Require branch to be up to date before merging (or require a [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue) via repository rulesets)
         - For administrators: Require approval of the most recent reviewable push
 
       Tier 3 Requirements (8/10 points):
@@ -217,6 +217,15 @@ checks:
       GitLab Integration Status:
         - GitLab associates releases with commits and not with the branch. Releases are ignored in this portion of the scoring.
 
+      Azure DevOps Integration Status:
+        - Default and named branches use the same applicable PR policies, including inherited policies and later result pages.
+        - Only enabled, required, non-deleted PR policies establish protection. Repository push restrictions, such as secrets scanning, do not establish PR protection.
+        - Reviewer counts are conservative independent-approval floors. Self-votes and path filters do not receive unconditional review credit.
+        - Required build contexts use `azure-pipelines/<definition-id>`. These identify policy requirements, not successful test runs.
+        - Permission evaluations describe the caller. A proven caller exception can show that forced updates are allowed, but a caller denial does not prove protection for everyone.
+        - Unreadable or unsupported permission controls remain unknown. Administrator enforcement and CODEOWNERS enforcement are not inferred.
+        - Unknown deletion or force-push protection receives no Tier 1 credit, so the score can remain zero despite mapped PR policies.
+
     remediation:
       - >-
         Enable branch protection settings in your source hosting provider to
@@ -226,7 +235,7 @@ checks:
   CI-Tests:
     risk: Low
     tags: supply-chain, testing
-    repos: GitHub, GitLab
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the project runs tests before pull requests are merged.
     description: |
       Risk: `Low` (possible unknown vulnerabilities)
@@ -260,7 +269,7 @@ checks:
   CII-Best-Practices:
     risk: Low
     tags: security-awareness, security-training, security
-    repos: GitHub
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the project has an OpenSSF (formerly CII) Best Practices Badge.
     description: |
       Risk: `Low` (possibly not following security best practices)
@@ -286,7 +295,7 @@ checks:
   Code-Review:
     risk: High
     tags: supply-chain, security, source-code, code-reviews
-    repos: GitHub
+    repos: GitHub, GitLab, Azure DevOps
     short: Determines if the project requires human code review before pull requests (aka merge requests) are merged.
     description: |
       Risk: `High` (unintentional vulnerabilities or possible injection of malicious
@@ -303,7 +312,7 @@ checks:
       subversion.
 
       The check determines whether the most recent changes (over the last ~30 commits) have 
-      an approval on GitHub
+      an approval on GitHub/GitLab
       or if the merger is different from the committer (implicit review). It also
       performs a similar check for reviews using
       [Prow](https://github.com/kubernetes/test-infra/tree/master/prow#readme) (labels
@@ -359,7 +368,7 @@ checks:
   Contributors:
     risk: Low
     tags: source-code
-    repos: GitHub
+    repos: GitHub, Azure DevOps
     short: Determines if the project has a set of contributors from multiple organizations (e.g., companies).
     description: |
       Risk: `Low` (lower number of trusted code reviewers)
@@ -390,7 +399,7 @@ checks:
   Fuzzing:
     risk: Medium
     tags: supply-chain, security, testing
-    repos: GitHub
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project uses fuzzing.
     description: |
       Risk: `Medium` (possible vulnerabilities in code)
@@ -422,7 +431,7 @@ checks:
   Packaging:
     risk: Medium
     tags: supply-chain, security, releases
-    repos: GitHub
+    repos: GitHub, local
     short: Determines if the project is published as a package that others can easily download, install, easily update, and uninstall.
     description: |
       Risk: `Medium` (users possibly missing security updates)
@@ -466,7 +475,7 @@ checks:
   Pinned-Dependencies:
     risk: Medium
     tags: supply-chain, security, dependencies
-    repos: GitHub, local
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project has declared and pinned the dependencies of its build process.
     description: |
       Risk: `Medium` (possible compromised dependencies)
@@ -481,6 +490,9 @@ checks:
       which are used during the build and release process of a project.
       Special considerations for Go modules treat full semantic versions as pinned
       due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
+      For GitHub Actions, a `uses:` reference to a tag is also treated as pinned when that tag is backed by a
+      published [immutable release](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases),
+      since GitHub guarantees the tag and its content cannot change once such a release is published.
 
       Pinned dependencies reduce several security risks:
 
@@ -518,7 +530,7 @@ checks:
         maintain signatures for the entire dependency tree and saves from future
         exploitation in case the package is compromised.
       - >-
-        For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/cron/internal/worker/Dockerfile) for example. If you are using a manifest list to support builds
+        For Dockerfiles used in building and releasing your project, pin dependencies by hash. See [Dockerfile](https://github.com/ossf/scorecard/blob/main/Dockerfile) for example. If you are using a manifest list to support builds
         across multiple architectures, you can pin to the manifest list hash instead
         of a single image hash. You can use a tool like [crane](https://github.com/google/go-containerregistry/blob/main/cmd/crane/README.md)
         to obtain the hash of the manifest list like in this [example](https://github.com/ossf/scorecard/issues/1773#issuecomment-1076699039).
@@ -532,7 +544,7 @@ checks:
   SAST:
     risk: Medium
     tags: supply-chain, security, testing
-    repos: GitHub
+    repos: GitHub, Azure DevOps, local
     short: Determines if the project uses static code analysis.
     description: |
       Risk: `Medium` (possible unknown bugs)
@@ -549,8 +561,7 @@ checks:
       The checks currently looks for known GitHub apps such as
       [CodeQL](https://codeql.github.com/) (github-code-scanning) or
       [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-      of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-      [LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+      of "github/codeql-action" in a GitHub workflow.
 
       Note: A project that fulfills this criterion with other tools may still receive
       a low score on this test. There are many ways to implement SAST, and it is
@@ -603,7 +614,7 @@ checks:
   Security-Policy:
     risk: Medium
     short: Determines if the project has published a security policy.
-    repos: GitHub
+    repos: GitHub, GitLab, Azure DevOps, local
     tags: supply-chain, security, policy
     description: |
       Risk: `Medium` (possible insecure reporting of vulnerabilities)
@@ -746,7 +757,7 @@ checks:
   Vulnerabilities:
     risk: High
     tags: supply-chain, security, vulnerabilities
-    repos: GitHub
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project has open, known unfixed vulnerabilities.
     description: |
       Risk: `High`  (known vulnerabilities)
@@ -810,7 +821,7 @@ checks:
   License:
     risk: Low
     tags: license
-    repos: GitHub, local
+    repos: GitHub, GitLab, Azure DevOps, local
     short: Determines if the project has defined a license.
     description: |
       Risk: `Low` (possible impediment to security review)

@@ -21,7 +21,10 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"strings"
 
+	transitiverequirements "github.com/google/osv-scalibr/enricher/transitivedependency/requirements"
+	"github.com/google/osv-scanner/v2/pkg/models"
 	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 
 	sce "github.com/ossf/scorecard/v5/errors"
@@ -48,6 +51,27 @@ func NewOSVClient(config *OSVConfig) VulnerabilitiesClient {
 	return cfg
 }
 
+func (v osvClient) scannerActions(directoryPaths, gitCommits []string) osvscanner.ScannerActions {
+	return osvscanner.ScannerActions{
+		DirectoryPaths:    directoryPaths,
+		IncludeGitRoot:    false,
+		Recursive:         true,
+		GitCommits:        gitCommits,
+		CompareOffline:    v.local,
+		DownloadDatabases: v.local,
+		ExperimentalScannerActions: osvscanner.ExperimentalScannerActions{
+			PluginsEnabled:   []string{"python/requirements"},
+			PluginsDisabled:  []string{transitiverequirements.Name},
+			RequestUserAgent: v.requestUserAgent,
+			// transitive enrichers query deps.dev and package registries,
+			// so keep the local client offline by disabling them
+			TransitiveScanning: osvscanner.TransitiveScanningActions{
+				Disabled: v.local,
+			},
+		},
+	}
+}
+
 // ListUnfixedVulnerabilities implements VulnerabilityClient.ListUnfixedVulnerabilities.
 func (v osvClient) ListUnfixedVulnerabilities(
 	ctx context.Context,
@@ -70,21 +94,8 @@ func (v osvClient) ListUnfixedVulnerabilities(
 		gitCommits = append(gitCommits, commit)
 	}
 
-	exp := osvscanner.ExperimentalScannerActions{
-		PluginsEnabled:   []string{"python/requirements"},
-		PluginsDisabled:  []string{"python/requirementsenhanceable"},
-		RequestUserAgent: v.requestUserAgent,
-	}
-	res, err := osvscanner.DoScan(osvscanner.ScannerActions{
-		DirectoryPaths:    directoryPaths,
-		IncludeGitRoot:    false,
-		Recursive:         true,
-		GitCommits:        gitCommits,
-		CompareOffline:    v.local,
-		DownloadDatabases: v.local,
-		// swap out the transitive requirements scanning for offline extractor
-		ExperimentalScannerActions: exp,
-	}) // TODO: Do logging?
+	actions := v.scannerActions(directoryPaths, gitCommits)
+	res, err := osvscanner.DoScan(actions) // TODO: Do logging?
 
 	response := VulnerabilitiesResponse{}
 
@@ -96,30 +107,48 @@ func (v osvClient) ListUnfixedVulnerabilities(
 
 	// If vulnerabilities are found, err will be set to osvscanner.VulnerabilitiesFoundErr
 	if errors.Is(err, osvscanner.ErrVulnerabilitiesFound) {
-		vulns := res.Flatten()
-		for i := range vulns {
-			// ignore Go stdlib vulns. The go directive from the go.mod isn't a perfect metric
-			// of which version of Go will be used to build a project.
-			if vulns[i].Package.Ecosystem == "Go" && vulns[i].Package.Name == "stdlib" {
-				continue
-			}
-			response.Vulnerabilities = append(response.Vulnerabilities, Vulnerability{
-				ID:      vulns[i].Vulnerability.GetId(),
-				Aliases: vulns[i].Vulnerability.GetAliases(),
-			})
-			// Remove duplicate vulnerability IDs for now as we don't report information
-			// on the source of each vulnerability yet, therefore having multiple identical
-			// vuln IDs might be confusing.
-			response.Vulnerabilities = removeDuplicate(
-				response.Vulnerabilities,
-				func(key Vulnerability) string { return key.ID },
-			)
-		}
+		response.Vulnerabilities = collectVulnerabilities(res.Flatten())
 
 		return response, nil
 	}
 
 	return VulnerabilitiesResponse{}, fmt.Errorf("osvscanner.DoScan: %w", err)
+}
+
+// collectVulnerabilities converts osv-scanner results to Scorecard vulnerabilities,
+// skipping results that don't apply.
+func collectVulnerabilities(vulns []models.VulnerabilityFlattened) []Vulnerability {
+	var result []Vulnerability
+	for i := range vulns {
+		// ignore Go stdlib vulns. The go directive from the go.mod isn't a perfect metric
+		// of which version of Go will be used to build a project.
+		if vulns[i].Package.Ecosystem == "Go" && vulns[i].Package.Name == "stdlib" {
+			continue
+		}
+		// ignore Maven packages whose version is an unresolved build placeholder,
+		// e.g. @project.version@ in template .pom files, which match every range.
+		if vulns[i].Package.Ecosystem == "Maven" && isPlaceholderVersion(vulns[i].Package.Version) {
+			continue
+		}
+		result = append(result, Vulnerability{
+			ID:      vulns[i].Vulnerability.GetId(),
+			Aliases: vulns[i].Vulnerability.GetAliases(),
+		})
+		// Remove duplicate vulnerability IDs for now as we don't report information
+		// on the source of each vulnerability yet, therefore having multiple identical
+		// vuln IDs might be confusing.
+		result = removeDuplicate(
+			result,
+			func(key Vulnerability) string { return key.ID },
+		)
+	}
+	return result
+}
+
+// isPlaceholderVersion reports whether a version is a resource-filtering or
+// property placeholder (@token@, ${property}) rather than a real version.
+func isPlaceholderVersion(version string) bool {
+	return strings.Contains(version, "@") || strings.Contains(version, "${")
 }
 
 // RemoveDuplicate removes duplicate entries from a slice.
