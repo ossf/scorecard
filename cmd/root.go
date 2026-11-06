@@ -50,7 +50,7 @@ var errChecksFailed = errors.New("one or more checks failed during execution")
 const (
 	scorecardLong = `A program that shows the OpenSSF scorecard for an open source software.
 
-A token is required, set as an environment variable: GITHUB_AUTH_TOKEN for GitHub
+A token is required for remote repositories (not for --local), set as an environment variable: GITHUB_AUTH_TOKEN for GitHub
 (GITHUB_TOKEN, GH_AUTH_TOKEN and GH_TOKEN are also accepted), or GITLAB_AUTH_TOKEN
 for GitLab repositories.`
 	scorecardUse = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
