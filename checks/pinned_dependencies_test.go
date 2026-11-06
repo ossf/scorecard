@@ -17,6 +17,7 @@ package checks
 import (
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"go.uber.org/mock/gomock"
@@ -55,7 +56,21 @@ func TestPinningDependencies(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepoClient(ctrl)
 			mockRepo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
 			mockRepo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
-			mockRepo.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+				func(predicate func(string) (bool, error)) ([]string, error) {
+					var matched []string
+					for _, file := range tt.files {
+						ok, err := predicate(file)
+						if err != nil {
+							return nil, err
+						}
+						if ok {
+							matched = append(matched, file)
+						}
+					}
+					return matched, nil
+				},
+			).AnyTimes()
 
 			mockRepo.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(fn string) (io.ReadCloser, error) {
 				if tt.path == "" {
@@ -72,6 +87,79 @@ func TestPinningDependencies(t *testing.T) {
 
 			res := PinningDependencies(c)
 			scut.ValidateTestReturn(t, tt.name, &tt.want, &res, &dl)
+		})
+	}
+}
+
+func TestPinningDependenciesNpmLockfile(t *testing.T) {
+	t.Parallel()
+
+	const integrity = "sha512-MJTUg1kjuLeQCJ+ccE4Vpa6kKVXkPYJ2mOCQyUuKLcLQsdrMCpBPUi8qVE6+YuaJkozeA9NusTAw3hLr8Xe5EQ=="
+	pinnedPackage := `{"integrity":"` + integrity + `"}`
+
+	tests := []struct {
+		name     string
+		packages string
+		score    int
+	}{
+		{
+			name:     "all pinned",
+			packages: `"node_modules/foo":` + pinnedPackage,
+			score:    10,
+		},
+		{
+			name: "mixed",
+			packages: `"node_modules/foo":` + pinnedPackage +
+				`,"node_modules/bar":{}`,
+			score: 5,
+		},
+		{
+			name:     "all unpinned",
+			packages: `"node_modules/foo":{}`,
+			score:    0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			content := `{"lockfileVersion":3,"packages":{"":{},` +
+				tt.packages + `}}`
+
+			ctrl := gomock.NewController(t)
+			repo := mockrepo.NewMockRepoClient(ctrl)
+			repo.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+			repo.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+			repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+				func(predicate func(string) (bool, error)) ([]string, error) {
+					ok, err := predicate("package-lock.json")
+					if err != nil {
+						return nil, err
+					}
+					if ok {
+						return []string{"package-lock.json"}, nil
+					}
+					return nil, nil
+				},
+			).AnyTimes()
+			repo.EXPECT().GetFileReader("package-lock.json").DoAndReturn(
+				func(_ string) (io.ReadCloser, error) {
+					return io.NopCloser(strings.NewReader(content)), nil
+				},
+			).AnyTimes()
+
+			dl := scut.TestDetailLogger{}
+			req := &checker.CheckRequest{
+				RepoClient: repo,
+				Dlogger:    &dl,
+			}
+
+			got := PinningDependencies(req)
+			if got.Score != tt.score {
+				t.Errorf("Score = %d, want %d; result: %+v",
+					got.Score, tt.score, got)
+			}
 		})
 	}
 }
