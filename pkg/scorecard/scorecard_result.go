@@ -205,9 +205,9 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	// ranked by the check risk documented in docs/checks/internal/checks.yaml.
 	riskRank := map[string]int{"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
 	type fixCandidate struct {
+		name  string
 		rank  int
 		score int
-		name  string
 	}
 	var fixes []fixCandidate
 

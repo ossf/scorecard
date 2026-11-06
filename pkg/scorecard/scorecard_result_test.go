@@ -219,9 +219,9 @@ func TestStringResult_fixFirstSummary(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name   string
+		want   string
 		checks []checker.CheckResult
 		// want is the expected summary line; "" means the line must be absent.
-		want string
 	}{
 		{
 			name: "ranked by risk, then score, top 3",
