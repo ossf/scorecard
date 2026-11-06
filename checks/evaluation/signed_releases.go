@@ -33,7 +33,7 @@ var errNoReleaseFound = errors.New("no release found")
 
 // SignedReleases applies the score policy for the Signed-Releases check.
 //
-//nolint:gocognit // surpressing for now
+//nolint:gocognit,gocyclo // surpressing for now
 func SignedReleases(name string,
 	findings []finding.Finding, dl checker.DetailLogger,
 ) checker.CheckResult {

@@ -461,3 +461,70 @@ func (c *countingRoundTripper) RoundTrip(req *http.Request) (*http.Response, err
 	c.requests++
 	return c.releasesRoundTripper.RoundTrip(req)
 }
+
+func TestCheckAttestations_CachesByDigest(t *testing.T) {
+	t.Parallel()
+	const (
+		attested   = "sha256:attested"
+		unattested = "sha256:unattested"
+	)
+	rt := &countingRoundTripper{releasesRoundTripper: releasesRoundTripper{attestedDigests: map[string]bool{attested: true}}}
+	handler := &releasesHandler{
+		client:              github.NewClient(&http.Client{Transport: rt}),
+		ctx:                 t.Context(),
+		repourl:             &Repo{owner: "testuser", repo: "repo"},
+		ownerEndpointPrefix: ownerEndpointUser,
+	}
+	releases := make([]clients.Release, 0, attestationLookBack)
+	for range attestationLookBack {
+		releases = append(releases, clients.Release{
+			Assets: []clients.ReleaseAsset{{Digest: attested}, {Digest: unattested}},
+		})
+	}
+	handler.checkAttestations(releases)
+
+	// one request for each distinct digest, including the one without an attestation
+	if rt.requests != 2 {
+		t.Errorf("expected 2 requests, got %d", rt.requests)
+	}
+	for i := range releases {
+		if !releases[i].Assets[0].HasAttestation || releases[i].Assets[1].HasAttestation {
+			t.Errorf("release %d: unexpected attestation results: %+v", i, releases[i].Assets)
+		}
+	}
+}
+
+func TestCheckAttestations_DoesNotCacheFailures(t *testing.T) {
+	t.Parallel()
+	rt := &countingRoundTripper{releasesRoundTripper: releasesRoundTripper{}}
+	handler := &releasesHandler{
+		client:              github.NewClient(&http.Client{Transport: &failingCountingRoundTripper{counter: rt}}),
+		ctx:                 t.Context(),
+		repourl:             &Repo{owner: "testuser", repo: "repo"},
+		ownerEndpointPrefix: ownerEndpointUser,
+	}
+	releases := []clients.Release{
+		{Assets: []clients.ReleaseAsset{{Digest: "sha256:a"}}},
+		{Assets: []clients.ReleaseAsset{{Digest: "sha256:a"}}},
+	}
+	handler.checkAttestations(releases)
+
+	if rt.requests != 2 {
+		t.Errorf("expected failed lookups not to be cached, got %d requests", rt.requests)
+	}
+	for i := range releases {
+		if !releases[i].Assets[0].AttestationLookupFailed {
+			t.Errorf("release %d: expected lookup failure to be reported", i)
+		}
+	}
+}
+
+// failingCountingRoundTripper counts requests and always fails them with a 500.
+type failingCountingRoundTripper struct {
+	counter *countingRoundTripper
+}
+
+func (f *failingCountingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	f.counter.requests++
+	return (&errorRoundTripper{}).RoundTrip(req)
+}

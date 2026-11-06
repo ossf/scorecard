@@ -41,19 +41,20 @@ const (
 )
 
 type releasesHandler struct {
-	client   *github.Client
-	once     *sync.Once
-	ctx      context.Context
-	errSetup error
-	repourl  *Repo
-	releases []clients.Release
+	client  *github.Client
+	once    *sync.Once
+	repourl *Repo
+	// attestOnce guards the on-demand attestation enrichment. Attestations are
+	// looked up lazily so that listing releases stays cheap for callers that
+	// do not need them.
+	attestOnce *sync.Once
+	ctx        context.Context
+	errSetup   error
 
-	// attestedReleases is a copy of releases with attestation information,
-	// populated on demand so that listing releases stays cheap for callers
-	// that do not need it.
-	attestOnce          *sync.Once
-	attestedReleases    []clients.Release
 	ownerEndpointPrefix string
+	releases            []clients.Release
+	// attestedReleases is a copy of releases with attestation information.
+	attestedReleases []clients.Release
 }
 
 func (handler *releasesHandler) init(ctx context.Context, repourl *Repo) {
@@ -121,12 +122,19 @@ func (handler *releasesHandler) resolveOwnerEndpointPrefix() string {
 	return ownerEndpointUser
 }
 
+// attestationWindow returns the releases within the attestation look back window.
+// The result shares its backing array with releases.
+func attestationWindow(releases []clients.Release) []clients.Release {
+	return releases[:min(len(releases), attestationLookBack)]
+}
+
 // hasAttestationCandidates returns whether any release within the look back
 // window has an asset with a digest that could have an attestation.
 func hasAttestationCandidates(releases []clients.Release) bool {
-	for i := range min(len(releases), attestationLookBack) {
-		for j := range releases[i].Assets {
-			if releases[i].Assets[j].Digest != "" {
+	window := attestationWindow(releases)
+	for i := range window {
+		for j := range window[i].Assets {
+			if window[i].Assets[j].Digest != "" {
 				return true
 			}
 		}
@@ -136,14 +144,26 @@ func hasAttestationCandidates(releases []clients.Release) bool {
 
 // checkAttestations populates the attestation fields of the assets of the
 // releases within the look back window.
+// Results are cached by digest, as the same asset is often included in several
+// releases. Only successful lookups are cached, so failed lookups are not
+// remembered and are reported for each asset they affect.
 func (handler *releasesHandler) checkAttestations(releases []clients.Release) {
-	for i := range min(len(releases), attestationLookBack) {
-		for j := range releases[i].Assets {
-			asset := &releases[i].Assets[j]
+	window := attestationWindow(releases)
+	cache := make(map[string]bool)
+	for i := range window {
+		for j := range window[i].Assets {
+			asset := &window[i].Assets[j]
 			if asset.Digest == "" {
 				continue
 			}
+			if found, ok := cache[asset.Digest]; ok {
+				asset.HasAttestation = found
+				continue
+			}
 			found, err := handler.hasAttestation(asset.Digest)
+			if err == nil {
+				cache[asset.Digest] = found
+			}
 			// A failed lookup is not evidence that there is no attestation.
 			asset.HasAttestation = found
 			asset.AttestationLookupFailed = err != nil
