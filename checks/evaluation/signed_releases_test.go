@@ -335,8 +335,8 @@ func TestSignedReleasesReason(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
-		findings []finding.Finding
 		reason   string
+		findings []finding.Finding
 	}{
 		{
 			name: "signed artifacts only",
