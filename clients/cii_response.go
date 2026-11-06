@@ -33,6 +33,8 @@ var errUnsupportedBadge = errors.New("unsupported badge")
 // BadgeResponse struct is used to read/write CII Best Practices badge data.
 type BadgeResponse struct {
 	BadgeLevel string `json:"badge_level"`
+	ID         int    `json:"id,omitempty"`
+	RepoURL    string `json:"repo_url,omitempty"`
 }
 
 // getBadgeLevel parses a string badge value into BadgeLevel enum.
