@@ -49,6 +49,9 @@ type checkRunsGraphqlData struct {
 													Conclusion githubv4.CheckConclusionState
 													Status     githubv4.CheckStatusState
 												}
+												PageInfo struct {
+													HasNextPage bool
+												}
 											} `graphql:"checkSuites(first: $checksToAnalyze)"`
 										}
 									}
@@ -148,7 +151,12 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 	for _, commit := range data.Repository.Object.Commit.History.Nodes {
 		for _, pr := range commit.AssociatedPullRequests.Nodes {
 			var crs []clients.CheckRun
+			hasAllCheckSuites := true
 			for _, c := range pr.Commits.Nodes {
+				if c.Commit.CheckSuites.PageInfo.HasNextPage {
+					hasAllCheckSuites = false
+					break
+				}
 				for _, checkRun := range c.Commit.CheckSuites.Nodes {
 					crs = append(crs, clients.CheckRun{
 						// the REST API returns lowercase. the graphQL API returns upper
@@ -159,6 +167,9 @@ func parseCheckRuns(data *checkRunsGraphqlData) checkRunsByRef {
 						},
 					})
 				}
+			}
+			if !hasAllCheckSuites {
+				continue
 			}
 			headRef := string(pr.HeadRefOid)
 			checkCache[headRef] = crs
