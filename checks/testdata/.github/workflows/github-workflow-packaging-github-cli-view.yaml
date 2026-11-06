@@ -1,0 +1,11 @@
+name: Release inspection
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect release
+        run: gh release view "v1.0.0"
