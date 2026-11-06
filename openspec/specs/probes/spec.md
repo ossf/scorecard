@@ -371,7 +371,7 @@ The probes SHALL apply these thresholds and rules:
   when an asset
   ends in `.asc`, `.minisig`, `.sig`, `.sign`, `.sigstore`, or
   `.sigstore.json`, and SHALL have provenance when an asset ends in
-  `.intoto.jsonl`.
+  `.intoto.jsonl` or `.intoto.json`.
 - `requiresCodeOwnersReview` SHALL return `False` for a branch that
   requires code owner review when the repository has no `CODEOWNERS` file.
 - `hasOSVVulnerabilities` SHALL group vulnerabilities that share aliases and
@@ -381,6 +381,12 @@ The probes SHALL apply these thresholds and rules:
 
 - **GIVEN** the latest release has an asset `app.tar.gz.sig`
 - **WHEN** the `releasesAreSigned` probe runs
+- **THEN** a `True` finding is returned with `releaseName` and `assetName`
+
+#### Scenario: Release with provenance
+
+- **GIVEN** the latest release has an asset `provenance.intoto.json`
+- **WHEN** the `releasesHaveProvenance` probe runs
 - **THEN** a `True` finding is returned with `releaseName` and `assetName`
 
 #### Scenario: Code owner review without a CODEOWNERS file

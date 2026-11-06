@@ -268,6 +268,17 @@ func TestGithubTokenPermissions(t *testing.T) {
 			},
 		},
 		{
+			name:      "release workflow contents write slsa-actions",
+			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-slsa-actions.yaml"},
+			expected: scut.TestReturn{
+				Error:         nil,
+				Score:         checker.MaxResultScore,
+				NumberOfWarn:  0,
+				NumberOfInfo:  2,
+				NumberOfDebug: 4,
+			},
+		},
+		{
 			name:      "release workflow contents write",
 			filenames: []string{"./testdata/.github/workflows/github-workflow-permissions-contents-writes-release-mvn-release.yaml"},
 			expected: scut.TestReturn{

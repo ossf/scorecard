@@ -40,7 +40,7 @@ const (
 	releaseLookBack = 5
 )
 
-var provenanceExtensions = []string{".intoto.jsonl"}
+var provenanceExtensions = []string{".intoto.jsonl", ".intoto.json"}
 
 //nolint:gocognit // bug hotfix
 func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
