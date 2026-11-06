@@ -16,6 +16,7 @@ package options
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -94,7 +95,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Repo,
 		FlagRepo,
 		o.Repo,
-		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\")",
+		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", "+
+			"\"https://github.com/repo\", \"gitlab.com/owner/repo\")",
 	)
 
 	cmd.Flags().StringSliceVar(
@@ -102,7 +104,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRepos,
 		o.Repos,
 		"repositories to check (<repo1>,<repo2>, ...). Each repo must be one of:"+
-			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\"",
+			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\","+
+			" \"gitlab.com/owner/repo\"",
 	)
 
 	cmd.Flags().StringVar(
@@ -117,7 +120,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Local,
 		FlagLocal,
 		o.Local,
-		"local folder to check",
+		"local folder to check (runs only file-based checks; repository host"+
+			" checks, e.g. Branch-Protection, are skipped)",
 	)
 
 	cmd.Flags().StringVar(
@@ -131,42 +135,42 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.LogLevel,
 		FlagLogLevel,
 		o.LogLevel,
-		"Set the log level. Possible values are: 'info', 'debug', 'warn'. Add --show-details to see the results.",
+		"log level: info, debug, or warn",
 	)
 
 	cmd.Flags().StringVar(
 		&o.NPM,
 		FlagNPM,
 		o.NPM,
-		"npm package to check, given that the npm package has a GitHub repository",
+		"npm package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.PyPI,
 		FlagPyPI,
 		o.PyPI,
-		"pypi package to check, given that the pypi package has a GitHub repository",
+		"pypi package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.RubyGems,
 		FlagRubyGems,
 		o.RubyGems,
-		"rubygems package to check, given that the rubygems package has a GitHub repository",
+		"rubygems package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.Nuget,
 		FlagNuget,
 		o.Nuget,
-		"nuget package to check, given that the nuget package has a GitHub repository",
+		"nuget package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringSliceVar(
 		&o.Metadata,
 		FlagMetadata,
 		o.Metadata,
-		"metadata for the project. It can be multiple separated by commas",
+		"comma-separated metadata to attach to the results (included in JSON output)",
 	)
 
 	cmd.Flags().BoolVar(
@@ -180,32 +184,34 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.ShowAnnotations,
 		FlagShowAnnotations,
 		o.ShowAnnotations,
-		"show maintainers annotations for checks",
+		"show maintainers' annotations for checks",
 	)
 
 	cmd.Flags().IntVar(
 		&o.CommitDepth,
 		FlagCommitDepth,
 		o.CommitDepth,
-		"number of commits to check, commits begin backwards from the HEAD",
+		"number of recent commits to analyze, starting from HEAD",
 	)
 
 	checkNames := []string{}
 	for checkName := range checks.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
+	sort.Strings(checkNames)
 	cmd.Flags().StringSliceVar(
 		&o.ChecksToRun,
 		FlagChecks,
 		o.ChecksToRun,
-		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
+		fmt.Sprintf("checks to run. Possible values are: %s", strings.Join(checkNames, ", ")),
 	)
 
 	cmd.Flags().StringSliceVar(
 		&o.ProbesToRun,
 		FlagProbes,
 		o.ProbesToRun,
-		"Probes to run.",
+		"individual probes to run, overriding each check's default probe set"+
+			" (probe names appear in --format=probe output)",
 	)
 
 	// TODO(options): Extract logic
@@ -242,14 +248,13 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagResultsFile,
 		ShorthandFlagResultsFile,
 		o.ResultsFile,
-		"output file",
+		"write results to this file instead of stdout",
 	)
 
-	allowedModes := []string{FileModeArchive, FileModeGit}
 	cmd.Flags().StringVar(
 		&o.FileMode,
 		FlagFileMode,
 		o.FileMode,
-		fmt.Sprintf("mode to fetch repository files: %s", strings.Join(allowedModes, ", ")),
+		"fetch repository files via \"archive\" (download a tarball) or \"git\" (clone)",
 	)
 }

@@ -48,18 +48,24 @@ import (
 var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
-	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
+	scorecardLong = `A program that shows the OpenSSF scorecard for an open source software.
+
+A token is required, set as an environment variable: GITHUB_AUTH_TOKEN for GitHub
+(GITHUB_TOKEN, GH_AUTH_TOKEN and GH_TOKEN are also accepted), or GITLAB_AUTH_TOKEN
+for GitLab repositories.`
+	scorecardUse = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
 		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
-	scorecardShort = "OpenSSF Scorecard"
+	scorecardShort   = "OpenSSF Scorecard"
+	scorecardExample = "  scorecard --repo=github.com/ossf/scorecard"
 )
 
 // New creates a new instance of the scorecard command.
 func New(o *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   scorecardUse,
-		Short: scorecardShort,
-		Long:  scorecardLong,
+		Use:     scorecardUse,
+		Short:   scorecardShort,
+		Long:    scorecardLong,
+		Example: scorecardExample,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := o.Validate()
 			if err != nil {
