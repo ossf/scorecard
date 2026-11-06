@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -200,6 +201,73 @@ func Test_formatResults_outputToFile(t *testing.T) {
 			// Compare outputs.
 			if !bytes.Equal(output, wantOutput) {
 				t.Errorf("%v\nGOT\n-------\n%s\nWANT\n-------\n%s", tt.name, string(output), string(wantOutput))
+			}
+		})
+	}
+}
+
+func testDocForFixSummary() *mockDoc {
+	return &mockDoc{checks: map[string]mockCheck{
+		"Check-Critical": {name: "Check-Critical", risk: "Critical", url: "https://example.com/critical"},
+		"Check-High":     {name: "Check-High", risk: "High", url: "https://example.com/high"},
+		"Check-Medium":   {name: "Check-Medium", risk: "Medium", url: "https://example.com/medium"},
+		"Check-Low":      {name: "Check-Low", risk: "Low", url: "https://example.com/low"},
+	}}
+}
+
+func TestStringResult_fixFirstSummary(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		checks []checker.CheckResult
+		// want is the expected summary line; "" means the line must be absent.
+		want string
+	}{
+		{
+			name: "ranked by risk, then score, top 3",
+			checks: []checker.CheckResult{
+				{Name: "Check-Low", Score: 0, Reason: "r"},
+				{Name: "Check-Medium", Score: 4, Reason: "r"},
+				{Name: "Check-High", Score: 1, Reason: "r"},
+				{Name: "Check-Critical", Score: 4, Reason: "r"},
+			},
+			want: "Highest-impact fixes: Check-Critical, Check-High, Check-Medium",
+		},
+		{
+			name: "no failing checks means no summary line",
+			checks: []checker.CheckResult{
+				{Name: "Check-High", Score: 10, Reason: "r"},
+				{Name: "Check-Low", Score: 7, Reason: "r"},
+			},
+			want: "",
+		},
+		{
+			name: "inconclusive checks are not listed",
+			checks: []checker.CheckResult{
+				{Name: "Check-High", Score: checker.InconclusiveResultScore, Reason: "r"},
+				{Name: "Check-Low", Score: 10, Reason: "r"},
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			r := mockScorecardResultCheck1(t)
+			r.Checks = tt.checks
+			var buf bytes.Buffer
+			if err := r.AsString(&buf, testDocForFixSummary(), nil); err != nil {
+				t.Fatalf("AsString: %v", err)
+			}
+			out := buf.String()
+			if tt.want == "" {
+				if strings.Contains(out, "Highest-impact fixes:") {
+					t.Errorf("unexpected summary line in output:\n%s", out)
+				}
+				return
+			}
+			if !strings.Contains(out, tt.want) {
+				t.Errorf("output missing %q:\n%s", tt.want, out)
 			}
 		})
 	}

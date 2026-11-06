@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -200,6 +201,16 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 
 	data := make([][]string, len(r.Checks))
 
+	// Collect failing checks (score <= 4) for the fix-first summary line,
+	// ranked by the check risk documented in docs/checks/internal/checks.yaml.
+	riskRank := map[string]int{"Critical": 0, "High": 1, "Medium": 2, "Low": 3}
+	type fixCandidate struct {
+		rank  int
+		score int
+		name  string
+	}
+	var fixes []fixCandidate
+
 	for i, row := range r.Checks {
 		var x []string
 
@@ -216,6 +227,9 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 		}
 
 		doc := cdoc.GetDocumentationURL(r.Scorecard.CommitSHA)
+		if rank, ok := riskRank[cdoc.GetRisk()]; ok && row.Score >= 0 && row.Score <= 4 {
+			fixes = append(fixes, fixCandidate{rank: rank, score: row.Score, name: row.Name})
+		}
 		x = append(x, row.Name, row.Reason)
 		if opt.Details {
 			details, show := detailsToString(row.Details, opt.LogLevel)
@@ -240,6 +254,20 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 		s = "Aggregate score: ?\n\n"
 	}
 	fmt.Fprint(writer, s)
+	if len(fixes) > 0 {
+		sort.Slice(fixes, func(i, j int) bool {
+			if fixes[i].rank != fixes[j].rank {
+				return fixes[i].rank < fixes[j].rank
+			}
+			return fixes[i].score < fixes[j].score
+		})
+		n := min(len(fixes), 3)
+		names := make([]string, n)
+		for i := range n {
+			names[i] = fixes[i].name
+		}
+		fmt.Fprintf(writer, "Highest-impact fixes: %s\n\n", strings.Join(names, ", "))
+	}
 	fmt.Fprintln(writer, "Check scores:")
 
 	cfg := tablewriter.Config{
