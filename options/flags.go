@@ -149,7 +149,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.PyPI,
 		FlagPyPI,
 		o.PyPI,
-		"pypi package to check; the package must map to a GitHub repository",
+		"pypi package to check; the package must map to a GitHub or GitLab repository",
 	)
 
 	cmd.Flags().StringVar(
