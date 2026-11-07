@@ -233,7 +233,9 @@ func (c *commitsHandler) loadPullRequestDetails(query *git.GitPullRequestQuery) 
 				if *details.Status == git.PullRequestStatusValues.Completed &&
 					(details.ClosedDate == nil || details.ClosedDate.Time.IsZero() ||
 						details.LastMergeCommit == nil || details.LastMergeCommit.CommitId == nil ||
-						*details.LastMergeCommit.CommitId == "") {
+						*details.LastMergeCommit.CommitId == "" ||
+						details.LastMergeSourceCommit == nil || details.LastMergeSourceCommit.CommitId == nil ||
+						*details.LastMergeSourceCommit.CommitId == "") {
 					return fmt.Errorf("%w: missing merge metadata for PR %d", errInvalidPullRequest, id)
 				}
 				detailsByID[id] = details
@@ -269,7 +271,7 @@ func (c *commitsHandler) listPullRequests() (map[string]clients.PullRequest, err
 			pr.Author.Login = identityLogin(azdoPullRequest.CreatedBy.Id)
 		}
 		if *azdoPullRequest.Status == git.PullRequestStatusValues.Completed {
-			pr.HeadSHA = *azdoPullRequest.LastMergeCommit.CommitId
+			pr.HeadSHA = *azdoPullRequest.LastMergeSourceCommit.CommitId
 			pr.MergedAt = azdoPullRequest.ClosedDate.Time
 			if azdoPullRequest.ClosedBy != nil &&
 				(azdoPullRequest.ClosedBy.IsContainer == nil || !*azdoPullRequest.ClosedBy.IsContainer) {
@@ -305,6 +307,27 @@ func (c *commitsHandler) listPullRequests() (map[string]clients.PullRequest, err
 	}
 
 	return pullRequests, nil
+}
+
+func (c *commitsHandler) pullRequestForHead(ref string) (*git.GitPullRequest, error) {
+	if err := c.setup(); err != nil {
+		return nil, fmt.Errorf("error during commitsHandler.setup: %w", err)
+	}
+	var found *git.GitPullRequest
+	for _, matches := range (*c.pullRequestsRaw.Results)[0] {
+		for i := range matches {
+			pr := &matches[i]
+			if *pr.Status != git.PullRequestStatusValues.Completed ||
+				!strings.EqualFold(*pr.LastMergeSourceCommit.CommitId, ref) {
+				continue
+			}
+			if found != nil && *found.PullRequestId != *pr.PullRequestId {
+				return nil, errMultiplePullRequests
+			}
+			found = pr
+		}
+	}
+	return found, nil
 }
 
 func identityLogin(id *string) string {
