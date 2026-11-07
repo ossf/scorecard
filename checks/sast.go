@@ -16,11 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckSAST is the registered name for SAST.
@@ -39,25 +35,5 @@ func init() {
 
 // SAST runs SAST check.
 func SAST(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.SAST(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckSAST, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.SASTResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.SAST)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckSAST, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.SAST(CheckSAST, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.SAST.Run(c)
 }

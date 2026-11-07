@@ -16,11 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckPinnedDependencies is the registered name for FrozenDeps.
@@ -40,25 +36,5 @@ func init() {
 
 // PinningDependencies will check the repository for its use of dependencies.
 func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.PinningDependencies(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.PinningDependenciesResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.PinnedDependencies)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.PinningDependencies(CheckPinnedDependencies, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.PinnedDependencies.Run(c)
 }

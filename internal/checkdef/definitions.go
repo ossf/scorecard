@@ -76,6 +76,24 @@ var DangerousWorkflow = define(
 	evaluation.DangerousWorkflow,
 )
 
+// Fuzzing is the Fuzzing check.
+var Fuzzing = define(
+	checknames.Fuzzing,
+	raw.Fuzzing,
+	func(r *checker.RawResults, data checker.FuzzingData) { r.FuzzingResults = data },
+	probes.Fuzzing,
+	evaluation.Fuzzing,
+)
+
+// License is the License check.
+var License = define(
+	checknames.License,
+	raw.License,
+	func(r *checker.RawResults, data checker.LicenseData) { r.LicenseResults = data },
+	probes.License,
+	evaluation.License,
+)
+
 // Maintained is the Maintained check.
 var Maintained = define(
 	checknames.Maintained,
@@ -83,4 +101,31 @@ var Maintained = define(
 	func(r *checker.RawResults, data checker.MaintainedData) { r.MaintainedResults = data },
 	probes.Maintained,
 	evaluation.Maintained,
+)
+
+// PinnedDependencies is the Pinned-Dependencies check.
+var PinnedDependencies = define(
+	checknames.PinnedDependencies,
+	raw.PinningDependencies,
+	func(r *checker.RawResults, data checker.PinningDependenciesData) { r.PinningDependenciesResults = data },
+	probes.PinnedDependencies,
+	evaluation.PinningDependencies,
+)
+
+// SAST is the SAST check.
+var SAST = define(
+	checknames.SAST,
+	raw.SAST,
+	func(r *checker.RawResults, data checker.SASTData) { r.SASTResults = data },
+	probes.SAST,
+	evaluation.SAST,
+)
+
+// SecurityPolicy is the Security-Policy check.
+var SecurityPolicy = define(
+	checknames.SecurityPolicy,
+	raw.SecurityPolicy,
+	func(r *checker.RawResults, data checker.SecurityPolicyData) { r.SecurityPolicyResults = data },
+	probes.SecurityPolicy,
+	evaluation.SecurityPolicy,
 )
