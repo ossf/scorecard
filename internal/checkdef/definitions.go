@@ -58,6 +58,15 @@ var CITests = define(
 	evaluation.CITests,
 )
 
+// CodeReview is the Code-Review check.
+var CodeReview = define(
+	checknames.CodeReview,
+	func(c *checker.CheckRequest) (checker.CodeReviewData, error) { return raw.CodeReview(c.RepoClient) },
+	func(r *checker.RawResults, data checker.CodeReviewData) { r.CodeReviewResults = data },
+	probes.CodeReview,
+	evaluation.CodeReview,
+)
+
 // Contributors is the Contributors check.
 var Contributors = define(
 	checknames.Contributors,
@@ -74,6 +83,19 @@ var DangerousWorkflow = define(
 	func(r *checker.RawResults, data checker.DangerousWorkflowData) { r.DangerousWorkflowResults = data },
 	probes.DangerousWorkflows,
 	evaluation.DangerousWorkflow,
+)
+
+// DependencyUpdateTool is the Dependency-Update-Tool check.
+var DependencyUpdateTool = define(
+	checknames.DependencyUpdateTool,
+	func(c *checker.CheckRequest) (checker.DependencyUpdateToolData, error) {
+		return raw.DependencyUpdateTool(c.RepoClient)
+	},
+	func(r *checker.RawResults, data checker.DependencyUpdateToolData) {
+		r.DependencyUpdateToolResults = data
+	},
+	probes.DependencyToolUpdates,
+	evaluation.DependencyUpdateTool,
 )
 
 // Fuzzing is the Fuzzing check.
@@ -128,4 +150,31 @@ var SecurityPolicy = define(
 	func(r *checker.RawResults, data checker.SecurityPolicyData) { r.SecurityPolicyResults = data },
 	probes.SecurityPolicy,
 	evaluation.SecurityPolicy,
+)
+
+// SignedReleases is the Signed-Releases check.
+var SignedReleases = define(
+	checknames.SignedReleases,
+	raw.SignedReleases,
+	func(r *checker.RawResults, data checker.SignedReleasesData) { r.SignedReleasesResults = data },
+	probes.SignedReleases,
+	evaluation.SignedReleases,
+)
+
+// TokenPermissions is the Token-Permissions check.
+var TokenPermissions = define(
+	checknames.TokenPermissions,
+	raw.TokenPermissions,
+	func(r *checker.RawResults, data checker.TokenPermissionsData) { r.TokenPermissionsResults = data },
+	probes.TokenPermissions,
+	evaluation.TokenPermissions,
+)
+
+// Vulnerabilities is the Vulnerabilities check.
+var Vulnerabilities = define(
+	checknames.Vulnerabilities,
+	raw.Vulnerabilities,
+	func(r *checker.RawResults, data checker.VulnerabilitiesData) { r.VulnerabilitiesResults = data },
+	probes.Vulnerabilities,
+	evaluation.Vulnerabilities,
 )

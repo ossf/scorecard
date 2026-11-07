@@ -16,6 +16,7 @@ package checks
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"maps"
@@ -35,6 +36,7 @@ import (
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/packageclient"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
 	scut "github.com/ossf/scorecard/v5/utests"
@@ -328,6 +330,125 @@ func legacySecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
+func legacyCodeReview(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.CodeReview(c.RepoClient)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.CodeReviewResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.CodeReview)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCodeReview, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.CodeReview(CheckCodeReview, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyDependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.DependencyUpdateTool(c.RepoClient)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.DependencyUpdateToolResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.DependencyToolUpdates)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDependencyUpdateTool, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.DependencyUpdateTool(CheckDependencyUpdateTool, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacySignedReleases(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.SignedReleases(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSignedReleases, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.SignedReleasesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.SignedReleases)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.SignedReleases(CheckSignedReleases, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyTokenPermissions(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.TokenPermissions(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.TokenPermissionsResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.TokenPermissions)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.TokenPermissions(CheckTokenPermissions, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.Vulnerabilities(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.VulnerabilitiesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Vulnerabilities)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckVulnerabilities, e)
+	}
+
+	ret := evaluation.Vulnerabilities(CheckVulnerabilities, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
 var errDiff = errors.New("client failed")
 
 const diffRepoURI = "github.com/ossf-tests/scorecard"
@@ -356,7 +477,13 @@ type diffFixture struct {
 	orgErr          error
 	immutableErr    error
 	defaultNameErr  error
+	searchCommitErr error
+	localPathErr    error
+	versionsErr     error
+	vulnsErr        error
 	defaultBranch   *clients.BranchRef
+	// versions is what deps.dev returns for the project.
+	versions *packageclient.ProjectPackageVersions
 	// org is the organization's repository, for GetOrgRepoClient.
 	org *diffFixture
 	// ossFuzz is the OSS-Fuzz repository; nil leaves it unset.
@@ -377,9 +504,12 @@ type diffFixture struct {
 	issues       []clients.Issue
 	releases     []clients.Release
 	contributors []clients.User
-	badge        clients.BadgeLevel
-	searchHits   int
-	archived     bool
+	// dependabotCommits is what SearchCommits returns.
+	dependabotCommits []clients.Commit
+	vulns             []clients.Vulnerability
+	badge             clients.BadgeLevel
+	searchHits        int
+	archived          bool
 	// noCII leaves the request's CII client unset.
 	noCII bool
 }
@@ -497,6 +627,14 @@ func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string, prefix st
 		record("Close")
 		return nil
 	}).AnyTimes()
+	m.EXPECT().SearchCommits(gomock.Any()).DoAndReturn(func(opts clients.SearchCommitsOptions) ([]clients.Commit, error) {
+		record("SearchCommits " + opts.Author)
+		return f.dependabotCommits, f.searchCommitErr
+	}).AnyTimes()
+	m.EXPECT().LocalPath().DoAndReturn(func() (string, error) {
+		record("LocalPath")
+		return "/tmp/repo", f.localPathErr
+	}).AnyTimes()
 	return m
 }
 
@@ -506,6 +644,34 @@ func (f *diffFixture) repo(ctrl *gomock.Controller, calls *[]string) *mockrepo.M
 		*calls = append(*calls, "URI")
 		return diffRepoURI
 	}).AnyTimes()
+	m.EXPECT().Host().DoAndReturn(func() string {
+		*calls = append(*calls, "Host")
+		return "github.com"
+	}).AnyTimes()
+	m.EXPECT().Path().DoAndReturn(func() string {
+		*calls = append(*calls, "Path")
+		return "ossf-tests/scorecard"
+	}).AnyTimes()
+	return m
+}
+
+func (f *diffFixture) project(ctrl *gomock.Controller, calls *[]string) packageclient.ProjectPackageClient {
+	m := mockrepo.NewMockProjectPackageClient(ctrl)
+	m.EXPECT().GetProjectPackageVersions(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, host, project string) (*packageclient.ProjectPackageVersions, error) {
+			*calls = append(*calls, "GetProjectPackageVersions "+host+" "+project)
+			return f.versions, f.versionsErr
+		}).AnyTimes()
+	return m
+}
+
+func (f *diffFixture) vulnerabilities(ctrl *gomock.Controller, calls *[]string) clients.VulnerabilitiesClient {
+	m := mockrepo.NewMockVulnerabilitiesClient(ctrl)
+	m.EXPECT().ListUnfixedVulnerabilities(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, commit, localPath string) (clients.VulnerabilitiesResponse, error) {
+			*calls = append(*calls, "ListUnfixedVulnerabilities "+commit+" "+localPath)
+			return clients.VulnerabilitiesResponse{Vulnerabilities: f.vulns}, f.vulnsErr
+		}).AnyTimes()
 	return m
 }
 
@@ -540,10 +706,12 @@ func runWith(
 	var out runOutput
 	dl := scut.TestDetailLogger{}
 	req := &checker.CheckRequest{
-		RepoClient: f.client(ctrl, &out.calls, ""),
-		Repo:       f.repo(ctrl, &out.calls),
-		CIIClient:  f.cii(ctrl, &out.calls),
-		Dlogger:    &dl,
+		RepoClient:            f.client(ctrl, &out.calls, ""),
+		Repo:                  f.repo(ctrl, &out.calls),
+		CIIClient:             f.cii(ctrl, &out.calls),
+		Dlogger:               &dl,
+		ProjectClient:         f.project(ctrl, &out.calls),
+		VulnerabilitiesClient: f.vulnerabilities(ctrl, &out.calls),
 	}
 	if f.ossFuzz != nil {
 		req.OssFuzzRepo = f.ossFuzz.client(ctrl, &out.calls, "oss-fuzz ")
@@ -1252,6 +1420,280 @@ fixes after a 90-day embargo.
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assertSameRun(t, legacySecurityPolicy, SecurityPolicy, &tt.fixture)
+		})
+	}
+}
+
+func TestCodeReviewDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	merged := time.Date(2024, time.May, 6, 7, 8, 9, 0, time.UTC)
+	alice := clients.User{Login: "alice"}
+	bob := clients.User{Login: "bob"}
+	pr := func(sha string, n int, reviews ...clients.Review) clients.Commit {
+		return clients.Commit{
+			SHA:       sha,
+			Committer: bob,
+			AssociatedMergeRequest: clients.PullRequest{
+				Number:   n,
+				MergedAt: merged,
+				Author:   alice,
+				MergedBy: alice,
+				Reviews:  reviews,
+			},
+		}
+	}
+	approved := clients.Review{State: "APPROVED", Author: &bob}
+	commits := []clients.Commit{
+		pr("a1", 1, approved),
+		pr("a2", 1, approved),
+		pr("b1", 2),
+		{SHA: "c1", Committer: alice, Message: "Fix\n\nDifferential Revision: https://example.com/D123"},
+		{SHA: "d1", Committer: alice, Message: "Fix\n\nReviewed-on: https://example.com/c/1\nReviewed-by: bob"},
+		{SHA: "e1", Committer: alice, Message: "Fix\n\nPiperOrigin-RevId: 123456"},
+		{SHA: "f1", Committer: alice, Message: "Push to the default branch"},
+	}
+	prow := pr("g1", 3)
+	prow.AssociatedMergeRequest.Labels = []clients.Label{{Name: "lgtm"}}
+	// raw.CodeReview collates changesets through a map, so with more than
+	// one changeset their order, and the order of findings and details,
+	// is not deterministic.
+	unordered := []cmp.Option{
+		cmpopts.SortSlices(func(a, b checker.Changeset) bool { return a.RevisionID < b.RevisionID }),
+		cmpopts.SortSlices(func(a, b finding.Finding) bool { return a.Message < b.Message }),
+		cmpopts.SortSlices(func(a, b checker.CheckDetail) bool { return a.Msg.Text < b.Msg.Text }),
+	}
+	tests := []struct {
+		opts    []cmp.Option
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no commits"},
+		{name: "one approved PR", fixture: diffFixture{commits: []clients.Commit{pr("a1", 1, approved)}}},
+		{name: "prow", fixture: diffFixture{commits: []clients.Commit{prow}}},
+		{name: "every review platform", fixture: diffFixture{commits: commits}, opts: unordered},
+		{name: "ListCommits error", fixture: diffFixture{commitsErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyCodeReview, CodeReview, &tt.fixture, tt.opts...)
+		})
+	}
+}
+
+func TestDependencyUpdateToolDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	dependabot := []clients.Commit{
+		{SHA: "a1", Committer: clients.User{ID: 1}},
+		{SHA: "b1", Committer: clients.User{ID: 49699333}},
+	}
+	noTools := map[string]string{"README.md": "hello"}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "Dependabot config", fixture: diffFixture{files: map[string]string{".github/dependabot.yml": ""}}},
+		{
+			name: "Renovate and Scala Steward configs",
+			fixture: diffFixture{files: map[string]string{
+				"renovate.json":       "{}",
+				".scala-steward.conf": "",
+			}},
+		},
+		{name: "Dependabot commits", fixture: diffFixture{files: noTools, dependabotCommits: dependabot}},
+		{name: "no tool", fixture: diffFixture{files: noTools, dependabotCommits: dependabot[:1]}},
+		{
+			name:    "commit search unsupported",
+			fixture: diffFixture{files: noTools, searchCommitErr: clients.ErrUnsupportedFeature},
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{name: "SearchCommits error", fixture: diffFixture{files: noTools, searchCommitErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyDependencyUpdateTool, DependencyUpdateTool, &tt.fixture)
+		})
+	}
+}
+
+// diffVersions parses a deps.dev response, since ProjectPackageVersions
+// is built from anonymous structs.
+func diffVersions(t *testing.T, body string) *packageclient.ProjectPackageVersions {
+	t.Helper()
+	var v packageclient.ProjectPackageVersions
+	if err := json.Unmarshal([]byte(body), &v); err != nil {
+		t.Fatal(err)
+	}
+	return &v
+}
+
+func TestSignedReleasesDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	asset := func(name string) clients.ReleaseAsset {
+		return clients.ReleaseAsset{Name: name, URL: "https://example.com/" + name}
+	}
+	releases := []clients.Release{
+		{TagName: "v3", URL: "https://example.com/v3", Assets: []clients.ReleaseAsset{asset("app"), asset("app.sig")}},
+		{TagName: "v2", URL: "https://example.com/v2", Assets: []clients.ReleaseAsset{asset("app.intoto.jsonl")}},
+		{TagName: "v1", URL: "https://example.com/v1", Assets: []clients.ReleaseAsset{asset("app")}, IsImmutable: true},
+	}
+	versions := diffVersions(t, `{"versions": [
+		{"versionKey": {"system": "NPM", "name": "app", "version": "3.0.0"},
+		 "slsaProvenances": [{"commit": "abc", "verified": true}]},
+		{"versionKey": {"system": "NPM", "name": "app", "version": "2.0.0"}}
+	]}`)
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no releases", fixture: diffFixture{versions: &packageclient.ProjectPackageVersions{}}},
+		{name: "signed, attested, and immutable releases", fixture: diffFixture{releases: releases, versions: versions}},
+		{name: "package provenance only", fixture: diffFixture{versions: versions}},
+		{name: "GetProjectPackageVersions error", fixture: diffFixture{releases: releases, versionsErr: errDiff}},
+		{name: "ListReleases error", fixture: diffFixture{releasesErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacySignedReleases, SignedReleases, &tt.fixture)
+		})
+	}
+}
+
+func TestTokenPermissionsDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	const readAll = `on: push
+permissions: read-all
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make
+`
+	const jobWrite = `on: push
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - run: make release
+`
+	const undeclared = `on: pull_request
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make test
+`
+	const writeAll = `on: push
+permissions: write-all
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: make deploy
+`
+	// raw.TokenPermissions visits a job's permission scopes in map order,
+	// so with more than one scope the order of its results, findings, and
+	// details is not deterministic.
+	unordered := []cmp.Option{
+		cmpopts.SortSlices(func(a, b checker.TokenPermission) bool { return tokenKey(a) < tokenKey(b) }),
+		cmpopts.SortSlices(func(a, b finding.Finding) bool { return findingKey(&a) < findingKey(&b) }),
+		cmpopts.SortSlices(func(a, b checker.CheckDetail) bool {
+			return findingKey(a.Msg.Finding) < findingKey(b.Msg.Finding)
+		}),
+	}
+	tests := []struct {
+		opts    []cmp.Option
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no workflows", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{name: "read-all", fixture: diffFixture{files: map[string]string{".github/workflows/build.yml": readAll}}},
+		{
+			name: "job writes, undeclared, and write-all",
+			fixture: diffFixture{files: map[string]string{
+				".github/workflows/build.yml":   readAll,
+				".github/workflows/release.yml": jobWrite,
+				".github/workflows/test.yml":    undeclared,
+				".github/workflows/deploy.yml":  writeAll,
+			}},
+			opts: unordered,
+		},
+		{
+			name:    "unparsable workflow",
+			fixture: diffFixture{files: map[string]string{".github/workflows/bad.yml": "on: [push\njobs: {"}},
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{
+			name: "GetFileReader error",
+			fixture: diffFixture{
+				files:   map[string]string{".github/workflows/build.yml": readAll},
+				readErr: errDiff,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyTokenPermissions, TokenPermissions, &tt.fixture, tt.opts...)
+		})
+	}
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func tokenKey(p checker.TokenPermission) string {
+	path := ""
+	if p.File != nil {
+		path = p.File.Path
+	}
+	return path + "|" + deref(p.Name) + "|" + deref(p.Msg)
+}
+
+func findingKey(f *finding.Finding) string {
+	if f == nil {
+		return ""
+	}
+	path := ""
+	if f.Location != nil {
+		path = f.Location.Path
+	}
+	return path + "|" + f.Message
+}
+
+func TestVulnerabilitiesDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	commits := []clients.Commit{{SHA: "a1"}, {SHA: "b1"}}
+	vulns := []clients.Vulnerability{
+		{ID: "GHSA-aaaa-bbbb-cccc", Aliases: []string{"CVE-2024-0001"}},
+		{ID: "GO-2024-0002"},
+	}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no vulnerabilities", fixture: diffFixture{commits: commits}},
+		{name: "vulnerabilities", fixture: diffFixture{commits: commits, vulns: vulns}},
+		{name: "commits without SHAs", fixture: diffFixture{commits: []clients.Commit{{}}, vulns: vulns}},
+		{name: "ListCommits error", fixture: diffFixture{commitsErr: errDiff, vulns: vulns}},
+		{name: "LocalPath error", fixture: diffFixture{commits: commits, localPathErr: errDiff}},
+		{name: "ListUnfixedVulnerabilities error", fixture: diffFixture{commits: commits, vulnsErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyVulnerabilities, Vulnerabilities, &tt.fixture)
 		})
 	}
 }
