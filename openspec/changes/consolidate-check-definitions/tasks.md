@@ -42,7 +42,7 @@
 
 ## 6. Consistency and cleanup
 
-- [ ] 6.1 Add the consistency tests in design D5.
+- [x] 6.1 Add the consistency tests in design D5.
 - [ ] 6.2 Remove the legacy check bodies from test code.
 - [ ] 6.3 Rewrite `checks/write.md` for definitions. It predates the
   raw/evaluation split, request types, and probes.
