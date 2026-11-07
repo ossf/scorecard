@@ -22,18 +22,6 @@ import (
 // CheckPinnedDependencies is the registered name for FrozenDeps.
 const CheckPinnedDependencies = "Pinned-Dependencies"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckPinnedDependencies, PinningDependencies, supportedRequestTypes); err != nil {
-		// This should never happen.
-		panic(err)
-	}
-}
-
 // PinningDependencies will check the repository for its use of dependencies.
 func PinningDependencies(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.PinnedDependencies.Run(c)

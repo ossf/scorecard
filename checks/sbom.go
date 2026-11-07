@@ -22,14 +22,6 @@ import (
 // SBOM is the registered name for SBOM.
 const CheckSBOM = "SBOM"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckSBOM, SBOM, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // SBOM runs SBOM check.
 func SBOM(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.SBOM.Run(c)

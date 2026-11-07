@@ -22,18 +22,6 @@ import (
 // CheckTokenPermissions is the exported name for Token-Permissions check.
 const CheckTokenPermissions = "Token-Permissions"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
-		// This should never happen.
-		panic(err)
-	}
-}
-
 // TokenPermissions will run the Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.TokenPermissions.Run(c)

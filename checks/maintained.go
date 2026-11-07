@@ -22,14 +22,6 @@ import (
 // CheckMaintained is the exported check name for Maintained.
 const CheckMaintained = "Maintained"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckMaintained, Maintained, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Maintained runs Maintained check.
 func Maintained(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Maintained.Run(c)

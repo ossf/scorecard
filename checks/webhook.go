@@ -24,14 +24,6 @@ const (
 	CheckWebHooks = "Webhooks"
 )
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckWebHooks, WebHooks, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // WebHooks run Webhooks check.
 func WebHooks(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Webhooks.Run(c)

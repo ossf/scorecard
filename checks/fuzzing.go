@@ -22,17 +22,6 @@ import (
 // CheckFuzzing is the registered name for Fuzzing.
 const CheckFuzzing = "Fuzzing"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckFuzzing, Fuzzing, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Fuzzing runs Fuzzing check.
 func Fuzzing(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Fuzzing.Run(c)

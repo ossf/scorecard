@@ -30,9 +30,10 @@ import (
 // evaluateFn turns a check's probe findings into its score.
 type evaluateFn func(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult
 
-// definition wires a check to its raw data collector, the RawResults
-// field it fills, its probes, and its evaluation.
-type definition struct {
+// Definition wires a check to its raw data collector, the RawResults
+// field it fills, its probes, and its evaluation, and records what the
+// check registry needs.
+type Definition struct {
 	collectInto func(*checker.CheckRequest, *checker.RawResults) error
 	// collectProbeModeInto, when set, replaces collectInto in probe mode.
 	collectProbeModeInto func(*checker.CheckRequest, *checker.RawResults) error
@@ -42,6 +43,7 @@ type definition struct {
 	// SCORECARD_EXPERIMENTAL and names it in the warning and error text.
 	experimentalName string
 	probes           []probes.ProbeImpl
+	requestTypes     []checker.RequestType
 }
 
 // define builds a definition. collect and store are typed together, so a
@@ -52,8 +54,8 @@ func define[T any](
 	store func(*checker.RawResults, T),
 	probeSet []probes.ProbeImpl,
 	evaluate evaluateFn,
-) *definition {
-	return &definition{
+) *Definition {
+	return &Definition{
 		name:        name,
 		probes:      probeSet,
 		evaluate:    evaluate,
@@ -64,10 +66,10 @@ func define[T any](
 // withProbeMode gives d a separate collector for probe mode and returns d.
 // collect and store are typed together, as in define.
 func withProbeMode[T any](
-	d *definition,
+	d *Definition,
 	collect func(*checker.CheckRequest) (T, error),
 	store func(*checker.RawResults, T),
-) *definition {
+) *Definition {
 	d.collectProbeModeInto = collectInto(collect, store)
 	return d
 }
@@ -107,15 +109,38 @@ func CollectRawData(checkName string, c *checker.CheckRequest, r *checker.RawRes
 
 // experimental gates d on SCORECARD_EXPERIMENTAL and returns d. name is how
 // the warning and error text refer to the check.
-func (d *definition) experimental(name string) *definition {
+func (d *Definition) experimental(name string) *Definition {
 	d.experimentalName = name
 	return d
+}
+
+// supports records the request types d supports and returns d.
+func (d *Definition) supports(types ...checker.RequestType) *Definition {
+	d.requestTypes = types
+	return d
+}
+
+// Name returns the check's name.
+func (d *Definition) Name() string {
+	return d.name
+}
+
+// RequestTypes returns the request types the check supports, or nil
+// when it declares none.
+func (d *Definition) RequestTypes() []checker.RequestType {
+	return d.requestTypes
+}
+
+// Experimental reports whether the check runs only when
+// SCORECARD_EXPERIMENTAL is set.
+func (d *Definition) Experimental() bool {
+	return d.experimentalName != ""
 }
 
 // Run runs the check: collect raw data, run the probes on it, and evaluate
 // the findings. An experimental check returns a runtime error instead
 // unless SCORECARD_EXPERIMENTAL is set.
-func (d *definition) Run(c *checker.CheckRequest) checker.CheckResult {
+func (d *Definition) Run(c *checker.CheckRequest) checker.CheckResult {
 	if d.experimentalName != "" {
 		if _, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !enabled {
 			msg := fmt.Sprintf("SCORECARD_EXPERIMENTAL is not set, not running the %s check", d.experimentalName)

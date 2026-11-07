@@ -22,18 +22,6 @@ import (
 // CheckLicense is the registered name for License.
 const CheckLicense = "License"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckLicense, License, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // License runs License check.
 func License(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.License.Run(c)

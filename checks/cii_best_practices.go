@@ -22,14 +22,6 @@ import (
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
 const CheckCIIBestPractices = "CII-Best-Practices"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckCIIBestPractices, CIIBestPractices, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // CIIBestPractices will check if the maintainers have a best practice badge.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.CIIBestPractices.Run(c)

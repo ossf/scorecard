@@ -35,9 +35,9 @@
 
 ## 5. Build the registry from the definitions
 
-- [ ] 5.1 Snapshot registered names, request types, and the experimental
+- [x] 5.1 Snapshot registered names, request types, and the experimental
   set.
-- [ ] 5.2 Register checks from the definitions; replace per-check `init()`
+- [x] 5.2 Register checks from the definitions; replace per-check `init()`
   registration.
 
 ## 6. Consistency and cleanup

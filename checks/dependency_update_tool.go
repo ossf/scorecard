@@ -22,17 +22,6 @@ import (
 // CheckDependencyUpdateTool is the exported name for Dependency-Update-Tool.
 const CheckDependencyUpdateTool = "Dependency-Update-Tool"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckDependencyUpdateTool, DependencyUpdateTool, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // DependencyUpdateTool checks if the repository uses a dependency update tool.
 func DependencyUpdateTool(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.DependencyUpdateTool.Run(c)

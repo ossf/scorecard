@@ -22,17 +22,6 @@ import (
 // CheckSAST is the registered name for SAST.
 const CheckSAST = "SAST"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckSAST, SAST, supportedRequestTypes); err != nil {
-		// This should never happen.
-		panic(err)
-	}
-}
-
 // SAST runs SAST check.
 func SAST(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.SAST.Run(c)

@@ -22,18 +22,6 @@ import (
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
 const CheckDangerousWorkflow = "Dangerous-Workflow"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // DangerousWorkflow  will check the repository contains Dangerous-Workflow.
 func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.DangerousWorkflow.Run(c)
