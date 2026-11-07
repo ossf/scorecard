@@ -273,32 +273,34 @@ var Webhooks = define(
 	evaluation.Webhooks,
 ).experimental("Webhook")
 
+// definitions is every check's definition.
+var definitions = []*Definition{
+	BinaryArtifacts,
+	BranchProtection,
+	CIIBestPractices,
+	CITests,
+	CodeReview,
+	Contributors,
+	DangerousWorkflow,
+	DependencyUpdateTool,
+	Fuzzing,
+	License,
+	Maintained,
+	Packaging,
+	PinnedDependencies,
+	SAST,
+	SBOM,
+	SecurityPolicy,
+	SignedReleases,
+	TokenPermissions,
+	Vulnerabilities,
+	Webhooks,
+}
+
 // byName looks up a definition by check name for probe mode.
 var byName = func() map[string]*Definition {
-	all := []*Definition{
-		BinaryArtifacts,
-		BranchProtection,
-		CIIBestPractices,
-		CITests,
-		CodeReview,
-		Contributors,
-		DangerousWorkflow,
-		DependencyUpdateTool,
-		Fuzzing,
-		License,
-		Maintained,
-		Packaging,
-		PinnedDependencies,
-		SAST,
-		SBOM,
-		SecurityPolicy,
-		SignedReleases,
-		TokenPermissions,
-		Vulnerabilities,
-		Webhooks,
-	}
-	m := make(map[string]*Definition, len(all))
-	for _, d := range all {
+	m := make(map[string]*Definition, len(definitions))
+	for _, d := range definitions {
 		m[d.name] = d
 	}
 	return m

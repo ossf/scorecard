@@ -25,6 +25,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/checks/evaluation"
+	"github.com/ossf/scorecard/v5/internal/checknames"
 )
 
 // registeredCheck is what the registry records for one check: the
@@ -136,5 +138,53 @@ func TestGetAllReturnsCopy(t *testing.T) {
 	got := snapshot(t, GetAllWithExperimental())
 	if diff := cmp.Diff(wantRegistry, got); diff != "" {
 		t.Errorf("registry after callers changed returned maps (-want +got):\n%s", diff)
+	}
+}
+
+// TestRegistryNames requires one registered check for each name in
+// checknames, and no other.
+func TestRegistryNames(t *testing.T) {
+	t.Parallel()
+	want := slices.Sorted(slices.Values(checknames.AllValidChecks))
+	got := slices.Sorted(maps.Keys(GetAllWithExperimental()))
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("registered names (-checknames +registry):\n%s", diff)
+	}
+}
+
+// TestCheckNameConstants requires the exported check-name constants to
+// equal the names in checknames.
+func TestCheckNameConstants(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		constant string
+		want     string
+	}{
+		{CheckBinaryArtifacts, checknames.BinaryArtifacts},
+		{CheckBranchProtection, checknames.BranchProtection},
+		{CheckCIIBestPractices, checknames.CIIBestPractices},
+		{CheckCITests, checknames.CITests},
+		{evaluation.CheckCITests, checknames.CITests},
+		{CheckCodeReview, checknames.CodeReview},
+		{CheckContributors, checknames.Contributors},
+		{CheckDangerousWorkflow, checknames.DangerousWorkflow},
+		{CheckDependencyUpdateTool, checknames.DependencyUpdateTool},
+		{CheckFuzzing, checknames.Fuzzing},
+		{CheckLicense, checknames.License},
+		{CheckMaintained, checknames.Maintained},
+		{CheckPackaging, checknames.Packaging},
+		{CheckPinnedDependencies, checknames.PinnedDependencies},
+		{CheckSAST, checknames.SAST},
+		{CheckSBOM, checknames.SBOM},
+		{CheckSecurityPolicy, checknames.SecurityPolicy},
+		{CheckSignedReleases, checknames.SignedReleases},
+		{CheckTokenPermissions, checknames.TokenPermissions},
+		{CheckVulnerabilities, checknames.Vulnerabilities},
+		{CheckWebHooks, checknames.Webhooks},
+	}
+	for _, tt := range tests {
+		if tt.constant != tt.want {
+			t.Errorf("constant is %q, want %q", tt.constant, tt.want)
+		}
 	}
 }
