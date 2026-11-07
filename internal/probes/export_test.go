@@ -1,4 +1,4 @@
-// Copyright 2023 OpenSSF Scorecard Authors
+// Copyright 2026 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package probes
 
-import (
-	"github.com/ossf/scorecard/v5/checker"
-)
-
-// getRawResults returns a pointer to the raw results in the CheckRequest
-// if the pointer is not nil. Else, it creates a new raw result.
-func getRawResults(c *checker.CheckRequest) *checker.RawResults {
-	if c.RawResults != nil {
-		return c.RawResults
-	}
-	return &checker.RawResults{}
+// Registered returns every registered probe by name.
+func Registered() map[string]Probe {
+	return registered
 }

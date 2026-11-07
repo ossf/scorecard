@@ -42,12 +42,12 @@
 
 ## 6. Consistency and cleanup
 
-- [ ] 6.1 Add the consistency tests in design D5.
-- [ ] 6.2 Remove the legacy check bodies from test code.
-- [ ] 6.3 Rewrite `checks/write.md` for definitions. It predates the
+- [x] 6.1 Add the consistency tests in design D5.
+- [x] 6.2 Remove the legacy check bodies from test code.
+- [x] 6.3 Rewrite `checks/write.md` for definitions. It predates the
   raw/evaluation split, request types, and probes.
 
 ## 7. Validation
 
-- [ ] 7.1 `SKIP_GINKGO=1 go test -race ./...` and `make lint` for each step.
-- [ ] 7.2 `openspec validate consolidate-check-definitions --strict`.
+- [x] 7.1 `SKIP_GINKGO=1 go test -race ./...` and `make check-linter` for each step.
+- [x] 7.2 `openspec validate consolidate-check-definitions --strict`.
