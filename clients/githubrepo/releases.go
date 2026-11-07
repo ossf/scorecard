@@ -69,6 +69,9 @@ func (handler *releasesHandler) getReleases() ([]clients.Release, error) {
 func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 	var releases []clients.Release
 	for _, r := range data {
+		if r == nil {
+			continue
+		}
 		release := clients.Release{
 			TagName:         r.GetTagName(),
 			URL:             r.GetURL(),
@@ -76,9 +79,16 @@ func releasesFrom(data []*github.RepositoryRelease) []clients.Release {
 			IsImmutable:     r.GetImmutable(),
 		}
 		for _, a := range r.Assets {
+			if a == nil {
+				continue
+			}
+			assetURL := a.GetBrowserDownloadURL()
+			if assetURL == "" {
+				assetURL = a.GetURL()
+			}
 			release.Assets = append(release.Assets, clients.ReleaseAsset{
 				Name: a.GetName(),
-				URL:  r.GetHTMLURL(),
+				URL:  assetURL,
 			})
 		}
 		releases = append(releases, release)
