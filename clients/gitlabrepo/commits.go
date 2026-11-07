@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
@@ -174,13 +175,18 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 	// Associate Merge Requests with Commits based on the GitLab Merge Request IID
 	commits := []clients.Commit{}
 	for _, cRaw := range commitsRaw {
+		committedDate := time.Time{}
+		if cRaw.CommittedDate != nil {
+			committedDate = *cRaw.CommittedDate
+		}
+
 		// Get IID of Merge Request that this commit was merged as part of
 		mrIID := commitToMRIID[cRaw.ID]
 		associatedMr := iidToMr[mrIID]
 
 		commits = append(commits,
 			clients.Commit{
-				CommittedDate:          *cRaw.CommittedDate,
+				CommittedDate:          committedDate,
 				Message:                cRaw.Message,
 				SHA:                    cRaw.ID,
 				AssociatedMergeRequest: associatedMr,
