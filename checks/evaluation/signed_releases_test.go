@@ -23,6 +23,7 @@ import (
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/probes/releasesAreImmutable"
 	"github.com/ossf/scorecard/v5/probes/releasesAreSigned"
+	"github.com/ossf/scorecard/v5/probes/releasesHaveAttestation"
 	"github.com/ossf/scorecard/v5/probes/releasesHaveProvenance"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -65,6 +66,17 @@ func provenanceProbe(release, asset int, outcome finding.Outcome) finding.Findin
 	}
 }
 
+func attestationProbe(release, asset int, outcome finding.Outcome) finding.Finding {
+	return finding.Finding{
+		Probe:   releasesHaveAttestation.Probe,
+		Outcome: outcome,
+		Values: map[string]string{
+			releasesHaveAttestation.ReleaseNameKey: fmt.Sprintf("v%d", release),
+			releasesHaveAttestation.AssetNameKey:   fmt.Sprintf("artifact-%d", asset),
+		},
+	}
+}
+
 func immutableProbe(release int, outcome finding.Outcome) finding.Finding {
 	return finding.Finding{
 		Probe:   releasesAreImmutable.Probe,
@@ -88,6 +100,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeTrue),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -102,6 +115,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeTrue),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         10,
@@ -115,6 +129,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeFalse),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -124,11 +139,42 @@ func TestSignedReleases(t *testing.T) {
 			},
 		},
 		{
+			name: "Has one release with attestation but no signature or provenance",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeFalse),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeTrue),
+			},
+			result: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  1,
+				NumberOfWarn:  0, // provenance warning is suppressed by the attestation
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "Has one release with attestation and signature",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeTrue),
+			},
+			result: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  2, // signed + attestation
+				NumberOfWarn:  0, // provenance warning is suppressed by the attestation
+				NumberOfDebug: 1,
+			},
+		},
+		{
 			name: "Has one release that is immutable but not signed and no provenance",
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeFalse),
 				immutableProbe(0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -143,6 +189,7 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeTrue),
 				{Probe: releasesAreImmutable.Probe, Outcome: finding.OutcomeNotSupported},
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -152,11 +199,42 @@ func TestSignedReleases(t *testing.T) {
 			},
 		},
 		{
+			name: "Attestation probe not supported on host does not affect score",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				{Probe: releasesAreImmutable.Probe, Outcome: finding.OutcomeNotSupported},
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				{Probe: releasesHaveAttestation.Probe, Outcome: finding.OutcomeNotSupported},
+			},
+			result: scut.TestReturn{
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  1,
+				NumberOfDebug: 3,
+			},
+		},
+		{
+			name: "Attestation lookup not available is warned about but not treated as missing",
+			findings: []finding.Finding{
+				signedProbe(0, 0, finding.OutcomeTrue),
+				immutableProbe(0, finding.OutcomeFalse),
+				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeNotAvailable),
+			},
+			result: scut.TestReturn{
+				Score:         8,
+				NumberOfInfo:  1,
+				NumberOfWarn:  2, // provenance and the unavailable attestation
+				NumberOfDebug: 1,
+			},
+		},
+		{
 			name: "Has one release that is immutable and has provenance",
 			findings: []finding.Finding{
 				signedProbe(0, 0, finding.OutcomeFalse),
 				immutableProbe(0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         10,
@@ -173,14 +251,17 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset1, finding.OutcomeTrue),
 				immutableProbe(release0, finding.OutcomeFalse),
 				provenanceProbe(release0, asset0, finding.OutcomeFalse),
+				attestationProbe(release0, asset0, finding.OutcomeFalse),
 				// Release 2
 				signedProbe(release1, asset0, finding.OutcomeFalse),
 				immutableProbe(release1, finding.OutcomeFalse),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
+				attestationProbe(release1, asset0, finding.OutcomeFalse),
 				// Release 3
 				signedProbe(release2, asset0, finding.OutcomeFalse),
 				immutableProbe(release2, finding.OutcomeFalse),
 				provenanceProbe(release2, asset1, finding.OutcomeTrue),
+				attestationProbe(release2, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         6,
@@ -196,22 +277,27 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset1, finding.OutcomeTrue),
 				immutableProbe(release0, finding.OutcomeFalse),
 				provenanceProbe(release0, asset1, finding.OutcomeFalse),
+				attestationProbe(release0, asset1, finding.OutcomeFalse),
 				// Release 2:
 				signedProbe(release1, asset0, finding.OutcomeTrue),
 				immutableProbe(release1, finding.OutcomeFalse),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
+				attestationProbe(release1, asset0, finding.OutcomeFalse),
 				// Release 3:
 				signedProbe(release2, asset0, finding.OutcomeFalse),
 				immutableProbe(release2, finding.OutcomeFalse),
 				provenanceProbe(release2, asset0, finding.OutcomeTrue),
+				attestationProbe(release2, asset0, finding.OutcomeFalse),
 				// Release 4, Asset 1:
 				signedProbe(release3, asset0, finding.OutcomeFalse),
 				immutableProbe(release3, finding.OutcomeFalse),
 				provenanceProbe(release3, asset0, finding.OutcomeTrue),
+				attestationProbe(release3, asset0, finding.OutcomeFalse),
 				// Release 5, Asset 1:
 				signedProbe(release4, asset0, finding.OutcomeFalse),
 				immutableProbe(release4, finding.OutcomeFalse),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
+				attestationProbe(release4, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         7,
@@ -227,22 +313,27 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset1, finding.OutcomeTrue),
 				immutableProbe(release0, finding.OutcomeFalse),
 				provenanceProbe(release0, asset1, finding.OutcomeFalse),
+				attestationProbe(release0, asset1, finding.OutcomeFalse),
 				// Release 2:
 				signedProbe(release1, asset0, finding.OutcomeTrue),
 				immutableProbe(release1, finding.OutcomeFalse),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
+				attestationProbe(release1, asset0, finding.OutcomeFalse),
 				// Release 3:
 				signedProbe(release2, asset0, finding.OutcomeTrue),
 				immutableProbe(release2, finding.OutcomeFalse),
 				provenanceProbe(release2, asset0, finding.OutcomeFalse),
+				attestationProbe(release2, asset0, finding.OutcomeFalse),
 				// Release 4:
 				signedProbe(release3, asset0, finding.OutcomeTrue),
 				immutableProbe(release3, finding.OutcomeFalse),
 				provenanceProbe(release3, asset0, finding.OutcomeFalse),
+				attestationProbe(release3, asset0, finding.OutcomeFalse),
 				// Release 5:
 				signedProbe(release4, asset0, finding.OutcomeTrue),
 				immutableProbe(release4, finding.OutcomeFalse),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
+				attestationProbe(release4, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         8,
@@ -258,22 +349,27 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset1, finding.OutcomeFalse),
 				immutableProbe(release0, finding.OutcomeTrue),
 				provenanceProbe(release0, asset1, finding.OutcomeFalse),
+				attestationProbe(release0, asset1, finding.OutcomeFalse),
 				// Release 2:
 				signedProbe(release1, asset0, finding.OutcomeFalse),
 				immutableProbe(release1, finding.OutcomeTrue),
 				provenanceProbe(release1, asset0, finding.OutcomeFalse),
+				attestationProbe(release1, asset0, finding.OutcomeFalse),
 				// Release 3:
 				signedProbe(release2, asset0, finding.OutcomeFalse),
 				immutableProbe(release2, finding.OutcomeTrue),
 				provenanceProbe(release2, asset0, finding.OutcomeFalse),
+				attestationProbe(release2, asset0, finding.OutcomeFalse),
 				// Release 4:
 				signedProbe(release3, asset0, finding.OutcomeFalse),
 				immutableProbe(release3, finding.OutcomeTrue),
 				provenanceProbe(release3, asset0, finding.OutcomeFalse),
+				attestationProbe(release3, asset0, finding.OutcomeFalse),
 				// Release 5:
 				signedProbe(release4, asset0, finding.OutcomeFalse),
 				immutableProbe(release4, finding.OutcomeTrue),
 				provenanceProbe(release4, asset0, finding.OutcomeFalse),
+				attestationProbe(release4, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         checker.MaxResultScore,
@@ -290,33 +386,75 @@ func TestSignedReleases(t *testing.T) {
 				signedProbe(release0, asset0, finding.OutcomeTrue),
 				immutableProbe(release0, finding.OutcomeFalse),
 				provenanceProbe(release0, asset0, finding.OutcomeTrue),
+				attestationProbe(release0, asset0, finding.OutcomeFalse),
 				// Release 2:
 				// Release 2, Asset 1:
 				signedProbe(release1, asset0, finding.OutcomeTrue),
 				immutableProbe(release1, finding.OutcomeFalse),
 				provenanceProbe(release1, asset0, finding.OutcomeTrue),
+				attestationProbe(release1, asset0, finding.OutcomeFalse),
 				// Release 3, Asset 1:
 				signedProbe(release2, asset0, finding.OutcomeTrue),
 				immutableProbe(release2, finding.OutcomeFalse),
 				provenanceProbe(release2, asset0, finding.OutcomeTrue),
+				attestationProbe(release2, asset0, finding.OutcomeFalse),
 				// Release 4, Asset 1:
 				signedProbe(release3, asset0, finding.OutcomeTrue),
 				immutableProbe(release3, finding.OutcomeFalse),
 				provenanceProbe(release3, asset0, finding.OutcomeTrue),
+				attestationProbe(release3, asset0, finding.OutcomeFalse),
 				// Release 5, Asset 1:
 				signedProbe(release4, asset0, finding.OutcomeTrue),
 				immutableProbe(release4, finding.OutcomeFalse),
 				provenanceProbe(release4, asset0, finding.OutcomeTrue),
+				attestationProbe(release4, asset0, finding.OutcomeFalse),
 				// Release 6, Asset 1:
 				signedProbe(release5, asset0, finding.OutcomeTrue),
 				immutableProbe(release5, finding.OutcomeFalse),
 				provenanceProbe(release5, asset0, finding.OutcomeTrue),
+				attestationProbe(release5, asset0, finding.OutcomeFalse),
 			},
 			result: scut.TestReturn{
 				Score:         checker.InconclusiveResultScore,
 				Error:         sce.ErrScorecardInternal,
 				NumberOfInfo:  12, // 2 (signed + provenance) for each release
 				NumberOfDebug: 6,  // 1 for each release
+			},
+		},
+		{
+			name: "5 releases. All have attestation.",
+			findings: []finding.Finding{
+				// Release 1:
+				signedProbe(release0, asset0, finding.OutcomeFalse),
+				immutableProbe(release0, finding.OutcomeFalse),
+				provenanceProbe(release0, asset0, finding.OutcomeFalse),
+				attestationProbe(release0, asset0, finding.OutcomeTrue),
+				// Release 2:
+				signedProbe(release1, asset0, finding.OutcomeFalse),
+				immutableProbe(release1, finding.OutcomeFalse),
+				provenanceProbe(release1, asset0, finding.OutcomeFalse),
+				attestationProbe(release1, asset0, finding.OutcomeTrue),
+				// Release 3:
+				signedProbe(release2, asset0, finding.OutcomeFalse),
+				immutableProbe(release2, finding.OutcomeFalse),
+				provenanceProbe(release2, asset0, finding.OutcomeFalse),
+				attestationProbe(release2, asset0, finding.OutcomeTrue),
+				// Release 4:
+				signedProbe(release3, asset0, finding.OutcomeFalse),
+				immutableProbe(release3, finding.OutcomeFalse),
+				provenanceProbe(release3, asset0, finding.OutcomeFalse),
+				attestationProbe(release3, asset0, finding.OutcomeTrue),
+				// Release 5:
+				signedProbe(release4, asset0, finding.OutcomeFalse),
+				immutableProbe(release4, finding.OutcomeFalse),
+				provenanceProbe(release4, asset0, finding.OutcomeFalse),
+				attestationProbe(release4, asset0, finding.OutcomeTrue),
+			},
+			result: scut.TestReturn{
+				Score:         10,
+				NumberOfInfo:  5, // 1 attestation per release
+				NumberOfWarn:  0, // provenance warnings are suppressed by the attestations
+				NumberOfDebug: 5,
 			},
 		},
 	}
@@ -345,6 +483,7 @@ func TestSignedReleasesReason(t *testing.T) {
 				signedProbe(0, 1, finding.OutcomeTrue),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			reason: "1 out of the last 1 releases have a total of 2 signed artifacts.",
 		},
@@ -354,6 +493,7 @@ func TestSignedReleasesReason(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeTrue),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeTrue),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 			},
 			reason: "1 out of the last 1 releases have a total of 2 signed artifacts.",
 		},
@@ -363,9 +503,11 @@ func TestSignedReleasesReason(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeFalse),
 				immutableProbe(0, finding.OutcomeTrue),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 				signedProbe(1, 0, finding.OutcomeFalse),
 				immutableProbe(1, finding.OutcomeTrue),
 				provenanceProbe(1, 0, finding.OutcomeFalse),
+				attestationProbe(1, 0, finding.OutcomeFalse),
 			},
 			reason: "2 out of the last 2 releases have a total of 0 signed artifacts and 2 immutable releases.",
 		},
@@ -375,9 +517,11 @@ func TestSignedReleasesReason(t *testing.T) {
 				signedProbe(0, 0, finding.OutcomeTrue),
 				immutableProbe(0, finding.OutcomeFalse),
 				provenanceProbe(0, 0, finding.OutcomeFalse),
+				attestationProbe(0, 0, finding.OutcomeFalse),
 				signedProbe(1, 0, finding.OutcomeFalse),
 				immutableProbe(1, finding.OutcomeTrue),
 				provenanceProbe(1, 0, finding.OutcomeFalse),
+				attestationProbe(1, 0, finding.OutcomeFalse),
 			},
 			reason: "2 out of the last 2 releases have a total of 1 signed artifacts and 1 immutable releases.",
 		},

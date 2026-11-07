@@ -1,0 +1,158 @@
+// Copyright 2025 OpenSSF Scorecard Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package releasesHaveAttestation
+
+import (
+	"embed"
+	"fmt"
+
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/checknames"
+	"github.com/ossf/scorecard/v5/internal/probes"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/host"
+	"github.com/ossf/scorecard/v5/probes/internal/utils/uerror"
+)
+
+func init() {
+	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.SignedReleases})
+}
+
+//go:embed *.yml
+var fs embed.FS
+
+const (
+	Probe           = "releasesHaveAttestation"
+	ReleaseNameKey  = "releaseName"
+	AssetNameKey    = "assetName"
+	releaseLookBack = 5
+)
+
+func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
+	if raw == nil {
+		return nil, "", fmt.Errorf("%w: raw", uerror.ErrNil)
+	}
+
+	// Artifact attestations are a GitHub feature, so avoid reporting every release
+	// from other hosts (e.g. GitLab) as not having attestations.
+	if !host.IsGitHub(raw.Metadata.Metadata[host.MetadataKey]) {
+		f, err := finding.NewWith(fs, Probe,
+			"artifact attestations are only supported for GitHub repositories",
+			nil,
+			finding.OutcomeNotSupported)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		return []finding.Finding{*f}, Probe, nil
+	}
+
+	var findings []finding.Finding
+
+	releases := raw.SignedReleasesResults.Releases
+
+	for i := range releases {
+		if i >= releaseLookBack {
+			break
+		}
+		release := releases[i]
+		if len(release.Assets) == 0 {
+			continue
+		}
+
+		// A release is considered attested if all assets have a digest and
+		// each digest has a corresponding GitHub artifact attestation.
+		missing := false      // an asset definitely has no attestation
+		lookupFailed := false // the attestations of an asset could not be determined
+		for j := range release.Assets {
+			asset := release.Assets[j]
+			switch {
+			case asset.Digest == "":
+				missing = true
+			case asset.AttestationLookupFailed:
+				// A failed lookup does not tell us whether the asset has an attestation.
+				lookupFailed = true
+			case !asset.HasAttestation:
+				missing = true
+			}
+		}
+
+		if !missing && !lookupFailed {
+			// All assets in this release have attestations — report the first one as representative.
+			asset := release.Assets[0]
+			loc := &finding.Location{
+				Type: finding.FileTypeURL,
+				Path: asset.URL,
+			}
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("release artifact %s has attestations for all assets", release.TagName),
+				loc,
+				finding.OutcomeTrue)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f.Values = map[string]string{
+				ReleaseNameKey: release.TagName,
+				AssetNameKey:   asset.Name,
+			}
+			findings = append(findings, *f)
+			continue
+		}
+
+		// Use the first asset URL, which is the release's HTML URL, to match the
+		// success case and avoid the GitHub API URL in findings.
+		loc := &finding.Location{
+			Type: finding.FileTypeURL,
+			Path: release.Assets[0].URL,
+		}
+
+		if !missing {
+			// No asset is known to be missing an attestation, but the attestations of at
+			// least one asset could not be queried, so don't report the release as lacking them.
+			f, err := finding.NewWith(fs, Probe,
+				fmt.Sprintf("unable to determine if release artifact %s has attestations for all assets", release.TagName),
+				loc,
+				finding.OutcomeNotAvailable)
+			if err != nil {
+				return nil, Probe, fmt.Errorf("create finding: %w", err)
+			}
+			f = f.WithValue(ReleaseNameKey, release.TagName)
+			findings = append(findings, *f)
+			continue
+		}
+
+		// At least one asset is missing a digest or attestation.
+		f, err := finding.NewWith(fs, Probe,
+			fmt.Sprintf("release artifact %s does not have attestations for all assets", release.TagName),
+			loc,
+			finding.OutcomeFalse)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		f = f.WithValue(ReleaseNameKey, release.TagName)
+		findings = append(findings, *f)
+	}
+
+	if len(findings) == 0 {
+		f, err := finding.NewWith(fs, Probe,
+			"no GitHub releases with assets found",
+			nil,
+			finding.OutcomeNotApplicable)
+		if err != nil {
+			return nil, Probe, fmt.Errorf("create finding: %w", err)
+		}
+		findings = append(findings, *f)
+	}
+	return findings, Probe, nil
+}
