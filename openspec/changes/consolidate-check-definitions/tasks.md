@@ -13,7 +13,7 @@
   other than Packaging: collectors run, client calls, stored raw data, and
   error text. No registered probe needs Token-Permissions raw data, so its
   test uses a probe registered only in the test.
-- [ ] 2.2 Cover Packaging on GitHub, a local directory, and an unsupported
+- [x] 2.2 Cover Packaging on GitHub, a local directory, and an unsupported
   client. GitLab stays unpinned: its client cannot take a test transport.
 
 ## 3. Migrate checks in batches
