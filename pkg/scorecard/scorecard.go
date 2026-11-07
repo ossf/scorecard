@@ -243,7 +243,7 @@ func runEnabledProbes(request *checker.CheckRequest,
 			findings, _, err = probe.Implementation(&ret.RawResults)
 		}
 		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, "ending run")
+			return sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("probe %s: %v", probeName, err))
 		}
 		probeFindings = append(probeFindings, findings...)
 	}
