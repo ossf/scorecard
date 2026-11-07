@@ -166,10 +166,20 @@ with a "probe not found" error. Exactly three probes,
 `topLevelPermissions`, SHALL NOT be registered; they run only inside the
 Token-Permissions check.
 
+Every check a registered probe lists as required SHALL be a registered
+check (see `check-registry`, Registered Checks). Naming any registered probe
+therefore never fails for lack of a raw-data collector.
+
 #### Scenario: Probe declares its raw data
 
 - **WHEN** the `hasPermissiveLicense` probe is registered
 - **THEN** it declares that it needs the License raw data
+
+#### Scenario: Every registered probe has a collector
+
+- **WHEN** each registered raw-data probe is named on its own
+- **THEN** every check it lists as required is a registered check
+- **AND** no run fails with `unknown check`
 
 #### Scenario: Unknown probe name
 

@@ -49,5 +49,5 @@
 
 ## 7. Validation
 
-- [ ] 7.1 `SKIP_GINKGO=1 go test -race ./...` and `make lint` for each step.
-- [ ] 7.2 `openspec validate consolidate-check-definitions --strict`.
+- [x] 7.1 `SKIP_GINKGO=1 go test -race ./...` and `make check-linter` for each step.
+- [x] 7.2 `openspec validate consolidate-check-definitions --strict`.
