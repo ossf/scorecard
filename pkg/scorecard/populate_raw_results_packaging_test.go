@@ -279,7 +279,7 @@ func TestPopulateRawResults_PackagingError(t *testing.T) {
 				t.Helper()
 				return localdir.CreateLocalDirClient(context.Background(), log.NewLogger(log.DefaultLevel)), nil
 			},
-			wantErr: "internal error: Only github and gitlab are supported",
+			wantErr: "internal error: unsupported repository client",
 		},
 		{
 			name: "mock client",
@@ -288,7 +288,7 @@ func TestPopulateRawResults_PackagingError(t *testing.T) {
 				// The mock fails the test on any call.
 				return mockrepo.NewMockRepoClient(gomock.NewController(t)), nil
 			},
-			wantErr: "internal error: Only github and gitlab are supported",
+			wantErr: "internal error: unsupported repository client",
 		},
 	}
 	for _, tt := range tests {
