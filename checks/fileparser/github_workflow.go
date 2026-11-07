@@ -611,6 +611,15 @@ func IsPackagingWorkflow(workflow *ghworkflow.Workflow, fp string) (JobMatchResu
 			},
 			LogText: "candidate publishing workflow using elixir",
 		},
+		{
+			// PHP packages via the Packagist update API. https://packagist.org/about#how-to-update-packages
+			Steps: []*JobMatcherStep{
+				{
+					Run: `packagist\.org/api/update-package`,
+				},
+			},
+			LogText: "candidate php publishing workflow using packagist",
+		},
 	}
 
 	return AnyJobsMatch(workflow, jobMatchers, fp, "not a publishing workflow")
