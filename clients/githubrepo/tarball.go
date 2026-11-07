@@ -167,10 +167,12 @@ func (handler *tarballHandler) extractTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
+	defer in.Close()
 	gz, err := gzip.NewReader(in)
 	if err != nil {
 		return fmt.Errorf("%w: gzip.NewReader %v %w", errTarballCorrupted, handler.tempTarFile, err)
 	}
+	defer gz.Close()
 	tr := tar.NewReader(gz)
 	for {
 		header, err := tr.Next()
