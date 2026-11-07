@@ -18,7 +18,7 @@
 
 ## 3. Migrate checks in batches
 
-- [ ] 3.1 Batch 1: Binary-Artifacts, Branch-Protection, CII-Best-Practices,
+- [x] 3.1 Batch 1: Binary-Artifacts, Branch-Protection, CII-Best-Practices,
   Contributors, Dangerous-Workflow.
 - [ ] 3.2 Batch 2: Fuzzing, License, Pinned-Dependencies, SAST,
   Security-Policy.

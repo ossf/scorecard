@@ -16,11 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckCIIBestPractices is the registered name for CIIBestPractices.
@@ -36,25 +32,5 @@ func init() {
 
 // CIIBestPractices will check if the maintainers have a best practice badge.
 func CIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.CIIBestPractices(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.CIIBestPracticesResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.CIIBestPractices)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.CIIBestPractices(CheckCIIBestPractices, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.CIIBestPractices.Run(c)
 }

@@ -16,11 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckContributors is the registered name for Contributors.
@@ -36,25 +32,5 @@ func init() {
 
 // Contributors run Contributors check.
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.Contributors(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckContributors, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.ContributorsResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.Contributors)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckContributors, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.Contributors(CheckContributors, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.Contributors.Run(c)
 }

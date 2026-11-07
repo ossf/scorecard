@@ -16,11 +16,7 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckBranchProtection is the exported name for Branch-Protected check.
@@ -36,25 +32,5 @@ func init() {
 
 // BranchProtection runs the Branch-Protection check.
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.BranchProtection(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.BranchProtectionResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.BranchProtection)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.BranchProtection(CheckBranchProtection, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.BranchProtection.Run(c)
 }
