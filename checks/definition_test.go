@@ -15,13 +15,20 @@
 package checks
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"maps"
+	"net/http"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,11 +39,17 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
+	"github.com/ossf/scorecard/v5/checks/raw/github"
+	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/packageclient"
+	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/probes"
 	"github.com/ossf/scorecard/v5/probes/zrunner"
 	scut "github.com/ossf/scorecard/v5/utests"
@@ -449,6 +462,119 @@ func legacyVulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
+func legacySBOM(c *checker.CheckRequest) checker.CheckResult {
+	_, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL")
+	if !enabled {
+		c.Dlogger.Warn(&checker.LogMessage{
+			Text: "SCORECARD_EXPERIMENTAL is not set, not running the SBOM check",
+		})
+
+		e := sce.WithMessage(sce.ErrUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the SBOM check")
+		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
+	}
+
+	rawData, err := raw.SBOM(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.SBOMResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.SBOM)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
+	}
+
+	ret := evaluation.SBOM(CheckSBOM, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyWebHooks(c *checker.CheckRequest) checker.CheckResult {
+	// TODO: remove this check when v6 is released
+	_, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL")
+	if !enabled {
+		c.Dlogger.Warn(&checker.LogMessage{
+			Text: "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check",
+		})
+
+		e := sce.WithMessage(sce.ErrUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the Webhook check")
+		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
+	}
+
+	rawData, err := raw.WebHook(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.WebhookResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Webhook)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckWebHooks, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.Webhooks(CheckWebHooks, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyPackaging(c *checker.CheckRequest) checker.CheckResult {
+	var rawData, rawDataGithub, rawDataGitlab checker.PackagingData
+	var err, errGithub, errGitlab error
+
+	switch v := c.RepoClient.(type) {
+	case *localdir.Client:
+		// Performing both packaging checks since we dont know when local
+		rawDataGithub, errGithub = github.Packaging(c)
+		rawDataGitlab, errGitlab = gitlab.Packaging(c)
+		// Appending results of checks
+		rawData.Packages = append(rawData.Packages, rawDataGithub.Packages...)
+		rawData.Packages = append(rawData.Packages, rawDataGitlab.Packages...)
+		// checking for errors
+		if errGithub != nil {
+			err = errGithub
+		} else if errGitlab != nil {
+			err = errGitlab
+		}
+	case *githubrepo.Client:
+		rawData, err = github.Packaging(c)
+	case *gitlabrepo.Client:
+		rawData, err = gitlab.Packaging(c)
+	default:
+		_ = v
+	}
+
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+	}
+
+	pRawResults := getRawResults(c)
+	pRawResults.PackagingResults = rawData
+
+	findings, err := zrunner.Run(pRawResults, probes.Packaging)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPackaging, e)
+	}
+
+	ret := evaluation.Packaging(CheckPackaging, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
 var errDiff = errors.New("client failed")
 
 const diffRepoURI = "github.com/ossf-tests/scorecard"
@@ -481,9 +607,13 @@ type diffFixture struct {
 	localPathErr    error
 	versionsErr     error
 	vulnsErr        error
+	webhooksErr     error
 	defaultBranch   *clients.BranchRef
 	// versions is what deps.dev returns for the project.
 	versions *packageclient.ProjectPackageVersions
+	// repoClient, when set, replaces the RepoClient mock. Packaging picks
+	// its collector by the client's concrete type.
+	repoClient func(t *testing.T, calls *[]string) clients.RepoClient
 	// org is the organization's repository, for GetOrgRepoClient.
 	org *diffFixture
 	// ossFuzz is the OSS-Fuzz repository; nil leaves it unset.
@@ -507,6 +637,7 @@ type diffFixture struct {
 	// dependabotCommits is what SearchCommits returns.
 	dependabotCommits []clients.Commit
 	vulns             []clients.Vulnerability
+	webhooks          []clients.Webhook
 	badge             clients.BadgeLevel
 	searchHits        int
 	archived          bool
@@ -635,6 +766,10 @@ func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string, prefix st
 		record("LocalPath")
 		return "/tmp/repo", f.localPathErr
 	}).AnyTimes()
+	m.EXPECT().ListWebhooks().DoAndReturn(func() ([]clients.Webhook, error) {
+		record("ListWebhooks")
+		return f.webhooks, f.webhooksErr
+	}).AnyTimes()
 	return m
 }
 
@@ -706,12 +841,16 @@ func runWith(
 	var out runOutput
 	dl := scut.TestDetailLogger{}
 	req := &checker.CheckRequest{
-		RepoClient:            f.client(ctrl, &out.calls, ""),
 		Repo:                  f.repo(ctrl, &out.calls),
 		CIIClient:             f.cii(ctrl, &out.calls),
 		Dlogger:               &dl,
 		ProjectClient:         f.project(ctrl, &out.calls),
 		VulnerabilitiesClient: f.vulnerabilities(ctrl, &out.calls),
+	}
+	if f.repoClient != nil {
+		req.RepoClient = f.repoClient(t, &out.calls)
+	} else {
+		req.RepoClient = f.client(ctrl, &out.calls, "")
 	}
 	if f.ossFuzz != nil {
 		req.OssFuzzRepo = f.ossFuzz.client(ctrl, &out.calls, "oss-fuzz ")
@@ -1694,6 +1833,307 @@ func TestVulnerabilitiesDefinitionMatchesLegacy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assertSameRun(t, legacyVulnerabilities, Vulnerabilities, &tt.fixture)
+		})
+	}
+}
+
+// unsetExperimental unsets SCORECARD_EXPERIMENTAL. Call it after
+// t.Setenv, which restores the original value when the test ends.
+func unsetExperimental(t *testing.T) {
+	t.Helper()
+	if err := os.Unsetenv("SCORECARD_EXPERIMENTAL"); err != nil {
+		t.Fatalf("Unsetenv: %v", err)
+	}
+}
+
+func TestSBOMDefinitionMatchesLegacy(t *testing.T) {
+	release := func(assets ...string) clients.Release {
+		r := clients.Release{TagName: "v1"}
+		for _, name := range assets {
+			r.Assets = append(r.Assets, clients.ReleaseAsset{Name: name, URL: "https://example.com/" + name})
+		}
+		return r
+	}
+	sources := map[string]string{"sbom.spdx.json": "", "docs/app.cdx.json": "", "README.md": ""}
+	tests := []struct {
+		name     string
+		fixture  diffFixture
+		disabled bool
+	}{
+		{name: "SCORECARD_EXPERIMENTAL unset", fixture: diffFixture{files: sources}, disabled: true},
+		{name: "no SBOM"},
+		{
+			name: "SBOM in releases and in source",
+			fixture: diffFixture{
+				releases: []clients.Release{release("app.tar.gz", "app.spdx.json"), release("app.cdx.json")},
+				files:    sources,
+			},
+		},
+		{
+			name:    "ListReleases unsupported",
+			fixture: diffFixture{releasesErr: clients.ErrUnsupportedFeature, files: sources},
+		},
+		{name: "ListReleases error", fixture: diffFixture{releasesErr: errDiff}},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			if tt.disabled {
+				unsetExperimental(t)
+			}
+			assertSameRun(t, legacySBOM, SBOM, &tt.fixture)
+		})
+	}
+}
+
+func TestWebhooksDefinitionMatchesLegacy(t *testing.T) {
+	webhooks := []clients.Webhook{
+		{ID: 1, Path: "https://example.com/hook", UsesAuthSecret: true},
+		{ID: 2, Path: "https://example.com/open"},
+	}
+	tests := []struct {
+		name     string
+		fixture  diffFixture
+		disabled bool
+	}{
+		{name: "SCORECARD_EXPERIMENTAL unset", fixture: diffFixture{webhooks: webhooks}, disabled: true},
+		{name: "no webhooks"},
+		{name: "webhooks with and without a secret", fixture: diffFixture{webhooks: webhooks}},
+		{name: "ListWebhooks error", fixture: diffFixture{webhooksErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("SCORECARD_EXPERIMENTAL", "true")
+			if tt.disabled {
+				unsetExperimental(t)
+			}
+			assertSameRun(t, legacyWebHooks, WebHooks, &tt.fixture)
+		})
+	}
+}
+
+const (
+	diffPublishWorkflow = `on: push
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: https://registry.npmjs.org
+      - run: npm publish
+`
+	diffGitlabPublishJob = `publish:
+  script:
+    - twine upload dist/*
+`
+	diffGitlabFile   = "gitlabscorecard_flattened_ci.yaml"
+	diffWorkflowPath = ".github/workflows/publish.yml"
+	diffRunsPath     = "/repos/ossf-tests/scorecard/actions/workflows/publish.yml/runs"
+	diffTarballPath  = "/repos/ossf-tests/scorecard/tarball/"
+)
+
+// localDirClient returns a local directory client over files. The
+// unreadable paths are listed but cannot be opened, except by root.
+func localDirClient(files map[string]string, unreadable ...string) func(*testing.T, *[]string) clients.RepoClient {
+	return func(t *testing.T, _ *[]string) clients.RepoClient {
+		t.Helper()
+		dir := t.TempDir()
+		for path, content := range files {
+			full := filepath.Join(dir, path)
+			if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+				t.Fatalf("MkdirAll: %v", err)
+			}
+			if err := os.WriteFile(full, []byte(content), 0o600); err != nil {
+				t.Fatalf("WriteFile: %v", err)
+			}
+		}
+		for _, path := range unreadable {
+			if err := os.Chmod(filepath.Join(dir, path), 0); err != nil {
+				t.Fatalf("Chmod: %v", err)
+			}
+		}
+		repo, err := localdir.MakeLocalDirRepo(dir)
+		if err != nil {
+			t.Fatalf("MakeLocalDirRepo: %v", err)
+		}
+		client := localdir.CreateLocalDirClient(context.Background(), log.NewLogger(log.DefaultLevel))
+		if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
+			t.Fatalf("InitRepo: %v", err)
+		}
+		return client
+	}
+}
+
+type fakeGitHubResponse struct {
+	body   []byte
+	status int
+}
+
+// fakeGitHub serves canned GitHub API responses by path, and records each
+// request in calls once calls is set.
+type fakeGitHub struct {
+	responses map[string]fakeGitHubResponse
+	calls     *[]string
+	mu        sync.Mutex
+}
+
+func (f *fakeGitHub) RoundTrip(req *http.Request) (*http.Response, error) {
+	f.mu.Lock()
+	if f.calls != nil {
+		*f.calls = append(*f.calls, req.Method+" "+req.URL.RequestURI())
+	}
+	f.mu.Unlock()
+	r, ok := f.responses[req.URL.Path]
+	if !ok {
+		r = fakeGitHubResponse{status: http.StatusNotFound, body: []byte(`{}`)}
+	}
+	return &http.Response{
+		StatusCode: r.status,
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Body:       io.NopCloser(bytes.NewReader(r.body)),
+		Request:    req,
+	}, nil
+}
+
+// diffTarball returns a gzipped tarball of files, laid out like GitHub's.
+func diffTarball(t *testing.T, files map[string]string) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gz)
+	const root = "ossf-tests-scorecard-0000000/"
+	// The tarball handler creates each directory from its own entry.
+	dirs := map[string]bool{root: true}
+	for path := range files {
+		for dir := filepath.Dir(path); dir != "."; dir = filepath.Dir(dir) {
+			dirs[root+dir+"/"] = true
+		}
+	}
+	for _, dir := range slices.Sorted(maps.Keys(dirs)) {
+		if err := tw.WriteHeader(&tar.Header{Name: dir, Typeflag: tar.TypeDir, Mode: 0o755}); err != nil {
+			t.Fatalf("tar.WriteHeader: %v", err)
+		}
+	}
+	for _, path := range slices.Sorted(maps.Keys(files)) {
+		hdr := &tar.Header{Name: root + path, Typeflag: tar.TypeReg, Mode: 0o644, Size: int64(len(files[path]))}
+		if err := tw.WriteHeader(hdr); err != nil {
+			t.Fatalf("tar.WriteHeader: %v", err)
+		}
+		if _, err := tw.Write([]byte(files[path])); err != nil {
+			t.Fatalf("tar.Write: %v", err)
+		}
+	}
+	if err := tw.Close(); err != nil {
+		t.Fatalf("tar.Close: %v", err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatalf("gzip.Close: %v", err)
+	}
+	return buf.Bytes()
+}
+
+// gitHubClient returns a GitHub client initialized at HEAD over a fake
+// API serving files and the workflow runs response. Requests after setup
+// are recorded in calls.
+func gitHubClient(files map[string]string, runs fakeGitHubResponse) func(*testing.T, *[]string) clients.RepoClient {
+	return func(t *testing.T, calls *[]string) clients.RepoClient {
+		t.Helper()
+		fake := &fakeGitHub{responses: map[string]fakeGitHubResponse{
+			"/repos/ossf-tests/scorecard": {status: http.StatusOK, body: []byte(`{
+				"name": "scorecard",
+				"owner": {"login": "ossf-tests"},
+				"default_branch": "main",
+				"archive_url": "https://api.github.com/repos/ossf-tests/scorecard/{archive_format}{/ref}"
+			}`)},
+			diffTarballPath: {status: http.StatusOK, body: diffTarball(t, files)},
+			diffRunsPath:    runs,
+		}}
+		client := githubrepo.CreateGithubRepoClientWithTransport(context.Background(), fake)
+		repo, err := githubrepo.MakeGithubRepo(diffRepoURI)
+		if err != nil {
+			t.Fatalf("MakeGithubRepo: %v", err)
+		}
+		if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
+			t.Fatalf("InitRepo: %v", err)
+		}
+		t.Cleanup(func() {
+			if err := client.Close(); err != nil {
+				t.Errorf("Close: %v", err)
+			}
+		})
+		fake.mu.Lock()
+		fake.calls = calls
+		fake.mu.Unlock()
+		return client
+	}
+}
+
+func TestPackagingDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	publishing := map[string]string{diffWorkflowPath: diffPublishWorkflow}
+	runs := fakeGitHubResponse{status: http.StatusOK, body: []byte(`{"total_count": 1, "workflow_runs": [` +
+		`{"url": "https://api.github.com/repos/ossf-tests/scorecard/actions/runs/1"}]}`)}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "unsupported client", fixture: diffFixture{files: publishing}},
+		{name: "local directory without workflows", fixture: diffFixture{repoClient: localDirClient(nil)}},
+		{name: "local directory, GitHub workflow", fixture: diffFixture{repoClient: localDirClient(publishing)}},
+		{
+			name: "local directory, GitLab job",
+			fixture: diffFixture{repoClient: localDirClient(map[string]string{
+				diffGitlabFile: diffGitlabPublishJob,
+			})},
+		},
+		{
+			name: "local directory, GitHub workflow and GitLab job",
+			fixture: diffFixture{repoClient: localDirClient(map[string]string{
+				diffWorkflowPath: diffPublishWorkflow,
+				diffGitlabFile:   diffGitlabPublishJob,
+			})},
+		},
+		{
+			name: "local directory, invalid GitHub workflow",
+			fixture: diffFixture{repoClient: localDirClient(map[string]string{
+				diffWorkflowPath: diffInvalidWorkflow,
+				diffGitlabFile:   diffGitlabPublishJob,
+			})},
+		},
+		{
+			name: "local directory, unreadable GitLab file",
+			fixture: diffFixture{repoClient: localDirClient(map[string]string{
+				diffWorkflowPath: diffPublishWorkflow,
+				diffGitlabFile:   diffGitlabPublishJob,
+			}, diffGitlabFile)},
+		},
+		{
+			name: "local directory, both collectors fail",
+			fixture: diffFixture{repoClient: localDirClient(map[string]string{
+				diffWorkflowPath: diffInvalidWorkflow,
+				diffGitlabFile:   diffGitlabPublishJob,
+			}, diffGitlabFile)},
+		},
+		{name: "GitHub, publishing workflow with a run", fixture: diffFixture{repoClient: gitHubClient(publishing, runs)}},
+		{
+			name: "GitHub, workflow that does not publish",
+			fixture: diffFixture{repoClient: gitHubClient(map[string]string{
+				diffWorkflowPath: diffSafeWorkflow,
+			}, runs)},
+		},
+		{
+			name: "GitHub, workflow runs request fails",
+			fixture: diffFixture{repoClient: gitHubClient(publishing, fakeGitHubResponse{
+				status: http.StatusInternalServerError, body: []byte(`{}`),
+			})},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyPackaging, Packaging, &tt.fixture)
 		})
 	}
 }

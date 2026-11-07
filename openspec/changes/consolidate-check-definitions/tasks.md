@@ -24,9 +24,9 @@
   Security-Policy.
 - [x] 3.3 Batch 3: Code-Review, Dependency-Update-Tool, Signed-Releases,
   Token-Permissions, Vulnerabilities.
-- [ ] 3.4 Batch 4: SBOM and Webhooks (experimental gate), Packaging (two
+- [x] 3.4 Batch 4: SBOM and Webhooks (experimental gate), Packaging (two
   collectors).
-- [ ] 3.5 Each batch adds differential tests against the replaced bodies.
+- [x] 3.5 Each batch adds differential tests against the replaced bodies.
 
 ## 4. Point probe mode at the definitions
 

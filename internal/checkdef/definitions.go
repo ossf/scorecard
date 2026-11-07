@@ -15,9 +15,16 @@
 package checkdef
 
 import (
+	"fmt"
+
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/evaluation"
 	"github.com/ossf/scorecard/v5/checks/raw"
+	"github.com/ossf/scorecard/v5/checks/raw/github"
+	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
+	"github.com/ossf/scorecard/v5/clients/githubrepo"
+	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	"github.com/ossf/scorecard/v5/internal/checknames"
 	"github.com/ossf/scorecard/v5/probes"
 )
@@ -125,6 +132,44 @@ var Maintained = define(
 	evaluation.Maintained,
 )
 
+// Packaging is the Packaging check.
+var Packaging = define(
+	checknames.Packaging,
+	collectPackaging,
+	func(r *checker.RawResults, data checker.PackagingData) { r.PackagingResults = data },
+	probes.Packaging,
+	evaluation.Packaging,
+)
+
+// collectPackaging picks the collector by client type. A local directory
+// may hold either platform's workflows, so it runs both and reports the
+// GitHub error first. Other clients get no packaging data.
+func collectPackaging(c *checker.CheckRequest) (checker.PackagingData, error) {
+	var data checker.PackagingData
+	var err error
+	switch c.RepoClient.(type) {
+	case *localdir.Client:
+		dataGithub, errGithub := github.Packaging(c)
+		dataGitlab, errGitlab := gitlab.Packaging(c)
+		data.Packages = append(data.Packages, dataGithub.Packages...)
+		data.Packages = append(data.Packages, dataGitlab.Packages...)
+		if errGithub != nil {
+			err = errGithub
+		} else {
+			err = errGitlab
+		}
+	case *githubrepo.Client:
+		data, err = github.Packaging(c)
+	case *gitlabrepo.Client:
+		data, err = gitlab.Packaging(c)
+	}
+	if err != nil {
+		// Run adds the context, so keep the collector's error text.
+		return data, fmt.Errorf("%w", err)
+	}
+	return data, nil
+}
+
 // PinnedDependencies is the Pinned-Dependencies check.
 var PinnedDependencies = define(
 	checknames.PinnedDependencies,
@@ -142,6 +187,15 @@ var SAST = define(
 	probes.SAST,
 	evaluation.SAST,
 )
+
+// SBOM is the SBOM check. It runs only when SCORECARD_EXPERIMENTAL is set.
+var SBOM = define(
+	checknames.SBOM,
+	raw.SBOM,
+	func(r *checker.RawResults, data checker.SBOMData) { r.SBOMResults = data },
+	probes.SBOM,
+	evaluation.SBOM,
+).experimental("SBOM")
 
 // SecurityPolicy is the Security-Policy check.
 var SecurityPolicy = define(
@@ -178,3 +232,13 @@ var Vulnerabilities = define(
 	probes.Vulnerabilities,
 	evaluation.Vulnerabilities,
 )
+
+// Webhooks is the Webhooks check. It runs only when SCORECARD_EXPERIMENTAL
+// is set.
+var Webhooks = define(
+	checknames.Webhooks,
+	raw.WebHook,
+	func(r *checker.RawResults, data checker.WebhooksData) { r.WebhookResults = data },
+	probes.Webhook,
+	evaluation.Webhooks,
+).experimental("Webhook")
