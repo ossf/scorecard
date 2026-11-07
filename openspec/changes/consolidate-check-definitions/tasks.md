@@ -9,10 +9,12 @@
 
 ## 2. Characterize probe mode
 
-- [ ] 2.1 Add probe-mode raw-collection tests for the remaining 18 checks:
-  collectors run, client calls, stored raw data, and error text.
-- [ ] 2.2 Cover Packaging on GitHub, GitLab, a local directory, and an
-  unsupported client.
+- [x] 2.1 Add probe-mode raw-collection tests for the 17 remaining checks
+  other than Packaging: collectors run, client calls, stored raw data, and
+  error text. No registered probe needs Token-Permissions raw data, so its
+  test uses a probe registered only in the test.
+- [ ] 2.2 Cover Packaging on GitHub, a local directory, and an unsupported
+  client. GitLab stays unpinned: its client cannot take a test transport.
 
 ## 3. Migrate checks in batches
 
