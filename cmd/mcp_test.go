@@ -23,6 +23,7 @@ import (
 	"net/http/httptest"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -61,7 +62,11 @@ func TestMCPStdioIntegration(t *testing.T) {
 
 	ctx := context.Background()
 
-	binPath := filepath.Join(t.TempDir(), "scorecard-mcp-test")
+	binName := "scorecard-mcp-test"
+	if runtime.GOOS == "windows" {
+		binName += ".exe"
+	}
+	binPath := filepath.Join(t.TempDir(), binName)
 	build := exec.CommandContext(ctx, "go", "build", "-o", binPath, "..")
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("building scorecard: %v\n%s", err, out)
