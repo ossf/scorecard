@@ -1,0 +1,8 @@
+on: push
+jobs:
+  jobOne:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl bla | bash
+      - run: curl bla | bash

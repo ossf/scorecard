@@ -435,6 +435,95 @@ func TestGetLineNumber(t *testing.T) {
 	}
 }
 
+func TestIsWorkflowRunBlockScalar(t *testing.T) {
+	t.Parallel()
+
+	workflow := func(runValue string) string {
+		return "on: push\n" +
+			"jobs:\n" +
+			"  j:\n" +
+			"    runs-on: ubuntu-latest\n" +
+			"    steps:\n" +
+			"      - run: " + runValue + "\n"
+	}
+
+	tests := []struct {
+		name string
+		src  string
+		want bool
+	}{
+		{name: "literal", src: workflow("|\n          echo hi"), want: true},
+		{name: "literal strip", src: workflow("|-\n          echo hi"), want: true},
+		{name: "folded", src: workflow(">\n          echo hi"), want: true},
+		{name: "folded strip", src: workflow(">-\n          echo hi"), want: true},
+		{name: "literal indent", src: workflow("|2\n          echo hi"), want: true},
+		{name: "plain", src: workflow("curl bla | bash"), want: false},
+		{name: "single quoted", src: workflow("'curl bla | bash'"), want: false},
+		{name: "double quoted", src: workflow("\"curl bla | bash\""), want: false},
+		{name: "expression", src: workflow("curl ${{ github.sha }} | bash"), want: false},
+		{
+			name: "literal crlf",
+			src:  strings.ReplaceAll(workflow("|\n          echo hi"), "\n", "\r\n"),
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			wf, errs := actionlint.Parse([]byte(tt.src))
+			if wf == nil {
+				t.Fatalf("parse workflow: %v", errs)
+			}
+			var pos *actionlint.Pos
+			for _, job := range wf.Jobs {
+				for _, step := range job.Steps {
+					exec, ok := step.Exec.(*actionlint.ExecRun)
+					if ok && exec != nil && exec.Run != nil {
+						pos = exec.Run.Pos
+					}
+				}
+			}
+			if pos == nil {
+				t.Fatal("workflow has no run step")
+			}
+			if got := IsWorkflowRunBlockScalar([]byte(tt.src), pos); got != tt.want {
+				t.Errorf("IsWorkflowRunBlockScalar() = %v, want %v at %s", got, tt.want, pos)
+			}
+		})
+	}
+}
+
+func TestIsWorkflowRunBlockScalarOutOfRange(t *testing.T) {
+	t.Parallel()
+
+	content := []byte("run: curl\n")
+	tests := []struct {
+		name    string
+		pos     *actionlint.Pos
+		content []byte
+		want    bool
+	}{
+		{name: "nil position", content: content, pos: nil, want: true},
+		{name: "line zero", content: content, pos: &actionlint.Pos{Line: 0, Col: 1}, want: true},
+		{name: "line past end", content: content, pos: &actionlint.Pos{Line: 5, Col: 1}, want: true},
+		{name: "column past end", content: content, pos: &actionlint.Pos{Line: 1, Col: 80}, want: true},
+		{
+			name:    "character column before multibyte rune",
+			content: []byte("é|\n"),
+			pos:     &actionlint.Pos{Line: 1, Col: 2},
+			want:    true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := IsWorkflowRunBlockScalar(tt.content, tt.pos); got != tt.want {
+				t.Errorf("IsWorkflowRunBlockScalar() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestFormatActionlintError(t *testing.T) {
 	t.Parallel()
 	type args struct {
