@@ -109,15 +109,16 @@ definitions instead of two hard-coded deletions.
 1. Move the pilot's definition code to `internal/checkdef`; Maintained and
    CI-Tests keep passing their differential tests. This PR also carries
    this change.
-2. Probe-mode characterization tests for the remaining 18 checks.
+2. Probe-mode characterization tests for the remaining 18 checks: the 17
+   other than Packaging, then Packaging.
 3. Migrate checks in batches of three to five. SBOM, Webhooks, and
    Packaging go last.
 4. Point probe mode at the definitions and delete `assignRawData`.
 5. Registry snapshot test, then build the registry from the definitions.
 6. Consistency tests; remove the legacy copies.
 
-Each step is one PR. Rollback is reverting that PR; earlier steps stand on
-their own.
+Each step is one PR, except step 2, which is two. Rollback is reverting that
+PR; earlier steps stand on their own.
 
 ## Open Questions
 
