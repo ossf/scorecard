@@ -22,17 +22,6 @@ import (
 // CheckCodeReview is the registered name for DoesCodeReview.
 const CheckCodeReview = "Code-Review"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-	}
-	if err := registerCheck(CheckCodeReview, CodeReview, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // CodeReview will check if the maintainers perform code review.
 func CodeReview(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.CodeReview.Run(c)

@@ -37,7 +37,7 @@ var BinaryArtifacts = define(
 	func(r *checker.RawResults, data checker.BinaryArtifactData) { r.BinaryArtifactResults = data },
 	probes.BinaryArtifacts,
 	evaluation.BinaryArtifacts,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // BranchProtection is the Branch-Protection check.
 var BranchProtection = define(
@@ -64,7 +64,7 @@ var CITests = define(
 	func(r *checker.RawResults, data checker.CITestData) { r.CITestResults = data },
 	probes.CITests,
 	evaluation.CITests,
-)
+).supports(checker.CommitBased)
 
 // CodeReview is the Code-Review check.
 var CodeReview = define(
@@ -73,7 +73,7 @@ var CodeReview = define(
 	func(r *checker.RawResults, data checker.CodeReviewData) { r.CodeReviewResults = data },
 	probes.CodeReview,
 	evaluation.CodeReview,
-)
+).supports(checker.CommitBased)
 
 // Contributors is the Contributors check.
 var Contributors = define(
@@ -91,7 +91,7 @@ var DangerousWorkflow = define(
 	func(r *checker.RawResults, data checker.DangerousWorkflowData) { r.DangerousWorkflowResults = data },
 	probes.DangerousWorkflows,
 	evaluation.DangerousWorkflow,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // DependencyUpdateTool is the Dependency-Update-Tool check.
 var DependencyUpdateTool = define(
@@ -104,7 +104,7 @@ var DependencyUpdateTool = define(
 	},
 	probes.DependencyToolUpdates,
 	evaluation.DependencyUpdateTool,
-)
+).supports(checker.FileBased)
 
 // Fuzzing is the Fuzzing check.
 var Fuzzing = define(
@@ -113,7 +113,7 @@ var Fuzzing = define(
 	func(r *checker.RawResults, data checker.FuzzingData) { r.FuzzingResults = data },
 	probes.Fuzzing,
 	evaluation.Fuzzing,
-)
+).supports(checker.FileBased)
 
 // License is the License check.
 var License = define(
@@ -122,7 +122,7 @@ var License = define(
 	func(r *checker.RawResults, data checker.LicenseData) { r.LicenseResults = data },
 	probes.License,
 	evaluation.License,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // Maintained is the Maintained check.
 var Maintained = define(
@@ -145,7 +145,7 @@ var Packaging = withProbeMode(
 	),
 	collectPackagingProbeMode,
 	storePackaging,
-)
+).supports(checker.FileBased)
 
 func storePackaging(r *checker.RawResults, data checker.PackagingData) { r.PackagingResults = data }
 
@@ -207,7 +207,7 @@ var PinnedDependencies = define(
 	func(r *checker.RawResults, data checker.PinningDependenciesData) { r.PinningDependenciesResults = data },
 	probes.PinnedDependencies,
 	evaluation.PinningDependencies,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // SAST is the SAST check.
 var SAST = define(
@@ -216,7 +216,7 @@ var SAST = define(
 	func(r *checker.RawResults, data checker.SASTData) { r.SASTResults = data },
 	probes.SAST,
 	evaluation.SAST,
-)
+).supports(checker.FileBased)
 
 // SBOM is the SBOM check. It runs only when SCORECARD_EXPERIMENTAL is set.
 var SBOM = define(
@@ -234,7 +234,7 @@ var SecurityPolicy = define(
 	func(r *checker.RawResults, data checker.SecurityPolicyData) { r.SecurityPolicyResults = data },
 	probes.SecurityPolicy,
 	evaluation.SecurityPolicy,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // SignedReleases is the Signed-Releases check.
 var SignedReleases = define(
@@ -252,7 +252,7 @@ var TokenPermissions = define(
 	func(r *checker.RawResults, data checker.TokenPermissionsData) { r.TokenPermissionsResults = data },
 	probes.TokenPermissions,
 	evaluation.TokenPermissions,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // Vulnerabilities is the Vulnerabilities check.
 var Vulnerabilities = define(
@@ -261,7 +261,7 @@ var Vulnerabilities = define(
 	func(r *checker.RawResults, data checker.VulnerabilitiesData) { r.VulnerabilitiesResults = data },
 	probes.Vulnerabilities,
 	evaluation.Vulnerabilities,
-)
+).supports(checker.CommitBased, checker.FileBased)
 
 // Webhooks is the Webhooks check. It runs only when SCORECARD_EXPERIMENTAL
 // is set.
@@ -274,8 +274,8 @@ var Webhooks = define(
 ).experimental("Webhook")
 
 // byName looks up a definition by check name for probe mode.
-var byName = func() map[string]*definition {
-	all := []*definition{
+var byName = func() map[string]*Definition {
+	all := []*Definition{
 		BinaryArtifacts,
 		BranchProtection,
 		CIIBestPractices,
@@ -297,7 +297,7 @@ var byName = func() map[string]*definition {
 		Vulnerabilities,
 		Webhooks,
 	}
-	m := make(map[string]*definition, len(all))
+	m := make(map[string]*Definition, len(all))
 	for _, d := range all {
 		m[d.name] = d
 	}

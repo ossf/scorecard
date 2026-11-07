@@ -21,17 +21,6 @@ import (
 
 const CheckCITests = "CI-Tests"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-	}
-	if err := registerCheck(CheckCITests, CITests, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 func CITests(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.CITests.Run(c)
 }

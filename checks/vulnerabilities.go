@@ -22,18 +22,6 @@ import (
 // CheckVulnerabilities is the registered name for the OSV check.
 const CheckVulnerabilities = "Vulnerabilities"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckVulnerabilities, Vulnerabilities, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Vulnerabilities runs Vulnerabilities check.
 func Vulnerabilities(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Vulnerabilities.Run(c)

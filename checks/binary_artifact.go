@@ -22,18 +22,6 @@ import (
 // CheckBinaryArtifacts is the exported name for Binary-Artifacts check.
 const CheckBinaryArtifacts string = "Binary-Artifacts"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckBinaryArtifacts, BinaryArtifacts, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // BinaryArtifacts  will check the repository contains binary artifacts.
 func BinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.BinaryArtifacts.Run(c)

@@ -22,17 +22,6 @@ import (
 // CheckPackaging is the registered name for Packaging.
 const CheckPackaging = "Packaging"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckPackaging, Packaging, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Packaging runs Packaging check.
 func Packaging(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Packaging.Run(c)

@@ -22,14 +22,6 @@ import (
 // CheckSignedReleases is the registered name for SignedReleases.
 const CheckSignedReleases = "Signed-Releases"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckSignedReleases, SignedReleases, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // SignedReleases runs Signed-Releases check.
 func SignedReleases(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.SignedReleases.Run(c)

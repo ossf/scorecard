@@ -22,18 +22,6 @@ import (
 // CheckSecurityPolicy is the registered name for SecurityPolicy.
 const CheckSecurityPolicy = "Security-Policy"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckSecurityPolicy, SecurityPolicy, supportedRequestTypes); err != nil {
-		// This should never happen.
-		panic(err)
-	}
-}
-
 // SecurityPolicy runs Security-Policy check.
 func SecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.SecurityPolicy.Run(c)

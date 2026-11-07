@@ -22,14 +22,6 @@ import (
 // CheckContributors is the registered name for Contributors.
 const CheckContributors = "Contributors"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckContributors, Contributors, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Contributors run Contributors check.
 func Contributors(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.Contributors.Run(c)

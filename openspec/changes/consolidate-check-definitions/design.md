@@ -77,6 +77,9 @@ switching.
 exported wrapper. `GetAll` and `GetAllWithExperimental` keep their
 signatures and copy-on-return behavior. The experimental set comes from the
 definitions instead of two hard-coded deletions.
+The definition type is exported as `checkdef.Definition`, with unexported
+fields, so the table in `checks` that pairs each definition with its
+wrapper can name it; `internal/` keeps it out of the public API.
 
 ### D5: Safety net
 

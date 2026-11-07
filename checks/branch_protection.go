@@ -22,14 +22,6 @@ import (
 // CheckBranchProtection is the exported name for Branch-Protected check.
 const CheckBranchProtection = "Branch-Protection"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckBranchProtection, BranchProtection, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // BranchProtection runs the Branch-Protection check.
 func BranchProtection(c *checker.CheckRequest) checker.CheckResult {
 	return checkdef.BranchProtection.Run(c)
