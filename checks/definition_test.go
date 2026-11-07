@@ -209,6 +209,125 @@ func legacyDangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
+func legacyFuzzing(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.Fuzzing(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.FuzzingResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Fuzzing)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckFuzzing, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.Fuzzing(CheckFuzzing, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyLicense(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.License(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckLicense, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.LicenseResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.License)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckLicense, e)
+	}
+
+	ret := evaluation.License(CheckLicense, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyPinningDependencies(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.PinningDependencies(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.PinningDependenciesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.PinnedDependencies)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckPinnedDependencies, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.PinningDependencies(CheckPinnedDependencies, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacySAST(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.SAST(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSAST, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.SASTResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.SAST)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSAST, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.SAST(CheckSAST, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacySecurityPolicy(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.SecurityPolicy(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.SecurityPolicyResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.SecurityPolicy)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckSecurityPolicy, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.SecurityPolicy(CheckSecurityPolicy, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
 var errDiff = errors.New("client failed")
 
 const diffRepoURI = "github.com/ossf-tests/scorecard"
@@ -231,52 +350,71 @@ type diffFixture struct {
 	contributorsErr error
 	workflowRunsErr error
 	badgeErr        error
+	languagesErr    error
+	searchErr       error
+	licensesErr     error
+	orgErr          error
+	immutableErr    error
+	defaultNameErr  error
 	defaultBranch   *clients.BranchRef
-	runs            map[string][]clients.CheckRun
-	statuses        map[string][]clients.Status
+	// org is the organization's repository, for GetOrgRepoClient.
+	org *diffFixture
+	// ossFuzz is the OSS-Fuzz repository; nil leaves it unset.
+	ossFuzz  *diffFixture
+	runs     map[string][]clients.CheckRun
+	statuses map[string][]clients.Status
 	// files maps each path to its content. ListFiles applies the
 	// predicate to the paths in sorted order.
 	files        map[string]string
 	branches     map[string]*clients.BranchRef
 	workflowRuns map[string][]clients.WorkflowRun
+	// immutable maps "owner/repo@tag" to whether its release is immutable.
+	immutable    map[string]bool
+	uri          string
+	languages    []clients.Language
+	licenses     []clients.License
 	commits      []clients.Commit
 	issues       []clients.Issue
 	releases     []clients.Release
 	contributors []clients.User
 	badge        clients.BadgeLevel
+	searchHits   int
 	archived     bool
 	// noCII leaves the request's CII client unset.
 	noCII bool
 }
 
-func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string) *mockrepo.MockRepoClient {
+// client returns the RepoClient mock. prefix marks the calls of a
+// second client, such as the organization's.
+func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string, prefix string) *mockrepo.MockRepoClient {
 	m := mockrepo.NewMockRepoClient(ctrl)
+	record := func(call string) { *calls = append(*calls, prefix+call) }
 	m.EXPECT().IsArchived().DoAndReturn(func() (bool, error) {
-		*calls = append(*calls, "IsArchived")
+		record("IsArchived")
 		return f.archived, f.archivedErr
 	}).AnyTimes()
 	m.EXPECT().ListCommits().DoAndReturn(func() ([]clients.Commit, error) {
-		*calls = append(*calls, "ListCommits")
+		record("ListCommits")
 		return f.commits, f.commitsErr
 	}).AnyTimes()
 	m.EXPECT().ListIssues().DoAndReturn(func() ([]clients.Issue, error) {
-		*calls = append(*calls, "ListIssues")
+		record("ListIssues")
 		return f.issues, f.issuesErr
 	}).AnyTimes()
 	m.EXPECT().GetCreatedAt().DoAndReturn(func() (time.Time, error) {
-		*calls = append(*calls, "GetCreatedAt")
+		record("GetCreatedAt")
 		return f.createdAt, f.createdErr
 	}).AnyTimes()
 	m.EXPECT().ListCheckRunsForRef(gomock.Any()).DoAndReturn(func(ref string) ([]clients.CheckRun, error) {
-		*calls = append(*calls, "ListCheckRunsForRef "+ref)
+		record("ListCheckRunsForRef " + ref)
 		return f.runs[ref], f.runsErr
 	}).AnyTimes()
 	m.EXPECT().ListStatuses(gomock.Any()).DoAndReturn(func(ref string) ([]clients.Status, error) {
-		*calls = append(*calls, "ListStatuses "+ref)
+		record("ListStatuses " + ref)
 		return f.statuses[ref], f.statusesErr
 	}).AnyTimes()
 	m.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
-		*calls = append(*calls, "ListFiles")
+		record("ListFiles")
 		if f.listFilesErr != nil {
 			return nil, f.listFilesErr
 		}
@@ -293,31 +431,71 @@ func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string) *mockrepo
 		return matched, nil
 	}).AnyTimes()
 	m.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(path string) (io.ReadCloser, error) {
-		*calls = append(*calls, "GetFileReader "+path)
+		record("GetFileReader " + path)
 		if f.readErr != nil {
 			return nil, f.readErr
 		}
 		return io.NopCloser(strings.NewReader(f.files[path])), nil
 	}).AnyTimes()
 	m.EXPECT().GetDefaultBranch().DoAndReturn(func() (*clients.BranchRef, error) {
-		*calls = append(*calls, "GetDefaultBranch")
+		record("GetDefaultBranch")
 		return f.defaultBranch, f.defaultErr
 	}).AnyTimes()
 	m.EXPECT().ListReleases().DoAndReturn(func() ([]clients.Release, error) {
-		*calls = append(*calls, "ListReleases")
+		record("ListReleases")
 		return f.releases, f.releasesErr
 	}).AnyTimes()
 	m.EXPECT().GetBranch(gomock.Any()).DoAndReturn(func(branch string) (*clients.BranchRef, error) {
-		*calls = append(*calls, "GetBranch "+branch)
+		record("GetBranch " + branch)
 		return f.branches[branch], f.branchErr
 	}).AnyTimes()
 	m.EXPECT().ListContributors().DoAndReturn(func() ([]clients.User, error) {
-		*calls = append(*calls, "ListContributors")
+		record("ListContributors")
 		return f.contributors, f.contributorsErr
 	}).AnyTimes()
 	m.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).DoAndReturn(func(file string) ([]clients.WorkflowRun, error) {
-		*calls = append(*calls, "ListSuccessfulWorkflowRuns "+file)
+		record("ListSuccessfulWorkflowRuns " + file)
 		return f.workflowRuns[file], f.workflowRunsErr
+	}).AnyTimes()
+	m.EXPECT().URI().DoAndReturn(func() string {
+		record("URI")
+		if f.uri == "" {
+			return diffRepoURI
+		}
+		return f.uri
+	}).AnyTimes()
+	m.EXPECT().ListProgrammingLanguages().DoAndReturn(func() ([]clients.Language, error) {
+		record("ListProgrammingLanguages")
+		return f.languages, f.languagesErr
+	}).AnyTimes()
+	m.EXPECT().Search(gomock.Any()).DoAndReturn(func(req clients.SearchRequest) (clients.SearchResponse, error) {
+		record("Search " + req.Query + " " + req.Filename)
+		return clients.SearchResponse{Hits: f.searchHits}, f.searchErr
+	}).AnyTimes()
+	m.EXPECT().ListLicenses().DoAndReturn(func() ([]clients.License, error) {
+		record("ListLicenses")
+		return f.licenses, f.licensesErr
+	}).AnyTimes()
+	m.EXPECT().GetOrgRepoClient(gomock.Any()).DoAndReturn(func(context.Context) (clients.RepoClient, error) {
+		record("GetOrgRepoClient")
+		if f.orgErr != nil {
+			return nil, f.orgErr
+		}
+		return f.org.client(ctrl, calls, "org "), nil
+	}).AnyTimes()
+	m.EXPECT().IsReleaseImmutable(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
+		func(owner, repo, tag string) (bool, error) {
+			release := owner + "/" + repo + "@" + tag
+			record("IsReleaseImmutable " + release)
+			return f.immutable[release], f.immutableErr
+		}).AnyTimes()
+	m.EXPECT().GetDefaultBranchName().DoAndReturn(func() (string, error) {
+		record("GetDefaultBranchName")
+		return "main", f.defaultNameErr
+	}).AnyTimes()
+	m.EXPECT().Close().DoAndReturn(func() error {
+		record("Close")
+		return nil
 	}).AnyTimes()
 	return m
 }
@@ -362,10 +540,13 @@ func runWith(
 	var out runOutput
 	dl := scut.TestDetailLogger{}
 	req := &checker.CheckRequest{
-		RepoClient: f.client(ctrl, &out.calls),
+		RepoClient: f.client(ctrl, &out.calls, ""),
 		Repo:       f.repo(ctrl, &out.calls),
 		CIIClient:  f.cii(ctrl, &out.calls),
 		Dlogger:    &dl,
+	}
+	if f.ossFuzz != nil {
+		req.OssFuzzRepo = f.ossFuzz.client(ctrl, &out.calls, "oss-fuzz ")
 	}
 	if sharedRaw {
 		// The scorecard runner shares one RawResults across checks.
@@ -784,6 +965,293 @@ func TestDangerousWorkflowDefinitionMatchesLegacy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assertSameRun(t, legacyDangerousWorkflow, DangerousWorkflow, &tt.fixture)
+		})
+	}
+}
+
+func TestFuzzingDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	goFuzz := map[string]string{
+		"parse_test.go": "package parse\n\nfunc FuzzParse(f *testing.F) {}\n",
+		"README.md":     "hello",
+	}
+	goLang := []clients.Language{{Name: clients.Go, NumLines: 1000}}
+	// getProminentLanguages collects languages through a map, so with more
+	// than one language the order of fuzzers, findings, details, and calls
+	// is not deterministic.
+	unordered := []cmp.Option{
+		cmpopts.SortSlices(func(a, b string) bool { return a < b }),
+		cmpopts.SortSlices(func(a, b checker.Tool) bool { return a.Name < b.Name }),
+		cmpopts.SortSlices(func(a, b finding.Finding) bool { return a.Message < b.Message }),
+		// These details carry findings and no text.
+		cmpopts.SortSlices(func(a, b checker.CheckDetail) bool { return a.Msg.Finding.Message < b.Msg.Finding.Message }),
+	}
+	tests := []struct {
+		opts    []cmp.Option
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no fuzzing", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{
+			name: "ClusterFuzzLite",
+			fixture: diffFixture{files: map[string]string{
+				".clusterfuzzlite/Dockerfile": "FROM gcr.io/oss-fuzz-base/base-builder\nRUN make fuzz\n",
+			}},
+		},
+		{name: "OSS-Fuzz project", fixture: diffFixture{ossFuzz: &diffFixture{searchHits: 1}}},
+		{name: "not an OSS-Fuzz project", fixture: diffFixture{ossFuzz: &diffFixture{}}},
+		{name: "Go fuzz function", fixture: diffFixture{files: goFuzz, languages: goLang}},
+		{
+			name: "several prominent languages",
+			fixture: diffFixture{
+				files: map[string]string{
+					"parse_test.go": goFuzz["parse_test.go"],
+					"prop.erl":      "-include_lib(\"proper/include/proper.hrl\").\n",
+				},
+				languages: []clients.Language{
+					{Name: clients.Go, NumLines: 1000},
+					{Name: clients.Erlang, NumLines: 800},
+					{Name: clients.Python, NumLines: 10},
+				},
+			},
+			opts: unordered,
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{name: "Search error", fixture: diffFixture{ossFuzz: &diffFixture{searchErr: errDiff}}},
+		{name: "ListProgrammingLanguages error", fixture: diffFixture{languagesErr: errDiff}},
+		{name: "GetFileReader error", fixture: diffFixture{files: goFuzz, languages: goLang, readErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyFuzzing, Fuzzing, &tt.fixture, tt.opts...)
+		})
+	}
+}
+
+func TestLicenseDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{
+			name: "approved license from the API",
+			fixture: diffFixture{licenses: []clients.License{
+				{Path: "LICENSE", Name: "Apache License 2.0", SPDXId: "Apache-2.0"},
+			}},
+		},
+		{
+			name: "unapproved license from the API",
+			fixture: diffFixture{licenses: []clients.License{
+				{Path: "LICENSE", Name: "Custom", SPDXId: "NOASSERTION"},
+			}},
+		},
+		{
+			name: "license file, API unsupported",
+			fixture: diffFixture{
+				licensesErr: clients.ErrUnsupportedFeature,
+				files:       map[string]string{"LICENSE-MIT.txt": "MIT License", "README.md": "hello"},
+			},
+		},
+		{
+			name:    "API finds nothing, license file found",
+			fixture: diffFixture{files: map[string]string{"COPYING": "GNU GENERAL PUBLIC LICENSE"}},
+		},
+		{name: "no license", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{name: "ListLicenses error", fixture: diffFixture{licensesErr: errDiff}},
+		{
+			name:    "ListFiles error",
+			fixture: diffFixture{licensesErr: clients.ErrUnsupportedFeature, listFilesErr: errDiff},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyLicense, License, &tt.fixture)
+		})
+	}
+}
+
+const (
+	// Container images are pinned by digest: an unpinned image makes the
+	// remediation query a registry for its digest.
+	diffDockerfile = `FROM golang:1.22@sha256:0000000000000000000000000000000000000000000000000000000000000000
+RUN curl -sSL https://example.com/install.sh | bash
+RUN pip install requests
+`
+	diffPinningWorkflow = `on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: actions/setup-go@v5
+      - uses: example/immutable-action@v1
+      - run: curl -sSL https://example.com/install.sh | sh
+      - run: npm install left-pad
+      - run: nuget install Example.Package
+`
+)
+
+func TestPinningDependenciesDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	files := map[string]string{
+		".github/workflows/ci.yml": diffPinningWorkflow,
+		"Dockerfile":               diffDockerfile,
+		"scripts/install.sh":       "#!/bin/bash\nwget https://example.com/tool.sh -O - | sh\n",
+	}
+	immutable := map[string]bool{"example/immutable-action@v1": true}
+	// The evaluation logs one summary per dependency type through a map,
+	// so the order of details is not deterministic.
+	unordered := cmpopts.SortSlices(func(a, b checker.CheckDetail) bool { return a.Msg.Text < b.Msg.Text })
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no dependencies", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{name: "pinned and unpinned dependencies", fixture: diffFixture{files: files, immutable: immutable}},
+		{
+			name: "NuGet with central package management",
+			fixture: diffFixture{files: map[string]string{
+				".github/workflows/ci.yml": diffPinningWorkflow,
+				"Directory.Packages.props": `<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Example.Package" Version="[1.2.3]" />
+  </ItemGroup>
+</Project>
+`,
+			}},
+		},
+		{name: "IsReleaseImmutable error", fixture: diffFixture{files: files, immutableErr: errDiff}},
+		{
+			name:    "workflow that does not parse",
+			fixture: diffFixture{files: map[string]string{".github/workflows/bad.yml": diffInvalidWorkflow}},
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{name: "GetFileReader error", fixture: diffFixture{files: files, readErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyPinningDependencies, PinningDependencies, &tt.fixture, unordered)
+		})
+	}
+}
+
+func TestSASTDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	merged := time.Date(2024, time.May, 6, 7, 8, 9, 0, time.UTC)
+	pr := func(sha, head string, n int) clients.Commit {
+		return clients.Commit{
+			SHA:                    sha,
+			AssociatedMergeRequest: clients.PullRequest{Number: n, HeadSHA: head, MergedAt: merged},
+		}
+	}
+	commits := []clients.Commit{pr("a1", "head-a", 1), pr("b1", "head-b", 2), {SHA: "c1"}}
+	runs := map[string][]clients.CheckRun{
+		"head-a": {{
+			Status:     "completed",
+			Conclusion: "success",
+			URL:        "https://example.com/run/1",
+			App:        clients.CheckRunApp{Slug: "github-code-scanning"},
+		}},
+		"head-b": {
+			{Status: "in_progress", App: clients.CheckRunApp{Slug: "github-code-scanning"}},
+			{Status: "completed", Conclusion: "failure", App: clients.CheckRunApp{Slug: "sonarcloud"}},
+		},
+	}
+	workflows := map[string]string{
+		".github/workflows/codeql.yml": `on: push
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: github/codeql-action/analyze@v3
+`,
+		".github/workflows/snyk.yml": `on: push
+jobs:
+  snyk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: snyk/actions/golang@master
+`,
+		"pom.xml": `<project>
+  <properties>
+    <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+  </properties>
+</project>
+`,
+	}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no SAST", fixture: diffFixture{commits: []clients.Commit{pr("a1", "head-a", 1)}}},
+		{name: "SAST check runs", fixture: diffFixture{commits: commits, runs: runs}},
+		{name: "SAST workflows and Sonar", fixture: diffFixture{files: workflows}},
+		{
+			name:    "commits unsupported",
+			fixture: diffFixture{commitsErr: clients.ErrUnsupportedFeature, files: workflows},
+		},
+		{name: "ListCommits error", fixture: diffFixture{commitsErr: errDiff}},
+		{name: "ListCheckRunsForRef error", fixture: diffFixture{commits: commits, runsErr: errDiff}},
+		{name: "ListFiles error", fixture: diffFixture{commits: commits, runs: runs, listFilesErr: errDiff}},
+		{name: "GetFileReader error", fixture: diffFixture{files: workflows, readErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacySAST, SAST, &tt.fixture)
+		})
+	}
+}
+
+func TestSecurityPolicyDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	const policy = `# Security Policy
+
+Report problems to security@example.com or through
+https://example.com/security. We respond within 7 days and disclose
+fixes after a 90-day embargo.
+`
+	org := func(files map[string]string) *diffFixture {
+		return &diffFixture{uri: "github.com/ossf-tests/.github", files: files}
+	}
+	noFiles := map[string]string{"README.md": "hello"}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "policy in the repository", fixture: diffFixture{files: map[string]string{"SECURITY.md": policy}}},
+		{
+			name:    "policy in the organization",
+			fixture: diffFixture{files: noFiles, org: org(map[string]string{"SECURITY.md": policy})},
+		},
+		{name: "no policy", fixture: diffFixture{files: noFiles, org: org(noFiles)}},
+		{name: "organization unreachable", fixture: diffFixture{files: noFiles, orgErr: sce.ErrRepoUnreachable}},
+		{
+			name:    "organization unsupported",
+			fixture: diffFixture{files: noFiles, orgErr: clients.ErrUnsupportedFeature},
+		},
+		{name: "GetOrgRepoClient error", fixture: diffFixture{files: noFiles, orgErr: errDiff}},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{
+			name:    "organization ListFiles error",
+			fixture: diffFixture{files: noFiles, org: &diffFixture{listFilesErr: errDiff}},
+		},
+		{
+			name:    "GetFileReader error",
+			fixture: diffFixture{files: map[string]string{"SECURITY.md": policy}, readErr: errDiff},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacySecurityPolicy, SecurityPolicy, &tt.fixture)
 		})
 	}
 }

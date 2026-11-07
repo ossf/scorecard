@@ -20,7 +20,7 @@
 
 - [x] 3.1 Batch 1: Binary-Artifacts, Branch-Protection, CII-Best-Practices,
   Contributors, Dangerous-Workflow.
-- [ ] 3.2 Batch 2: Fuzzing, License, Pinned-Dependencies, SAST,
+- [x] 3.2 Batch 2: Fuzzing, License, Pinned-Dependencies, SAST,
   Security-Policy.
 - [ ] 3.3 Batch 3: Code-Review, Dependency-Update-Tool, Signed-Releases,
   Token-Permissions, Vulnerabilities.
