@@ -22,7 +22,7 @@
   Contributors, Dangerous-Workflow.
 - [x] 3.2 Batch 2: Fuzzing, License, Pinned-Dependencies, SAST,
   Security-Policy.
-- [ ] 3.3 Batch 3: Code-Review, Dependency-Update-Tool, Signed-Releases,
+- [x] 3.3 Batch 3: Code-Review, Dependency-Update-Tool, Signed-Releases,
   Token-Permissions, Vulnerabilities.
 - [ ] 3.4 Batch 4: SBOM and Webhooks (experimental gate), Packaging (two
   collectors).
