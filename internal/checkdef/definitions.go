@@ -22,6 +22,33 @@ import (
 	"github.com/ossf/scorecard/v5/probes"
 )
 
+// BinaryArtifacts is the Binary-Artifacts check.
+var BinaryArtifacts = define(
+	checknames.BinaryArtifacts,
+	raw.BinaryArtifacts,
+	func(r *checker.RawResults, data checker.BinaryArtifactData) { r.BinaryArtifactResults = data },
+	probes.BinaryArtifacts,
+	evaluation.BinaryArtifacts,
+)
+
+// BranchProtection is the Branch-Protection check.
+var BranchProtection = define(
+	checknames.BranchProtection,
+	raw.BranchProtection,
+	func(r *checker.RawResults, data checker.BranchProtectionsData) { r.BranchProtectionResults = data },
+	probes.BranchProtection,
+	evaluation.BranchProtection,
+)
+
+// CIIBestPractices is the CII-Best-Practices check.
+var CIIBestPractices = define(
+	checknames.CIIBestPractices,
+	raw.CIIBestPractices,
+	func(r *checker.RawResults, data checker.CIIBestPracticesData) { r.CIIBestPracticesResults = data },
+	probes.CIIBestPractices,
+	evaluation.CIIBestPractices,
+)
+
 // CITests is the CI-Tests check.
 var CITests = define(
 	checknames.CITests,
@@ -29,6 +56,24 @@ var CITests = define(
 	func(r *checker.RawResults, data checker.CITestData) { r.CITestResults = data },
 	probes.CITests,
 	evaluation.CITests,
+)
+
+// Contributors is the Contributors check.
+var Contributors = define(
+	checknames.Contributors,
+	raw.Contributors,
+	func(r *checker.RawResults, data checker.ContributorsData) { r.ContributorsResults = data },
+	probes.Contributors,
+	evaluation.Contributors,
+)
+
+// DangerousWorkflow is the Dangerous-Workflow check.
+var DangerousWorkflow = define(
+	checknames.DangerousWorkflow,
+	raw.DangerousWorkflow,
+	func(r *checker.RawResults, data checker.DangerousWorkflowData) { r.DangerousWorkflowResults = data },
+	probes.DangerousWorkflows,
+	evaluation.DangerousWorkflow,
 )
 
 // Maintained is the Maintained check.

@@ -15,7 +15,12 @@
 package checks
 
 import (
+	"context"
 	"errors"
+	"io"
+	"maps"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -86,22 +91,162 @@ func legacyCITests(c *checker.CheckRequest) checker.CheckResult {
 	return ret
 }
 
+func legacyBinaryArtifacts(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.BinaryArtifacts(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.BinaryArtifactResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.BinaryArtifacts)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBinaryArtifacts, e)
+	}
+
+	ret := evaluation.BinaryArtifacts(CheckBinaryArtifacts, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyBranchProtection(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.BranchProtection(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.BranchProtectionResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.BranchProtection)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckBranchProtection, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.BranchProtection(CheckBranchProtection, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyCIIBestPractices(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.CIIBestPractices(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.CIIBestPracticesResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.CIIBestPractices)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckCIIBestPractices, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.CIIBestPractices(CheckCIIBestPractices, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyContributors(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.Contributors(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckContributors, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.ContributorsResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.Contributors)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckContributors, e)
+	}
+
+	// Return the score evaluation.
+	ret := evaluation.Contributors(CheckContributors, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
+func legacyDangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
+	rawData, err := raw.DangerousWorkflow(c)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
+	}
+
+	// Set the raw results.
+	pRawResults := getRawResults(c)
+	pRawResults.DangerousWorkflowResults = rawData
+
+	// Evaluate the probes.
+	findings, err := zrunner.Run(pRawResults, probes.DangerousWorkflows)
+	if err != nil {
+		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
+	}
+
+	ret := evaluation.DangerousWorkflow(CheckDangerousWorkflow, findings, c.Dlogger)
+	ret.Findings = findings
+	return ret
+}
+
 var errDiff = errors.New("client failed")
 
-// diffFixture is what the RepoClient returns. Every call is recorded.
+const diffRepoURI = "github.com/ossf-tests/scorecard"
+
+// diffFixture is what the RepoClient, Repo, and CII client return.
+// Every call is recorded.
 type diffFixture struct {
-	createdAt   time.Time
-	archivedErr error
-	commitsErr  error
-	issuesErr   error
-	createdErr  error
-	runsErr     error
-	statusesErr error
-	runs        map[string][]clients.CheckRun
-	statuses    map[string][]clients.Status
-	commits     []clients.Commit
-	issues      []clients.Issue
-	archived    bool
+	createdAt       time.Time
+	archivedErr     error
+	commitsErr      error
+	issuesErr       error
+	createdErr      error
+	runsErr         error
+	statusesErr     error
+	listFilesErr    error
+	readErr         error
+	defaultErr      error
+	releasesErr     error
+	branchErr       error
+	contributorsErr error
+	workflowRunsErr error
+	badgeErr        error
+	defaultBranch   *clients.BranchRef
+	runs            map[string][]clients.CheckRun
+	statuses        map[string][]clients.Status
+	// files maps each path to its content. ListFiles applies the
+	// predicate to the paths in sorted order.
+	files        map[string]string
+	branches     map[string]*clients.BranchRef
+	workflowRuns map[string][]clients.WorkflowRun
+	commits      []clients.Commit
+	issues       []clients.Issue
+	releases     []clients.Release
+	contributors []clients.User
+	badge        clients.BadgeLevel
+	archived     bool
+	// noCII leaves the request's CII client unset.
+	noCII bool
 }
 
 func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string) *mockrepo.MockRepoClient {
@@ -130,6 +275,72 @@ func (f *diffFixture) client(ctrl *gomock.Controller, calls *[]string) *mockrepo
 		*calls = append(*calls, "ListStatuses "+ref)
 		return f.statuses[ref], f.statusesErr
 	}).AnyTimes()
+	m.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+		*calls = append(*calls, "ListFiles")
+		if f.listFilesErr != nil {
+			return nil, f.listFilesErr
+		}
+		var matched []string
+		for _, path := range slices.Sorted(maps.Keys(f.files)) {
+			ok, err := predicate(path)
+			if err != nil {
+				return nil, err
+			}
+			if ok {
+				matched = append(matched, path)
+			}
+		}
+		return matched, nil
+	}).AnyTimes()
+	m.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(path string) (io.ReadCloser, error) {
+		*calls = append(*calls, "GetFileReader "+path)
+		if f.readErr != nil {
+			return nil, f.readErr
+		}
+		return io.NopCloser(strings.NewReader(f.files[path])), nil
+	}).AnyTimes()
+	m.EXPECT().GetDefaultBranch().DoAndReturn(func() (*clients.BranchRef, error) {
+		*calls = append(*calls, "GetDefaultBranch")
+		return f.defaultBranch, f.defaultErr
+	}).AnyTimes()
+	m.EXPECT().ListReleases().DoAndReturn(func() ([]clients.Release, error) {
+		*calls = append(*calls, "ListReleases")
+		return f.releases, f.releasesErr
+	}).AnyTimes()
+	m.EXPECT().GetBranch(gomock.Any()).DoAndReturn(func(branch string) (*clients.BranchRef, error) {
+		*calls = append(*calls, "GetBranch "+branch)
+		return f.branches[branch], f.branchErr
+	}).AnyTimes()
+	m.EXPECT().ListContributors().DoAndReturn(func() ([]clients.User, error) {
+		*calls = append(*calls, "ListContributors")
+		return f.contributors, f.contributorsErr
+	}).AnyTimes()
+	m.EXPECT().ListSuccessfulWorkflowRuns(gomock.Any()).DoAndReturn(func(file string) ([]clients.WorkflowRun, error) {
+		*calls = append(*calls, "ListSuccessfulWorkflowRuns "+file)
+		return f.workflowRuns[file], f.workflowRunsErr
+	}).AnyTimes()
+	return m
+}
+
+func (f *diffFixture) repo(ctrl *gomock.Controller, calls *[]string) *mockrepo.MockRepo {
+	m := mockrepo.NewMockRepo(ctrl)
+	m.EXPECT().URI().DoAndReturn(func() string {
+		*calls = append(*calls, "URI")
+		return diffRepoURI
+	}).AnyTimes()
+	return m
+}
+
+func (f *diffFixture) cii(ctrl *gomock.Controller, calls *[]string) clients.CIIBestPracticesClient {
+	if f.noCII {
+		return nil
+	}
+	m := mockrepo.NewMockCIIBestPracticesClient(ctrl)
+	m.EXPECT().GetBadgeLevel(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(_ context.Context, uri string) (clients.BadgeLevel, error) {
+			*calls = append(*calls, "GetBadgeLevel "+uri)
+			return f.badge, f.badgeErr
+		}).AnyTimes()
 	return m
 }
 
@@ -152,6 +363,8 @@ func runWith(
 	dl := scut.TestDetailLogger{}
 	req := &checker.CheckRequest{
 		RepoClient: f.client(ctrl, &out.calls),
+		Repo:       f.repo(ctrl, &out.calls),
+		CIIClient:  f.cii(ctrl, &out.calls),
 		Dlogger:    &dl,
 	}
 	if sharedRaw {
@@ -297,6 +510,280 @@ func TestCITestsDefinitionMatchesLegacy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			assertSameRun(t, legacyCITests, CITests, &tt.fixture, tt.opts...)
+		})
+	}
+}
+
+func diffPtr[T any](v T) *T {
+	return &v
+}
+
+const (
+	diffSafeWorkflow = `on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make test
+`
+	diffDangerousWorkflow = `on: pull_request_target
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: echo "${{ github.event.issue.title }}"
+`
+	diffGradleWorkflow = `on: push
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gradle/actions/wrapper-validation@v4
+`
+	// Not valid YAML, so the workflow parser returns no workflow.
+	diffInvalidWorkflow = `on: push
+jobs: {build
+`
+)
+
+func TestBinaryArtifactsDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	const jar = "gradle/wrapper/gradle-wrapper.jar"
+	gradleFiles := map[string]string{
+		jar:                            "\x00\x00\x00\x00\x00",
+		".github/workflows/gradle.yml": diffGradleWorkflow,
+	}
+	latest := []clients.Commit{{SHA: "head"}}
+	runsOnLatest := map[string][]clients.WorkflowRun{"gradle.yml": {{HeadSHA: diffPtr("head")}}}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no binaries", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{
+			name: "binary file",
+			fixture: diffFixture{files: map[string]string{
+				"README.md":     "hello",
+				"lib/libfoo.so": "\x00\x00\x00\x00\x00",
+			}},
+		},
+		{
+			name:    "gradle wrapper validated on the latest commit",
+			fixture: diffFixture{files: gradleFiles, workflowRuns: runsOnLatest, commits: latest},
+		},
+		{
+			name: "gradle wrapper validated on an older commit",
+			fixture: diffFixture{
+				files:        gradleFiles,
+				workflowRuns: runsOnLatest,
+				commits:      []clients.Commit{{SHA: "newer"}},
+			},
+		},
+		{
+			name:    "workflow runs unsupported",
+			fixture: diffFixture{files: gradleFiles, workflowRunsErr: clients.ErrUnsupportedFeature},
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{name: "GetFileReader error", fixture: diffFixture{files: gradleFiles, readErr: errDiff}},
+		{
+			name:    "ListSuccessfulWorkflowRuns error",
+			fixture: diffFixture{files: gradleFiles, workflowRunsErr: errDiff},
+		},
+		{
+			name:    "ListCommits error",
+			fixture: diffFixture{files: gradleFiles, workflowRuns: runsOnLatest, commitsErr: errDiff},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyBinaryArtifacts, BinaryArtifacts, &tt.fixture)
+		})
+	}
+}
+
+func TestBranchProtectionDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	protected := &clients.BranchRef{
+		Name:      diffPtr("main"),
+		Protected: diffPtr(true),
+		BranchProtectionRule: clients.BranchProtectionRule{
+			AllowDeletions:   diffPtr(false),
+			AllowForcePushes: diffPtr(false),
+			EnforceAdmins:    diffPtr(true),
+			PullRequestRule: clients.PullRequestRule{
+				Required:                     diffPtr(true),
+				RequiredApprovingReviewCount: diffPtr(int32(2)),
+				RequireCodeOwnerReviews:      diffPtr(true),
+			},
+			CheckRules: clients.StatusChecksRule{
+				RequiresStatusChecks: diffPtr(true),
+				Contexts:             []string{"ci/test"},
+			},
+		},
+	}
+	develop := &clients.BranchRef{Name: diffPtr("develop"), Protected: diffPtr(false)}
+	release := &clients.BranchRef{Name: diffPtr("release-1"), Protected: diffPtr(false)}
+	codeowners := map[string]string{"CODEOWNERS": "* @maintainer"}
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{
+			name:    "protected default branch with CODEOWNERS",
+			fixture: diffFixture{defaultBranch: protected, files: codeowners},
+		},
+		{
+			name: "release branches",
+			fixture: diffFixture{
+				defaultBranch: protected,
+				releases: []clients.Release{
+					{TagName: "v1", TargetCommitish: "release-1"},
+					{TagName: "v2", TargetCommitish: "0123456789abcdef0123456789abcdef01234567"},
+					{TagName: "v3", TargetCommitish: "main"},
+				},
+				branches: map[string]*clients.BranchRef{"release-1": release},
+			},
+		},
+		{
+			name: "master release redirects to main",
+			fixture: diffFixture{
+				defaultBranch: develop,
+				releases:      []clients.Release{{TagName: "v1", TargetCommitish: "master"}},
+				branches:      map[string]*clients.BranchRef{"main": protected},
+			},
+		},
+		{
+			name:    "releases unsupported",
+			fixture: diffFixture{defaultBranch: develop, releasesErr: clients.ErrUnsupportedFeature},
+		},
+		{name: "GetDefaultBranch error", fixture: diffFixture{defaultErr: errDiff}},
+		{name: "ListReleases error", fixture: diffFixture{defaultBranch: protected, releasesErr: errDiff}},
+		{
+			name: "release without a target",
+			fixture: diffFixture{
+				defaultBranch: protected,
+				releases:      []clients.Release{{TagName: "v1"}},
+			},
+		},
+		{
+			name: "GetBranch error",
+			fixture: diffFixture{
+				defaultBranch: protected,
+				releases:      []clients.Release{{TagName: "v1", TargetCommitish: "release-1"}},
+				branchErr:     errDiff,
+			},
+		},
+		{name: "ListFiles error", fixture: diffFixture{defaultBranch: protected, listFilesErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyBranchProtection, BranchProtection, &tt.fixture)
+		})
+	}
+}
+
+func TestCIIBestPracticesDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "unknown", fixture: diffFixture{badge: clients.Unknown}},
+		{name: "not found", fixture: diffFixture{badge: clients.NotFound}},
+		{name: "in progress", fixture: diffFixture{badge: clients.InProgress}},
+		{name: "passing", fixture: diffFixture{badge: clients.Passing}},
+		{name: "silver", fixture: diffFixture{badge: clients.Silver}},
+		{name: "gold", fixture: diffFixture{badge: clients.Gold}},
+		{name: "GetBadgeLevel error", fixture: diffFixture{badgeErr: errDiff}},
+		{name: "no CII client", fixture: diffFixture{noCII: true}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyCIIBestPractices, CIIBestPractices, &tt.fixture)
+		})
+	}
+}
+
+func TestContributorsDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	contributors := []clients.User{
+		{
+			Login:            "alice",
+			NumContributions: 20,
+			IsCodeOwner:      true,
+			Organizations:    []clients.User{{Login: "ossf"}, {Login: "ossf"}, {Login: ""}},
+			Companies:        []string{"@Example Inc.", "example"},
+		},
+		{Login: "bob", NumContributions: 15, Organizations: []clients.User{{Login: "cncf"}}},
+		{Login: "carol", NumContributions: 12, Companies: []string{"Widgets, LLC", ""}},
+		{Login: "dave", NumContributions: 1, Organizations: []clients.User{{Login: "k8s"}}},
+	}
+	// The probe collects entities through a map, so with more than one
+	// entity the order of findings is not deterministic.
+	unordered := cmpopts.SortSlices(func(a, b finding.Finding) bool { return a.Message < b.Message })
+	tests := []struct {
+		opts    []cmp.Option
+		name    string
+		fixture diffFixture
+	}{
+		{
+			name:    "contributors from several organizations",
+			fixture: diffFixture{contributors: contributors},
+			opts:    []cmp.Option{unordered},
+		},
+		{name: "no contributors", fixture: diffFixture{}},
+		{name: "ListContributors error", fixture: diffFixture{contributorsErr: errDiff}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyContributors, Contributors, &tt.fixture, tt.opts...)
+		})
+	}
+}
+
+func TestDangerousWorkflowDefinitionMatchesLegacy(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		fixture diffFixture
+	}{
+		{name: "no workflows", fixture: diffFixture{files: map[string]string{"README.md": "hello"}}},
+		{
+			name:    "safe workflow",
+			fixture: diffFixture{files: map[string]string{".github/workflows/ci.yml": diffSafeWorkflow}},
+		},
+		{
+			name: "untrusted checkout and script injection",
+			fixture: diffFixture{files: map[string]string{
+				".github/workflows/ci.yml":     diffSafeWorkflow,
+				".github/workflows/triage.yml": diffDangerousWorkflow,
+			}},
+		},
+		{
+			name:    "workflow that does not parse",
+			fixture: diffFixture{files: map[string]string{".github/workflows/bad.yml": diffInvalidWorkflow}},
+		},
+		{name: "ListFiles error", fixture: diffFixture{listFilesErr: errDiff}},
+		{
+			name: "GetFileReader error",
+			fixture: diffFixture{
+				files:   map[string]string{".github/workflows/ci.yml": diffSafeWorkflow},
+				readErr: errDiff,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assertSameRun(t, legacyDangerousWorkflow, DangerousWorkflow, &tt.fixture)
 		})
 	}
 }
