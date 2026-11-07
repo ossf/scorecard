@@ -121,7 +121,6 @@ func mapContributors(handler *contributorsHandler, contributors map[string]clien
 	}
 }
 
-//nolint:gocognit // will fix in #4439
 func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, contributors map[string]clients.User) {
 	if codeOwnerFile == nil || codeOwnerFile == (*os.File)(nil) {
 		return
@@ -132,56 +131,63 @@ func mapCodeOwners(handler *contributorsHandler, codeOwnerFile io.ReadCloser, co
 		return
 	}
 
-	// expanding owners
-	owners := make([]*clients.User, 0)
-outer:
+	// adding owners to contributor map and deduping
+	for _, login := range handler.codeOwnerLogins(ruleset) {
+		if login == "" {
+			continue
+		}
+		value, ok := contributors[login]
+		if !ok {
+			value = clients.User{Login: login}
+		}
+		value.IsCodeOwner = true
+		contributors[login] = value
+	}
+}
+
+// codeOwnerLogins lists the owners in ruleset in order, with duplicates,
+// expanding each team to its members. It stops at codeownersLimit, which
+// also bounds the team lookups.
+func (handler *contributorsHandler) codeOwnerLogins(ruleset codeowners.Ruleset) []string {
+	var logins []string
 	for _, rule := range ruleset {
 		for _, owner := range rule.Owners {
 			switch owner.Type {
 			case codeowners.UsernameOwner:
-				// if usernameOwner just add to owners list
-				owners = append(owners, &clients.User{Login: owner.Value, NumContributions: 0, IsCodeOwner: true})
-				if len(owners) >= codeownersLimit {
-					break outer
-				}
+				logins = append(logins, owner.Value)
 			case codeowners.TeamOwner:
-				// if teamOwner expand and add to owners list (only accessible by org members with read:org token scope)
-				splitTeam := strings.Split(owner.Value, "/")
-				if len(splitTeam) == 2 {
-					users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
-						handler.ctx,
-						splitTeam[0],
-						splitTeam[1],
-						&github.TeamListTeamMembersOptions{},
-					)
-					if err == nil && response.StatusCode == http.StatusOK {
-						for _, user := range users {
-							owners = append(owners, &clients.User{Login: user.GetLogin(), NumContributions: 0, IsCodeOwner: true})
-							if len(owners) >= codeownersLimit {
-								break outer
-							}
-						}
-					}
-				}
+				logins = append(logins, handler.teamMembers(owner.Value)...)
+			}
+			if len(logins) >= codeownersLimit {
+				return logins[:codeownersLimit]
 			}
 		}
 	}
+	return logins
+}
 
-	// adding owners to contributor map and deduping
-	for _, owner := range owners {
-		if owner.Login == "" {
-			continue
-		}
-		value, ok := contributors[owner.Login]
-		if ok {
-			// if contributor exists already set IsCodeOwner to true
-			value.IsCodeOwner = true
-			contributors[owner.Login] = value
-		} else {
-			// otherwise add new contributor
-			contributors[owner.Login] = *owner
-		}
+// teamMembers returns the logins of the members of team, written as
+// "org/team". Listing them needs the read:org token scope, so a failed
+// lookup returns no members.
+func (handler *contributorsHandler) teamMembers(team string) []string {
+	splitTeam := strings.Split(team, "/")
+	if len(splitTeam) != 2 {
+		return nil
 	}
+	users, response, err := handler.ghClient.Teams.ListTeamMembersBySlug(
+		handler.ctx,
+		splitTeam[0],
+		splitTeam[1],
+		&github.TeamListTeamMembersOptions{},
+	)
+	if err != nil || response.StatusCode != http.StatusOK {
+		return nil
+	}
+	logins := make([]string, 0, len(users))
+	for _, user := range users {
+		logins = append(logins, user.GetLogin())
+	}
+	return logins
 }
 
 func (handler *contributorsHandler) getContributors(codeOwnerFile io.ReadCloser) ([]clients.User, error) {
