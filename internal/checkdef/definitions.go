@@ -15,6 +15,7 @@
 package checkdef
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -132,14 +133,43 @@ var Maintained = define(
 	evaluation.Maintained,
 )
 
-// Packaging is the Packaging check.
-var Packaging = define(
-	checknames.Packaging,
-	collectPackaging,
-	func(r *checker.RawResults, data checker.PackagingData) { r.PackagingResults = data },
-	probes.Packaging,
-	evaluation.Packaging,
+// Packaging is the Packaging check. Probe mode collects only from GitHub
+// and GitLab clients.
+var Packaging = withProbeMode(
+	define(
+		checknames.Packaging,
+		collectPackaging,
+		storePackaging,
+		probes.Packaging,
+		evaluation.Packaging,
+	),
+	collectPackagingProbeMode,
+	storePackaging,
 )
+
+func storePackaging(r *checker.RawResults, data checker.PackagingData) { r.PackagingResults = data }
+
+var errPackagingProbeModeClient = errors.New("unsupported repository client")
+
+// collectPackagingProbeMode picks the collector by client type and
+// returns an error for any other client.
+func collectPackagingProbeMode(c *checker.CheckRequest) (checker.PackagingData, error) {
+	var data checker.PackagingData
+	var err error
+	switch c.RepoClient.(type) {
+	case *githubrepo.Client:
+		data, err = github.Packaging(c)
+	case *gitlabrepo.Client:
+		data, err = gitlab.Packaging(c)
+	default:
+		return data, errPackagingProbeModeClient
+	}
+	if err != nil {
+		// CollectRawData adds the context, so keep the collector's error text.
+		return data, fmt.Errorf("%w", err)
+	}
+	return data, nil
+}
 
 // collectPackaging picks the collector by client type. A local directory
 // may hold either platform's workflows, so it runs both and reports the
@@ -242,3 +272,34 @@ var Webhooks = define(
 	probes.Webhook,
 	evaluation.Webhooks,
 ).experimental("Webhook")
+
+// byName looks up a definition by check name for probe mode.
+var byName = func() map[string]*definition {
+	all := []*definition{
+		BinaryArtifacts,
+		BranchProtection,
+		CIIBestPractices,
+		CITests,
+		CodeReview,
+		Contributors,
+		DangerousWorkflow,
+		DependencyUpdateTool,
+		Fuzzing,
+		License,
+		Maintained,
+		Packaging,
+		PinnedDependencies,
+		SAST,
+		SBOM,
+		SecurityPolicy,
+		SignedReleases,
+		TokenPermissions,
+		Vulnerabilities,
+		Webhooks,
+	}
+	m := make(map[string]*definition, len(all))
+	for _, d := range all {
+		m[d.name] = d
+	}
+	return m
+}()

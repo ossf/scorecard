@@ -30,8 +30,8 @@
 
 ## 4. Point probe mode at the definitions
 
-- [ ] 4.1 Look up definitions by check name in `populateRawResults`.
-- [ ] 4.2 Delete `assignRawData` and its lint suppression.
+- [x] 4.1 Look up definitions by check name in `populateRawResults`.
+- [x] 4.2 Delete `assignRawData` and its lint suppression.
 
 ## 5. Build the registry from the definitions
 

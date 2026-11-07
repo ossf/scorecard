@@ -64,7 +64,9 @@ collecting. Probe mode calls only the collector, so it stays ungated.
 ### D3: Probe mode uses a definition's probe-mode collector
 
 A definition has one collector by default. Packaging also sets a probe-mode
-collector that keeps the GitHub and GitLab only behavior and its error.
+collector that keeps the GitHub and GitLab only behavior. Its error for
+other clients reads "unsupported repository client" instead of naming the
+platforms, so the text doesn't change when forge support does.
 Probe mode keeps its `seen` set, its order, and its error wrapping;
 `populateRawResults` looks the definition up by check name instead of
 switching.

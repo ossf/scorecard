@@ -34,8 +34,10 @@ type evaluateFn func(name string, findings []finding.Finding, dl checker.DetailL
 // field it fills, its probes, and its evaluation.
 type definition struct {
 	collectInto func(*checker.CheckRequest, *checker.RawResults) error
-	evaluate    evaluateFn
-	name        string
+	// collectProbeModeInto, when set, replaces collectInto in probe mode.
+	collectProbeModeInto func(*checker.CheckRequest, *checker.RawResults) error
+	evaluate             evaluateFn
+	name                 string
 	// experimentalName, when set, gates the check on
 	// SCORECARD_EXPERIMENTAL and names it in the warning and error text.
 	experimentalName string
@@ -50,25 +52,62 @@ func define[T any](
 	store func(*checker.RawResults, T),
 	probeSet []probes.ProbeImpl,
 	evaluate evaluateFn,
-) definition {
-	return definition{
-		name:     name,
-		probes:   probeSet,
-		evaluate: evaluate,
-		collectInto: func(c *checker.CheckRequest, r *checker.RawResults) error {
-			data, err := collect(c)
-			if err != nil {
-				return err
-			}
-			store(r, data)
-			return nil
-		},
+) *definition {
+	return &definition{
+		name:        name,
+		probes:      probeSet,
+		evaluate:    evaluate,
+		collectInto: collectInto(collect, store),
 	}
 }
 
-// experimental returns d gated on SCORECARD_EXPERIMENTAL. name is how the
-// warning and error text refer to the check.
-func (d definition) experimental(name string) definition {
+// withProbeMode gives d a separate collector for probe mode and returns d.
+// collect and store are typed together, as in define.
+func withProbeMode[T any](
+	d *definition,
+	collect func(*checker.CheckRequest) (T, error),
+	store func(*checker.RawResults, T),
+) *definition {
+	d.collectProbeModeInto = collectInto(collect, store)
+	return d
+}
+
+// collectInto pairs a collector with the RawResults field it fills.
+func collectInto[T any](
+	collect func(*checker.CheckRequest) (T, error),
+	store func(*checker.RawResults, T),
+) func(*checker.CheckRequest, *checker.RawResults) error {
+	return func(c *checker.CheckRequest, r *checker.RawResults) error {
+		data, err := collect(c)
+		if err != nil {
+			return err
+		}
+		store(r, data)
+		return nil
+	}
+}
+
+// CollectRawData fills r with the named check's raw data, as probe mode
+// collects it. Errors, including an unknown check name, are internal
+// errors.
+func CollectRawData(checkName string, c *checker.CheckRequest, r *checker.RawResults) error {
+	d, ok := byName[checkName]
+	if !ok {
+		return sce.WithMessage(sce.ErrScorecardInternal, "unknown check")
+	}
+	collect := d.collectInto
+	if d.collectProbeModeInto != nil {
+		collect = d.collectProbeModeInto
+	}
+	if err := collect(c, r); err != nil {
+		return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
+	}
+	return nil
+}
+
+// experimental gates d on SCORECARD_EXPERIMENTAL and returns d. name is how
+// the warning and error text refer to the check.
+func (d *definition) experimental(name string) *definition {
 	d.experimentalName = name
 	return d
 }
@@ -76,7 +115,7 @@ func (d definition) experimental(name string) definition {
 // Run runs the check: collect raw data, run the probes on it, and evaluate
 // the findings. An experimental check returns a runtime error instead
 // unless SCORECARD_EXPERIMENTAL is set.
-func (d definition) Run(c *checker.CheckRequest) checker.CheckResult {
+func (d *definition) Run(c *checker.CheckRequest) checker.CheckResult {
 	if d.experimentalName != "" {
 		if _, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !enabled {
 			msg := fmt.Sprintf("SCORECARD_EXPERIMENTAL is not set, not running the %s check", d.experimentalName)
