@@ -16,6 +16,7 @@ package scorecard
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"sort"
 	"time"
@@ -95,13 +96,26 @@ func compareScorecardResults(a, b Result) bool {
 	return true
 }
 
+// e2eContext returns a context that expires shortly before the `go test` timeout, so that
+// rate limit waits beyond it fail fast with a clear error instead of hitting the test timeout.
+func e2eContext() (context.Context, context.CancelFunc) {
+	const margin = 10 * time.Second
+	if f := flag.Lookup("test.timeout"); f != nil {
+		if d, err := time.ParseDuration(f.Value.String()); err == nil && d > 2*margin {
+			return context.WithTimeout(context.Background(), d-margin)
+		}
+	}
+	return context.WithCancel(context.Background())
+}
+
 var _ = Describe("E2E TEST: scorecard.Run with re-used repoClient", func() {
 	Context("E2E TEST: Validate results are identical regardless of order", func() {
 		assertLastResultsIdentical := func(repos []string) {
 			if len(repos) < 2 {
 				return
 			}
-			ctx := context.Background()
+			ctx, cancel := e2eContext()
+			defer cancel()
 
 			lastRepo := repos[len(repos)-1]
 			repo, err := githubrepo.MakeGithubRepo(lastRepo)
