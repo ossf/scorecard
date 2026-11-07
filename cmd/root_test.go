@@ -15,8 +15,12 @@
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -24,6 +28,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks"
 	"github.com/ossf/scorecard/v5/clients"
+	docs "github.com/ossf/scorecard/v5/docs/checks"
 	"github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 )
@@ -166,5 +171,53 @@ func TestProcessRepos(t *testing.T) {
 				t.Errorf("successful execution returned error: %v", err)
 			}
 		})
+	}
+}
+
+func TestProcessReposResultsFileAppend(t *testing.T) {
+	t.Parallel()
+	outPath := filepath.Join(t.TempDir(), "results.json")
+	opts := options.New()
+	opts.ResultsFile = outPath
+	opts.Format = options.FormatJSON
+
+	uris := []string{"github.com/owner/first", "github.com/owner/second"}
+	checkDocs, err := docs.Read()
+	if err != nil {
+		t.Fatalf("docs.Read: %v", err)
+	}
+
+	err = processRepos(uris, func(uri string) (*scorecard.Result, error) {
+		res := &scorecard.Result{
+			Repo: scorecard.RepoInfo{Name: uri},
+		}
+		if formatErr := scorecard.FormatResults(opts, res, checkDocs, nil); formatErr != nil {
+			return nil, formatErr
+		}
+		return res, nil
+	})
+	if err != nil {
+		t.Fatalf("processRepos() error = %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile: %v", err)
+	}
+
+	dec := json.NewDecoder(bytes.NewReader(data))
+	var repos []string
+	for {
+		var js scorecard.JSONScorecardResultV2
+		if err := dec.Decode(&js); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			t.Fatalf("decode json: %v", err)
+		}
+		repos = append(repos, js.Repo.Name)
+	}
+	if !slices.Equal(repos, uris) {
+		t.Errorf("got repos %v, want %v", repos, uris)
 	}
 }

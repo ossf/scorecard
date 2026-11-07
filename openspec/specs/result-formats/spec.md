@@ -74,9 +74,9 @@ When `--output` (shorthand `-o`) names a file, the system SHALL create or
 truncate that file, write the results to it, and print
 `Writing results to <file>` on standard error. If the file cannot be
 created, formatting MUST fail with an "unable to create output file" error.
-The file SHALL be created and truncated once per scanned repository, so
-with several repositories it holds only the last repository's result. On
-standard output, each repository's result SHALL be written as a separate,
+The file SHALL be created or truncated for the first repository, and
+subsequent repositories SHALL be appended to the file. On standard output
+or in an output file, each repository's result SHALL be written as a separate,
 independent document with no surrounding array or separator.
 
 #### Scenario: Results written to a file
@@ -96,8 +96,8 @@ independent document with no surrounding array or separator.
 - **WHEN** a user passes `--repos=a/one,a/two --output results.json
   --format json`
 - **THEN** `Writing results to results.json` is printed once per repository
-- **AND** after the run `results.json` contains only the result for
-  `a/two`
+- **AND** after the run `results.json` contains the results for both
+  repositories
 
 #### Scenario: Several repositories on standard output
 
