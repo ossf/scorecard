@@ -17,6 +17,9 @@
 package checkdef
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/ossf/scorecard/v5/checker"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
@@ -33,7 +36,10 @@ type definition struct {
 	collectInto func(*checker.CheckRequest, *checker.RawResults) error
 	evaluate    evaluateFn
 	name        string
-	probes      []probes.ProbeImpl
+	// experimentalName, when set, gates the check on
+	// SCORECARD_EXPERIMENTAL and names it in the warning and error text.
+	experimentalName string
+	probes           []probes.ProbeImpl
 }
 
 // define builds a definition. collect and store are typed together, so a
@@ -60,9 +66,26 @@ func define[T any](
 	}
 }
 
+// experimental returns d gated on SCORECARD_EXPERIMENTAL. name is how the
+// warning and error text refer to the check.
+func (d definition) experimental(name string) definition {
+	d.experimentalName = name
+	return d
+}
+
 // Run runs the check: collect raw data, run the probes on it, and evaluate
-// the findings.
+// the findings. An experimental check returns a runtime error instead
+// unless SCORECARD_EXPERIMENTAL is set.
 func (d definition) Run(c *checker.CheckRequest) checker.CheckResult {
+	if d.experimentalName != "" {
+		if _, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL"); !enabled {
+			msg := fmt.Sprintf("SCORECARD_EXPERIMENTAL is not set, not running the %s check", d.experimentalName)
+			c.Dlogger.Warn(&checker.LogMessage{Text: msg})
+			e := sce.WithMessage(sce.ErrUnsupportedCheck, msg)
+			return checker.CreateRuntimeErrorResult(d.name, e)
+		}
+	}
+
 	pRawResults := getRawResults(c)
 	if err := d.collectInto(c, pRawResults); err != nil {
 		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())

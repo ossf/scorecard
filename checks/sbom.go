@@ -15,14 +15,8 @@
 package checks
 
 import (
-	"os"
-
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // SBOM is the registered name for SBOM.
@@ -38,34 +32,5 @@ func init() {
 
 // SBOM runs SBOM check.
 func SBOM(c *checker.CheckRequest) checker.CheckResult {
-	_, enabled := os.LookupEnv("SCORECARD_EXPERIMENTAL")
-	if !enabled {
-		c.Dlogger.Warn(&checker.LogMessage{
-			Text: "SCORECARD_EXPERIMENTAL is not set, not running the SBOM check",
-		})
-
-		e := sce.WithMessage(sce.ErrUnsupportedCheck, "SCORECARD_EXPERIMENTAL is not set, not running the SBOM check")
-		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
-	}
-
-	rawData, err := raw.SBOM(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.SBOMResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.SBOM)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckSBOM, e)
-	}
-
-	ret := evaluation.SBOM(CheckSBOM, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.SBOM.Run(c)
 }
