@@ -19,8 +19,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	stdlog "log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"sort"
@@ -38,6 +41,13 @@ import (
 	"github.com/ossf/scorecard/v5/options"
 	"github.com/ossf/scorecard/v5/pkg/scorecard"
 	"github.com/ossf/scorecard/v5/policy"
+)
+
+const (
+	defaultListenHost = "127.0.0.1"
+	defaultPort       = "8080"
+	// maxRequestBodyBytes caps POST bodies; a scan request is well under 1 KiB.
+	maxRequestBodyBytes = 1 << 20
 )
 
 type server struct {
@@ -68,7 +78,19 @@ func newServer(logger *log.Logger) *server {
 func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	var req scorecardRequest
 	if r.Method == http.MethodPost {
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		body := http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+		err := json.NewDecoder(body).Decode(&req)
+		if err == nil {
+			// The decoder stops after the first JSON value; read the rest so an
+			// oversized body is rejected even when it starts with valid JSON.
+			_, err = io.Copy(io.Discard, body)
+		}
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+			return
+		}
+		if err != nil {
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
@@ -206,17 +228,98 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func corsMiddleware(next http.Handler) http.Handler {
+// isCrossOrigin applies the rule of http.CrossOriginProtection to every
+// method. The standard library exempts GET, but a GET here starts a scan.
+func isCrossOrigin(r *http.Request) bool {
+	switch r.Header.Get("Sec-Fetch-Site") {
+	case "same-origin", "none":
+		return false
+	case "":
+		// Older browsers send only Origin; non-browser clients send neither.
+	default:
+		return true
+	}
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return false
+	}
+	o, err := url.Parse(origin)
+	return err != nil || o.Host != r.Host
+}
+
+func crossOriginMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
+		if isCrossOrigin(r) {
+			http.Error(w, "cross-origin request rejected", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// isLoopback reports whether host is localhost or a loopback IP address.
+func isLoopback(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
+}
+
+// loopbackHostMiddleware rejects requests that name a non-loopback host, so
+// a name that resolves to a loopback address can't reach the server.
+func loopbackHostMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		host := r.Host
+		if h, _, err := net.SplitHostPort(host); err == nil {
+			host = h
+		}
+		if !isLoopback(strings.Trim(host, "[]")) {
+			http.Error(w, "host not allowed", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// listenAddress returns the host and the address to listen on. listen is a
+// host or a host:port; the port defaults to port, then to 8080.
+func listenAddress(listen, port string) (host, addr string) {
+	if port == "" {
+		port = defaultPort
+	}
+	host = defaultListenHost
+	if listen != "" {
+		var p string
+		var err error
+		host, p, err = net.SplitHostPort(listen)
+		if err != nil {
+			host = strings.Trim(listen, "[]")
+		} else if p != "" {
+			port = p
+		}
+	}
+	return host, net.JoinHostPort(host, port)
+}
+
+func newHandler(srv *server, loopback bool) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet || r.Method == http.MethodPost {
+			srv.handleScorecard(w, r)
+		} else {
+			http.NotFound(w, r)
+		}
+	})
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	handler := crossOriginMiddleware(mux)
+	if loopback {
+		handler = loopbackHostMiddleware(handler)
+	}
+	return loggerMiddleware(recoverMiddleware(handler))
 }
 
 func recoverMiddleware(next http.Handler) http.Handler {
@@ -240,45 +343,45 @@ func loggerMiddleware(next http.Handler) http.Handler {
 }
 
 func serveCmd(o *options.Options) *cobra.Command {
-	return &cobra.Command{
+	var listen string
+	cmd := &cobra.Command{
 		Use:   "serve",
 		Short: "Serve the scorecard program over http",
-		Long:  `Start an HTTP server to run scorecard checks on repositories with REST API support.`,
+		Long: `Start an HTTP server to run scorecard checks on repositories with REST API support.
+
+The server has no authentication or rate limiting and runs every scan with
+the server's own credentials. It listens on 127.0.0.1 unless --listen names
+another address. Use --listen only on a trusted network, with a token
+limited to the repositories you intend to scan.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Flags are valid by now; don't print usage for a runtime error.
+			cmd.SilenceUsage = true
 			logger := log.NewLogger(log.ParseLevel(o.LogLevel))
 			srv := newServer(logger)
 
-			mux := http.NewServeMux()
-			mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-				if r.Method == http.MethodGet || r.Method == http.MethodPost {
-					srv.handleScorecard(w, r)
-				} else {
-					http.NotFound(w, r)
-				}
-			})
-			mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(http.StatusOK)
-			})
-
-			handler := loggerMiddleware(recoverMiddleware(corsMiddleware(mux)))
-
-			port := os.Getenv("PORT")
-			if port == "" {
-				port = "8080"
-			}
+			host, addr := listenAddress(listen, os.Getenv("PORT"))
+			loopback := isLoopback(host)
 
 			httpServer := &http.Server{
-				Addr:              fmt.Sprintf("0.0.0.0:%s", port),
-				Handler:           handler,
+				Handler:           newHandler(srv, loopback),
 				ReadHeaderTimeout: 10 * time.Second,
+			}
+
+			var lc net.ListenConfig
+			ln, err := lc.Listen(cmd.Context(), "tcp", addr)
+			if err != nil {
+				return fmt.Errorf("listening on %s: %w", addr, err)
 			}
 
 			done := make(chan os.Signal, 1)
 			signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+			logger.Info("Server listening on " + addr)
+			if !loopback {
+				logger.Info("Server has no authentication and is reachable from other hosts")
+			}
 			go func() {
-				logger.Info("Server starting on port " + port)
-				if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				if err := httpServer.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
 					logger.Error(err, "server error")
 				}
 			}()
@@ -296,4 +399,7 @@ func serveCmd(o *options.Options) *cobra.Command {
 			return nil
 		},
 	}
+	cmd.Flags().StringVar(&listen, "listen", "",
+		"host or host:port to listen on (default 127.0.0.1; port from PORT, then 8080)")
+	return cmd
 }

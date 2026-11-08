@@ -43,6 +43,7 @@ var (
 	errTarballNotFound  = errors.New("tarball not found")
 	errTarballCorrupted = errors.New("corrupted tarball")
 	errZipSlip          = errors.New("ZipSlip path detected")
+	errTooManyRedirects = errors.New("stopped after 10 redirects")
 )
 
 func extractAndValidateArchivePath(path, dest string) (string, error) {
@@ -175,8 +176,18 @@ func (handler *tarballHandler) getTarball() error {
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
 
-	handler.files = append(handler.files,
-		strings.TrimPrefix(ciYaml.Name(), filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
+	filename := strings.TrimPrefix(ciYaml.Name(), filepath.Clean(handler.tempDir)+string(os.PathSeparator))
+	handler.files = append(handler.files, filepath.ToSlash(filename))
+	return nil
+}
+
+func checkTokenRedirect(req *http.Request, via []*http.Request) error {
+	if len(via) >= 10 {
+		return errTooManyRedirects
+	}
+	if req.URL.Host != via[0].URL.Host || req.URL.Scheme != via[0].URL.Scheme {
+		req.Header.Del("PRIVATE-TOKEN")
+	}
 	return nil
 }
 
@@ -186,7 +197,15 @@ func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.Fil
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
 	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
-	resp, err := http.DefaultClient.Do(req)
+	// The archive endpoint commonly 302s to object storage or a CDN. Go only
+	// strips a fixed set of well-known auth headers across a redirect, so the
+	// PRIVATE-TOKEN would otherwise be replayed to whatever host we land on.
+	// Drop it once the redirect leaves the original host or scheme so the
+	// credential is never handed to a third party or sent over plain http.
+	// Copy the default client so any caller configuration is kept.
+	client := *http.DefaultClient
+	client.CheckRedirect = checkTokenRedirect
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
@@ -263,8 +282,8 @@ func (handler *tarballHandler) extractTarball() error {
 				return fmt.Errorf("%w io.Copy: %w", errTarballCorrupted, err)
 			}
 			outFile.Close()
-			handler.files = append(handler.files,
-				strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator)))
+			filename := strings.TrimPrefix(filenamepath, filepath.Clean(handler.tempDir)+string(os.PathSeparator))
+			handler.files = append(handler.files, filepath.ToSlash(filename))
 		case tar.TypeXGlobalHeader, tar.TypeSymlink:
 			continue
 		default:

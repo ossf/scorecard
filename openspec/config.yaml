@@ -1,0 +1,57 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+schema: spec-driven
+
+context: |
+  OpenSSF Scorecard: a Go CLI and library (module
+  github.com/ossf/scorecard/v5) that assesses open source repositories
+  against security heuristics and reports a 0-10 score per check plus a
+  risk-weighted aggregate score.
+
+  Architecture: checks run in three tiers.
+  - Raw data collection (checks/raw/) gathers evidence through repository
+    clients (clients/: GitHub, GitLab, Azure DevOps, local directory, git).
+  - Probes (probes/) turn raw data into findings with outcomes; each probe
+    has a def.yml describing it and its remediation.
+  - Evaluation (checks/evaluation/) turns probe findings into check scores.
+  Results are rendered by pkg/scorecard in default, json, sarif, probe, raw,
+  and in-toto formats. Policies (policy/) select checks and drive SARIF
+  output.
+
+  Current versus target state: openspec/specs/ describes v5 behavior as
+  built, including known defects, so that fixing a defect shows up as an
+  explicit spec delta. The changes/osps-baseline-conformance proposal
+  describes a v6 target (checks and conformance in one run) and is not
+  current behavior; in v5, running probes directly skips checks.
+
+  Conventions: see AGENTS.md and CONTRIBUTING.md. Changes to score results
+  need strong justification and an issue first. Adding a check follows
+  checks/write.md; adding a probe follows probes/README.md. PR titles carry
+  an emoji prefix (:sparkles:, :bug:, :book:, :seedling:, :warning:,
+  :ghost:). Commits are signed off (DCO). `make all` runs tests, lint, fmt,
+  and go mod tidy.
+
+rules:
+  specs:
+    - Describe observable behavior (inputs, outputs, scores, errors, flags,
+      environment variables), not internal Go identifiers
+    - Every requirement uses SHALL or MUST and has at least one scenario
+    - Record current behavior, including defects; put intended corrections
+      in a change under openspec/changes/
+    - State each behavior in exactly one capability and refer to it from
+      others; see openspec/README.md for ownership
+  proposal:
+    - Say whether each claim describes current behavior or a target state
+    - Name every affected capability by its path under openspec/specs/

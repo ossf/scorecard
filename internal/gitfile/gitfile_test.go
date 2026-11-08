@@ -15,15 +15,20 @@
 package gitfile
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 func TestHandler(t *testing.T) {
@@ -69,16 +74,136 @@ func TestHandler(t *testing.T) {
 	}
 }
 
+// errEscapes is the text os.Root uses when a name resolves outside the root.
+const errEscapes = "path escapes from parent"
+
+func TestHandlerCommitSHA(t *testing.T) {
+	t.Parallel()
+
+	dir := setupGitRepo(t)
+	r, err := git.PlainOpen(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	head, err := r.Head()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	headSHA := head.Hash().String()
+
+	tests := []struct {
+		wantErr   error
+		name      string
+		commitSHA string
+	}{
+		{name: "Head", commitSHA: clients.HeadSHA},
+		{name: "FullSHA", commitSHA: headSHA},
+		{name: "UppercaseSHA", commitSHA: strings.ToUpper(headSHA)},
+		{name: "Empty", commitSHA: "", wantErr: clients.ErrInvalidCommitSHA},
+		{name: "NonHex", commitSHA: strings.Repeat("z", 40), wantErr: clients.ErrInvalidCommitSHA},
+		{name: "Short", commitSHA: headSHA[:8], wantErr: clients.ErrInvalidCommitSHA},
+		{name: "InvalidSuffix", commitSHA: headSHA + "zz", wantErr: clients.ErrInvalidCommitSHA},
+		{name: "Zero", commitSHA: strings.Repeat("0", 40), wantErr: clients.ErrInvalidCommitSHA},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var h Handler
+			h.Init(context.Background(), dir, tt.commitSHA)
+			t.Cleanup(func() {
+				if err := h.Cleanup(); err != nil {
+					t.Errorf("Cleanup() failed: %v", err)
+				}
+			})
+			_, err := h.ListFiles(func(string) (bool, error) { return true, nil })
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("ListFiles() error = %v, want %v", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Errorf("ListFiles() unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestHandlerPathTraversal(t *testing.T) {
 	t.Parallel()
 	dir := setupGitRepo(t)
 
 	var h Handler
 	h.Init(t.Context(), dir, "HEAD")
+	t.Cleanup(func() {
+		if err := h.Cleanup(); err != nil {
+			t.Errorf("Cleanup: %v", err)
+		}
+	})
 
+	if _, err := h.ListFiles(allFiles); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	_, err := h.GetFile("../example.txt")
-	if !errors.Is(err, errPathTraversal) {
-		t.Fatalf("expected path traversal error: got %v", err)
+	if err == nil || !strings.Contains(err.Error(), errEscapes) {
+		t.Fatalf("GetFile(../example.txt): got %v, want error containing %q", err, errEscapes)
+	}
+}
+
+func TestHandlerSymlinks(t *testing.T) {
+	t.Parallel()
+
+	secret := filepath.Join(t.TempDir(), "secret.txt")
+	if err := os.WriteFile(secret, []byte("host secret"), 0o600); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// A run of "../" longer than any temp path reaches the filesystem root.
+	relSecret := strings.Repeat("../", 64) + strings.TrimPrefix(filepath.ToSlash(secret), "/")
+
+	dir := setupGitRepoWithSymlinks(t, map[string]string{
+		"in-repo.txt":         "example.txt",
+		"escape-absolute.txt": secret,
+		"escape-relative.txt": relSecret,
+		"dangling.txt":        "missing.txt",
+		"dir-link":            "sub",
+	})
+
+	var h Handler
+	h.Init(t.Context(), dir, "HEAD")
+	t.Cleanup(func() {
+		if err := h.Cleanup(); err != nil {
+			t.Errorf("Cleanup: %v", err)
+		}
+	})
+
+	files, err := h.ListFiles(allFiles)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	want := []string{"example.txt", "in-repo.txt", "sub/nested.txt"}
+	if d := cmp.Diff(want, files, cmpopts.SortSlices(func(a, b string) bool { return a < b })); d != "" {
+		t.Errorf("ListFiles: -want,+got: %s", d)
+	}
+
+	r, err := h.GetFile("in-repo.txt")
+	if err != nil {
+		t.Fatalf("GetFile(in-repo.txt): unexpected error: %v", err)
+	}
+	t.Cleanup(func() { r.Close() })
+	contents, err := io.ReadAll(r)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got := string(contents); got != "hello world!" {
+		t.Errorf("GetFile(in-repo.txt) = %q, want %q", got, "hello world!")
+	}
+
+	// Escaping links aren't listed, and reading one by name is still refused.
+	for _, name := range []string{"escape-absolute.txt", "escape-relative.txt"} {
+		_, err := h.GetFile(name)
+		if err == nil || !strings.Contains(err.Error(), errEscapes) {
+			t.Errorf("GetFile(%s): got %v, want error containing %q", name, err, errEscapes)
+		}
 	}
 }
 
@@ -103,6 +228,59 @@ func setupGitRepo(t *testing.T) string {
 
 	if _, err = w.Add("example.txt"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
+	}
+
+	_, err = w.Commit("commit message", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "John Doe",
+			Email: "john@doe.org",
+		},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	return dir
+}
+
+// setupGitRepoWithSymlinks commits example.txt, sub/nested.txt, and the
+// given symlinks (name to target).
+func setupGitRepoWithSymlinks(t *testing.T, links map[string]string) string {
+	t.Helper()
+
+	dir := t.TempDir()
+	r, err := git.PlainInitWithOptions(dir, nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	w, err := r.Worktree()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if err = os.Mkdir(filepath.Join(dir, "sub"), 0o700); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	regular := map[string]string{
+		"example.txt":    "hello world!",
+		"sub/nested.txt": "nested",
+	}
+	for name, contents := range regular {
+		if err = os.WriteFile(filepath.Join(dir, name), []byte(contents), 0o600); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if _, err = w.Add(name); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	}
+	for name, target := range links {
+		if err = os.Symlink(target, filepath.Join(dir, name)); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if _, err = w.Add(name); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
 	}
 
 	_, err = w.Commit("commit message", &git.CommitOptions{

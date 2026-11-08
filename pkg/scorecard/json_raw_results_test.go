@@ -373,6 +373,7 @@ func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 	tests := []struct { //nolint:govet
 		name      string
 		input     *checker.SignedReleasesData
+		want      []jsonRelease
 		wantError bool
 	}{
 		{
@@ -391,6 +392,29 @@ func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 					},
 				},
 			},
+			want: []jsonRelease{
+				{
+					Tag: "v1.0",
+					URL: "https://example.com/v1.0",
+					Assets: []jsonReleaseAsset{
+						{Path: "asset1", URL: "https://example.com/v1.0/asset1"},
+					},
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: "test_with_immutable_and_mutable_releases",
+			input: &checker.SignedReleasesData{
+				Releases: []clients.Release{
+					{TagName: "v2.0", IsImmutable: true},
+					{TagName: "v1.0", IsImmutable: false},
+				},
+			},
+			want: []jsonRelease{
+				{Tag: "v2.0", Immutable: true},
+				{Tag: "v1.0", Immutable: false},
+			},
 			wantError: false,
 		},
 	}
@@ -403,6 +427,9 @@ func TestJsonScorecardRawResult_AddSignedReleasesRawResults(t *testing.T) {
 			err := r.addSignedReleasesRawResults(test.input)
 			if (err != nil) != test.wantError {
 				t.Errorf("addSignedReleasesRawResults() error = %v, wantError %v", err, test.wantError)
+			}
+			if diff := cmp.Diff(test.want, r.Results.Releases); diff != "" {
+				t.Errorf("releases mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

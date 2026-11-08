@@ -19,11 +19,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/rhysd/actionlint"
-
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
 
 func containsUntrustedContextPattern(variable string) bool {
@@ -113,7 +112,7 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 
 	pdata.NumWorkflows += 1
 
-	workflow, errs := actionlint.Parse(content)
+	workflow, errs := ghworkflow.Parse(content)
 	if len(errs) > 0 && workflow == nil {
 		return false, fileparser.FormatActionlintError(errs)
 	}
@@ -132,7 +131,7 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 	return true, nil
 }
 
-func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
+func validateUntrustedCodeCheckout(workflow *ghworkflow.Workflow, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	if !usesEventTrigger(workflow, triggerPullRequestTarget) && !usesEventTrigger(workflow, triggerWorkflowRun) {
@@ -148,7 +147,7 @@ func validateUntrustedCodeCheckout(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func usesEventTrigger(workflow *actionlint.Workflow, name triggerName) bool {
+func usesEventTrigger(workflow *ghworkflow.Workflow, name triggerName) bool {
 	// Check if the webhook event trigger is a pull_request_target
 	for _, event := range workflow.On {
 		if event.EventName() == string(name) {
@@ -159,7 +158,7 @@ func usesEventTrigger(workflow *actionlint.Workflow, name triggerName) bool {
 	return false
 }
 
-func createJob(job *actionlint.Job) *checker.WorkflowJob {
+func createJob(job *ghworkflow.Job) *checker.WorkflowJob {
 	if job == nil {
 		return nil
 	}
@@ -173,7 +172,7 @@ func createJob(job *actionlint.Job) *checker.WorkflowJob {
 	return &r
 }
 
-func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
+func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	if job == nil {
@@ -186,7 +185,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 			continue
 		}
 		// Check for a step that uses actions/checkout
-		e, ok := step.Exec.(*actionlint.ExecAction)
+		e, ok := step.Exec.(*ghworkflow.ExecAction)
 		if !ok || e.Uses == nil {
 			continue
 		}
@@ -220,7 +219,7 @@ func checkJobForUntrustedCodeCheckout(job *actionlint.Job, path string,
 	return nil
 }
 
-func validateScriptInjection(workflow *actionlint.Workflow, path string,
+func validateScriptInjection(workflow *ghworkflow.Workflow, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for _, job := range workflow.Jobs {
@@ -231,7 +230,7 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 			if step == nil {
 				continue
 			}
-			run, ok := step.Exec.(*actionlint.ExecRun)
+			run, ok := step.Exec.(*ghworkflow.ExecRun)
 			if !ok || run.Run == nil {
 				continue
 			}
@@ -244,8 +243,8 @@ func validateScriptInjection(workflow *actionlint.Workflow, path string,
 	return nil
 }
 
-func checkVariablesInScript(script string, pos *actionlint.Pos,
-	job *actionlint.Job, path string,
+func checkVariablesInScript(script string, pos *ghworkflow.Pos,
+	job *ghworkflow.Job, path string,
 	pdata *checker.DangerousWorkflowData,
 ) error {
 	for {

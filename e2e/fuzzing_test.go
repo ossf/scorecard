@@ -53,7 +53,7 @@ var _ = Describe("E2E TEST:"+checks.CheckFuzzing, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore,
 				NumberOfWarn:  0,
-				NumberOfInfo:  3, // 1 for OSSFuzz, 2 for go native fuzzing
+				NumberOfInfo:  1, // 1 for OSSFuzz; native fuzz funcs moved to ossf/scorecard-infra
 				NumberOfDebug: 0,
 			}
 			result := checks.Fuzzing(&req)
