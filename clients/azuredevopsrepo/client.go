@@ -30,6 +30,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/projectanalysis"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/search"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 
@@ -202,6 +203,10 @@ func (c *Client) ListReleases() ([]clients.Release, error) {
 	return c.releases.listReleases()
 }
 
+func (c *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListContributors() ([]clients.User, error) {
 	return c.contributors.listContributors()
 }
@@ -294,7 +299,8 @@ func CreateAzureDevOpsClientWithToken(ctx context.Context, token string, repo cl
 			auditClient: auditClient,
 		},
 		branches: &branchesHandler{
-			gitClient: gitClient,
+			gitClient:      gitClient,
+			securityClient: security.NewClient(ctx, connection),
 		},
 		builds: &buildsHandler{
 			buildClient: buildClient,

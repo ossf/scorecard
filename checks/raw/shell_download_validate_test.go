@@ -18,7 +18,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 func TestIsSupportedShellScriptFile(t *testing.T) {
@@ -701,6 +704,119 @@ func Test_hasUnpinnedURLs(t *testing.T) {
 			t.Parallel()
 			if actual := hasUnpinnedURLs(tt.args.cmd); actual != tt.expected {
 				t.Errorf("hasUnpinnedURLs() = %v, expected %v for %v", actual, tt.expected, tt.name)
+			}
+		})
+	}
+}
+
+func TestCollectUnpinnedPackageManagerDownload(t *testing.T) {
+	t.Parallel()
+
+	nugetRemediation := &finding.Remediation{
+		Text: "pin your dependencies by either enabling central package management " +
+			"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
+			"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
+			"package-references-in-project-files#locking-dependencies)",
+	}
+
+	tests := []struct {
+		remediation *finding.Remediation
+		name        string
+		cmd         string
+		depType     checker.DependencyUseType
+		pinned      bool
+		noDep       bool
+	}{
+		{
+			name:    "go install pinned",
+			cmd:     "go install example.com/tool@v1.2.3",
+			depType: checker.DependencyUseTypeGoCommand,
+			pinned:  true,
+		},
+		{
+			name:    "go install unpinned",
+			cmd:     "go install example.com/tool@latest",
+			depType: checker.DependencyUseTypeGoCommand,
+		},
+		{
+			name:    "pip install pinned",
+			cmd:     "pip install --require-hashes -r requirements.txt",
+			depType: checker.DependencyUseTypePipCommand,
+			pinned:  true,
+		},
+		{
+			name:    "pip install unpinned",
+			cmd:     "pip install requests",
+			depType: checker.DependencyUseTypePipCommand,
+		},
+		{
+			name:    "npm ci pinned",
+			cmd:     "npm ci",
+			depType: checker.DependencyUseTypeNpmCommand,
+			pinned:  true,
+		},
+		{
+			name:    "npm install unpinned",
+			cmd:     "npm install express",
+			depType: checker.DependencyUseTypeNpmCommand,
+		},
+		{
+			name:    "choco install pinned",
+			cmd:     "choco install git --requirechecksums",
+			depType: checker.DependencyUseTypeChocoCommand,
+			pinned:  true,
+		},
+		{
+			name:    "choco install unpinned",
+			cmd:     "choco install git",
+			depType: checker.DependencyUseTypeChocoCommand,
+		},
+		{
+			name:    "dotnet add package pinned",
+			cmd:     "dotnet add package Foo --version 1.0.0",
+			depType: checker.DependencyUseTypeNugetCommand,
+			pinned:  true,
+		},
+		{
+			name:        "dotnet add package unpinned",
+			cmd:         "dotnet add package Foo",
+			depType:     checker.DependencyUseTypeNugetCommand,
+			remediation: nugetRemediation,
+		},
+		{
+			name:  "not a package manager",
+			cmd:   "echo hello",
+			noDep: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var r checker.PinningDependenciesData
+			err := validateShellFile("script.sh", 0, 0, []byte(tt.cmd), map[string]bool{}, &r)
+			if err != nil {
+				t.Fatalf("validateShellFile: %v", err)
+			}
+
+			var want []checker.Dependency
+			if !tt.noDep {
+				pinned := tt.pinned
+				want = []checker.Dependency{{
+					Location: &checker.File{
+						Path:      "script.sh",
+						Type:      finding.FileTypeSource,
+						Offset:    1,
+						EndOffset: 1,
+						Snippet:   tt.cmd,
+					},
+					Pinned:      &pinned,
+					Type:        tt.depType,
+					Remediation: tt.remediation,
+				}}
+			}
+			if diff := cmp.Diff(want, r.Dependencies); diff != "" {
+				t.Errorf("dependencies mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

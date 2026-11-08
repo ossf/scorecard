@@ -1,0 +1,72 @@
+name: Proposal
+description: A scoring change, something a check should detect, or a new check.
+title: "Proposal: "
+labels: ["kind/design", "needs discussion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the problem, not the solution. Scoring changes affect every repository, so proposals without maintainer agreement are declined.
+        If AI helped write this, you're responsible for its accuracy.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Scoring change
+        - Detection
+        - New probe
+        - New check
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What's wrong today, and who does it affect? Link repositories that score wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: For detection, give the exact `uses:` line, command, or filename.
+    validations:
+      required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Existing issues
+      description: Link related issues and say how this differs, or list what you searched for.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data and cost (optional)
+      description: What data it reads, from which API, and about how many calls per repository.
+  - type: textarea
+    id: gaming
+    attributes:
+      label: How could it be gamed? (optional)
+  - type: textarea
+    id: impact
+    attributes:
+      label: Effect on scores (optional)
+      description: Which repositories would score differently, and which way.
+  - type: checkboxes
+    id: implement
+    attributes:
+      label: Implementation
+      options:
+        - label: I'm willing to implement this.
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched open and closed issues.
+          required: true
+        - label: I can answer follow-up questions. Issues with unanswered questions may be closed.
+          required: true
