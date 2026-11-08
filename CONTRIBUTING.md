@@ -254,12 +254,16 @@ start scanning in subsequent runs.
 
 ## Adding new checks
 
-See [checks/write.md](checks/write.md).
-When you add new checks, you need to also update the docs.
+See [checks/write.md](checks/write.md). It covers what a new check must
+meet, how a check's collector, probes, and evaluation fit together, each
+file to add or change, and the tests that catch a missed step. Open an issue
+to discuss a new check before you write it.
 
 ## Adding new probes
 
-See [probes/README.md](probes/README.md) for information about the probes.
+See [probes/README.md](probes/README.md). It explains what a probe is and
+walks through adding one, from `make setup-probe` to regenerating
+`docs/probes.md`.
 
 ## Updating docs
 

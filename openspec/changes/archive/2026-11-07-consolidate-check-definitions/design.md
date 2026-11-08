@@ -64,7 +64,9 @@ collecting. Probe mode calls only the collector, so it stays ungated.
 ### D3: Probe mode uses a definition's probe-mode collector
 
 A definition has one collector by default. Packaging also sets a probe-mode
-collector that keeps the GitHub and GitLab only behavior and its error.
+collector that keeps the GitHub and GitLab only behavior. Its error for
+other clients reads "unsupported repository client" instead of naming the
+platforms, so the text doesn't change when forge support does.
 Probe mode keeps its `seen` set, its order, and its error wrapping;
 `populateRawResults` looks the definition up by check name instead of
 switching.
@@ -75,6 +77,9 @@ switching.
 exported wrapper. `GetAll` and `GetAllWithExperimental` keep their
 signatures and copy-on-return behavior. The experimental set comes from the
 definitions instead of two hard-coded deletions.
+The definition type is exported as `checkdef.Definition`, with unexported
+fields, so the table in `checks` that pairs each definition with its
+wrapper can name it; `internal/` keeps it out of the public API.
 
 ### D5: Safety net
 
@@ -109,15 +114,16 @@ definitions instead of two hard-coded deletions.
 1. Move the pilot's definition code to `internal/checkdef`; Maintained and
    CI-Tests keep passing their differential tests. This PR also carries
    this change.
-2. Probe-mode characterization tests for the remaining 18 checks.
+2. Probe-mode characterization tests for the remaining 18 checks: the 17
+   other than Packaging, then Packaging.
 3. Migrate checks in batches of three to five. SBOM, Webhooks, and
    Packaging go last.
 4. Point probe mode at the definitions and delete `assignRawData`.
 5. Registry snapshot test, then build the registry from the definitions.
 6. Consistency tests; remove the legacy copies.
 
-Each step is one PR. Rollback is reverting that PR; earlier steps stand on
-their own.
+Each step is one PR, except step 2, which is two. Rollback is reverting that
+PR; earlier steps stand on their own.
 
 ## Open Questions
 
