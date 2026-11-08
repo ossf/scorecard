@@ -1,0 +1,41 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: 'Validate Security Insights'
+on:
+  pull_request:
+    paths:
+      - 'security-insights.yml'
+      - '.github/workflows/security-insights.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'security-insights.yml'
+      - '.github/workflows/security-insights.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: 'Validate Security Insights'
+        uses: revanite-io/security-insights-action@85c35a5b75f2772e0462323d7b4fcbab5fc1aff2 # v1.0.0
+        with:
+          file: security-insights.yml

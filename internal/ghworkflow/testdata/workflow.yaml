@@ -1,0 +1,46 @@
+name: compat
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+  workflow_run:
+    workflows: [ci]
+    types: [completed]
+permissions: read-all
+env:
+  TITLE: ${{ github.event.pull_request.title }}
+jobs:
+  matrix:
+    name: Matrix build
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      JOB_VAR: value
+    defaults:
+      run:
+        shell: pwsh
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - os: macos-latest
+            experimental: true
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Build
+        if: runner.os == 'Windows'
+        run: echo "${{ github.event.issue.title }}"
+        shell: bash
+  labels:
+    runs-on: [self-hosted, linux]
+    steps:
+      - run: make
+  call:
+    uses: octo-org/example-repo/.github/workflows/reusable.yml@v1
