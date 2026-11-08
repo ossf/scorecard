@@ -124,6 +124,19 @@ func Test_getChangesets(t *testing.T) {
 			},
 			Message: "merge commitSHA prow_self_merged from GitHub",
 		}
+
+		prowCommitTideMerged = clients.Commit{
+			SHA: "prow_tide_merged",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 5,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 44 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "bob"},
+				MergedBy: clients.User{Login: "k8s-ci-robot"},
+				Labels:   []clients.Label{{Name: "lgtm"}, {Name: "approved"}},
+			},
+			Message: "merge commitSHA prow_tide_merged from GitHub",
+		}
 	)
 
 	tests := []struct {
@@ -394,6 +407,24 @@ func Test_getChangesets(t *testing.T) {
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					RevisionID:     "D78910",
 					Commits:        []clients.Commit{phabricatorCommitG},
+				},
+			},
+		},
+		{
+			name:    "prow: a Tide merge counts as the merger's approval",
+			commits: []clients.Commit{prowCommitTideMerged},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "5",
+					Commits:        []clients.Commit{prowCommitTideMerged},
+					Author:         clients.User{Login: "bob"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "k8s-ci-robot"},
+							State:  "APPROVED",
+						},
+					},
 				},
 			},
 		},
