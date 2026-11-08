@@ -15,6 +15,8 @@ project. This document describes the contribution guidelines for the project.
 
 <!-- vim-markdown-toc GFM -->
 
+* [Reporting bugs](#reporting-bugs)
+* [Escalating to the CRA steward](#escalating-to-the-cra-steward)
 * [Contributing code](#contributing-code)
   * [Getting started](#getting-started)
   * [Environment Setup](#environment-setup)
@@ -24,6 +26,7 @@ project. This document describes the contribution guidelines for the project.
 * [PR Process](#pr-process)
 * [What to do before submitting a pull request](#what-to-do-before-submitting-a-pull-request)
 * [Changing Score Results](#changing-score-results)
+* [Dependencies](#dependencies)
 * [Linting](#linting)
 * [Permission for GitHub personal access tokens](#permission-for-github-personal-access-tokens)
 * [Adding New Probes](#adding-new-probes)
@@ -34,6 +37,22 @@ project. This document describes the contribution guidelines for the project.
 * [Choosing checks to run](#choosing-checks-to-run)
 
 <!-- vim-markdown-toc -->
+
+## Reporting bugs
+
+Open an issue with the
+["Something is wrong" form](https://github.com/ossf/scorecard/issues/new?template=1-bug.yml).
+It asks how you ran Scorecard, the version, a public repository that shows the
+problem, what you saw, and what you expected.
+
+Don't report security vulnerabilities in public issues. Follow
+[SECURITY.md](SECURITY.md) instead.
+
+## Escalating to the CRA steward
+
+Maintainers escalate actively exploited vulnerabilities and severe incidents
+to the LF steward at <steward@linuxfoundation.org>, as
+[SECURITY.md](SECURITY.md#escalating-to-the-cra-steward) describes.
 
 ## Contributing code
 
@@ -50,8 +69,8 @@ You must install these tools:
 
 1.  [`git`](https://help.github.com/articles/set-up-git/): For source control
 
-1.  [`go`](https://golang.org/doc/install): You need go version
-    [v1.26.0](https://golang.org/dl/) or higher.
+1.  [`go`](https://golang.org/doc/install): You need the Go version in
+    [`go.mod`](go.mod) or higher.
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
@@ -156,6 +175,9 @@ must put them in one PR, you should mark the whole PR as breaking.
 > This includes [synchronizing your PR](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/keeping-your-pull-request-in-sync-with-the-base-branch)
 > with `main`. The GitHub review experience is much nicer with traditional merge commits.
 
+A PR can merge once a maintainer has approved it, every review thread is
+resolved, and the required CI checks pass.
+
 ## What to do before submitting a pull request
 
 Following the targets that can be used to test your changes locally.
@@ -177,6 +199,25 @@ While they are included in `make all`, running them individually is faster.
 
 As a general rule of thumb, pull requests that change Scorecard score results will need a good reason to do so to get merged.
 It is a good idea to discuss such changes in a GitHub issue before implementing them.
+
+## Dependencies
+
+A PR that adds a direct dependency must explain why it's needed, and a
+maintainer approves the addition in review.
+
+Dependencies are pinned:
+
+- Go modules in `go.mod` and `go.sum`
+- GitHub Actions by commit SHA, except two reusable workflows that must be
+  referenced by tag: the SLSA generator
+  ([why](https://github.com/slsa-framework/slsa-github-generator#referencing-slsa-builders-and-generators))
+  and the grc.store publish workflow
+  ([why](https://github.com/revanite-io/pvtr-publish-results#calling-it))
+- Container base images by digest
+
+Dependabot opens weekly update PRs for Go modules, GitHub Actions, and Docker
+images. The [dependency review](.github/workflows/depsreview.yml) workflow
+checks the dependencies each PR changes.
 
 ## Linting
 
@@ -213,12 +254,16 @@ start scanning in subsequent runs.
 
 ## Adding new checks
 
-See [checks/write.md](checks/write.md).
-When you add new checks, you need to also update the docs.
+See [checks/write.md](checks/write.md). It covers what a new check must
+meet, how a check's collector, probes, and evaluation fit together, each
+file to add or change, and the tests that catch a missed step. Open an issue
+to discuss a new check before you write it.
 
 ## Adding new probes
 
-See [probes/README.md](probes/README.md) for information about the probes.
+See [probes/README.md](probes/README.md). It explains what a probe is and
+walks through adding one, from `make setup-probe` to regenerating
+`docs/probes.md`.
 
 ## Updating docs
 

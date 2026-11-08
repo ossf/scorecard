@@ -92,7 +92,7 @@ query {
           }
           rules(first: 100) {
             nodes {
-              type
+              type # e.g. DELETION, NON_FAST_FORWARD, PULL_REQUEST, REQUIRED_STATUS_CHECKS, MERGE_QUEUE
               parameters {
                 ... on PullRequestParameters {
                   dismissStaleReviewsOnPush
@@ -483,6 +483,7 @@ const (
 	ruleDeletion               = "DELETION"
 	ruleForcePush              = "NON_FAST_FORWARD"
 	ruleLinear                 = "REQUIRED_LINEAR_HISTORY"
+	ruleMergeQueue             = "MERGE_QUEUE"
 	rulePullRequest            = "PULL_REQUEST"
 	ruleStatusCheck            = "REQUIRED_STATUS_CHECKS"
 )
@@ -550,6 +551,7 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 
 		translated.EnforceAdmins = asPtr(len(r.BypassActors.Nodes) == 0)
 
+		requiresMergeQueue := false
 		for _, rule := range r.Rules.Nodes {
 			switch rule.Type {
 			case ruleDeletion:
@@ -558,11 +560,19 @@ func applyRepoRules(branchRef *clients.BranchRef, rules []*repoRuleSet) {
 				translated.AllowForcePushes = asPtr(false)
 			case ruleLinear:
 				translated.RequireLinearHistory = asPtr(true)
+			case ruleMergeQueue:
+				requiresMergeQueue = true
 			case rulePullRequest:
 				translatePullRequestRepoRule(&translated, rule)
 			case ruleStatusCheck:
 				translateRequiredStatusRepoRule(&translated, rule)
 			}
+		}
+		// A merge queue tests each change against the latest base branch before merging,
+		// which GitHub documents as providing the same benefits as requiring branches to be up to date.
+		// Applied after the loop so a non-strict status check rule in the same ruleset can't override it.
+		if requiresMergeQueue {
+			translated.CheckRules.UpToDateBeforeMerge = asPtr(true)
 		}
 		mergeBranchProtectionRules(&branchRef.BranchProtectionRule, &translated)
 	}

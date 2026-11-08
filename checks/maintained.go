@@ -16,45 +16,13 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckMaintained is the exported check name for Maintained.
 const CheckMaintained = "Maintained"
 
-//nolint:gochecknoinits
-func init() {
-	if err := registerCheck(CheckMaintained, Maintained, nil); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // Maintained runs Maintained check.
 func Maintained(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.Maintained(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.MaintainedResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.Maintained)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckMaintained, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.Maintained(CheckMaintained, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.Maintained.Run(c)
 }

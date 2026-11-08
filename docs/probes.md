@@ -411,6 +411,22 @@ For supported ecosystem, the probe returns OutcomeFalse per unpinned dependency.
 If the project has no supported dependencies, the probe returns OutcomeNotApplicable.
 
 
+## releasesAreImmutable
+
+**Lifecycle**: experimental
+
+**Description**: Check that the project's GitHub releases are marked as immutable.
+
+**Motivation**: Immutable releases prevent release artifacts from being modified or deleted after publication, ensuring consumers always receive the same artifacts that were originally published.
+
+**Implementation**: The probe checks whether the last 5 releases on GitHub are marked as immutable.
+
+**Outcomes**: For each of the last 5 releases, the probe returns OutcomeTrue if the release is marked as immutable.
+For each of the last 5 releases, the probe returns OutcomeFalse if the release is not marked as immutable.
+If the project has no releases, the probe returns OutcomeNotApplicable.
+If the project is not hosted on GitHub, the probe returns OutcomeNotSupported.
+
+
 ## releasesAreSigned
 
 **Lifecycle**: stable
@@ -515,7 +531,7 @@ If we didn't find a package or didn't find releases, return OutcomeNotAvailable.
 
 **Motivation**: Requiring PRs to be in sync with the base branch is good practice.
 
-**Implementation**: The probe checks the branch protection rules of default and release branches in the repository.
+**Implementation**: The probe checks the branch protection rules of default and release branches in the repository. For GitHub-hosted projects, an active repository ruleset that requires a merge queue also satisfies this probe, since a merge queue tests each change against the latest version of the base branch before merging.
 
 **Outcomes**: The probe returns one OutcomeTrue for each branch that requires PRs to be in sync with the base branch, and one OutcomeFalse for branches that don't.
 

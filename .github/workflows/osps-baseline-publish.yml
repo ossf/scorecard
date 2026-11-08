@@ -1,0 +1,87 @@
+# Copyright 2026 OpenSSF Scorecard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Publishes OSPS Baseline results for this repository to grc.store
+# (https://grc.store/targets/scorecard/scorecard), at maturity level 2.
+name: Publish OSPS Baseline results
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run the scan but publish nothing (bundles land in the pvtr-bundles artifact)"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 6 * * 1" # Weekly, Mondays 06:17 UTC
+  # No push or pull_request trigger: the hub accepts one result per target
+  # and catalog every ten minutes, and merges that land close together would
+  # turn the second run red. After merging a fix, run this workflow by hand.
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  version:
+    if: github.repository == 'ossf/scorecard'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Read the latest release tag
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - name: Latest release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag=$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+  results:
+    needs: version
+    permissions:
+      contents: read # The scanner reads this repository through the job token
+      id-token: write # Trusted publishing to the hub and the Sigstore signing identity
+      # The called workflow's report job declares it, and GitHub checks every
+      # called job at startup, even one that upload-sarif: false skips.
+      security-events: write
+    # By tag, not SHA, on purpose: the hub compares the signing certificate's
+    # workflow ref to this exact tag and rejects a SHA-pinned call.
+    uses: revanite-io/pvtr-publish-results/.github/workflows/publish.yml@v1 # zizmor: ignore[unpinned-uses] the hub requires the tag
+    with:
+      target: scorecard/scorecard@${{ needs.version.outputs.version }}
+      license: CC0-1.0
+      dry-run: ${{ inputs.dry-run == true }}
+    secrets:
+      # Inline because the plugin reads its token only from these config vars.
+      # The job token is read-only and scoped to this repository; settings it
+      # can't read report "Needs Review".
+      config: |
+        targets:
+          scorecard:
+            plugin: openssf/github-repo
+            policy:
+              catalogs:
+                - osps-baseline
+              applicability:
+                - maturity-2
+            vars:
+              owner: ossf
+              repo: scorecard
+              token: ${{ secrets.GITHUB_TOKEN }}

@@ -212,6 +212,10 @@ func (client *Client) ListReleases() ([]clients.Release, error) {
 	return client.releases.getReleases()
 }
 
+func (client *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (client *Client) ListContributors() ([]clients.User, error) {
 	return client.contributors.getContributors()
 }
