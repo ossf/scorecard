@@ -79,6 +79,7 @@ func New(o *options.Options) *cobra.Command {
 
 	// Add sub-commands.
 	cmd.AddCommand(serveCmd(o))
+	cmd.AddCommand(mcpCmd())
 	cmd.AddCommand(version.Version())
 	return cmd
 }
