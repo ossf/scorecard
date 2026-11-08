@@ -18,11 +18,7 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     steps:
-    - name: Unterminated expression
+    # GitHub rejects this workflow, so it can't run.
+    - name: Unclosed expression
       run: |
         echo "prefix ${{ github.actor "
-
-    - name: Check title
-      run: |
-        title="${{ github.event.issue.title }}"
-        echo "$title"
