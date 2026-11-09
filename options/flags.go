@@ -22,6 +22,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/internal/conformance/catalog"
 )
 
 const (
@@ -81,6 +82,14 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	// FlagCatalog is the flag name for the catalog that selects conformance
+	// mode.
+	FlagCatalog = "catalog"
+
+	// FlagProfile is the flag name for the catalog applicability group to
+	// evaluate.
+	FlagProfile = "profile"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -238,8 +247,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagFormat,
 		o.Format,
 		fmt.Sprintf(
-			"output format. Possible values are: %s",
-			strings.Join(allowedFormats, ", "),
+			"output format. Possible values are: %s (gemara requires --catalog)",
+			strings.Join(append(allowedFormats, FormatGemara), ", "),
 		),
 	)
 
@@ -251,6 +260,23 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"write results to this file instead of stdout",
 	)
 
+	cmd.Flags().StringVar(
+		&o.Catalog,
+		FlagCatalog,
+		o.Catalog,
+		fmt.Sprintf("EXPERIMENTAL: evaluate the requirements of a catalog, as <id> or <id>@<version>, "+
+			"instead of running checks. Requires --profile and --format=json or --format=gemara. "+
+			"Possible values are: %s", strings.Join(catalog.IDs(), ", ")),
+	)
+
+	cmd.Flags().StringVar(
+		&o.Profile,
+		FlagProfile,
+		o.Profile,
+		"EXPERIMENTAL: the catalog applicability group to evaluate, such as maturity-1 for osps-baseline",
+	)
+
+	allowedModes := []string{FileModeArchive, FileModeGit}
 	cmd.Flags().StringVar(
 		&o.FileMode,
 		FlagFileMode,

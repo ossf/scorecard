@@ -142,6 +142,12 @@ func rootCmd(o *options.Options) error {
 		return err
 	}
 
+	// Conformance mode scans one repository: option validation rejects
+	// --repos and --org with --catalog.
+	if o.IsConformanceMode() {
+		return runConformance(ctx, o, repoURLs[0])
+	}
+
 	// Shared setup
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
