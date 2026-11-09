@@ -10,37 +10,37 @@
 
 ## 2. Evaluation
 
-- [ ] 2.1 Add `internal/conformance/` with the result type, requirement
+- [x] 2.1 Add `internal/conformance/` with the result type, requirement
   results, evidence, and coverage.
-- [ ] 2.2 Add the `osps-baseline` v2026.08.28 release package: the
+- [x] 2.2 Add the `osps-baseline` v2026.08.28 release package: the
   requirement IDs and applicability groups for the profile, and the
   mappings for OSPS-AC-03.01 and OSPS-AC-03.02.
-- [ ] 2.3 Evaluate OSPS-AC-03.01 and OSPS-AC-03.02 from default-branch
+- [x] 2.3 Evaluate OSPS-AC-03.01 and OSPS-AC-03.02 from default-branch
   findings, getting the default branch name from the repository client.
-- [ ] 2.4 Test PASS, FAIL, UNKNOWN, and NEEDS_REVIEW for the two
+- [x] 2.4 Test PASS, FAIL, UNKNOWN, and NEEDS_REVIEW for the two
   requirements, and NOT_APPLICABLE with a test-only requirement limited
   to `maturity-3`.
-- [ ] 2.5 Test that every probe a mapping names is registered, so a
+- [x] 2.5 Test that every probe a mapping names is registered, so a
   renamed probe fails the build.
 
 ## 3. Command line and output
 
-- [ ] 3.1 Add `--catalog` and `--profile`, their validation, and the
+- [x] 3.1 Add `--catalog` and `--profile`, their validation, and the
   conflicts with `--checks`, `--probes`, `--policy`, `--repos`, and
   `--org`.
-- [ ] 3.2 Run the mapped probes in conformance mode without computing
+- [x] 3.2 Run the mapped probes in conformance mode without computing
   check scores.
-- [ ] 3.3 Write conformance JSON.
+- [x] 3.3 Write conformance JSON.
 - [ ] 3.4 Write the Gemara Evaluation Log and validate a generated log
   with `cue vet` against Gemara v1.6.0 in CI.
-- [ ] 3.5 Mark the options experimental in `--help`, warn on standard
+- [x] 3.5 Mark the options experimental in `--help`, warn on standard
   error, and set `experimental` in the JSON output.
-- [ ] 3.6 Confirm that native output for the same repository is
+- [x] 3.6 Confirm that native output for the same repository is
   unchanged.
 
 ## 4. Documentation and comparison
 
-- [ ] 4.1 Document conformance mode, its inputs, and its results for
+- [x] 4.1 Document conformance mode, its inputs, and its results for
   users.
 - [ ] 4.2 Run conformance mode on ossf/scorecard and compare the two
   results with Privateer's published evaluation; record any
