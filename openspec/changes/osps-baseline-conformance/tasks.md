@@ -31,7 +31,7 @@
 - [x] 3.2 Run the mapped probes in conformance mode without computing
   check scores.
 - [x] 3.3 Write conformance JSON.
-- [ ] 3.4 Write the Gemara Evaluation Log and validate a generated log
+- [x] 3.4 Write the Gemara Evaluation Log and validate a generated log
   with `cue vet` against Gemara v1.6.0 in CI.
 - [x] 3.5 Mark the options experimental in `--help`, warn on standard
   error, and set `experimental` in the JSON output.

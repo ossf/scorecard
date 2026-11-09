@@ -18,6 +18,7 @@
 package main
 
 import (
+	_ "cuelang.org/go/cmd/cue"
 	_ "github.com/golangci/golangci-lint/v2/cmd/golangci-lint"
 	_ "github.com/google/addlicense"
 	_ "go.uber.org/mock/mockgen"
