@@ -42,7 +42,7 @@
 
 - [x] 4.1 Document conformance mode, its inputs, and its results for
   users.
-- [ ] 4.2 Run conformance mode on ossf/scorecard and compare the two
+- [x] 4.2 Run conformance mode on ossf/scorecard and compare the two
   results with Privateer's published evaluation; record any
   differences and why.
 

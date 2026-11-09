@@ -78,6 +78,29 @@ func TestConformanceReport(t *testing.T) {
 	}
 }
 
+// TestConformanceReportUnknownDefaultBranch covers a platform that can't
+// report the default branch: findings for a branch named "unknown" must not
+// be read as the default branch's.
+func TestConformanceReportUnknownDefaultBranch(t *testing.T) {
+	t.Parallel()
+	release, err := catalog.Lookup("osps-baseline")
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := scanResult("unknown",
+		onBranch("requiresPRsToChangeCode", "unknown", finding.OutcomeTrue),
+		onBranch("branchProtectionAppliesToAdmins", "unknown", finding.OutcomeTrue),
+		onBranch("blocksDeleteOnBranches", "unknown", finding.OutcomeTrue),
+	)
+	report := conformanceReport(result, release, "maturity-1")
+	for _, r := range report.Results {
+		if r.Result != conformance.Unknown || r.Explanation != "The default branch is unknown." {
+			t.Errorf("%s = %s (%s), want UNKNOWN because the default branch is unknown",
+				r.Requirement, r.Result, r.Explanation)
+		}
+	}
+}
+
 // TestConformanceReportEmptyRepository covers a scan that returns before
 // recording a default branch, as Scorecard does for an empty repository.
 func TestConformanceReportEmptyRepository(t *testing.T) {

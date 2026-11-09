@@ -141,6 +141,7 @@ generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml doc
 	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
 
 # Gemara schema release that conformance mode's Evaluation Log targets.
+# Keep in step with GemaraVersion in internal/conformance/gemara.go.
 GEMARA_VERSION := v1.6.0
 GEMARA_COMMIT := 14a8b1c02e1b7152781c0af7b6bcd07012f9763c
 GEMARA_FIXTURE := internal/conformance/testdata/evaluation-log.json

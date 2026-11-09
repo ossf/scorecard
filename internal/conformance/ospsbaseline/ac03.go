@@ -105,11 +105,12 @@ func evaluateAC0301(in conformance.Input) conformance.Outcome {
 
 	// A branch with no protection rule or ruleset leaves the pull request
 	// setting unset, so requiresPRsToChangeCode alone would report it as
-	// not available. branchesAreProtected also reports False when the
-	// platform client can't tell whether the branch is protected (Azure
-	// DevOps policies it can't read); the Branch-Protection check treats
-	// that finding the same way.
-	if protectedOK && protected.Outcome == finding.OutcomeFalse && prs.Outcome != finding.OutcomeTrue {
+	// not available. Other outcomes, such as an error, stay UNKNOWN.
+	// branchesAreProtected also reports False when the platform client
+	// can't tell whether the branch is protected (Azure DevOps policies it
+	// can't read); the Branch-Protection check treats that finding the
+	// same way.
+	if protectedOK && protected.Outcome == finding.OutcomeFalse && prs.Outcome == finding.OutcomeNotAvailable {
 		return conformance.Outcome{
 			Result:      conformance.Fail,
 			Explanation: fmt.Sprintf("The default branch %q is not protected.", branch),
@@ -140,8 +141,8 @@ func evaluateAC0301(in conformance.Input) conformance.Outcome {
 		return conformance.Outcome{
 			Result: conformance.Pass,
 			Explanation: fmt.Sprintf("The default branch %q requires pull requests, and the rule applies "+
-				"to administrators. Lists of users, teams, or apps allowed to bypass required pull "+
-				"requests are not checked.", branch),
+				"to administrators. Under classic branch protection, lists of users, teams, or apps "+
+				"allowed to bypass required pull requests are not checked.", branch),
 			Evidence: evidence,
 		}
 	case adminsOK && admins.Outcome == finding.OutcomeFalse:

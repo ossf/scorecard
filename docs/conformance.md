@@ -75,9 +75,13 @@ so. A repository ruleset with any bypass actor gives `NEEDS_REVIEW`.
 | --- | --- |
 | `PASS` | The evidence shows the requirement is met. |
 | `FAIL` | The evidence shows the requirement is not met. |
-| `UNKNOWN` | Evidence is missing, or a probe errored or couldn't observe it. |
+| `UNKNOWN` | Evidence is missing, or a probe reported an error or no data. |
 | `NOT_APPLICABLE` | The requirement doesn't apply to the selected profile. |
 | `NEEDS_REVIEW` | Evidence exists, but deciding needs judgment. |
+
+If Scorecard can't collect the data at all, for example because the token
+lacks a permission the platform requires, the run fails with an error and
+writes no results.
 
 For OSPS-AC-03.01, a default branch that requires pull requests but lets
 administrators bypass the rule is `NEEDS_REVIEW`: the requirement doesn't
@@ -136,3 +140,9 @@ Results map to Gemara values as `PASS` to `Passed`, `FAIL` to `Failed`,
 `NEEDS_REVIEW` to `Needs Review`. The catalog release is recorded in
 `metadata.mapping-references`. Requirements that were not evaluated are left
 out of the log; its description says how many there were.
+
+The log's top-level `result` rolls up only the requirements in the log, as
+Gemara defines it. A `Passed` log means every evaluated requirement passed,
+not that the repository meets the whole catalog. For which requirements
+were evaluated, read the log's description, or `notEvaluated` in
+conformance JSON.

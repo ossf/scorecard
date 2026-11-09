@@ -281,7 +281,7 @@ func (o *Options) validateConformance() []error {
 	if o.Local != "" {
 		errs = append(errs, errLocalWithCatalog)
 	}
-	if o.Commit != "" && o.Commit != DefaultCommit {
+	if o.Commit != "" && !strings.EqualFold(o.Commit, DefaultCommit) {
 		errs = append(errs, errCommitWithCatalog)
 	}
 	return errs

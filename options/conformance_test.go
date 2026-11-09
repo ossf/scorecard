@@ -55,6 +55,10 @@ func TestValidateConformance(t *testing.T) {
 			wantErr: errLocalWithCatalog,
 		},
 		{
+			name:   "commit HEAD in lower case",
+			modify: func(o *Options) { o.Commit = "head" },
+		},
+		{
 			name:    "commit other than HEAD",
 			modify:  func(o *Options) { o.Commit = "0123456789abcdef0123456789abcdef01234567" },
 			wantErr: errCommitWithCatalog,

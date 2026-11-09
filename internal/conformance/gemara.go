@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sort"
 	"strings"
 	"time"
 
@@ -26,6 +27,8 @@ import (
 )
 
 // GemaraVersion is the Gemara schema release the Evaluation Log targets.
+// Keep it in step with GEMARA_VERSION and GEMARA_COMMIT in the Makefile,
+// which CI uses to validate the golden Evaluation Log.
 const GemaraVersion = "1.6.0"
 
 // Gemara #Result values.
@@ -191,10 +194,7 @@ func (r *Report) AsGemara(w io.Writer) error {
 		}
 		for j := range res.Evidence {
 			f := &res.Evidence[j]
-			id := f.Probe
-			if b, ok := f.Values["branchName"]; ok {
-				id += "/" + b
-			}
+			id := evidenceID(f)
 			a.Evidence = append(a.Evidence, gemaraEvidence{
 				ID:          id,
 				Type:        evidenceType,
@@ -305,4 +305,19 @@ func repoURI(name string) string {
 		return name
 	}
 	return "https://" + name
+}
+
+// evidenceID identifies a finding within an assessment: the probe name,
+// then the finding's values in key order, such as the branch name.
+func evidenceID(f *finding.Finding) string {
+	keys := make([]string, 0, len(f.Values))
+	for k := range f.Values {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	parts := []string{f.Probe}
+	for _, k := range keys {
+		parts = append(parts, f.Values[k])
+	}
+	return strings.Join(parts, "/")
 }

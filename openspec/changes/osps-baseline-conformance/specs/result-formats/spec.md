@@ -103,3 +103,18 @@ SHALL be left out of the log.
 - **GIVEN** OSPS-AC-03.01 is `UNKNOWN`
 - **WHEN** the run is written with `--format gemara`
 - **THEN** its Assessment Log `result` is `Unknown`
+
+### Requirement: Gemara Log Result
+
+The Evaluation Log's top-level `result` SHALL roll up only the Control
+Evaluations the log contains, as Gemara defines it. It SHALL NOT be read
+as a result for the whole catalog: the log's `metadata.description`
+SHALL state how many of the profile's requirements were evaluated.
+
+#### Scenario: Partial coverage
+
+- **GIVEN** both evaluated requirements are `PASS` and 23 of the 25
+  `maturity-1` requirements are not evaluated
+- **WHEN** the run is written with `--format gemara`
+- **THEN** the log's `result` is `Passed`, and its description says 2
+  of the 25 requirements were evaluated

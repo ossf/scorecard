@@ -73,26 +73,42 @@ func runConformance(ctx context.Context, o *options.Options, uri string) error {
 
 	report := conformanceReport(&result, release, o.Profile)
 
-	output := os.Stdout
-	if o.ResultsFile != "" {
-		output, err = os.Create(o.ResultsFile)
-		if err != nil {
-			return fmt.Errorf("unable to create output file: %w", err)
-		}
-		fmt.Fprintln(os.Stderr, "Writing results to", o.ResultsFile)
-		defer output.Close()
+	if o.ResultsFile == "" {
+		return writeConformance(os.Stdout, o.Format, report)
 	}
-	return writeConformance(output, o.Format, report)
+	output, err := os.Create(o.ResultsFile)
+	if err != nil {
+		return fmt.Errorf("unable to create output file: %w", err)
+	}
+	fmt.Fprintln(os.Stderr, "Writing results to", o.ResultsFile)
+	if err := writeConformance(output, o.Format, report); err != nil {
+		output.Close()
+		return err
+	}
+	// A failed close can leave the file truncated.
+	if err := output.Close(); err != nil {
+		return fmt.Errorf("close output file: %w", err)
+	}
+	return nil
 }
+
+// unknownBranch is what Scorecard records as the default branch when the
+// platform can't report it.
+const unknownBranch = "unknown"
 
 // conformanceReport evaluates the release's mappings for the profile from
 // the scan's probe findings.
 func conformanceReport(result *scorecard.Result, release *conformance.Release, profile string) *conformance.Report {
+	// Scorecard records "unknown" when the platform can't report the
+	// default branch, and nothing for an empty repository. Both mean the
+	// default branch is unknown, which conformance.Input represents as
+	// empty, so a branch actually named "unknown" is never mistaken for it.
+	defaultBranch := result.RawResults.Metadata.Metadata["repository.defaultBranch"]
+	if defaultBranch == unknownBranch {
+		defaultBranch = ""
+	}
 	in := conformance.Input{
-		// Scorecard records the default branch for every scan; it is
-		// "unknown" when the platform can't report it, which matches no
-		// finding and so yields UNKNOWN.
-		DefaultBranch: result.RawResults.Metadata.Metadata["repository.defaultBranch"],
+		DefaultBranch: defaultBranch,
 		Findings:      result.Findings,
 	}
 	results, notEvaluated := conformance.Evaluate(release, profile, in)

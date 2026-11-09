@@ -24,6 +24,8 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/ossf/scorecard/v5/finding"
 )
 
 // Regenerate the golden files with:
@@ -176,6 +178,24 @@ func TestRepoURI(t *testing.T) {
 	for in, want := range tests {
 		if got := repoURI(in); got != want {
 			t.Errorf("repoURI(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+func TestEvidenceID(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		values map[string]string
+		want   string
+	}{
+		{want: "someProbe"},
+		{values: map[string]string{"branchName": "main"}, want: "someProbe/main"},
+		{values: map[string]string{"z": "2", "a": "1"}, want: "someProbe/1/2"},
+	}
+	for _, tt := range tests {
+		f := &finding.Finding{Probe: "someProbe", Values: tt.values}
+		if got := evidenceID(f); got != tt.want {
+			t.Errorf("evidenceID(%v) = %q, want %q", tt.values, got, tt.want)
 		}
 	}
 }
