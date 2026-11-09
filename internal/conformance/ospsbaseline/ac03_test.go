@@ -15,6 +15,7 @@
 package ospsbaseline
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/ossf/scorecard/v5/checker"
@@ -216,6 +217,11 @@ func TestAC0301(t *testing.T) {
 			}
 			if got.Explanation == "" {
 				t.Error("explanation is empty")
+			}
+			// PR bypass lists under classic protection aren't collected,
+			// so a PASS must say so.
+			if got.Result == conformance.Pass && !strings.Contains(got.Explanation, "bypass") {
+				t.Errorf("PASS explanation lacks the bypass caveat: %s", got.Explanation)
 			}
 		})
 	}

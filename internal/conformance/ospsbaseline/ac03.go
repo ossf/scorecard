@@ -140,7 +140,8 @@ func evaluateAC0301(in conformance.Input) conformance.Outcome {
 		return conformance.Outcome{
 			Result: conformance.Pass,
 			Explanation: fmt.Sprintf("The default branch %q requires pull requests, and the rule applies "+
-				"to administrators.", branch),
+				"to administrators. Lists of users, teams, or apps allowed to bypass required pull "+
+				"requests are not checked.", branch),
 			Evidence: evidence,
 		}
 	case adminsOK && admins.Outcome == finding.OutcomeFalse:

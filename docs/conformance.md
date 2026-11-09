@@ -64,6 +64,11 @@ rulesets are visible to any token (see the
 [Branch-Protection check](checks.md#branch-protection)). Without that
 access, OSPS-AC-03.01 can be `UNKNOWN`.
 
+Classic branch protection can also let specific users, teams, or apps
+bypass required pull requests. Scorecard doesn't collect that list yet, so
+an OSPS-AC-03.01 `PASS` doesn't rule it out; the result's explanation says
+so. A repository ruleset with any bypass actor gives `NEEDS_REVIEW`.
+
 ## Results
 
 | Result | Meaning |
