@@ -57,13 +57,16 @@ func Run(raw *checker.RawResults) ([]finding.Finding, string, error) {
 	for i := range r.Branches {
 		branch := &r.Branches[i]
 
-		protected := (branch.Protected != nil && *branch.Protected)
 		var text string
 		var outcome finding.Outcome
-		if protected {
+		switch {
+		case branch.Protected == nil:
+			text = fmt.Sprintf("unable to determine whether branch '%s' is protected", *branch.Name)
+			outcome = finding.OutcomeNotAvailable
+		case *branch.Protected:
 			text = fmt.Sprintf("branch '%s' is protected", *branch.Name)
 			outcome = finding.OutcomeTrue
-		} else {
+		default:
 			text = fmt.Sprintf("branch '%s' is not protected", *branch.Name)
 			outcome = finding.OutcomeFalse
 		}

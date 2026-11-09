@@ -99,6 +99,7 @@ func BranchProtection(name string,
 	// one `Branch protection rules`. All settings may be disabled,
 	// so it does not provide any guarantees.
 	protectedBranches := make(map[string]bool)
+	unknownBranches := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
 		if f.Outcome == finding.OutcomeNotApplicable {
@@ -126,6 +127,11 @@ func BranchProtection(name string,
 			})
 		case f.Outcome == finding.OutcomeTrue:
 			protectedBranches[branchName] = true
+		case f.Outcome == finding.OutcomeNotAvailable:
+			unknownBranches[branchName] = true
+			dl.Debug(&checker.LogMessage{
+				Text: fmt.Sprintf("unable to determine whether branch protection is enabled for branch '%s'", branchName),
+			})
 		default:
 			continue
 		}
@@ -204,8 +210,8 @@ func BranchProtection(name string,
 		}
 	}
 
-	if len(branchScores) == 0 {
-		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches")
+	if result, ok := inconclusiveIfNoScores(name, branchScores, unknownBranches); ok {
+		return result
 	}
 
 	scores := make([]levelScore, 0, len(branchScores))
@@ -228,6 +234,25 @@ func BranchProtection(name string,
 	default:
 		return checker.CreateResultWithScore(name,
 			"branch protection is not maximal on development and all release branches", score)
+	}
+}
+
+// inconclusiveIfNoScores drops branches whose protection status is unknown,
+// so they aren't scored as unprotected, and returns an inconclusive result
+// if no branch is left to score.
+func inconclusiveIfNoScores(name string, branchScores map[string]*levelScore,
+	unknownBranches map[string]bool,
+) (checker.CheckResult, bool) {
+	for branchName := range unknownBranches {
+		delete(branchScores, branchName)
+	}
+	switch {
+	case len(branchScores) > 0:
+		return checker.CheckResult{}, false
+	case len(unknownBranches) > 0:
+		return checker.CreateInconclusiveResult(name, "unable to determine branch protection status"), true
+	default:
+		return checker.CreateInconclusiveResult(name, "unable to detect any development/release branches"), true
 	}
 }
 

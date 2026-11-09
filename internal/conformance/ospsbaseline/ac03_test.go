@@ -90,6 +90,17 @@ func TestAC0301(t *testing.T) {
 			wantEvidence: 3,
 		},
 		{
+			name:          "default branch protection unknown",
+			defaultBranch: "main",
+			findings: []finding.Finding{
+				branchFinding(protected, "main", finding.OutcomeNotAvailable),
+				branchFinding(prs, "main", finding.OutcomeNotAvailable),
+				branchFinding(admins, "main", finding.OutcomeNotAvailable),
+			},
+			want:         conformance.Unknown,
+			wantEvidence: 3,
+		},
+		{
 			name:          "default branch not protected, pull request probe errored",
 			defaultBranch: "main",
 			findings: []finding.Finding{
