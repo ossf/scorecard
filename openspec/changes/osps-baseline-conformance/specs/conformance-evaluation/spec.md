@@ -97,7 +97,10 @@ ordered.
 
 In conformance mode the system MUST reject `--checks`, `--probes`, and
 `--policy`, and MUST reject `--repos` and `--org`. It SHALL accept
-`--format` values `json` and `gemara` only. These failures SHALL be
+`--format` values `json` and `gemara` only. While every mapped
+requirement depends on branch protection data, it MUST also reject
+`--local` and a `--commit` other than `HEAD`, since Scorecard can't
+collect that data for either. These failures SHALL be
 reported with the other validation errors, as defined in `cli`.
 
 #### Scenario: Checks with catalog
@@ -105,6 +108,13 @@ reported with the other validation errors, as defined in `cli`.
 - **WHEN** a user passes `--catalog=osps-baseline --profile=maturity-1
   --checks=Branch-Protection`
 - **THEN** option validation fails with "`--checks` cannot be used with
+  `--catalog`"
+
+#### Scenario: Local directory with catalog
+
+- **WHEN** a user passes `--local=. --catalog=osps-baseline
+  --profile=maturity-1 --format=json`
+- **THEN** option validation fails with "`--local` cannot be used with
   `--catalog`"
 
 #### Scenario: Format omitted in conformance mode
@@ -212,21 +222,37 @@ version, the profile, and the time of the assessment.
 ### Requirement: OSPS-AC-03.01 Evaluation
 
 The system SHALL evaluate OSPS-AC-03.01 (direct commits to the primary
-branch are prevented) from the default branch's findings for
-`requiresPRsToChangeCode` and `branchProtectionAppliesToAdmins`:
+branch are prevented) from the default branch's probe findings:
 
-- `PASS` when both are `True`.
+- `PASS` when `requiresPRsToChangeCode` and
+  `branchProtectionAppliesToAdmins` are both `True`.
 - `FAIL` when `requiresPRsToChangeCode` is `False`.
-- `UNKNOWN` otherwise, except as defined in OSPS-AC-03.01 Administrator
-  Bypass.
+- `UNKNOWN` otherwise, except as the Unprotected Branch and
+  Administrator Bypass requirements below define.
 
 Findings for branches other than the default branch SHALL be ignored.
 
 #### Scenario: Protected for everyone
 
-- **GIVEN** both probes report `True` for the default branch
+- **GIVEN** `requiresPRsToChangeCode` and
+  `branchProtectionAppliesToAdmins` report `True` for the default branch
 - **WHEN** OSPS-AC-03.01 is evaluated
 - **THEN** its result is `PASS`
+
+### Requirement: OSPS-AC-03.01 Unprotected Branch
+
+The system SHALL give OSPS-AC-03.01 `FAIL` when `branchesAreProtected`
+is `False` and `requiresPRsToChangeCode` is not `True` for the default
+branch. A branch with no protection rule or ruleset leaves the pull
+request setting unset, so `requiresPRsToChangeCode` alone can't show
+that it is unprotected.
+
+#### Scenario: Default branch not protected
+
+- **GIVEN** `branchesAreProtected` reports `False` and
+  `requiresPRsToChangeCode` reports `NotAvailable` for the default branch
+- **WHEN** OSPS-AC-03.01 is evaluated
+- **THEN** its result is `FAIL`
 
 ### Requirement: OSPS-AC-03.01 Administrator Bypass
 
@@ -250,11 +276,12 @@ requires explicit confirmation) from the default branch's finding for
 `blocksDeleteOnBranches`:
 
 - `PASS` when the finding is `True`.
-- `FAIL` when the finding is `False`.
 - `UNKNOWN` otherwise.
 
 A block on deletion SHALL count as meeting the requirement, since it is
-stricter than requiring confirmation.
+stricter than requiring confirmation. A rule that allows deletion SHALL
+NOT count as failing it: the requirement asks for explicit
+confirmation, and no probe observes whether the platform asks for it.
 
 #### Scenario: Deletion blocked
 
@@ -268,7 +295,7 @@ stricter than requiring confirmation.
 - **GIVEN** `blocksDeleteOnBranches` reports `False` for the default
   branch
 - **WHEN** OSPS-AC-03.02 is evaluated
-- **THEN** its result is `FAIL`
+- **THEN** its result is `UNKNOWN`
 
 ### Requirement: Experimental Status
 

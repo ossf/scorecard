@@ -29,9 +29,11 @@ scorecard --repo=github.com/ossf/scorecard \
   Evaluation Log. Required.
 - `--output`: write the results to a file instead of standard output.
 
-`--repo`, `--local`, `--commit`, and the package-manager options work as
-they do for a normal scan. `--checks`, `--probes`, `--policy`, `--repos`, and
-`--org` can't be used with `--catalog`.
+`--repo` and the package-manager options work as they do for a normal scan.
+`--checks`, `--probes`, `--policy`, `--repos`, and `--org` can't be used with
+`--catalog`. Neither can `--local` or a `--commit` other than `HEAD`: every
+requirement Scorecard evaluates so far needs branch protection settings,
+which Scorecard can read only for the current state of a hosted repository.
 
 Conformance mode runs only the probes that the catalog's mappings need, and
 computes no check scores. Runs without `--catalog` are unchanged.
@@ -46,9 +48,13 @@ Scorecard evaluates these OSPS Baseline requirements from the default
 branch's probe findings:
 
 - OSPS-AC-03.01, direct commits to the primary branch are prevented:
-  `requiresPRsToChangeCode` and `branchProtectionAppliesToAdmins`.
+  `branchesAreProtected`, `requiresPRsToChangeCode`, and
+  `branchProtectionAppliesToAdmins`. An unprotected default branch is
+  `FAIL`.
 - OSPS-AC-03.02, deleting the primary branch requires confirmation:
-  `blocksDeleteOnBranches`.
+  `blocksDeleteOnBranches`. A rule that blocks deletion is `PASS`. A rule
+  that allows it is `UNKNOWN`, because Scorecard can't see whether the
+  platform asks for confirmation.
 
 Every other requirement in the profile is listed as not evaluated.
 

@@ -137,6 +137,14 @@ var (
 	errPolicyWithCatalog      = errors.New("`--policy` cannot be used with `--catalog`")
 	errReposWithCatalog       = errors.New("`--repos` cannot be used with `--catalog`")
 	errOrgWithCatalog         = errors.New("`--org` cannot be used with `--catalog`")
+	// The mapped requirements need branch protection data, which Scorecard
+	// can't collect for a local directory or a commit other than HEAD.
+	errLocalWithCatalog = errors.New(
+		"`--local` cannot be used with `--catalog`: branch protection settings are not available " +
+			"for a local directory")
+	errCommitWithCatalog = errors.New(
+		"`--commit` cannot be used with `--catalog`: branch protection settings are available only " +
+			"for HEAD")
 )
 
 // Validate validates scorecard configuration options.
@@ -269,6 +277,12 @@ func (o *Options) validateConformance() []error {
 	}
 	if o.Org != "" {
 		errs = append(errs, errOrgWithCatalog)
+	}
+	if o.Local != "" {
+		errs = append(errs, errLocalWithCatalog)
+	}
+	if o.Commit != "" && o.Commit != DefaultCommit {
+		errs = append(errs, errCommitWithCatalog)
 	}
 	return errs
 }

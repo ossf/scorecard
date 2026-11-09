@@ -22,8 +22,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ossf/scorecard/v5/clients"
-	"github.com/ossf/scorecard/v5/clients/localdir"
 	"github.com/ossf/scorecard/v5/internal/conformance"
 	"github.com/ossf/scorecard/v5/internal/conformance/catalog"
 	sclog "github.com/ossf/scorecard/v5/log"
@@ -52,17 +50,11 @@ func runConformance(ctx context.Context, o *options.Options, uri string) error {
 		return fmt.Errorf("%s %s, %s: %w", release.Catalog, release.Version, o.Profile, errNoMappedProbes)
 	}
 
-	var repo clients.Repo
-	if o.Local != "" {
-		repo, err = localdir.MakeLocalDirRepo(uri)
-		if err != nil {
-			return fmt.Errorf("localdir: %w", err)
-		}
-	} else {
-		repo, err = makeRepo(uri)
-		if err != nil {
-			return err
-		}
+	// Option validation rejects --local in conformance mode: the mapped
+	// requirements need branch protection data.
+	repo, err := makeRepo(uri)
+	if err != nil {
+		return err
 	}
 
 	opts := []scorecard.Option{

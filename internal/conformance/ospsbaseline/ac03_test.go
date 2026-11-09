@@ -17,10 +17,13 @@ package ospsbaseline
 import (
 	"testing"
 
+	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/conformance"
 	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v5/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v5/probes/requiresPRsToChangeCode"
 )
 
@@ -38,9 +41,10 @@ func noBranches(probe string) finding.Finding {
 }
 
 const (
-	prs    = requiresPRsToChangeCode.Probe
-	admins = branchProtectionAppliesToAdmins.Probe
-	del    = blocksDeleteOnBranches.Probe
+	prs       = requiresPRsToChangeCode.Probe
+	admins    = branchProtectionAppliesToAdmins.Probe
+	del       = blocksDeleteOnBranches.Probe
+	protected = branchesAreProtected.Probe
 )
 
 func TestAC0301(t *testing.T) {
@@ -60,6 +64,40 @@ func TestAC0301(t *testing.T) {
 				branchFinding(admins, "main", finding.OutcomeTrue),
 			},
 			want:         conformance.Pass,
+			wantEvidence: 2,
+		},
+		{
+			name:          "protected for everyone, with protection finding",
+			defaultBranch: "main",
+			findings: []finding.Finding{
+				branchFinding(protected, "main", finding.OutcomeTrue),
+				branchFinding(prs, "main", finding.OutcomeTrue),
+				branchFinding(admins, "main", finding.OutcomeTrue),
+			},
+			want:         conformance.Pass,
+			wantEvidence: 3,
+		},
+		{
+			name:          "default branch not protected",
+			defaultBranch: "main",
+			findings: []finding.Finding{
+				branchFinding(protected, "main", finding.OutcomeFalse),
+				branchFinding(prs, "main", finding.OutcomeNotAvailable),
+				branchFinding(admins, "main", finding.OutcomeNotAvailable),
+			},
+			want:         conformance.Fail,
+			wantEvidence: 3,
+		},
+		{
+			name:          "only another branch is not protected",
+			defaultBranch: "main",
+			findings: []finding.Finding{
+				branchFinding(protected, "release/v1", finding.OutcomeFalse),
+				branchFinding(prs, "release/v1", finding.OutcomeNotAvailable),
+				branchFinding(protected, "main", finding.OutcomeTrue),
+				branchFinding(prs, "main", finding.OutcomeNotAvailable),
+			},
+			want:         conformance.Unknown,
 			wantEvidence: 2,
 		},
 		{
@@ -198,7 +236,7 @@ func TestAC0302(t *testing.T) {
 		{
 			name:     "deletion allowed",
 			findings: []finding.Finding{branchFinding(del, "main", finding.OutcomeFalse)},
-			want:     conformance.Fail,
+			want:     conformance.Unknown,
 		},
 		{
 			name:     "setting not available",
@@ -236,5 +274,44 @@ func TestAC0302(t *testing.T) {
 				t.Error("explanation is empty")
 			}
 		})
+	}
+}
+
+// TestUnprotectedBranch runs the mapped probes on the raw data a platform
+// client reports for a default branch with no protection rule or ruleset:
+// Protected is false and every rule setting is unset.
+func TestUnprotectedBranch(t *testing.T) {
+	t.Parallel()
+	main := "main"
+	unprotected := false
+	raw := &checker.RawResults{BranchProtectionResults: checker.BranchProtectionsData{
+		Branches: []clients.BranchRef{{Name: &main, Protected: &unprotected}},
+	}}
+	var findings []finding.Finding
+	for _, run := range []func(*checker.RawResults) ([]finding.Finding, string, error){
+		branchesAreProtected.Run,
+		requiresPRsToChangeCode.Run,
+		branchProtectionAppliesToAdmins.Run,
+		blocksDeleteOnBranches.Run,
+	} {
+		f, probe, err := run(raw)
+		if err != nil {
+			t.Fatalf("%s: %v", probe, err)
+		}
+		findings = append(findings, f...)
+	}
+	in := conformance.Input{DefaultBranch: main, Findings: findings}
+
+	tests := []struct {
+		want    conformance.Result
+		mapping conformance.Mapping
+	}{
+		{mapping: AC0301Mapping(), want: conformance.Fail},
+		{mapping: AC0302Mapping(), want: conformance.Unknown},
+	}
+	for _, tt := range tests {
+		if got := tt.mapping.Evaluate(in); got.Result != tt.want {
+			t.Errorf("%s = %s (%s), want %s", tt.mapping.Requirement, got.Result, got.Explanation, tt.want)
+		}
 	}
 }

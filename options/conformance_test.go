@@ -50,8 +50,14 @@ func TestValidateConformance(t *testing.T) {
 			modify: func(o *Options) { o.Format = FormatGemara; o.Catalog = "osps-baseline@v2026.08.28" },
 		},
 		{
-			name:   "valid local directory",
-			modify: func(o *Options) { o.Repo = ""; o.Local = "." },
+			name:    "local directory",
+			modify:  func(o *Options) { o.Repo = ""; o.Local = "." },
+			wantErr: errLocalWithCatalog,
+		},
+		{
+			name:    "commit other than HEAD",
+			modify:  func(o *Options) { o.Commit = "0123456789abcdef0123456789abcdef01234567" },
+			wantErr: errCommitWithCatalog,
 		},
 		{
 			name:        "unknown catalog",

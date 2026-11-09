@@ -25,6 +25,7 @@ import (
 	"github.com/ossf/scorecard/v5/internal/conformance"
 	"github.com/ossf/scorecard/v5/probes/blocksDeleteOnBranches"
 	"github.com/ossf/scorecard/v5/probes/branchProtectionAppliesToAdmins"
+	"github.com/ossf/scorecard/v5/probes/branchesAreProtected"
 	"github.com/ossf/scorecard/v5/probes/requiresPRsToChangeCode"
 )
 
@@ -51,13 +52,15 @@ func AC0301Mapping() conformance.Mapping {
 	return conformance.Mapping{
 		Requirement:  AC0301,
 		ControlTitle: ac03Title,
-		Description: "Checks that the default branch requires pull requests to change code, " +
-			"and that the rule applies to administrators.",
+		Description: "Checks that the default branch is protected, requires pull requests to " +
+			"change code, and that the rule applies to administrators.",
 		Probes: []string{
 			branchProtectionAppliesToAdmins.Probe,
+			branchesAreProtected.Probe,
 			requiresPRsToChangeCode.Probe,
 		},
 		Steps: []string{
+			"Read the branchesAreProtected finding for the default branch.",
 			"Read the requiresPRsToChangeCode finding for the default branch.",
 			"Read the branchProtectionAppliesToAdmins finding for the default branch.",
 		},
@@ -71,7 +74,8 @@ func AC0302Mapping() conformance.Mapping {
 		Requirement:  AC0302,
 		ControlTitle: ac03Title,
 		Description: "Checks that the default branch cannot be deleted. Blocking deletion is " +
-			"stricter than requiring confirmation, so it meets the requirement.",
+			"stricter than requiring confirmation, so it meets the requirement. Allowing " +
+			"deletion does not show whether the platform asks for confirmation.",
 		Probes: []string{blocksDeleteOnBranches.Probe},
 		Steps: []string{
 			"Read the blocksDeleteOnBranches finding for the default branch.",
@@ -86,11 +90,31 @@ func evaluateAC0301(in conformance.Input) conformance.Outcome {
 		return missing(in, requiresPRsToChangeCode.Probe)
 	}
 	branch := in.DefaultBranch
+	protected, protectedOK := conformance.DefaultBranchFinding(
+		in, branchesAreProtected.Probe, branchesAreProtected.BranchNameKey)
 	admins, adminsOK := conformance.DefaultBranchFinding(
 		in, branchProtectionAppliesToAdmins.Probe, branchProtectionAppliesToAdmins.BranchNameKey)
-	evidence := []finding.Finding{prs}
+	var evidence []finding.Finding
+	if protectedOK {
+		evidence = append(evidence, protected)
+	}
+	evidence = append(evidence, prs)
 	if adminsOK {
 		evidence = append(evidence, admins)
+	}
+
+	// A branch with no protection rule or ruleset leaves the pull request
+	// setting unset, so requiresPRsToChangeCode alone would report it as
+	// not available. branchesAreProtected also reports False when the
+	// platform client can't tell whether the branch is protected (Azure
+	// DevOps policies it can't read); the Branch-Protection check treats
+	// that finding the same way.
+	if protectedOK && protected.Outcome == finding.OutcomeFalse && prs.Outcome != finding.OutcomeTrue {
+		return conformance.Outcome{
+			Result:      conformance.Fail,
+			Explanation: fmt.Sprintf("The default branch %q is not protected.", branch),
+			Evidence:    evidence,
+		}
 	}
 
 	switch prs.Outcome {
@@ -153,10 +177,13 @@ func evaluateAC0302(in conformance.Input) conformance.Outcome {
 			Evidence:    evidence,
 		}
 	case finding.OutcomeFalse:
+		// The rule allows deletion, but the requirement asks only for
+		// explicit confirmation, which no probe observes.
 		return conformance.Outcome{
-			Result:      conformance.Fail,
-			Explanation: fmt.Sprintf("The default branch %q can be deleted.", branch),
-			Evidence:    evidence,
+			Result: conformance.Unknown,
+			Explanation: fmt.Sprintf("The branch rules allow deleting the default branch %q. Whether the "+
+				"platform requires explicit confirmation to delete it could not be determined.", branch),
+			Evidence: evidence,
 		}
 	default:
 		return conformance.Outcome{

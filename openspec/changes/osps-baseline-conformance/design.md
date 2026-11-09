@@ -118,17 +118,19 @@ non-GitHub platforms
 
 ### The two requirements
 
-OSPS-AC-03.01 reads `requiresPRsToChangeCode` and
-`branchProtectionAppliesToAdmins` for the default branch. If pull
+OSPS-AC-03.01 reads `branchesAreProtected`, `requiresPRsToChangeCode`,
+and `branchProtectionAppliesToAdmins` for the default branch. A branch
+with no protection rule fails. If pull
 requests are required but administrators can bypass the rule, the result
 is NEEDS_REVIEW. The requirement says direct commits must be prevented.
 It doesn't say whether an administrator exception is acceptable.
 
 OSPS-AC-03.02 reads `blocksDeleteOnBranches`. Blocking deletion is
 stricter than the requirement's "explicit confirmation of intent", so it
-counts as a pass.
+counts as a pass. A rule that allows deletion is UNKNOWN, not a fail:
+no probe observes whether the platform asks for confirmation.
 
-Both probes are stable and already feed the Branch-Protection check.
+These probes are stable and already feed the Branch-Protection check.
 Findings for release branches are ignored, because both requirements
 name the primary branch only.
 
