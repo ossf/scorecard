@@ -24,6 +24,7 @@
 -   [Scorecard GitHub Action](#scorecard-github-action)
 -   [Scorecard REST API](#scorecard-rest-api)
 -   [Scorecard Badges](#scorecard-badges)
+-   [Scorecard MCP Server](#scorecard-mcp-server)
 -   [Scorecard Command Line Interface](#scorecard-command-line-interface)
     -   [Prerequisites](#prerequisites)
     -   [Installation](#installation)
@@ -183,6 +184,25 @@ To include a badge on your project's repository, simply add the following markdo
 ```
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/{owner}/{repo}/badge)](https://scorecard.dev/viewer/?uri=github.com/{owner}/{repo})
 ```
+
+### Scorecard MCP Server
+
+`scorecard mcp` serves published Scorecard results and check documentation to
+[Model Context Protocol](https://modelcontextprotocol.io) (MCP) clients over
+stdio. It reads results from the [REST API](#scorecard-rest-api), so it needs
+no credentials and runs no scans. After [installing](#installation)
+`scorecard`, register it with your MCP client, for example:
+
+```json
+{
+  "mcpServers": {
+    "scorecard": { "command": "scorecard", "args": ["mcp"] }
+  }
+}
+```
+
+See [`docs/mcp.md`](docs/mcp.md) for the tools it provides, client setup, and
+caveats.
 
 ### Scorecard Command Line Interface
 
@@ -504,6 +524,13 @@ For example, `--checks=CI-Tests,Code-Review`.
 The currently supported formats are `default` (text) and `json`.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
+
+##### Evaluating OSPS Baseline requirements (experimental)
+
+`--catalog` evaluates a repository against a security catalog's requirements
+instead of scoring checks. For example,
+`--catalog=osps-baseline --profile=maturity-1 --format=json`. See
+[`docs/conformance.md`](docs/conformance.md).
 
 
 

@@ -34,6 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write # for Codecov uploads from main, which is protected
     steps:
      - name: Harden Runner
        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -66,11 +67,14 @@ jobs:
         go mod download
      - name: Run unit-tests
        run: make unit-test
+     - name: Validate the Gemara Evaluation Log fixture
+       run: make validate-gemara
      - name: Upload codecoverage
        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # 7.1.1
        with:
          files: ./unit-coverage.out
          verbose: true
+         use_oidc: ${{ github.event_name == 'push' }}
      - name: Run PAT Token E2E
        if: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
        timeout-minutes: 30
@@ -83,6 +87,7 @@ jobs:
        with:
          files: "*e2e-coverage.out"
          verbose: true
+         use_oidc: ${{ github.event_name == 'push' }}
   generate-mocks:
     name: generate-mocks
     runs-on: ubuntu-latest
