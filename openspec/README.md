@@ -7,9 +7,9 @@ Scorecard.
   defects. A requirement that records a defect is not a compatibility
   promise; fixing it is an ordinary spec delta.
 - `changes/` holds proposed changes. `changes/osps-baseline-conformance/`
-  describes a v6 target in which one run produces both check scores and
-  conformance results. In v5, running probes directly returns probe
-  findings and skips checks.
+  proposes an experimental conformance mode that evaluates OSPS Baseline
+  requirements from probe findings. In v5, running probes directly
+  returns probe findings and skips checks.
 
 ## Capability ownership
 

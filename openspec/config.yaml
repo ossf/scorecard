@@ -32,9 +32,10 @@ context: |
 
   Current versus target state: openspec/specs/ describes v5 behavior as
   built, including known defects, so that fixing a defect shows up as an
-  explicit spec delta. The changes/osps-baseline-conformance proposal
-  describes a v6 target (checks and conformance in one run) and is not
-  current behavior; in v5, running probes directly skips checks.
+  explicit spec delta. The changes/osps-baseline-conformance change
+  proposes an experimental v5 conformance mode (--catalog, --profile)
+  that is not current behavior; in v5, running probes directly skips
+  checks.
 
   Conventions: see AGENTS.md and CONTRIBUTING.md. Changes to score results
   need strong justification and an issue first. Adding a check follows
