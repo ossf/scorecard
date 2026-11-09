@@ -47,6 +47,10 @@ GORELEASER := $(TOOLS_BIN_DIR)/goreleaser
 $(GORELEASER): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser/v2
 
+CUE := $(TOOLS_BIN_DIR)/cue
+$(CUE): $(TOOLS_DIR)/go.mod
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install cuelang.org/go/cmd/cue
+
 # Installs required binaries into $(TOOLS_BIN_DIR) wherever possible.
 # Keeping a local copy instead of a global install allows for:
 # i) Controlling the binary version Scorecard depends on leading to consistent
@@ -135,6 +139,20 @@ generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml doc
 	go run ./docs/checks/internal/generate/main.go docs/checks.md
 	# Generating probes.md
 	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
+
+# Gemara schema release that conformance mode's Evaluation Log targets.
+# Keep in step with GemaraVersion in internal/conformance/gemara.go.
+GEMARA_VERSION := v1.6.0
+GEMARA_COMMIT := 14a8b1c02e1b7152781c0af7b6bcd07012f9763c
+GEMARA_FIXTURE := internal/conformance/testdata/evaluation-log.json
+validate-gemara: ## Validates the Gemara Evaluation Log fixture against the Gemara schema
+validate-gemara: | $(CUE)
+	@tmp=$$(mktemp -d) && trap 'rm -rf "$$tmp"' EXIT && \
+	git -C "$$tmp" init -q && \
+	git -C "$$tmp" fetch -q --depth 1 https://github.com/gemaraproj/gemara $(GEMARA_COMMIT) && \
+	git -C "$$tmp" checkout -q FETCH_HEAD && \
+	cd "$$tmp" && $(CUE) vet -c -d '#EvaluationLog' . $(abspath $(GEMARA_FIXTURE)) && \
+	echo "$(GEMARA_FIXTURE) is a valid Gemara $(GEMARA_VERSION) Evaluation Log"
 
 validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml

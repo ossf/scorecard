@@ -67,6 +67,8 @@ jobs:
         go mod download
      - name: Run unit-tests
        run: make unit-test
+     - name: Validate the Gemara Evaluation Log fixture
+       run: make validate-gemara
      - name: Upload codecoverage
        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # 7.1.1
        with:
