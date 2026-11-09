@@ -525,6 +525,13 @@ The currently supported formats are `default` (text) and `json`.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
+##### Evaluating OSPS Baseline requirements (experimental)
+
+`--catalog` evaluates a repository against a security catalog's requirements
+instead of scoring checks. For example,
+`--catalog=osps-baseline --profile=maturity-1 --format=json`. See
+[`docs/conformance.md`](docs/conformance.md).
+
 
 
 ## Checks
