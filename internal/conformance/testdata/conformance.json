@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-08T12:00:00Z",
+  "repo": {
+    "name": "github.com/owner/repo",
+    "commit": "0123456789abcdef0123456789abcdef01234567"
+  },
+  "scorecard": {
+    "version": "v5.7.0",
+    "commit": "fedcba9876543210fedcba9876543210fedcba98"
+  },
+  "catalog": {
+    "id": "test-catalog",
+    "version": "v1.0.0"
+  },
+  "profile": "level-1",
+  "results": [
+    {
+      "requirement": "TEST-01.01",
+      "result": "PASS",
+      "explanation": "The setting is on.",
+      "evidence": [
+        {
+          "values": {
+            "branchName": "main"
+          },
+          "probe": "testProbe",
+          "message": "test probe observed the setting on branch 'main'",
+          "outcome": "True"
+        }
+      ]
+    },
+    {
+      "requirement": "TEST-01.02",
+      "result": "FAIL",
+      "explanation": "The setting is off.",
+      "evidence": [
+        {
+          "values": {
+            "branchName": "main"
+          },
+          "probe": "testProbe",
+          "message": "test probe observed the setting on branch 'main'",
+          "outcome": "True"
+        }
+      ]
+    },
+    {
+      "requirement": "TEST-01.03",
+      "result": "UNKNOWN",
+      "explanation": "The setting could not be read.",
+      "evidence": []
+    },
+    {
+      "requirement": "TEST-01.04",
+      "result": "NEEDS_REVIEW",
+      "explanation": "The setting has an exception.",
+      "evidence": [
+        {
+          "values": {
+            "branchName": "main"
+          },
+          "probe": "testProbe",
+          "message": "test probe observed the setting on branch 'main'",
+          "outcome": "True"
+        }
+      ]
+    },
+    {
+      "requirement": "TEST-01.05",
+      "result": "NOT_APPLICABLE",
+      "explanation": "TEST-01.05 does not apply to level-1.",
+      "evidence": []
+    }
+  ],
+  "notEvaluated": [
+    "TEST-02.01"
+  ],
+  "experimental": true
+}
