@@ -219,7 +219,7 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.ProbesToRun,
 		FlagProbes,
 		o.ProbesToRun,
-		"individual probes to run instead of checks; when set, --checks is ignored"+
+		"individual probes to run instead of checks; the --checks selection is still validated"+
 			" (probe names appear in --format=probe output)",
 	)
 
@@ -276,7 +276,6 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		"EXPERIMENTAL: the catalog applicability group to evaluate, such as maturity-1 for osps-baseline",
 	)
 
-	allowedModes := []string{FileModeArchive, FileModeGit}
 	cmd.Flags().StringVar(
 		&o.FileMode,
 		FlagFileMode,
