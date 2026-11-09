@@ -203,6 +203,10 @@ func (c *Client) ListReleases() ([]clients.Release, error) {
 	return c.releases.listReleases()
 }
 
+func (c *Client) IsReleaseImmutable(owner, repo, tag string) (bool, error) {
+	return false, clients.ErrUnsupportedFeature
+}
+
 func (c *Client) ListContributors() ([]clients.User, error) {
 	return c.contributors.listContributors()
 }

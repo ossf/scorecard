@@ -491,6 +491,9 @@ The check works by looking for unpinned dependencies in Dockerfiles, shell scrip
 which are used during the build and release process of a project.
 Special considerations for Go modules treat full semantic versions as pinned
 due to how the Go tool verifies downloaded content against the hashes when anyone first downloaded the module.
+For GitHub Actions, a `uses:` reference to a tag is also treated as pinned when that tag is backed by a
+published [immutable release](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases),
+since GitHub guarantees the tag and its content cannot change once such a release is published.
 
 Pinned dependencies reduce several security risks:
 
@@ -541,8 +544,7 @@ codebase.
 The checks currently looks for known GitHub apps such as
 [CodeQL](https://codeql.github.com/) (github-code-scanning) or
 [SonarCloud](https://sonarcloud.io/) in the recent (~30) merged PRs, or the use
-of "github/codeql-action" in a GitHub workflow. It also checks for the deprecated
-[LGTM](https://lgtm.com/) service until its forthcoming shutdown.
+of "github/codeql-action" in a GitHub workflow.
 
 Note: A project that fulfills this criterion with other tools may still receive
 a low score on this test. There are many ways to implement SAST, and it is

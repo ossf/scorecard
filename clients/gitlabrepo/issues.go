@@ -51,19 +51,20 @@ func (handler *issuesHandler) setup() error {
 		// barbaric, however I couldn't find a better way in the docs.
 		projMemberships, resp, err := handler.glClient.ProjectMembers.ListAllProjectMembers(
 			handler.repourl.projectID, &gitlab.ListProjectMembersOptions{})
-		if err != nil && resp.StatusCode != http.StatusUnauthorized {
+		if err != nil && (resp == nil || resp.StatusCode != http.StatusUnauthorized) {
 			handler.errSetup = fmt.Errorf("unable to find access tokens associated with the project id: %w", err)
 			return
-		} else if resp.StatusCode == http.StatusUnauthorized {
+		} else if resp != nil && resp.StatusCode == http.StatusUnauthorized {
 			handler.errSetup = fmt.Errorf("insufficient permissions to check issue author associations %w", err)
 			return
 		}
 
-		var authorAssociation clients.RepoAssociation
 		for _, issue := range issues {
+			authorAssociation := clients.RepoAssociationNone
 			for _, m := range projMemberships {
 				if issue.Author.ID == m.ID {
 					authorAssociation = accessLevelToRepoAssociation(m.AccessLevel)
+					break
 				}
 			}
 

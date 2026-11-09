@@ -79,6 +79,7 @@ func New(o *options.Options) *cobra.Command {
 
 	// Add sub-commands.
 	cmd.AddCommand(serveCmd(o))
+	cmd.AddCommand(mcpCmd())
 	cmd.AddCommand(version.Version())
 	return cmd
 }
@@ -133,6 +134,12 @@ func rootCmd(o *options.Options) error {
 	repoURLs, err := buildRepoURLs(ctx, o)
 	if err != nil {
 		return err
+	}
+
+	// Conformance mode scans one repository: option validation rejects
+	// --repos and --org with --catalog.
+	if o.IsConformanceMode() {
+		return runConformance(ctx, o, repoURLs[0])
 	}
 
 	// Shared setup
