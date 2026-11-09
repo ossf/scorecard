@@ -24,6 +24,7 @@ import (
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 var (
@@ -136,7 +137,9 @@ func TestBranchProtection(t *testing.T) {
 					TargetCommitish: "",
 				},
 			},
-			wantErr: errInternalCommitishNil,
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "release-branch-err",
@@ -151,7 +154,9 @@ func TestBranchProtection(t *testing.T) {
 					err:  errBPTest,
 				},
 			},
-			wantErr: errBPTest,
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
 		},
 		{
 			name: "nil-release-branch",
@@ -195,6 +200,23 @@ func TestBranchProtection(t *testing.T) {
 			},
 		},
 		{
+			name: "master-to-main-redirect-err",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: mainBranchName,
+					err:  errBPTest,
+				},
+			},
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
+		},
+		{
 			name: "master-to-main-redirect",
 			releases: []clients.Release{
 				{
@@ -202,6 +224,34 @@ func TestBranchProtection(t *testing.T) {
 				},
 			},
 			branches: branchesArg{
+				{
+					name: mainBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &mainBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &mainBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "master-to-main-redirect-after-primary-lookup-err",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: "master",
+					err:  errBPTest,
+				},
 				{
 					name: mainBranchName,
 					branchRef: &clients.BranchRef{
@@ -273,8 +323,10 @@ func TestBranchProtection(t *testing.T) {
 				})
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).AnyTimes().Return(tt.repoFiles, nil)
 
+			dl := scut.TestDetailLogger{}
 			c := &checker.CheckRequest{
 				RepoClient: mockRepoClient,
+				Dlogger:    &dl,
 			}
 			rawData, err := BranchProtection(c)
 			if !errors.Is(err, tt.wantErr) {
