@@ -30,6 +30,9 @@ env:
 jobs:
   gitlab-integration-trusted:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for Codecov uploads from main, which is protected
     environment: gitlab
     steps:
       - name: Harden Runner
@@ -82,3 +85,4 @@ jobs:
         with:
          files: "*e2e-coverage.out"
          verbose: true
+         use_oidc: ${{ github.event_name == 'push' }}

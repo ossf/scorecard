@@ -26,6 +26,7 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	scut "github.com/ossf/scorecard/v5/utests"
 )
 
 func errCmp(e1, e2 error) bool {
@@ -244,5 +245,43 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 				t.Error(cmp.Diff(nb, tt.expected.nb))
 			}
 		})
+	}
+}
+
+// A workflow with an unclosed ${{ can't run, so it has no findings of its own,
+// but it mustn't stop the check from reporting injections in other workflows.
+func TestGithubDangerousWorkflowUnclosedExpression(t *testing.T) {
+	t.Parallel()
+	const (
+		unclosed  = ".github/workflows/github-workflow-unclosed-expression.yml"
+		injection = ".github/workflows/github-workflow-dangerous-pattern-untrusted-script-injection.yml"
+	)
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return([]string{unclosed, injection}, nil)
+	mockRepoClient.EXPECT().GetFileReader(gomock.Any()).DoAndReturn(func(file string) (io.ReadCloser, error) {
+		return os.Open("../testdata/" + file)
+	}).Times(2)
+
+	dl := scut.TestDetailLogger{}
+	dw, err := DangerousWorkflow(&checker.CheckRequest{
+		Ctx:        t.Context(),
+		RepoClient: mockRepoClient,
+		Dlogger:    &dl,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(dw.Workflows) != 1 || dw.Workflows[0].File.Path != injection {
+		t.Errorf("want one finding in %s, got %+v", injection, dw.Workflows)
+	}
+	logged := false
+	for _, d := range dl.Flush() {
+		if d.Type == checker.DetailDebug && d.Msg.Path == unclosed {
+			logged = true
+		}
+	}
+	if !logged {
+		t.Errorf("want a debug message for %s", unclosed)
 	}
 }
