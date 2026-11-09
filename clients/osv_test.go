@@ -14,6 +14,8 @@
 package clients
 
 import (
+	"os"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"testing"
@@ -132,4 +134,89 @@ func TestIsPlaceholderVersion(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestCommitOnlyNoLocalPath reproduces the failure some clients (e.g. GitLab, which
+// has no on-disk checkout) hit: passing a commit without a local path used to make
+// osv-scanner fall back to scanning the filesystem root.
+//
+// Not run in parallel: osv-scanner's SetLogger writes to a shared, unsynchronized
+// global, so running this concurrently with another test that also calls
+// ListUnfixedVulnerabilities (e.g. TestEmptyProject) trips the race detector.
+//
+//nolint:paralleltest // shares osv-scanner's global logger with TestEmptyProject; see comment above
+func TestCommitOnlyNoLocalPath(t *testing.T) {
+	var client osvClient
+	commit := "0000000000000000000000000000000000000000"
+	_, err := client.ListUnfixedVulnerabilities(t.Context(), commit, "")
+	if err != nil {
+		t.Fatalf("commit without a local path shouldn't throw an error: %v", err)
+	}
+}
+
+func TestScanTargets(t *testing.T) {
+	t.Parallel()
+	local := t.TempDir()
+	const commit = "0000000000000000000000000000000000000000"
+
+	t.Run("commit only gets an empty temp dir", func(t *testing.T) {
+		t.Parallel()
+		dirs, commits, cleanup, err := scanTargets(commit, "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !slices.Equal(commits, []string{commit}) {
+			t.Fatalf("commit not forwarded: got %v", commits)
+		}
+		if len(dirs) != 1 || dirs[0] == "" || dirs[0] == "/" || dirs[0] == filepath.VolumeName(dirs[0])+string(filepath.Separator) {
+			t.Fatalf("expected a single non-root directory, got %v", dirs)
+		}
+		entries, err := os.ReadDir(dirs[0])
+		if err != nil {
+			t.Fatalf("temp dir not readable: %v", err)
+		}
+		if len(entries) != 0 {
+			t.Fatalf("temp dir should be empty, got %d entries", len(entries))
+		}
+		cleanup()
+		if _, err := os.Stat(dirs[0]); !os.IsNotExist(err) {
+			t.Fatalf("cleanup should remove temp dir, stat err: %v", err)
+		}
+	})
+
+	t.Run("local path is used as is", func(t *testing.T) {
+		t.Parallel()
+		dirs, commits, cleanup, err := scanTargets(commit, local)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer cleanup()
+		if !slices.Equal(dirs, []string{local}) || !slices.Equal(commits, []string{commit}) {
+			t.Fatalf("got dirs %v, commits %v", dirs, commits)
+		}
+	})
+
+	t.Run("local path only", func(t *testing.T) {
+		t.Parallel()
+		dirs, commits, cleanup, err := scanTargets("", local)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer cleanup()
+		if !slices.Equal(dirs, []string{local}) || len(commits) != 0 {
+			t.Fatalf("got dirs %v, commits %v", dirs, commits)
+		}
+	})
+
+	t.Run("nothing given", func(t *testing.T) {
+		t.Parallel()
+		dirs, commits, cleanup, err := scanTargets("", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer cleanup()
+		if len(dirs) != 0 || len(commits) != 0 {
+			t.Fatalf("got dirs %v, commits %v", dirs, commits)
+		}
+	})
 }
