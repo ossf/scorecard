@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -473,7 +473,8 @@ func TestJSONOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.Getwd: %s", err)
 	}
-	schemaLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, "json.v2.schema")))
+	schemaPath := filepath.ToSlash(filepath.Join(cwd, "json.v2.schema"))
+	schemaLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", schemaPath))
 	schema, err := gojsonschema.NewSchema(schemaLoader)
 	if err != nil {
 		t.Fatalf("gojsonschema.NewSchema: %s", err)
@@ -531,7 +532,8 @@ func TestJSONOutput(t *testing.T) {
 			}
 
 			// Validate schema.
-			docLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", path.Join(cwd, tt.expected)))
+			docPath := filepath.ToSlash(filepath.Join(cwd, tt.expected))
+			docLoader := gojsonschema.NewReferenceLoader(fmt.Sprintf("file://%s", docPath))
 			rr, err := schema.Validate(docLoader)
 			if err != nil {
 				t.Fatalf("%s: Validate error: %s", tt.name, err.Error())
