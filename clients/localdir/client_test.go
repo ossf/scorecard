@@ -207,8 +207,17 @@ func TestClient_GetFileListAndContent(t *testing.T) {
 	}
 }
 
+func skipIfNoSymlink(t *testing.T) {
+	t.Helper()
+	probe := filepath.Join(t.TempDir(), "symlink_probe")
+	if err := os.Symlink("target", probe); err != nil {
+		t.Skipf("skipping test: symlinks not supported or privilege not held: %v", err)
+	}
+}
+
 func TestListFile_symlink(t *testing.T) {
 	t.Parallel()
+	skipIfNoSymlink(t)
 	const (
 		realFilename = "foo.txt"
 		nonExistent  = "bar.txt"
@@ -258,6 +267,7 @@ func TestListFile_symlink(t *testing.T) {
 
 func TestGetFileReader_symlink(t *testing.T) {
 	t.Parallel()
+	skipIfNoSymlink(t)
 	const (
 		realFilename = "foo.txt"
 		linkEscapes  = "../bar.txt"
