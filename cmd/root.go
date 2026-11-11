@@ -48,18 +48,24 @@ import (
 var errChecksFailed = errors.New("one or more checks failed during execution")
 
 const (
-	scorecardLong = "A program that shows the OpenSSF scorecard for an open source software."
-	scorecardUse  = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
+	scorecardLong = `A program that shows the OpenSSF scorecard for an open source software.
+
+A token is required for remote repositories (not for --local), set as an environment
+variable: GITHUB_AUTH_TOKEN for GitHub (GITHUB_TOKEN, GH_AUTH_TOKEN and GH_TOKEN
+are also accepted), or GITLAB_AUTH_TOKEN for GitLab repositories.`
+	scorecardUse = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
 		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
-	scorecardShort = "OpenSSF Scorecard"
+	scorecardShort   = "OpenSSF Scorecard"
+	scorecardExample = "  scorecard --repo=github.com/ossf/scorecard"
 )
 
 // New creates a new instance of the scorecard command.
 func New(o *options.Options) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   scorecardUse,
-		Short: scorecardShort,
-		Long:  scorecardLong,
+		Use:     scorecardUse,
+		Short:   scorecardShort,
+		Long:    scorecardLong,
+		Example: scorecardExample,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			err := o.Validate()
 			if err != nil {
@@ -79,6 +85,7 @@ func New(o *options.Options) *cobra.Command {
 
 	// Add sub-commands.
 	cmd.AddCommand(serveCmd(o))
+	cmd.AddCommand(mcpCmd())
 	cmd.AddCommand(version.Version())
 	return cmd
 }
@@ -135,6 +142,12 @@ func rootCmd(o *options.Options) error {
 		return err
 	}
 
+	// Conformance mode scans one repository: option validation rejects
+	// --repos and --org with --catalog.
+	if o.IsConformanceMode() {
+		return runConformance(ctx, o, repoURLs[0])
+	}
+
 	// Shared setup
 	pol, err := policy.ParseFromFile(o.PolicyFile)
 	if err != nil {
@@ -189,17 +202,28 @@ func rootCmd(o *options.Options) error {
 		opts = append(opts, scorecard.WithFileModeGit())
 	}
 
+	return processRepos(repoURLs, func(uri string) (*scorecard.Result, error) {
+		return processRepo(ctx, uri, o, enabledProbes, enabledChecks, opts, checkDocs, pol)
+	})
+}
+
+func processRepos(
+	repoURLs []string,
+	process func(string) (*scorecard.Result, error),
+) error {
 	// Track whether any check produced a runtime error during scans. We want to
 	// continue scanning all repos but return a non-nil error at the end so the
 	// process exit code reflects that something went wrong.
 	var sawRuntimeErr bool
-	// Iterate and scan each repo using a helper to keep rootCmd small.
+	var errs []error
 	for _, uri := range repoURLs {
-		res, err := processRepo(ctx, uri, o, enabledProbes, enabledChecks, opts, checkDocs, pol)
+		res, err := process(uri)
 		if err != nil {
-			// processRepo already logged details; skip this URI.
-			fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
-			continue
+			errs = append(errs, fmt.Errorf("processing %s: %w", uri, err))
+			if res == nil {
+				fmt.Fprintf(os.Stderr, "Skipping %s: %v\n", uri, err)
+				continue
+			}
 		}
 
 		// If any checks had runtime errors, remember that fact so we can return
@@ -213,10 +237,13 @@ func rootCmd(o *options.Options) error {
 	}
 
 	if sawRuntimeErr {
-		return errChecksFailed
+		if len(errs) == 0 {
+			return errChecksFailed
+		}
+		errs = append(errs, errChecksFailed)
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func printProbeStart(repo string, enabledProbes []string) {
@@ -279,8 +306,7 @@ func makeRepo(uri string) (clients.Repo, error) {
 }
 
 // processRepo performs the scanning and formatting for a single repo URI.
-// It returns the Result when successful or an error describing why the URI
-// should be skipped.
+// It returns the scanned Result and any scan or formatting error.
 func processRepo(
 	ctx context.Context,
 	uri string,
@@ -337,15 +363,18 @@ func processRepo(
 		}
 	}
 
-	if err := scorecard.FormatResults(o, &result, checkDocs, pol); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, err)
-	}
+	formatErr := scorecard.FormatResults(o, &result, checkDocs, pol)
 
 	// Surface per-check runtime errors (non-fatal)
 	for _, r := range result.Checks {
 		if r.Error != nil {
 			fmt.Fprintf(os.Stderr, "Check %s failed for %s: %v\n", r.Name, uri, r.Error)
 		}
+	}
+
+	if formatErr != nil {
+		fmt.Fprintf(os.Stderr, "Failed to format results for %s: %v\n", uri, formatErr)
+		return &result, fmt.Errorf("format results: %w", formatErr)
 	}
 
 	return &result, nil

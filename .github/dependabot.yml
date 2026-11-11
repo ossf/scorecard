@@ -40,7 +40,6 @@ updates:
 - package-ecosystem: docker
   directories:
     - "/"
-    - "/attestor"
   schedule:
     interval: weekly
   rebase-strategy: disabled

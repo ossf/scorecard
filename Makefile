@@ -47,6 +47,10 @@ GORELEASER := $(TOOLS_BIN_DIR)/goreleaser
 $(GORELEASER): $(TOOLS_DIR)/go.mod
 	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install github.com/goreleaser/goreleaser/v2
 
+CUE := $(TOOLS_BIN_DIR)/cue
+$(CUE): $(TOOLS_DIR)/go.mod
+	cd $(TOOLS_DIR); GOBIN=$(TOOLS_BIN_DIR) go install cuelang.org/go/cmd/cue
+
 # Installs required binaries into $(TOOLS_BIN_DIR) wherever possible.
 # Keeping a local copy instead of a global install allows for:
 # i) Controlling the binary version Scorecard depends on leading to consistent
@@ -80,6 +84,10 @@ check-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
 	$(GOLANGCI_LINT) run -c .golangci.yml
 
+check-shell: ## Run shellcheck on shell scripts
+	# Find shell scripts by their shebang line
+	shellcheck $$(git grep -lE '^#!/(usr/)?bin/(env )?(ba)?sh' -- ':!*.md' ':!**/testdata/**')
+
 fix-linter: ## Install and run golang linter, with fixes
 fix-linter: | $(GOLANGCI_LINT)
 	# Run golangci-lint linter
@@ -92,7 +100,7 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 ###############################################################################
 
 ################################## make build #################################
-build-targets = generate-mocks generate-docs build-scorecard build-attestor
+build-targets = generate-mocks generate-docs build-scorecard
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
@@ -132,6 +140,20 @@ generate-docs: validate-docs docs/checks.md docs/checks/internal/checks.yaml doc
 	# Generating probes.md
 	go run ./docs/probes/internal/generate/main.go probes/ > docs/probes.md
 
+# Gemara schema release that conformance mode's Evaluation Log targets.
+# Keep in step with GemaraVersion in internal/conformance/gemara.go.
+GEMARA_VERSION := v1.6.0
+GEMARA_COMMIT := 14a8b1c02e1b7152781c0af7b6bcd07012f9763c
+GEMARA_FIXTURE := internal/conformance/testdata/evaluation-log.json
+validate-gemara: ## Validates the Gemara Evaluation Log fixture against the Gemara schema
+validate-gemara: | $(CUE)
+	@tmp=$$(mktemp -d) && trap 'rm -rf "$$tmp"' EXIT && \
+	git -C "$$tmp" init -q && \
+	git -C "$$tmp" fetch -q --depth 1 https://github.com/gemaraproj/gemara $(GEMARA_COMMIT) && \
+	git -C "$$tmp" checkout -q FETCH_HEAD && \
+	cd "$$tmp" && $(CUE) vet -c -d '#EvaluationLog' . $(abspath $(GEMARA_FIXTURE)) && \
+	echo "$(GEMARA_FIXTURE) is a valid Gemara $(GEMARA_VERSION) Evaluation Log"
+
 validate-docs: docs/checks/internal/generate/main.go
 	# Validating checks.yaml
 	go run ./docs/checks/internal/validate/main.go
@@ -161,17 +183,6 @@ scorecard.releaser: .goreleaser.yml $(SCORECARD_DEPS) | $(GORELEASER)
 		--snapshot --clean --skip=publish,sign && \
 		touch scorecard.releaser
 
-build-attestor: ## Runs go build on scorecard attestor
-	# Run go build on scorecard attestor
-	cd attestor/; CGO_ENABLED=0 go build -trimpath -a -tags netgo -ldflags '$(LDFLAGS)' -o scorecard-attestor
-
-
-build-attestor-docker: ## Build scorecard-attestor Docker image
-build-attestor-docker:
-	DOCKER_BUILDKIT=1 docker build . --file attestor/Dockerfile \
-		--tag scorecard-attestor:latest \
-		--tag scorecard-attestor:$(GIT_HASH)
-
 docker-targets = scorecard-docker
 .PHONY: dockerbuild $(docker-targets)
 dockerbuild: $(docker-targets)
@@ -188,9 +199,6 @@ unit-test: ## Runs unit test without e2e
 	# Run unit tests, ignoring e2e tests
 	# run the go tests and gen the file coverage-all used to do the integration with codecov
 	SKIP_GINKGO=1 go test -race -covermode=atomic  -coverprofile=unit-coverage.out -coverpkg=./... `go list ./...`
-
-unit-test-attestor: ## Runs unit tests on scorecard-attestor
-	cd attestor; SKIP_GINKGO=1 go test -covermode=atomic -coverprofile=unit-coverage.out `go list ./...`; cd ..;
 
 check-env:
 ifndef GITHUB_AUTH_TOKEN
@@ -228,9 +236,6 @@ e2e-gitlab: build-scorecard | $(GINKGO)
 e2e-azure-devops-token: ## Runs e2e tests that require a AZURE_DEVOPS_AUTH_TOKEN
 e2e-azure-devops-token: build-scorecard check-env-azure-devops | $(GINKGO)
 	SCORECARD_EXPERIMENTAL=1 TEST_AZURE_DEVOPS_EXTERNAL=1 TOKEN_TYPE="AZURE_DEVOPS_PAT" $(GINKGO) --race -p -vv --flake-attempts=3 -coverprofile=e2e-coverage.out --keep-separate-coverprofiles --focus "Azure DevOps" ./...
-
-e2e-attestor: ## Runs e2e tests for scorecard-attestor
-	cd attestor/e2e; go test -covermode=atomic -coverprofile=e2e-coverage.out; cd ../..
 
 ###############################################################################
 

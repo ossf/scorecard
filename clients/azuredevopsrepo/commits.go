@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -30,6 +31,7 @@ import (
 var (
 	errMultiplePullRequests = errors.New("expected 1 pull request for commit, got multiple")
 	errRefNotFound          = errors.New("ref not found")
+	errInvalidPullRequest   = errors.New("invalid pull request data")
 )
 
 type commitsHandler struct {
@@ -42,6 +44,7 @@ type commitsHandler struct {
 	pullRequestsRaw      *git.GitPullRequestQuery
 	firstCommitCreatedAt time.Time
 	getCommits           fnGetCommits
+	getPullRequest       fnGetPullRequest
 	getPullRequestQuery  fnGetPullRequestQuery
 	getFirstCommit       fnGetFirstCommit
 	getRefs              fnGetRefs
@@ -56,6 +59,7 @@ func (c *commitsHandler) init(ctx context.Context, repourl *Repo, commitDepth in
 	c.once = new(sync.Once)
 	c.commitDepth = commitDepth
 	c.getCommits = c.gitClient.GetCommits
+	c.getPullRequest = c.gitClient.GetPullRequest
 	c.getPullRequestQuery = c.gitClient.GetPullRequestQuery
 	c.getFirstCommit = c.gitClient.GetCommits
 	c.getRefs = c.gitClient.GetRefs
@@ -64,6 +68,7 @@ func (c *commitsHandler) init(ctx context.Context, repourl *Repo, commitDepth in
 
 type (
 	fnGetCommits          func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error)
+	fnGetPullRequest      func(ctx context.Context, args git.GetPullRequestArgs) (*git.GitPullRequest, error)
 	fnGetPullRequestQuery func(ctx context.Context, args git.GetPullRequestQueryArgs) (*git.GitPullRequestQuery, error)
 	fnGetFirstCommit      func(ctx context.Context, args git.GetCommitsArgs) (*[]git.GitCommitRef, error)
 	fnGetRefs             func(ctx context.Context, args git.GetRefsArgs) (*git.GetRefsResponseValue, error)
@@ -118,6 +123,10 @@ func (c *commitsHandler) setup() error {
 		pullRequests, err := c.getPullRequestQuery(c.ctx, pullRequestQuery)
 		if err != nil {
 			c.errSetup = fmt.Errorf("request for pull requests failed with %w", err)
+			return
+		}
+		if err := c.loadPullRequestDetails(pullRequests); err != nil {
+			c.errSetup = err
 			return
 		}
 
@@ -192,6 +201,49 @@ func (c *commitsHandler) listCommits() ([]clients.Commit, error) {
 	return commits, nil
 }
 
+func (c *commitsHandler) loadPullRequestDetails(query *git.GitPullRequestQuery) error {
+	if query == nil || query.Results == nil || len(*query.Results) != 1 {
+		return fmt.Errorf("%w: missing query results", errInvalidPullRequest)
+	}
+	detailsByID := make(map[int]*git.GitPullRequest)
+	for commit, matches := range (*query.Results)[0] {
+		if len(matches) > 1 {
+			return errMultiplePullRequests
+		}
+		for i := range matches {
+			if matches[i].PullRequestId == nil || *matches[i].PullRequestId <= 0 {
+				return fmt.Errorf("%w: missing PR ID for commit %s", errInvalidPullRequest, commit)
+			}
+			id := *matches[i].PullRequestId
+			details, ok := detailsByID[id]
+			if !ok {
+				var err error
+				details, err = c.getPullRequest(c.ctx, git.GetPullRequestArgs{
+					RepositoryId:  &c.repourl.id,
+					Project:       &c.repourl.project,
+					PullRequestId: &id,
+				})
+				if err != nil {
+					return fmt.Errorf("request for pull request %d failed: %w", id, err)
+				}
+				if details == nil || details.PullRequestId == nil ||
+					*details.PullRequestId != id || details.Status == nil {
+					return fmt.Errorf("%w: incomplete details for PR %d", errInvalidPullRequest, id)
+				}
+				if *details.Status == git.PullRequestStatusValues.Completed &&
+					(details.ClosedDate == nil || details.ClosedDate.Time.IsZero() ||
+						details.LastMergeCommit == nil || details.LastMergeCommit.CommitId == nil ||
+						*details.LastMergeCommit.CommitId == "") {
+					return fmt.Errorf("%w: missing merge metadata for PR %d", errInvalidPullRequest, id)
+				}
+				detailsByID[id] = details
+			}
+			matches[i] = *details
+		}
+	}
+	return nil
+}
+
 func (c *commitsHandler) listPullRequests() (map[string]clients.PullRequest, error) {
 	err := c.setup()
 	if err != nil {
@@ -210,17 +262,56 @@ func (c *commitsHandler) listPullRequests() (map[string]clients.PullRequest, err
 
 		azdoPullRequest := azdoPullRequests[0]
 
-		pullRequests[commit] = clients.PullRequest{
+		pr := clients.PullRequest{
 			Number: *azdoPullRequest.PullRequestId,
-			Author: clients.User{
-				Login: *azdoPullRequest.CreatedBy.DisplayName,
-			},
-			HeadSHA:  *azdoPullRequest.LastMergeCommit.CommitId,
-			MergedAt: azdoPullRequest.ClosedDate.Time,
 		}
+		if azdoPullRequest.CreatedBy != nil {
+			pr.Author.Login = identityLogin(azdoPullRequest.CreatedBy.Id)
+		}
+		if *azdoPullRequest.Status == git.PullRequestStatusValues.Completed {
+			pr.HeadSHA = *azdoPullRequest.LastMergeCommit.CommitId
+			pr.MergedAt = azdoPullRequest.ClosedDate.Time
+			if azdoPullRequest.ClosedBy != nil &&
+				(azdoPullRequest.ClosedBy.IsContainer == nil || !*azdoPullRequest.ClosedBy.IsContainer) {
+				pr.MergedBy.Login = identityLogin(azdoPullRequest.ClosedBy.Id)
+			}
+		}
+		if azdoPullRequest.Reviewers != nil {
+			for i := range *azdoPullRequest.Reviewers {
+				reviewer := &(*azdoPullRequest.Reviewers)[i]
+				login := identityLogin(reviewer.Id)
+				if login == "" || reviewer.Vote == nil ||
+					(reviewer.IsContainer != nil && *reviewer.IsContainer) {
+					continue
+				}
+				var state string
+				switch *reviewer.Vote {
+				case 10, 5:
+					state = "APPROVED"
+				case -5:
+					state = "COMMENTED"
+				case -10:
+					state = "CHANGES_REQUESTED"
+				default:
+					continue
+				}
+				pr.Reviews = append(pr.Reviews, clients.Review{
+					Author: &clients.User{Login: login},
+					State:  state,
+				})
+			}
+		}
+		pullRequests[commit] = pr
 	}
 
 	return pullRequests, nil
+}
+
+func identityLogin(id *string) string {
+	if id == nil {
+		return ""
+	}
+	return strings.ToLower(strings.TrimSpace(*id))
 }
 
 func (c *commitsHandler) getFirstCommitCreatedAt() (time.Time, error) {
