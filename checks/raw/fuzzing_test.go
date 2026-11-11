@@ -15,10 +15,14 @@
 package raw
 
 import (
+	"context"
 	"errors"
 	"io"
+	"os"
 	"path"
+	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -26,7 +30,9 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/clients/localdir"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
+	"github.com/ossf/scorecard/v5/log"
 )
 
 // Test_checkOSSFuzz is a test function for checkOSSFuzz.
@@ -949,4 +955,70 @@ func unorderedEqual(l1, l2 []clients.LanguageName) bool {
 		}
 	}
 	return true
+}
+
+func Test_checkFuzzFunc_testSourceDirs(t *testing.T) {
+	t.Parallel()
+	const jazzer = "import com.code_intelligence.jazzer.api.FuzzedDataProvider;\nclass A {}\n"
+	tests := []struct {
+		name      string
+		path      string
+		wantFiles []string
+	}{
+		{
+			name:      "src/test at the repo root",
+			path:      "src/test/java/A.java",
+			wantFiles: []string{"src/test/java/A.java"},
+		},
+		{
+			name:      "src/test in a module",
+			path:      "module/src/test/java/A.java",
+			wantFiles: []string{"module/src/test/java/A.java"},
+		},
+		{
+			name:      "dedicated fuzz source set",
+			path:      "src/fuzz/java/A.java",
+			wantFiles: []string{"src/fuzz/java/A.java"},
+		},
+		{
+			name: "testdata is still skipped",
+			path: "src/testdata/java/A.java",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			full := filepath.Join(dir, tt.path)
+			if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+				t.Fatalf("MkdirAll: %v", err)
+			}
+			if err := os.WriteFile(full, []byte(jazzer), 0o600); err != nil {
+				t.Fatalf("WriteFile: %v", err)
+			}
+			repo, err := localdir.MakeLocalDirRepo(dir)
+			if err != nil {
+				t.Fatalf("MakeLocalDirRepo: %v", err)
+			}
+			client := localdir.CreateLocalDirClient(context.Background(), log.NewLogger(log.DefaultLevel))
+			if err := client.InitRepo(repo, clients.HeadSHA, 0); err != nil {
+				t.Fatalf("InitRepo: %v", err)
+			}
+			req := checker.CheckRequest{RepoClient: client}
+			found, files, err := checkFuzzFunc(&req, clients.Java)
+			if err != nil {
+				t.Fatalf("checkFuzzFunc: %v", err)
+			}
+			if want := len(tt.wantFiles) > 0; found != want {
+				t.Errorf("checkFuzzFunc() found = %v, want %v", found, want)
+			}
+			var gotFiles []string
+			for _, f := range files {
+				gotFiles = append(gotFiles, f.Path)
+			}
+			if !slices.Equal(gotFiles, tt.wantFiles) {
+				t.Errorf("checkFuzzFunc() files = %v, want %v", gotFiles, tt.wantFiles)
+			}
+		})
+	}
 }

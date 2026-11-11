@@ -17,6 +17,7 @@ package fileparser
 import (
 	"errors"
 	"io"
+	"slices"
 	"strings"
 	"testing"
 
@@ -637,6 +638,72 @@ func TestOnAllFilesDo(t *testing.T) {
 			}
 			if tt.testArgs != nil && !tt.testArgs(tt.onFileArgs...) {
 				t.Error("testArgs validation failed")
+			}
+		})
+	}
+}
+
+func TestOnMatchingFileContentDo_IncludeTestSources(t *testing.T) {
+	t.Parallel()
+	files := []string{
+		"src/main/java/Main.java",
+		"src/test/java/MainTest.java",
+		"module/src/test/java/ModuleTest.java",
+		"testdata/Fixture.java",
+		"module/testdata/src/test/java/Fixture.java",
+	}
+	tests := []struct {
+		name               string
+		want               []string
+		includeTestSources bool
+	}{
+		{
+			name: "test sources filtered by default",
+			want: []string{"src/main/java/Main.java"},
+		},
+		{
+			name:               "test sources included on request",
+			includeTestSources: true,
+			want: []string{
+				"src/main/java/Main.java",
+				"src/test/java/MainTest.java",
+				"module/src/test/java/ModuleTest.java",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepo := mockrepo.NewMockRepoClient(ctrl)
+			mockRepo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(func(predicate func(string) (bool, error)) ([]string, error) {
+				var matched []string
+				for _, f := range files {
+					ok, err := predicate(f)
+					if err != nil {
+						return nil, err
+					}
+					if ok {
+						matched = append(matched, f)
+					}
+				}
+				return matched, nil
+			})
+			mockRepo.EXPECT().GetFileReader(gomock.Any()).Return(io.NopCloser(strings.NewReader("")), nil).AnyTimes()
+
+			var got []string
+			err := OnMatchingFileContentDo(mockRepo, PathMatcher{
+				Pattern:            "*.java",
+				IncludeTestSources: tt.includeTestSources,
+			}, func(path string, content []byte, args ...interface{}) (bool, error) {
+				got = append(got, path)
+				return true, nil
+			})
+			if err != nil {
+				t.Fatalf("OnMatchingFileContentDo() error = %v", err)
+			}
+			if !slices.Equal(got, tt.want) {
+				t.Errorf("OnMatchingFileContentDo() files = %v, want %v", got, tt.want)
 			}
 		})
 	}

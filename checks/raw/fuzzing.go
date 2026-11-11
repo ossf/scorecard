@@ -309,6 +309,9 @@ func checkFuzzFunc(c *checker.CheckRequest, lang clients.LanguageName) (bool, []
 		matcher := fileparser.PathMatcher{
 			Pattern:       filePattern,
 			CaseSensitive: false,
+			// Fuzz tests often live with the other tests, e.g. Jazzer
+			// @FuzzTest methods under src/test/java.
+			IncludeTestSources: true,
 		}
 		data.pattern = funcPattern
 		err := fileparser.OnMatchingFileContentDo(c.RepoClient, matcher, getFuzzFunc, &data)
