@@ -52,10 +52,19 @@ func isMatchingPath(fullpath string, matchPathTo PathMatcher) (bool, error) {
 }
 
 func isTestdataFile(fullpath string) bool {
-	// testdata/ or /some/dir/testdata/some/other
+	return isTestdataDirFile(fullpath) || isTestSourceFile(fullpath)
+}
+
+// isTestdataDirFile matches testdata/ or /some/dir/testdata/some/other.
+func isTestdataDirFile(fullpath string) bool {
 	return strings.HasPrefix(fullpath, "testdata/") ||
-		strings.Contains(fullpath, "/testdata/") ||
-		strings.HasPrefix(fullpath, "src/test/") ||
+		strings.Contains(fullpath, "/testdata/")
+}
+
+// isTestSourceFile matches the Maven standard layout test sources
+// (src/test/ or /some/dir/src/test/some/other).
+func isTestSourceFile(fullpath string) bool {
+	return strings.HasPrefix(fullpath, "src/test/") ||
 		strings.Contains(fullpath, "/src/test/")
 }
 
@@ -63,6 +72,9 @@ func isTestdataFile(fullpath string) bool {
 type PathMatcher struct {
 	Pattern       string
 	CaseSensitive bool
+	// IncludeTestSources keeps files under src/test/ in the results. Files
+	// under testdata/ are always filtered out.
+	IncludeTestSources bool
 }
 
 // DoWhileTrueOnFileReader takes a filepath, its reader and
@@ -100,7 +112,11 @@ func onMatchingFileDo(repoClient clients.RepoClient, matchPathTo PathMatcher,
 ) error {
 	predicate := func(filepath string) (bool, error) {
 		// Filter out test files.
-		if isTestdataFile(filepath) {
+		if matchPathTo.IncludeTestSources {
+			if isTestdataDirFile(filepath) {
+				return false, nil
+			}
+		} else if isTestdataFile(filepath) {
 			return false, nil
 		}
 		// Filter out files based on path/names using the pattern.
