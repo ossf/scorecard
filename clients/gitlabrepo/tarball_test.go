@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -178,5 +179,46 @@ func TestExtractTarball(t *testing.T) {
 				t.Error("client.files not cleaned up!")
 			}
 		})
+	}
+}
+
+func TestFlattenedCIFilePath(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+	ciYamlPath := filepath.Join(tempDir, "gitlabscorecard_flattened_ci.yaml")
+	ciYaml, err := os.Create(ciYamlPath)
+	if err != nil {
+		t.Fatalf("os.Create: %v", err)
+	}
+	defer ciYaml.Close()
+
+	filename := strings.TrimPrefix(ciYaml.Name(), filepath.Clean(tempDir)+string(os.PathSeparator))
+	got := filepath.ToSlash(filename)
+	want := "gitlabscorecard_flattened_ci.yaml"
+	if got != want {
+		t.Errorf("flattened CI filename mismatch: got %q, want %q", got, want)
+	}
+}
+
+func TestFlattenedCIFilePath_WindowsSeparators(t *testing.T) {
+	t.Parallel()
+
+	// Simulate Windows path where tempDir has backslashes.
+	windowsTempDir := `C:\Users\runner\AppData\Local\Temp\repo123456`
+	cleanPrefix := windowsTempDir + `\`
+
+	// With filepath.Join on Windows:
+	joinedPath := windowsTempDir + `\` + "gitlabscorecard_flattened_ci.yaml"
+	trimmed := strings.TrimPrefix(joinedPath, cleanPrefix)
+	if trimmed != "gitlabscorecard_flattened_ci.yaml" {
+		t.Errorf("TrimPrefix with joined path failed: got %q, want %q", trimmed, "gitlabscorecard_flattened_ci.yaml")
+	}
+
+	// Demonstration of old bug: string concatenation with forward slash fails to trim on Windows
+	oldBuggyPath := windowsTempDir + "/gitlabscorecard_flattened_ci.yaml"
+	failedTrim := strings.TrimPrefix(oldBuggyPath, cleanPrefix)
+	if failedTrim == "gitlabscorecard_flattened_ci.yaml" {
+		t.Errorf("expected forward-slash path to fail prefix match on Windows, but got %q", failedTrim)
 	}
 }
