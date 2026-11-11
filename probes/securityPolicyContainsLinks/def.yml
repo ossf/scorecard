@@ -37,7 +37,7 @@ remediation:
   markdown:
     - 'On GitHub:'
     - Enable private vulnerability disclosure in your [repository settings](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories/configuring-private-vulnerability-reporting-for-a-repository)
-    - Add a section in your SECURITY.md indicating you have enabled private reporting, and tell them to [follow these steps](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability to report vulnerabilities).
+    - Add a section in your SECURITY.md indicating you have enabled private reporting, and tell them to [follow these steps](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability) to report vulnerabilities.
     - 'On GitLab:'
     - Provide a point of contact in your SECURITY.md.
     - 'Examples: [OpenSSF Scorecard](https://github.com/ossf/scorecard/blob/main/SECURITY.md), [SLSA builders](https://github.com/slsa-framework/slsa-github-generator/blob/main/SECURITY.md), [Sigstore](https://github.com/sigstore/.github/blob/main/SECURITY.md).'
