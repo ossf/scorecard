@@ -461,6 +461,7 @@ func isGitHubPagesDeploymentWorkflow(workflow *ghworkflow.Workflow, fp string, p
 
 // isReleasingWorkflow returns true if the workflow involves creating a release on GitHub.
 func isReleasingWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permissionCbData) bool {
+	const slsaActionsLogText = "candidate SLSA publishing workflow using slsa-framework/actions"
 	jobMatchers := []fileparser.JobMatcher{
 		{
 			// Python packages.
@@ -510,6 +511,33 @@ func isReleasingWorkflow(workflow *ghworkflow.Workflow, fp string, pdata *permis
 				},
 			},
 			LogText: "candidate SLSA publishing workflow using slsa-github-generator",
+		},
+		{
+			// SLSA provenance attester. https://github.com/slsa-framework/actions
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "slsa-framework/actions/.github/workflows/attest_actions.yml",
+				},
+			},
+			LogText: slsaActionsLogText,
+		},
+		{
+			// SLSA source attester. https://github.com/slsa-framework/actions
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "slsa-framework/actions/.github/workflows/compute_slsa_source.yml",
+				},
+			},
+			LogText: slsaActionsLogText,
+		},
+		{
+			// SLSA attester action. https://github.com/slsa-framework/actions
+			Steps: []*fileparser.JobMatcherStep{
+				{
+					Uses: "slsa-framework/actions/attest/actions",
+				},
+			},
+			LogText: slsaActionsLogText,
 		},
 		{
 			// Running mvn release:prepare requires committing changes.
