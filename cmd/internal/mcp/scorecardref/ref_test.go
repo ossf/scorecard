@@ -14,7 +14,10 @@
 
 package scorecardref
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestParse(t *testing.T) {
 	t.Parallel()
@@ -30,11 +33,17 @@ func TestParse(t *testing.T) {
 		{"gitlab.com/foo/bar", "gitlab.com", "foo", "bar", false},
 		{"github.com/ossf/scorecard/", "github.com", "ossf", "scorecard", false},
 		{"https://github.com/ossf/scorecard", "github.com", "ossf", "scorecard", false},
+		{"https://github.com/ossf/scorecard.git", "github.com", "ossf", "scorecard", false},
+		{"HTTPS://github.com/ossf/scorecard", "github.com", "ossf", "scorecard", false},
 		{" ossf/scorecard ", "github.com", "ossf", "scorecard", false},
 		{"bitbucket.org/foo/bar", "", "", "", true},
 		{"justone", "", "", "", true},
 		{"a/b/c/d", "", "", "", true},
 		{"github.com//scorecard", "", "", "", true},
+		{"github.com/../scorecard", "", "", "", true},
+		{"github.com/ossf/..", "", "", "", true},
+		{"github.com/./scorecard", "", "", "", true},
+		{"gitlab.com/group/subgroup/repo", "", "", "", true},
 		{"", "", "", "", true},
 	}
 	for _, tt := range tests {
@@ -52,6 +61,10 @@ func TestParse(t *testing.T) {
 		if got.Platform != tt.platform || got.Org != tt.org || got.Name != tt.name {
 			t.Errorf("Parse(%q) = %+v, want %s/%s/%s", tt.in, got, tt.platform, tt.org, tt.name)
 		}
+	}
+	_, err := Parse("gitlab.com/group/subgroup/repo")
+	if err == nil || !strings.Contains(err.Error(), "GitLab subgroup paths are not supported") {
+		t.Errorf("Parse(GitLab subgroup) error = %v, want a specific unsupported-subgroup error", err)
 	}
 }
 
