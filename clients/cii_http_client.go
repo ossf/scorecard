@@ -16,6 +16,7 @@ package clients
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -81,4 +82,35 @@ func (client *httpClientCIIBestPractices) GetBadgeLevel(ctx context.Context, uri
 		return NotFound, nil
 	}
 	return parsedResponse[0].getBadgeLevel()
+}
+
+// GetBadgeByProjectID implements CIIProjectClient.GetBadgeByProjectID.
+// It calls /projects/{id}.json and returns the badge data for that project ID.
+// A 404 response is treated as "not found" and returns an empty BadgeResponse with no error.
+func (client *httpClientCIIBestPractices) GetBadgeByProjectID(ctx context.Context, id int) (BadgeResponse, error) {
+	url := fmt.Sprintf("%s/projects/%d.json", client.baseURL, id)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return BadgeResponse{}, fmt.Errorf("http.NewRequestWithContext: %w", err)
+	}
+	httpClient := http.Client{
+		Transport: &expBackoffTransport{numRetries: 3},
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return BadgeResponse{}, fmt.Errorf("http.Do: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return BadgeResponse{}, nil
+	}
+	jsonData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return BadgeResponse{}, fmt.Errorf("io.ReadAll: %w", err)
+	}
+	var parsed BadgeResponse
+	if err := json.Unmarshal(jsonData, &parsed); err != nil {
+		return BadgeResponse{}, fmt.Errorf("json.Unmarshal: %w", err)
+	}
+	return parsed, nil
 }
