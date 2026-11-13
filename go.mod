@@ -1,6 +1,6 @@
 module github.com/ossf/scorecard/v5
 
-go 1.26.5
+go 1.26.8
 
 require (
 	cloud.google.com/go/monitoring v1.30.0 // indirect
@@ -11,7 +11,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/go-containerregistry v0.22.1
 	github.com/h2non/filetype v1.1.3
-	github.com/moby/buildkit v0.32.2
+	github.com/moby/buildkit v0.34.2
 	github.com/olekukonko/tablewriter v1.0.9
 	github.com/onsi/gomega v1.44.0
 	github.com/shurcooL/githubv4 v0.0.0-20201206200315-234843c633fa
@@ -131,7 +131,7 @@ require (
 	github.com/olekukonko/ll v0.0.9 // indirect
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/owenrumney/go-sarif/v3 v3.3.1 // indirect
-	github.com/package-url/packageurl-go v0.1.6 // indirect
+	github.com/package-url/packageurl-go v0.1.7 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pjbgf/sha1cd v0.7.0 // indirect
@@ -200,8 +200,8 @@ require (
 	github.com/Microsoft/go-winio v0.6.3-0.20251027160822-ad3df93bed29 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
 	github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be // indirect
-	github.com/docker/cli v29.7.2+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.9.8 // indirect
+	github.com/docker/cli v29.8.2+incompatible // indirect
+	github.com/docker/docker-credential-helpers v0.9.9 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.19.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -216,7 +216,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v1.6.0 // indirect
-	github.com/klauspost/compress v1.19.2 // indirect
+	github.com/klauspost/compress v1.20.2 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mattn/go-runewidth v0.0.28 // indirect
