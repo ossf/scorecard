@@ -18,11 +18,20 @@ import (
 	"fmt"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 )
 
 // SignedReleases checks for presence of signed release check.
 func SignedReleases(c *checker.CheckRequest) (checker.SignedReleasesData, error) {
-	releases, err := c.RepoClient.ListReleases()
+	var releases []clients.Release
+	var err error
+	if lister, ok := c.RepoClient.(clients.ReleaseAttestationLister); ok {
+		// Attestation lookups are comparatively expensive, so only
+		// clients asked for them by this check perform them.
+		releases, err = lister.ListReleasesWithAttestations()
+	} else {
+		releases, err = c.RepoClient.ListReleases()
+	}
 	if err != nil {
 		return checker.SignedReleasesData{}, fmt.Errorf("%w", err)
 	}
