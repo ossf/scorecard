@@ -21,7 +21,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	go.opencensus.io v0.24.0
 	go.yaml.in/yaml/v2 v2.4.4
-	go.yaml.in/yaml/v3 v3.0.5
+	go.yaml.in/yaml/v3 v3.0.6
 	gocloud.dev v0.47.0
 	golang.org/x/text v0.44.0
 	golang.org/x/tools v0.52.0 // indirect
