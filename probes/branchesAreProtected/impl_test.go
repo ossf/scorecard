@@ -52,7 +52,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeFalse,
+				finding.OutcomeNotAvailable,
 			},
 		},
 		{
@@ -134,7 +134,7 @@ func Test_Run(t *testing.T) {
 				},
 			},
 			outcomes: []finding.Outcome{
-				finding.OutcomeFalse, finding.OutcomeFalse,
+				finding.OutcomeFalse, finding.OutcomeNotAvailable,
 			},
 		},
 	}
