@@ -155,6 +155,11 @@ func processDirectoryPropsFile(path string, content []byte, args ...interface{})
 		})
 		return true, nil
 	}
+	// Keep searching while CPM is not enabled: Directory.Build.props (build settings, no CPM) usually sorts
+	// before Directory.Packages.props, and stopping at it would hide central package management entirely.
+	if !cpmConfig.IsCPMEnabled {
+		return true, nil
+	}
 	pdata.CpmConfig = cpmConfig
 	return false, nil
 }
