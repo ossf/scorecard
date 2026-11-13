@@ -23,15 +23,15 @@ require (
 	go.yaml.in/yaml/v2 v2.4.4
 	go.yaml.in/yaml/v3 v3.0.5
 	gocloud.dev v0.47.0
-	golang.org/x/text v0.43.0
-	golang.org/x/tools v0.51.0 // indirect
+	golang.org/x/text v0.44.0
+	golang.org/x/tools v0.52.0 // indirect
 	google.golang.org/genproto v0.0.0-20260904194346-d0f1323225a4 // indirect
 	google.golang.org/protobuf v1.36.12
 	mvdan.cc/sh/v3 v3.14.1
 )
 
 require (
-	actionlint.kjanat.dev v1.17.0
+	actionlint.kjanat.dev v1.17.1
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/google/go-github/v82 v82.0.0
 	github.com/google/jsonschema-go v0.4.3
@@ -39,8 +39,8 @@ require (
 	github.com/google/osv-scanner/v2 v2.5.1
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.2.0
-	github.com/modelcontextprotocol/go-sdk v1.7.0
-	github.com/onsi/ginkgo/v2 v2.33.1
+	github.com/modelcontextprotocol/go-sdk v1.8.0
+	github.com/onsi/ginkgo/v2 v2.34.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20260730052020-9509daabeece
 	github.com/otiai10/copy v1.14.1
 	gitlab.com/gitlab-org/api/client-go v1.46.0
@@ -176,7 +176,7 @@ require (
 	go.uber.org/zap v1.28.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	golang.org/x/mod v0.42.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260924152758-ed294f943157 // indirect
+	golang.org/x/telemetry v0.0.0-20261009151841-97e8ea77aa2a // indirect
 	golang.org/x/time v0.16.0 // indirect
 	golang.org/x/vuln v1.6.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20260904194346-d0f1323225a4 // indirect
@@ -233,8 +233,8 @@ require (
 	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/net v0.61.0 // indirect
-	golang.org/x/oauth2 v0.37.0
-	golang.org/x/sync v0.24.0
+	golang.org/x/oauth2 v0.38.0
+	golang.org/x/sync v0.25.0
 	golang.org/x/sys v0.49.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/api v0.307.0 // indirect
