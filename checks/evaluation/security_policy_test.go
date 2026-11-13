@@ -45,6 +45,10 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score: checker.InconclusiveResultScore,
@@ -74,6 +78,10 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyInvalidProbeName",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
 				Score: checker.InconclusiveResultScore,
@@ -99,11 +107,16 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.MinResultScore,
-				NumberOfInfo: 1,
-				NumberOfWarn: 3,
+				Score:         checker.MinResultScore,
+				NumberOfInfo:  1,
+				NumberOfWarn:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -125,12 +138,17 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeFalse,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        checker.InconclusiveResultScore,
-				Error:        sce.ErrScorecardInternal,
-				NumberOfWarn: 1,
-				NumberOfInfo: 3,
+				Score:         checker.InconclusiveResultScore,
+				Error:         sce.ErrScorecardInternal,
+				NumberOfWarn:  1,
+				NumberOfInfo:  3,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -152,11 +170,16 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
 			},
 			result: scut.TestReturn{
-				Score:        6,
-				NumberOfInfo: 2,
-				NumberOfWarn: 2,
+				Score:         6,
+				NumberOfInfo:  2,
+				NumberOfWarn:  2,
+				NumberOfDebug: 1,
 			},
 		},
 		{
@@ -178,10 +201,135 @@ func TestSecurityPolicy(t *testing.T) {
 					Probe:   "securityPolicyPresent",
 					Outcome: finding.OutcomeTrue,
 				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeNotApplicable,
+				},
+			},
+			result: scut.TestReturn{
+				Score:         checker.MaxResultScore,
+				NumberOfInfo:  4,
+				NumberOfDebug: 1,
+			},
+		},
+		{
+			name: "no file and private reporting enabled",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 1,
+				NumberOfWarn: 4,
+			},
+		},
+		{
+			name: "links and private reporting enabled",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        checker.MaxResultScore,
+				NumberOfInfo: 3,
+				NumberOfWarn: 2,
+			},
+		},
+		{
+			name: "text only and private reporting enabled",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeFalse,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeTrue,
+				},
+			},
+			result: scut.TestReturn{
+				Score:        8,
+				NumberOfInfo: 3,
+				NumberOfWarn: 2,
+			},
+		},
+		{
+			name: "complete policy and private reporting disabled",
+			findings: []finding.Finding{
+				{
+					Probe:   "securityPolicyContainsVulnerabilityDisclosure",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyContainsLinks",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyContainsText",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyPresent",
+					Outcome: finding.OutcomeTrue,
+				},
+				{
+					Probe:   "securityPolicyEnablesPrivateReporting",
+					Outcome: finding.OutcomeFalse,
+				},
 			},
 			result: scut.TestReturn{
 				Score:        checker.MaxResultScore,
 				NumberOfInfo: 4,
+				NumberOfWarn: 1,
 			},
 		},
 	}
@@ -193,5 +341,12 @@ func TestSecurityPolicy(t *testing.T) {
 			got := SecurityPolicy(tt.name, tt.findings, &dl)
 			scut.ValidateTestReturn(t, tt.name, &tt.result, &got, &dl)
 		})
+	}
+}
+
+func TestApplyPrivateReportingKeepsHigherScore(t *testing.T) {
+	t.Parallel()
+	if got := applyPrivateReporting(9, true, false); got != 9 {
+		t.Fatalf("applyPrivateReporting() = %d, want 9", got)
 	}
 }

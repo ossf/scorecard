@@ -21,44 +21,65 @@ import (
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsLinks"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsText"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyContainsVulnerabilityDisclosure"
+	"github.com/ossf/scorecard/v5/probes/securityPolicyEnablesPrivateReporting"
 	"github.com/ossf/scorecard/v5/probes/securityPolicyPresent"
 )
 
+// privateReportingScore is the floor when GitHub private vulnerability
+// reporting is enabled and the policy file alone would score lower.
+const privateReportingScore = 8
+
 // SecurityPolicy applies the score policy for the Security-Policy check.
 func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLogger) checker.CheckResult {
-	// We have 4 unique probes, each should have a finding.
 	expectedProbes := []string{
 		securityPolicyContainsVulnerabilityDisclosure.Probe,
 		securityPolicyContainsLinks.Probe,
 		securityPolicyContainsText.Probe,
 		securityPolicyPresent.Probe,
+		securityPolicyEnablesPrivateReporting.Probe,
 	}
 	if !finding.UniqueProbesEqual(findings, expectedProbes) {
 		e := sce.WithMessage(sce.ErrScorecardInternal, "invalid probe results")
 		return checker.CreateRuntimeErrorResult(name, e)
 	}
 
-	score := 0
-	m := make(map[string]bool)
-	var logLevel checker.DetailType
+	score, policyPresent, privateReporting, hasLinks := tallySecurityPolicy(findings, dl)
+	if !policyPresent {
+		if score > 0 {
+			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
+			return checker.CreateRuntimeErrorResult(name, e)
+		}
+		if privateReporting {
+			return checker.CreateResultWithScore(name, "private vulnerability reporting enabled", privateReportingScore)
+		}
+		return checker.CreateMinScoreResult(name, "security policy file not detected")
+	}
+	return checker.CreateResultWithScore(name, "security policy file detected",
+		applyPrivateReporting(score, privateReporting, hasLinks))
+}
+
+func tallySecurityPolicy(
+	findings []finding.Finding, dl checker.DetailLogger,
+) (score int, policyPresent, privateReporting, hasLinks bool) {
+	seen := make(map[string]bool)
 	for i := range findings {
 		f := &findings[i]
-		// all of the security policy probes are good things if true and bad if false
+		logLevel := checker.DetailDebug
 		switch f.Outcome {
 		case finding.OutcomeTrue:
 			logLevel = checker.DetailInfo
 			switch f.Probe {
 			case securityPolicyContainsVulnerabilityDisclosure.Probe:
-				score += scoreProbeOnce(f.Probe, m, 1)
+				score += scoreProbeOnce(f.Probe, seen, 1)
 			case securityPolicyContainsLinks.Probe:
-				score += scoreProbeOnce(f.Probe, m, 6)
+				score += scoreProbeOnce(f.Probe, seen, 6)
+				hasLinks = true
 			case securityPolicyContainsText.Probe:
-				score += scoreProbeOnce(f.Probe, m, 3)
+				score += scoreProbeOnce(f.Probe, seen, 3)
 			case securityPolicyPresent.Probe:
-				m[f.Probe] = true
-			default:
-				e := sce.WithMessage(sce.ErrScorecardInternal, "unknown probe results")
-				return checker.CreateRuntimeErrorResult(name, e)
+				policyPresent = true
+			case securityPolicyEnablesPrivateReporting.Probe:
+				privateReporting = true
 			}
 		case finding.OutcomeFalse:
 			logLevel = checker.DetailWarn
@@ -67,15 +88,20 @@ func SecurityPolicy(name string, findings []finding.Finding, dl checker.DetailLo
 		}
 		checker.LogFinding(dl, f, logLevel)
 	}
-	_, defined := m[securityPolicyPresent.Probe]
-	if !defined {
-		if score > 0 {
-			e := sce.WithMessage(sce.ErrScorecardInternal, "score calculation problem")
-			return checker.CreateRuntimeErrorResult(name, e)
-		}
-		return checker.CreateMinScoreResult(name, "security policy file not detected")
+	return score, policyPresent, privateReporting, hasLinks
+}
+
+func applyPrivateReporting(score int, enabled, hasLinks bool) int {
+	if !enabled {
+		return score
 	}
-	return checker.CreateResultWithScore(name, "security policy file detected", score)
+	if hasLinks {
+		return checker.MaxResultScore
+	}
+	if score < privateReportingScore {
+		return privateReportingScore
+	}
+	return score
 }
 
 func scoreProbeOnce(probeID string, m map[string]bool, bump int) int {

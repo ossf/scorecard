@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"context"
 	"io"
 	"os"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/ossf/scorecard/v5/checker"
+	"github.com/ossf/scorecard/v5/clients"
 	mockrepo "github.com/ossf/scorecard/v5/clients/mockclients"
 	scut "github.com/ossf/scorecard/v5/utests"
 )
@@ -137,6 +139,8 @@ func TestSecurityPolicy(t *testing.T) {
 			mockRepo := mockrepo.NewMockRepo(ctrl)
 
 			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepoClient.EXPECT().PrivateVulnerabilityReportingEnabled().
+				Return(false, clients.ErrUnsupportedFeature).AnyTimes()
 			// the revised Security Policy will immediate go for the
 			// file contents once found. This test will return that
 			// mock file, but this specific unit test is not testing
@@ -357,6 +361,58 @@ func Test_collectPolicyHits(t *testing.T) {
 					got.InformationValue.Offset != want.InformationValue.Offset {
 					t.Errorf("hit %d: got %+v, want %+v", i, got, want)
 				}
+			}
+		})
+	}
+}
+
+func TestSecurityPolicyPrivateReporting(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		files   []string
+		enabled bool
+		orgErr  error
+	}{
+		{
+			name:    "enabled with policy file",
+			files:   []string{"security.md"},
+			enabled: true,
+		},
+		{
+			name:    "disabled with policy file",
+			files:   []string{"security.md"},
+			enabled: false,
+		},
+		{
+			name:    "enabled without a policy file",
+			files:   nil,
+			enabled: true,
+			orgErr:  clients.ErrUnsupportedFeature,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+			mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(tt.files, nil).AnyTimes()
+			mockRepoClient.EXPECT().GetFileReader(gomock.Any()).Return(
+				io.NopCloser(strings.NewReader("report vulnerabilities to security@example.com")), nil).AnyTimes()
+			mockRepoClient.EXPECT().PrivateVulnerabilityReportingEnabled().Return(tt.enabled, nil)
+			if tt.orgErr != nil {
+				mockRepoClient.EXPECT().GetOrgRepoClient(gomock.Any()).Return(nil, tt.orgErr)
+			}
+
+			res, err := SecurityPolicy(&checker.CheckRequest{
+				Ctx:        context.Background(),
+				RepoClient: mockRepoClient,
+			})
+			if err != nil {
+				t.Fatalf("SecurityPolicy() error = %v", err)
+			}
+			if res.PrivateVulnerabilityReporting == nil || *res.PrivateVulnerabilityReporting != tt.enabled {
+				t.Fatalf("PrivateVulnerabilityReporting = %v, want %v", res.PrivateVulnerabilityReporting, tt.enabled)
 			}
 		})
 	}

@@ -37,6 +37,7 @@ type securityPolicyFilesWithURI struct {
 // SecurityPolicy checks for presence of security policy
 // and applicable content discovered by checkSecurityPolicyFileContent().
 func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error) {
+	reporting := privateVulnerabilityReporting(c.RepoClient)
 	data := securityPolicyFilesWithURI{
 		uri: "", files: make([]checker.SecurityPolicyFile, 0),
 	}
@@ -55,7 +56,10 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 				return checker.SecurityPolicyData{}, err
 			}
 		}
-		return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+		return checker.SecurityPolicyData{
+			PolicyFiles:                   data.files,
+			PrivateVulnerabilityReporting: reporting,
+		}, nil
 	}
 
 	// Check if present in parent org.
@@ -95,7 +99,18 @@ func SecurityPolicy(c *checker.CheckRequest) (checker.SecurityPolicyData, error)
 			}
 		}
 	}
-	return checker.SecurityPolicyData{PolicyFiles: data.files}, nil
+	return checker.SecurityPolicyData{
+		PolicyFiles:                   data.files,
+		PrivateVulnerabilityReporting: reporting,
+	}, nil
+}
+
+func privateVulnerabilityReporting(rc clients.RepoClient) *bool {
+	enabled, err := rc.PrivateVulnerabilityReportingEnabled()
+	if err != nil {
+		return nil
+	}
+	return &enabled
 }
 
 // Check repository for repository-specific policy.
