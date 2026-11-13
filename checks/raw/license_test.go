@@ -16,6 +16,8 @@ package raw
 
 import (
 	"testing"
+
+	"github.com/ossf/scorecard/v5/checker"
 )
 
 func TestLicenseFileCheck(t *testing.T) {
@@ -461,6 +463,14 @@ func TestLicenseFileCheck(t *testing.T) {
 			},
 		},
 		{
+			name:       "LICENSES/curl.txt",
+			filename:   "LICENSES/curl.txt",
+			shouldFail: false,
+			extensions: []string{
+				"",
+			},
+		},
+		{
 			name:       "LICENSE_RELEASE",
 			filename:   "LICENSE_RELEASE",
 			shouldFail: false,
@@ -660,5 +670,48 @@ func TestLicenseFileCheck(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestIsLicenseFilePrioritizesApproved(t *testing.T) {
+	t.Parallel()
+	setCiMap()
+	setGroupIdxsMap()
+
+	// Simulate curl/curl layout: COPYING encountered before LICENSES/curl.txt
+	files := []string{"COPYING", "LICENSES/curl.txt"}
+	var detected checker.LicenseFile
+
+	for _, f := range files {
+		continueIter, err := isLicenseFile(f, &detected)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !continueIter {
+			break
+		}
+	}
+
+	if detected.File.Path != "LICENSES/curl.txt" {
+		t.Errorf("expected LICENSES/curl.txt, got %s", detected.File.Path)
+	}
+	if detected.LicenseInformation.SpdxID != "curl" {
+		t.Errorf("expected SpdxID 'curl', got %s", detected.LicenseInformation.SpdxID)
+	}
+	if !isApprovedLicense(detected.LicenseInformation.SpdxID) {
+		t.Errorf("expected curl to be recognized as approved license")
+	}
+}
+
+func TestLicenseMapGeneratedFromPinnedSPDX(t *testing.T) {
+	t.Parallel()
+	// Verify curl is present in the approved map
+	setCiMap()
+	lic, ok := fsfOsiApprovedLicenseCiMap["CURL"]
+	if !ok {
+		t.Fatalf("expected curl to be present in fsfOsiApprovedLicenseCiMap")
+	}
+	if lic.Name != "curl License" {
+		t.Errorf("expected Name 'curl License', got '%s'", lic.Name)
 	}
 }

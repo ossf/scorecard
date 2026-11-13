@@ -160,6 +160,35 @@ jobs:
             make generate-docs
      - name: ensure generated check and probe documentation match the source
        run: git diff --exit-code
+  generate-licenses:
+    name: generate-licenses
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+     - name: Harden Runner
+       uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+       with:
+         egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+     - name: Clone the code
+       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+     - name: Setup Go
+       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+       with:
+         go-version: ${{ env.GO_VERSION }}
+         check-latest: true
+         cache: true
+     - name: generate licenses
+       uses: nick-invision/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
+       with:
+          max_attempts: 3
+          retry_on: error
+          timeout_minutes: 30
+          command: |
+            go env -w GOFLAGS=-mod=mod
+            make generate-licenses
+     - name: ensure generated license map matches the source
+       run: git diff --exit-code
   build-matrix:
     strategy:
       matrix:

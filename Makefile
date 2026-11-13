@@ -100,10 +100,15 @@ tree-status: | all-targets-update-dependencies ## Verify tree is clean and all c
 ###############################################################################
 
 ################################## make build #################################
-build-targets = generate-mocks generate-docs build-scorecard
+build-targets = generate-mocks generate-licenses generate-docs build-scorecard
 .PHONY: build $(build-targets)
 build: ## Build all binaries and images in the repo.
 build: $(build-targets)
+
+generate-licenses: ## Generates license map from pinned SPDX release.
+generate-licenses: checks/raw/internal/licenses/licenses.json checks/raw/internal/generate/main.go
+	# Generating checks/raw/license_map.go from pinned SPDX release
+	go run ./checks/raw/internal/generate/main.go
 
 generate-mocks: ## Compiles and generates all mocks using mockgen.
 generate-mocks: clients/mockclients/repo_client.go \
