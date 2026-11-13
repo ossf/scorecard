@@ -172,6 +172,14 @@ func (z *zipHandler) extractZip() error {
 	}
 	defer zipReader.Close()
 
+	// Create entries through a root, so nothing is written outside tempDir
+	// even if a path inside it is a symlink.
+	root, err := os.OpenRoot(z.tempDir)
+	if err != nil {
+		return fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
+
 	destinationPrefix := filepath.Clean(z.tempDir) + string(os.PathSeparator)
 	z.files = make([]string, 0, len(zipReader.File))
 	for _, file := range zipReader.File {
@@ -180,8 +188,9 @@ func (z *zipHandler) extractZip() error {
 		if !strings.HasPrefix(filepath.Clean(filenamepath), destinationPrefix) {
 			return errInvalidFilePath
 		}
+		filename := strings.TrimPrefix(filenamepath, destinationPrefix)
 
-		if err := os.MkdirAll(filepath.Dir(filenamepath), 0o755); err != nil {
+		if err := root.MkdirAll(filepath.Dir(filename), 0o755); err != nil {
 			return fmt.Errorf("error during os.MkdirAll: %w", err)
 		}
 
@@ -189,21 +198,20 @@ func (z *zipHandler) extractZip() error {
 			continue
 		}
 
-		if err := extractEntry(file, filenamepath); err != nil {
+		if err := extractEntry(root, file, filename); err != nil {
 			return err
 		}
 
-		filename := strings.TrimPrefix(filenamepath, destinationPrefix)
 		z.files = append(z.files, filepath.ToSlash(filename))
 	}
 	return nil
 }
 
-// extractEntry writes a single zip entry to filenamepath, enforcing the
+// extractEntry writes a single zip entry to filename inside root, enforcing the
 // per-entry size cap. The defers guarantee both the destination file and the
 // entry reader are closed on every return path, including the error ones.
-func extractEntry(file *zip.File, filenamepath string) error {
-	outFile, err := os.OpenFile(filenamepath, os.O_CREATE|os.O_WRONLY, 0o644)
+func extractEntry(root *os.Root, file *zip.File, filename string) error {
+	outFile, err := root.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("os.OpenFile: %w", err)
 	}
@@ -248,7 +256,7 @@ func (z *zipHandler) getFile(filename string) (*os.File, error) {
 	if err := z.setup(); err != nil {
 		return nil, fmt.Errorf("error during zipHandler.setup: %w", err)
 	}
-	f, err := os.Open(filepath.Join(z.tempDir, filename))
+	f, err := os.OpenInRoot(z.tempDir, filename)
 	if err != nil {
 		return nil, fmt.Errorf("open file: %w", err)
 	}
