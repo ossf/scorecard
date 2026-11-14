@@ -1,0 +1,13 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish to Nextcloud App Store
+        run: |
+          curl --fail --request POST \
+            https://apps.nextcloud.com/api/v1/apps/releases
