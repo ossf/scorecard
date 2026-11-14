@@ -23,8 +23,8 @@ import (
 	"github.com/ossf/scorecard/v5/clients"
 )
 
-var _ = Describe("E2E TEST: azuredevopsrepo.policyHandler", func() {
-	Context("Policy - Azure DevOps", func() {
+var _ = Describe("E2E TEST: azuredevopsrepo.Client.ListCheckRunsForRef", func() {
+	Context("CI builds - Azure DevOps", func() {
 		It("Should return check runs without error", func() {
 			repo, err := MakeAzureDevOpsRepo("https://dev.azure.com/openssf-scorecard/scorecard-testing/_git/scorecard-testing")
 			Expect(err).Should(BeNil())
@@ -39,7 +39,11 @@ var _ = Describe("E2E TEST: azuredevopsrepo.policyHandler", func() {
 			Expect(err).Should(BeNil())
 			Expect(len(commits)).Should(BeNumerically(">", 0))
 
-			checkRuns, err := repoClient.ListCheckRunsForRef(commits[0].SHA)
+			ref := commits[0].SHA
+			if head := commits[0].AssociatedMergeRequest.HeadSHA; head != "" {
+				ref = head
+			}
+			checkRuns, err := repoClient.ListCheckRunsForRef(ref)
 			Expect(err).Should(BeNil())
 			Expect(checkRuns).ShouldNot(BeNil())
 
