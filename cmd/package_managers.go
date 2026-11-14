@@ -25,6 +25,7 @@ import (
 
 	ngt "github.com/ossf/scorecard/v5/cmd/internal/nuget"
 	pmc "github.com/ossf/scorecard/v5/cmd/internal/packagemanager"
+	wgt "github.com/ossf/scorecard/v5/cmd/internal/winget"
 	sce "github.com/ossf/scorecard/v5/errors"
 )
 
@@ -48,7 +49,7 @@ func makeGithubRepo(urlAndPathParts []string) string {
 
 // Both GitHub and GitLab are case-insensitive (and thus we lowercase those URLS)
 // however generic URLs are indeed case-sensitive!
-var pypiMatchers = []func(string) string{
+var repoURLMatchers = []func(string) string{
 	func(url string) string {
 		return makeGithubRepo(githubDomainRegexp.FindStringSubmatch(url))
 	},
@@ -71,7 +72,7 @@ type packageMangerResponse struct {
 	exists         bool
 }
 
-func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
+func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget, winget string,
 	manager pmc.Client,
 ) (packageMangerResponse, error) {
 	if npm != "" {
@@ -98,6 +99,14 @@ func fetchGitRepositoryFromPackageManagers(npm, pypi, rubygems, nuget string,
 	if nuget != "" {
 		nugetClient := ngt.NugetClient{Manager: manager}
 		gitRepo, err := fetchGitRepositoryFromNuget(nuget, &nugetClient)
+		return packageMangerResponse{
+			exists:         true,
+			associatedRepo: gitRepo,
+		}, err
+	}
+	if winget != "" {
+		wingetClient := wgt.WingetClient{Manager: manager}
+		gitRepo, err := fetchGitRepositoryFromWinget(winget, &wingetClient)
 		return packageMangerResponse{
 			exists:         true,
 			associatedRepo: gitRepo,
@@ -156,7 +165,7 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
 	var validURL string
 	for _, url := range v.Info.ProjectURLs {
-		for _, matcher := range pypiMatchers {
+		for _, matcher := range repoURLMatchers {
 			repo := matcher(url)
 			if repo == "" {
 				continue
@@ -216,6 +225,16 @@ func fetchGitRepositoryFromNuget(packageName string, nugetClient ngt.Client) (st
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("could not find source repo for nuget package: %v", err))
+	}
+	return repositoryURI, nil
+}
+
+// Gets the source repository URL for the winget package.
+func fetchGitRepositoryFromWinget(packageName string, wingetClient wgt.Client) (string, error) {
+	repositoryURI, err := wingetClient.GitRepositoryByPackageName(packageName)
+	if err != nil {
+		return "", sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("could not find source repo for winget package: %v", err))
 	}
 	return repositoryURI, nil
 }
