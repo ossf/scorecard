@@ -36,8 +36,11 @@ import (
 )
 
 const (
-	contentsURL = "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/"
-	rawURL      = "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/"
+	contentsHost = "api.github.com"
+	rawHost      = "raw.githubusercontent.com"
+
+	contentsURL = "https://" + contentsHost + "/repos/microsoft/winget-pkgs/contents/manifests/"
+	rawURL      = "https://" + rawHost + "/microsoft/winget-pkgs/master/manifests/"
 
 	// maxResponseBytes bounds how much of a response is read. Manifests are a few KB and
 	// the GitHub contents API returns at most 1000 entries.
@@ -101,9 +104,27 @@ func (c *WingetClient) GitRepositoryByPackageName(packageID string) (string, err
 		fmt.Sprintf("winget package %s has no source repository link in its manifest, use --repo instead", packageID))
 }
 
+// get issues a GET request only when the assembled URL targets one of the fixed
+// microsoft/winget-pkgs hosts. The package ID is user-controlled and only ever
+// contributes to the request path, so pinning the host keeps that input from
+// redirecting the request elsewhere (and keeps it out of CodeQL's reach too).
+func (c *WingetClient) get(rawURL string) (*http.Response, error) {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("invalid winget request URL: %v", err))
+	}
+	if u.Host != contentsHost && u.Host != rawHost {
+		return nil, sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("refusing winget request to unexpected host %q", u.Host))
+	}
+	//nolint:wrapcheck // Manager errors are wrapped by callers.
+	return c.Manager.GetURI(u.String())
+}
+
 // latestVersion lists the package directory and returns its newest version.
 func (c *WingetClient) latestVersion(packageID, pkgPath string) (string, error) {
-	resp, err := c.Manager.GetURI(contentsURL + pkgPath)
+	resp, err := c.get(contentsURL + pkgPath)
 	if err != nil {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("failed to fetch winget versions for %s: %v", packageID, err))
@@ -150,7 +171,7 @@ func (c *WingetClient) latestVersion(packageID, pkgPath string) (string, error) 
 
 // fetchManifest returns the manifest body, or nil if it can't be fetched.
 func (c *WingetClient) fetchManifest(uri string) []byte {
-	resp, err := c.Manager.GetURI(uri)
+	resp, err := c.get(uri)
 	if err != nil {
 		return nil
 	}

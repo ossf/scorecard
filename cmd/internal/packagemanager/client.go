@@ -47,20 +47,34 @@ func (c *PackageManagerClient) GetURI(url string) (*http.Response, error) {
 func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) {
 	const timeout = 10
 	client := &http.Client{
-		Timeout: timeout * time.Second,
-	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("http.NewRequest: %w", err)
-	}
-	// Authenticate GitHub API requests (e.g. for winget) to avoid the low unauthenticated rate limit.
-	if u := req.URL; u.Scheme == "https" && u.Hostname() == "api.github.com" {
-		if accessor := githubTokens(); accessor != nil {
-			id, token := accessor.Next()
-			defer accessor.Release(id)
-			req.Header.Set("Authorization", "Bearer "+token)
-		}
+		Timeout:   timeout * time.Second,
+		Transport: githubAuthTransport{base: http.DefaultTransport},
 	}
 	//nolint:wrapcheck
-	return client.Do(req)
+	return client.Get(url)
+}
+
+// githubAuthTransport authenticates GitHub API requests (e.g. for winget) to avoid
+// the low unauthenticated rate limit. Requests to any other host pass through untouched.
+type githubAuthTransport struct {
+	base http.RoundTripper
+}
+
+func (t githubAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.URL.Scheme != "https" || req.URL.Hostname() != "api.github.com" {
+		//nolint:wrapcheck
+		return t.base.RoundTrip(req)
+	}
+	accessor := githubTokens()
+	if accessor == nil {
+		//nolint:wrapcheck
+		return t.base.RoundTrip(req)
+	}
+	id, token := accessor.Next()
+	defer accessor.Release(id)
+	// A RoundTripper must not modify the caller's request.
+	authReq := req.Clone(req.Context())
+	authReq.Header.Set("Authorization", "Bearer "+token)
+	//nolint:wrapcheck
+	return t.base.RoundTrip(authReq)
 }
