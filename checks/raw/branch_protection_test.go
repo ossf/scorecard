@@ -154,6 +154,76 @@ func TestBranchProtection(t *testing.T) {
 			wantErr: errBPTest,
 		},
 		{
+			name: "release-branch-not-found",
+			releases: []clients.Release{
+				{
+					TargetCommitish: releaseBranchName,
+				},
+			},
+			branches: branchesArg{
+				{
+					name: releaseBranchName,
+					err:  clients.ErrBranchNotFound,
+				},
+			},
+			// A deleted release branch is skipped instead of making the
+			// whole check inconclusive (#2161).
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "release-branch-not-found-redirect-missing",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: "master",
+					err:  clients.ErrBranchNotFound,
+				},
+				{
+					name: mainBranchName,
+					err:  clients.ErrBranchNotFound,
+				},
+			},
+			// Neither the release branch nor its master->main redirect
+			// exists (e.g. the default branch has another name): skip.
+			want: checker.BranchProtectionsData{
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "release-branch-not-found-redirect-found",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "master",
+				},
+			},
+			branches: branchesArg{
+				{
+					name: "master",
+					err:  clients.ErrBranchNotFound,
+				},
+				{
+					name: mainBranchName,
+					branchRef: &clients.BranchRef{
+						Name: &mainBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &mainBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
 			name: "nil-release-branch",
 			releases: []clients.Release{
 				{

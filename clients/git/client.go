@@ -287,6 +287,9 @@ func (c *Client) GetBranch(branch string) (*clients.BranchRef, error) {
 	// Get the branch reference
 	ref, err := c.gitRepo.Branch(branch)
 	if err != nil {
+		if errors.Is(err, git.ErrBranchNotFound) {
+			return nil, fmt.Errorf("git.Branch: %w", clients.ErrBranchNotFound)
+		}
 		return nil, fmt.Errorf("git.Branch: %w", err)
 	}
 

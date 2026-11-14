@@ -32,6 +32,10 @@ var ErrUnsupportedFeature = errors.New("unsupported feature")
 // full, non-zero commit hash.
 var ErrInvalidCommitSHA = errors.New("invalid commit SHA")
 
+// ErrBranchNotFound indicates the requested branch does not exist on the
+// repository.
+var ErrBranchNotFound = errors.New("branch not found")
+
 // HeadSHA is default commitSHA value used to denote git HEAD.
 const HeadSHA = "HEAD"
 

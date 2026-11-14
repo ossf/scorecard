@@ -15,10 +15,15 @@
 package githubrepo
 
 import (
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/shurcooL/githubv4"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -782,6 +787,79 @@ func Test_translationFromGithubAPIBranchProtectionData(t *testing.T) {
 			if !cmp.Equal(result, testcase.expected) {
 				diff := cmp.Diff(result, testcase.expected)
 				t.Errorf("test failed: expected - %v, got - %v. \n%s", testcase.expected, result, diff)
+			}
+		})
+	}
+}
+
+// branchQueryRoundTripper answers the branchesHandler GraphQL queries
+// with canned data, serving refJSON for the per-branch ref query.
+type branchQueryRoundTripper struct {
+	refJSON string
+}
+
+func (b branchQueryRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	reqBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		return nil, fmt.Errorf("io.ReadAll: %w", err)
+	}
+	var data string
+	switch {
+	case strings.Contains(string(reqBody), "branchRefName"):
+		data = `"repository": {"ref": ` + b.refJSON + `}`
+	case strings.Contains(string(reqBody), "rulesets"):
+		data = `"repository": {"defaultBranchRef": {"name": "main"}, "rulesets": {"nodes": []}}`
+	default:
+		data = `"repository": {"defaultBranchRef": {"name": "main", "refUpdateRule": null, "branchProtectionRule": null}}, ` +
+			`"rateLimit": {"cost": 1}`
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Status:     "200 OK",
+		Body:       io.NopCloser(strings.NewReader(`{"data": {` + data + `}}`)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func Test_branchesQuery_branchNotFound(t *testing.T) {
+	t.Parallel()
+	testcases := []struct {
+		name    string
+		refJSON string
+		wantErr error
+		wantRef string
+	}{
+		{
+			// A deleted/unlocatable branch comes back as a null ref and
+			// must surface as ErrBranchNotFound (#2161).
+			name:    "null-ref",
+			refJSON: `null`,
+			wantErr: clients.ErrBranchNotFound,
+		},
+		{
+			name:    "existing-ref",
+			refJSON: `{"name": "release-x", "refUpdateRule": null, "branchProtectionRule": null}`,
+			wantRef: "release-x",
+		},
+	}
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
+			t.Parallel()
+			handler := branchesHandler{
+				graphClient: githubv4.NewClient(&http.Client{
+					Transport: branchQueryRoundTripper{refJSON: testcase.refJSON},
+				}),
+			}
+			handler.init(t.Context(), &Repo{owner: "o", repo: "r", commitSHA: clients.HeadSHA})
+			ref, err := handler.query("some-branch")
+			if !errors.Is(err, testcase.wantErr) {
+				t.Fatalf("query(): got err %v, want %v", err, testcase.wantErr)
+			}
+			if testcase.wantRef == "" {
+				return
+			}
+			if ref == nil || ref.Name == nil || *ref.Name != testcase.wantRef {
+				t.Errorf("query(): got %+v, want name %q", ref, testcase.wantRef)
 			}
 		})
 	}

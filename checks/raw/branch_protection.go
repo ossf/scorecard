@@ -87,12 +87,16 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 
 		// Get the associated release branch.
 		branchRef, err := c.GetBranch(release.TargetCommitish)
-		if err != nil {
+		switch {
+		case err == nil:
+			if branches.add(branchRef) {
+				continue
+			}
+		case errors.Is(err, clients.ErrBranchNotFound):
+			// Branch doesn't exist or was deleted: try a redirect below.
+		default:
 			return checker.BranchProtectionsData{},
 				fmt.Errorf("error during GetBranch(%s): %w", release.TargetCommitish, err)
-		}
-		if branches.add(branchRef) {
-			continue
 		}
 
 		// Couldn't find the branch check for redirects.
@@ -102,11 +106,14 @@ func BranchProtection(cr *checker.CheckRequest) (checker.BranchProtectionsData, 
 		}
 		branchRef, err = c.GetBranch(redirectBranch)
 		if err != nil {
+			if errors.Is(err, clients.ErrBranchNotFound) {
+				// Branch doesn't exist or was deleted. Continue.
+				continue
+			}
 			return checker.BranchProtectionsData{},
 				fmt.Errorf("error during GetBranch(%s) %w", redirectBranch, err)
 		}
 		branches.add(branchRef)
-		// Branch doesn't exist or was deleted. Continue.
 	}
 
 	codeownersFiles := []string{}

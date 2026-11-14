@@ -320,6 +320,9 @@ func (handler *branchesHandler) query(branchName string) (*clients.BranchRef, er
 			return nil, sce.WithMessage(sce.ErrScorecardInternal, classicBranchErrMsg)
 		}
 	}
+	if queryData.Repository.Ref == nil {
+		return nil, fmt.Errorf("branch %q: %w", branchName, clients.ErrBranchNotFound)
+	}
 	rules, err := rulesMatchingBranch(handler.ruleSets, branchName, branchName == handler.defaultBranchName)
 	if err != nil {
 		return nil, sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("rulesMatchingBranch: %v", err))
