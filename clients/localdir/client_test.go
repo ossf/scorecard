@@ -218,6 +218,7 @@ func TestListFile_symlink(t *testing.T) {
 		name      string
 		symTarget string
 		want      []string
+		absolute  bool
 	}{
 		{
 			name:      "dangling symlink ignored",
@@ -228,6 +229,19 @@ func TestListFile_symlink(t *testing.T) {
 			name:      "symlink with real target included",
 			symTarget: realFilename,
 			want:      []string{realFilename, symlinkName},
+		},
+		{
+			// GetFileReader can't open an absolute link, even one that points
+			// inside the root, so listing it would fail the check.
+			name:      "absolute symlink ignored",
+			symTarget: realFilename,
+			absolute:  true,
+			want:      []string{realFilename},
+		},
+		{
+			name:      "symlink escaping the root ignored",
+			symTarget: "../" + realFilename,
+			want:      []string{realFilename},
 		},
 	}
 	for _, tt := range testcases {
@@ -240,7 +254,10 @@ func TestListFile_symlink(t *testing.T) {
 				t.Fatal("creating real file", err)
 			}
 			f.Close()
-			target := filepath.Join(dir, tt.symTarget)
+			target := tt.symTarget
+			if tt.absolute {
+				target = filepath.Join(dir, tt.symTarget)
+			}
 			linkname := filepath.Join(dir, symlinkName)
 			if err = os.Symlink(target, linkname); err != nil {
 				t.Fatal("making symlink", err)
