@@ -672,7 +672,7 @@ func TestDangerousWorkflowFixtures(t *testing.T) {
 			}},
 		},
 		{
-			name: "workflow that does not parse", want: runWant{err: "internal error: internal error: invalid GitHub workflow:\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
+			name: "workflow that does not parse", want: runWant{err: "internal error: internal error: invalid GitHub workflow (.github/workflows/bad.yml):\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
 			fixture: checkFixture{files: map[string]string{".github/workflows/bad.yml": fixtureInvalidWorkflow}},
 		},
 		{name: "ListFiles error", want: runWant{err: "internal error: error during ListFiles: client failed"}, fixture: checkFixture{listFilesErr: errClient}},
@@ -839,7 +839,7 @@ func TestPinningDependenciesFixtures(t *testing.T) {
 		},
 		{name: "IsReleaseImmutable error", want: runWant{score: 1}, fixture: checkFixture{files: files, immutableErr: errClient}},
 		{
-			name: "workflow that does not parse", want: runWant{err: "internal error: internal error: invalid GitHub workflow:\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
+			name: "workflow that does not parse", want: runWant{err: "internal error: internal error: invalid GitHub workflow (.github/workflows/bad.yml):\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
 			fixture: checkFixture{files: map[string]string{".github/workflows/bad.yml": fixtureInvalidWorkflow}},
 		},
 		{name: "ListFiles error", want: runWant{err: "internal error: error during ListFiles: client failed"}, fixture: checkFixture{listFilesErr: errClient}},
@@ -1154,7 +1154,7 @@ jobs:
 			}},
 		},
 		{
-			name: "unparsable workflow", want: runWant{err: "internal error: internal error: invalid GitHub workflow:\n:2:5: could not parse as YAML: did not find expected ',' or ']' [syntax-check]"},
+			name: "unparsable workflow", want: runWant{err: "internal error: internal error: invalid GitHub workflow (.github/workflows/bad.yml):\n:2:5: could not parse as YAML: did not find expected ',' or ']' [syntax-check]"},
 			fixture: checkFixture{files: map[string]string{".github/workflows/bad.yml": "on: [push\njobs: {"}},
 		},
 		{name: "ListFiles error", want: runWant{err: "internal error: error during ListFiles: client failed"}, fixture: checkFixture{listFilesErr: errClient}},
@@ -1451,7 +1451,7 @@ func TestPackagingFixtures(t *testing.T) {
 			})},
 		},
 		{
-			name: "local directory, invalid GitHub workflow", want: runWant{err: "internal error: internal error: invalid GitHub workflow:\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
+			name: "local directory, invalid GitHub workflow", want: runWant{err: "internal error: internal error: invalid GitHub workflow (.github/workflows/publish.yml):\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
 			fixture: checkFixture{repoClient: localDirClient(map[string]string{
 				fixtureWorkflowPath: fixtureInvalidWorkflow,
 				fixtureGitlabFile:   fixtureGitlabPublishJob,
@@ -1465,7 +1465,7 @@ func TestPackagingFixtures(t *testing.T) {
 			}, fixtureGitlabFile)},
 		},
 		{
-			name: "local directory, both collectors fail", want: runWant{err: "internal error: internal error: invalid GitHub workflow:\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
+			name: "local directory, both collectors fail", want: runWant{err: "internal error: internal error: invalid GitHub workflow (.github/workflows/publish.yml):\n:3:1: could not parse as YAML: did not find expected ',' or '}' [syntax-check]"},
 			fixture: checkFixture{repoClient: localDirClient(map[string]string{
 				fixtureWorkflowPath: fixtureInvalidWorkflow,
 				fixtureGitlabFile:   fixtureGitlabPublishJob,
