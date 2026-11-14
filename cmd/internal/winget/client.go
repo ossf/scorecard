@@ -53,7 +53,7 @@ var (
 	// separator, URL delimiter, whitespace or control character.
 	packageIDRegexp = regexp.MustCompile(`^[^.\s\\/:*?"<>|\x01-\x1f]{1,32}(\.[^.\s\\/:*?"<>|\x01-\x1f]{1,32}){1,7}$`)
 
-	urlRegexp          = regexp.MustCompile(`https?://[^\s"'<>]+`)
+	urlRegexp           = regexp.MustCompile(`https?://[^\s"'<>]+`)
 	defaultLocaleRegexp = regexp.MustCompile(`(?m)^DefaultLocale:\s*["']?([\w-]+)`)
 	fieldRegexp         = regexp.MustCompile(`^[\s-]*(\w+):`)
 )
