@@ -138,6 +138,14 @@ func TestGitRepositoryByPackageName(t *testing.T) {
 		{name: "empty publisher", id: ".Notepad++", wantErr: true},
 		{name: "empty name", id: "Notepad++.", wantErr: true},
 		{name: "empty segment", id: "Foo..Bar", wantErr: true},
+		{name: "path separator", id: "Foo.Bar/../Baz", wantErr: true},
+		{name: "backslash", id: `Foo.Bar\Baz`, wantErr: true},
+		{name: "URL delimiter", id: "Foo.Bar?x=1", wantErr: true},
+		{name: "host-like segment", id: "evil.com:443.Bar", wantErr: true},
+		{name: "whitespace", id: "Foo.Bar Baz", wantErr: true},
+		{name: "control character", id: "Foo.Bar\x00", wantErr: true},
+		{name: "segment over 32 characters", id: "Foo." + strings.Repeat("a", 33), wantErr: true},
+		{name: "more than 8 segments", id: "A.B.C.D.E.F.G.H.I", wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -197,5 +205,43 @@ func TestCompareVersions(t *testing.T) {
 		if (got > 0) != (tt.sign > 0) || (got < 0) != (tt.sign < 0) {
 			t.Errorf("compareVersions(%q, %q) = %d, want sign %d", tt.a, tt.b, got, tt.sign)
 		}
+	}
+}
+
+func TestGetPinsHost(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name, url string
+		wantCall  bool
+	}{
+		{name: "contents API", url: contentsURL + "g/Git/Git", wantCall: true},
+		{name: "raw manifests", url: rawURL + "g/Git/Git/2.55.0/Git.Git.yaml", wantCall: true},
+		{name: "other host", url: "https://example.com/manifests/g/Git/Git"},
+		{name: "lookalike host", url: "https://api.github.com.example.com/repos"},
+		{name: "unparsable URL", url: "https://api.github.com/%zz"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			ctrl := gomock.NewController(t)
+			p := pmc.NewMockClient(ctrl)
+			if tt.wantCall {
+				p.EXPECT().GetURI(tt.url).
+					Return(&http.Response{StatusCode: http.StatusOK, Body: http.NoBody}, nil)
+			}
+			// Without an EXPECT, any GetURI call fails the test.
+			resp, err := (&WingetClient{Manager: p}).get(tt.url)
+			if tt.wantCall {
+				if err != nil {
+					t.Fatalf("get(%q) error = %v", tt.url, err)
+				}
+				resp.Body.Close()
+				return
+			}
+			if err == nil {
+				resp.Body.Close()
+				t.Errorf("get(%q) succeeded, want an error", tt.url)
+			}
+		})
 	}
 }

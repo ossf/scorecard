@@ -58,6 +58,8 @@ func (c *PackageManagerClient) getRemoteURL(url string) (*http.Response, error) 
 // the low unauthenticated rate limit. Requests to any other host pass through untouched.
 type githubAuthTransport struct {
 	base http.RoundTripper
+	// getTokens returns the token accessor to use; nil means the configured githubTokens.
+	getTokens func() tokens.TokenAccessor
 }
 
 func (t githubAuthTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -65,7 +67,11 @@ func (t githubAuthTransport) RoundTrip(req *http.Request) (*http.Response, error
 		//nolint:wrapcheck
 		return t.base.RoundTrip(req)
 	}
-	accessor := githubTokens()
+	getTokens := t.getTokens
+	if getTokens == nil {
+		getTokens = githubTokens
+	}
+	accessor := getTokens()
 	if accessor == nil {
 		//nolint:wrapcheck
 		return t.base.RoundTrip(req)

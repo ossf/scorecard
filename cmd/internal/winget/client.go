@@ -48,7 +48,12 @@ const (
 )
 
 var (
-	urlRegexp           = regexp.MustCompile(`https?://[^\s"'<>]+`)
+	// packageIDRegexp is the PackageIdentifier pattern from the winget manifest schema:
+	// 2-8 dot-separated segments of 1-32 characters, none of which can be a path
+	// separator, URL delimiter, whitespace or control character.
+	packageIDRegexp = regexp.MustCompile(`^[^.\s\\/:*?"<>|\x01-\x1f]{1,32}(\.[^.\s\\/:*?"<>|\x01-\x1f]{1,32}){1,7}$`)
+
+	urlRegexp          = regexp.MustCompile(`https?://[^\s"'<>]+`)
 	defaultLocaleRegexp = regexp.MustCompile(`(?m)^DefaultLocale:\s*["']?([\w-]+)`)
 	fieldRegexp         = regexp.MustCompile(`^[\s-]*(\w+):`)
 )
@@ -69,11 +74,11 @@ type contentsEntry struct {
 // GitRepositoryByPackageName returns the source repository of the winget package by
 // reading the manifests of its newest version.
 func (c *WingetClient) GitRepositoryByPackageName(packageID string) (string, error) {
-	segments := strings.Split(packageID, ".")
-	if len(segments) < 2 || slices.Contains(segments, "") {
+	if !packageIDRegexp.MatchString(packageID) {
 		return "", sce.WithMessage(sce.ErrScorecardInternal,
 			fmt.Sprintf("invalid winget package ID format (expected Publisher.Name): %s", packageID))
 	}
+	segments := strings.Split(packageID, ".")
 	// Every dot in the ID is a directory, e.g. BurntSushi.ripgrep.MSVC is at b/BurntSushi/ripgrep/MSVC.
 	for i := range segments {
 		segments[i] = url.PathEscape(segments[i])
