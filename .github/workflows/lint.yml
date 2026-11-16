@@ -12,7 +12,7 @@ permissions:
   pull-requests: read # Use with `only-new-issues` option.
 
 env:
-  GO_VERSION: oldstable
+  GO_VERSION: stable
 
 jobs:
   golangci:
