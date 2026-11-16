@@ -342,8 +342,17 @@ func TestSearch(t *testing.T) {
 	}
 }
 
+func skipIfNoSymlink(t *testing.T) {
+	t.Helper()
+	probe := filepath.Join(t.TempDir(), "symlink_probe")
+	if err := os.Symlink("target", probe); err != nil {
+		t.Skipf("skipping test: symlinks not supported or privilege not held: %v", err)
+	}
+}
+
 func TestFileAccessSymlinks(t *testing.T) {
 	t.Parallel()
+	skipIfNoSymlink(t)
 	const errEscapes = "path escapes from parent"
 
 	secret := filepath.Join(t.TempDir(), "secret.txt")
