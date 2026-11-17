@@ -32,9 +32,9 @@ var defaultClientMu sync.Mutex
 
 type trackingReadCloser struct {
 	io.ReadCloser
+	onClose func()
 	mu      sync.Mutex
 	closed  bool
-	onClose func()
 }
 
 func newTrackingBody(content string) *trackingReadCloser {
@@ -79,6 +79,7 @@ func mustNewRequest(t *testing.T, method, url string, body io.Reader) *http.Requ
 	return req
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_Cancellation(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
@@ -133,6 +134,7 @@ func TestExpBackoffTransport_Cancellation(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_DeadlineExceeded(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
@@ -181,6 +183,7 @@ func TestExpBackoffTransport_DeadlineExceeded(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_ClosesDiscarded429Bodies(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
@@ -244,6 +247,7 @@ func TestExpBackoffTransport_ClosesDiscarded429Bodies(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_RetrySuccess(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
@@ -329,6 +333,7 @@ func TestExpBackoffTransport_RetrySuccess(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_Exhaustion(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
@@ -390,40 +395,43 @@ func TestExpBackoffTransport_Exhaustion(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestExpBackoffTransport_Non429PassThrough(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
 
 	testCases := []struct {
 		name       string
-		statusCode int
 		body       string
+		statusCode int
 	}{
 		{
 			name:       "HTTP 200 OK",
-			statusCode: http.StatusOK,
 			body:       "ok response",
+			statusCode: http.StatusOK,
 		},
 		{
 			name:       "HTTP 500 Internal Server Error",
-			statusCode: http.StatusInternalServerError,
 			body:       "server error",
+			statusCode: http.StatusInternalServerError,
 		},
 		{
 			name:       "HTTP 404 Not Found",
-			statusCode: http.StatusNotFound,
 			body:       "not found",
+			statusCode: http.StatusNotFound,
 		},
 	}
 
+	//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 	for _, tc := range testCases {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			attempts := 0
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				attempts++
 				w.WriteHeader(tc.statusCode)
-				_, _ = w.Write([]byte(tc.body))
+				if _, err := w.Write([]byte(tc.body)); err != nil {
+					t.Errorf("failed to write test response: %v", err)
+				}
 			}))
 			defer ts.Close()
 
@@ -464,15 +472,19 @@ func TestExpBackoffTransport_Non429PassThrough(t *testing.T) {
 	}
 }
 
+//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 func TestHttpClientCIIBestPractices_GetBadgeLevel(t *testing.T) {
 	defaultClientMu.Lock()
 	defer defaultClientMu.Unlock()
 
+	//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 	t.Run("SuccessPassing", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`[{"badge_level":"passing"}]`))
+			if _, err := w.Write([]byte(`[{"badge_level":"passing"}]`)); err != nil {
+				t.Errorf("failed to write test response: %v", err)
+			}
 		}))
 		defer ts.Close()
 
@@ -486,11 +498,14 @@ func TestHttpClientCIIBestPractices_GetBadgeLevel(t *testing.T) {
 		}
 	})
 
+	//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 	t.Run("NotFound", func(t *testing.T) {
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`[]`))
+			if _, err := w.Write([]byte(`[]`)); err != nil {
+				t.Errorf("failed to write test response: %v", err)
+			}
 		}))
 		defer ts.Close()
 
@@ -504,6 +519,7 @@ func TestHttpClientCIIBestPractices_GetBadgeLevel(t *testing.T) {
 		}
 	})
 
+	//nolint:paralleltest // touches process-wide http.DefaultClient.Transport
 	t.Run("ContextCancelledDuringRetry", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
