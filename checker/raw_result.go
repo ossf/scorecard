@@ -377,6 +377,9 @@ type File struct {
 // CIIBestPracticesData contains data for CIIBestPractices check.
 type CIIBestPracticesData struct {
 	Badge clients.BadgeLevel
+	// InheritedFrom holds the primary repository URL when the badge was
+	// discovered via a sibling repo rather than a direct lookup.
+	InheritedFrom string `json:"inheritedFrom,omitempty"`
 }
 
 // DangerousWorkflowType represents a type of dangerous workflow.
