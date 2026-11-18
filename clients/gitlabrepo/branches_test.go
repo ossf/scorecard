@@ -145,11 +145,13 @@ func Test_branchesHandler_setup_nil_response(t *testing.T) {
 		getProtectedBranch fnProtectedBranch
 		getProjectChecks   fnListProjectStatusChecks
 		getApprovalConfig  fnGetApprovalConfiguration
+		wantErrIs          error
 		expectErr          bool
 	}{
 		{
 			name:      "nil response on getProtectedBranch",
 			expectErr: true,
+			wantErrIs: errNetwork,
 			getProtectedBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.ProtectedBranch, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -164,6 +166,7 @@ func Test_branchesHandler_setup_nil_response(t *testing.T) {
 		{
 			name:      "nil response on getProjectChecks",
 			expectErr: true,
+			wantErrIs: errNetwork,
 			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -199,6 +202,7 @@ func Test_branchesHandler_setup_nil_response(t *testing.T) {
 		{
 			name:      "nil response on getApprovalConfiguration",
 			expectErr: true,
+			wantErrIs: errNetwork,
 			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -246,6 +250,9 @@ func Test_branchesHandler_setup_nil_response(t *testing.T) {
 			if (err != nil) != tt.expectErr {
 				t.Errorf("handler.setup() error = %v, expectErr = %v", err, tt.expectErr)
 			}
+			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+				t.Errorf("handler.setup() error = %v, want it to wrap %v", err, tt.wantErrIs)
+			}
 		})
 	}
 }
@@ -260,11 +267,13 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 		name              string
 		getProjectChecks  fnListProjectStatusChecks
 		getApprovalConfig fnGetApprovalConfiguration
+		wantErrIs         error
 		expectErr         bool
 	}{
 		{
 			name:      "nil response on getProjectChecks in getBranch",
 			expectErr: true,
+			wantErrIs: errNetwork,
 			getProjectChecks: func(pid interface{}, opt *gitlab.ListOptions, options ...gitlab.RequestOptionFunc) ([]*gitlab.ProjectStatusCheck, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -300,6 +309,7 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 		{
 			name:      "nil response on getApprovalConfiguration in getBranch",
 			expectErr: true,
+			wantErrIs: errNetwork,
 			getApprovalConfig: func(pid interface{}, options ...gitlab.RequestOptionFunc) (*gitlab.ProjectApprovals, *gitlab.Response, error) {
 				return nil, nil, errNetwork
 			},
@@ -340,6 +350,9 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 			branch, err := handler.getBranch("main")
 			if (err != nil) != tt.expectErr {
 				t.Errorf("getBranch() error = %v, expectErr = %v", err, tt.expectErr)
+			}
+			if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+				t.Errorf("getBranch() error = %v, want it to wrap %v", err, tt.wantErrIs)
 			}
 			if !tt.expectErr && branch == nil {
 				t.Errorf("expected non-nil branch when expectErr is false")
