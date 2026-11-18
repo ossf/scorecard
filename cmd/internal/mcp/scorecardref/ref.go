@@ -42,34 +42,50 @@ var (
 )
 
 // Parse parses a "platform/owner/repo" reference. The platform is optional and
-// defaults to github.com; gitlab.com is also supported. A leading scheme and a
-// trailing slash are tolerated. Unsupported platforms and malformed references
-// return an error.
+// defaults to github.com; gitlab.com is also supported. A leading http(s)
+// scheme, a trailing ".git", and a trailing slash are tolerated, in any case.
+// Unsupported platforms, GitLab subgroups, "." and ".." segments, and malformed
+// references return an error.
 func Parse(s string) (model.RepoRef, error) {
 	orig := s
 	s = strings.TrimSpace(s)
-	s = strings.TrimPrefix(s, "https://")
-	s = strings.TrimPrefix(s, "http://")
+	lower := strings.ToLower(s)
+	if strings.HasPrefix(lower, "https://") {
+		s = s[len("https://"):]
+	} else if strings.HasPrefix(lower, "http://") {
+		s = s[len("http://"):]
+	}
 	s = strings.Trim(s, "/")
 	if s == "" {
 		return model.RepoRef{}, fmt.Errorf("%w: expected platform/owner/repo", errInvalidRef)
 	}
 
 	parts := strings.Split(s, "/")
+	if len(parts) > 3 && strings.EqualFold(parts[0], PlatformGitLab) {
+		return model.RepoRef{}, fmt.Errorf(
+			"%w %q: GitLab subgroup paths are not supported; expected gitlab.com/group/repo",
+			errInvalidRef, orig)
+	}
 	var ref model.RepoRef
 	switch len(parts) {
 	case 2:
-		ref = model.RepoRef{Platform: PlatformGitHub, Org: parts[0], Name: parts[1]}
+		ref = model.RepoRef{Platform: PlatformGitHub, Org: parts[0], Name: trimGitSuffix(parts[1])}
 	case 3:
-		ref = model.RepoRef{Platform: strings.ToLower(parts[0]), Org: parts[1], Name: parts[2]}
+		ref = model.RepoRef{
+			Platform: strings.ToLower(parts[0]),
+			Org:      parts[1],
+			Name:     trimGitSuffix(parts[2]),
+		}
 	default:
 		return model.RepoRef{}, fmt.Errorf(
 			"%w %q: expected platform/owner/repo (platform optional, defaults to %s)",
 			errInvalidRef, orig, PlatformGitHub)
 	}
 
-	if ref.Org == "" || ref.Name == "" {
-		return model.RepoRef{}, fmt.Errorf("%w %q: owner and repository must be non-empty", errInvalidRef, orig)
+	if ref.Org == "" || ref.Name == "" || ref.Org == "." || ref.Org == ".." || ref.Name == "." || ref.Name == ".." {
+		return model.RepoRef{}, fmt.Errorf(
+			"%w %q: owner and repository must be non-empty and cannot be dot segments",
+			errInvalidRef, orig)
 	}
 	if !supportedPlatforms[ref.Platform] {
 		return model.RepoRef{}, fmt.Errorf(
@@ -77,6 +93,14 @@ func Parse(s string) (model.RepoRef, error) {
 			errUnsupportedPlatform, ref.Platform, PlatformGitHub, PlatformGitLab)
 	}
 	return ref, nil
+}
+
+// trimGitSuffix removes a trailing ".git", in any case, from a repository name.
+func trimGitSuffix(name string) string {
+	if strings.HasSuffix(strings.ToLower(name), ".git") {
+		return name[:len(name)-len(".git")]
+	}
+	return name
 }
 
 // ValidateCommit returns an error if commit is non-empty and is not a
