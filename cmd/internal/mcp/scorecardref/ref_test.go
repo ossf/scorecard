@@ -35,6 +35,8 @@ func TestParse(t *testing.T) {
 		{"https://github.com/ossf/scorecard", "github.com", "ossf", "scorecard", false},
 		{"https://github.com/ossf/scorecard.git", "github.com", "ossf", "scorecard", false},
 		{"HTTPS://github.com/ossf/scorecard", "github.com", "ossf", "scorecard", false},
+		{"https://github.com/ossf/scorecard.GIT/", "github.com", "ossf", "scorecard", false},
+		{"github.com/ossf/.git", "", "", "", true},
 		{" ossf/scorecard ", "github.com", "ossf", "scorecard", false},
 		{"bitbucket.org/foo/bar", "", "", "", true},
 		{"justone", "", "", "", true},
