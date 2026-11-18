@@ -124,14 +124,16 @@ type checkDetail struct {
 }
 
 type getCheckResultOutput struct {
-	Attribution *model.Attribution  `json:"attribution,omitempty"`
-	Repo        model.RepoRef       `json:"repo"`
-	Scorecard   model.ScorecardInfo `json:"scorecard"`
-	Commit      string              `json:"commit,omitempty"`
-	Date        string              `json:"date,omitempty"`
-	Source      model.Source        `json:"source"`
-	Caveats     []string            `json:"caveats,omitempty"`
-	Check       checkDetail         `json:"check"`
+	Attribution   *model.Attribution  `json:"attribution,omitempty"`
+	Repo          model.RepoRef       `json:"repo"`
+	Scorecard     model.ScorecardInfo `json:"scorecard"`
+	Commit        string              `json:"commit,omitempty"`
+	Date          string              `json:"date,omitempty"`
+	Source        model.Source        `json:"source"`
+	Caveats       []string            `json:"caveats,omitempty"`
+	MissingChecks []string            `json:"missing_checks,omitempty" jsonschema:"expected checks the result lacks"`
+	Complete      bool                `json:"complete" jsonschema:"whether the result has every check for its platform"`
+	Check         checkDetail         `json:"check"`
 }
 
 // --- compare_repos ---
@@ -197,7 +199,8 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 		Name: "get_check_result",
 		Description: "Return the result (score, reason, details) for a single named OpenSSF " +
 			"Scorecard check on one repository. Detail lines are capped (default 50; adjust with " +
-			"max_details), and details_truncated and details_total report any truncation. Use " +
+			"max_details), and details_truncated and details_total report any truncation. The " +
+			"result also reports missing_checks and whether it is complete for its platform. Use " +
 			"list_checks to discover valid check names and explain_check for a check's methodology " +
 			"and remediation. Data comes from the OpenSSF Scorecard REST API.",
 		Annotations: readOnlyAnnotations("Get one Scorecard check result", true),
@@ -228,14 +231,16 @@ func registerResultTools(s *mcp.Server, p provider.Provider, cat *catalog.Catalo
 			return nil, getCheckResultOutput{}, checkAbsenceError(in.Check, ref, cat)
 		}
 		return nil, getCheckResultOutput{
-			Repo:        res.Repo,
-			Commit:      res.Commit,
-			Date:        res.Date,
-			Scorecard:   res.Scorecard,
-			Source:      res.Source,
-			Check:       toCheckDetail(c, clampMaxDetails(in.MaxDetails)),
-			Caveats:     res.Caveats,
-			Attribution: res.Attribution,
+			Repo:          res.Repo,
+			Commit:        res.Commit,
+			Date:          res.Date,
+			Scorecard:     res.Scorecard,
+			Source:        res.Source,
+			Check:         toCheckDetail(c, clampMaxDetails(in.MaxDetails)),
+			Caveats:       res.Caveats,
+			Attribution:   res.Attribution,
+			MissingChecks: res.MissingChecks,
+			Complete:      res.Complete,
 		}, nil
 	})
 

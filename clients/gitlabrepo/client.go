@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"time"
 
 	gitlab "gitlab.com/gitlab-org/api/client-go"
@@ -282,8 +281,7 @@ func (client *Client) Close() error {
 }
 
 func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, error) {
-	token := os.Getenv("GITLAB_AUTH_TOKEN")
-	return CreateGitlabClientWithToken(ctx, token, host)
+	return CreateGitlabClientWithToken(ctx, tokenForHost(host), host)
 }
 
 func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
