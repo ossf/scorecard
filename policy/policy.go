@@ -164,18 +164,23 @@ func GetEnabled(
 	case len(argsChecks) != 0:
 		// Populate checks to run with the `--repo` CLI argument.
 		for _, checkName := range argsChecks {
-			if !isSupportedCheck(checkName, requiredRequestTypes) {
+			canonicalCheck, exists := getCanonicalCheckName(checkName)
+			if !exists {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
+			}
+			if !isSupportedCheck(canonicalCheck, requiredRequestTypes) {
 				return enabledChecks,
 					sce.WithMessage(sce.ErrScorecardInternal,
 						fmt.Sprintf("Unsupported RequestType %s by check: %s",
-							fmt.Sprint(requiredRequestTypes), checkName))
+							fmt.Sprint(requiredRequestTypes), canonicalCheck))
 			}
-			if !isSupportedRepoType(repoTypeLookup, checkName, repoType) {
+			if !isSupportedRepoType(repoTypeLookup, canonicalCheck, repoType) {
 				continue
 			}
-			if !enableCheck(checkName, &enabledChecks) {
+			if !enableCheck(canonicalCheck, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", canonicalCheck))
 			}
 		}
 	case sp != nil:
@@ -269,3 +274,13 @@ func enableCheck(checkName string, enabledChecks *checker.CheckNameToFnMap) bool
 	}
 	return false
 }
+
+func getCanonicalCheckName(checkName string) (string, bool) {
+	for key := range checks.GetAllWithExperimental() {
+		if strings.EqualFold(key, checkName) {
+			return key, true
+		}
+	}
+	return "", false
+}
+
