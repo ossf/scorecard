@@ -1,0 +1,33 @@
+# Configuration for lychee, the link checker run by
+# .github/workflows/links.yml. See CONTRIBUTING.md#checking-links.
+# scripts/link-check-inputs.sh decides which files are checked.
+
+max_retries = 2
+timeout = 20
+# lychee's default of 128 concurrent requests gets throttled and is
+# slower overall.
+max_concurrency = 16
+
+# Add a URL here only if it works in a browser but fails in CI, for
+# example a page behind a login or one that blocks automated clients.
+# Fix or remove dead links instead of excluding them.
+exclude = [
+  # Templated remediation URLs in probes/*/def.yml, such as
+  # https://osv.dev/${{ metadata.osvid }}, are cut off at the `$`.
+  '/\$',
+  # Example URL in .github/ISSUE_TEMPLATE/1-bug.yml.
+  '^https://github\.com/owner/repo/',
+  # Login walls and bot blocks.
+  '^https://docs\.google\.com/',
+  '^https://github\.com/join',
+  '^https://github\.com/[^/]+/[^/]+/stargazers',
+  '^https://gitlab\.com/-/profile/',
+  '^https://slack\.openssf\.org',
+  '^https://wiki\.linuxfoundation\.org/dco',
+  '^https://www\.npmjs\.com/?$',
+  # Badge service that rejects non-browser requests.
+  '^https://starchart\.cc/',
+]
+
+# Don't let a link in a PR make the runner probe internal addresses.
+exclude_all_private = true

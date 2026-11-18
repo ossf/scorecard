@@ -25,8 +25,8 @@ remediation:
   onOutcome: False
   effort: Low
   text:
-    - For Gitlab-hosted project, follow the documentation on how to protect branches, https://docs.gitlab.com/ee/user/project/protected_branches.html
+    - For Gitlab-hosted project, follow the documentation on how to protect branches, https://docs.gitlab.com/user/project/repository/branches/protected/
     - For GitHub-hosted projects, follow the documentation on protected branches, https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
   markdown:
-    - For Gitlab-hosted project, follow [the documentation on how to protect branches](https://docs.gitlab.com/ee/user/project/protected_branches.html)
+    - For Gitlab-hosted project, follow [the documentation on how to protect branches](https://docs.gitlab.com/user/project/repository/branches/protected/)
     - For GitHub-hosted projects, follow [the documentation on protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
