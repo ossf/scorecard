@@ -286,3 +286,114 @@ type roundTripperFunc func(r *http.Request) (*http.Response, error)
 func (f roundTripperFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 	return f(r)
 }
+
+func Test_issuesHandler_NilAuthor(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		issuesJSON  string
+		membersJSON string
+		wantIssues  []clients.Issue
+	}{
+		{
+			name: "issue with null author and repo members",
+			issuesJSON: `[
+  {
+    "id": 1,
+    "created_at": "2023-07-26T14:22:52.000Z",
+    "author": null
+  },
+  {
+    "id": 2,
+    "created_at": "2023-07-27T14:22:52.000Z",
+    "author": { "id": 1355794, "username": "maintainer1" }
+  }
+]`,
+			membersJSON: `[
+  {
+    "id": 1355794,
+    "username": "maintainer1",
+    "access_level": 40
+  }
+]`,
+			wantIssues: []clients.Issue{
+				{
+					URI:               strptr("1"),
+					CreatedAt:         timeptr(time.Date(2023, time.July, 26, 14, 22, 52, 0, time.UTC)),
+					Author:            nil,
+					AuthorAssociation: associationptr(clients.RepoAssociationNone),
+				},
+				{
+					URI:               strptr("2"),
+					CreatedAt:         timeptr(time.Date(2023, time.July, 27, 14, 22, 52, 0, time.UTC)),
+					Author:            &clients.User{ID: 1355794},
+					AuthorAssociation: associationptr(clients.RepoAssociationMaintainer),
+				},
+			},
+		},
+		{
+			name: "issue with null author and empty repo members",
+			issuesJSON: `[
+  {
+    "id": 3,
+    "created_at": "2023-07-28T14:22:52.000Z",
+    "author": null
+  }
+]`,
+			membersJSON: `[]`,
+			wantIssues: []clients.Issue{
+				{
+					URI:               strptr("3"),
+					CreatedAt:         timeptr(time.Date(2023, time.July, 28, 14, 22, 52, 0, time.UTC)),
+					Author:            nil,
+					AuthorAssociation: associationptr(clients.RepoAssociationNone),
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			httpClient := &http.Client{
+				Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+					body := ""
+					if strings.HasSuffix(r.URL.Path, "/issues") {
+						body = tt.issuesJSON
+					} else if strings.HasSuffix(r.URL.Path, "/members/all") {
+						body = tt.membersJSON
+					}
+					return &http.Response{
+						Status:     "200 OK",
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(strings.NewReader(body)),
+					}, nil
+				}),
+			}
+			client, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
+			if err != nil {
+				t.Fatalf("gitlab.NewClient error: %v", err)
+			}
+
+			handler := &issuesHandler{
+				glClient: client,
+			}
+			repoURL := Repo{
+				owner:     "ossf-tests",
+				commitSHA: clients.HeadSHA,
+			}
+			handler.init(&repoURL)
+
+			got, err := handler.listIssues()
+			if err != nil {
+				t.Fatalf("listIssues error: %v", err)
+			}
+
+			if !cmp.Equal(got, tt.wantIssues) {
+				t.Errorf("listIssues() diff (-got +want):\n%s", cmp.Diff(got, tt.wantIssues))
+			}
+		})
+	}
+}
