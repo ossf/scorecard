@@ -24,6 +24,7 @@ import (
 	"github.com/google/go-github/v82/github"
 
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
+	"github.com/ossf/scorecard/v5/internal/redirectguard"
 	"github.com/ossf/scorecard/v5/log"
 )
 
@@ -48,7 +49,7 @@ func ListOrgRepos(ctx context.Context, orgName string, rt http.RoundTripper) ([]
 	if rt == nil {
 		rt = roundtripper.NewTransport(ctx, logger)
 	}
-	httpClient := &http.Client{Transport: rt}
+	httpClient := &http.Client{Transport: redirectguard.New(rt)}
 	client := github.NewClient(httpClient)
 
 	opt := &github.RepositoryListByOrgOptions{
