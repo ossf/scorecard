@@ -16,7 +16,13 @@ package gitlabrepo
 
 import (
 	"errors"
+	"io"
+	"net/http"
+	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/ossf/scorecard/v5/clients"
 )
@@ -72,5 +78,108 @@ func TestSearchCommitsBuildQuery(t *testing.T) {
 				t.Fatalf("expectedQuery - %s, got - %s", testcase.expectedQuery, query)
 			}
 		})
+	}
+}
+
+func Test_searchCommits_search(t *testing.T) {
+	t.Parallel()
+
+	commitsJSON := `[
+  {
+    "id": "commit1",
+    "committer_email": "unregistered@example.com"
+  },
+  {
+    "id": "commit2",
+    "committer_email": "registered@example.com"
+  },
+  {
+    "id": "commit3",
+    "committer_email": "unregistered@example.com"
+  }
+]`
+
+	registeredUsersJSON := `[
+  {
+    "id": 99999,
+    "username": "registered_user"
+  }
+]`
+	emptyUsersJSON := `[]`
+
+	userSearchCalls := 0
+	httpClient := &http.Client{
+		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			body := ""
+			switch {
+			case strings.Contains(r.URL.RawQuery, "scope=commits") || strings.Contains(r.URL.Path, "commits"):
+				body = commitsJSON
+			case r.URL.Query().Get("search") == "registered@example.com":
+				userSearchCalls++
+				body = registeredUsersJSON
+			default:
+				userSearchCalls++
+				body = emptyUsersJSON
+			}
+			return &http.Response{
+				Status:     "200 OK",
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}),
+	}
+
+	glClient, err := gitlab.NewClient("", gitlab.WithHTTPClient(httpClient))
+	if err != nil {
+		t.Fatalf("gitlab.NewClient error: %v", err)
+	}
+
+	handler := searchCommitsHandler{
+		glClient: glClient,
+		repourl: &Repo{
+			owner:     "testowner",
+			projectID: "1234",
+			commitSHA: clients.HeadSHA,
+		},
+	}
+
+	commits, err := handler.search(clients.SearchCommitsOptions{Author: "testAuthor"})
+	if err != nil {
+		t.Fatalf("handler.search unexpected error: %v", err)
+	}
+
+	want := []clients.Commit{
+		{
+			Committer: clients.User{ID: 0},
+		},
+		{
+			Committer: clients.User{ID: 99999},
+		},
+		{
+			Committer: clients.User{ID: 0},
+		},
+	}
+
+	if !cmp.Equal(commits, want) {
+		t.Errorf("handler.search diff (-got +want):\n%s", cmp.Diff(commits, want))
+	}
+
+	if userSearchCalls != 2 {
+		t.Errorf("expected 2 user search API calls due to email caching, got %d", userSearchCalls)
+	}
+}
+
+func Test_searchCommits_search_NonHeadSHA(t *testing.T) {
+	t.Parallel()
+
+	handler := searchCommitsHandler{
+		repourl: &Repo{
+			commitSHA: "abcdef123456",
+		},
+	}
+
+	_, err := handler.search(clients.SearchCommitsOptions{Author: "testAuthor"})
+	if !errors.Is(err, clients.ErrUnsupportedFeature) {
+		t.Errorf("expected ErrUnsupportedFeature, got: %v", err)
 	}
 }
