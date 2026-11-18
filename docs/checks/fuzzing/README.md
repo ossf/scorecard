@@ -26,6 +26,8 @@
   * Detection based on presence of `libfuzzer_sys` in Rust files.
 * [FsCheck](https://github.com/fscheck/FsCheck)
   * Detection based on import statements in C# and F# files.
+* [CsCheck](https://github.com/AnthonyLloyd/CsCheck)
+  * Detection based on the `using CsCheck;` import statement in C# files.
 
 ## Add Support
 
