@@ -305,3 +305,65 @@ func TestBinaryArtifacts_workflow_runs_unsupported(t *testing.T) {
 		t.Errorf("expected 1 file, got %d", len(got.Files))
 	}
 }
+
+func TestBinaryArtifactsExcludesTestData(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	repo := mockrepo.NewMockRepoClient(ctrl)
+
+	files := []string{
+		"testdata/sample.wasm",
+		"testData/sample.wasm",
+		"nested/testData/sample.wasm",
+		"nested/TESTDATA/sample.wasm",
+		"production/sample.wasm",
+		"testData-extra/sample.wasm",
+		"mytestData/sample.wasm",
+	}
+	want := []string{
+		"production/sample.wasm",
+		"testData-extra/sample.wasm",
+		"mytestData/sample.wasm",
+	}
+
+	repo.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
+		func(predicate func(string) (bool, error)) ([]string, error) {
+			var matched []string
+			for _, filename := range files {
+				include, err := predicate(filename)
+				if err != nil {
+					return nil, err
+				}
+				if include {
+					matched = append(matched, filename)
+				}
+			}
+			return matched, nil
+		},
+	)
+
+	// Only non-test-data files should be opened.
+	for _, filename := range want {
+		repo.EXPECT().GetFileReader(filename).DoAndReturn(
+			func(_ string) (io.ReadCloser, error) {
+				return os.Open("../testdata/binaryartifacts/wasms/simple.wasm")
+			},
+		)
+	}
+
+	got, err := BinaryArtifacts(&checker.CheckRequest{
+		RepoClient: repo,
+	})
+	if err != nil {
+		t.Fatalf("BinaryArtifacts failed: %v", err)
+	}
+	if len(got.Files) != len(want) {
+		t.Fatalf("got %d binary artifacts, want %d", len(got.Files), len(want))
+	}
+	for i, filename := range want {
+		if got.Files[i].Path != filename {
+			t.Errorf("artifact %d: got %q, want %q", i, got.Files[i].Path, filename)
+		}
+	}
+}
