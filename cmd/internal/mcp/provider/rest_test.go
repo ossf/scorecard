@@ -147,7 +147,8 @@ func TestCachedRESTProviderCommitNotFound(t *testing.T) {
 	if !errors.As(err, &nf) {
 		t.Fatalf("expected *NotFoundError, got %v", err)
 	}
-	if nf.Commit != commit || !strings.Contains(err.Error(), "at commit "+commit) {
+	if nf.Commit != commit || !strings.Contains(err.Error(), "at commit "+commit) ||
+		!strings.Contains(err.Error(), "omit commit") {
 		t.Errorf("NotFoundError = %q (commit %q), want commit-specific error", err, nf.Commit)
 	}
 }

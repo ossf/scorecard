@@ -42,7 +42,9 @@ type NotFoundError struct {
 func (e *NotFoundError) Error() string {
 	if e.Commit != "" {
 		return fmt.Sprintf(
-			"no published OpenSSF Scorecard results for %s at commit %s. The commit may not have a published result.",
+			"no published OpenSSF Scorecard results for %s at commit %s. Results are "+
+				"published only for commits a scan covered; omit commit to get the latest "+
+				"published results.",
 			e.Ref.String(), e.Commit,
 		)
 	}
