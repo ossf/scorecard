@@ -164,18 +164,36 @@ func GetEnabled(
 	case len(argsChecks) != 0:
 		// Populate checks to run with the `--repo` CLI argument.
 		for _, checkName := range argsChecks {
-			if !isSupportedCheck(checkName, requiredRequestTypes) {
+			registered, found := resolveCheckName(checkName)
+			if !found {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal,
-						fmt.Sprintf("Unsupported RequestType %s by check: %s",
-							fmt.Sprint(requiredRequestTypes), checkName))
+					sce.WithMessage(sce.ErrInvalidCheck,
+						fmt.Sprintf("%q is not a known check; run 'scorecard --help' to list the available checks",
+							checkName))
 			}
-			if !isSupportedRepoType(repoTypeLookup, checkName, repoType) {
+			// The request-mode lookup below is case-sensitive, so a name that
+			// only differs in casing would otherwise be reported as a request
+			// type problem rather than a spelling one.
+			if len(requiredRequestTypes) != 0 && registered != checkName {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrInvalidCheck,
+						fmt.Sprintf("%q must be written %q when a request type is required",
+							checkName, registered))
+			}
+			check := checks.GetAllWithExperimental()[registered]
+			unsupported := checker.ListUnsupported(requiredRequestTypes, check.SupportedRequestTypes)
+			if len(unsupported) != 0 {
+				return enabledChecks,
+					sce.WithMessage(sce.ErrUnsupportedCheck,
+						fmt.Sprintf("%q does not support %s data, which this scan requires",
+							registered, joinRequestTypes(unsupported)))
+			}
+			if !isSupportedRepoType(repoTypeLookup, registered, repoType) {
 				continue
 			}
-			if !enableCheck(checkName, &enabledChecks) {
+			if !enableCheck(registered, &enabledChecks) {
 				return enabledChecks,
-					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", checkName))
+					sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("invalid check: %s", registered))
 			}
 		}
 	case sp != nil:
@@ -234,6 +252,43 @@ func isSupportedCheck(checkName string, requiredRequestTypes []checker.RequestTy
 		requiredRequestTypes,
 		checks.GetAllWithExperimental()[checkName].SupportedRequestTypes)
 	return len(unsupported) == 0
+}
+
+// resolveCheckName returns the registered name of a check, preferring an exact
+// match over a case-insensitive one so that the caller can tell a misspelled
+// check apart from one written with the wrong casing.
+func resolveCheckName(checkName string) (string, bool) {
+	allChecks := checks.GetAllWithExperimental()
+	if _, exists := allChecks[checkName]; exists {
+		return checkName, true
+	}
+	for name := range allChecks {
+		if strings.EqualFold(name, checkName) {
+			return name, true
+		}
+	}
+	return "", false
+}
+
+// joinRequestTypes renders request types for an error message, e.g.
+// "file-based and commit-based".
+func joinRequestTypes(types []checker.RequestType) string {
+	names := make([]string, 0, len(types))
+	for _, t := range types {
+		names = append(names, requestTypeName(t))
+	}
+	return strings.Join(names, " and ")
+}
+
+func requestTypeName(t checker.RequestType) string {
+	switch t {
+	case checker.FileBased:
+		return "file-based"
+	case checker.CommitBased:
+		return "commit-based"
+	default:
+		return fmt.Sprintf("request type %d", int(t))
+	}
 }
 
 // isSupportedRepoType checks if a check supports the given repo type

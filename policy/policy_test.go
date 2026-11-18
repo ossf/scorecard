@@ -17,6 +17,7 @@ package policy
 import (
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -316,6 +317,7 @@ func TestGetEnabled(t *testing.T) {
 		repoType              clients.RepoType
 		expectedEnabledChecks int
 		expectedError         bool
+		wantErrContains       string
 	}{
 		{
 			name:                  "checks limited to those specified by checks arg",
@@ -332,6 +334,42 @@ func TestGetEnabled(t *testing.T) {
 			repoType:              clients.RepoTypeGitHub,
 			expectedEnabledChecks: 1,
 			expectedError:         true,
+			wantErrContains:       `"UnsupportedCheck" is not a known check`,
+		},
+		{
+			name:                  "unknown check name is reported as such",
+			argsChecks:            []string{"InvalidCheck"},
+			requiredRequestTypes:  []checker.RequestType{checker.FileBased},
+			repoType:              clients.RepoTypeGitHub,
+			expectedEnabledChecks: 0,
+			expectedError:         true,
+			wantErrContains:       `"InvalidCheck" is not a known check`,
+		},
+		{
+			name:                  "wrong casing is reported as a spelling problem",
+			argsChecks:            []string{"license"},
+			requiredRequestTypes:  []checker.RequestType{checker.FileBased},
+			repoType:              clients.RepoTypeGitHub,
+			expectedEnabledChecks: 0,
+			expectedError:         true,
+			wantErrContains:       `"license" must be written "License"`,
+		},
+		{
+			name:                  "check without the required request type is reported as such",
+			argsChecks:            []string{"Code-Review"},
+			requiredRequestTypes:  []checker.RequestType{checker.FileBased},
+			repoType:              clients.RepoTypeGitHub,
+			expectedEnabledChecks: 0,
+			expectedError:         true,
+			wantErrContains:       `"Code-Review" does not support file-based data`,
+		},
+		{
+			name:                  "wrong casing still resolves when no request type is required",
+			argsChecks:            []string{"code-review"},
+			requiredRequestTypes:  []checker.RequestType{},
+			repoType:              clients.RepoTypeGitHub,
+			expectedEnabledChecks: 1,
+			expectedError:         false,
 		},
 		{
 			name:                  "request types limit enabled checks",
@@ -401,6 +439,9 @@ func TestGetEnabled(t *testing.T) {
 				t.Errorf("Expected an error, but got none")
 			} else if !tt.expectedError && err != nil {
 				t.Errorf("Unexpected error: %v", err)
+			}
+			if tt.wantErrContains != "" && err != nil && !strings.Contains(err.Error(), tt.wantErrContains) {
+				t.Errorf("Unexpected error message: got %q, want it to contain %q", err.Error(), tt.wantErrContains)
 			}
 		})
 	}
