@@ -478,6 +478,8 @@ For an example of using Scorecard in GitLab CI/CD, see [here](https://gitlab.com
 While we focus on GitLab.com support, Scorecard also works with self-hosted GitLab installations.
 If your platform is hosted at a subdomain (e.g. `gitlab.foo.com`), Scorecard should work out of the box.
 If your platform is hosted at some slug (e.g. `foo.com/bar/`), you will need to set the `GL_HOST` environment variable.
+`GITLAB_AUTH_TOKEN` is sent only to the `GL_HOST` instance, or to GitLab.com when `GL_HOST` is unset.
+Other instances are scanned without it, so set `GL_HOST` to scan private projects on a self-hosted instance.
 
 ```bash
 export GITLAB_AUTH_TOKEN=glpat-xxxx
