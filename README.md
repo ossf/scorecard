@@ -264,7 +264,7 @@ Nix                                                        | NixOS              
 
 #### Authentication
 
-GitHub imposes [api rate limits](https://developer.github.com/v3/#rate-limiting)
+GitHub imposes [api rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api)
 on unauthenticated requests. To avoid these limits, you must authenticate your
 requests before running Scorecard. There are two ways to authenticate your
 requests: either create a GitHub personal access token, or create a GitHub App
@@ -478,6 +478,8 @@ For an example of using Scorecard in GitLab CI/CD, see [here](https://gitlab.com
 While we focus on GitLab.com support, Scorecard also works with self-hosted GitLab installations.
 If your platform is hosted at a subdomain (e.g. `gitlab.foo.com`), Scorecard should work out of the box.
 If your platform is hosted at some slug (e.g. `foo.com/bar/`), you will need to set the `GL_HOST` environment variable.
+`GITLAB_AUTH_TOKEN` is sent only to the `GL_HOST` instance, or to GitLab.com when `GL_HOST` is unset.
+Other instances are scanned without it, so set `GL_HOST` to scan private projects on a self-hosted instance.
 
 ```bash
 export GITLAB_AUTH_TOKEN=glpat-xxxx
@@ -525,6 +527,13 @@ The currently supported formats are `default` (text) and `json`.
 
 These may be specified with the `--format` flag. For example, `--format=json`.
 
+##### Evaluating OSPS Baseline requirements (experimental)
+
+`--catalog` evaluates a repository against a security catalog's requirements
+instead of scoring checks. For example,
+`--catalog=osps-baseline --profile=maturity-1 --format=json`. See
+[`docs/conformance.md`](docs/conformance.md).
+
 
 
 ## Checks
@@ -546,9 +555,9 @@ Name        | Description                               | Risk Level | Token Req
 [Fuzzing](docs/checks.md#fuzzing)                               | Does the project use fuzzing tools, e.g. [OSS-Fuzz](https://github.com/google/oss-fuzz), [QuickCheck](https://hackage.haskell.org/package/QuickCheck) or [fast-check](https://fast-check.dev/)?                                                                                                    | Medium | PAT, GITHUB_TOKEN   | Validating
 [License](docs/checks.md#license)                               | Does the project declare a license?                                                                                                                                                                                                                                                                | Low | PAT, GITHUB_TOKEN   | Validating |
 [Maintained](docs/checks.md#maintained)                         | Is the project at least 90 days old, and maintained?                                                                                                                                                                                                                                               | High | PAT, GITHUB_TOKEN   | Validating |
-[Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/free-pro-team@latest/github/visualizing-repository-data-with-graphs/about-the-dependency-graph#supported-package-ecosystems)?                                                                                           | Medium | PAT, GITHUB_TOKEN   | Validating |
-[Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/free-pro-team@latest/actions/guides/about-packaging-with-github-actions#workflows-for-publishing-packages) ?                                                                  | Medium | PAT, GITHUB_TOKEN   | Validating |
-[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/free-pro-team@latest/github/finding-security-vulnerabilities-and-errors-in-your-code/enabling-code-scanning-for-a-repository#enabling-code-scanning-using-actions), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   | Unsupported |
+[Pinned-Dependencies](docs/checks.md#pinned-dependencies)       | Does the project declare and pin [dependencies](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/dependency-graph-supported-package-ecosystems)?                                                                                           | Medium | PAT, GITHUB_TOKEN   | Validating |
+[Packaging](docs/checks.md#packaging)                           | Does the project build and publish official packages from CI/CD, e.g. [GitHub Publishing](https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/about-github-packages-and-github-actions#workflows-for-publishing-packages) ?                                                                  | Medium | PAT, GITHUB_TOKEN   | Validating |
+[SAST](docs/checks.md#sast)                                     | Does the project use static code analysis tools, e.g. [CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql), [SonarCloud](https://sonarcloud.io)? | Medium | PAT, GITHUB_TOKEN   | Unsupported |
 [Security-Policy](docs/checks.md#security-policy)               | Does the project contain a [security policy](https://docs.github.com/en/free-pro-team@latest/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)?                                                                                                                | Medium | PAT, GITHUB_TOKEN   | Validating |
 [Signed-Releases](docs/checks.md#signed-releases)               | Does the project cryptographically [sign releases](https://wiki.debian.org/Creating%20signed%20GitHub%20releases)?                                                                                                                                                                                 | High | PAT, GITHUB_TOKEN   | Validating |
 [Token-Permissions](docs/checks.md#token-permissions)           | Does the project declare GitHub workflow tokens as [read only](https://docs.github.com/en/actions/reference/authentication-in-a-workflow)?                                                                                                                                                         | High | PAT, GITHUB_TOKEN   | Unsupported |

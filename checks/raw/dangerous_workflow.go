@@ -21,7 +21,6 @@ import (
 
 	"github.com/ossf/scorecard/v5/checker"
 	"github.com/ossf/scorecard/v5/checks/fileparser"
-	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
 	"github.com/ossf/scorecard/v5/internal/ghworkflow"
 )
@@ -81,7 +80,7 @@ func DangerousWorkflow(c *checker.CheckRequest) (checker.DangerousWorkflowData, 
 	err := fileparser.OnMatchingFileContentDo(c.RepoClient, fileparser.PathMatcher{
 		Pattern:       ".github/workflows/*",
 		CaseSensitive: false,
-	}, validateGitHubActionWorkflowPatterns, &data)
+	}, validateGitHubActionWorkflowPatterns, &data, c.Dlogger)
 
 	return data, err
 }
@@ -95,9 +94,9 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 		return true, nil
 	}
 
-	if len(args) != 1 {
+	if len(args) != 1 && len(args) != 2 {
 		return false, fmt.Errorf(
-			"validateGitHubActionWorkflowPatterns requires exactly 2 arguments: %w", errInvalidArgLength)
+			"validateGitHubActionWorkflowPatterns requires 1 or 2 arguments: %w", errInvalidArgLength)
 	}
 
 	// Verify the type of the data.
@@ -123,10 +122,16 @@ var validateGitHubActionWorkflowPatterns fileparser.DoWhileTrueOnFileContent = f
 		return false, err
 	}
 
-	// 2. Check for script injection in workflow inline scripts.
-	if err := validateScriptInjection(workflow, path, pdata); err != nil {
-		return false, err
+	// The optional second argument is the check's detail logger.
+	var dl checker.DetailLogger
+	if len(args) == 2 {
+		if l, ok := args[1].(checker.DetailLogger); ok {
+			dl = l
+		}
 	}
+
+	// 2. Check for script injection in workflow inline scripts.
+	validateScriptInjection(workflow, path, pdata, dl)
 
 	// TODO: Check other dangerous patterns.
 	return true, nil
@@ -221,8 +226,8 @@ func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 }
 
 func validateScriptInjection(workflow *ghworkflow.Workflow, path string,
-	pdata *checker.DangerousWorkflowData,
-) error {
+	pdata *checker.DangerousWorkflowData, dl checker.DetailLogger,
+) {
 	for _, job := range workflow.Jobs {
 		if job == nil {
 			continue
@@ -236,18 +241,26 @@ func validateScriptInjection(workflow *ghworkflow.Workflow, path string,
 				continue
 			}
 			// Check Run *String for user-controllable (untrustworthy) properties.
-			if err := checkVariablesInScript(run.Run.Value, run.Run.Pos, job, path, pdata); err != nil {
-				return err
+			if !checkVariablesInScript(run.Run.Value, run.Run.Pos, job, path, pdata) && dl != nil {
+				// GitHub rejects a workflow with an unclosed expression, so it can't
+				// run. Note it and keep checking the other workflows.
+				dl.Debug(&checker.LogMessage{
+					Path:   path,
+					Type:   finding.FileTypeSource,
+					Offset: fileparser.GetLineNumber(run.Run.Pos),
+					Text:   "invalid workflow: unclosed ${{ expression in a run script",
+				})
 			}
 		}
 	}
-	return nil
 }
 
+// checkVariablesInScript records script injections in script. It returns false if
+// script has a ${{ with no closing }}.
 func checkVariablesInScript(script string, pos *ghworkflow.Pos,
 	job *ghworkflow.Job, path string,
 	pdata *checker.DangerousWorkflowData,
-) error {
+) bool {
 	for {
 		s := strings.Index(script, "${{")
 		if s == -1 {
@@ -256,7 +269,11 @@ func checkVariablesInScript(script string, pos *ghworkflow.Pos,
 
 		e := strings.Index(script[s:], "}}")
 		if e == -1 {
-			return sce.WithMessage(sce.ErrScorecardInternal, errInvalidGitHubWorkflow.Error())
+			// No closing delimiter means there's no complete expression left to
+			// inspect. Stop scanning this script instead of failing the whole
+			// check, so one malformed workflow can't suppress script-injection
+			// detection in every other workflow file.
+			return false
 		}
 
 		// Check if the variable may be untrustworthy.
@@ -278,5 +295,5 @@ func checkVariablesInScript(script string, pos *ghworkflow.Pos,
 		}
 		script = script[s+e:]
 	}
-	return nil
+	return true
 }

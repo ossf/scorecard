@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -41,10 +40,11 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *Repo) {
 	handler.repourl = repourl
 	handler.err = nil
 
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITLAB_AUTH_TOKEN")},
-	)
-	handler.client = oauth2.NewClient(ctx, src)
+	handler.client = http.DefaultClient
+	if token := tokenForHost(repourl.Host()); token != "" {
+		src := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+		handler.client = oauth2.NewClient(ctx, src)
+	}
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("https://%s/api/graphql", repourl.Host()), handler.client)
 }
 

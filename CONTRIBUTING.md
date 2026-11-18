@@ -34,6 +34,7 @@ project. This document describes the contribution guidelines for the project.
 * [Adding new projects to the batch scan](#adding-new-projects-to-the-batch-scan)
 * [Adding New Checks](#adding-new-checks)
 * [Updating Docs](#updating-docs)
+* [Checking links](#checking-links)
 * [Choosing checks to run](#choosing-checks-to-run)
 
 <!-- vim-markdown-toc -->
@@ -74,7 +75,7 @@ You must install these tools:
 
 1.  [`protoc`](https://grpc.io/docs/protoc-installation/): `v3` or higher
 
-1. [`make`](https://www.gnu.org/software/make/): You can build and run Scorecard without it, but some tasks are easier if you have it.
+1. `make`: You can build and run Scorecard without it, but some tasks are easier if you have it.
 
 You may need these tools for some tasks:
 
@@ -254,12 +255,16 @@ start scanning in subsequent runs.
 
 ## Adding new checks
 
-See [checks/write.md](checks/write.md).
-When you add new checks, you need to also update the docs.
+See [checks/write.md](checks/write.md). It covers what a new check must
+meet, how a check's collector, probes, and evaluation fit together, each
+file to add or change, and the tests that catch a missed step. Open an issue
+to discuss a new check before you write it.
 
 ## Adding new probes
 
-See [probes/README.md](probes/README.md) for information about the probes.
+See [probes/README.md](probes/README.md). It explains what a probe is and
+walks through adding one, from `make setup-probe` to regenerating
+`docs/probes.md`.
 
 ## Updating docs
 
@@ -277,3 +282,34 @@ If you want to update its documentation:
 1. Make your edits in `docs/checks/internal/checks.yaml`.
 2. Regenerate `docs/checks.md` by running `make generate-docs`
 3. Commit both `docs/checks/internal/checks.yaml` and `docs/checks.md`
+
+## Checking links
+
+The `links` workflow runs [lychee](https://github.com/lycheeverse/lychee)
+on Markdown files, `docs/checks/internal/checks.yaml`, probe `def.yml`
+files, issue forms, and `security-insights.yml`. External links in
+generated docs are reported in their source file; fix them there and run
+`make generate-docs`. Meeting notes and `openspec/changes/` are skipped.
+
+lychee skips URLs inside HTML comments, so the workflow checks a copy of
+each file's comments. A failure in `comments/<path>.txt` is in the HTML
+comments of `<path>`, at the same line.
+
+On a pull request, it checks relative links and anchors in every file,
+and external links in the files the pull request changes. Each week it
+checks every link and anchor, and keeps an issue titled
+"Dead links in docs" open until they pass.
+
+To run the same check locally, [install lychee](https://github.com/lycheeverse/lychee#installation) and run:
+
+```shell
+scripts/link-check-inputs.sh /tmp/links
+# Relative links and anchors, without network access
+lychee --offline --include-fragments --root-dir "$PWD" --files-from /tmp/links/offline.txt
+# External links
+lychee --root-dir "$PWD" --files-from /tmp/links/files.txt
+```
+
+If a link is dead, replace it or remove it. If it works in a browser but
+fails in CI, for example a page behind a login, add it to `exclude` in
+[`lychee.toml`](lychee.toml) with a comment saying why.
