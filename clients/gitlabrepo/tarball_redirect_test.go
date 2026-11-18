@@ -28,7 +28,7 @@ func TestApiFunctionTokenNotForwardedOnRedirect(t *testing.T) {
 	const token = "super-secret-pat"
 	t.Setenv("GITLAB_AUTH_TOKEN", token)
 
-	var forwarded string
+	var received, forwarded string
 	// Stands in for the redirect target (object storage / CDN / attacker host).
 	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		forwarded = r.Header.Get("PRIVATE-TOKEN")
@@ -38,6 +38,7 @@ func TestApiFunctionTokenNotForwardedOnRedirect(t *testing.T) {
 
 	// Stands in for the GitLab instance; redirects the archive request elsewhere.
 	instance := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		received = r.Header.Get("PRIVATE-TOKEN")
 		http.Redirect(w, r, other.URL, http.StatusFound)
 	}))
 	defer instance.Close()
@@ -49,11 +50,17 @@ func TestApiFunctionTokenNotForwardedOnRedirect(t *testing.T) {
 	}
 	defer repoFile.Close()
 
-	handler := tarballHandler{ctx: context.Background(), once: new(sync.Once)}
+	// gitlab.com is the token's host when GL_HOST is unset, so the token is
+	// attached to the first request and must be dropped on the redirect.
+	t.Setenv("GL_HOST", "")
+	handler := tarballHandler{ctx: context.Background(), once: new(sync.Once), repourl: &Repo{host: "gitlab.com"}}
 	if err := handler.apiFunction(instance.URL, tempDir, repoFile); err != nil {
 		t.Fatalf("apiFunction: %v", err)
 	}
 
+	if received != token {
+		t.Fatalf("PRIVATE-TOKEN on the first request: got %q, want the token", received)
+	}
 	if forwarded != "" {
 		t.Fatalf("PRIVATE-TOKEN forwarded to redirect host: got %q, want it dropped", forwarded)
 	}

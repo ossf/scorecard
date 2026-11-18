@@ -262,6 +262,58 @@ func TestGetCheckResultUnsupportedPlatform(t *testing.T) {
 	}
 }
 
+func TestGetCheckResultCoverage(t *testing.T) {
+	t.Parallel()
+	cat, err := catalog.New()
+	if err != nil {
+		t.Fatalf("catalog.New: %v", err)
+	}
+	expected := cat.ExpectedChecks("github.com")
+	full := fakeResult()
+	full.Checks = nil
+	for _, name := range expected {
+		full.Checks = append(full.Checks, model.Check{Name: name, Score: 10})
+	}
+
+	tests := []struct {
+		name         string
+		result       *model.Result
+		wantMissing  []string
+		wantComplete bool
+	}{
+		{
+			name:   "partial result",
+			result: fakeResult(),
+			wantMissing: slices.DeleteFunc(slices.Clone(expected), func(n string) bool {
+				return n == "Code-Review" || n == "Fuzzing"
+			}),
+		},
+		{name: "every check", result: full, wantComplete: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cs, done := newTestSession(t, &fakeProvider{result: tt.result})
+			defer done()
+
+			res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+				Name:      "get_check_result",
+				Arguments: map[string]any{"repo": "ossf/scorecard", "check": "Code-Review"},
+			})
+			if err != nil {
+				t.Fatalf("CallTool: %v", err)
+			}
+			out := decodeStructured[getCheckResultOutput](t, res)
+			if !slices.Equal(out.MissingChecks, tt.wantMissing) {
+				t.Errorf("MissingChecks = %v, want %v", out.MissingChecks, tt.wantMissing)
+			}
+			if out.Complete != tt.wantComplete {
+				t.Errorf("Complete = %v, want %v", out.Complete, tt.wantComplete)
+			}
+		})
+	}
+}
+
 func TestGetRepoScoreCoverage(t *testing.T) {
 	t.Parallel()
 	cat, err := catalog.New()

@@ -196,7 +196,9 @@ func (handler *tarballHandler) apiFunction(url, tempDir string, repoFile *os.Fil
 	if err != nil {
 		return fmt.Errorf("http.NewRequestWithContext: %w", err)
 	}
-	req.Header.Set("PRIVATE-TOKEN", os.Getenv("GITLAB_AUTH_TOKEN"))
+	if token := tokenForHost(handler.repourl.Host()); token != "" {
+		req.Header.Set("PRIVATE-TOKEN", token)
+	}
 	// The archive endpoint commonly 302s to object storage or a CDN. Go only
 	// strips a fixed set of well-known auth headers across a redirect, so the
 	// PRIVATE-TOKEN would otherwise be replayed to whatever host we land on.
