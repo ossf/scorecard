@@ -62,6 +62,17 @@ var allChecks = func() checker.CheckNameToFnMap {
 	return m
 }()
 
+// IsExperimental reports whether the named check is experimental, regardless of
+// whether SCORECARD_EXPERIMENTAL is set. It returns false for unknown names.
+func IsExperimental(name string) bool {
+	for _, r := range registered {
+		if r.def.Name() == name {
+			return r.def.Experimental()
+		}
+	}
+	return false
+}
+
 func getAll(overrideExperimental bool) checker.CheckNameToFnMap {
 	// need to make a copy or caller could mutate original map
 	possibleChecks := checker.CheckNameToFnMap{}

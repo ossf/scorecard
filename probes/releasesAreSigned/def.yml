@@ -27,8 +27,8 @@ remediation:
   onOutcome: False
   effort: Medium
   text:
-    - Install Cosign by following https://docs.sigstore.dev/system_config/installation
-    - Sign your release artifacts using `cosign sign $YOUR_ARTIFACT`. See more at https://docs.sigstore.dev/signing/quickstart
+    - Install Cosign by following https://docs.sigstore.dev/cosign/system_config/installation/
+    - Sign your release artifacts using `cosign sign $YOUR_ARTIFACT`. See more at https://docs.sigstore.dev/quickstart/quickstart-cosign/
     - Publish your release and add the certificate and signature produced by Cosign.
 ecosystem:
   languages:
