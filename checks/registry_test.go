@@ -128,6 +128,19 @@ func TestGetAllExperimental(t *testing.T) {
 	}
 }
 
+func TestIsExperimental(t *testing.T) {
+	t.Parallel()
+	for name := range wantRegistry {
+		want := slices.Contains(experimentalChecks, name)
+		if got := IsExperimental(name); got != want {
+			t.Errorf("IsExperimental(%q) = %v, want %v", name, got, want)
+		}
+	}
+	if IsExperimental("Not-A-Real-Check") {
+		t.Error(`IsExperimental("Not-A-Real-Check") = true, want false`)
+	}
+}
+
 func TestGetAllReturnsCopy(t *testing.T) {
 	t.Parallel()
 	for _, get := range []func() checker.CheckNameToFnMap{GetAll, GetAllWithExperimental} {

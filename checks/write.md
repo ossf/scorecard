@@ -235,9 +235,8 @@ definition. Scorecard then runs it only when the `SCORECARD_EXPERIMENTAL`
 environment variable is set, to any value. An experimental check also needs:
 
 - its name in `experimentalChecks` in
-  [`checks/registry_test.go`](registry_test.go) and in
-  [`cmd/internal/mcp/catalog/catalog.go`](../cmd/internal/mcp/catalog/catalog.go)
-  (`TestExperimentalChecksMatch` fails otherwise);
+  [`checks/registry_test.go`](registry_test.go) (`TestGetAllExperimental`
+  and `TestIsExperimental` fail otherwise);
 - `EXPERIMENTAL` in the Note column of its README row.
 
 ## Errors
