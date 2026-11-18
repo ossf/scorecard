@@ -70,7 +70,7 @@ Note: The following settings queried by the Branch-Protection check require an a
 the provided token does not have admin access, the check will query the branch
 settings accessible to non-admins and provide results based only on these settings.
 However, all of these settings are accessible via Repo Rules. `EnforceAdmins` is calculated slightly differently.
-This setting is calculated as `false` if any [Bypass Actors](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#granting-bypass-permissions-for-your-ruleset)
+This setting is calculated as `false` if any [Bypass Actors](https://docs.github.com/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#granting-bypass-permissions-for-your-branch-or-tag-ruleset)
  are defined on any rule, regardless of if they are admins.
 
 Different types of branch protection protect against different risks:
@@ -254,7 +254,7 @@ puppet](https://en.wikipedia.org/wiki/Sock_puppet_account)" account).
 - If the project has only one contributor, or does not have enough reviewers to practically require that all contributions be reviewed, try to recruit more maintainers to the project who will be willing to review others' work. Ideally at least some of these people will be from different organizations (see [Contributors](checks.md#contributors)). If the project has very limited utility, consider expanding its intended utility so more people will be interested in improving it, and make that larger scope clear to potential contributors.
 - Follow security best practices by performing strict code reviews for every new pull request / merge request.
 - Make "code reviews" mandatory in your repository configuration. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#require-pull-request-reviews-before-merging))
-- Enforce the rule for administrators / code owners as well. ([Instructions for GitHub.](https://docs.github.com/en/github/administering-a-repository/about-protected-branches#include-administrators))
+- Enforce the rule for administrators / code owners as well. ([Instructions for GitHub.](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches#do-not-allow-bypassing-the-above-settings))
 
 ## Contributors 
 
@@ -311,7 +311,7 @@ The highest score is awarded when all workflows avoid the dangerous code pattern
  
 
 **Remediation steps**
-- Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See this [document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
+- Avoid the dangerous workflow patterns. See this [post](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/) for information on avoiding untrusted code checkouts. See this [document](https://docs.github.com/en/actions/concepts/security/script-injections#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
 
 ## Dependency-Update-Tool 
 
@@ -382,7 +382,7 @@ not be used. The lack of a license will impede any kind of security review
 or audit and creates a legal risk for potential users.
 
 Scorecard uses the
-[GitHub License API](https://docs.github.com/en/rest/licenses#get-the-license-for-a-repository)
+[GitHub License API](https://docs.github.com/en/rest/licenses/licenses#get-the-license-for-a-repository)
 for GitHub hosted projects. Otherwise, Scorecard uses its own heuristics to
 detect a published license file.
 
@@ -583,7 +583,7 @@ An SBOM is published as a release artifact (5/10 points):
  
 
 **Remediation steps**
-- For Gitlab, see more information [here](https://docs.gitlab.com/ee/user/application_security/dependency_scanning/index.html#cyclonedx-software-bill-of-materials).
+- For Gitlab, see more information [here](https://docs.gitlab.com/user/application_security/dependency_scanning/dependency_scanning_sbom/#cyclonedx-software-bill-of-materials).
 - For GitHub, see more information [here](https://docs.github.com/en/code-security/supply-chain-security/understanding-your-software-supply-chain/about-supply-chain-security).
 - Alternatively, there are other tools available to generate [CycloneDX](https://cyclonedx.org/tool-center/) and [SPDX](https://spdx.dev/use/spdx-tools/) SBOMs.
 
@@ -715,7 +715,7 @@ possible.
 **Remediation steps**
 - Fix the vulnerabilities in your own code base. The details of each vulnerability can be found on <https://osv.dev>.
 - If the vulnerability is in a dependency, update the dependency to a non-vulnerable version. If no update is available, consider whether to remove the dependency.
-- If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner repository](https://github.com/google/osv-scanner#ignore-vulnerabilities-by-id).
+- If you believe the vulnerability does not affect your project, the  vulnerability can be ignored.  To ignore, create an `osv-scanner.toml` file next to the dependency manifest (e.g. package-lock.json) and specify the ID to ignore and reason. Details on the structure of `osv-scanner.toml` can be found on  [OSV-Scanner documentation](https://google.github.io/osv-scanner/configuration/#ignore-vulnerabilities-by-id).
 
 ## Webhooks 
 
@@ -726,6 +726,6 @@ This check determines whether the webhook defined in the repository has a token 
 
 **Remediation steps**
 - Check if the service your webhooks is configured with supports secrets.
-- If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook).
+- If there is support for token authentication, set the secret in the webhook configuration. See [Setting up a webhook](https://docs.github.com/en/webhooks/using-webhooks/creating-webhooks#creating-a-repository-webhook).
 - If there is no support for token authentication, request the webhook service implement token authentication functionality by following [these directions](https://docs.github.com/en/developers/webhooks-and-events/webhooks/securing-your-webhooks).
 

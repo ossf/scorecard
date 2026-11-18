@@ -29,7 +29,7 @@ remediation:
     - Avoid the dangerous workflow patterns.
   markdown:
     - Avoid the dangerous workflow patterns.
-    - See [this document](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
+    - See [this document](https://docs.github.com/en/actions/concepts/security/script-injections#understanding-the-risk-of-script-injections) for information on avoiding and mitigating the risk of script injections.
     - |
       Here is a proposed patch to eliminate this risk:
       ```yml

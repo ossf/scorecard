@@ -8,7 +8,7 @@ Scale OSSF Scorecard to 100k+ repositories.
 
 ## Background
 
-[Scorecard](github.com/oosf/scorecard) is an open source project by Google in
+[Scorecard](https://github.com/ossf/scorecard) is an open source project by Google in
 collaboration with [OpenSSF](https://openssf.org/) to automate the analysis and
 trust decisions on the security posture of an open source project. As part of
 this project we (Google) maintain a cron job, which calculates Scorecard results
@@ -259,7 +259,7 @@ To improve the efficiency of GitHub token usage we propose:
    repeated calls to the same API.
 3. At the architecture level, we don’t expect all repos to be changing as
    frequently as we run the Scorecard job. We should consider using
-   [GitHub’s conditional requests](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests).
+   [GitHub’s conditional requests](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api#use-conditional-requests).
    Although not all API endpoints support this today, it's a good starting
    point.
 
