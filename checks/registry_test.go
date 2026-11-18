@@ -16,7 +16,6 @@ package checks
 
 import (
 	"maps"
-	"os"
 	"reflect"
 	"runtime"
 	"slices"
@@ -129,36 +128,16 @@ func TestGetAllExperimental(t *testing.T) {
 	}
 }
 
-func TestExperimentalChecks(t *testing.T) {
-	for _, name := range []string{CheckBinaryArtifacts, "Not-A-Real-Check"} {
-		if IsExperimental(name) {
-			t.Errorf("IsExperimental(%q) = true, want false", name)
+func TestIsExperimental(t *testing.T) {
+	t.Parallel()
+	for name := range wantRegistry {
+		want := slices.Contains(experimentalChecks, name)
+		if got := IsExperimental(name); got != want {
+			t.Errorf("IsExperimental(%q) = %v, want %v", name, got, want)
 		}
 	}
-	for _, state := range []string{"unset", "empty", "enabled"} {
-		t.Run(state, func(t *testing.T) {
-			t.Setenv("SCORECARD_EXPERIMENTAL", "")
-			if state == "unset" {
-				if err := os.Unsetenv("SCORECARD_EXPERIMENTAL"); err != nil {
-					t.Fatal(err)
-				}
-			} else if state == "enabled" {
-				t.Setenv("SCORECARD_EXPERIMENTAL", "1")
-			}
-			defaults := GetAll()
-			all := GetAllWithExperimental()
-			for _, name := range []string{CheckWebHooks, CheckSBOM} {
-				if !IsExperimental(name) {
-					t.Errorf("IsExperimental(%q) = false, want true", name)
-				}
-				if _, ok := all[name]; !ok {
-					t.Errorf("GetAllWithExperimental() is missing %q", name)
-				}
-				if _, ok := defaults[name]; ok != (state != "unset") {
-					t.Errorf("GetAll() contains %q = %v with environment %s", name, ok, state)
-				}
-			}
-		})
+	if IsExperimental("Not-A-Real-Check") {
+		t.Error(`IsExperimental("Not-A-Real-Check") = true, want false`)
 	}
 }
 
