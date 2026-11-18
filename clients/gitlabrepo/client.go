@@ -21,12 +21,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/hashicorp/go-cleanhttp"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/ossf/scorecard/v5/clients"
 	sce "github.com/ossf/scorecard/v5/errors"
+	"github.com/ossf/scorecard/v5/internal/redirectguard"
 )
 
 var (
@@ -284,9 +287,18 @@ func CreateGitlabClient(ctx context.Context, host string) (clients.RepoClient, e
 	return CreateGitlabClientWithToken(ctx, tokenForHost(host), host)
 }
 
+// newHTTPClient returns client-go's default HTTP client behind redirectguard.
+// client-go sets PRIVATE-TOKEN on each request, and http.Client copies that
+// header when it follows a redirect to another host.
+func newHTTPClient() *http.Client {
+	c := cleanhttp.DefaultPooledClient()
+	c.Transport = redirectguard.New(c.Transport)
+	return c
+}
+
 func CreateGitlabClientWithToken(ctx context.Context, token, host string) (clients.RepoClient, error) {
 	url := "https://" + host
-	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(url))
+	client, err := gitlab.NewClient(token, gitlab.WithBaseURL(url), gitlab.WithHTTPClient(newHTTPClient()))
 	if err != nil {
 		return nil, fmt.Errorf("could not create gitlab client with error: %w", err)
 	}
