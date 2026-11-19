@@ -313,6 +313,17 @@ func (handler *tarballHandler) listFiles(predicate func(string) (bool, error)) (
 	return ret, nil
 }
 
+func (handler *tarballHandler) getLocalPath() (string, error) {
+	if err := handler.setup(); err != nil {
+		return "", fmt.Errorf("error during tarballHandler.setup: %w", err)
+	}
+	absTempDir, err := filepath.Abs(handler.tempDir)
+	if err != nil {
+		return "", fmt.Errorf("error during filepath.Abs: %w", err)
+	}
+	return absTempDir, nil
+}
+
 func (handler *tarballHandler) getFile(filename string) (*os.File, error) {
 	if err := handler.setup(); err != nil {
 		return nil, fmt.Errorf("error during tarballHandler.setup: %w", err)
