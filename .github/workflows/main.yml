@@ -128,6 +128,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: |
+            set -e
             go env -w GOFLAGS=-mod=mod
             make install
             make generate-mocks
@@ -156,6 +157,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: |
+            set -e
             go env -w GOFLAGS=-mod=mod
             make generate-docs
      - name: ensure generated check and probe documentation match the source
@@ -201,6 +203,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: |
+            set -e
             go env -w GOFLAGS=-mod=mod
             make ${{ matrix.target }}
   validate-docs:
@@ -243,6 +246,7 @@ jobs:
           retry_on: error
           timeout_minutes: 30
           command: |
+            set -e
             go env -w GOFLAGS=-mod=mod
             make validate-docs
   license-check:
