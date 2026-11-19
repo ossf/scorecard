@@ -19,13 +19,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/shurcooL/graphql"
 	"golang.org/x/oauth2"
+
+	"github.com/ossf/scorecard/v5/internal/redirectguard"
 )
 
 type graphqlHandler struct {
@@ -41,10 +42,14 @@ func (handler *graphqlHandler) init(ctx context.Context, repourl *Repo) {
 	handler.repourl = repourl
 	handler.err = nil
 
-	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITLAB_AUTH_TOKEN")},
-	)
-	handler.client = oauth2.NewClient(ctx, src)
+	handler.client = http.DefaultClient
+	if token := tokenForHost(repourl.Host()); token != "" {
+		src := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
+		handler.client = oauth2.NewClient(ctx, src)
+		// oauth2.Transport sets Authorization on every hop, including a
+		// redirect to another host.
+		handler.client.Transport = redirectguard.New(handler.client.Transport)
+	}
 	handler.graphClient = graphql.NewClient(fmt.Sprintf("https://%s/api/graphql", repourl.Host()), handler.client)
 }
 

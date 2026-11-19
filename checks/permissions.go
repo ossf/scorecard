@@ -16,49 +16,13 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckTokenPermissions is the exported name for Token-Permissions check.
 const CheckTokenPermissions = "Token-Permissions"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckTokenPermissions, TokenPermissions, supportedRequestTypes); err != nil {
-		// This should never happen.
-		panic(err)
-	}
-}
-
 // TokenPermissions will run the Token-Permissions check.
 func TokenPermissions(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.TokenPermissions(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.TokenPermissionsResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.TokenPermissions)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckTokenPermissions, e)
-	}
-
-	// Return the score evaluation.
-	ret := evaluation.TokenPermissions(CheckTokenPermissions, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.TokenPermissions.Run(c)
 }

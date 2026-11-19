@@ -1,0 +1,172 @@
+{
+  "metadata": {
+    "id": "scorecard:github.com/owner/repo@0123456789abcdef0123456789abcdef01234567:test-catalog@v1.0.0:level-1",
+    "type": "EvaluationLog",
+    "gemara-version": "1.6.0",
+    "date": "2026-11-08T12:00:00Z",
+    "description": "Experimental OpenSSF Scorecard evaluation of github.com/owner/repo against test-catalog v1.0.0 (level-1). 4 of the 5 requirements in the profile were evaluated; the other 1 were not evaluated and are not in this log.",
+    "author": {
+      "id": "scorecard",
+      "name": "OpenSSF Scorecard",
+      "type": "Software",
+      "version": "v5.7.0",
+      "uri": "https://github.com/ossf/scorecard/commit/fedcba9876543210fedcba9876543210fedcba98"
+    },
+    "mapping-references": [
+      {
+        "id": "test-catalog",
+        "title": "Test Catalog",
+        "version": "v1.0.0",
+        "url": "https://example.com/test-catalog/v1.0.0"
+      }
+    ]
+  },
+  "target": {
+    "id": "github.com/owner/repo",
+    "name": "github.com/owner/repo",
+    "type": "Software",
+    "version": "0123456789abcdef0123456789abcdef01234567",
+    "uri": "https://github.com/owner/repo"
+  },
+  "result": "Failed",
+  "evaluations": [
+    {
+      "control": {
+        "reference-id": "test-catalog",
+        "entry-id": "TEST-01"
+      },
+      "name": "Test Control",
+      "result": "Failed",
+      "message": "TEST-01.01: Passed; TEST-01.02: Failed; TEST-01.03: Unknown; TEST-01.04: Needs Review; TEST-01.05: Not Applicable",
+      "assessment-logs": [
+        {
+          "requirement": {
+            "reference-id": "test-catalog",
+            "entry-id": "TEST-01.01"
+          },
+          "description": "Passes.",
+          "result": "Passed",
+          "message": "The setting is on.",
+          "start": "2026-11-08T12:00:00Z",
+          "applicability": [
+            "level-1"
+          ],
+          "steps": [
+            "Read probeA."
+          ],
+          "evidence": [
+            {
+              "payload": {
+                "values": {
+                  "branchName": "main"
+                },
+                "probe": "testProbe",
+                "message": "test probe observed the setting on branch 'main'",
+                "outcome": "True"
+              },
+              "id": "testProbe/main",
+              "type": "ScorecardProbeFinding",
+              "collected-at": "2026-11-08T12:00:00Z",
+              "description": "test probe observed the setting on branch 'main'"
+            }
+          ]
+        },
+        {
+          "requirement": {
+            "reference-id": "test-catalog",
+            "entry-id": "TEST-01.02"
+          },
+          "description": "Fails.",
+          "result": "Failed",
+          "message": "The setting is off.",
+          "start": "2026-11-08T12:00:00Z",
+          "applicability": [
+            "level-1"
+          ],
+          "steps": [
+            "Read probeA."
+          ],
+          "evidence": [
+            {
+              "payload": {
+                "values": {
+                  "branchName": "main"
+                },
+                "probe": "testProbe",
+                "message": "test probe observed the setting on branch 'main'",
+                "outcome": "True"
+              },
+              "id": "testProbe/main",
+              "type": "ScorecardProbeFinding",
+              "collected-at": "2026-11-08T12:00:00Z",
+              "description": "test probe observed the setting on branch 'main'"
+            }
+          ]
+        },
+        {
+          "requirement": {
+            "reference-id": "test-catalog",
+            "entry-id": "TEST-01.03"
+          },
+          "description": "Is unknown.",
+          "result": "Unknown",
+          "message": "The setting could not be read.",
+          "start": "2026-11-08T12:00:00Z",
+          "applicability": [
+            "level-1"
+          ],
+          "steps": [
+            "Read probeA."
+          ]
+        },
+        {
+          "requirement": {
+            "reference-id": "test-catalog",
+            "entry-id": "TEST-01.04"
+          },
+          "description": "Needs review.",
+          "result": "Needs Review",
+          "message": "The setting has an exception.",
+          "start": "2026-11-08T12:00:00Z",
+          "applicability": [
+            "level-1"
+          ],
+          "steps": [
+            "Read probeA."
+          ],
+          "evidence": [
+            {
+              "payload": {
+                "values": {
+                  "branchName": "main"
+                },
+                "probe": "testProbe",
+                "message": "test probe observed the setting on branch 'main'",
+                "outcome": "True"
+              },
+              "id": "testProbe/main",
+              "type": "ScorecardProbeFinding",
+              "collected-at": "2026-11-08T12:00:00Z",
+              "description": "test probe observed the setting on branch 'main'"
+            }
+          ]
+        },
+        {
+          "requirement": {
+            "reference-id": "test-catalog",
+            "entry-id": "TEST-01.05"
+          },
+          "description": "Applies at level 3.",
+          "result": "Not Applicable",
+          "message": "TEST-01.05 does not apply to level-1.",
+          "applicability": [
+            "level-1"
+          ],
+          "steps": [
+            "Read probeLevel3."
+          ]
+        }
+      ]
+    }
+  ]
+}

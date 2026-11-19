@@ -50,7 +50,7 @@ func TestRepoURL_IsValid(t *testing.T) {
 				owner:   "foo",
 				project: "gitlab.test",
 			},
-			inputURL: "http://github.com/foo/gitlab.test",
+			inputURL: "https://github.com/foo/gitlab.test",
 			wantErr:  true,
 		},
 		{

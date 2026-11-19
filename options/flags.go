@@ -16,11 +16,13 @@ package options
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	"github.com/ossf/scorecard/v5/checks"
+	"github.com/ossf/scorecard/v5/internal/conformance/catalog"
 )
 
 const (
@@ -80,6 +82,14 @@ const (
 	FlagCommitDepth = "commit-depth"
 
 	FlagProbes = "probes"
+
+	// FlagCatalog is the flag name for the catalog that selects conformance
+	// mode.
+	FlagCatalog = "catalog"
+
+	// FlagProfile is the flag name for the catalog applicability group to
+	// evaluate.
+	FlagProfile = "profile"
 )
 
 // Command is an interface for handling options for command-line utilities.
@@ -94,7 +104,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Repo,
 		FlagRepo,
 		o.Repo,
-		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\")",
+		"repository to check (valid inputs: \"owner/repo\", \"github.com/owner/repo\", "+
+			"\"https://github.com/owner/repo\", \"gitlab.com/owner/repo\" or a self-hosted GitLab URL)",
 	)
 
 	cmd.Flags().StringSliceVar(
@@ -102,7 +113,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagRepos,
 		o.Repos,
 		"repositories to check (<repo1>,<repo2>, ...). Each repo must be one of:"+
-			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/repo\"",
+			" \"owner/repo\", \"github.com/owner/repo\", \"https://github.com/owner/repo\","+
+			" \"gitlab.com/owner/repo\"",
 	)
 
 	cmd.Flags().StringVar(
@@ -117,7 +129,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.Local,
 		FlagLocal,
 		o.Local,
-		"local folder to check",
+		"local folder to check (runs only file-based checks; repository host"+
+			" checks, e.g. Branch-Protection, are skipped)",
 	)
 
 	cmd.Flags().StringVar(
@@ -131,42 +144,42 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.LogLevel,
 		FlagLogLevel,
 		o.LogLevel,
-		"Set the log level. Possible values are: 'info', 'debug', 'warn'. Add --show-details to see the results.",
+		"log level: trace, debug, info, warn, error, fatal, or panic",
 	)
 
 	cmd.Flags().StringVar(
 		&o.NPM,
 		FlagNPM,
 		o.NPM,
-		"npm package to check, given that the npm package has a GitHub repository",
+		"npm package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.PyPI,
 		FlagPyPI,
 		o.PyPI,
-		"pypi package to check, given that the pypi package has a GitHub repository",
+		"pypi package to check; the package must map to a GitHub or GitLab repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.RubyGems,
 		FlagRubyGems,
 		o.RubyGems,
-		"rubygems package to check, given that the rubygems package has a GitHub repository",
+		"rubygems package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringVar(
 		&o.Nuget,
 		FlagNuget,
 		o.Nuget,
-		"nuget package to check, given that the nuget package has a GitHub repository",
+		"nuget package to check; the package must map to a GitHub repository",
 	)
 
 	cmd.Flags().StringSliceVar(
 		&o.Metadata,
 		FlagMetadata,
 		o.Metadata,
-		"metadata for the project. It can be multiple separated by commas",
+		"comma-separated metadata to attach to the results (included in JSON output)",
 	)
 
 	cmd.Flags().BoolVar(
@@ -180,32 +193,34 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		&o.ShowAnnotations,
 		FlagShowAnnotations,
 		o.ShowAnnotations,
-		"show maintainers annotations for checks",
+		"show maintainers' annotations for checks",
 	)
 
 	cmd.Flags().IntVar(
 		&o.CommitDepth,
 		FlagCommitDepth,
 		o.CommitDepth,
-		"number of commits to check, commits begin backwards from the HEAD",
+		"number of recent commits to analyze, starting from HEAD",
 	)
 
 	checkNames := []string{}
 	for checkName := range checks.GetAll() {
 		checkNames = append(checkNames, checkName)
 	}
+	sort.Strings(checkNames)
 	cmd.Flags().StringSliceVar(
 		&o.ChecksToRun,
 		FlagChecks,
 		o.ChecksToRun,
-		fmt.Sprintf("Checks to run. Possible values are: %s", strings.Join(checkNames, ",")),
+		fmt.Sprintf("checks to run. Possible values are: %s", strings.Join(checkNames, ", ")),
 	)
 
 	cmd.Flags().StringSliceVar(
 		&o.ProbesToRun,
 		FlagProbes,
 		o.ProbesToRun,
-		"Probes to run.",
+		"individual probes to run instead of checks; the --checks selection is still validated"+
+			" (probe names appear in --format=probe output)",
 	)
 
 	// TODO(options): Extract logic
@@ -232,8 +247,8 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagFormat,
 		o.Format,
 		fmt.Sprintf(
-			"output format. Possible values are: %s",
-			strings.Join(allowedFormats, ", "),
+			"output format. Possible values are: %s (gemara requires --catalog)",
+			strings.Join(append(allowedFormats, FormatGemara), ", "),
 		),
 	)
 
@@ -242,14 +257,29 @@ func (o *Options) AddFlags(cmd *cobra.Command) {
 		FlagResultsFile,
 		ShorthandFlagResultsFile,
 		o.ResultsFile,
-		"output file",
+		"write results to this file instead of stdout",
 	)
 
-	allowedModes := []string{FileModeArchive, FileModeGit}
+	cmd.Flags().StringVar(
+		&o.Catalog,
+		FlagCatalog,
+		o.Catalog,
+		fmt.Sprintf("EXPERIMENTAL: evaluate the requirements of a catalog, as <id> or <id>@<version>, "+
+			"instead of running checks. Requires --profile and --format=json or --format=gemara. "+
+			"Possible values are: %s", strings.Join(catalog.IDs(), ", ")),
+	)
+
+	cmd.Flags().StringVar(
+		&o.Profile,
+		FlagProfile,
+		o.Profile,
+		"EXPERIMENTAL: the catalog applicability group to evaluate, such as maturity-1 for osps-baseline",
+	)
+
 	cmd.Flags().StringVar(
 		&o.FileMode,
 		FlagFileMode,
 		o.FileMode,
-		fmt.Sprintf("mode to fetch repository files: %s", strings.Join(allowedModes, ", ")),
+		fmt.Sprintf("fetch repository files via %q (download a tarball) or %q (clone)", FileModeArchive, FileModeGit),
 	)
 }

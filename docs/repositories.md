@@ -46,7 +46,7 @@ Donated repositories must:
 
 - Adhere to the [requirements for all project repositories](#requirements)
 <!-- TODO: Need documentation on license scans and acceptable licenses for dependencies e.g.,
-- Licenses of dependencies are acceptable; please review the [allowed-third-party-license-policy.md](https://github.com/cncf/foundation/blob/main/allowed-third-party-license-policy.md) and [exceptions](https://github.com/cncf/foundation/tree/main/license-exceptions). If your dependencies are not covered, then please open a `License Exception Request` issue in [cncf/foundation](https://github.com/cncf/foundation/issues) repository.
+- Licenses of dependencies are acceptable; please review the [allowed-third-party-license-policy.md](https://github.com/cncf/foundation/blob/main/policies-guidance/allowed-third-party-license-policy.md) and [exceptions](https://github.com/cncf/foundation/tree/main/license-exceptions). If your dependencies are not covered, then please open a `License Exception Request` issue in [cncf/foundation](https://github.com/cncf/foundation/issues) repository.
 -->
 
 ### Copyright headers
