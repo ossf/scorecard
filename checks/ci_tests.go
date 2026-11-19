@@ -16,44 +16,11 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 const CheckCITests = "CI-Tests"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-	}
-	if err := registerCheck(CheckCITests, CITests, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 func CITests(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.CITests(c.RepoClient)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckCITests, e)
-	}
-
-	pRawResults := getRawResults(c)
-	pRawResults.CITestResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.CITests)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckCITests, e)
-	}
-
-	ret := evaluation.CITests(CheckCITests, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.CITests.Run(c)
 }

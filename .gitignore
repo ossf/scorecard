@@ -50,5 +50,6 @@ newRelease.json
 /vendor/
 /tools/vendor/
 
-# AI tooling instructions
+# AI tooling instructions (the root AGENTS.md is shared and tracked)
 AGENTS.md
+!/AGENTS.md

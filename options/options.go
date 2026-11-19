@@ -25,6 +25,7 @@ import (
 	"github.com/caarlos0/env/v6"
 
 	"github.com/ossf/scorecard/v5/clients"
+	"github.com/ossf/scorecard/v5/internal/conformance/catalog"
 	sclog "github.com/ossf/scorecard/v5/log"
 )
 
@@ -44,6 +45,8 @@ type Options struct {
 	PolicyFile      string
 	ResultsFile     string
 	FileMode        string
+	Catalog         string
+	Profile         string
 	ChecksToRun     []string
 	ProbesToRun     []string
 	Metadata        []string
@@ -87,6 +90,9 @@ const (
 	FormatRaw = "raw"
 	// FormatInToto specifies that results should be output in an in-toto statement.
 	FormatInToto = "intoto"
+	// FormatGemara specifies that conformance results should be output as a
+	// Gemara Evaluation Log. It is valid only with --catalog.
+	FormatGemara = "gemara"
 
 	// File Modes
 	// FileModeGit specifies that files should be fetched using git.
@@ -120,6 +126,25 @@ var (
 	)
 	errSARIFNotSupported = errors.New("SARIF format is not supported yet")
 	errValidate          = errors.New("some options could not be validated")
+
+	errGemaraRequiresCatalog  = errors.New("`--format=gemara` requires `--catalog`")
+	errProfileRequiresCatalog = errors.New("`--profile` requires `--catalog`")
+	errProfileRequired        = errors.New("`--profile` is required with `--catalog`")
+	errUnsupportedProfile     = errors.New("unsupported profile")
+	errCatalogRequiresFormat  = errors.New("`--catalog` requires `--format=json` or `--format=gemara`")
+	errChecksWithCatalog      = errors.New("`--checks` cannot be used with `--catalog`")
+	errProbesWithCatalog      = errors.New("`--probes` cannot be used with `--catalog`")
+	errPolicyWithCatalog      = errors.New("`--policy` cannot be used with `--catalog`")
+	errReposWithCatalog       = errors.New("`--repos` cannot be used with `--catalog`")
+	errOrgWithCatalog         = errors.New("`--org` cannot be used with `--catalog`")
+	// The mapped requirements need branch protection data, which Scorecard
+	// can't collect for a local directory or a commit other than HEAD.
+	errLocalWithCatalog = errors.New(
+		"`--local` cannot be used with `--catalog`: branch protection settings are not available " +
+			"for a local directory")
+	errCommitWithCatalog = errors.New(
+		"`--commit` cannot be used with `--catalog`: branch protection settings are available only " +
+			"for HEAD")
 )
 
 // Validate validates scorecard configuration options.
@@ -192,6 +217,8 @@ func (o *Options) Validate() error {
 		)
 	}
 
+	errs = append(errs, o.validateConformance()...)
+
 	if len(errs) != 0 {
 		return fmt.Errorf(
 			"%w: %+v",
@@ -200,6 +227,64 @@ func (o *Options) Validate() error {
 		)
 	}
 	return nil
+}
+
+// IsConformanceMode reports whether --catalog selects conformance mode.
+func (o *Options) IsConformanceMode() bool {
+	return o.Catalog != ""
+}
+
+// validateConformance checks the conformance mode options and their
+// conflicts with other options.
+func (o *Options) validateConformance() []error {
+	var errs []error
+	if !o.IsConformanceMode() {
+		if o.Profile != "" {
+			errs = append(errs, errProfileRequiresCatalog)
+		}
+		if o.Format == FormatGemara {
+			errs = append(errs, errGemaraRequiresCatalog)
+		}
+		return errs
+	}
+
+	release, err := catalog.Lookup(o.Catalog)
+	if err != nil {
+		errs = append(errs, err)
+	}
+	switch {
+	case o.Profile == "":
+		errs = append(errs, errProfileRequired)
+	case release != nil && !release.HasProfile(o.Profile):
+		errs = append(errs, fmt.Errorf("%w %q for %s %s; valid profiles: %s", errUnsupportedProfile,
+			o.Profile, release.Catalog, release.Version, strings.Join(release.Profiles, ", ")))
+	}
+
+	if o.Format != FormatJSON && o.Format != FormatGemara {
+		errs = append(errs, errCatalogRequiresFormat)
+	}
+	if len(o.ChecksToRun) > 0 {
+		errs = append(errs, errChecksWithCatalog)
+	}
+	if len(o.ProbesToRun) > 0 {
+		errs = append(errs, errProbesWithCatalog)
+	}
+	if o.PolicyFile != "" {
+		errs = append(errs, errPolicyWithCatalog)
+	}
+	if len(o.Repos) > 0 {
+		errs = append(errs, errReposWithCatalog)
+	}
+	if o.Org != "" {
+		errs = append(errs, errOrgWithCatalog)
+	}
+	if o.Local != "" {
+		errs = append(errs, errLocalWithCatalog)
+	}
+	if o.Commit != "" && !strings.EqualFold(o.Commit, DefaultCommit) {
+		errs = append(errs, errCommitWithCatalog)
+	}
+	return errs
 }
 
 func boolSum(bools ...bool) int {
@@ -262,7 +347,7 @@ func (o *Options) isV6Enabled() bool {
 
 func validateFormat(format string) bool {
 	switch format {
-	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto:
+	case FormatJSON, FormatProbe, FormatSarif, FormatDefault, FormatRaw, FormatInToto, FormatGemara:
 		return true
 	default:
 		return false

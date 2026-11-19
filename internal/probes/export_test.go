@@ -1,4 +1,4 @@
-// Copyright 2021 OpenSSF Scorecard Authors
+// Copyright 2026 OpenSSF Scorecard Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package checks
+package probes
 
-import (
-	"errors"
-)
-
-var (
-	errInternalNameCannotBeEmpty    = errors.New("name cannot be empty")
-	errInternalCheckFuncCannotBeNil = errors.New("checkFunc cannot be nil")
-)
+// Registered returns every registered probe by name.
+func Registered() map[string]Probe {
+	return registered
+}
