@@ -24,6 +24,7 @@ import (
 	"time"
 
 	gitV5 "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/google/go-cmp/cmp"
@@ -424,5 +425,37 @@ func TestFileAccessSymlinks(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), errEscapes) {
 			t.Errorf("GetFileReader(%s): got %v, want error containing %q", name, err, errEscapes)
 		}
+	}
+}
+
+func TestGetBranchNotFound(t *testing.T) {
+	t.Parallel()
+	repoPath := createTestRepo(t)
+	r, err := gitV5.PlainOpen(repoPath)
+	if err != nil {
+		t.Fatalf("PlainOpen() failed: %v", err)
+	}
+	client := &Client{gitRepo: r}
+
+	// A branch with no config entry must surface as ErrBranchNotFound so
+	// callers can skip it instead of failing the whole check (#2161).
+	if _, err := client.GetBranch("does-not-exist"); !errors.Is(err, clients.ErrBranchNotFound) {
+		t.Errorf("GetBranch(does-not-exist): got %v, want clients.ErrBranchNotFound", err)
+	}
+
+	// A configured branch must still resolve.
+	if err := r.CreateBranch(&config.Branch{
+		Name:   "main",
+		Remote: "origin",
+		Merge:  plumbing.ReferenceName("refs/heads/main"),
+	}); err != nil {
+		t.Fatalf("CreateBranch() failed: %v", err)
+	}
+	ref, err := client.GetBranch("main")
+	if err != nil {
+		t.Fatalf("GetBranch(main): unexpected error %v", err)
+	}
+	if ref == nil || ref.Name == nil || *ref.Name != "main" {
+		t.Errorf("GetBranch(main): got %+v, want name main", ref)
 	}
 }
