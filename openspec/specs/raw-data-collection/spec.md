@@ -403,7 +403,7 @@ points in C, C++, and Swift; `libfuzzer_sys` in Rust; Jazzer's
 `FuzzedDataProvider` import in Java; `import atheris` in Python; fast-check
 imports in JavaScript and TypeScript; QuickCheck, Hedgehog, Validity, or
 SmallCheck imports in Haskell; EQC or PropEr includes in Erlang; PropCheck
-or ExUnitProperties in Elixir; `qcheck` in Gleam; and FsCheck in C# and F#.
+or ExUnitProperties in Elixir; `qcheck` in Gleam; FsCheck in C# and F#; and CsCheck in C#.
 
 #### Scenario: Go fuzz test
 
