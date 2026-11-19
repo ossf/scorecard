@@ -3003,3 +3003,125 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 func newString(s string) *string {
 	return &s
 }
+
+func TestDockerfileSyntaxDirectives(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		content  string
+		expected int
+		wantErr  bool
+	}{
+		{
+			name: "standard syntax directive pinned image",
+			content: "# syntax=docker/dockerfile:1.28.0@sha256:bb22d9815c728170f72750f4e5b0d672e06176142e1d602c7e66c050100b7e5b\n" +
+				"FROM alpine@sha256:45b23dee08af5e43a7fea6c4cf9c25ccf269ee113168c19722f87876677c5cb2\n",
+			expected: 0,
+		},
+		{
+			name: "syntax directive unpinned image",
+			content: "# syntax=docker/dockerfile:1.28.0@sha256:bb22d9815c728170f72750f4e5b0d672e06176142e1d602c7e66c050100b7e5b\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with spaces around equals",
+			content: "# syntax = docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with spaces after hash",
+			content: "#   syntax=docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with leading spaces before hash",
+			content: "  # syntax=docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with leading and internal spaces",
+			content: "  #   syntax = docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with empty value",
+			content: "# syntax=\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with space and empty value",
+			content: "# syntax =\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "duplicate syntax directives",
+			content: "# syntax=docker/dockerfile:1.2\n" +
+				"# syntax=docker/dockerfile:1.3\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive after comment",
+			content: "# Initial comment\n" +
+				"# syntax=docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive after empty line",
+			content: "\n" +
+				"# syntax=docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "escape directive and syntax directive",
+			content: "# escape=`\n" +
+				"# syntax=docker/dockerfile:1.28.0\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "syntax directive with continuation line",
+			content: "# syntax=docker/dockerfile:1.28.0 \\\n" +
+				"FROM alpine:3.18\n",
+			expected: 1,
+		},
+		{
+			name: "inline comment on ENV does not crash check",
+			content: "FROM alpine:3.18\n" +
+				"ENV COMPOSER_VERSION=1.9.3 # github-releases/composer/composer\n",
+			expected: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			var r checker.PinningDependenciesData
+			_, err := validateDockerfilesPinning("Dockerfile", []byte(tt.content), &r)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateDockerfilesPinning() error = %v, wantErr = %v", err, tt.wantErr)
+			}
+			if err == nil {
+				unpinned := countUnpinned(r.Dependencies)
+				if unpinned != tt.expected {
+					t.Errorf("expected %v unpinned dependencies, got %v", tt.expected, unpinned)
+				}
+			}
+
+			var rDownloads checker.PinningDependenciesData
+			_, err = validateDockerfileInsecureDownloads("Dockerfile", []byte(tt.content), &rDownloads)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateDockerfileInsecureDownloads() error = %v, wantErr = %v", err, tt.wantErr)
+			}
+		})
+	}
+}
