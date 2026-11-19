@@ -169,7 +169,7 @@ func (client *Client) URI() string {
 }
 
 func (client *Client) LocalPath() (string, error) {
-	return "", nil
+	return client.tarball.getLocalPath()
 }
 
 func (client *Client) ListFiles(predicate func(string) (bool, error)) ([]string, error) {
