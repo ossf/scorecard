@@ -54,7 +54,7 @@ A token is required for remote repositories (not for --local), set as an environ
 variable: GITHUB_AUTH_TOKEN for GitHub (GITHUB_TOKEN, GH_AUTH_TOKEN and GH_TOKEN
 are also accepted), or GITLAB_AUTH_TOKEN for GitLab repositories.`
 	scorecardUse = `./scorecard (--repo=<repo> | --local=<folder> | --org=<organization> | ` +
-		`--{npm,pypi,rubygems,nuget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
+		`--{npm,pypi,rubygems,nuget,winget}=<package_name>) [--checks=check1,...] [--show-details] [--show-annotations]`
 	scorecardShort   = "OpenSSF Scorecard"
 	scorecardExample = "  scorecard --repo=github.com/ossf/scorecard"
 )
@@ -121,7 +121,7 @@ func buildRepoURLs(ctx context.Context, o *options.Options) ([]string, error) {
 	// Package managers may override --repo
 	p := &pmc.PackageManagerClient{}
 	// Set `repo` from package managers.
-	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, p)
+	pkgResp, err := fetchGitRepositoryFromPackageManagers(o.NPM, o.PyPI, o.RubyGems, o.Nuget, o.Winget, p)
 	if err != nil {
 		return nil, fmt.Errorf("fetchGitRepositoryFromPackageManagers: %w", err)
 	}
