@@ -19,6 +19,7 @@ require (
 	github.com/google/osv-scanner/v2 v2.7.1
 	github.com/google/uuid v1.6.0
 	github.com/h2non/filetype v1.1.3
+	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hmarr/codeowners v1.2.1
 	github.com/in-toto/attestation v1.2.0
 	github.com/microsoft/azure-devops-go-api/azuredevops/v7 v7.1.0
@@ -132,7 +133,6 @@ require (
 	github.com/google/wire v0.7.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.23 // indirect
 	github.com/googleapis/gax-go/v2 v2.26.2 // indirect
-	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20261012173340-cbb8aaea4290 // indirect
 	github.com/icholy/digest v1.2.0 // indirect

@@ -32,6 +32,7 @@ import (
 	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/internal/gitfile"
+	"github.com/ossf/scorecard/v5/internal/redirectguard"
 	"github.com/ossf/scorecard/v5/log"
 )
 
@@ -385,7 +386,7 @@ func NewRepoClient(ctx context.Context, opts ...Option) (clients.RepoClient, err
 	}
 
 	httpClient := &http.Client{
-		Transport: config.rt,
+		Transport: redirectguard.New(config.rt),
 	}
 
 	var client *github.Client
