@@ -103,13 +103,33 @@ func (handler *commitsHandler) listRawCommits() ([]*gitlab.Commit, error) {
 // contain), except through a separate API call. Instead of calling the REST API
 // len(commits) times to get the associated MR, we make 3 calls (2 REST, 1 GraphQL).
 func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData) []clients.Commit {
-	commitToMRIID := make(map[string]string) // which mr does a commit belong to?
+	commitToMRIID := make(map[string]string)      // which mr does a commit belong to?
+	mergeCommitToMRIID := make(map[string]string) // which mr does a merge commit close?
 	for i := range data.Project.MergeRequests.Nodes {
 		mr := data.Project.MergeRequests.Nodes[i]
 		for _, commit := range mr.Commits.Nodes {
 			commitToMRIID[commit.SHA] = mr.IID
 		}
 		commitToMRIID[mr.MergeCommitSHA] = mr.IID
+		if mr.MergeCommitSHA != "" {
+			mergeCommitToMRIID[mr.MergeCommitSHA] = mr.IID
+		}
+	}
+
+	// With squash on merge, the default branch gets the MR's merge commit and a
+	// separate squash commit. GraphQL doesn't expose the squash commit SHA, and
+	// it usually isn't in the MR's commit list, so link it through the merge
+	// commit's non-first parents instead.
+	for _, cRaw := range commitsRaw {
+		mrIID, ok := mergeCommitToMRIID[cRaw.ID]
+		if !ok || len(cRaw.ParentIDs) < 2 {
+			continue
+		}
+		for _, parent := range cRaw.ParentIDs[1:] {
+			if _, linked := commitToMRIID[parent]; !linked {
+				commitToMRIID[parent] = mrIID
+			}
+		}
 	}
 
 	iidToMr := make(map[string]clients.PullRequest)

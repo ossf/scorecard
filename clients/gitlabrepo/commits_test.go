@@ -17,6 +17,7 @@ package gitlabrepo
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
@@ -132,5 +133,64 @@ func TestListRawCommits(t *testing.T) {
 				t.Errorf("listCommits() = %v, want %v", len(commits), cmp.Diff(len(commits), tt.want))
 			}
 		})
+	}
+}
+
+func mergeRequestNode(iid, mergeCommitSHA string, commitSHAs ...string) graphqlMergeRequestNode {
+	var mr graphqlMergeRequestNode
+	mr.IID = iid
+	mr.MergeCommitSHA = mergeCommitSHA
+	for _, sha := range commitSHAs {
+		mr.Commits.Nodes = append(mr.Commits.Nodes, struct {
+			SHA string `graphql:"sha"`
+		}{SHA: sha})
+	}
+	return mr
+}
+
+func TestZipLinksSquashCommits(t *testing.T) {
+	t.Parallel()
+
+	var data graphqlData
+	data.Project.MergeRequests.Nodes = []graphqlMergeRequestNode{
+		// Squash merge: the squash commit isn't in the MR's commit list.
+		mergeRequestNode("1", "merge1", "source1"),
+		// Ordinary merge: the MR's commit is on the branch.
+		mergeRequestNode("2", "merge2", "source2"),
+		// Fast-forward merge without a merge commit.
+		mergeRequestNode("3", "", "source3"),
+	}
+
+	now := time.Now()
+	commit := func(sha string, parents ...string) *gitlab.Commit {
+		return &gitlab.Commit{ID: sha, ParentIDs: parents, CommittedDate: &now}
+	}
+	commitsRaw := []*gitlab.Commit{
+		commit("direct", "other"),
+		commit("other", "merge2", "unrelated"),
+		commit("merge2", "merge1", "source2"),
+		commit("source2", "merge1"),
+		commit("merge1", "source3", "squash1"),
+		commit("squash1", "source3"),
+		commit("source3", "base"),
+	}
+
+	handler := &commitsHandler{}
+	got := map[string]int{}
+	for _, c := range handler.zip(commitsRaw, data) {
+		got[c.SHA] = c.AssociatedMergeRequest.Number
+	}
+
+	want := map[string]int{
+		"direct":  0,
+		"other":   0,
+		"merge2":  2,
+		"source2": 2,
+		"merge1":  1,
+		"squash1": 1,
+		"source3": 3,
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("zip() merge request numbers mismatch (-want +got):\n%s", diff)
 	}
 }
