@@ -69,7 +69,7 @@ Returns OutcomeNotAvailable if Scorecard cannot fetch the data from the reposito
 
 **Implementation**: Checks the protection rules of default and release branches.
 
-**Outcomes**: The probe returns one OutcomeTrue for each branch that is protected, and one OutcomeFalse for branches that are not protected. Scorecard only considers default and releases branches.
+**Outcomes**: The probe returns one OutcomeTrue for each branch that is protected, one OutcomeFalse for branches that are not protected, and one OutcomeNotAvailable for branches whose protection status is unknown. Scorecard only considers default and releases branches.
 
 
 ## codeApproved

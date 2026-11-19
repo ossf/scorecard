@@ -106,10 +106,6 @@ func evaluateAC0301(in conformance.Input) conformance.Outcome {
 	// A branch with no protection rule or ruleset leaves the pull request
 	// setting unset, so requiresPRsToChangeCode alone would report it as
 	// not available. Other outcomes, such as an error, stay UNKNOWN.
-	// branchesAreProtected also reports False when the platform client
-	// can't tell whether the branch is protected (Azure DevOps policies it
-	// can't read); the Branch-Protection check treats that finding the
-	// same way.
 	if protectedOK && protected.Outcome == finding.OutcomeFalse && prs.Outcome == finding.OutcomeNotAvailable {
 		return conformance.Outcome{
 			Result:      conformance.Fail,

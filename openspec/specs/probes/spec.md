@@ -301,6 +301,13 @@ finding for that item SHALL be `NotAvailable`.
 - **THEN** it returns one finding per branch, each with a `branchName`
   value
 
+#### Scenario: Branch protection status unknown
+
+- **GIVEN** raw data for a branch whose protection status the platform
+  client couldn't read
+- **WHEN** the `branchesAreProtected` probe runs
+- **THEN** it returns a `NotAvailable` finding for that branch
+
 ### Requirement: Probe Catalog by Check
 
 The system SHALL provide 48 probes. The checks SHALL run these probes:
