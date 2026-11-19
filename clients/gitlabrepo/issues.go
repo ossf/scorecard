@@ -61,24 +61,28 @@ func (handler *issuesHandler) setup() error {
 
 		for _, issue := range issues {
 			authorAssociation := clients.RepoAssociationNone
-			for _, m := range projMemberships {
-				if issue.Author.ID == m.ID {
-					authorAssociation = accessLevelToRepoAssociation(m.AccessLevel)
-					break
+			if issue.Author != nil {
+				for _, m := range projMemberships {
+					if issue.Author.ID == m.ID {
+						authorAssociation = accessLevelToRepoAssociation(m.AccessLevel)
+						break
+					}
 				}
 			}
 
 			issueIDString := fmt.Sprint(issue.ID)
-			handler.issues = append(handler.issues,
-				clients.Issue{
-					URI:       &issueIDString,
-					CreatedAt: issue.CreatedAt,
-					Author: &clients.User{
-						ID: issue.Author.ID,
-					},
-					AuthorAssociation: &authorAssociation,
-					Comments:          nil,
-				})
+			iss := clients.Issue{
+				URI:               &issueIDString,
+				CreatedAt:         issue.CreatedAt,
+				AuthorAssociation: &authorAssociation,
+				Comments:          nil,
+			}
+			if issue.Author != nil {
+				iss.Author = &clients.User{
+					ID: issue.Author.ID,
+				}
+			}
+			handler.issues = append(handler.issues, iss)
 		}
 	})
 	return handler.errSetup
