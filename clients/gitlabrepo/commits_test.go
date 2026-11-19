@@ -16,9 +16,13 @@ package gitlabrepo
 
 import (
 	"net/http"
+	"slices"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	gitlab "gitlab.com/gitlab-org/api/client-go"
 
 	"github.com/ossf/scorecard/v5/clients"
@@ -132,5 +136,91 @@ func TestListRawCommits(t *testing.T) {
 				t.Errorf("listCommits() = %v, want %v", len(commits), cmp.Diff(len(commits), tt.want))
 			}
 		})
+	}
+}
+
+//nolint:govet
+func Test_commitsHandler_zip(t *testing.T) {
+	t.Parallel()
+
+	commitDate := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	commitsRaw := []*gitlab.Commit{
+		{
+			ID:            "sha-1",
+			CommittedDate: &commitDate,
+			Message:       "commit 1",
+		},
+	}
+
+	mrNode := graphqlMergeRequestNode{
+		IID:      "10",
+		MergedAt: commitDate,
+	}
+	mrNode.Author.Username = "alice"
+	mrNode.Commits.Nodes = []struct {
+		SHA string `graphql:"sha"`
+	}{
+		{SHA: "sha-1"},
+	}
+	mrNode.Reviewers.Nodes = []struct {
+		Username                string    `graphql:"username"`
+		ID                      GitlabGID `graphql:"id"`
+		MergeRequestInteraction struct {
+			ReviewState string `graphql:"reviewState"`
+		} `graphql:"mergeRequestInteraction"`
+	}{
+		{
+			Username: "reviewer-commented",
+			MergeRequestInteraction: struct {
+				ReviewState string `graphql:"reviewState"`
+			}{ReviewState: "UNREVIEWED"},
+		},
+		{
+			Username: "reviewer-approved-1",
+			MergeRequestInteraction: struct {
+				ReviewState string `graphql:"reviewState"`
+			}{ReviewState: "REVIEWED"},
+		},
+		{
+			Username: "reviewer-approved-2",
+			MergeRequestInteraction: struct {
+				ReviewState string `graphql:"reviewState"`
+			}{ReviewState: "REVIEWED"},
+		},
+	}
+	mrNode.Approvers.Nodes = []struct {
+		Username string    `graphql:"username"`
+		ID       GitlabGID `graphql:"id"`
+	}{
+		{Username: "approver-1"},
+		{Username: "approver-2"},
+	}
+
+	var data graphqlData
+	data.Project.MergeRequests.Nodes = []graphqlMergeRequestNode{mrNode}
+
+	handler := &commitsHandler{}
+	commits := handler.zip(commitsRaw, data)
+	if len(commits) != 1 {
+		t.Fatalf("expected 1 commit, got %d", len(commits))
+	}
+
+	gotReviews := commits[0].AssociatedMergeRequest.Reviews
+	wantReviews := []clients.Review{
+		{Author: &clients.User{Login: "approver-1"}, State: "APPROVED"},
+		{Author: &clients.User{Login: "approver-2"}, State: "APPROVED"},
+		{Author: &clients.User{Login: "reviewer-approved-1"}, State: "APPROVED"},
+		{Author: &clients.User{Login: "reviewer-approved-2"}, State: "APPROVED"},
+		{Author: &clients.User{Login: "reviewer-commented"}, State: "COMMENTED"},
+	}
+
+	sortReviews := func(a, b clients.Review) int {
+		return strings.Compare(a.Author.Login, b.Author.Login)
+	}
+	slices.SortFunc(gotReviews, sortReviews)
+	slices.SortFunc(wantReviews, sortReviews)
+
+	if diff := cmp.Diff(wantReviews, gotReviews, cmpopts.IgnoreUnexported(clients.Review{})); diff != "" {
+		t.Errorf("zip() reviews mismatch (-want +got):\n%s", diff)
 	}
 }
