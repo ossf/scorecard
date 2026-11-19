@@ -53,10 +53,12 @@ func setup(inputFile string) (tarballHandler, error) {
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("test failed to create TempFile: %w", err)
 	}
+	defer tempFile.Close()
 	testFile, err := os.OpenFile(inputFile, os.O_RDONLY, 0o644)
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("unable to open testfile: %w", err)
 	}
+	defer testFile.Close()
 	if _, err := io.Copy(tempFile, testFile); err != nil {
 		return tarballHandler{}, fmt.Errorf("unable to do io.Copy: %w", err)
 	}
