@@ -328,6 +328,86 @@ func TestProbeCodeApproved(t *testing.T) {
 				finding.OutcomeFalse,
 			},
 		},
+		{
+			name: "prow: label with no pull request author stays approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "prow: changeset merged by someone else is approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "bob"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "k8s-ci-robot"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "bob"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "prow: self-merged changeset is not approved",
+			rawResults: &checker.RawResults{
+				CodeReviewResults: checker.CodeReviewData{
+					DefaultBranchChangesets: []checker.Changeset{
+						{
+							ReviewPlatform: checker.ReviewPlatformProw,
+							Commits: []clients.Commit{
+								{
+									SHA:       "sha",
+									Committer: clients.User{Login: "kratos"},
+									Message:   "foo",
+								},
+							},
+							Reviews: []clients.Review{
+								{
+									Author: &clients.User{Login: "kratos"},
+									State:  "APPROVED",
+								},
+							},
+							Author: clients.User{Login: "kratos"},
+						},
+					},
+				},
+			},
+			expectedOutcomes: []finding.Outcome{
+				finding.OutcomeFalse,
+			},
+		},
 	}
 
 	for _, tt := range probeTests {
