@@ -153,6 +153,9 @@ func findGitRepositoryInPYPIResponse(packageName string, response io.Reader) (st
 		return "", sce.WithMessage(sce.ErrScorecardInternal, fmt.Sprintf("failed to parse pypi package json: %v", err))
 	}
 
+	if v.Info.ProjectURLs == nil {
+		v.Info.ProjectURLs = map[string]string{}
+	}
 	v.Info.ProjectURLs["key_not_used_and_very_unlikely_to_be_present_already"] = v.Info.ProjectURL
 	var validURL string
 	for _, url := range v.Info.ProjectURLs {
