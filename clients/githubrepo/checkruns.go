@@ -116,6 +116,17 @@ func (handler *checkrunsHandler) setup() error {
 			if strings.Contains(err.Error(), "Resource not accessible by integration") {
 				return
 			}
+			// Gracefully skip check-suite nodes owned by third-party apps whose
+			// organization has an IP allow list that blocks Scorecard's IP.
+			// This is a transient, per-node access restriction and should not
+			// abort the whole check; log and continue with partial data.
+			// See: https://github.com/ossf/scorecard/issues/5382
+			if strings.Contains(err.Error(), "has an IP allow list enabled") {
+				handler.logger.Info(fmt.Sprintf(
+					"skipping check suites: a third-party app's org IP allow list blocked access: %v", err))
+				handler.checkRunsByRef = parseCheckRuns(handler.checkData)
+				return
+			}
 			handler.errSetup = err
 			return
 		}
