@@ -279,7 +279,7 @@ If there are no known vulnerabilities detected, the probe returns one false outc
 
 **Implementation**: The probe checks the badge level using the OpenSSF Best Practices Badge API.
 
-**Outcomes**: If the project has a badge, the probe returns one OutcomeTrue finding. The finding includes the badge level as an entry in the `Values` map with the "badgeLevel" key.
+**Outcomes**: If the project has a badge, the probe returns one OutcomeTrue finding. The finding includes the badge level as an entry in the `Values` map with the "badgeLevel" key. When the badge belongs to a sibling repository, an "inheritedFrom" key is also set to that repository URL.
 If the project does not have a badge, the probe returns one OutcomeFalse.
 
 

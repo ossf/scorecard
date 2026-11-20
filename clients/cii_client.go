@@ -67,6 +67,13 @@ type CIIBestPracticesClient interface {
 	GetBadgeLevel(ctx context.Context, uri string) (BadgeLevel, error)
 }
 
+// CIIProjectClient is an optional extension of CIIBestPracticesClient
+// that supports looking up a project by its numeric ID.
+// httpClientCIIBestPractices implements it; blobClientCIIBestPractices does not.
+type CIIProjectClient interface {
+	GetBadgeByProjectID(ctx context.Context, id int) (BadgeResponse, error)
+}
+
 // DefaultCIIBestPracticesClient returns http-based implementation of the interface.
 func DefaultCIIBestPracticesClient() CIIBestPracticesClient {
 	baseURL := os.Getenv(envVarCIIBestPracticesURL)
