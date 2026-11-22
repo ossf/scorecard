@@ -637,15 +637,15 @@ not support other source hosting repositories (i.e., Forges).
 
 Signed releases attest to the provenance of the artifact.
 
-This check looks for the following filenames in the project's last five
-[release assets](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
+This check looks for the following filenames in the artifacts of the project's last five
+[releases](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases):
 [*.minisig](https://github.com/jedisct1/minisign), *.asc (pgp),
 *.sig, *.sign, *.sigstore, *.sigstore.json, [*.intoto.jsonl](https://slsa.dev).
 
 If a signature is found in the assets for each release, a score of 8 is given.
 If a [SLSA provenance file](https://slsa.dev/spec/v0.1/index) is found in the assets for each release (*.intoto.jsonl), the maximum score of 10 is given.
 
-This check looks for the 30 most recent releases associated with an artifact. It ignores the source code-only releases that are created automatically by GitHub.
+This check ignores the source code-only releases that are created automatically by GitHub. Out of the five most recent releases, it checks those that have artifacts.
 
 Note: The check does not verify the signatures.
  
