@@ -159,9 +159,9 @@ func (handler *tarballHandler) getTarball() error {
 		return fmt.Errorf("json.Unmarshal: %w", err)
 	}
 
-	ciYaml, err := os.Create(tempDir + "/gitlabscorecard_flattened_ci.yaml")
+	ciYaml, err := os.Create(filepath.Join(tempDir, "gitlabscorecard_flattened_ci.yaml"))
 	if err != nil {
-		return fmt.Errorf("os.CreateTemp: %w", err)
+		return fmt.Errorf("os.Create: %w", err)
 	}
 	defer ciYaml.Close()
 	_, err = ciYaml.WriteString(result.MergedYaml)
