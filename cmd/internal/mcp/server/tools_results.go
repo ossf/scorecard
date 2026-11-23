@@ -132,8 +132,8 @@ type getCheckResultOutput struct {
 	Source        model.Source        `json:"source"`
 	Caveats       []string            `json:"caveats,omitempty"`
 	MissingChecks []string            `json:"missing_checks,omitempty" jsonschema:"expected checks the result lacks"`
-	Complete      bool                `json:"complete" jsonschema:"whether the result has every check for its platform"`
 	Check         checkDetail         `json:"check"`
+	Complete      bool                `json:"complete" jsonschema:"whether the result has every check for its platform"`
 }
 
 // --- compare_repos ---

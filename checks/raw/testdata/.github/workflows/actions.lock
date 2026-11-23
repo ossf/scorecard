@@ -1,0 +1,14 @@
+# Test fixture: minimal github/gh-actions-lock lockfile
+# (.github/workflows/actions.lock) recording that
+# actions/checkout@v4.1.1 has been resolved and is enforced
+# for workflow-pinned-by-lockfile.yaml.
+version: 'v0.0.2'
+workflows:
+    '.github/workflows/workflow-pinned-by-lockfile.yaml':
+        - 'actions/checkout@v4.1.1'
+dependencies:
+    'actions/checkout@v4.1.1':
+        ref: 'v4.1.1'
+        commit: 'sha1-b4ffde65f46336ab88eb53be808477a3936bae11'
+        owner_id: 44036562
+        repo_id: 197814629

@@ -8,6 +8,7 @@ require (
 	github.com/bombsimon/logrusr/v2 v2.0.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.19.0
 	github.com/caarlos0/env/v6 v6.10.1
+	github.com/github/actions-lockfile/go v0.0.6
 	github.com/go-git/go-billy/v5 v5.9.2
 	github.com/go-git/go-git/v5 v5.19.3
 	github.com/go-logr/logr v1.4.4

@@ -557,8 +557,8 @@ var rawDataCases = []struct {
 		check: checks.CheckPinnedDependencies,
 		probe: pinsDependencies.Probe,
 		expect: func(m *rawDataMocks) {
-			// Five passes list files: workflow pinning, Dockerfile
-			// pinning, Dockerfile downloads, shell script downloads and
+			// Six passes list files: actions lockfile lookup, workflow pinning,
+			// Dockerfile pinning, Dockerfile downloads, shell script downloads and
 			// workflow script downloads. Applying the predicate, as a real
 			// client does, keeps the Dockerfile out of the workflow passes.
 			m.repoClient.EXPECT().ListFiles(gomock.Any()).DoAndReturn(
@@ -568,7 +568,7 @@ var rawDataCases = []struct {
 						return nil, err
 					}
 					return []string{pinnedDockerfile}, nil
-				}).Times(5)
+				}).Times(6)
 			// The three non-workflow passes each read the Dockerfile.
 			m.repoClient.EXPECT().GetFileReader(pinnedDockerfile).DoAndReturn(
 				func(string) (io.ReadCloser, error) {
