@@ -453,6 +453,12 @@ hub, e.g., [Npm](https://www.npmjs.com/). We plan to add better support to query
 package manager hubs directly in the future, e.g., for
 [Npm](https://www.npmjs.com/), [PyPi](https://pypi.org/).
 
+Packagist, the Composer (PHP) registry, pulls releases from the repository
+instead of receiving uploads. The check recognizes workflows that trigger
+that pull through the
+[Packagist update API](https://packagist.org/about#how-to-update-packages).
+Projects that rely only on the Packagist GitHub hook are not detected.
+
 You can create a package in several ways:
 
   - Many program language ecosystems have a generally-used packaging format

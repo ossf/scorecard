@@ -72,6 +72,7 @@ func isGitlabPackagingWorkflow(fc []byte, fp string) (checker.File, bool) {
 		"nuget push",
 		"poetry publish",
 		"twine upload",
+		"packagist.org/api/update-package",
 	}
 
 ParseLines:

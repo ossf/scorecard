@@ -65,6 +65,12 @@ func TestGitlabPackagingYamlCheck(t *testing.T) {
 			lineNumber: 26,
 			exists:     true,
 		},
+		{
+			name:       "Packagist",
+			filename:   "./testdata/packagist.yaml",
+			lineNumber: 21,
+			exists:     true,
+		},
 	}
 
 	for _, tt := range tests {
