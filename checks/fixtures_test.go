@@ -997,8 +997,13 @@ func TestCodeReviewFixtures(t *testing.T) {
 		{SHA: "e1", Committer: alice, Message: "Fix\n\nPiperOrigin-RevId: 123456"},
 		{SHA: "f1", Committer: alice, Message: "Push to the default branch"},
 	}
+	// Prow's Tide merges a labelled PR as a bot, so the merger counts as the approver.
 	prow := pr("g1", 3)
 	prow.AssociatedMergeRequest.Labels = []clients.Label{{Name: "lgtm"}}
+	prow.AssociatedMergeRequest.MergedBy = clients.User{Login: "k8s-ci-robot"}
+	// A label on a PR its author merged doesn't show who reviewed it.
+	prowSelfMerged := pr("h1", 4)
+	prowSelfMerged.AssociatedMergeRequest.Labels = []clients.Label{{Name: "lgtm"}}
 	tests := []struct {
 		name    string
 		want    runWant
@@ -1007,6 +1012,7 @@ func TestCodeReviewFixtures(t *testing.T) {
 		{name: "no commits", want: runWant{score: -1}},
 		{name: "one approved PR", want: runWant{score: 10}, fixture: checkFixture{commits: []clients.Commit{pr("a1", 1, approved)}}},
 		{name: "prow", want: runWant{score: 10}, fixture: checkFixture{commits: []clients.Commit{prow}}},
+		{name: "prow, self-merged", want: runWant{score: 0}, fixture: checkFixture{commits: []clients.Commit{prowSelfMerged}}},
 		{name: "every review platform", want: runWant{score: 6}, fixture: checkFixture{commits: commits}},
 		{name: "ListCommits error", want: runWant{err: "internal error: client failed"}, fixture: checkFixture{commitsErr: errClient}},
 	}

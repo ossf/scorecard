@@ -111,6 +111,32 @@ func Test_getChangesets(t *testing.T) {
 			Message: "followup\nReviewed-on: server.url \nReviewed-by:user-123",
 			SHA:     "def",
 		}
+
+		prowCommitSelfMerged = clients.Commit{
+			SHA: "prow_self_merged",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 4,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 43 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "kratos"},
+				MergedBy: clients.User{Login: "kratos"},
+				Labels:   []clients.Label{{Name: "lgtm"}},
+			},
+			Message: "merge commitSHA prow_self_merged from GitHub",
+		}
+
+		prowCommitTideMerged = clients.Commit{
+			SHA: "prow_tide_merged",
+			AssociatedMergeRequest: clients.PullRequest{
+				Number: 5,
+				MergedAt: time.Date(2023 /*year*/, time.March, 21, /*day*/
+					13 /*hour*/, 44 /*min*/, 0 /*sec*/, 0 /*nsec*/, time.UTC),
+				Author:   clients.User{Login: "bob"},
+				MergedBy: clients.User{Login: "k8s-ci-robot"},
+				Labels:   []clients.Label{{Name: "lgtm"}, {Name: "approved"}},
+			},
+			Message: "merge commitSHA prow_tide_merged from GitHub",
+		}
 	)
 
 	tests := []struct {
@@ -381,6 +407,42 @@ func Test_getChangesets(t *testing.T) {
 					ReviewPlatform: checker.ReviewPlatformPhabricator,
 					RevisionID:     "D78910",
 					Commits:        []clients.Commit{phabricatorCommitG},
+				},
+			},
+		},
+		{
+			name:    "prow: a Tide merge counts as the merger's approval",
+			commits: []clients.Commit{prowCommitTideMerged},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "5",
+					Commits:        []clients.Commit{prowCommitTideMerged},
+					Author:         clients.User{Login: "bob"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "k8s-ci-robot"},
+							State:  "APPROVED",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:    "prow: label keeps the pull request author and reviews",
+			commits: []clients.Commit{prowCommitSelfMerged},
+			expected: []checker.Changeset{
+				{
+					ReviewPlatform: checker.ReviewPlatformProw,
+					RevisionID:     "4",
+					Commits:        []clients.Commit{prowCommitSelfMerged},
+					Author:         clients.User{Login: "kratos"},
+					Reviews: []clients.Review{
+						{
+							Author: &clients.User{Login: "kratos"},
+							State:  "APPROVED",
+						},
+					},
 				},
 			},
 		},
