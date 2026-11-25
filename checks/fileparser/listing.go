@@ -52,9 +52,10 @@ func isMatchingPath(fullpath string, matchPathTo PathMatcher) (bool, error) {
 }
 
 func isTestdataFile(fullpath string) bool {
-	// testdata/ or /some/dir/testdata/some/other
-	return strings.HasPrefix(fullpath, "testdata/") ||
-		strings.Contains(fullpath, "/testdata/") ||
+	lowerpath := strings.ToLower(fullpath)
+
+	return strings.HasPrefix(lowerpath, "testdata/") ||
+		strings.Contains(lowerpath, "/testdata/") ||
 		strings.HasPrefix(fullpath, "src/test/") ||
 		strings.Contains(fullpath, "/src/test/")
 }

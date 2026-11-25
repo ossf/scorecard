@@ -381,6 +381,41 @@ func Test_isTestdataFile(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "mixed case testData at root",
+			args: args{
+				fullpath: "testData/Dockerfile",
+			},
+			want: true,
+		},
+		{
+			name: "nested mixed case testData",
+			args: args{
+				fullpath: "plugins/sh/core/testData/parser/if.sh",
+			},
+			want: true,
+		},
+		{
+			name: "uppercase testdata",
+			args: args{
+				fullpath: "plugins/TESTDATA/example.jar",
+			},
+			want: true,
+		},
+		{
+			name: "similar directory name is not testdata",
+			args: args{
+				fullpath: "plugins/testData-extra/example.jar",
+			},
+			want: false,
+		},
+		{
+			name: "production file",
+			args: args{
+				fullpath: "src/main/example.jar",
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
