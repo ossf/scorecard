@@ -67,7 +67,8 @@ var _ = Describe("E2E TEST: gitlabrepo.graphqlHandler", func() {
 			Expect(err).Should(BeNil())
 
 			Expect(data.QueryComplexity.Limit).Should(BeNumerically(">=", 200))
-			Expect(data.QueryComplexity.Score).Should(BeNumerically("<=", 75))
+			// Fetching diffHeadSha for pre-merge CI status lookups raises the query cost from 75 to 78.
+			Expect(data.QueryComplexity.Score).Should(BeNumerically("<=", 78))
 		})
 	})
 })
