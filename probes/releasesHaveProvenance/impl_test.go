@@ -85,6 +85,72 @@ func Test_Run(t *testing.T) {
 			},
 		},
 		{
+			name: "Has one release with intoto json provenance.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.sig"},
+								{Name: "binary.tar.gz.intoto.json"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Has one release with default SLSA attester provenance.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "provenance.intoto.json"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+			},
+		},
+		{
+			name: "Has two releases with mixed provenance extensions.",
+			raw: &checker.RawResults{
+				SignedReleasesResults: checker.SignedReleasesData{
+					Releases: []clients.Release{
+						{
+							TagName: "v1.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "binary.tar.gz.intoto.jsonl"},
+							},
+						},
+						{
+							TagName: "v2.0",
+							Assets: []clients.ReleaseAsset{
+								{Name: "binary.tar.gz"},
+								{Name: "provenance.intoto.json"},
+							},
+						},
+					},
+				},
+			},
+			outcomes: []finding.Outcome{
+				finding.OutcomeTrue,
+				finding.OutcomeTrue,
+			},
+		},
+		{
 			name: "Has two releases without provenance.",
 			raw: &checker.RawResults{
 				SignedReleasesResults: checker.SignedReleasesData{

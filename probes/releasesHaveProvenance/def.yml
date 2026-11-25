@@ -27,7 +27,7 @@ remediation:
   onOutcome: False
   effort: Medium
   text:
-    - Generate provenance and add it alongside the release assets. Use the [slsa-github-generator](https://github.com/slsa-framework/slsa-github-generator) to add SLSA level 3 provenance to releases.
+    - Generate provenance and add it alongside the release assets. See the [SLSA documentation](https://slsa.dev) or the [SLSA migration guide](https://github.com/slsa-framework/actions/blob/main/docs/migration.md) to add provenance to releases.
 ecosystem:
   languages:
     - all
