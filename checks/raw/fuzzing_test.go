@@ -755,6 +755,30 @@ func Test_checkFuzzFunc(t *testing.T) {
 			fileContent: "using Expecto.ExpectoFsCheck;",
 		},
 		{
+			name:     "C# with CsCheck",
+			want:     true,
+			fileName: []string{"csharp-cscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using CsCheck;",
+		},
+		{
+			name:     "C# with a CsCheck-like namespace",
+			want:     false,
+			fileName: []string{"csharp-not-cscheck.cs"},
+			langs: []clients.Language{
+				{
+					Name:     clients.CSharp,
+					NumLines: 50,
+				},
+			},
+			fileContent: "using CsCheckLike;",
+		},
+		{
 			name:     "F# with no property-based testing",
 			want:     false,
 			fileName: []string{"test.fs"},
