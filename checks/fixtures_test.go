@@ -761,6 +761,29 @@ func TestLicenseFixtures(t *testing.T) {
 			}},
 		},
 		{
+			name: "API returns NOASSERTION, fallback finds approved curl license", want: runWant{score: 10},
+			fixture: checkFixture{
+				licenses: []clients.License{
+					{Path: "COPYING", Name: "Other", SPDXId: "NOASSERTION"},
+				},
+				files: map[string]string{
+					"COPYING":           "curl license text",
+					"LICENSES/curl.txt": "curl license text",
+				},
+			},
+		},
+		{
+			name: "API returns NOASSERTION, fallback finds approved Apache license", want: runWant{score: 10},
+			fixture: checkFixture{
+				licenses: []clients.License{
+					{Path: "LICENSE", Name: "Other", SPDXId: "NOASSERTION"},
+				},
+				files: map[string]string{
+					"LICENSE-Apache-2.0.txt": "Apache 2.0 license text",
+				},
+			},
+		},
+		{
 			name: "license file, API unsupported", want: runWant{score: 10},
 			fixture: checkFixture{
 				licensesErr: clients.ErrUnsupportedFeature,
