@@ -300,6 +300,10 @@ type SASTWorkflow struct {
 // for the Security-Policy check.
 type SecurityPolicyData struct {
 	PolicyFiles []SecurityPolicyFile
+	// PrivateVulnerabilityReportingEnabled indicates whether the platform
+	// has private vulnerability reporting enabled for the repo.
+	// nil means "unknown / not applicable for this platform".
+	PrivateVulnerabilityReportingEnabled *bool
 }
 
 // BinaryArtifactData contains the raw results
