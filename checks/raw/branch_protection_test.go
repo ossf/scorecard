@@ -252,7 +252,81 @@ func TestBranchProtection(t *testing.T) {
 				CodeownersFiles: []string{},
 			},
 		},
-		// TODO: Add tests for commitSHA regex matching.
+		{
+			name: "commit-sha-ignored",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "d8aa32a246d88f6153096d83389da891e42b2609",
+				},
+			},
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef: &clients.BranchRef{
+						Name: &defaultBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &defaultBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "commit-sha-uppercase-ignored",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "D8AA32A246D88F6153096D83389DA891E42B2609",
+				},
+			},
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef: &clients.BranchRef{
+						Name: &defaultBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &defaultBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
+		{
+			name: "commit-sha256-ignored",
+			releases: []clients.Release{
+				{
+					TargetCommitish: "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+				},
+			},
+			branches: branchesArg{
+				{
+					name:          defaultBranchName,
+					defaultBranch: true,
+					branchRef: &clients.BranchRef{
+						Name: &defaultBranchName,
+					},
+				},
+			},
+			want: checker.BranchProtectionsData{
+				Branches: []clients.BranchRef{
+					{
+						Name: &defaultBranchName,
+					},
+				},
+				CodeownersFiles: []string{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
