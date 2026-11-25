@@ -50,6 +50,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 				Error:         nil,
 				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
 				NumberOfWarn:  numOpen62541Vulns,
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
 				NumberOfDebug: 0,
 			}
@@ -75,6 +77,8 @@ var _ = Describe("E2E TEST:"+checks.CheckVulnerabilities, func() {
 			}
 			expected := scut.TestReturn{
 				Error:         nil,
+				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
+				NumberOfWarn:  numOpen62541Vulns,
 				Score:         checker.MaxResultScore - min(numOpen62541Vulns, checker.MaxResultScore),
 				NumberOfWarn:  numOpen62541Vulns,
 				NumberOfInfo:  0,
