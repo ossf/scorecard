@@ -72,14 +72,29 @@ func releasesFrom(data []*gitlab.Release) []clients.Release {
 			TagName:         r.TagName,
 			TargetCommitish: r.CommitPath,
 		}
-		if len(r.Assets.Links) > 0 {
+		if len(r.Assets.Links) > 0 && r.Assets.Links[0] != nil {
 			release.URL = r.Assets.Links[0].DirectAssetURL
+		} else if r.Links.Self != "" {
+			release.URL = r.Links.Self
 		}
 
 		for _, a := range r.Assets.Sources {
 			release.Assets = append(release.Assets, clients.ReleaseAsset{
 				Name: a.Format,
 				URL:  a.URL,
+			})
+		}
+		for _, l := range r.Assets.Links {
+			if l == nil {
+				continue
+			}
+			url := l.DirectAssetURL
+			if url == "" {
+				url = l.URL
+			}
+			release.Assets = append(release.Assets, clients.ReleaseAsset{
+				Name: l.Name,
+				URL:  url,
 			})
 		}
 		releases = append(releases, release)
