@@ -72,7 +72,7 @@ var (
 	triggerWorkflowRun                   = triggerName("workflow_run")
 	checkoutUntrustedPullRequestHeadSHA  = "github.event.pull_request.head.sha"
 	checkoutUntrustedPullRequestMerge    = "github.event.pull_request.merge_commit_sha"
-	checkoutUntrustedWorkflowRunRef      = "github.event.workflow_run"
+	checkoutUntrustedWorkflowRunHeadSHA  = "github.event.workflow_run.head_sha"
 	checkoutUntrustedWorkflowRunHeadRepo = "github.event.workflow_run.head_repository"
 	checkoutUntrustedPullRefPrefix       = "refs/pull/"
 	checkoutUntrustedPullRequestRepo     = "github.event.pull_request.head.repo"
@@ -243,10 +243,15 @@ func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 // the repository input, which is checked separately. A SHA is different: GitHub
 // publishes the pull request's head commit in the base repository under
 // refs/pull/<n>/head, so a bare SHA resolves there and fetches the fork's code.
+//
+// github.event.workflow_run has the same shape. Its head_branch is a branch name
+// and is resolved in the base repository, so it is not matched on its own. Its
+// head_sha is the commit the triggering run executed, which GitHub serves from
+// the base repository when that run belongs to a pull request, so it is matched.
 func isUntrustedCheckoutRef(ref string) bool {
 	if strings.Contains(ref, checkoutUntrustedPullRequestHeadSHA) ||
 		strings.Contains(ref, checkoutUntrustedPullRequestMerge) ||
-		strings.Contains(ref, checkoutUntrustedWorkflowRunRef) {
+		strings.Contains(ref, checkoutUntrustedWorkflowRunHeadSHA) {
 		return true
 	}
 	// refs/pull/<number>/merge and refs/pull/<number>/head are stored in the

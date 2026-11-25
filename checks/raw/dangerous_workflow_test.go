@@ -159,7 +159,9 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 		{name: "head ref long form alone is a base branch name", ref: "${{ github.event.pull_request.head.ref }}", expected: false},
 		{name: "merge commit sha", ref: "${{ github.event.pull_request.merge_commit_sha }}", expected: true},
 		{name: "refs pull merge", ref: "refs/pull/${{ github.event.number }}/merge", expected: true},
-		{name: "workflow run", ref: "${{ github.event.workflow_run }}", expected: true},
+		{name: "workflow run head sha", ref: "${{ github.event.workflow_run.head_sha }}", expected: true},
+		{name: "workflow run head branch alone is a base branch name", ref: "${{ github.event.workflow_run.head_branch }}", expected: false},
+		{name: "workflow run bare object is not a ref", ref: "${{ github.event.workflow_run }}", expected: false},
 		{name: "head ref shorthand alone is a base branch name", ref: "${{ github.head_ref }}", expected: false},
 		{name: "base sha", ref: "${{ github.event.pull_request.base.sha }}", expected: false},
 		{name: "base branch", ref: "refs/heads/main", expected: false},
@@ -180,6 +182,17 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 			name:     "workflow run head repository input",
 			repo:     "${{ github.event.workflow_run.head_repository.full_name }}",
 			expected: true,
+		},
+		{
+			name:     "fork repository input with workflow run head branch",
+			repo:     "${{ github.event.workflow_run.head_repository.full_name }}",
+			ref:      "${{ github.event.workflow_run.head_branch }}",
+			expected: true,
+		},
+		{
+			name:     "workflow run base repository input",
+			repo:     "${{ github.event.workflow_run.repository.full_name }}",
+			expected: false,
 		},
 		{name: "base repository input", repo: "${{ github.repository }}", expected: false},
 		{

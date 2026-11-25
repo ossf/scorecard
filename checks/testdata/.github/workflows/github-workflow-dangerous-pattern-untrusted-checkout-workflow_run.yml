@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: ${{ github.event.workflow_run }}
+        ref: ${{ github.event.workflow_run.head_sha }}
 
     - uses: actions/setup-node@v1
     - run: |

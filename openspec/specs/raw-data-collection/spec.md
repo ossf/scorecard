@@ -314,7 +314,7 @@ controls, but only in workflows triggered by `pull_request_target` or
 
 - its `ref` input contains `github.event.pull_request.head.sha`,
   `github.event.pull_request.merge_commit_sha`,
-  `github.event.workflow_run`, or `refs/pull/`; or
+  `github.event.workflow_run.head_sha`, or `refs/pull/`; or
 - its `repository` input contains `github.event.pull_request.head.repo` or
   `github.event.workflow_run.head_repository`.
 
@@ -323,7 +323,13 @@ controls, but only in workflows triggered by `pull_request_target` or
 base repository and SHALL NOT be reported. The head ref is a branch name:
 without a `repository` input, `actions/checkout` resolves it in the base
 repository. The head SHA is reported because GitHub publishes the pull request's
-head commit in the base repository under `refs/pull/<n>/head`. Each report SHALL
+head commit in the base repository under `refs/pull/<n>/head`.
+
+The triggering workflow run has the same split.
+`github.event.workflow_run.head_branch` is a branch name and SHALL NOT be
+reported on its own; `github.event.workflow_run.head_sha` SHALL be reported,
+because it is the commit the run executed and GitHub serves it from the base
+repository. Each report SHALL
 include the file, the step's line, the value of the input that matched, and the
 job.
 
@@ -372,6 +378,22 @@ job.
 - **GIVEN** a workflow triggered by `pull_request_target`
 - **AND** a step using `actions/checkout` with `ref: ${{ github.head_ref }}` or
   `ref: ${{ github.event.pull_request.head.ref }}` and no `repository` input
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** no untrusted checkout is reported
+
+#### Scenario: Head commit of the triggering workflow run
+
+- **GIVEN** a workflow triggered by `workflow_run`
+- **AND** a step using `actions/checkout` with
+  `ref: ${{ github.event.workflow_run.head_sha }}`
+- **WHEN** the Dangerous-Workflow raw data is collected
+- **THEN** an untrusted checkout is reported at that step
+
+#### Scenario: Head branch of the triggering workflow run without a fork repository
+
+- **GIVEN** a workflow triggered by `workflow_run`
+- **AND** a step using `actions/checkout` with
+  `ref: ${{ github.event.workflow_run.head_branch }}` and no `repository` input
 - **WHEN** the Dangerous-Workflow raw data is collected
 - **THEN** no untrusted checkout is reported
 
