@@ -312,16 +312,20 @@ step that reads code the pull request or the triggering workflow run
 controls, but only in workflows triggered by `pull_request_target` or
 `workflow_run`. A step is untrusted when either:
 
-- its `ref` input contains `github.event.pull_request.head`,
+- its `ref` input contains `github.event.pull_request.head.sha`,
   `github.event.pull_request.merge_commit_sha`,
   `github.event.workflow_run`, or `refs/pull/`; or
 - its `repository` input contains `github.event.pull_request.head.repo` or
   `github.event.workflow_run.head_repository`.
 
 `github.event.pull_request.base.sha`, `github.event.pull_request.base.repo`,
-`github.repository`, and `github.head_ref` on its own all resolve to the base
-repository and SHALL NOT be reported. Each report SHALL include the file, the
-step's line, the value of the input that matched, and the job.
+`github.repository`, and the pull request head ref on its own all resolve to the
+base repository and SHALL NOT be reported. The head ref is a branch name:
+without a `repository` input, `actions/checkout` resolves it in the base
+repository. The head SHA is reported because GitHub publishes the pull request's
+head commit in the base repository under `refs/pull/<n>/head`. Each report SHALL
+include the file, the step's line, the value of the input that matched, and the
+job.
 
 #### Scenario: Checkout of pull request head on pull_request_target
 
@@ -366,8 +370,8 @@ step's line, the value of the input that matched, and the job.
 #### Scenario: Head ref without a fork repository
 
 - **GIVEN** a workflow triggered by `pull_request_target`
-- **AND** a step using `actions/checkout` with `ref: ${{ github.head_ref }}`
-  and no `repository` input
+- **AND** a step using `actions/checkout` with `ref: ${{ github.head_ref }}` or
+  `ref: ${{ github.event.pull_request.head.ref }}` and no `repository` input
 - **WHEN** the Dangerous-Workflow raw data is collected
 - **THEN** no untrusted checkout is reported
 

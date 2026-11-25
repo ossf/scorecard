@@ -156,7 +156,7 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 		expected bool
 	}{
 		{name: "head sha", ref: "${{ github.event.pull_request.head.sha }}", expected: true},
-		{name: "head ref", ref: "${{ github.event.pull_request.head.ref }}", expected: true},
+		{name: "head ref long form alone is a base branch name", ref: "${{ github.event.pull_request.head.ref }}", expected: false},
 		{name: "merge commit sha", ref: "${{ github.event.pull_request.merge_commit_sha }}", expected: true},
 		{name: "refs pull merge", ref: "refs/pull/${{ github.event.number }}/merge", expected: true},
 		{name: "workflow run", ref: "${{ github.event.workflow_run }}", expected: true},
@@ -168,6 +168,12 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 			name:     "fork repository input with head ref",
 			repo:     "${{ github.event.pull_request.head.repo.full_name }}",
 			ref:      "${{ github.head_ref }}",
+			expected: true,
+		},
+		{
+			name:     "fork repository input with head ref long form",
+			repo:     "${{ github.event.pull_request.head.repo.full_name }}",
+			ref:      "${{ github.event.pull_request.head.ref }}",
 			expected: true,
 		},
 		{

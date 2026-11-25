@@ -70,7 +70,7 @@ type triggerName string
 var (
 	triggerPullRequestTarget             = triggerName("pull_request_target")
 	triggerWorkflowRun                   = triggerName("workflow_run")
-	checkoutUntrustedPullRequestHead     = "github.event.pull_request.head"
+	checkoutUntrustedPullRequestHeadSHA  = "github.event.pull_request.head.sha"
 	checkoutUntrustedPullRequestMerge    = "github.event.pull_request.merge_commit_sha"
 	checkoutUntrustedWorkflowRunRef      = "github.event.workflow_run"
 	checkoutUntrustedWorkflowRunHeadRepo = "github.event.workflow_run.head_repository"
@@ -233,15 +233,18 @@ func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 
 // isUntrustedCheckoutRef reports whether a checkout ref resolves to code the
 // pull request or the triggering workflow run controls. The pull request case
-// matches the head of the pull request and the test merge commit, both of which
-// carry the pull request's code. base.sha, base.ref and number point at the base
-// repository, which is trusted.
+// matches the head SHA of the pull request and the test merge commit, both of
+// which carry the pull request's code. base.sha, base.ref and number point at
+// the base repository, which is trusted.
 //
-// github.head_ref is not matched on its own: it is only a branch name, and on
-// its own actions/checkout resolves it in the base repository. It becomes
-// untrusted through the repository input, which is checked separately.
+// github.head_ref and github.event.pull_request.head.ref name the same value and
+// are not matched on their own: both are branch names, and actions/checkout
+// resolves a branch name in the base repository. They become untrusted through
+// the repository input, which is checked separately. A SHA is different: GitHub
+// publishes the pull request's head commit in the base repository under
+// refs/pull/<n>/head, so a bare SHA resolves there and fetches the fork's code.
 func isUntrustedCheckoutRef(ref string) bool {
-	if strings.Contains(ref, checkoutUntrustedPullRequestHead) ||
+	if strings.Contains(ref, checkoutUntrustedPullRequestHeadSHA) ||
 		strings.Contains(ref, checkoutUntrustedPullRequestMerge) ||
 		strings.Contains(ref, checkoutUntrustedWorkflowRunRef) {
 		return true
