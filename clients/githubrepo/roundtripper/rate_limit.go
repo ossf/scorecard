@@ -15,6 +15,7 @@
 package roundtripper
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -54,7 +55,10 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		stats.Record(r.Context(), githubstats.RetryAfter.M(int64(retryAfter)))
 		duration := time.Duration(retryAfter) * time.Second
 		gh.logger.Info(fmt.Sprintf("Retry-After header set. Waiting %s to retry...", duration))
-		time.Sleep(duration)
+		resp.Body.Close()
+		if err := waitForRateLimit(r.Context(), duration); err != nil {
+			return nil, err
+		}
 		gh.logger.Info("Retry-After header set. Retrying...")
 		return gh.RoundTrip(r)
 	}
@@ -83,11 +87,32 @@ func (gh *rateLimitTransport) RoundTrip(r *http.Request) (*http.Response, error)
 		gh.logger.Info(fmt.Sprintf("Rate limit exceeded. Waiting %s to retry...", duration))
 
 		// Retry
-		time.Sleep(duration)
+		resp.Body.Close()
+		if err := waitForRateLimit(r.Context(), duration); err != nil {
+			return nil, err
+		}
 		// TODO(log): Previously Warn. Consider logging an error here.
 		gh.logger.Info("Rate limit exceeded. Retrying...")
 		return gh.RoundTrip(r)
 	}
 
 	return resp, nil
+}
+
+// waitForRateLimit sleeps for d, but fails immediately if the context deadline
+// would expire before the wait is over, instead of stalling until it does.
+func waitForRateLimit(ctx context.Context, d time.Duration) error {
+	if deadline, ok := ctx.Deadline(); ok && time.Now().Add(d).After(deadline) {
+		return sce.WithMessage(sce.ErrScorecardInternal,
+			fmt.Sprintf("GitHub rate limit resets in %s, which is beyond the deadline in %s; giving up",
+				d.Round(time.Second), time.Until(deadline).Round(time.Second)))
+	}
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return fmt.Errorf("waiting for GitHub rate limit: %w", ctx.Err())
+	}
 }
