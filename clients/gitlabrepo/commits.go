@@ -135,7 +135,6 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 				Author: &clients.User{Login: approver.Username},
 				State:  "APPROVED",
 			}
-			break
 		}
 
 		// Check reviewers (sometimes unofficial approvals end up here)
@@ -147,7 +146,6 @@ func (handler *commitsHandler) zip(commitsRaw []*gitlab.Commit, data graphqlData
 				Author: &clients.User{Login: reviewer.Username},
 				State:  "APPROVED",
 			}
-			break
 		}
 
 		vals := []clients.Review{}
