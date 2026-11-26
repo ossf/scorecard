@@ -58,6 +58,12 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    ".github/renovate.jsonc",
+			path:    ".github/renovate.jsonc",
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name:    ".github/renovate.json5",
 			path:    ".github/renovate.json5",
 			want:    true,
@@ -66,6 +72,12 @@ func Test_checkDependencyFileExists(t *testing.T) {
 		{
 			name:    ".gitlab/renovate.json",
 			path:    ".gitlab/renovate.json",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    ".gitlab/renovate.jsonc",
+			path:    ".gitlab/renovate.jsonc",
 			want:    true,
 			wantErr: false,
 		},
@@ -82,8 +94,26 @@ func Test_checkDependencyFileExists(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    ".renovaterc.jsonc",
+			path:    ".renovaterc.jsonc",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    ".renovaterc.json5",
+			path:    ".renovaterc.json5",
+			want:    true,
+			wantErr: false,
+		},
+		{
 			name:    "renovate.json",
 			path:    "renovate.json",
+			want:    true,
+			wantErr: false,
+		},
+		{
+			name:    "renovate.jsonc",
+			path:    "renovate.jsonc",
 			want:    true,
 			wantErr: false,
 		},

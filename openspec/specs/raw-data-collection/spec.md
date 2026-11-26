@@ -357,9 +357,9 @@ analyzed.
 
 The system SHALL compare every repository path, case-insensitively, with
 known configuration files: Dependabot (`.github/dependabot.yml`,
-`.github/dependabot.yaml`); Renovate (`renovate.json`, `renovate.json5`,
-and those names under `.github/` or `.gitlab/`, `.renovaterc`,
-`.renovaterc.json`, `.renovaterc.json5`); and Scala Steward
+`.github/dependabot.yaml`); Renovate (`renovate.json`, `renovate.jsonc`,
+`renovate.json5`, and those names under `.github/` or `.gitlab/`, `.renovaterc`,
+`.renovaterc.json`, `.renovaterc.jsonc`, `.renovaterc.json5`); and Scala Steward
 (`.scala-steward.conf` or `scala-steward.conf` at the root or under
 `.github/` or `.config/`). When no file is found, the system SHALL search
 for commits authored by `dependabot[bot]` and record Dependabot, without a
