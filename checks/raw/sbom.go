@@ -27,7 +27,7 @@ import (
 var (
 	reRootFile = regexp.MustCompile(`^[^.]([^//]*)$`)
 	reSBOMFile = regexp.MustCompile(
-		`(?i).+\.(cdx.json|cdx.xml|spdx|spdx.json|spdx.xml|spdx.y[a?]ml|spdx.rdf|spdx.rdf.xml)`,
+		`(?i)^.+\.(cdx\.json|cdx\.xml|spdx|spdx\.json|spdx\.xml|spdx\.ya?ml|spdx\.rdf|spdx\.rdf\.xml)$`,
 	)
 )
 

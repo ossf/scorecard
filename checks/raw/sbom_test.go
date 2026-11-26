@@ -27,6 +27,36 @@ import (
 	scut "github.com/ossf/scorecard/v5/utests"
 )
 
+func TestReSBOMFile(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		filename string
+		want     bool
+	}{
+		{name: "CycloneDX JSON", filename: "sbom.cdx.json", want: true},
+		{name: "CycloneDX XML", filename: "sbom.cdx.xml", want: true},
+		{name: "SPDX tag-value", filename: "sbom.spdx", want: true},
+		{name: "SPDX JSON", filename: "sbom.spdx.json", want: true},
+		{name: "SPDX XML", filename: "sbom.spdx.xml", want: true},
+		{name: "SPDX YAML", filename: "sbom.spdx.yaml", want: true},
+		{name: "SPDX YML", filename: "sbom.spdx.yml", want: true},
+		{name: "SPDX RDF", filename: "sbom.spdx.rdf", want: true},
+		{name: "SPDX RDF XML", filename: "sbom.spdx.rdf.xml", want: true},
+		{name: "CMake template", filename: "sbom.cdx.json.in", want: false},
+		{name: "detached signature", filename: "app.cdx.json.sig", want: false},
+		{name: "JSON Lines", filename: "app.cdx.jsonl", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := reSBOMFile.MatchString(tt.filename); got != tt.want {
+				t.Errorf("reSBOMFile.MatchString(%q) = %v, want %v", tt.filename, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestSbom(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -41,6 +71,36 @@ func TestSbom(t *testing.T) {
 			releases: []clients.Release{
 				{
 					Assets: []clients.ReleaseAsset{
+						{
+							Name: "test-sbom.cdx.json",
+							URL:  "https://this.url",
+						},
+					},
+				},
+			},
+			files: []string{},
+			expected: checker.SBOMData{
+				SBOMFiles: []checker.SBOM{
+					{
+						Name: "test-sbom.cdx.json",
+						File: checker.File{
+							Type: finding.FileTypeURL,
+							Path: "https://this.url",
+						},
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "Ignores signature artifact before Sbom in release",
+			releases: []clients.Release{
+				{
+					Assets: []clients.ReleaseAsset{
+						{
+							Name: "test-sbom.cdx.json.sig",
+							URL:  "https://this.signature",
+						},
 						{
 							Name: "test-sbom.cdx.json",
 							URL:  "https://this.url",
