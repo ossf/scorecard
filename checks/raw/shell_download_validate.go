@@ -923,6 +923,52 @@ func isUnpinnedMsBuildCliRestore(cmd []string) bool {
 	return unpinnedDependency
 }
 
+// packageManagerCommand describes how to recognize one package manager's
+// install commands and decide whether they are pinned.
+type packageManagerCommand struct {
+	isDownload func([]string) bool
+	isUnpinned func([]string) bool
+	// remediation is attached to unpinned commands when non-empty.
+	remediation string
+	depType     checker.DependencyUseType
+}
+
+// packageManagerCommands is checked in order, and only the first match is
+// recorded.
+var packageManagerCommands = []packageManagerCommand{
+	{
+		isDownload: isGoDownload,
+		isUnpinned: isGoUnpinnedDownload,
+		depType:    checker.DependencyUseTypeGoCommand,
+	},
+	{
+		isDownload: isPipDownload,
+		isUnpinned: isPipUnpinnedDownload,
+		depType:    checker.DependencyUseTypePipCommand,
+	},
+	{
+		isDownload: isNpmDownload,
+		isUnpinned: isNpmUnpinnedDownload,
+		depType:    checker.DependencyUseTypeNpmCommand,
+	},
+	{
+		isDownload: isChocoDownload,
+		isUnpinned: isChocoUnpinnedDownload,
+		depType:    checker.DependencyUseTypeChocoCommand,
+	},
+	{
+		// Nuget install and restore.
+		isDownload: isNuget,
+		isUnpinned: isNugetUnpinned,
+		remediation: "pin your dependencies by either enabling central package management " +
+			"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
+			"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
+			"package-references-in-project-files#locking-dependencies)",
+		depType: checker.DependencyUseTypeNugetCommand,
+	},
+	// TODO(laurent): add other package managers.
+}
+
 func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.Node,
 	cmd, pathfn string, r *checker.PinningDependenciesData,
 ) {
@@ -942,93 +988,17 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 		return
 	}
 
-	// Go get/install.
-	if isGoDownload(c) {
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    startLine,
-					EndOffset: endLine,
-					Snippet:   cmd,
-				},
-				Pinned: asBoolPointer(!isGoUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypeGoCommand,
-			},
-		)
+	for _, pm := range packageManagerCommands {
+		if !pm.isDownload(c) {
+			continue
+		}
 
-		return
-	}
-
-	// Pip install.
-	if isPipDownload(c) {
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    startLine,
-					EndOffset: endLine,
-					Snippet:   cmd,
-				},
-				Pinned: asBoolPointer(!isPipUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypePipCommand,
-			},
-		)
-
-		return
-	}
-
-	// Npm install.
-	if isNpmDownload(c) {
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    startLine,
-					EndOffset: endLine,
-					Snippet:   cmd,
-				},
-				Pinned: asBoolPointer(!isNpmUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypeNpmCommand,
-			},
-		)
-
-		return
-	}
-
-	// Choco install.
-	if isChocoDownload(c) {
-		r.Dependencies = append(r.Dependencies,
-			checker.Dependency{
-				Location: &checker.File{
-					Path:      pathfn,
-					Type:      finding.FileTypeSource,
-					Offset:    startLine,
-					EndOffset: endLine,
-					Snippet:   cmd,
-				},
-				Pinned: asBoolPointer(!isChocoUnpinnedDownload(c)),
-				Type:   checker.DependencyUseTypeChocoCommand,
-			},
-		)
-
-		return
-	}
-
-	// Nuget install and restore
-	if isNuget(c) {
-		pinned := !isNugetUnpinned(c)
+		pinned := !pm.isUnpinned(c)
+		// A new Remediation per dependency: NuGet post-processing appends
+		// to its Text in place.
 		var remediation *finding.Remediation
-		if !pinned {
-			remediation = &finding.Remediation{
-				Text: "pin your dependencies by either enabling central package management " +
-					"(https://learn.microsoft.com/nuget/consume-packages/Central-Package-Management) " +
-					"or using a lockfile (https://learn.microsoft.com/nuget/consume-packages/" +
-					"package-references-in-project-files#locking-dependencies)",
-			}
+		if !pinned && pm.remediation != "" {
+			remediation = &finding.Remediation{Text: pm.remediation}
 		}
 		r.Dependencies = append(r.Dependencies,
 			checker.Dependency{
@@ -1040,13 +1010,11 @@ func collectUnpinnedPackageManagerDownload(startLine, endLine uint, node syntax.
 					Snippet:   cmd,
 				},
 				Pinned:      &pinned,
-				Type:        checker.DependencyUseTypeNugetCommand,
+				Type:        pm.depType,
 				Remediation: remediation,
 			})
 		return
 	}
-
-	// TODO(laurent): add other package managers.
 }
 
 func recordFetchFileFromNode(node syntax.Node) (pathfn string, ok bool, err error) {

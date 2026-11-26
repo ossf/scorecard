@@ -1,0 +1,111 @@
+name: Something is wrong
+description: A wrong result, an error, or a problem with the website, API, weekly scan, badges, or docs.
+title: "Issue: "
+labels: ["kind/bug", "needs triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One problem per issue. Report security vulnerabilities [privately](https://github.com/ossf/scorecard/security/advisories/new), not here.
+        To add a repository to the weekly scan, see [ossf/scorecard-infra](https://github.com/ossf/scorecard-infra/blob/main/CONTRIBUTING.md).
+        If AI helped write this, you're responsible for its accuracy.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What went wrong?
+      options:
+        - Wrong result or score
+        - Error or hang
+        - Website, API, weekly scan, or badge
+        - Docs
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: How did you run Scorecard?
+      options:
+        - CLI
+        - GitHub Action
+        - REST API
+        - scorecard.dev
+        - Weekly scan data
+        - Badge
+        - I didn't (docs)
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: Command, version, or URL
+      description: |
+        CLI: the command and `scorecard version`. Action: the workflow step and tag, or a link to the run.
+        Otherwise: the URL. Docs: n/a.
+    validations:
+      required: true
+  - type: dropdown
+    id: check
+    attributes:
+      label: Check (optional)
+      options:
+        - Binary-Artifacts
+        - Branch-Protection
+        - CI-Tests
+        - CII-Best-Practices
+        - Code-Review
+        - Contributors
+        - Dangerous-Workflow
+        - Dependency-Update-Tool
+        - Fuzzing
+        - License
+        - Maintained
+        - Packaging
+        - Pinned-Dependencies
+        - SAST
+        - SBOM
+        - Security-Policy
+        - Signed-Releases
+        - Token-Permissions
+        - Vulnerabilities
+        - Webhooks
+        - Not check-specific
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: A public repository that shows the problem, linked to a commit or line. For docs, link the line.
+      placeholder: https://github.com/owner/repo/blob/<commit>/.github/workflows/ci.yml#L12
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What did you see?
+      description: Paste output as text, not a screenshot.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Link the check's docs if you can. For docs, suggest the wording.
+    validations:
+      required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Existing issues
+      description: Link related issues, or list what you searched for.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched open and closed issues.
+          required: true
+        - label: I tried the latest release, or this isn't about the CLI or Action.
+          required: true
+        - label: I can answer follow-up questions. Issues with unanswered questions may be closed.
+          required: true

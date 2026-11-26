@@ -16,48 +16,13 @@ package checks
 
 import (
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks/evaluation"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	sce "github.com/ossf/scorecard/v5/errors"
-	"github.com/ossf/scorecard/v5/probes"
-	"github.com/ossf/scorecard/v5/probes/zrunner"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 )
 
 // CheckDangerousWorkflow is the exported name for Dangerous-Workflow check.
 const CheckDangerousWorkflow = "Dangerous-Workflow"
 
-//nolint:gochecknoinits
-func init() {
-	supportedRequestTypes := []checker.RequestType{
-		checker.CommitBased,
-		checker.FileBased,
-	}
-	if err := registerCheck(CheckDangerousWorkflow, DangerousWorkflow, supportedRequestTypes); err != nil {
-		// this should never happen
-		panic(err)
-	}
-}
-
 // DangerousWorkflow  will check the repository contains Dangerous-Workflow.
 func DangerousWorkflow(c *checker.CheckRequest) checker.CheckResult {
-	rawData, err := raw.DangerousWorkflow(c)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
-	}
-
-	// Set the raw results.
-	pRawResults := getRawResults(c)
-	pRawResults.DangerousWorkflowResults = rawData
-
-	// Evaluate the probes.
-	findings, err := zrunner.Run(pRawResults, probes.DangerousWorkflows)
-	if err != nil {
-		e := sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		return checker.CreateRuntimeErrorResult(CheckDangerousWorkflow, e)
-	}
-
-	ret := evaluation.DangerousWorkflow(CheckDangerousWorkflow, findings, c.Dlogger)
-	ret.Findings = findings
-	return ret
+	return checkdef.DangerousWorkflow.Run(c)
 }

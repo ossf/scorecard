@@ -31,7 +31,7 @@ jobs:
     environment: integration-test
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
       - name: Clone the code
@@ -39,7 +39,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true

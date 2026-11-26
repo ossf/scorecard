@@ -123,6 +123,12 @@ func (r *Repo) IsValid() error {
 		return sce.WithMessage(sce.ErrInvalidURL, "expected full project url: "+r.URI())
 	}
 
+	// GitLab is only reached over https; an http URL would also let a
+	// caller point the instance check below at a plaintext service.
+	if r.scheme != "https" {
+		return sce.WithMessage(sce.ErrInvalidURL, "gitlab repo must use https: "+r.URI())
+	}
+
 	if strings.Contains(r.host, "gitlab.") {
 		return nil
 	}
