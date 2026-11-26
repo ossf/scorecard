@@ -802,13 +802,22 @@ func isDotNetCliAdd(cmd []string) bool {
 		(strings.EqualFold(cmd[2], "package") || strings.EqualFold(cmd[3], "package"))
 }
 
+// isFloatingNugetVersion reports whether a version lets NuGet choose which
+// version to use: a wildcard, or a range. "[1.2.3]" is an exact version.
+// https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#version-ranges
+func isFloatingNugetVersion(version string) bool {
+	version = strings.Trim(version, `"'`)
+	isRange := strings.HasPrefix(version, "[") || strings.HasPrefix(version, "(")
+	return strings.Contains(version, "*") || (isRange && strings.Contains(version, ","))
+}
+
 func isUnpinnedDotNetCliAdd(cmd []string) bool {
 	unpinnedDependency := true
 	for i := 3; i < len(cmd); i++ {
 		// look for version flag
 		// https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-add-package
 		if strings.EqualFold(cmd[i], "-v") || strings.EqualFold(cmd[i], "--version") {
-			unpinnedDependency = false
+			unpinnedDependency = i+1 < len(cmd) && isFloatingNugetVersion(cmd[i+1])
 			break
 		}
 	}
