@@ -676,7 +676,7 @@ SBOM asset per release. Experimental gating of the SBOM check is defined in
 
 The system SHALL look, case-insensitively, for `SECURITY.md`,
 `SECURITY.markdown`, `SECURITY.adoc`, or `SECURITY.rst` at the repository
-root, in `.github/`, or in `docs/`, and for `SECURITY.rst` in `doc/`. It
+root, in `.github/`, in `.gitlab/`, in `docs/`, or in `doc/`. It
 SHALL record the first match only. When none is found, the system SHALL
 look in the same locations in the organization's `.github` repository and
 record a match there as a URL. An unreachable or unsupported organization

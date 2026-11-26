@@ -139,15 +139,22 @@ var isSecurityPolicyFile fileparser.DoWhileTrueOnFilename = func(name string, ar
 func isSecurityPolicyFilename(name string) bool {
 	return strings.EqualFold(name, "security.md") ||
 		strings.EqualFold(name, ".github/security.md") ||
+		strings.EqualFold(name, ".gitlab/security.md") ||
 		strings.EqualFold(name, "docs/security.md") ||
+		strings.EqualFold(name, "doc/security.md") ||
 		strings.EqualFold(name, "security.markdown") ||
 		strings.EqualFold(name, ".github/security.markdown") ||
+		strings.EqualFold(name, ".gitlab/security.markdown") ||
 		strings.EqualFold(name, "docs/security.markdown") ||
+		strings.EqualFold(name, "doc/security.markdown") ||
 		strings.EqualFold(name, "security.adoc") ||
 		strings.EqualFold(name, ".github/security.adoc") ||
+		strings.EqualFold(name, ".gitlab/security.adoc") ||
 		strings.EqualFold(name, "docs/security.adoc") ||
+		strings.EqualFold(name, "doc/security.adoc") ||
 		strings.EqualFold(name, "security.rst") ||
 		strings.EqualFold(name, ".github/security.rst") ||
+		strings.EqualFold(name, ".gitlab/security.rst") ||
 		strings.EqualFold(name, "doc/security.rst") ||
 		strings.EqualFold(name, "docs/security.rst")
 }
