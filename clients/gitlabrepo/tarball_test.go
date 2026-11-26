@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -193,35 +195,77 @@ func TestGetTarballCleanupOnError(t *testing.T) {
 	t.Setenv("TEMP", tmpRoot)
 	t.Setenv("TMP", tmpRoot)
 
-	var lc net.ListenConfig
-	ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatalf("net.Listen: %v", err)
-	}
-	addr := ln.Addr().String()
-	if closeErr := ln.Close(); closeErr != nil {
-		t.Fatalf("ln.Close: %v", closeErr)
-	}
+	t.Run("archive download failure", func(t *testing.T) {
+		var lc net.ListenConfig
+		ln, err := lc.Listen(t.Context(), "tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatalf("net.Listen: %v", err)
+		}
+		addr := ln.Addr().String()
+		if closeErr := ln.Close(); closeErr != nil {
+			t.Fatalf("ln.Close: %v", closeErr)
+		}
 
-	handler := tarballHandler{
-		ctx:       t.Context(),
-		once:      new(sync.Once),
-		repo:      &gitlab.Project{ID: 1},
-		repourl:   &Repo{host: addr},
-		commitSHA: "main",
-	}
+		handler := tarballHandler{
+			ctx:       t.Context(),
+			once:      new(sync.Once),
+			repo:      &gitlab.Project{ID: 1},
+			repourl:   &Repo{host: addr},
+			commitSHA: "main",
+		}
 
-	if err := handler.getTarball(); !errors.Is(err, errTarballNotFound) {
-		t.Fatalf("getTarball() error = %v, want %v", err, errTarballNotFound)
-	}
-	if handler.tempDir != "" {
-		t.Errorf("handler.tempDir = %q, want empty", handler.tempDir)
-	}
-	entries, err := os.ReadDir(tmpRoot)
-	if err != nil {
-		t.Fatalf("os.ReadDir: %v", err)
-	}
-	if len(entries) != 0 {
-		t.Errorf("expected empty temp dir after failed download, found %d entries", len(entries))
-	}
+		if err := handler.getTarball(); !errors.Is(err, errTarballNotFound) {
+			t.Fatalf("getTarball() error = %v, want %v", err, errTarballNotFound)
+		}
+		if handler.tempDir != "" {
+			t.Errorf("handler.tempDir = %q, want empty", handler.tempDir)
+		}
+		entries, err := os.ReadDir(tmpRoot)
+		if err != nil {
+			t.Fatalf("os.ReadDir: %v", err)
+		}
+		if len(entries) != 0 {
+			t.Errorf("expected empty temp dir after failed archive download, found %d entries", len(entries))
+		}
+	})
+
+	t.Run("ci lint failure closes ciFile before cleanup", func(t *testing.T) {
+		srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasSuffix(r.URL.Path, "/ci/lint") {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("archive-bytes"))
+		}))
+		defer srv.Close()
+
+		origTransport := http.DefaultClient.Transport
+		http.DefaultClient.Transport = srv.Client().Transport
+		t.Cleanup(func() {
+			http.DefaultClient.Transport = origTransport
+		})
+
+		handler := tarballHandler{
+			ctx:       t.Context(),
+			once:      new(sync.Once),
+			repo:      &gitlab.Project{ID: 1},
+			repourl:   &Repo{host: strings.TrimPrefix(srv.URL, "https://")},
+			commitSHA: "main",
+		}
+
+		if err := handler.getTarball(); !errors.Is(err, errTarballNotFound) {
+			t.Fatalf("getTarball() error = %v, want %v", err, errTarballNotFound)
+		}
+		if handler.tempDir != "" {
+			t.Errorf("handler.tempDir = %q, want empty", handler.tempDir)
+		}
+		entries, err := os.ReadDir(tmpRoot)
+		if err != nil {
+			t.Fatalf("os.ReadDir: %v", err)
+		}
+		if len(entries) != 0 {
+			t.Errorf("expected empty temp dir after failed ci/lint fetch, found %d entries", len(entries))
+		}
+	})
 }
