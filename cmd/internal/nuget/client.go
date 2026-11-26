@@ -234,12 +234,9 @@ func isSupportedProjectURL(projectURL string) bool {
 //
 //nolint:lll // https://learn.microsoft.com/en-us/nuget/concepts/package-versioning#where-nugetversion-diverges-from-semantic-versioning
 func parseNugetSemVer(versionString string) (base, preReleaseSuffix string) {
-	metadataAndVersion := strings.Split(versionString, "+")
-	prereleaseAndVersions := strings.Split(metadataAndVersion[0], "-")
-	if len(prereleaseAndVersions) == 1 {
-		return prereleaseAndVersions[0], ""
-	}
-	return prereleaseAndVersions[0], prereleaseAndVersions[1]
+	versionWithoutMetadata, _, _ := strings.Cut(versionString, "+")
+	base, preReleaseSuffix, _ = strings.Cut(versionWithoutMetadata, "-")
+	return base, preReleaseSuffix
 }
 
 func decodeResponseFromClient(getFunc func() (*http.Response, error),

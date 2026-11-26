@@ -156,6 +156,20 @@ func Test_fetchGitRepositoryFromNuget(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "skip double-hyphen pre release",
+
+			args: nugetTestArgs{
+				inputPackageName:               "nuget-package",
+				resultIndex:                    "index.json",
+				resultPackageRegistrationIndex: "package_registration_index_double_hyphen_pre_release_version.json",
+				resultPackageRegistrationPages: []resultPackagePage{},
+				resultPackageSpec:              "package_spec.xml",
+				version:                        "4.0.1",
+			},
+			want:    "https://github.com/foo/foo.net",
+			wantErr: false,
+		},
+		{
 			name: "skip pre release and metadata",
 
 			args: nugetTestArgs{
@@ -613,4 +627,51 @@ func testResult(wantErr bool, responseFileName string) (*http.Response, error) {
 		StatusCode: http.StatusOK,
 		Body:       io.NopCloser(bytes.NewBuffer(content)),
 	}, nil
+}
+
+func Test_parseNugetSemVer(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		version string
+		wantVer string
+		wantPre string
+	}{
+		{
+			version: "4.0.1",
+			wantVer: "4.0.1",
+			wantPre: "",
+		},
+		{
+			version: "4.0.1+build-1",
+			wantVer: "4.0.1",
+			wantPre: "",
+		},
+		{
+			version: "4.0.1-alpha.1",
+			wantVer: "4.0.1",
+			wantPre: "alpha.1",
+		},
+		{
+			version: "0.9.99--date20261118-1257.git-2039fad",
+			wantVer: "0.9.99",
+			wantPre: "-date20261118-1257.git-2039fad",
+		},
+		{
+			version: "1.6.1--date20220823-0234.git-14ad2d3+meta",
+			wantVer: "1.6.1",
+			wantPre: "-date20220823-0234.git-14ad2d3",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.version, func(t *testing.T) {
+			t.Parallel()
+			gotVer, gotPre := parseNugetSemVer(tt.version)
+			if gotVer != tt.wantVer || gotPre != tt.wantPre {
+				t.Errorf("parseNugetSemVer(%q) = (%q, %q), want (%q, %q)",
+					tt.version, gotVer, gotPre, tt.wantVer, tt.wantPre)
+			}
+		})
+	}
 }
