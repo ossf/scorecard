@@ -175,9 +175,10 @@ Choices within that rule:
   this later.
 - **Binaries.** QA-05.01 fails on any unverified binary, because
   Scorecard doesn't separate generated executables from other binaries.
-  Verified Gradle wrappers are generated executables, so a repository
-  whose only binaries are wrappers gets NEEDS_REVIEW for QA-05.01 and
-  PASS for QA-05.02, which asks only that binaries be reviewable.
+  Gradle wrapper JARs that a workflow validates against Gradle's
+  published checksums are still generated executables, so a repository
+  whose only binaries are such wrappers gets NEEDS_REVIEW for QA-05.01
+  and PASS for QA-05.02, which asks only that binaries be reviewable.
 - **Missing security policy.** VM-02.01 fails when no policy is found,
   even though the probe looks only in fixed locations
   ([#5507](https://github.com/ossf/scorecard/issues/5507) reports two

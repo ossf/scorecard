@@ -476,7 +476,7 @@ and `hasUnverifiedBinaryArtifacts`:
 - `FAIL` when any `hasUnverifiedBinaryArtifacts` finding is `True`.
 - `NEEDS_REVIEW` when `hasBinaryArtifacts` is `True` and
   `hasUnverifiedBinaryArtifacts` is `False`, so the only binaries are
-  verified Gradle wrappers.
+  validated Gradle wrapper JARs.
 - `UNKNOWN` otherwise.
 
 #### Scenario: No binaries
@@ -491,7 +491,7 @@ and `hasUnverifiedBinaryArtifacts`:
 - **WHEN** OSPS-QA-05.01 is evaluated
 - **THEN** its result is `FAIL`
 
-#### Scenario: Only verified Gradle wrappers
+#### Scenario: Only validated Gradle wrappers
 
 - **GIVEN** `hasBinaryArtifacts` reports `True` and
   `hasUnverifiedBinaryArtifacts` reports `False`
@@ -505,9 +505,9 @@ contains no unreviewable binary artifacts) from
 `hasUnverifiedBinaryArtifacts`, recording `hasBinaryArtifacts` findings
 as evidence:
 
-- `PASS` when `hasUnverifiedBinaryArtifacts` is `False`. Verified Gradle
-  wrappers can be checked against a published checksum, so they count
-  as reviewable.
+- `PASS` when `hasUnverifiedBinaryArtifacts` is `False`. Gradle wrapper
+  JARs that a workflow validates against Gradle's published checksums
+  count as reviewable.
 - `FAIL` when any `hasUnverifiedBinaryArtifacts` finding is `True`.
 - `UNKNOWN` otherwise.
 
