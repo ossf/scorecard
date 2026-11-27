@@ -57,6 +57,15 @@ func Release() *conformance.Release {
 		Mappings: []conformance.Mapping{
 			ospsbaseline.AC0301Mapping(),
 			ospsbaseline.AC0302Mapping(),
+			ospsbaseline.BR0101Mapping(),
+			ospsbaseline.BR0103Mapping(),
+			ospsbaseline.LE0201Mapping(),
+			ospsbaseline.LE0202Mapping(),
+			ospsbaseline.LE0301Mapping(),
+			ospsbaseline.LE0302Mapping(),
+			ospsbaseline.QA0501Mapping(),
+			ospsbaseline.QA0502Mapping(),
+			ospsbaseline.VM0201Mapping(),
 		},
 	}
 }

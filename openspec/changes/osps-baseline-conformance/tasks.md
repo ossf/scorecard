@@ -61,9 +61,9 @@
   OSPS-BR-01.01, OSPS-BR-01.03, OSPS-LE-02.01, OSPS-LE-02.02,
   OSPS-LE-03.01, OSPS-LE-03.02, OSPS-QA-05.01, OSPS-QA-05.02, and
   OSPS-VM-02.01 to the conformance-evaluation spec.
-- [ ] 6.2 Implement the nine mappings in `internal/conformance/ospsbaseline`
+- [x] 6.2 Implement the nine mappings in `internal/conformance/ospsbaseline`
   and register them in the v2026.08.28 release package.
-- [ ] 6.3 Test each mapping's PASS, FAIL, NEEDS_REVIEW, and UNKNOWN
+- [x] 6.3 Test each mapping's PASS, FAIL, NEEDS_REVIEW, and UNKNOWN
   paths that its rules define, including `NotApplicable` findings.
 - [ ] 6.4 Update the user docs and `docs/osps-baseline-coverage.md` to
   mark the nine requirements as evaluated by conformance mode.
