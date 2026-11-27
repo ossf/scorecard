@@ -38,7 +38,7 @@ require (
 	gitlab.com/gitlab-org/api/client-go v1.46.0
 	go.opencensus.io v0.24.0
 	go.uber.org/mock v0.6.0
-	go.yaml.in/yaml/v2 v2.4.4
+	go.yaml.in/yaml/v2 v2.4.5
 	go.yaml.in/yaml/v3 v3.0.6
 	gocloud.dev v0.47.0
 	golang.org/x/oauth2 v0.38.0
