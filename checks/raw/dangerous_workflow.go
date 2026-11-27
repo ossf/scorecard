@@ -67,10 +67,14 @@ func containsUntrustedContextPattern(variable string) bool {
 type triggerName string
 
 var (
-	triggerPullRequestTarget        = triggerName("pull_request_target")
-	triggerWorkflowRun              = triggerName("workflow_run")
-	checkoutUntrustedPullRequestRef = "github.event.pull_request"
-	checkoutUntrustedWorkflowRunRef = "github.event.workflow_run"
+	triggerPullRequestTarget             = triggerName("pull_request_target")
+	triggerWorkflowRun                   = triggerName("workflow_run")
+	checkoutUntrustedPullRequestHeadSHA  = "github.event.pull_request.head.sha"
+	checkoutUntrustedPullRequestMerge    = "github.event.pull_request.merge_commit_sha"
+	checkoutUntrustedWorkflowRunRef      = "github.event.workflow_run"
+	checkoutUntrustedWorkflowRunHeadRepo = "github.event.workflow_run.head_repository"
+	checkoutUntrustedPullRefPrefix       = "refs/pull/"
+	checkoutUntrustedPullRequestRepo     = "github.event.pull_request.head.repo"
 )
 
 // DangerousWorkflow retrieves the raw data for the DangerousWorkflow check.
@@ -198,31 +202,70 @@ func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 		if !strings.Contains(e.Uses.Value, "actions/checkout") {
 			continue
 		}
-		// Check for reference. If not defined for a pull_request_target event, this defaults to
-		// the base branch of the pull request.
-		ref, ok := e.Inputs["ref"]
-		if !ok || ref.Value == nil {
+		// A checkout pulls untrusted code when it reads from the pull request or
+		// from the triggering workflow run, either through the ref it checks out
+		// or through the repository it reads from.
+		var snippet string
+		if ref, ok := e.Inputs["ref"]; ok && ref.Value != nil && isUntrustedCheckoutRef(ref.Value.Value) {
+			snippet = ref.Value.Value
+		}
+		if snippet == "" {
+			if repository, ok := e.Inputs["repository"]; ok && repository.Value != nil &&
+				isUntrustedCheckoutRepository(repository.Value.Value) {
+				snippet = repository.Value.Value
+			}
+		}
+		if snippet == "" {
 			continue
 		}
 
-		if strings.Contains(ref.Value.Value, checkoutUntrustedPullRequestRef) ||
-			strings.Contains(ref.Value.Value, checkoutUntrustedWorkflowRunRef) {
-			line := fileparser.GetLineNumber(step.Pos)
-			pdata.Workflows = append(pdata.Workflows,
-				checker.DangerousWorkflow{
-					Type: checker.DangerousWorkflowUntrustedCheckout,
-					File: checker.File{
-						Path:    path,
-						Type:    finding.FileTypeSource,
-						Offset:  line,
-						Snippet: ref.Value.Value,
-					},
-					Job: createJob(job),
+		line := fileparser.GetLineNumber(step.Pos)
+		pdata.Workflows = append(pdata.Workflows,
+			checker.DangerousWorkflow{
+				Type: checker.DangerousWorkflowUntrustedCheckout,
+				File: checker.File{
+					Path:    path,
+					Type:    finding.FileTypeSource,
+					Offset:  line,
+					Snippet: snippet,
 				},
-			)
-		}
+				Job: createJob(job),
+			},
+		)
 	}
 	return nil
+}
+
+// isUntrustedCheckoutRef reports whether a checkout ref resolves to code the
+// pull request or the triggering workflow run controls. The pull request case
+// matches the head SHA of the pull request and the test merge commit, both of
+// which carry the pull request's code. base.sha, base.ref and number point at
+// the base repository, which is trusted.
+//
+// github.head_ref and github.event.pull_request.head.ref name the same value and
+// are not matched on their own: both are branch names, and actions/checkout
+// resolves a branch name in the base repository. They become untrusted through
+// the repository input, which is checked separately. A SHA is different: GitHub
+// publishes the pull request's head commit in the base repository under
+// refs/pull/<n>/head, so a bare SHA resolves there and fetches the fork's code.
+func isUntrustedCheckoutRef(ref string) bool {
+	if strings.Contains(ref, checkoutUntrustedPullRequestHeadSHA) ||
+		strings.Contains(ref, checkoutUntrustedPullRequestMerge) ||
+		strings.Contains(ref, checkoutUntrustedWorkflowRunRef) {
+		return true
+	}
+	// refs/pull/<number>/merge and refs/pull/<number>/head are stored in the
+	// base repository but contain the pull request's code.
+	return strings.Contains(ref, checkoutUntrustedPullRefPrefix)
+}
+
+// isUntrustedCheckoutRepository reports whether a checkout reads from a fork
+// instead of the base repository. github.repository,
+// github.event.pull_request.base.repo and the workflow run's base repository
+// all name the base repository.
+func isUntrustedCheckoutRepository(repository string) bool {
+	return strings.Contains(repository, checkoutUntrustedPullRequestRepo) ||
+		strings.Contains(repository, checkoutUntrustedWorkflowRunHeadRepo)
 }
 
 func validateScriptInjection(workflow *ghworkflow.Workflow, path string,
