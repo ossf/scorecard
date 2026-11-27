@@ -2,10 +2,10 @@
 
 ## 1. Tracking
 
-- [ ] 1.1 Open a tracking issue for experimental conformance mode with the
+- [x] 1.1 Open a tracking issue for experimental conformance mode with the
   target release, the graduation criteria, and the 12-month
   graduate-or-remove deadline.
-- [ ] 1.2 Ask maintainers whether probe names should be a versioned
+- [x] 1.2 Ask maintainers whether probe names should be a versioned
   interface, since conformance mappings depend on them.
 
 ## 2. Evaluation
@@ -48,9 +48,26 @@
 
 ## 5. Follow-up changes
 
-- [ ] 5.1 Propose OSPS-QA-07.01, OSPS-VM-02.01, and OSPS-BR-06.01, whose
-  probe evidence is weaker and needs its own review.
+- [ ] 5.1 Propose OSPS-QA-07.01 and OSPS-BR-06.01, whose probe evidence
+  is weaker and needs its own review.
 - [ ] 5.2 Propose Scorecard Action support.
 - [ ] 5.3 Agree a publishing route to grc.store with the ORBIT WG.
 - [ ] 5.4 Propose signing once the attestation identity question is
   resolved.
+
+## 6. Level 1 evidence coverage
+
+- [x] 6.1 Add the proxy-evidence rule and the evaluation rules for
+  OSPS-BR-01.01, OSPS-BR-01.03, OSPS-LE-02.01, OSPS-LE-02.02,
+  OSPS-LE-03.01, OSPS-LE-03.02, OSPS-QA-05.01, OSPS-QA-05.02, and
+  OSPS-VM-02.01 to the conformance-evaluation spec.
+- [x] 6.2 Implement the nine mappings in `internal/conformance/ospsbaseline`
+  and register them in the v2026.08.28 release package.
+- [x] 6.3 Test each mapping's PASS, FAIL, NEEDS_REVIEW, and UNKNOWN
+  paths that its rules define, including `NotApplicable` findings.
+- [x] 6.4 Update the user docs and `docs/osps-baseline-coverage.md` to
+  mark the nine requirements as evaluated by conformance mode.
+- [x] 6.5 Update the `cmd` conformance tests, which run the published
+  release, for the new requirements. Confirm the conformance and Gemara
+  test fixtures, which come from a test-only release, need no change.
+  Run conformance mode on ossf/scorecard to check the new results.

@@ -134,6 +134,58 @@ These probes are stable and already feed the Branch-Protection check.
 Findings for release branches are ignored, because both requirements
 name the primary branch only.
 
+### Level 1 evidence coverage
+
+A later amendment maps the other Level 1 requirements that existing
+probes give evidence for: the ones `docs/osps-baseline-coverage.md`
+rates covered or partial. With AC-03.01 and AC-03.02, that is 11 of the
+24 active `maturity-1` requirements in v2026.08.28. The other 13 need
+new probes, an administrator token, or data the project supplies, and
+stay not evaluated. Full Level 1 coverage is still a non-goal.
+
+| Requirement | Probes | What limits the result |
+| --- | --- | --- |
+| OSPS-BR-01.01 | `hasDangerousWorkflowScriptInjection` | Known injection patterns only, so no finding is NEEDS_REVIEW |
+| OSPS-BR-01.03 | `hasDangerousWorkflowUntrustedCheckout` | Two trigger patterns only; guards and job permissions aren't read |
+| OSPS-LE-02.01 | `hasFSFOrOSIApprovedLicense` | None |
+| OSPS-LE-02.02 | `hasFSFOrOSIApprovedLicense` | Read from the default branch, not the release |
+| OSPS-LE-03.01 | `hasLicenseFile` | The probe also accepts PATENTS and COPYRIGHT files |
+| OSPS-LE-03.02 | `hasLicenseFile` | Read from the default branch, not the release |
+| OSPS-QA-05.01 | `hasBinaryArtifacts`, `hasUnverifiedBinaryArtifacts` | Generated executables aren't told apart from other binaries |
+| OSPS-QA-05.02 | `hasUnverifiedBinaryArtifacts` | None |
+| OSPS-VM-02.01 | `securityPolicyPresent`, `securityPolicyContainsLinks` | Fixed policy locations; any link counts, not only contacts |
+
+One rule covers every row: a mapping gives PASS only when its probes
+observe what the requirement names. Where they observe something
+narrower, a clean finding gives NEEDS_REVIEW and the explanation says
+what was read; a finding that shows a problem still gives FAIL. PASS
+with a caveat was rejected because a consumer reading only the result
+would take it as met.
+
+Choices within that rule:
+
+- **No workflows.** The two workflow probes read only GitHub Actions
+  workflows and report `NotApplicable` when a repository has none.
+  BR-01.01 and BR-01.03 are UNKNOWN then, since the project may run
+  CI/CD on another system, such as GitLab CI or Azure Pipelines.
+- **Guarded checkouts.** BR-01.03 fails on any untrusted checkout the
+  probe reports, including one behind a label condition. With no
+  finding already NEEDS_REVIEW, NEEDS_REVIEW here would mean BR-01.03
+  never passes or fails. The Dangerous-Workflow check gives the same
+  finding its lowest score. A probe that detects guards can narrow
+  this later.
+- **Binaries.** QA-05.01 fails on any unverified binary, because
+  Scorecard doesn't separate generated executables from other binaries.
+  Gradle wrapper JARs that a workflow validates against Gradle's
+  published checksums are still generated executables, so a repository
+  whose only binaries are such wrappers gets NEEDS_REVIEW for QA-05.01
+  and PASS for QA-05.02, which asks only that binaries be reviewable.
+- **Missing security policy.** VM-02.01 fails when no policy is found,
+  even though the probe looks only in fixed locations
+  ([#5507](https://github.com/ossf/scorecard/issues/5507) reports two
+  it misses). Fixing that extends the probe and needs no mapping
+  change.
+
 ### Go code in an internal package
 
 The mappings and evaluation logic are Go, in `internal/conformance/`,

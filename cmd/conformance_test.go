@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -57,9 +58,20 @@ func TestConformanceReport(t *testing.T) {
 	)
 	report := conformanceReport(result, release, "maturity-1")
 
+	// The scan has no findings for the other requirements, so each is
+	// UNKNOWN.
 	want := map[string]conformance.Result{
 		"OSPS-AC-03.01": conformance.NeedsReview,
 		"OSPS-AC-03.02": conformance.Pass,
+		"OSPS-BR-01.01": conformance.Unknown,
+		"OSPS-BR-01.03": conformance.Unknown,
+		"OSPS-LE-02.01": conformance.Unknown,
+		"OSPS-LE-02.02": conformance.Unknown,
+		"OSPS-LE-03.01": conformance.Unknown,
+		"OSPS-LE-03.02": conformance.Unknown,
+		"OSPS-QA-05.01": conformance.Unknown,
+		"OSPS-QA-05.02": conformance.Unknown,
+		"OSPS-VM-02.01": conformance.Unknown,
 	}
 	if len(report.Results) != len(want) {
 		t.Fatalf("got %d results, want %d: %v", len(report.Results), len(want), report.Results)
@@ -69,8 +81,8 @@ func TestConformanceReport(t *testing.T) {
 			t.Errorf("%s = %s, want %s", r.Requirement, r.Result, want[r.Requirement])
 		}
 	}
-	if got := len(report.NotEvaluated); got != 23 {
-		t.Errorf("got %d requirements not evaluated, want 23", got)
+	if got := len(report.NotEvaluated); got != 14 {
+		t.Errorf("got %d requirements not evaluated, want 14", got)
 	}
 	if report.Repo != "github.com/owner/repo" || report.Commit != "0123456789abcdef" ||
 		report.ScorecardVersion != "v5.7.0" || report.Profile != "maturity-1" {
@@ -94,9 +106,14 @@ func TestConformanceReportUnknownDefaultBranch(t *testing.T) {
 	)
 	report := conformanceReport(result, release, "maturity-1")
 	for _, r := range report.Results {
-		if r.Result != conformance.Unknown || r.Explanation != "The default branch is unknown." {
-			t.Errorf("%s = %s (%s), want UNKNOWN because the default branch is unknown",
-				r.Requirement, r.Result, r.Explanation)
+		if r.Result != conformance.Unknown {
+			t.Errorf("%s = %s (%s), want UNKNOWN", r.Requirement, r.Result, r.Explanation)
+		}
+		// Only the branch-protection requirements read branch findings.
+		if strings.HasPrefix(r.Requirement, "OSPS-AC-03.") &&
+			r.Explanation != "The default branch is unknown." {
+			t.Errorf("%s explanation = %q, want the default branch is unknown",
+				r.Requirement, r.Explanation)
 		}
 	}
 }

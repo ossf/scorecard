@@ -21,11 +21,23 @@ coverage status and evidence columns accordingly.
 Coverage here means a probe collects evidence for the requirement. It does
 not mean Scorecard reports a result for it. The experimental conformance
 mode (`--catalog=osps-baseline`, see [conformance.md](conformance.md))
-evaluates two requirements today:
+evaluates eleven requirements today:
 
 - OSPS-AC-03.01 from `branchesAreProtected`, `requiresPRsToChangeCode`, and
   `branchProtectionAppliesToAdmins`
 - OSPS-AC-03.02 from `blocksDeleteOnBranches`
+- OSPS-BR-01.01 from `hasDangerousWorkflowScriptInjection`
+- OSPS-BR-01.03 from `hasDangerousWorkflowUntrustedCheckout`
+- OSPS-LE-02.01 and OSPS-LE-02.02 from `hasFSFOrOSIApprovedLicense`
+- OSPS-LE-03.01 and OSPS-LE-03.02 from `hasLicenseFile`
+- OSPS-QA-05.01 from `hasBinaryArtifacts` and `hasUnverifiedBinaryArtifacts`
+- OSPS-QA-05.02 from `hasUnverifiedBinaryArtifacts`
+- OSPS-VM-02.01 from `securityPolicyPresent` and
+  `securityPolicyContainsLinks`
+
+Where a probe observes less than the requirement asks, a clean finding is
+`NEEDS_REVIEW` rather than `PASS`; a finding that shows a problem is
+`FAIL`.
 
 Every other requirement is reported as not evaluated. The mappings that
 conformance mode evaluates are defined in
@@ -55,8 +67,8 @@ Each requirement is listed at the lowest maturity level it applies to.
 | OSPS-AC-02.01 | Least-privilege defaults for new collaborators | NOT_OBSERVABLE | None | Requires org-level permission visibility. Must be UNKNOWN. |
 | OSPS-AC-03.01 | Prevent direct commits to primary branch | COVERED | `branchesAreProtected`, `requiresPRsToChangeCode`, `branchProtectionAppliesToAdmins` | Branch-Protection check. Evaluated by conformance mode. Whether classic protection applies to admins is visible only with an admin token, and classic bypass lists aren't collected yet ([#5451](https://github.com/ossf/scorecard/issues/5451)). |
 | OSPS-AC-03.02 | Prevent primary branch deletion | COVERED | `blocksDeleteOnBranches` | Branch-Protection check. Evaluated by conformance mode: a rule that blocks deletion is PASS; a rule that allows it is UNKNOWN, because Scorecard can't see whether the platform asks for confirmation. |
-| OSPS-BR-01.01 | Sanitize untrusted CI/CD input | PARTIAL | `hasDangerousWorkflowScriptInjection` | Dangerous-Workflow check detects script injection patterns. Does not cover all sanitization cases (e.g., non-shell contexts). |
-| OSPS-BR-01.03 | Untrusted code snapshots cannot access privileged credentials | PARTIAL | `hasDangerousWorkflowUntrustedCheckout` | Dangerous-Workflow check detects untrusted checkouts with access to secrets. Does not cover all credential isolation scenarios. |
+| OSPS-BR-01.01 | Sanitize untrusted CI/CD input | PARTIAL | `hasDangerousWorkflowScriptInjection` | Dangerous-Workflow check detects script injection patterns. Does not cover all sanitization cases (e.g., non-shell contexts). Evaluated by conformance mode: a detected pattern is FAIL; none is NEEDS_REVIEW. |
+| OSPS-BR-01.03 | Untrusted code snapshots cannot access privileged credentials | PARTIAL | `hasDangerousWorkflowUntrustedCheckout` | Dangerous-Workflow check detects untrusted checkouts with access to secrets. Does not cover all credential isolation scenarios. Evaluated by conformance mode: a detected checkout is FAIL; none is NEEDS_REVIEW. |
 | OSPS-BR-03.01 | Official channel URIs use encrypted transport | GAP | None | Requires a source of truth for official URIs, such as Security Insights. No probe exists. |
 | OSPS-BR-03.02 | Distribution URIs use authenticated channels | GAP | None | Same as BR-03.01. Requires declared distribution channels. |
 | OSPS-BR-07.01 | Prevent unintentional storage of secrets in VCS | GAP | None | No secrets detection probe exists today. Could consume platform signals (e.g., GitHub secret scanning API). Applies at maturity-1 only in v2026.08.28. |
@@ -64,17 +76,17 @@ Each requirement is listed at the lowest maturity level it applies to.
 | OSPS-DO-02.01 | Defect reporting guide | GAP | None | No issue template / bug report documentation probe. |
 | OSPS-GV-02.01 | Public discussion mechanism | GAP | None | No probe. Whether issues or discussions are enabled could be read from the repository GraphQL query Scorecard already makes. |
 | OSPS-GV-03.01 | Documented contribution process | GAP | None | No CONTRIBUTING file presence/content probe. v2026.08.28 also accepts a clear statement that public contributions are not accepted. |
-| OSPS-LE-02.01 | OSI/FSF license for source code | COVERED | `hasFSFOrOSIApprovedLicense` | License check. Direct mapping. |
-| OSPS-LE-02.02 | OSI/FSF license for released assets | PARTIAL | `hasFSFOrOSIApprovedLicense` | License check verifies repo license, but does not verify license is shipped with release artifacts. |
-| OSPS-LE-03.01 | License file in repository | COVERED | `hasLicenseFile` | License check. Direct mapping, including the `LICENSES/` directory that v2026.08.28 added. |
-| OSPS-LE-03.02 | License included with released assets | PARTIAL | `hasLicenseFile` | Detects license in repo, not in release artifacts. Needs release asset inspection. |
+| OSPS-LE-02.01 | OSI/FSF license for source code | COVERED | `hasFSFOrOSIApprovedLicense` | License check. Direct mapping. Evaluated by conformance mode. |
+| OSPS-LE-02.02 | OSI/FSF license for released assets | PARTIAL | `hasFSFOrOSIApprovedLicense` | License check verifies repo license, but does not verify license is shipped with release artifacts. Evaluated by conformance mode: an approved license is NEEDS_REVIEW; any other is FAIL. |
+| OSPS-LE-03.01 | License file in repository | COVERED | `hasLicenseFile` | License check. Direct mapping, including the `LICENSES/` directory that v2026.08.28 added. Evaluated by conformance mode: the probe also accepts `COPYRIGHT` and `PATENTS` files, so a repository with only those is NEEDS_REVIEW. |
+| OSPS-LE-03.02 | License included with released assets | PARTIAL | `hasLicenseFile` | Detects license in repo, not in release artifacts. Needs release asset inspection. Evaluated by conformance mode: a license file in the repository is NEEDS_REVIEW; none is FAIL. |
 | OSPS-QA-01.01 | Repo publicly readable at static URL | GAP | None | Not implicit: Scorecard can scan private repositories with a token, so visibility has to be read. The repository GraphQL query could add the `visibility` field. |
 | OSPS-QA-01.02 | Public commit history with authorship and timestamps | GAP | None | The VCS records authorship and timestamps; whether that record is public depends on visibility, as for QA-01.01. |
 | OSPS-QA-02.01 | Direct dependency list present | GAP | None | No probe. `pinsDependencies` reads workflows, Dockerfiles, and scripts, not language manifests. A probe could use the file list Scorecard already fetches. |
 | OSPS-QA-04.01 | Docs list subprojects | GAP | None | Requires Security Insights or similar metadata. No probe exists. |
-| OSPS-QA-05.01 | No generated executable artifacts in VCS | PARTIAL | `hasBinaryArtifacts`, `hasUnverifiedBinaryArtifacts` | Binary-Artifacts check. Detects binary files but may not distinguish "generated executables" from other binaries. |
-| OSPS-QA-05.02 | No unreviewable binary artifacts in VCS | PARTIAL | `hasUnverifiedBinaryArtifacts` | Detects unverified binaries. "Unreviewable" vs "reviewable" classification is not yet granular enough. |
-| OSPS-VM-02.01 | Security contacts documented | PARTIAL | `securityPolicyPresent`, `securityPolicyContainsLinks` | Security-Policy check detects SECURITY.md presence and links, but does not verify actual contact methods (email, form, etc.). Applies at maturity-1 only in v2026.08.28. |
+| OSPS-QA-05.01 | No generated executable artifacts in VCS | PARTIAL | `hasBinaryArtifacts`, `hasUnverifiedBinaryArtifacts` | Binary-Artifacts check. Detects binary files but may not distinguish "generated executables" from other binaries. Evaluated by conformance mode: any unverified binary is FAIL; only validated Gradle wrapper JARs is NEEDS_REVIEW. |
+| OSPS-QA-05.02 | No unreviewable binary artifacts in VCS | PARTIAL | `hasUnverifiedBinaryArtifacts` | Detects unverified binaries. "Unreviewable" vs "reviewable" classification is not yet granular enough. Evaluated by conformance mode: Gradle wrapper JARs validated by a workflow count as reviewable. |
+| OSPS-VM-02.01 | Security contacts documented | PARTIAL | `securityPolicyPresent`, `securityPolicyContainsLinks` | Security-Policy check detects SECURITY.md presence and links, but does not verify actual contact methods (email, form, etc.). Applies at maturity-1 only in v2026.08.28. Evaluated by conformance mode: a policy is NEEDS_REVIEW; none is FAIL. |
 
 ## Level 2 requirements (19)
 

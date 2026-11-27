@@ -24,6 +24,14 @@ The implementation plan in
 [#4994](https://github.com/ossf/scorecard/pull/4994) is superseded by
 this amendment. `design.md` answers each review comment on that PR.
 
+## Amendment: Level 1 evidence coverage (November 2026)
+
+A second amendment maps the other nine Level 1 requirements that
+existing probes give evidence for, under one rule: a mapping gives PASS
+only when its probes observe what the requirement names, and
+NEEDS_REVIEW where they observe something narrower. See
+[`design.md`](design.md#level-1-evidence-coverage).
+
 ## Summary
 
 **Mission:** Scorecard produces trusted, structured security evidence for the
