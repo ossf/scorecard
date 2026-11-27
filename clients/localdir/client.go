@@ -76,37 +76,43 @@ func (client *Client) IsArchived() (bool, error) {
 	return false, fmt.Errorf("IsArchived: %w", clients.ErrUnsupportedFeature)
 }
 
-func isDir(p string) (bool, error) {
-	fileInfo, err := os.Stat(p)
-	if err != nil {
-		return false, fmt.Errorf("%w", err)
-	}
-	return fileInfo.IsDir(), nil
-}
-
 func trimPrefix(pathfn, clientPath string) string {
 	cleanPath := path.Clean(pathfn)
 	prefix := fmt.Sprintf("%s%s", clientPath, string(os.PathSeparator))
 	return strings.TrimPrefix(cleanPath, prefix)
 }
 
+// shouldListSymlink reports whether a symlink belongs in the file listing.
+// It is listed only when its target, resolved inside root, is a regular file.
+// GetFileReader can't read anything else, and a listed file it can't read
+// fails the whole check.
+func shouldListSymlink(root *os.Root, name string, logger *log.Logger) bool {
+	target, err := root.Stat(name)
+	if errors.Is(err, fs.ErrNotExist) {
+		logger.Error(errDanglingSymlink, "skipping dangling symlink", "path", name)
+		return false
+	}
+	if err != nil {
+		logger.Info("skipping symlink that escapes the repository root", "path", name)
+		return false
+	}
+	return target.Mode().IsRegular()
+}
+
 func listFiles(clientPath string, logger *log.Logger) ([]string, error) {
+	root, err := os.OpenRoot(clientPath)
+	if err != nil {
+		return nil, fmt.Errorf("os.OpenRoot: %w", err)
+	}
+	defer root.Close()
+
 	files := []string{}
-	err := filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
+	err = filepath.Walk(clientPath, func(pathfn string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("failure accessing path %q: %w", pathfn, err)
 		}
 
-		// Skip directories.
-		d, err := isDir(pathfn)
-		if err != nil {
-			if info.Mode()&os.ModeSymlink != 0 {
-				logger.Error(errDanglingSymlink, "skipping dangling symlink", "path", pathfn)
-				return nil
-			}
-			return err
-		}
-		if d {
+		if info.IsDir() {
 			// Check if the directory is .git. Use filepath.Base for compatibility across different OS path separators.
 			// ignoring the .git folder.
 			if filepath.Base(pathfn) == ".git" {
@@ -117,6 +123,11 @@ func listFiles(clientPath string, logger *log.Logger) ([]string, error) {
 
 		// Remove prefix of the folder.
 		p := trimPrefix(pathfn, clientPath)
+
+		if info.Mode()&os.ModeSymlink != 0 && !shouldListSymlink(root, p, logger) {
+			return nil
+		}
+
 		files = append(files, p)
 
 		return nil
