@@ -31,9 +31,9 @@ scorecard --repo=github.com/ossf/scorecard \
 
 `--repo` and the package-manager options work as they do for a normal scan.
 `--checks`, `--probes`, `--policy`, `--repos`, and `--org` can't be used with
-`--catalog`. Neither can `--local` or a `--commit` other than `HEAD`: every
-requirement Scorecard evaluates so far needs branch protection settings,
-which Scorecard can read only for the current state of a hosted repository.
+`--catalog`. Neither can `--local` or a `--commit` other than `HEAD`:
+OSPS-AC-03.01 and OSPS-AC-03.02 need branch protection settings, which
+Scorecard can read only for the current state of a hosted repository.
 
 Conformance mode runs only the probes that the catalog's mappings need, and
 computes no check scores. Runs without `--catalog` are unchanged.
@@ -55,6 +55,45 @@ branch's probe findings:
   `blocksDeleteOnBranches`. A rule that blocks deletion is `PASS`. A rule
   that allows it is `UNKNOWN`, because Scorecard can't see whether the
   platform asks for confirmation.
+- OSPS-BR-01.01, untrusted input to CI/CD pipelines is sanitized:
+  `hasDangerousWorkflowScriptInjection`. A known script-injection pattern
+  in a GitHub Actions workflow is `FAIL`. Finding none is `NEEDS_REVIEW`,
+  because only known patterns are detected.
+- OSPS-BR-01.03, untrusted code can't reach privileged credentials:
+  `hasDangerousWorkflowUntrustedCheckout`. A `pull_request_target` or
+  `workflow_run` workflow that checks out pull request code is `FAIL`.
+  Finding none is `NEEDS_REVIEW`, because only those two triggers are
+  read.
+- OSPS-LE-02.01, the source code license is OSI or FSF approved:
+  `hasFSFOrOSIApprovedLicense`. An approved license is `PASS`; any other
+  license is `FAIL`.
+- OSPS-LE-02.02, the license for released assets is OSI or FSF approved:
+  `hasFSFOrOSIApprovedLicense`. A license that isn't approved is `FAIL`.
+  An approved one is `NEEDS_REVIEW`, because release assets aren't read.
+- OSPS-LE-03.01, the license is in a standard location: `hasLicenseFile`.
+  A top-level `LICENSE`, `LICENCE`, `LICENSES`, or `COPYING` file or
+  directory is `PASS`. Other files the probe accepts, such as `COPYRIGHT`,
+  are `NEEDS_REVIEW`. No license file is `FAIL`.
+- OSPS-LE-03.02, the license is included with released assets:
+  `hasLicenseFile`. A license file in the repository is `NEEDS_REVIEW`,
+  because release assets aren't read. No license file is `FAIL`.
+- OSPS-QA-05.01, no generated executables in version control:
+  `hasBinaryArtifacts` and `hasUnverifiedBinaryArtifacts`. No binaries is
+  `PASS` and any unverified binary is `FAIL`. Gradle wrapper JARs that a
+  workflow validates against Gradle's checksums are still generated
+  executables, so a repository whose only binaries are those is
+  `NEEDS_REVIEW`.
+- OSPS-QA-05.02, no unreviewable binaries in version control:
+  `hasUnverifiedBinaryArtifacts`. No binaries, or only validated Gradle
+  wrapper JARs, is `PASS`. Any other binary is `FAIL`.
+- OSPS-VM-02.01, security contacts are published:
+  `securityPolicyPresent` and `securityPolicyContainsLinks`. A security
+  policy is `NEEDS_REVIEW`, because the link check matches any URL or
+  email address. No policy is `FAIL`; the explanation lists where
+  Scorecard looked.
+
+A repository with no GitHub Actions workflows is `UNKNOWN` for
+OSPS-BR-01.01 and OSPS-BR-01.03: it may run CI/CD elsewhere.
 
 Every other requirement in the profile is listed as not evaluated.
 

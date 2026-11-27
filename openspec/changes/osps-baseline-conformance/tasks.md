@@ -65,7 +65,8 @@
   and register them in the v2026.08.28 release package.
 - [x] 6.3 Test each mapping's PASS, FAIL, NEEDS_REVIEW, and UNKNOWN
   paths that its rules define, including `NotApplicable` findings.
-- [ ] 6.4 Update the user docs and `docs/osps-baseline-coverage.md` to
+- [x] 6.4 Update the user docs and `docs/osps-baseline-coverage.md` to
   mark the nine requirements as evaluated by conformance mode.
-- [ ] 6.5 Regenerate the conformance and Gemara test fixtures, and run
-  conformance mode on ossf/scorecard to check the new results.
+- [x] 6.5 Confirm the conformance and Gemara test fixtures, which come
+  from a test-only release, need no change, and run conformance mode on
+  ossf/scorecard to check the new results.
