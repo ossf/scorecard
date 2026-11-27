@@ -67,6 +67,7 @@
   paths that its rules define, including `NotApplicable` findings.
 - [x] 6.4 Update the user docs and `docs/osps-baseline-coverage.md` to
   mark the nine requirements as evaluated by conformance mode.
-- [x] 6.5 Confirm the conformance and Gemara test fixtures, which come
-  from a test-only release, need no change, and run conformance mode on
-  ossf/scorecard to check the new results.
+- [x] 6.5 Update the `cmd` conformance tests, which run the published
+  release, for the new requirements. Confirm the conformance and Gemara
+  test fixtures, which come from a test-only release, need no change.
+  Run conformance mode on ossf/scorecard to check the new results.
