@@ -1,0 +1,139 @@
+name: links
+on:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "17 5 * * 1" # Mondays
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# lycheeverse/lychee-action passes `args` through `eval`, so `args` holds
+# only fixed text. File lists go through `--files-from`.
+jobs:
+  check:
+    name: check-links
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2 # the merge commit and its base, for git diff
+          persist-credentials: false
+      - name: List files to check
+        id: inputs
+        run: |
+          scripts/link-check-inputs.sh "$RUNNER_TEMP/all"
+          scripts/link-check-inputs.sh "$RUNNER_TEMP/changed" HEAD^1 HEAD
+          echo "changed=$(wc -l <"$RUNNER_TEMP/changed/files.txt" | tr -d ' ')" >>"$GITHUB_OUTPUT"
+      # Relative links and anchors in every file, without network access,
+      # so a renamed file or heading can't break links elsewhere.
+      - name: Check relative links in all files
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --offline --include-fragments
+            --root-dir ${{ github.workspace }}
+            --files-from ${{ runner.temp }}/all/offline.txt
+          output: ${{ runner.temp }}/all/report.md
+      # External links only in files the PR changes, so a site going down
+      # doesn't block unrelated PRs. The weekly sweep covers the rest.
+      - name: Check external links in changed files
+        if: steps.inputs.outputs.changed != '0'
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --root-dir ${{ github.workspace }}
+            --files-from ${{ runner.temp }}/changed/files.txt
+          failIfEmpty: false
+          output: ${{ runner.temp }}/changed/report.md
+
+  sweep:
+    name: sweep-links
+    if: github.event_name != 'pull_request' && github.repository == 'ossf/scorecard'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write # to open, update, and close the tracking issue
+    steps:
+      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: List files to check
+        run: scripts/link-check-inputs.sh "$RUNNER_TEMP/all"
+      - name: Check all links and anchors
+        id: lychee
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: >-
+            --include-fragments
+            --root-dir ${{ github.workspace }}
+            --files-from ${{ runner.temp }}/all/files.txt
+          # On main, failures go to the tracking issue instead. A manual
+          # run on another branch fails the job and leaves the issue alone.
+          fail: ${{ github.ref != 'refs/heads/main' }}
+          jobSummary: true
+          output: ${{ runner.temp }}/all/report.md
+      - name: Update the tracking issue
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXIT_CODE: ${{ steps.lychee.outputs.exit_code }}
+          REPORT: ${{ runner.temp }}/all/report.md
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Dead links in docs"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --author app/github-actions --search "in:title \"$title\"" \
+            --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+
+          case "$EXIT_CODE" in
+            0)
+              if [[ -n "$issue" ]]; then
+                gh issue close "$issue" --repo "$GITHUB_REPOSITORY" \
+                  --comment "All links pass as of $RUN_URL."
+              fi
+              ;;
+            2)
+              body="$RUNNER_TEMP/issue.md"
+              {
+                echo "The weekly link check found broken links or anchors."
+                echo "Fix them in the source file; see CONTRIBUTING.md#checking-links."
+                echo "A path under \`comments/\` holds the HTML comments of the file at"
+                echo "the same path in the repository, with the same line numbers."
+                echo "This issue updates each week and closes when the check passes."
+                echo
+                echo "Run: $RUN_URL"
+                echo
+                if [[ $(wc -c <"$REPORT") -le 60000 ]]; then
+                  cat "$REPORT"
+                else
+                  head -c 60000 "$REPORT" | sed '$d'
+                  echo
+                  echo "The report is truncated; see the run for the rest."
+                fi
+              } >"$body"
+              if [[ -n "$issue" ]]; then
+                gh issue edit "$issue" --repo "$GITHUB_REPOSITORY" --body-file "$body"
+              else
+                gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body"
+              fi
+              ;;
+            *)
+              echo "::error::lychee exited with $EXIT_CODE, not a link failure; see the previous step."
+              exit 1
+              ;;
+          esac

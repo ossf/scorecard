@@ -1,5 +1,29 @@
 # Proposal: OSPS Baseline Conformance for OpenSSF Scorecard
 
+## Amendment: first deliverable (November 2026)
+
+This amendment adds the specs, design, and tasks for a first deliverable:
+an experimental conformance mode that evaluates OSPS-AC-03.01 and
+OSPS-AC-03.02 from existing probes and writes Scorecard JSON or a Gemara
+Evaluation Log. See [`design.md`](design.md) and [`tasks.md`](tasks.md).
+
+Where the rest of this proposal disagrees with the amendment, the
+amendment wins:
+
+| Earlier statement | Now |
+| --- | --- |
+| Conformance is the defining change for Scorecard v6 | Ships as an additive, experimental v5 feature |
+| One run produces both check scores and conformance results | Deferred; conformance mode runs only the probes its mappings need |
+| Checks and OSPS Baseline share one framework abstraction; checks become a control catalog | No framework abstraction until a second catalog exists |
+| Mappings are a versioned data file | Mappings are Go code, one package per OSPS release, in `internal/conformance/` |
+| `security-baseline` is a data dependency for control definitions and Gemara types | No new module dependencies; the Gemara writer uses its own types |
+| Phase 1 delivers a full Level 1 report, in-toto evidence, OSCAL, new probes, and Action support | The first deliverable covers two requirements; the rest are follow-up changes |
+| Results are PASS, FAIL, UNKNOWN, or NOT_APPLICABLE | Adds NEEDS_REVIEW for evidence that needs judgment; unmapped requirements are listed as not evaluated |
+
+The implementation plan in
+[#4994](https://github.com/ossf/scorecard/pull/4994) is superseded by
+this amendment. `design.md` answers each review comment on that PR.
+
 ## Summary
 
 **Mission:** Scorecard produces trusted, structured security evidence for the

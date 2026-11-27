@@ -158,9 +158,10 @@ type jsonIssue struct {
 }
 
 type jsonRelease struct {
-	Tag    string             `json:"tag"`
-	URL    string             `json:"url"`
-	Assets []jsonReleaseAsset `json:"assets"`
+	Tag       string             `json:"tag"`
+	URL       string             `json:"url"`
+	Assets    []jsonReleaseAsset `json:"assets"`
+	Immutable bool               `json:"immutable"`
 	// TODO: add needed fields, e.g. Path.
 }
 
@@ -472,8 +473,9 @@ func (r *jsonScorecardRawResult) addSignedReleasesRawResults(sr *checker.SignedR
 	for i, release := range sr.Releases {
 		r.Results.Releases = append(r.Results.Releases,
 			jsonRelease{
-				Tag: release.TagName,
-				URL: release.URL,
+				Tag:       release.TagName,
+				URL:       release.URL,
+				Immutable: release.IsImmutable,
 			})
 		for _, asset := range release.Assets {
 			r.Results.Releases[i].Assets = append(r.Results.Releases[i].Assets,

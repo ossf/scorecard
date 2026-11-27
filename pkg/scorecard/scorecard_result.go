@@ -25,16 +25,11 @@ import (
 	"github.com/olekukonko/tablewriter/tw"
 
 	"github.com/ossf/scorecard/v5/checker"
-	"github.com/ossf/scorecard/v5/checks"
-	"github.com/ossf/scorecard/v5/checks/raw"
-	"github.com/ossf/scorecard/v5/checks/raw/github"
-	"github.com/ossf/scorecard/v5/checks/raw/gitlab"
-	"github.com/ossf/scorecard/v5/clients/githubrepo"
-	"github.com/ossf/scorecard/v5/clients/gitlabrepo"
 	"github.com/ossf/scorecard/v5/config"
 	docChecks "github.com/ossf/scorecard/v5/docs/checks"
 	sce "github.com/ossf/scorecard/v5/errors"
 	"github.com/ossf/scorecard/v5/finding"
+	"github.com/ossf/scorecard/v5/internal/checkdef"
 	proberegistration "github.com/ossf/scorecard/v5/internal/probes"
 	"github.com/ossf/scorecard/v5/log"
 	"github.com/ossf/scorecard/v5/options"
@@ -274,146 +269,6 @@ func (r *Result) AsString(writer io.Writer, checkDocs docChecks.Doc, opt *AsStri
 	return nil
 }
 
-//nolint:gocognit,gocyclo // nothing better to do right now
-func assignRawData(probeCheckName string, request *checker.CheckRequest, ret *Result) error {
-	switch probeCheckName {
-	case checks.CheckBinaryArtifacts:
-		rawData, err := raw.BinaryArtifacts(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.BinaryArtifactResults = rawData
-	case checks.CheckBranchProtection:
-		rawData, err := raw.BranchProtection(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.BranchProtectionResults = rawData
-	case checks.CheckCIIBestPractices:
-		rawData, err := raw.CIIBestPractices(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.CIIBestPracticesResults = rawData
-	case checks.CheckCITests:
-		rawData, err := raw.CITests(request.RepoClient)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.CITestResults = rawData
-	case checks.CheckCodeReview:
-		rawData, err := raw.CodeReview(request.RepoClient)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.CodeReviewResults = rawData
-	case checks.CheckContributors:
-		rawData, err := raw.Contributors(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.ContributorsResults = rawData
-	case checks.CheckDangerousWorkflow:
-		rawData, err := raw.DangerousWorkflow(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.DangerousWorkflowResults = rawData
-	case checks.CheckDependencyUpdateTool:
-		rawData, err := raw.DependencyUpdateTool(request.RepoClient)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.DependencyUpdateToolResults = rawData
-	case checks.CheckFuzzing:
-		rawData, err := raw.Fuzzing(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.FuzzingResults = rawData
-	case checks.CheckLicense:
-		rawData, err := raw.License(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.LicenseResults = rawData
-	case checks.CheckMaintained:
-		rawData, err := raw.Maintained(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.MaintainedResults = rawData
-	case checks.CheckPackaging:
-		switch request.RepoClient.(type) {
-		case *githubrepo.Client:
-			rawData, err := github.Packaging(request)
-			if err != nil {
-				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			}
-			ret.RawResults.PackagingResults = rawData
-		case *gitlabrepo.Client:
-			rawData, err := gitlab.Packaging(request)
-			if err != nil {
-				return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-			}
-			ret.RawResults.PackagingResults = rawData
-		default:
-			return sce.WithMessage(sce.ErrScorecardInternal, "Only github and gitlab are supported")
-		}
-	case checks.CheckPinnedDependencies:
-		rawData, err := raw.PinningDependencies(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.PinningDependenciesResults = rawData
-	case checks.CheckSAST:
-		rawData, err := raw.SAST(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.SASTResults = rawData
-	case checks.CheckSBOM:
-		rawData, err := raw.SBOM(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.SBOMResults = rawData
-	case checks.CheckSecurityPolicy:
-		rawData, err := raw.SecurityPolicy(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.SecurityPolicyResults = rawData
-	case checks.CheckSignedReleases:
-		rawData, err := raw.SignedReleases(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.SignedReleasesResults = rawData
-	case checks.CheckTokenPermissions:
-		rawData, err := raw.TokenPermissions(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.TokenPermissionsResults = rawData
-	case checks.CheckVulnerabilities:
-		rawData, err := raw.Vulnerabilities(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.VulnerabilitiesResults = rawData
-	case checks.CheckWebHooks:
-		rawData, err := raw.WebHook(request)
-		if err != nil {
-			return sce.WithMessage(sce.ErrScorecardInternal, err.Error())
-		}
-		ret.RawResults.WebhookResults = rawData
-	default:
-		return sce.WithMessage(sce.ErrScorecardInternal, "unknown check")
-	}
-	return nil
-}
-
 func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret *Result) error {
 	seen := map[string]bool{}
 	for _, probeName := range probesToRun {
@@ -423,9 +278,10 @@ func populateRawResults(request *checker.CheckRequest, probesToRun []string, ret
 		}
 		for _, checkName := range p.RequiredRawData {
 			if !seen[checkName] {
-				err := assignRawData(checkName, request, ret)
+				err := checkdef.CollectRawData(checkName, request, &ret.RawResults)
 				if err != nil {
-					return err
+					// CollectRawData returns the error text probe mode reports.
+					return fmt.Errorf("%w", err)
 				}
 				seen[checkName] = true
 			}

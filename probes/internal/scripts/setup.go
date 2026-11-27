@@ -64,13 +64,15 @@ const (
 	Probe = "%s"
 )
 
-// If your probe is associated with a Scorecard check, map it like so:
-// and create the entry in probes/entries.go
+// Register the probe so users can run it by name, then add Run to
+// probes/entries.go. If the probe reads raw data collected by a check,
+// name that check, and import "github.com/ossf/scorecard/v5/internal/probes"
+// and "github.com/ossf/scorecard/v5/internal/checknames":
 // func init() {
-// 	probes.MustRegister(Probe, Run, []probes.CheckName{probes.<ProbeName>})
+// 	probes.MustRegister(Probe, Run, []checknames.CheckName{checknames.<CheckName>})
 // }
-// If your probe isn't supposed to be part of a Scorecard check, you must
-// register it independently:
+// If the probe collects its own data instead, change Run to take a
+// *checker.CheckRequest and register it independently:
 // func init() {
 // 	probes.MustRegisterIndependent(Probe, Run)
 // }
@@ -120,6 +122,7 @@ package %s
 # limitations under the License.
 
 id: %s
+lifecycle: experimental # experimental, stable, or deprecated
 short: A short description of this probe
 motivation: >
   What is the motivation for this probe?
