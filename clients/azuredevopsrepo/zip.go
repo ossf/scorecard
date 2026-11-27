@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -89,6 +90,15 @@ func (z *zipHandler) getZipfile() error {
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
 	}
+	keepTempDir := false
+	defer func() {
+		if keepTempDir {
+			return
+		}
+		if rmErr := os.RemoveAll(tempDir); rmErr != nil && !os.IsNotExist(rmErr) {
+			log.Printf("unable to remove temp dir %s: %v", tempDir, rmErr)
+		}
+	}()
 	repoFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
 		return fmt.Errorf("%w io.Copy: %w", errZipNotFound, err)
@@ -148,6 +158,7 @@ func (z *zipHandler) getZipfile() error {
 		return fmt.Errorf("io.Copy: %w", err)
 	}
 
+	keepTempDir = true
 	z.tempDir = tempDir
 	z.tempZipFile = repoFile.Name()
 

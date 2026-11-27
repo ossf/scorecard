@@ -146,6 +146,15 @@ func (handler *tarballHandler) getTarball() error {
 	if err != nil {
 		return fmt.Errorf("os.MkdirTemp: %w", err)
 	}
+	keepTempDir := false
+	defer func() {
+		if keepTempDir {
+			return
+		}
+		if rmErr := os.RemoveAll(tempDir); rmErr != nil && !os.IsNotExist(rmErr) {
+			log.Printf("unable to remove temp dir %s: %v", tempDir, rmErr)
+		}
+	}()
 	repoFile, err := os.CreateTemp(tempDir, repoFilename)
 	if err != nil {
 		return fmt.Errorf("os.CreateTemp: %w", err)
@@ -156,6 +165,7 @@ func (handler *tarballHandler) getTarball() error {
 		return fmt.Errorf("%w io.Copy: %w", errTarballNotFound, err)
 	}
 
+	keepTempDir = true
 	handler.tempDir = tempDir
 	handler.tempTarFile = repoFile.Name()
 	return nil

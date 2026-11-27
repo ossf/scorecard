@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -240,5 +241,49 @@ func Test_setup_empty_repo(t *testing.T) {
 				t.Errorf("wanted log: %t, log: %q", tt.wantLog, buf.String())
 			}
 		})
+	}
+}
+
+func TestGetTarballCleanupOnError(t *testing.T) {
+	tmpRoot := filepath.Join(t.TempDir(), "tmp")
+	if err := os.MkdirAll(tmpRoot, 0o750); err != nil {
+		t.Fatalf("os.MkdirAll: %v", err)
+	}
+	t.Setenv("TMPDIR", tmpRoot)
+	t.Setenv("TEMP", tmpRoot)
+	t.Setenv("TMP", tmpRoot)
+
+	// Advertise more bytes than the server sends so io.Copy fails mid-transfer.
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", "1000")
+		w.WriteHeader(http.StatusOK)
+		if _, err := io.WriteString(w, "1234567890"); err != nil {
+			t.Errorf("io.WriteString: %v", err)
+		}
+	}))
+	t.Cleanup(ts.Close)
+
+	archiveURL := ts.URL + "/{archive_format}"
+	repoName := "foo"
+	handler := tarballHandler{
+		httpClient: ts.Client(),
+	}
+	handler.init(t.Context(), &github.Repository{
+		Name:       &repoName,
+		ArchiveURL: &archiveURL,
+	}, clients.HeadSHA)
+
+	if err := handler.getTarball(); !errors.Is(err, errTarballNotFound) {
+		t.Fatalf("getTarball() error = %v, want %v", err, errTarballNotFound)
+	}
+	if handler.tempDir != "" {
+		t.Errorf("handler.tempDir = %q, want empty", handler.tempDir)
+	}
+	entries, err := os.ReadDir(tmpRoot)
+	if err != nil {
+		t.Fatalf("os.ReadDir: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Errorf("expected empty temp dir after failed download, found %d entries", len(entries))
 	}
 }
