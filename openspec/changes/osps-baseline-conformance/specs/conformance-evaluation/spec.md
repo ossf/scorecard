@@ -297,6 +297,257 @@ confirmation, and no probe observes whether the platform asks for it.
 - **WHEN** OSPS-AC-03.02 is evaluated
 - **THEN** its result is `UNKNOWN`
 
+### Requirement: Proxy Evidence
+
+A mapping SHALL give `PASS` only when its probes observe what the
+requirement names. When a probe observes something narrower, such as
+the default branch for a requirement about released assets, or known
+patterns for a requirement about all input, a finding that shows no
+problem SHALL give `NEEDS_REVIEW`, and the explanation SHALL say what
+was read. A finding that shows the requirement is not met SHALL still
+give `FAIL`.
+
+#### Scenario: Narrower observation finds no problem
+
+- **GIVEN** `hasFSFOrOSIApprovedLicense` reports `True`
+- **WHEN** OSPS-LE-02.02 (license of the released assets) is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+- **AND** the explanation says the license was read from the default
+  branch, not from the released assets
+
+#### Scenario: Narrower observation finds a problem
+
+- **GIVEN** `hasFSFOrOSIApprovedLicense` reports `False`
+- **WHEN** OSPS-LE-02.02 is evaluated
+- **THEN** its result is `FAIL`
+
+### Requirement: OSPS-BR-01.01 Evaluation
+
+The system SHALL evaluate OSPS-BR-01.01 (untrusted metadata is
+sanitized and validated before use in a CI/CD pipeline) from
+`hasDangerousWorkflowScriptInjection`:
+
+- `FAIL` when any finding is `True`.
+- `NEEDS_REVIEW` when the finding is `False`: only known
+  script-injection patterns in GitHub Actions workflows are read.
+- `UNKNOWN` otherwise, including `NotApplicable` when the repository has
+  no GitHub Actions workflows, since it may run CI elsewhere.
+
+#### Scenario: Script injection found
+
+- **GIVEN** `hasDangerousWorkflowScriptInjection` reports `True` for a
+  workflow step
+- **WHEN** OSPS-BR-01.01 is evaluated
+- **THEN** its result is `FAIL`
+
+#### Scenario: No known pattern found
+
+- **GIVEN** `hasDangerousWorkflowScriptInjection` reports `False`
+- **WHEN** OSPS-BR-01.01 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+#### Scenario: No workflows
+
+- **GIVEN** `hasDangerousWorkflowScriptInjection` reports
+  `NotApplicable` because the repository has no workflows
+- **WHEN** OSPS-BR-01.01 is evaluated
+- **THEN** its result is `UNKNOWN`
+
+### Requirement: OSPS-BR-01.03 Evaluation
+
+The system SHALL evaluate OSPS-BR-01.03 (a pipeline that operates on
+untrusted code snapshots prevents access to privileged credentials and
+assets) from `hasDangerousWorkflowUntrustedCheckout`:
+
+- `FAIL` when any finding is `True`.
+- `NEEDS_REVIEW` when the finding is `False`: only two trigger patterns
+  are read.
+- `UNKNOWN` otherwise, including `NotApplicable` (no workflows).
+
+#### Scenario: Untrusted checkout found
+
+- **GIVEN** `hasDangerousWorkflowUntrustedCheckout` reports `True` for a
+  workflow step
+- **WHEN** OSPS-BR-01.03 is evaluated
+- **THEN** its result is `FAIL`
+- **AND** the explanation says that `if:` conditions and job permissions
+  were not read
+
+#### Scenario: No untrusted checkout found
+
+- **GIVEN** `hasDangerousWorkflowUntrustedCheckout` reports `False`
+- **WHEN** OSPS-BR-01.03 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+### Requirement: OSPS-LE-02.01 Evaluation
+
+The system SHALL evaluate OSPS-LE-02.01 (the source code license meets
+the OSI or FSF definition) from `hasFSFOrOSIApprovedLicense`:
+
+- `PASS` when the finding is `True`.
+- `FAIL` when the finding is `False`.
+- `UNKNOWN` otherwise, including `NotApplicable` when no license file is
+  found; OSPS-LE-03.01 reports the missing file.
+
+#### Scenario: Approved license
+
+- **GIVEN** `hasFSFOrOSIApprovedLicense` reports `True`
+- **WHEN** OSPS-LE-02.01 is evaluated
+- **THEN** its result is `PASS`
+
+#### Scenario: License file missing
+
+- **GIVEN** `hasFSFOrOSIApprovedLicense` reports `NotApplicable`
+- **WHEN** OSPS-LE-02.01 is evaluated
+- **THEN** its result is `UNKNOWN`
+
+### Requirement: OSPS-LE-02.02 Evaluation
+
+The system SHALL evaluate OSPS-LE-02.02 (the license of the released
+software assets meets the OSI or FSF definition) from
+`hasFSFOrOSIApprovedLicense`:
+
+- `FAIL` when the finding is `False`.
+- `NEEDS_REVIEW` when the finding is `True`: the license was read from
+  the default branch, not from the released assets.
+- `UNKNOWN` otherwise.
+
+#### Scenario: Approved license on the default branch
+
+- **GIVEN** `hasFSFOrOSIApprovedLicense` reports `True`
+- **WHEN** OSPS-LE-02.02 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+### Requirement: OSPS-LE-03.01 Evaluation
+
+The system SHALL evaluate OSPS-LE-03.01 (the source code license is in
+the repository's LICENSE file, COPYING file, LICENSES/ directory, or
+LICENSE/ directory) from `hasLicenseFile`:
+
+- `PASS` when a `True` finding names a LICENSE, LICENCE, LICENSES, or
+  COPYING file or directory.
+- `NEEDS_REVIEW` when the `True` findings name only other files, such
+  as PATENTS or COPYRIGHT.
+- `FAIL` when the finding is `False`.
+- `UNKNOWN` otherwise.
+
+#### Scenario: LICENSE file
+
+- **GIVEN** `hasLicenseFile` reports `True` for `LICENSE`
+- **WHEN** OSPS-LE-03.01 is evaluated
+- **THEN** its result is `PASS`
+
+#### Scenario: Only a COPYRIGHT file
+
+- **GIVEN** `hasLicenseFile` reports `True` only for `COPYRIGHT`
+- **WHEN** OSPS-LE-03.01 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+#### Scenario: No license file
+
+- **GIVEN** `hasLicenseFile` reports `False`
+- **WHEN** OSPS-LE-03.01 is evaluated
+- **THEN** its result is `FAIL`
+
+### Requirement: OSPS-LE-03.02 Evaluation
+
+The system SHALL evaluate OSPS-LE-03.02 (the license is included in the
+released source code or alongside the release assets) from
+`hasLicenseFile`:
+
+- `FAIL` when the finding is `False`.
+- `NEEDS_REVIEW` when any finding is `True`: the default branch was
+  read, not the released source code or the assets.
+- `UNKNOWN` otherwise.
+
+#### Scenario: License file on the default branch
+
+- **GIVEN** `hasLicenseFile` reports `True`
+- **WHEN** OSPS-LE-03.02 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+### Requirement: OSPS-QA-05.01 Evaluation
+
+The system SHALL evaluate OSPS-QA-05.01 (the version control system
+contains no generated executable artifacts) from `hasBinaryArtifacts`
+and `hasUnverifiedBinaryArtifacts`:
+
+- `PASS` when `hasBinaryArtifacts` is `False`.
+- `FAIL` when any `hasUnverifiedBinaryArtifacts` finding is `True`.
+- `NEEDS_REVIEW` when `hasBinaryArtifacts` is `True` and
+  `hasUnverifiedBinaryArtifacts` is `False`, so the only binaries are
+  verified Gradle wrappers.
+- `UNKNOWN` otherwise.
+
+#### Scenario: No binaries
+
+- **GIVEN** `hasBinaryArtifacts` reports `False`
+- **WHEN** OSPS-QA-05.01 is evaluated
+- **THEN** its result is `PASS`
+
+#### Scenario: Unverified binary
+
+- **GIVEN** `hasUnverifiedBinaryArtifacts` reports `True` for a file
+- **WHEN** OSPS-QA-05.01 is evaluated
+- **THEN** its result is `FAIL`
+
+#### Scenario: Only verified Gradle wrappers
+
+- **GIVEN** `hasBinaryArtifacts` reports `True` and
+  `hasUnverifiedBinaryArtifacts` reports `False`
+- **WHEN** OSPS-QA-05.01 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+
+### Requirement: OSPS-QA-05.02 Evaluation
+
+The system SHALL evaluate OSPS-QA-05.02 (the version control system
+contains no unreviewable binary artifacts) from
+`hasUnverifiedBinaryArtifacts`, recording `hasBinaryArtifacts` findings
+as evidence:
+
+- `PASS` when `hasUnverifiedBinaryArtifacts` is `False`. Verified Gradle
+  wrappers can be checked against a published checksum, so they count
+  as reviewable.
+- `FAIL` when any `hasUnverifiedBinaryArtifacts` finding is `True`.
+- `UNKNOWN` otherwise.
+
+#### Scenario: No unverified binaries
+
+- **GIVEN** `hasUnverifiedBinaryArtifacts` reports `False`
+- **WHEN** OSPS-QA-05.02 is evaluated
+- **THEN** its result is `PASS`
+
+#### Scenario: Unreviewable binary
+
+- **GIVEN** `hasUnverifiedBinaryArtifacts` reports `True` for a file
+- **WHEN** OSPS-QA-05.02 is evaluated
+- **THEN** its result is `FAIL`
+
+### Requirement: OSPS-VM-02.01 Evaluation
+
+The system SHALL evaluate OSPS-VM-02.01 (the project documentation
+contains security contacts) from `securityPolicyPresent` and
+`securityPolicyContainsLinks`:
+
+- `FAIL` when `securityPolicyPresent` is `False`.
+- `NEEDS_REVIEW` when `securityPolicyPresent` is `True`.
+- `UNKNOWN` otherwise.
+
+#### Scenario: No security policy
+
+- **GIVEN** `securityPolicyPresent` reports `False`
+- **WHEN** OSPS-VM-02.01 is evaluated
+- **THEN** its result is `FAIL`
+- **AND** the explanation lists the locations the probe searched
+
+#### Scenario: Security policy found
+
+- **GIVEN** `securityPolicyPresent` reports `True`
+- **WHEN** OSPS-VM-02.01 is evaluated
+- **THEN** its result is `NEEDS_REVIEW`
+- **AND** the `securityPolicyContainsLinks` findings are recorded as
+  evidence, since a link is not always a contact
+
 ### Requirement: Experimental Status
 
 While conformance mode is experimental, the system SHALL label
