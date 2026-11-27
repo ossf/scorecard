@@ -2894,6 +2894,39 @@ func TestPinningDependenciesData_GetDependenciesByType(t *testing.T) {
 	}
 }
 
+func TestProcessDirectoryPropsFileKeepsSearchingUntilCPMIsEnabled(t *testing.T) {
+	t.Parallel()
+	// Directory.Build.props (no CPM) is listed before Directory.Packages.props in a repository.
+	files := []struct {
+		filename         string
+		expectedContinue bool
+	}{
+		{filename: "./testdata/Directory.Undeclared.packages.props", expectedContinue: true},
+		{filename: "./testdata/Directory.Pinned.packages.props", expectedContinue: false},
+	}
+	var nugetPostProcessData nugetPostProcessData
+	dl := scut.TestDetailLogger{}
+	for _, f := range files {
+		content, err := os.ReadFile(f.filename)
+		if err != nil {
+			t.Fatalf("cannot read file: %v", err)
+		}
+		cont, err := processDirectoryPropsFile(f.filename, content, &nugetPostProcessData, dl)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cont != f.expectedContinue {
+			t.Errorf("%s: expected continue=%t, got %t", f.filename, f.expectedContinue, cont)
+		}
+	}
+	if !nugetPostProcessData.CpmConfig.IsCPMEnabled {
+		t.Fatalf("expected central package management to be detected from the second file")
+	}
+	if len(nugetPostProcessData.CpmConfig.PackageVersions) != 1 || !nugetPostProcessData.CpmConfig.PackageVersions[0].IsFixed {
+		t.Errorf("expected one pinned package version, got %v", nugetPostProcessData.CpmConfig.PackageVersions)
+	}
+}
+
 func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
