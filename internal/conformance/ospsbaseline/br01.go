@@ -43,7 +43,8 @@ func BR0101Mapping() conformance.Mapping {
 		Requirement:  BR0101,
 		ControlTitle: br01Title,
 		Description: "Checks GitHub Actions workflows for known script-injection patterns. " +
-			"Finding none does not show that all untrusted metadata is sanitized.",
+			"CI/CD defined elsewhere is not read, and finding no pattern does not show that " +
+			"all untrusted metadata is sanitized.",
 		Probes: []string{hasDangerousWorkflowScriptInjection.Probe},
 		Steps: []string{
 			"Read the hasDangerousWorkflowScriptInjection findings.",
@@ -83,9 +84,8 @@ func evaluateBR0101(in conformance.Input) conformance.Outcome {
 	case onlyOutcome(fs, finding.OutcomeFalse):
 		return conformance.Outcome{
 			Result: conformance.NeedsReview,
-			Explanation: "No known script-injection pattern was found in GitHub Actions workflows. " +
-				"Only known patterns in GitHub Actions workflows were read, so other uses of " +
-				"untrusted metadata need review.",
+			Explanation: "No known script-injection pattern was found in the workflows. Only " +
+				"known patterns were read, so other uses of untrusted metadata need review.",
 			Evidence: fs,
 		}
 	case onlyOutcome(fs, finding.OutcomeNotApplicable):
@@ -124,12 +124,12 @@ func evaluateBR0103(in conformance.Input) conformance.Outcome {
 }
 
 // noWorkflows returns Unknown for a repository with no GitHub Actions
-// workflows: it may run CI elsewhere.
+// workflows: it may run CI/CD on another system.
 func noWorkflows(fs []finding.Finding) conformance.Outcome {
 	return conformance.Outcome{
 		Result: conformance.Unknown,
-		Explanation: "The repository has no GitHub Actions workflows. It may run CI/CD " +
-			"elsewhere, which Scorecard does not read.",
+		Explanation: "No workflows were found in .github/workflows. CI/CD defined elsewhere, " +
+			"such as GitLab CI or Azure Pipelines, is not read.",
 		Evidence: fs,
 	}
 }

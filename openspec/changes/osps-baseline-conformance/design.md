@@ -145,7 +145,7 @@ stay not evaluated. Full Level 1 coverage is still a non-goal.
 
 | Requirement | Probes | What limits the result |
 | --- | --- | --- |
-| OSPS-BR-01.01 | `hasDangerousWorkflowScriptInjection` | Known injection patterns in GitHub Actions only, so no finding is NEEDS_REVIEW |
+| OSPS-BR-01.01 | `hasDangerousWorkflowScriptInjection` | Known injection patterns only, so no finding is NEEDS_REVIEW |
 | OSPS-BR-01.03 | `hasDangerousWorkflowUntrustedCheckout` | Two trigger patterns only; guards and job permissions aren't read |
 | OSPS-LE-02.01 | `hasFSFOrOSIApprovedLicense` | None |
 | OSPS-LE-02.02 | `hasFSFOrOSIApprovedLicense` | Read from the default branch, not the release |
@@ -164,9 +164,10 @@ would take it as met.
 
 Choices within that rule:
 
-- **No workflows.** The two workflow probes report `NotApplicable` when
-  a repository has no GitHub Actions workflows. BR-01.01 and BR-01.03
-  are UNKNOWN then, since the project may run CI elsewhere.
+- **No workflows.** The two workflow probes read only GitHub Actions
+  workflows and report `NotApplicable` when a repository has none.
+  BR-01.01 and BR-01.03 are UNKNOWN then, since the project may run
+  CI/CD on another system, such as GitLab CI or Azure Pipelines.
 - **Guarded checkouts.** BR-01.03 fails on any untrusted checkout the
   probe reports, including one behind a label condition. With no
   finding already NEEDS_REVIEW, NEEDS_REVIEW here would mean BR-01.03

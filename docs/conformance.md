@@ -57,7 +57,7 @@ branch's probe findings:
   platform asks for confirmation.
 - OSPS-BR-01.01, untrusted input to CI/CD pipelines is sanitized:
   `hasDangerousWorkflowScriptInjection`. A known script-injection pattern
-  in a GitHub Actions workflow is `FAIL`. Finding none is `NEEDS_REVIEW`,
+  in a workflow is `FAIL`. Finding none is `NEEDS_REVIEW`,
   because only known patterns are detected.
 - OSPS-BR-01.03, untrusted code can't reach privileged credentials:
   `hasDangerousWorkflowUntrustedCheckout`. A `pull_request_target` or
@@ -92,8 +92,9 @@ branch's probe findings:
   email address. No policy is `FAIL`; the explanation lists where
   Scorecard looked.
 
-A repository with no GitHub Actions workflows is `UNKNOWN` for
-OSPS-BR-01.01 and OSPS-BR-01.03: it may run CI/CD elsewhere.
+OSPS-BR-01.01 and OSPS-BR-01.03 read only GitHub Actions workflows. A
+repository without them is `UNKNOWN` for both: it may run CI/CD on
+another system, such as GitLab CI or Azure Pipelines.
 
 Every other requirement in the profile is listed as not evaluated.
 

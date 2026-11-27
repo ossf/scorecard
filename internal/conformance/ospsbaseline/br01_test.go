@@ -53,7 +53,7 @@ func TestBR0101(t *testing.T) {
 			name:         "no workflows",
 			findings:     []finding.Finding{repoFinding(injection, finding.OutcomeNotApplicable)},
 			want:         conformance.Unknown,
-			wantText:     "no GitHub Actions workflows",
+			wantText:     "No workflows were found in .github/workflows",
 			wantEvidence: 1,
 		},
 		{
@@ -101,7 +101,7 @@ func TestBR0103(t *testing.T) {
 			name:         "no workflows",
 			findings:     []finding.Finding{repoFinding(checkout, finding.OutcomeNotApplicable)},
 			want:         conformance.Unknown,
-			wantText:     "no GitHub Actions workflows",
+			wantText:     "No workflows were found in .github/workflows",
 			wantEvidence: 1,
 		},
 		{

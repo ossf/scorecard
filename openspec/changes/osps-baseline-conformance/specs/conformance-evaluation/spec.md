@@ -329,9 +329,9 @@ sanitized and validated before use in a CI/CD pipeline) from
 
 - `FAIL` when any finding is `True`.
 - `NEEDS_REVIEW` when the finding is `False`: only known
-  script-injection patterns in GitHub Actions workflows are read.
+  script-injection patterns are read.
 - `UNKNOWN` otherwise, including `NotApplicable` when the repository has
-  no GitHub Actions workflows, since it may run CI elsewhere.
+  no GitHub Actions workflows, since it may run CI/CD on another system.
 
 #### Scenario: Script injection found
 

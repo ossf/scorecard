@@ -41,7 +41,7 @@ func QA0501Mapping() conformance.Mapping {
 	return conformance.Mapping{
 		Requirement:  QA0501,
 		ControlTitle: qa05Title,
-		Description: "Checks the repository for binary files. Scorecard does not separate " +
+		Description: "Checks the repository for binary files. The probes do not separate " +
 			"generated executables from other binaries, so any unverified binary counts. " +
 			"Validated Gradle wrappers are generated executables and need review.",
 		Probes: []string{hasBinaryArtifacts.Probe, hasUnverifiedBinaryArtifacts.Probe},

@@ -120,7 +120,7 @@ func evaluateLE0201(in conformance.Input) conformance.Outcome {
 	case anyOutcome(fs, finding.OutcomeFalse):
 		return conformance.Outcome{
 			Result:      conformance.Fail,
-			Explanation: "The repository's license is not one Scorecard recognizes as OSI or FSF approved.",
+			Explanation: "The repository's license did not match an OSI or FSF approved license.",
 			Evidence:    fs,
 		}
 	case onlyOutcome(fs, finding.OutcomeNotApplicable):
@@ -137,8 +137,8 @@ func evaluateLE0202(in conformance.Input) conformance.Outcome {
 	case anyOutcome(fs, finding.OutcomeFalse):
 		return conformance.Outcome{
 			Result: conformance.Fail,
-			Explanation: "The repository's license, read from the default branch, is not one " +
-				"Scorecard recognizes as OSI or FSF approved.",
+			Explanation: "The repository's license, read from the default branch, did not " +
+				"match an OSI or FSF approved license.",
 			Evidence: fs,
 		}
 	case onlyOutcome(fs, finding.OutcomeTrue):

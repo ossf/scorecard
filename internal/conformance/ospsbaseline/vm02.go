@@ -33,8 +33,8 @@ const (
 
 	// policyLocations is where the security policy probe looks.
 	policyLocations = "SECURITY.md, .markdown, .adoc, or .rst at the repository root, in .github/, " +
-		"or in docs/ (and doc/SECURITY.rst), then, where the platform supports it, in the " +
-		"organization's .github repository"
+		"or in docs/ (and doc/SECURITY.rst), then, on GitHub, in the organization's " +
+		".github repository"
 )
 
 // VM0201Mapping evaluates whether the project publishes a security policy
@@ -74,7 +74,7 @@ func evaluateVM0201(in conformance.Input) conformance.Outcome {
 	case onlyOutcome(present, finding.OutcomeFalse):
 		return conformance.Outcome{
 			Result:      conformance.Fail,
-			Explanation: "No security policy was found. Scorecard looked for " + policyLocations + ".",
+			Explanation: "No security policy was found. Locations checked: " + policyLocations + ".",
 			Evidence:    evidence,
 		}
 	default:
