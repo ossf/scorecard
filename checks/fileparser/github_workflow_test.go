@@ -891,12 +891,98 @@ func Test_stepsMatch(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "run excluded on the matching line",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Run:        "foo",
+					RunExclude: "--dry",
+				},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{
+						Run: &ghworkflow.String{
+							Value: "foo --dry",
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "run matched on a line without the exclusion",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Run:        "foo",
+					RunExclude: "--dry",
+				},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{
+						Run: &ghworkflow.String{
+							Value: "foo --dry\nfoo",
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "run excluded on a continued line",
+			args: args{
+				stepToMatch: &JobMatcherStep{
+					Run:        "foo",
+					RunExclude: "--dry",
+				},
+				step: &ghworkflow.Step{
+					Exec: &ghworkflow.ExecRun{
+						Run: &ghworkflow.String{
+							Value: "foo \\\n  --dry",
+						},
+					},
+				},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			if got := stepsMatch(tt.args.stepToMatch, tt.args.step); got != tt.want {
 				t.Errorf("stepsMatch() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_runMatches(t *testing.T) {
+	t.Parallel()
+	step := &JobMatcherStep{Run: goReleaserRun, RunExclude: goReleaserRunExclude}
+	tests := []struct {
+		name string
+		run  string
+		want bool
+	}{
+		{name: "plain release", run: "goreleaser release --clean", want: true},
+		{name: "through mise", run: "mise exec -- goreleaser release --clean", want: true},
+		{name: "through go tool", run: "go tool goreleaser release", want: true},
+		{name: "through go run", run: "go run github.com/goreleaser/goreleaser/v2@v2.12.0 release --clean", want: true},
+		{name: "relative path", run: "./bin/goreleaser release", want: true},
+		{name: "docker image", run: "docker run --rm goreleaser/goreleaser release", want: true},
+		{name: "auto snapshot", run: "goreleaser release --auto-snapshot", want: true},
+		{name: "install", run: "go install github.com/goreleaser/goreleaser/v2@latest", want: false},
+		{name: "config file", run: "cp .goreleaser.yml release/", want: false},
+		{name: "check", run: "goreleaser check", want: false},
+		{name: "version", run: "goreleaser --version", want: false},
+		{name: "snapshot", run: "goreleaser release --snapshot --clean", want: false},
+		{name: "skip publish with equals", run: "goreleaser release --skip=publish", want: false},
+		{name: "skip publish with space", run: "goreleaser release --skip publish", want: false},
+		{name: "skip publish in a list", run: "goreleaser release --skip=validate,publish", want: false},
+		{name: "skip publish v1", run: "goreleaser release --skip-publish", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := runMatches(step, tt.run); got != tt.want {
+				t.Errorf("runMatches(%q) = %v, want %v", tt.run, got, tt.want)
 			}
 		})
 	}
@@ -984,6 +1070,16 @@ func TestIsPackagingWorkflow(t *testing.T) {
 			name:     "go publish",
 			filename: "../testdata/.github/workflows/github-workflow-packaging-go.yaml",
 			expected: true,
+		},
+		{
+			name:     "goreleaser run publish",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-goreleaser-run.yaml",
+			expected: true,
+		},
+		{
+			name:     "goreleaser run snapshot",
+			filename: "../testdata/.github/workflows/github-workflow-packaging-goreleaser-run-snapshot.yaml",
+			expected: false,
 		},
 		{
 			name:     "cargo publish",

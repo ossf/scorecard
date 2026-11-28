@@ -470,7 +470,8 @@ package, recognized by: `actions/setup-node` with the npm registry URL plus
 an `npm publish` step; `actions/setup-java` plus `mvn deploy` or
 `gradle publish`; `sbt ci-release`; `gem push`; `nuget push`;
 `docker push` or `docker/build-push-action`; `pypa/gh-action-pypi-publish`;
-`relekang/python-semantic-release`; `goreleaser/goreleaser-action`;
+`relekang/python-semantic-release`; `goreleaser/goreleaser-action`, or
+`goreleaser release` without `--snapshot` or a skipped publish;
 `cargo publish`; `imjasonh/setup-ko` or `ko-build/setup-ko`;
 `npx semantic-release`; or `erlef/setup-elixir` plus `hex.publish`. A
 matching workflow SHALL count as packaging only when it has a successful

@@ -340,9 +340,18 @@ type JobMatcherStep struct {
 	Uses string
 	// If set, the step's 'With' have the keys and values that are in this field.
 	With map[string]string
-	// If set, the step's 'Run' must match this field. Does a regex match using this field.
+	// If set, a line of the step's 'Run' must match this field. Does a regex match using this field.
 	Run string
+	// If set, the line that matches 'Run' must not match this field.
+	RunExclude string
 }
+
+// goReleaserRun matches "goreleaser release" however GoReleaser was installed.
+// Unlike "goreleaser.*release", it does not match "go install github.com/goreleaser/goreleaser/v2".
+const goReleaserRun = `\bgoreleaser(/v\d+)?(@\S*)?\s+release\b`
+
+// goReleaserRunExclude matches GoReleaser flags that skip publishing.
+const goReleaserRunExclude = `--snapshot\b|--skip-publish\b|--skip[=\s]+\S*\bpublish\b`
 
 // JobMatchResult represents the result of a match.
 type JobMatchResult struct {
@@ -441,13 +450,28 @@ func stepsMatch(stepToMatch *JobMatcherStep, step *ghworkflow.Step) bool {
 			return false
 		}
 		withoutLineContinuations := regexp.MustCompile("\\\\(\n|\r|\r\n)").ReplaceAllString(run.Value, "")
-		r := regexp.MustCompile(stepToMatch.Run)
-		if !r.MatchString(withoutLineContinuations) {
+		if !runMatches(stepToMatch, withoutLineContinuations) {
 			return false
 		}
 	}
 
 	return true
+}
+
+// runMatches returns true if a line of 'run' matches 'Run' but not 'RunExclude',
+// so that an excluded command does not hide a matching one on another line.
+func runMatches(stepToMatch *JobMatcherStep, run string) bool {
+	match := regexp.MustCompile(stepToMatch.Run)
+	var exclude *regexp.Regexp
+	if stepToMatch.RunExclude != "" {
+		exclude = regexp.MustCompile(stepToMatch.RunExclude)
+	}
+	for line := range strings.SplitSeq(run, "\n") {
+		if match.MatchString(line) && (exclude == nil || !exclude.MatchString(line)) {
+			return true
+		}
+	}
+	return false
 }
 
 // IsPackagingWorkflow checks for a packaging workflow.
@@ -562,6 +586,16 @@ func IsPackagingWorkflow(workflow *ghworkflow.Workflow, fp string) (JobMatchResu
 				},
 			},
 			LogText: "candidate golang publishing workflow",
+		},
+		{
+			// Go packages.
+			Steps: []*JobMatcherStep{
+				{
+					Run:        goReleaserRun,
+					RunExclude: goReleaserRunExclude,
+				},
+			},
+			LogText: "candidate golang publishing workflow using goreleaser",
 		},
 		{
 			// Rust packages. https://doc.rust-lang.org/cargo/reference/publishing.html
