@@ -182,6 +182,32 @@ func Test_findGitRepositoryInPYPIResponse(t *testing.T) {
 			wantErrStr: "could not find source repo for pypi package: somePackage",
 		},
 		{
+			name: "findGitRepositoryInPYPIResponse_no_project_urls",
+			partialPYPIResponse: `
+ {
+  "info": {
+    "platform": "UNKNOWN"
+  }
+}
+`,
+			want:       "",
+			wantErrStr: "could not find source repo for pypi package: somePackage",
+		},
+		{
+			name: "findGitRepositoryInPYPIResponse_null_project_urls",
+			partialPYPIResponse: `
+ {
+  "info": {
+    "platform": "UNKNOWN",
+    "project_url": "https://github.com/htaslan/color/",
+    "project_urls": null
+  }
+}
+`,
+			want:       "https://github.com/htaslan/color",
+			wantErrStr: "",
+		},
+		{
 			name: "findGitRepositoryInPYPIResponse_project_url",
 			partialPYPIResponse: `
  {
