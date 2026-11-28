@@ -16,10 +16,13 @@
 package packagemanager
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ossf/scorecard/v5/clients/githubrepo/roundtripper/tokens"
 )
 
 func Test_GetURI_calls_client_get_with_input(t *testing.T) {
@@ -121,6 +124,104 @@ func Test_Get_calls_client_get_with_input(t *testing.T) {
 			}
 			if string(body) != tt.wantResponse {
 				t.Errorf("GetURI() = %v, want %v", got, tt.wantResponse)
+			}
+		})
+	}
+}
+
+func TestGetRemoteURLTokenOnlyForGitHubAPI(t *testing.T) {
+	t.Setenv("GITHUB_AUTH_TOKEN", "secret")
+	var got string
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		got = r.Header.Get("Authorization")
+	}))
+	defer srv.Close()
+	// URL contains the string "api.github.com" but the host is not GitHub.
+	resp, err := (&PackageManagerClient{}).getRemoteURL(srv.URL + "/?x=api.github.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if got != "" {
+		t.Errorf("token leaked to non-GitHub host: %q", got)
+	}
+}
+
+type fakeAccessor struct {
+	token    string
+	released []uint64
+}
+
+func (a *fakeAccessor) Next() (uint64, string) { return 7, a.token }
+func (a *fakeAccessor) Release(id uint64)      { a.released = append(a.released, id) }
+
+type recordingTransport struct {
+	req *http.Request
+}
+
+func (r *recordingTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	r.req = req
+	return &http.Response{StatusCode: http.StatusOK, Body: http.NoBody, Request: req}, nil
+}
+
+func TestGitHubAuthTransport(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		url         string
+		accessor    tokens.TokenAccessor
+		wantAuth    string
+		wantRelease bool
+	}{
+		{
+			name:        "GitHub API over https gets the token",
+			url:         "https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/g/Git/Git",
+			accessor:    &fakeAccessor{token: "secret"},
+			wantAuth:    "Bearer secret",
+			wantRelease: true,
+		},
+		{
+			name:     "other host gets no token",
+			url:      "https://raw.githubusercontent.com/microsoft/winget-pkgs/master/manifests/g/Git/Git",
+			accessor: &fakeAccessor{token: "secret"},
+		},
+		{
+			name:     "plain http to the GitHub API gets no token",
+			url:      "http://api.github.com/repos",
+			accessor: &fakeAccessor{token: "secret"},
+		},
+		{
+			name: "no tokens configured",
+			url:  "https://api.github.com/repos",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			base := &recordingTransport{}
+			transport := githubAuthTransport{
+				base:      base,
+				getTokens: func() tokens.TokenAccessor { return tt.accessor },
+			}
+			req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, tt.url, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp, err := transport.RoundTrip(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp.Body.Close()
+			if got := base.req.Header.Get("Authorization"); got != tt.wantAuth {
+				t.Errorf("Authorization = %q, want %q", got, tt.wantAuth)
+			}
+			if got := req.Header.Get("Authorization"); got != "" {
+				t.Errorf("caller's request was modified: Authorization = %q", got)
+			}
+			if fa, ok := tt.accessor.(*fakeAccessor); ok {
+				if released := len(fa.released) == 1 && fa.released[0] == 7; released != tt.wantRelease {
+					t.Errorf("token released = %v (ids %v), want %v", released, fa.released, tt.wantRelease)
+				}
 			}
 		})
 	}
