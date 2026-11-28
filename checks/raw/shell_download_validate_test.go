@@ -389,6 +389,69 @@ func Test_isGoUnpinnedDownload(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "go install -trimpath @latest",
+			args: args{
+				cmd: []string{"go", "install", "-trimpath", "github.com/guohuiyuan/go-music-dl/cmd/music-dl@latest"},
+			},
+			want: true,
+		},
+		{
+			name: "go install -trimpath -ldflags= @master",
+			args: args{
+				cmd: []string{"go", "install", "-trimpath", "-ldflags=-s -w", "github.com/org/name/cmd/tool@master"},
+			},
+			want: true,
+		},
+		{
+			name: "go install -ldflags value @latest",
+			args: args{
+				cmd: []string{"go", "install", "-ldflags", "-s -w", "github.com/org/name@latest"},
+			},
+			want: true,
+		},
+		{
+			name: "go install -o value @latest",
+			args: args{
+				cmd: []string{"go", "install", "-o", "bin/tool", "github.com/org/name@latest"},
+			},
+			want: true,
+		},
+		{
+			name: "go install --trimpath @latest",
+			args: args{
+				cmd: []string{"go", "install", "--trimpath", "github.com/org/name@latest"},
+			},
+			want: true,
+		},
+		{
+			name: "go install -trimpath pinned hash",
+			args: args{
+				cmd: []string{"go", "install", "-trimpath", "github.com/org/name@1111111111ccccccccccaaaaaaaaaa9999999999"},
+			},
+			want: false,
+		},
+		{
+			name: "go install -tags value pinned semver",
+			args: args{
+				cmd: []string{"go", "install", "-tags", "netgo", "github.com/org/name@v1.2.3"},
+			},
+			want: false,
+		},
+		{
+			name: "go get -insecure -trimpath semver",
+			args: args{
+				cmd: []string{"go", "get", "-insecure", "-trimpath", "github.com/org/name@v1.2.3"},
+			},
+			want: true,
+		},
+		{
+			name: "go install -trimpath local folder",
+			args: args{
+				cmd: []string{"go", "install", "-trimpath", "./cmd/tool"},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

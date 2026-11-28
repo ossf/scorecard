@@ -500,20 +500,32 @@ func isGoDownload(cmd []string) bool {
 	return isBinaryName("go", cmd[0]) && slices.Contains([]string{"get", "install"}, cmd[1])
 }
 
+// goFlagsWithValue are the go build flags that read their value from the
+// next argument when it isn't given as -flag=value.
+var goFlagsWithValue = []string{
+	"-C", "-asmflags", "-buildmode", "-buildvcs", "-compiler", "-covermode", "-coverpkg",
+	"-exec", "-gccgoflags", "-gcflags", "-installsuffix", "-ldflags", "-mod", "-modfile",
+	"-o", "-overlay", "-p", "-pgo", "-pkgdir", "-tags", "-toolexec",
+}
+
 func isGoUnpinnedDownload(cmd []string) bool {
 	insecure := false
 	hashRegex := regexp.MustCompile("^[A-Fa-f0-9]{40,}$")
 	semverRegex := regexp.MustCompile(`^v\d+\.\d+\.\d+(-[0-9A-Za-z-.]+)?(\+[0-9A-Za-z-.]+)?$`)
 
 	for i := 1; i < len(cmd)-1; i++ {
-		// Skip all flags
-		// TODO skip other build flags which might take arguments
-		for i < len(cmd)-1 && slices.Contains([]string{"-d", "-f", "-t", "-u", "-v", "-fix", "-insecure"}, cmd[i+1]) {
+		// Skip all flags, and the value of build flags that take one
+		// as a separate argument (go install -o bin pkg@latest).
+		for i < len(cmd)-1 && strings.HasPrefix(cmd[i+1], "-") {
+			flag := "-" + strings.TrimLeft(cmd[i+1], "-")
 			// Record the flag -insecure
-			if cmd[i+1] == "-insecure" {
+			if flag == "-insecure" {
 				insecure = true
 			}
 			i++
+			if i < len(cmd)-1 && !strings.Contains(flag, "=") && slices.Contains(goFlagsWithValue, flag) {
+				i++
+			}
 		}
 
 		if i+1 >= len(cmd) {
