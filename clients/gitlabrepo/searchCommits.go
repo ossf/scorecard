@@ -53,11 +53,15 @@ func (handler *searchCommitsHandler) search(request clients.SearchCommitsOptions
 	var ret []clients.Commit
 	for _, commit := range commits {
 		if _, ok := userMap[commit.CommitterEmail]; !ok {
-			user, _, err := handler.glClient.Search.Users(commit.CommitterEmail, &gitlab.SearchOptions{})
+			users, _, err := handler.glClient.Search.Users(commit.CommitterEmail, &gitlab.SearchOptions{})
 			if err != nil {
 				return nil, fmt.Errorf("gitlab-searchCommits: %w", err)
 			}
-			userMap[commit.CommitterEmail] = user[0]
+			if len(users) > 0 {
+				userMap[commit.CommitterEmail] = users[0]
+			} else {
+				userMap[commit.CommitterEmail] = &gitlab.User{}
+			}
 		}
 
 		ret = append(ret, clients.Commit{
