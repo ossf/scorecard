@@ -160,6 +160,9 @@ func TestUntrustedCheckoutExpressions(t *testing.T) {
 		{name: "merge commit sha", ref: "${{ github.event.pull_request.merge_commit_sha }}", expected: true},
 		{name: "refs pull merge", ref: "refs/pull/${{ github.event.number }}/merge", expected: true},
 		{name: "workflow run head sha", ref: "${{ github.event.workflow_run.head_sha }}", expected: true},
+		{name: "workflow run head commit id", ref: "${{ github.event.workflow_run.head_commit.id }}", expected: true},
+		{name: "workflow run pull requests head sha", ref: "${{ github.event.workflow_run.pull_requests[0].head.sha }}", expected: true},
+		{name: "workflow run pull requests head branch", ref: "${{ github.event.workflow_run.pull_requests[0].head.ref }}", expected: false},
 		{name: "workflow run head branch alone is a base branch name", ref: "${{ github.event.workflow_run.head_branch }}", expected: false},
 		{name: "workflow run bare object is not a ref", ref: "${{ github.event.workflow_run }}", expected: false},
 		{name: "head ref shorthand alone is a base branch name", ref: "${{ github.head_ref }}", expected: false},
@@ -233,6 +236,21 @@ func TestGithubDangerousWorkflow(t *testing.T) {
 			name:     "run untrusted code checkout test - workflow_run",
 			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow_run.yml",
 			expected: ret{nb: 1},
+		},
+		{
+			name:     "run untrusted code checkout test - workflow_run head commit",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow-run-head-commit.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run untrusted code checkout test - workflow_run pull requests head",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-untrusted-checkout-workflow-run-pull-requests.yml",
+			expected: ret{nb: 1},
+		},
+		{
+			name:     "run trusted code checkout test - workflow_run head branch",
+			filename: ".github/workflows/github-workflow-dangerous-pattern-trusted-checkout-workflow-run-head-branch.yml",
+			expected: ret{nb: 0},
 		},
 		{
 			name:     "run untrusted code checkout test",

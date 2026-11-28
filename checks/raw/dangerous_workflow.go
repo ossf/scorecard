@@ -68,14 +68,17 @@ func containsUntrustedContextPattern(variable string) bool {
 type triggerName string
 
 var (
-	triggerPullRequestTarget             = triggerName("pull_request_target")
-	triggerWorkflowRun                   = triggerName("workflow_run")
-	checkoutUntrustedPullRequestHeadSHA  = "github.event.pull_request.head.sha"
-	checkoutUntrustedPullRequestMerge    = "github.event.pull_request.merge_commit_sha"
-	checkoutUntrustedWorkflowRunHeadSHA  = "github.event.workflow_run.head_sha"
-	checkoutUntrustedWorkflowRunHeadRepo = "github.event.workflow_run.head_repository"
-	checkoutUntrustedPullRefPrefix       = "refs/pull/"
-	checkoutUntrustedPullRequestRepo     = "github.event.pull_request.head.repo"
+	triggerPullRequestTarget                 = triggerName("pull_request_target")
+	triggerWorkflowRun                       = triggerName("workflow_run")
+	checkoutUntrustedPullRequestHeadSHA      = "github.event.pull_request.head.sha"
+	checkoutUntrustedPullRequestMerge        = "github.event.pull_request.merge_commit_sha"
+	checkoutUntrustedWorkflowRunHeadSHA      = "github.event.workflow_run.head_sha"
+	checkoutUntrustedWorkflowRunHeadCommitID = "github.event.workflow_run.head_commit.id"
+	checkoutUntrustedWorkflowRunPullRequests = "github.event.workflow_run.pull_requests"
+	checkoutUntrustedHeadSHAField            = ".head.sha"
+	checkoutUntrustedWorkflowRunHeadRepo     = "github.event.workflow_run.head_repository"
+	checkoutUntrustedPullRefPrefix           = "refs/pull/"
+	checkoutUntrustedPullRequestRepo         = "github.event.pull_request.head.repo"
 )
 
 // DangerousWorkflow retrieves the raw data for the DangerousWorkflow check.
@@ -245,18 +248,31 @@ func checkJobForUntrustedCodeCheckout(job *ghworkflow.Job, path string,
 // refs/pull/<n>/head, so a bare SHA resolves there and fetches the fork's code.
 //
 // github.event.workflow_run has the same shape. Its head_branch is a branch name
-// and is resolved in the base repository, so it is not matched on its own. Its
-// head_sha is the commit the triggering run executed, which GitHub serves from
-// the base repository when that run belongs to a pull request, so it is matched.
+// and is resolved in the base repository, so it is not matched on its own. The
+// expressions that name a commit are matched instead: head_sha, head_commit.id,
+// and the head of each entry of the pull_requests array. GitHub publishes those
+// commits in the base repository when the run belongs to a pull request.
 func isUntrustedCheckoutRef(ref string) bool {
 	if strings.Contains(ref, checkoutUntrustedPullRequestHeadSHA) ||
 		strings.Contains(ref, checkoutUntrustedPullRequestMerge) ||
-		strings.Contains(ref, checkoutUntrustedWorkflowRunHeadSHA) {
+		isUntrustedWorkflowRunRef(ref) {
 		return true
 	}
 	// refs/pull/<number>/merge and refs/pull/<number>/head are stored in the
 	// base repository but contain the pull request's code.
 	return strings.Contains(ref, checkoutUntrustedPullRefPrefix)
+}
+
+// isUntrustedWorkflowRunRef reports whether a ref reads a commit out of the
+// workflow run that triggered the job.
+func isUntrustedWorkflowRunRef(ref string) bool {
+	if strings.Contains(ref, checkoutUntrustedWorkflowRunHeadSHA) ||
+		strings.Contains(ref, checkoutUntrustedWorkflowRunHeadCommitID) {
+		return true
+	}
+	// pull_requests is an array, so the index is not fixed.
+	return strings.Contains(ref, checkoutUntrustedWorkflowRunPullRequests) &&
+		strings.Contains(ref, checkoutUntrustedHeadSHAField)
 }
 
 // isUntrustedCheckoutRepository reports whether a checkout reads from a fork

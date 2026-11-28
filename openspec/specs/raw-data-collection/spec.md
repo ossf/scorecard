@@ -314,7 +314,10 @@ controls, but only in workflows triggered by `pull_request_target` or
 
 - its `ref` input contains `github.event.pull_request.head.sha`,
   `github.event.pull_request.merge_commit_sha`,
-  `github.event.workflow_run.head_sha`, or `refs/pull/`; or
+  `github.event.workflow_run.head_sha`,
+  `github.event.workflow_run.head_commit.id`,
+  `github.event.workflow_run.pull_requests` together with `.head.sha`,
+  or `refs/pull/`; or
 - its `repository` input contains `github.event.pull_request.head.repo` or
   `github.event.workflow_run.head_repository`.
 
@@ -327,8 +330,9 @@ head commit in the base repository under `refs/pull/<n>/head`.
 
 The triggering workflow run has the same split.
 `github.event.workflow_run.head_branch` is a branch name and SHALL NOT be
-reported on its own; `github.event.workflow_run.head_sha` SHALL be reported,
-because it is the commit the run executed and GitHub serves it from the base
+reported on its own. The expressions that name a commit SHALL be reported —
+`head_sha`, `head_commit.id`, and the `head.sha` of each entry of the
+`pull_requests` array — because GitHub serves those commits from the base
 repository. Each report SHALL
 include the file, the step's line, the value of the input that matched, and the
 job.
