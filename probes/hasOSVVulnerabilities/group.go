@@ -24,6 +24,10 @@ import (
 )
 
 func intersect(v1, v2 clients.Vulnerability) bool {
+	if v1.ID != "" && v1.ID == v2.ID {
+		return true
+	}
+
 	// Check if any aliases intersect.
 	for _, alias := range v1.Aliases {
 		if slices.Contains(v2.Aliases, alias) {
@@ -43,15 +47,28 @@ func group(vulns []clients.Vulnerability) []clients.Vulnerability {
 		groups[i] = i
 	}
 
-	// Do a pair-wise (n^2) comparison and merge all intersecting vulns.
+	// Follow parent indexes to find the representative of a group.
+	root := func(index int) int {
+		for groups[index] != index {
+			groups[index] = groups[groups[index]]
+			index = groups[index]
+		}
+		return index
+	}
+
+	// Merge the roots of intersecting vulnerabilities.
 	for i := range vulns {
 		for j := i + 1; j < len(vulns); j++ {
 			if intersect(vulns[i], vulns[j]) {
-				// Merge the two groups. Use the smaller index as the representative ID.
-				groups[i] = min(groups[i], groups[j])
-				groups[j] = groups[i]
+				left, right := root(i), root(j)
+				groups[max(left, right)] = min(left, right)
 			}
 		}
+	}
+
+	// Resolve every member to its final group representative.
+	for i := range groups {
+		groups[i] = root(i)
 	}
 
 	// Extract groups into the final result structure.
