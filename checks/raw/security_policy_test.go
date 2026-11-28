@@ -49,6 +49,56 @@ func Test_isSecurityPolicyFilename(t *testing.T) {
 			filename: "doc/security.rst",
 			expected: true,
 		},
+		{
+			name:     "doc/security.md",
+			filename: "doc/security.md",
+			expected: true,
+		},
+		{
+			name:     "doc/SECURITY.MD uppercase",
+			filename: "doc/SECURITY.MD",
+			expected: true,
+		},
+		{
+			name:     "doc/security.markdown",
+			filename: "doc/security.markdown",
+			expected: true,
+		},
+		{
+			name:     "doc/security.adoc",
+			filename: "doc/security.adoc",
+			expected: true,
+		},
+		{
+			name:     ".gitlab/security.md",
+			filename: ".gitlab/security.md",
+			expected: true,
+		},
+		{
+			name:     ".gitlab/SECURITY.MD uppercase",
+			filename: ".gitlab/SECURITY.MD",
+			expected: true,
+		},
+		{
+			name:     ".gitlab/security.markdown",
+			filename: ".gitlab/security.markdown",
+			expected: true,
+		},
+		{
+			name:     ".gitlab/security.adoc",
+			filename: ".gitlab/security.adoc",
+			expected: true,
+		},
+		{
+			name:     ".gitlab/security.rst",
+			filename: ".gitlab/security.rst",
+			expected: true,
+		},
+		{
+			name:     "unsupported dir other/security.md",
+			filename: "other/security.md",
+			expected: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
