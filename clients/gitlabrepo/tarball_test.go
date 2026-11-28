@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -52,10 +53,12 @@ func setup(inputFile string) (tarballHandler, error) {
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("test failed to create TempFile: %w", err)
 	}
+	defer tempFile.Close()
 	testFile, err := os.OpenFile(inputFile, os.O_RDONLY, 0o644)
 	if err != nil {
 		return tarballHandler{}, fmt.Errorf("unable to open testfile: %w", err)
 	}
+	defer testFile.Close()
 	if _, err := io.Copy(tempFile, testFile); err != nil {
 		return tarballHandler{}, fmt.Errorf("unable to do io.Copy: %w", err)
 	}
@@ -178,5 +181,58 @@ func TestExtractTarball(t *testing.T) {
 				t.Error("client.files not cleaned up!")
 			}
 		})
+	}
+}
+
+func TestGetLocalPath(t *testing.T) {
+	t.Parallel()
+
+	handler, err := setup("testdata/basic.tar.gz")
+	if err != nil {
+		t.Fatalf("test setup failed: %v", err)
+	}
+	t.Cleanup(func() {
+		if err := handler.cleanup(); err != nil {
+			t.Errorf("cleanup failed: %v", err)
+		}
+	})
+	if err := handler.extractTarball(); err != nil {
+		t.Fatalf("extractTarball: %v", err)
+	}
+
+	localPath, err := handler.getLocalPath()
+	if err != nil {
+		t.Fatalf("getLocalPath: %v", err)
+	}
+	if !filepath.IsAbs(localPath) {
+		t.Errorf("expected an absolute path, got %q", localPath)
+	}
+	// The returned directory must hold the extracted repo, so tools that
+	// scan it (like osv-scanner) see the repo files and not the working dir.
+	content, err := os.ReadFile(filepath.Join(localPath, "dir1", "dir2", "file2"))
+	if err != nil {
+		t.Fatalf("reading extracted file from local path: %v", err)
+	}
+	if string(content) != "content2\n" {
+		t.Errorf("unexpected content: %q", content)
+	}
+}
+
+func TestGetLocalPathSetupError(t *testing.T) {
+	t.Parallel()
+
+	errWant := errors.New("setup failed")
+	handler := tarballHandler{
+		once:     new(sync.Once),
+		errSetup: errWant,
+	}
+	handler.once.Do(func() {})
+
+	localPath, err := handler.getLocalPath()
+	if !errors.Is(err, errWant) {
+		t.Errorf("expected %v, got %v", errWant, err)
+	}
+	if localPath != "" {
+		t.Errorf("expected empty path on error, got %q", localPath)
 	}
 }
