@@ -94,13 +94,17 @@ var checkDependencyFileExists fileparser.DoWhileTrueOnFilename = func(name strin
 
 	// https://docs.renovatebot.com/configuration-options/
 	case "renovate.json",
+		"renovate.jsonc",
 		"renovate.json5",
 		".github/renovate.json",
+		".github/renovate.jsonc",
 		".github/renovate.json5",
 		".gitlab/renovate.json",
+		".gitlab/renovate.jsonc",
 		".gitlab/renovate.json5",
 		".renovaterc",
 		".renovaterc.json",
+		".renovaterc.jsonc",
 		".renovaterc.json5":
 		*ptools = append(*ptools, checker.Tool{
 			Name: "RenovateBot",
