@@ -21,7 +21,7 @@
 * [fast-check](https://github.com/dubzzz/fast-check)
   * Detection based on import statements in JavaScript and TypeScript files.
 * [Atheris](https://github.com/google/atheris)
-  * Detection based on the presence of `import atheris` in Python files.
+  * Detection based on the presence of Atheris imports (`import atheris` or `from atheris import ...`) in Python files.
 * [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz.html)
   * Detection based on presence of `libfuzzer_sys` in Rust files.
 * [FsCheck](https://github.com/fscheck/FsCheck)

@@ -130,7 +130,7 @@ var languageFuzzSpecs = map[clients.LanguageName]languageFuzzConfig{
 	},
 	clients.Python: {
 		filePatterns: []string{"*.py"},
-		funcPattern:  `import atheris`,
+		funcPattern:  `(import\s+atheris|from\s+atheris(\.\w+)*\s+import)`,
 		Name:         fuzzers.PythonAtheris,
 		Desc: asPointer(
 			"Python fuzzing by way of Atheris"),

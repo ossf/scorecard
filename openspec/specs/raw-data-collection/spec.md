@@ -400,7 +400,8 @@ least a quarter of the average line count per language; when the client
 reports all languages, every supported language SHALL be searched. The
 markers SHALL be: Go native fuzz functions in `*_test.go`; libFuzzer entry
 points in C, C++, and Swift; `libfuzzer_sys` in Rust; Jazzer's
-`FuzzedDataProvider` import in Java; `import atheris` in Python; fast-check
+`FuzzedDataProvider` import in Java; Atheris imports (`import atheris` or
+`from atheris import`) in Python; fast-check
 imports in JavaScript and TypeScript; QuickCheck, Hedgehog, Validity, or
 SmallCheck imports in Haskell; EQC or PropEr includes in Erlang; PropCheck
 or ExUnitProperties in Elixir; `qcheck` in Gleam; and FsCheck in C# and F#.
@@ -411,6 +412,13 @@ or ExUnitProperties in Elixir; `qcheck` in Gleam; and FsCheck in C# and F#.
   `parse_test.go`
 - **WHEN** the Fuzzing raw data is collected
 - **THEN** the Go built-in fuzzer is recorded with that file and line
+
+#### Scenario: Python Atheris from-import test
+
+- **GIVEN** a Python repository with `from atheris import FuzzedDataProvider`
+  in `fuzz_target.py`
+- **WHEN** the Fuzzing raw data is collected
+- **THEN** Python Atheris is recorded as a fuzzer with that file and line
 
 #### Scenario: Minor language not searched
 

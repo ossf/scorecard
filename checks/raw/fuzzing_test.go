@@ -196,6 +196,24 @@ func Test_fuzzFileAndFuncMatchPattern(t *testing.T) {
 			wantErr:           true,
 		},
 		{
+			name:              "Test_fuzzFuncRegex Python Atheris from-import success",
+			expectedFileMatch: true,
+			expectedFuncMatch: true,
+			lang:              clients.LanguageName("python"),
+			fileName:          "fuzz_test.py",
+			fileContent:       `from atheris import FuzzedDataProvider`,
+			wantErr:           false,
+		},
+		{
+			name:              "Test_fuzzFuncRegex Python Atheris import success",
+			expectedFileMatch: true,
+			expectedFuncMatch: true,
+			lang:              clients.LanguageName("python"),
+			fileName:          "fuzz_test.py",
+			fileContent:       `import atheris`,
+			wantErr:           false,
+		},
+		{
 			name:              "Test_fuzzFuncRegex not a support language",
 			expectedFileMatch: false,
 			expectedFuncMatch: false,
@@ -813,6 +831,78 @@ func Test_checkFuzzFunc(t *testing.T) {
 				},
 			},
 			fileContent: "open Expecto.ExpectoFsCheck",
+		},
+		{
+			name:     "Python with Atheris via import",
+			want:     true,
+			fileName: []string{"fuzz_test.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import atheris",
+		},
+		{
+			name:     "Python with Atheris via import with multiple spaces",
+			want:     true,
+			fileName: []string{"fuzz_test.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import   atheris",
+		},
+		{
+			name:     "Python with Atheris via from-import FuzzedDataProvider",
+			want:     true,
+			fileName: []string{"fuzz_test.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from atheris import FuzzedDataProvider",
+		},
+		{
+			name:     "Python with Atheris via from-import instrument_all",
+			want:     true,
+			fileName: []string{"fuzz_test.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from atheris import instrument_all",
+		},
+		{
+			name:     "Python with Atheris via from-import multiple",
+			want:     true,
+			fileName: []string{"fuzz_test.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "from atheris import FuzzedDataProvider, instrument_all",
+		},
+		{
+			name:     "Python with no fuzzing",
+			want:     false,
+			fileName: []string{"test_app.py"},
+			langs: []clients.Language{
+				{
+					Name:     clients.Python,
+					NumLines: 50,
+				},
+			},
+			fileContent: "import unittest\nimport sys",
 		},
 	}
 	for _, tt := range tests {
