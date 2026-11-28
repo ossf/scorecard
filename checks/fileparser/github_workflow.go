@@ -535,6 +535,16 @@ func IsPackagingWorkflow(workflow *ghworkflow.Workflow, fp string) (JobMatchResu
 			LogText: "candidate docker publishing workflow",
 		},
 		{
+			// Docker bake packages.
+			Steps: []*JobMatcherStep{
+				{
+					Uses: "docker/bake-action",
+					With: map[string]string{"push": "true"},
+				},
+			},
+			LogText: "candidate docker publishing workflow using bake",
+		},
+		{
 			// Python packages.
 			Steps: []*JobMatcherStep{
 				{
