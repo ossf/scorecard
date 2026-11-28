@@ -15,6 +15,7 @@
 package raw
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -2997,6 +2998,125 @@ func TestAnalyseCentralPackageManagementPinned(t *testing.T) {
 				t.Errorf("expected %v unpinned dependencies. Got %v", tt.unpinnedDependencies, unpinned)
 			}
 		})
+	}
+}
+
+func TestProcessDirectoryPropsFileKeepsLookingWithoutCPM(t *testing.T) {
+	t.Parallel()
+
+	// Directory.Build.props carries shared build settings and no CPM property.
+	// It sorts before Directory.Packages.props in the lexical order used by both
+	// the tarball handler and filepath.Walk, so it must not end the iteration.
+	buildProps := []byte(`<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>`)
+
+	packagesProps := []byte(`<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="SomePackage" Version="[4.4.5]" />
+  </ItemGroup>
+</Project>`)
+
+	var pdata nugetPostProcessData
+	dl := scut.TestDetailLogger{}
+
+	cont, err := processDirectoryPropsFile("Directory.Build.props", buildProps, &pdata, dl)
+	if err != nil {
+		t.Fatalf("unexpected error on Directory.Build.props: %v", err)
+	}
+	if !cont {
+		t.Fatalf("Directory.Build.props without CPM must not stop the iteration")
+	}
+	if pdata.CpmConfig.IsCPMEnabled {
+		t.Errorf("CPM must not be reported as enabled after Directory.Build.props")
+	}
+
+	cont, err = processDirectoryPropsFile("Directory.Packages.props", packagesProps, &pdata, dl)
+	if err != nil {
+		t.Fatalf("unexpected error on Directory.Packages.props: %v", err)
+	}
+	if cont {
+		t.Errorf("the file declaring CPM must stop the iteration")
+	}
+	if !pdata.CpmConfig.IsCPMEnabled {
+		t.Fatalf("central package management was not detected")
+	}
+	if len(pdata.CpmConfig.PackageVersions) != 1 {
+		t.Errorf("expected 1 package version, got %d", len(pdata.CpmConfig.PackageVersions))
+	}
+}
+
+func TestPostProcessNugetDependenciesFindsCPMAfterDirectoryBuildProps(t *testing.T) {
+	t.Parallel()
+
+	// Both files match Directory.*.props, and Directory.Build.props is listed
+	// first by both the tarball handler and filepath.Walk. The search must not
+	// stop on it, or central package management is never read.
+	files := map[string]string{
+		"Directory.Build.props": `<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>`,
+		"Directory.Packages.props": `<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Newtonsoft.Json" Version="[13.0.3]" />
+  </ItemGroup>
+</Project>`,
+		// No RestoreLockedMode, so the csproj path cannot pin anything and only
+		// central package management can.
+		"App.csproj": `<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+</Project>`,
+	}
+	listed := []string{"Directory.Build.props", "Directory.Packages.props", "App.csproj"}
+
+	ctrl := gomock.NewController(t)
+	mockRepoClient := mockrepo.NewMockRepoClient(ctrl)
+	mockRepoClient.EXPECT().ListFiles(gomock.Any()).Return(listed, nil).AnyTimes()
+	mockRepoClient.EXPECT().GetDefaultBranchName().Return("main", nil).AnyTimes()
+	mockRepoClient.EXPECT().URI().Return("github.com/ossf/scorecard").AnyTimes()
+	mockRepoClient.EXPECT().GetFileReader(gomock.Any()).AnyTimes().DoAndReturn(
+		func(name string) (io.ReadCloser, error) {
+			content, ok := files[path.Base(filepath.ToSlash(name))]
+			if !ok {
+				return nil, fmt.Errorf("unexpected file %q", name)
+			}
+			return io.NopCloser(strings.NewReader(content)), nil
+		})
+
+	pdata := checker.PinningDependenciesData{
+		Dependencies: []checker.Dependency{
+			{
+				Type:        checker.DependencyUseTypeNugetCommand,
+				Pinned:      boolAsPointer(false),
+				Remediation: &finding.Remediation{Text: "remediate"},
+			},
+		},
+	}
+	dl := scut.TestDetailLogger{}
+	req := checker.CheckRequest{
+		RepoClient: mockRepoClient,
+		Dlogger:    &dl,
+	}
+
+	if err := postProcessNugetDependencies(&req, &pdata); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if pdata.Dependencies[0].Pinned == nil || !*pdata.Dependencies[0].Pinned {
+		t.Errorf("nuget command left unpinned: central package management was never read")
 	}
 }
 
