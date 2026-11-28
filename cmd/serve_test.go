@@ -114,15 +114,16 @@ func TestIsCrossOrigin(t *testing.T) {
 func TestServeHandler(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		headers  map[string]string
-		name     string
-		method   string
-		target   string
-		host     string
-		body     string
-		wantBody string
-		wantCode int
-		loopback bool
+		headers        map[string]string
+		name           string
+		method         string
+		target         string
+		host           string
+		body           string
+		wantBody       string
+		wantBodyPrefix string
+		wantCode       int
+		loopback       bool
 	}{
 		{
 			name:     "OPTIONS gets 404",
@@ -239,6 +240,20 @@ func TestServeHandler(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 			wantBody: "invalid request body",
 		},
+		{
+			name:           "malformed repository returns 400",
+			method:         http.MethodGet,
+			target:         "/?repo=::bad::",
+			wantCode:       http.StatusBadRequest,
+			wantBodyPrefix: "making remote repo:",
+		},
+		{
+			name:     "invalid commit_depth on GET returns 400",
+			method:   http.MethodGet,
+			target:   "/?repo=github.com/ossf/scorecard&commit_depth=invalid",
+			wantCode: http.StatusBadRequest,
+			wantBody: "invalid commit_depth",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -264,6 +279,9 @@ func TestServeHandler(t *testing.T) {
 			}
 			if tt.wantBody != "" && strings.TrimSpace(w.Body.String()) != tt.wantBody {
 				t.Errorf("body = %q, want %q", w.Body.String(), tt.wantBody)
+			}
+			if tt.wantBodyPrefix != "" && !strings.HasPrefix(strings.TrimSpace(w.Body.String()), tt.wantBodyPrefix) {
+				t.Errorf("body = %q, want prefix %q", w.Body.String(), tt.wantBodyPrefix)
 			}
 			if got := w.Header().Get("Access-Control-Allow-Origin"); got != "" {
 				t.Errorf("Access-Control-Allow-Origin = %q, want none", got)

@@ -87,10 +87,10 @@ than `/health`. Requests with any other method SHALL receive status 404.
 
 For `GET` requests the system SHALL read the query parameters `repo`,
 `npm`, `pypi`, `rubygems`, `nuget`, `commit`, `file_mode`, `checks`
-(comma-separated), `probes` (comma-separated), `show_details`, and
-`show_annotations`. `show_details` and `show_annotations` SHALL be enabled
-only by the exact value `true`. `GET` requests SHALL NOT accept a commit
-depth.
+(comma-separated), `probes` (comma-separated), `commit_depth` (integer),
+`show_details`, and `show_annotations`. `show_details` and `show_annotations`
+SHALL be enabled only by the exact value `true`. An invalid `commit_depth`
+SHALL fail with status 400.
 
 #### Scenario: Select checks by query
 
@@ -228,7 +228,6 @@ request passes validation but cannot be served. The message SHALL begin
 with a prefix naming the failed step:
 
 - `fetchGitRepositoryFromPackageManagers:` when package resolution fails
-- `making remote repo:` when the repository cannot be parsed
 - `cannot read yaml file:` when the check documentation cannot be read
 - `GetEnabled:` when check selection fails
 - `scorecard.Run:` when the scan fails
@@ -243,7 +242,7 @@ with a prefix naming the failed step:
 #### Scenario: Unparseable repository
 
 - **WHEN** a client posts `{"repo": "::bad::"}`
-- **THEN** the server responds with status 500 and a body beginning
+- **THEN** the server responds with status 400 and a body beginning
   `making remote repo:`
 
 ### Requirement: Cross-Origin Requests

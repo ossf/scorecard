@@ -27,6 +27,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -75,37 +76,65 @@ func newServer(logger *log.Logger) *server {
 	}
 }
 
-func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
+func parsePOSTRequest(w http.ResponseWriter, r *http.Request) (*scorecardRequest, bool) {
 	var req scorecardRequest
-	if r.Method == http.MethodPost {
-		body := http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
-		err := json.NewDecoder(body).Decode(&req)
-		if err == nil {
-			// The decoder stops after the first JSON value; read the rest so an
-			// oversized body is rejected even when it starts with valid JSON.
-			_, err = io.Copy(io.Discard, body)
-		}
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
-			http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
-			return
-		}
+	body := http.MaxBytesReader(w, r.Body, maxRequestBodyBytes)
+	err := json.NewDecoder(body).Decode(&req)
+	if err == nil {
+		// The decoder stops after the first JSON value; read the rest so an
+		// oversized body is rejected even when it starts with valid JSON.
+		_, err = io.Copy(io.Discard, body)
+	}
+	var maxBytesErr *http.MaxBytesError
+	if errors.As(err, &maxBytesErr) {
+		http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+		return nil, false
+	}
+	if err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return nil, false
+	}
+	return &req, true
+}
+
+func parseGETRequest(w http.ResponseWriter, r *http.Request) (*scorecardRequest, bool) {
+	q := r.URL.Query()
+	req := scorecardRequest{
+		Repo:            q.Get("repo"),
+		NPM:             q.Get("npm"),
+		PyPI:            q.Get("pypi"),
+		RubyGems:        q.Get("rubygems"),
+		Nuget:           q.Get("nuget"),
+		Checks:          strings.Split(q.Get("checks"), ","),
+		Commit:          q.Get("commit"),
+		ShowDetails:     q.Get("show_details") == "true",
+		ShowAnnotations: q.Get("show_annotations") == "true",
+		Probes:          strings.Split(q.Get("probes"), ","),
+		FileMode:        q.Get("file_mode"),
+	}
+	if depthStr := q.Get("commit_depth"); depthStr != "" {
+		depth, err := strconv.Atoi(depthStr)
 		if err != nil {
-			http.Error(w, "invalid request body", http.StatusBadRequest)
-			return
+			http.Error(w, "invalid commit_depth", http.StatusBadRequest)
+			return nil, false
 		}
+		req.CommitDepth = depth
+	}
+	return &req, true
+}
+
+func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
+	var (
+		req *scorecardRequest
+		ok  bool
+	)
+	if r.Method == http.MethodPost {
+		req, ok = parsePOSTRequest(w, r)
 	} else {
-		req.Repo = r.URL.Query().Get("repo")
-		req.NPM = r.URL.Query().Get("npm")
-		req.PyPI = r.URL.Query().Get("pypi")
-		req.RubyGems = r.URL.Query().Get("rubygems")
-		req.Nuget = r.URL.Query().Get("nuget")
-		req.Checks = strings.Split(r.URL.Query().Get("checks"), ",")
-		req.Commit = r.URL.Query().Get("commit")
-		req.ShowDetails = r.URL.Query().Get("show_details") == "true"
-		req.ShowAnnotations = r.URL.Query().Get("show_annotations") == "true"
-		req.Probes = strings.Split(r.URL.Query().Get("probes"), ",")
-		req.FileMode = r.URL.Query().Get("file_mode")
+		req, ok = parseGETRequest(w, r)
+	}
+	if !ok {
+		return
 	}
 
 	// Create a new options instance for each request to avoid race conditions
@@ -158,7 +187,7 @@ func (s *server) handleScorecard(w http.ResponseWriter, r *http.Request) {
 
 	repo, err = makeRepo(opts.Repo)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("making remote repo: %v", err), http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("making remote repo: %v", err), http.StatusBadRequest)
 		return
 	}
 
