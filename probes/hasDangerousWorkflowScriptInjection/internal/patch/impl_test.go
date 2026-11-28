@@ -150,7 +150,7 @@ func Test_patchWorkflow(t *testing.T) {
 				patchedErrs := validatePatchedWorkflow(output, inputErrs)
 				if len(patchedErrs) > 0 {
 					t.Errorf("Patched workflow for finding #%d is invalid. Error:\n%s", i,
-						fileparser.FormatActionlintError(patchedErrs))
+						fileparser.FormatActionlintError(tt.filePath, patchedErrs))
 				}
 
 				if dup, ok := tt.duplicates[i]; ok {
@@ -164,6 +164,37 @@ func Test_patchWorkflow(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestGeneratePatchValidationErrorIncludesFilePath(t *testing.T) {
+	t.Parallel()
+
+	const filePath = ".github/workflows/broken-patch.yml"
+	content := []byte("on: push\nenv: {FOO: bar}\njobs:\n  build:\n    runs-on: ubuntu-latest\n" +
+		"    steps:\n      - run: echo ${{ github.event.issue.title }}\n")
+	workflow, errs := ghworkflow.Parse(content)
+	if workflow == nil || len(errs) != 0 {
+		t.Fatalf("fixture must be a valid workflow, got diagnostics: %v", errs)
+	}
+
+	// Extending a flow-style env map produces an invalid patch; preserve its source path in the error.
+	patch, err := GeneratePatch(checker.File{
+		Path:    filePath,
+		Offset:  7,
+		Snippet: "github.event.issue.title",
+	}, content, workflow, errs)
+	if err == nil {
+		t.Fatal("GeneratePatch() succeeded despite an unexpected parser diagnostic")
+	}
+	if patch != "" {
+		t.Errorf("GeneratePatch() returned a patch after validation failed: %q", patch)
+	}
+	if !strings.Contains(err.Error(), "("+filePath+"):") {
+		t.Errorf("GeneratePatch() error = %q, want workflow path %q", err, filePath)
+	}
+	if !strings.Contains(err.Error(), `unexpected key "ISSUE_TITLE"`) {
+		t.Errorf("GeneratePatch() error = %q, want the parser diagnostic", err)
 	}
 }
 
