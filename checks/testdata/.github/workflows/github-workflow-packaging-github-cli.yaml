@@ -1,0 +1,11 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release
+        run: gh release create "v1.0.0" dist/example.tar.gz
