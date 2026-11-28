@@ -142,8 +142,14 @@ func (handler *branchesHandler) getBranch(branch string) (*clients.BranchRef, er
 		return ret, nil
 	}
 
-	bran, _, err := handler.queryBranch(handler.repourl.projectID, branch)
+	bran, resp, err := handler.queryBranch(handler.repourl.projectID, branch)
 	if err != nil {
+		// A release can point to a branch that was deleted or renamed. Return no branch,
+		// as the GitHub client does, so the Branch-Protection check skips it instead of
+		// failing with an inconclusive score (#2161).
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("error getting branch in branchesHandler.getBranch: %w", err)
 	}
 

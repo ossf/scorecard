@@ -360,3 +360,59 @@ func Test_branchesHandler_getBranch_nil_response(t *testing.T) {
 		})
 	}
 }
+
+func Test_branchesHandler_getBranch_missing_branch(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		resp      *gitlab.Response
+		name      string
+		expectErr bool
+	}{
+		{
+			name: "deleted branch is skipped",
+			resp: &gitlab.Response{Response: &http.Response{StatusCode: http.StatusNotFound}},
+		},
+		{
+			name:      "server error is still returned",
+			resp:      &gitlab.Response{Response: &http.Response{StatusCode: http.StatusInternalServerError}},
+			expectErr: true,
+		},
+		{
+			name:      "nil response is still returned",
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler := branchesHandler{
+				once: new(sync.Once),
+				repourl: &Repo{
+					projectID: "5000",
+					commitSHA: clients.HeadSHA,
+				},
+				queryBranch: func(pid interface{}, branch string, options ...gitlab.RequestOptionFunc) (*gitlab.Branch, *gitlab.Response, error) {
+					return nil, tt.resp, errors.New("query failed")
+				},
+			}
+			handler.once.Do(func() {})
+
+			branch, err := handler.getBranch("release-1.0")
+			if tt.expectErr {
+				if err == nil {
+					t.Fatal("expected an error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if branch != nil {
+				t.Fatalf("expected no branch, got %v", branch)
+			}
+		})
+	}
+}
